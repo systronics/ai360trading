@@ -1,4 +1,4 @@
-# Googlepass- Tips & Tricks How to
+# Googlepass- Tips and Tricks How to
 
 Recording pieces of code and life. [https://googlepass.net](https://googlepass.net)
 
