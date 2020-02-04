@@ -1,0 +1,39 @@
+# Dependencies
+markdown:         kramdown
+highlighter:      rouge
+
+# Permalinks
+permalink:        pretty
+
+# Setup
+title:            Googlepass
+tagline:          'Tips and Tricks How to'
+description:      'Recover-password, Data-backup, Computer-repair, Website-Design, Earn-money-online, Equity-share, Trading-tips, Free-download.'
+url:              https://googlepass.net/
+
+author:
+  name:           'Amit Kumar'
+  url:            https://twitter.com/systronics/
+
+paginate:         2
+google_analytics: 'UA-8307371-4'
+bing_seo:		  'FE7B6C033952978EF8BB96C0C26CA095'
+emailme:          mailto:amit@googlepass.net
+
+gems:             [jekyll-paginate, jekyll-seo-tag, jekyll-sitemap]
+
+github:
+  repo:           https://github.com/systronics/googlepass/
+
+tags:
+
+twitter_username: systronics
+facebook_username: systronics
+linkedin_username: systronics
+pinterest_username: systronics
+youtube_username: amitkumarsystronics
+instagram_username: systronics
+telegram_username: systronics
+reddit_username: googlepass
+quora_username: Systronics-1
+github_username:  systronics

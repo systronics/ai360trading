@@ -1,0 +1,56 @@
+<head>
+<link href="http://gmpg.org/xfn/11" rel="profile">
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+<!-- Meta Start-->
+<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1">
+<meta name="msvalidate.01" content="{{ site.bing_seo }}">
+<meta name="Language" content="en">
+<meta name="robots" content="all">
+<meta name="robots" content="index">
+<meta name="resource-type" content="document">
+<meta name="audience" content="all">
+<meta name="rating" content="general">
+<meta name="geo.country" content="IN">
+<meta name="geo.placename" content="India">
+<meta name="distribution" content="global">
+<meta name="revisit" content="1 days">
+<meta property="og:type" content="website" >
+<meta property="og:image" content="https://googlepass.net/public/image/gp.png"/>
+
+<title>
+    {% if page.title == "Home" %}
+      {{ site.title }} &middot; {{ site.tagline }}
+    {% else %}
+      {{ page.title }} &middot; {{ site.title }}
+    {% endif %}
+  </title>
+
+<!-- CSS-->
+<link rel="stylesheet" href="/public/css/poole.css">
+<link rel="stylesheet" href="/public/css/syntax.css">
+<link rel="stylesheet" href="/public/css/hyde.css">
+<link rel="stylesheet" href="/public/css/fonts.css">
+<link rel="stylesheet" href="/public/font-awesome/css/font-awesome.min.css">
+
+<!-- Icons-->
+<link rel="apple-touch-icon" href="/public/image/gp144X144.png">
+<link rel="shortcut icon" href="/public/image/favicon.ico">
+
+<!-- RSS -->
+<link rel="alternate" type="application/rss+xml" title="RSS" href="/atom.xml">
+  
+  <!-- Google analytics -->
+  {% if site.google_analytics and jekyll.environment == 'production' %}
+  {% include analytics.html %}
+  {% endif %}
+
+  {% seo %}
+
+  {% if site.tags == "" %}
+    {% include collecttags.html %}
+  {% endif %}
+
+  {% if page.robots %} <meta name="robots" content="{{page.robots}}" />{% endif %}
+  
+</head>
