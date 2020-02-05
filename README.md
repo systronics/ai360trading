@@ -1,7 +1,3 @@
----
-layout: page
----
-
 # Googlepass- Tips and Tricks How to
 
 To show final look of my new site, click- [https://googlepass.net](https://googlepass.net)
