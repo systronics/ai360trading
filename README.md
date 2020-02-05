@@ -4,7 +4,7 @@ layout: page
 
 # Googlepass- Tips and Tricks How to
 
-Recording pieces of code and life. [https://googlepass.net](https://googlepass.net)
+To show final look of my new site, click- [https://googlepass.net](https://googlepass.net)
 
 ### Theme
 
