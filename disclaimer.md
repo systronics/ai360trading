@@ -1,7 +1,8 @@
 ---
 layout: page
-title: Disclaimer
 ---
+
+# Disclaimer
 
 <b>Terms of use-</b><br />
 This website or blog has some terms and conditions. If you accept these terms and conditions, you can <b>ENTER </b>in this website or blog. If you don’t accept, you must <b>EXIT </b>from this website or blog. This website or blog just provides links that are hosted on some third party websites or blogs. I don't have any association with these websites. You are solely responsible for verifying the accuracy of information, images, text, multimedia, advertisements and other content. I am not responsible or liable in any manner for any content or third party products advertisements posted here.<br />
