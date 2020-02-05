@@ -1,6 +1,3 @@
----
-layout: page
----
 
 # Released under MIT License
 
