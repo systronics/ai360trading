@@ -6,8 +6,9 @@ highlighter:      rouge
 permalink:        pretty
 
 # Setup
-title:            Googlepass-Tips and Tricks How to
+title:            Googlepass- Tips and Tricks How to
 description:      'Recover-password, Data-backup, Computer-repair, Website-Design, Earn-money-online, Equity-share, Trading-tips, Free-download.'
+keywords:         'Recover-password, Data-backup, Computer-repair, Website-Design, Earn-money-online, Equity-share, Trading-tips, Free-download.'
 url:              https://googlepass.net/
 
 author:
@@ -16,7 +17,7 @@ author:
 
 paginate:         2
 google_analytics: 'UA-8307371-4'
-bing_seo:		  'FE7B6C033952978EF8BB96C0C26CA095'
+bing_seo: 'FE7B6C033952978EF8BB96C0C26CA095'
 emailme:          mailto:amit@googlepass.net
 
 gems:             [jekyll-paginate, jekyll-seo-tag, jekyll-sitemap]
