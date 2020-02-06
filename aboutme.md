@@ -10,7 +10,7 @@ layout: page
 
 
 I am Amit Kumar, a Blogger, Tech-savy. My nick name is Systronics. I love to share my thoughts and ideas through my blogs and websites. My hobby is  online surfing in deep way. I help to earn money online without investment through mobile or computer. I like to help and suggest to my readers and followers. I am from Haridwar, INDIA.
-If you have any query. <a href="/contactme">Contact me</a><br>
+If you have any query. <a href="mailto:amit@googlepass.net">Mail me</a><br>
 
 <h2>My Blogs and Websites</h2>
 <a href="http://www.googlepass.blogspot.com/">http://www.googlepass.blogspot.com</a><br>
