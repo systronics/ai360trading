@@ -1,6 +1,6 @@
-# Googlepass- Tips and Tricks How to
+# Googlepass- Tips and Tricks How to Recover
 
-To show final look of my new site, click- [https://googlepass.net](https://googlepass.net)
+A Blog [https://googlepass.net](https://googlepass.net) by [Amit Kumar](https://googlepass.net/aboutme).
 
 ### Theme
 
