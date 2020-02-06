@@ -8,12 +8,8 @@ permalink:        pretty
 # Setup
 title:            Googlepass- Tips and Tricks How to Recover
 sitename:         Googlepass
-tagline:         'Tips and Tricks How to Recover<Br>A Blog by <a href="https://googlepass.net/aboutme" target="_blank">Amit Kumar</a>'
+tagline:         'Tips and Tricks How to Recover'
 url:              https://googlepass.net/
-
-author:
-  name:           'Amit Kumar'
-  url:            https://twitter.com/systronics/
 
 paginate:         2
 google_analytics: 'UA-8307371-4'
