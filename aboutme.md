@@ -2,6 +2,7 @@
 layout: page
 ---
 
+# About me
 
 <p class="full-width no-margin"><img src="/public/image/profile.png" alt="Systronics" style="width:15rem;height:15rem;" align="right"/></p>
 
