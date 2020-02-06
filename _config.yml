@@ -14,7 +14,7 @@ url:              https://googlepass.net/
 paginate:         2
 google_analytics: 'UA-8307371-4'
 bing_seo: 'FE7B6C033952978EF8BB96C0C26CA095'
-emailme:          mailto:amit@googlepass.net
+email:          amit@googlepass.net
 
 gems:             [jekyll-paginate, jekyll-seo-tag, jekyll-sitemap]
 
