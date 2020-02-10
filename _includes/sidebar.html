@@ -1,12 +1,11 @@
 <div class="sidebar">
   <div class="container sidebar-sticky">
     <div class="sidebar-about">
-<p><a href="/">
-<img src="/public/image/gpheader.png" width="200" height="50" alt="Googlepass"></a>
-</p>
-<p><a href="/aboutme">
+<a href="/aboutme">
   <img src="/public/image/profile.png" width="150" height="150" alt="Systronics"></a></p>
-      <p class="lead">{{ site.tagline }}</p>
+      <p class="lead">{{ site.tagline }}<br>
+<a href="/">
+<img src="/public/image/gpheader.png" width="230" height="60" alt="Googlepass"></a>
     </div>
 
     <ul class="sidebar-nav">
@@ -29,9 +28,7 @@
           {% endif %}
         {% endif %}
       {% endfor %}
-      
-      <li class="sidebar-nav-item"><a href="{{ site.github.repo }}">Hosted by Github</a></li>
-      
+            
             <!-- social buttons -->
        {% if site.twitter_username %}
       <a href="https://twitter.com/{{site.twitter_username}}" target="_blank" style="text-decoration:none">
