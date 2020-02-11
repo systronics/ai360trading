@@ -5,7 +5,7 @@ description: These are top mutual funds 2020 for long term to investment.
 tags: tips-and-tricks top-mutual-funds earn-money
 ---
 
-<p><img src="https://images.pexels.com/photos/9660/business-money-pink-coins.jpg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940" width="400" height="200" alt="graph"></p>
+<p><img src="https://images.pexels.com/photos/9660/business-money-pink-coins.jpg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940" width="350" height="150" alt="graph"></p>
 
 <p>These are the top and best mutual funds for 2020 for SIP investment.</p>
 
