@@ -5,7 +5,7 @@ layout: page
 # Contact me
 
 <p class="message" align="right">
-  <h2>Computer repair, Data recovery, Online Support</h2><br>
+  Computer repair, Data recovery, Online Support<br>
   -- <i>Cheapest price</i>, @Googlepass<br>
   For any query, <a href="mailto:amit@googlepass.net">Mail me</a>
 </p>
