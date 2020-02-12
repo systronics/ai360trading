@@ -1,6 +1,6 @@
 ---
 layout: tagpage
-title: "kids-movies"
-tag: kids-movies
+title: "new-movies"
+tag: new-movies
 robots: noindex
 ---
