@@ -1,7 +1,9 @@
 ---
 layout: post
 title: Multi Bagger Stocks for 2020-
-description: These are best multi bagger stocks 2020.
+excerpt: These are best multi bagger stocks 2020.
+categories: Earn Money
+image: https://images.pexels.com/photos/534216/pexels-photo-534216.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940
 tags: tips-and-tricks earn-money
 ---
 
