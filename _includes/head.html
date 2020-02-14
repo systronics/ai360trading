@@ -20,60 +20,72 @@
 <meta name="revisit" content="1 days">
 <meta name="author" content="Amit Kumar"/>
 	
-<!-- Canonical link to help search engines -->
-<link rel="canonical" href="{{ site.baseurl }}{{ page.url }}"/>
-	
-<meta property="og:title" content="{% if page.title %}{{ page.title | strip_html | strip_newlines | truncate: 160 }}{% else %}{{ site.title }}{% endif %}">
-<meta property="og:site_name" content="{{ site.title }}" />
-<meta property="og:description" content="{% if page.excerpt %}{{ page.excerpt | strip_html | strip_newlines | truncate: 160 }}{% else %}{{ site.description }}{% endif %}">
-<meta property="og:url" content="{{ page.url | replace:'index.html','' | prepend: site.baseurl | prepend: site.url }}" />
-<meta property="og:locale" content="en_US" />
-<meta name="twitter:site" content="@systronics" />
-<meta name="twitter:description" content="{% if page.excerpt %}{{ page.excerpt | strip_html | strip_newlines | truncate: 160 }}{% else %}{{ site.description }}{% endif %}" />
+<meta property="og:title" content="{% if page.title %}{{ page.title | smartify | strip_html | strip_newlines | escape_once }}{% else %}{{ site.name }}{% endif %}">
+<meta property="og:type" content="{% if page.date %}article{% else %}website{% endif %}">
+<meta property="og:url" content="{{ page.url | replace:'/index.html','/' | prepend: site.baseurl | prepend: site.url }}">
+<meta property="og:image" content="{% if page.image %}{{ page.image | prepend: site.baseurl | prepend: site.url }}{% else %}{{ site.logo | prepend: site.baseurl | prepend: site.url }}{% endif %}">
+<meta property="og:description" content="{% if page.excerpt %}{{ page.excerpt | markdownify | strip_html | strip_newlines | truncate: 160 | escape_once }}{% else %}{{ site.description }}{% endif %}">
+<meta property="og:site_name" content="{{ site.name }}">
+<meta property="og:locale" content="{{ site.locale }}">
 
-  {% if page.title %}
-  	<!-- Article specific OG data -->
-  	<meta property="og:type" content="article" />
-  	<meta property="article:published_time" content="{{page.date}}" />
-  	{% if page.modified %}
-  		<meta property="article:modified_time" content="{{page.modified}}" />
-  	{% endif %}
-  	<meta property="article:author" content="http://facebook.com/systronics" />
-	<meta property="fb:app_id" content="451548405334620" />
-    <meta property="article:publisher" content="https://www.facebook.com/systronics" />
-  	<meta property="article:section" content="{{page.vertical}}" />
-  	{% for tag in page.categories %}
-  		<meta property="article:tag" content="{{tag}}" />
-  	{% endfor %}
-	<meta name="keywords" content="{{page.categories | join: ', '}}" />
-
-  	<meta name="twitter:card" content="summary_large_image" />
-  	<meta name="twitter:creator" content="@systronics" />
-  	<meta name="twitter:title" content="{{page.title}}" />
-	{% if page.ogimagenull %}
-		<!-- no og image -->
-	{% elsif page.ogimage %}
-		<meta property="og:image" content="{{page.ogimage}}" />
-	  	<meta name="twitter:image" content="{{page.ogimage}}" />
-	  	<meta property="og:image:width" content="600" />
-	  	<meta property="og:image:height" content="315" />
-	{% elsif page.image %}
-	  	<meta property="og:image" content="{{page.image}}" />
-	  	<meta name="twitter:image" content="{{page.image}}" />
-  	{% else %}
-  		<meta property="og:image" content="https://googlepass.net/public/image/gpheader.png" />
-  		<meta name="twitter:image" content="https://googlepass.net/public/image/gpheader.png" />
-  	{% endif %}
-
-  {% else %}
-  	<!-- OG data for homepage -->
-  	<meta property="og:image" content="https://googlepass.net/public/image/gpheader.png" />
-  	<meta property="og:type" content="website" />
-  	<meta name="twitter:card" content="summary" />
-  	<meta name="twitter:title" content="{{site.title}}" />
-  	<meta name="twitter:image" content="https://googlepass.net/public/image/gpheader.png" />
-	
+{% if site.facebook %}
+  {% if site.facebook.admins %}
+    <meta property="fb:admins" content="{{ site.facebook.admins }}">
   {% endif %}
+  {% if site.facebook.publisher %}
+    <meta property="article:publisher" content="{{ site.facebook.publisher }}">
+  {% endif %}
+  {% if site.facebook.app_id %}
+    <meta property="fb:app_id" content="{{ site.facebook.app_id }}">
+  {% endif %}
+{% endif %}
+
+{% if page.date %}
+  <meta property="article:author" content="https://www.facebook.com/{{ site.author.facebook }}">
+  <meta property="article:modified_time" content="{% if page.last_modified_at %}{{ page.last_modified_at | date_to_xmlschema }}{% else %}{{ page.date | date_to_xmlschema }}{% endif %}">
+  <meta property="article:published_time" content="{{ page.date | date_to_xmlschema }}">
+  {% for post in site.related_posts limit:3 %}
+    <meta property="og:see_also" content="{{ post.url | replace:'/index.html','/' | prepend: site.baseurl | prepend: site.url }}">
+  {% endfor %}
+{% endif %}
+
+{% if page.categories %}
+  {% for category in page.categories limit:1 %}
+  <meta property="article:section" content="{{ category }}">
+  {% endfor %}
+{% endif %}
+
+{% if page.tags %}
+  {% for tag in page.tags %}
+  <meta property="article:tag" content="{{ tag }}">
+  {% endfor %}
+{% endif %}
+	
+	<meta name="twitter:card" content="summary">
+<meta name="twitter:site" content="@{{ site.twitter.username | replace:'@','' }}">
+{% if page.date %}
+  <meta name="twitter:creator" content="@{{ site.author.twitter | replace:'@','' }}">
+{% endif %}
+<meta name="twitter:title" content="{% if page.title %}{{ page.title | smartify | strip_html | strip_newlines | escape_once }}{% else %}{{ site.name }}{% endif %}">
+<meta name="twitter:description" content="{% if page.excerpt %}{{ page.excerpt | markdownify | strip_html | strip_newlines | truncate: 160 | escape_once }}{% else %}{{ site.description }}{% endif %}">
+<meta name="twitter:image" content="{% if page.image %}{{ page.image | prepend: site.baseurl | prepend: site.url }}{% else %}{{ site.logo | prepend: site.baseurl | prepend: site.url }}{% endif %}">
+<meta name="twitter:url" content="{{ page.url | replace:'/index.html','/' | prepend: site.baseurl | prepend: site.url }}">
+	
+	<meta name="description" content="{% if page.excerpt %}{{ page.excerpt | markdownify | strip_html | strip_newlines | truncate: 160 | escape_once }}{% else %}{{ site.description }}{% endif %}">
+
+{% if page.robots %}
+  <meta name="robots" content="{{ page.robots }}">
+{% endif %}
+
+<link rel="canonical" href="{{ page.url | replace:'/index.html','/' | prepend: site.baseurl | prepend: site.url }}">
+
+{% if paginator.previous_page %}
+  <link rel="prev" href="{{ paginator.previous_page_path | replace:'/index.html','/' | prepend: site.baseurl | prepend: site.url }}">
+{% endif %}
+
+{% if paginator.next_page %}
+  <link rel="next" href="{{ paginator.next_page_path | replace:'/index.html','/' | prepend: site.baseurl | prepend: site.url }}">
+{% endif %}
 	
 <title>
     {% if page.title == "Home" %}
