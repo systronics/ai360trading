@@ -1,10 +1,10 @@
 ---
 layout:           post
-title:            "Multi Bagger Stocks to buy in 2020 for Long Term"
+title:            Multi Bagger Stocks to buy in 2020 for Long Term
 image:            https://images.pexels.com/photos/534216/pexels-photo-534216.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940
-excerpt:          "These are best multi bagger stocks to buy in 2020 for long or short term period. These are recommended stocks too for intraday trading."
+excerpt:          These are best multi bagger stocks to buy in 2020 for long or short term period. These are best stocks for intraday.
 categories:       Money
-tags:             "tips-and-tricks", "earn-money"
+tags:             tips-and-tricks earn-money
 ---
 
 <p><img src="https://images.pexels.com/photos/534216/pexels-photo-534216.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940" width="600" height="300" alt="stocks"></p>
