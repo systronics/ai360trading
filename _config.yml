@@ -1,35 +1,61 @@
 # Dependencies
-markdown:         kramdown
-highlighter:      rouge
+markdown:       kramdown
+highlighter:    rouge
 
 # Permalinks
-permalink:        pretty
+permalink:      pretty
 
 # Setup
-title:            Googlepass- Tips and Tricks How to Recover
-sitename:         Googlepass
-tagline:         'Tips and Tricks How to Recover'
-url:              https://googlepass.net/
-
-paginate:         1
-google_analytics: 'UA-8307371-4'
-bing_seo: 'FE7B6C033952978EF8BB96C0C26CA095'
+name:           "Googlepass"
+description:    "Googlepass offers tips and tricks how to recover Forget-password, Data-backup, Computer-repair, Website-Design, Earn-money, Equity-share, Trading-tips."
+title:          Googlepass- Tips and Tricks How to Recover
+tagline:        'Tips and Tricks How to Recover'
+url:            https://googlepass.net
+baseurl:        "/"
+logo:           https://googlepass.net/public/image/gp.png
+timezone:       Asia/India
+locale:         en_us
 email:          amit@googlepass.net
 
-gems:             [jekyll-paginate, jekyll-seo-tag, jekyll-sitemap]
+author:
+  facebook:     systronics
+  twitter:      systronics
+  
+facebook:
+  app_id:       451548405334620
+  publisher:    
+  admin:        systronics
+  
+facebook:
+  username:     systronics
+twitter:
+  username:     systronics
+linkedin:
+  username:     systronics
+pinterest:
+  username:     systronics
+youtube:
+  username:     amitkumarsystronics
+instagram:
+  username:     systronics
+telegram:
+  username:     amitkumarsystronics
+reddit:
+  username:     googlepass
+quora:
+  username:     systronics-1
+github:
+  username:     systronics
+  
+paginate:       1
+
+google_analytics: 'UA-8307371-4'
+
+bing_seo: 'FE7B6C033952978EF8BB96C0C26CA095'
+
+gems:           [jekyll-paginate, jekyll-seo-tag, jekyll-sitemap]
 
 github:
-  repo:           https://github.com/systronics/googlepass/
+  repo:         https://github.com/systronics/googlepass/
 
 tags:
-
-twitter_username: systronics
-facebook_username: systronics
-linkedin_username: systronics
-pinterest_username: systronics
-youtube_username: amitkumarsystronics
-instagram_username: systronics
-telegram_username: systronics
-reddit_username: googlepass
-quora_username: systronics-1
-github_username:  systronics
