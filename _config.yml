@@ -7,12 +7,12 @@ permalink:      pretty
 
 # Setup
 name:           "Googlepass"
-description:    "Googlepass offers tips and tricks how to recover Forget-password, Data-backup, Computer-repair, Website-Design, Earn-money, Equity-share, Trading-tips."
+keywords:       "Googlepass offers tips and tricks how to recover Forget-password, Data-backup, Computer-repair, Website-Design, Earn-money, Equity-share, Trading-tips."
 title:          Googlepass- Tips and Tricks How to Recover
 tagline:        'Tips and Tricks How to Recover'
 url:            https://googlepass.net
 baseurl:        "/"
-logo:           https://googlepass.net/public/image/gp.png
+logo:           https://googlepass.net/public/image/logo.png
 timezone:       Asia/India
 locale:         en_us
 email:          amit@googlepass.net
@@ -52,6 +52,7 @@ paginate:       1
 google_analytics: 'UA-8307371-4'
 
 bing_seo: 'FE7B6C033952978EF8BB96C0C26CA095'
+alexaVerifyID: 
 
 gems:           [jekyll-paginate, jekyll-seo-tag, jekyll-sitemap]
 
