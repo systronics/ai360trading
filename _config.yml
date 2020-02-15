@@ -6,9 +6,9 @@ highlighter:    rouge
 permalink:      pretty
 
 # Setup
-name:           "Googlepass"
+name:           "Googlepass- Tips and Tricks How to Recover"
 description:    "Googlepass offers tips and tricks how to recover Forget-password, Data-backup, Computer-repair, Website-Design, Earn-money, Equity-share, Trading-tips."
-tagline:        'Googlepass- Tips and Tricks How to Recover'
+tagline:        'Googlepass'
 url:            https://googlepass.net
 baseurl:        "/"
 logo:           https://googlepass.net/public/image/logo.png
