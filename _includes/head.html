@@ -3,23 +3,44 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
 <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
 
+<!-- CSS-->
+<link rel="stylesheet" href="https://googlepass.net/public/css/poole.css">
+<link rel="stylesheet" href="https://googlepass.net/public/css/syntax.css">
+<link rel="stylesheet" href="https://googlepass.net/public/css/hyde.css">
+<link rel="stylesheet" href="https://googlepass.net/public/css/fonts.css">
+<link rel="stylesheet" href="https://googlepass.net/public/font-awesome/css/font-awesome.min.css">
+	
+<!-- Icons-->	
+<link href='https://googlepass.net/public/image/favicon.png' rel='icon' type='image/x-icon' />
+<link href='https://googlepass.net/public/image/favicon.png' rel='icon' sizes='192x192' />
+<link href='https://googlepass.net/public/image/favicon.png' rel='shortcut icon' type='image/x-icon' />
+<link href='https://googlepass.net/public/image/favicon.png' rel='apple-touch-icon-precomposed' />
+<link href='https://googlepass.net/public/image/favicon.png' rel='apple-touch-icon-precomposed' sizes='114x114' />
+<link href='https://googlepass.net/public/image/favicon.png' rel='apple-touch-icon-precomposed' sizes='72x72' />
+<link href='https://googlepass.net/public/image/favicon.png' rel='apple-touch-icon-precomposed' sizes='144x144' />
+<link href="https://googlepass.net/public/image/favicon.ico" rel='icon' type='image/x-icon' />
+
+<!-- RSS -->
+<link rel="alternate" type="application/rss+xml" title="RSS" href="/atom.xml">
+	
 <!-- Enable responsiveness on mobile devices-->
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<link href="https://googlepass.net" hreflang="en" rel="alternate" />
+
+	<title>
+    {% if page.title == "Home" %}
+      {{ site.title }}
+    {% else %}
+      {{ page.title }} &middot; {{ site.name }}
+    {% endif %}
+  </title>
 	
 <!-- Other meta elements--> 
-<meta name="msvalidate.01" content="{{ site.bing_seo }}">
-<meta name="Language" content="en">
-<meta name="robots" content="all">
-<meta name="robots" content="index">
-<meta name="resource-type" content="document">
-<meta name="audience" content="all">
-<meta name="rating" content="general">
-<meta name="geo.country" content="IN">
-<meta name="geo.placename" content="India">
-<meta name="distribution" content="global">
-<meta name="revisit" content="1 days">
-<meta name="author" content="Amit Kumar"/>
+<meta name="msvalidate.01" content="{{ site.bing_seo }}" />
+<meta name="robots" content="all" />
+<meta name="resource-type" content="document" />
 	
+<!-- Social-->	
 <meta property="og:title" content="{% if page.title %}{{ page.title | smartify | strip_html | strip_newlines | escape_once }}{% else %}{{ site.name }}{% endif %}">
 <meta property="og:type" content="{% if page.date %}article{% else %}website{% endif %}">
 <meta property="og:url" content="{{ page.url | replace:'/index.html','/' | prepend: site.baseurl | prepend: site.url }}">
@@ -86,30 +107,6 @@
 {% if paginator.next_page %}
   <link rel="next" href="{{ paginator.next_page_path | replace:'/index.html','/' | prepend: site.baseurl | prepend: site.url }}">
 {% endif %}
-	
-<title>
-    {% if page.title == "Home" %}
-      {{ site.title }}
-    {% else %}
-      {{ page.title }} &middot; {{ site.title }}
-    {% endif %}
-  </title>
-
-<!-- CSS-->
-<link rel="stylesheet" href="/public/css/poole.css">
-<link rel="stylesheet" href="/public/css/syntax.css">
-<link rel="stylesheet" href="/public/css/hyde.css">
-<link rel="stylesheet" href="/public/css/fonts.css">
-<link rel="stylesheet" href="/public/font-awesome/css/font-awesome.min.css">
-
-<!-- Icons-->
-<link rel="apple-touch-icon" href="/public/image/gp.png">
-<link rel="shortcut icon" href="/public/image/favicon.ico">
-
-<!-- RSS -->
-<link rel="alternate" type="application/rss+xml" title="RSS" href="/atom.xml">
-<link href="https://googlepass.net/" rel="alternate" hreflang="x-default">
-<link rel="home" href="https://googlepass.net" />
   
   <!-- Google analytics -->
   {% if site.google_analytics and jekyll.environment == 'production' %}
@@ -121,7 +118,5 @@
   {% if site.tags == "" %}
     {% include collecttags.html %}
   {% endif %}
-
-  {% if page.robots %} <meta name="robots" content="{{page.robots}}" />{% endif %}
   
 </head>
