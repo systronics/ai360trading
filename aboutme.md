@@ -4,7 +4,7 @@ layout: page
 
 # About me
 
-<p class="full-width no-margin"><img src="/public/image/profile.png" alt="Systronics" style="width:15rem;height:15rem;" align="right"/></p>
+<p class="full-width no-margin"><img src="/public/image/profile.png" alt="Systronics" width="200" height="200" align="right"/></p>
 
 <blockquote class="full-width"><p>Tech Blogger, Tech Savy, Online Surfer, Hardware Engineer</p></blockquote>
 
