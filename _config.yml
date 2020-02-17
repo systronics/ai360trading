@@ -46,6 +46,7 @@ github:
   username:     systronics
   
 paginate:       1
+google_analytics: 'UA-8307371-4'
 
 gems:           [jekyll-paginate, jekyll-seo-tag, jekyll-sitemap]
 
