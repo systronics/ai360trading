@@ -85,6 +85,10 @@
   <meta property="article:section" content="{{ category }}">
   {% endfor %}
 {% endif %}
+	
+{%if page.tags %}
+<meta name="keywords" content="{{ page.tags | join: ', ' | escape }}"/>
+{%endif %}
 
 {% if page.tags %}
   {% for tag in page.tags %}
