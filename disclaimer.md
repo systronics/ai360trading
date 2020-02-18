@@ -1,5 +1,7 @@
 ---
 layout: page
+excerpt: This website or blog has some terms and conditions. If you accept these terms and conditions, you can ENTER in this website or blog. If you don’t accept, you must EXIT from here
+tags: googlepass disclaimer systronics amitkumar
 ---
 
 # Disclaimer
