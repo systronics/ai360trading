@@ -1,6 +1,5 @@
 ---
 layout: page
-title: About me
 excerpt: Myself Amit Kumar a Blogger, an author, a writer and a tech engineer. My social nick name is Systronics. I love to share my thoughts and ideas through my blogs and websites
 tags: googlepass blogger author amitkumarsystronics systronics amitkumar
 ---
