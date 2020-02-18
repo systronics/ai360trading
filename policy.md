@@ -1,5 +1,7 @@
 ---
 layout: page
+excerpt: I am the owner of Googlepass App, Blog, Page and Website . These are an Ad Supported services . These services are provided by Googlepass for entertaining and learning purpose
+tags: googlepass blogger policy systronics amitkumar
 ---
 
 # Privacy Policy
