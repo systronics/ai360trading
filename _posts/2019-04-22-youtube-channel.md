@@ -1,9 +1,15 @@
 ---
 layout: post
-title: My Youtube channel videos-
-description: These are my youtube videos for tech & entertain purpose-
-tags: trendings tips-and-tricks how-to earn-money hindi-tutorials recover-password top-ten
+title: Youtube Channel videos Amitkumarsystronics
+date:             2019-04-22T13:02:19+05:45
+last_modified_at: 2019-04-22T05:20:00+05:45
+image:            https://googlepass.net/public/image/ytd.png
+excerpt:          A youtube channels amitkumarsystronics provide hindi tutorials about website designing, tips and tricks, computer repair and data recovery.
+tags: trendings tips-and-tricks how-to earn-money hindi-tutorials recover-password top-ten website-design
 ---
+
+Subscribe my Youtube Channel amitkumarsystronics for hindi tutorials, website designing, tips and tricks, computer repair and data recovery, github jekyll support and much more entertainment.
+
 <iframe width="100%" height="425" src="https://www.youtube.com/embed/ntyhz7IECbw?autoplay=1&showinfo=0&loop=1&rel=0" 
 frameborder="0" 
 controls="controls" 
