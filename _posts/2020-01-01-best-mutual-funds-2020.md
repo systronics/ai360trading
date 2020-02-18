@@ -1,8 +1,11 @@
 ---
 layout: post
-title: Top mutual funds for 2020-
-description: These are top mutual funds 2020 for long term to investment.
-tags: tips-and-tricks top-mutual-funds earn-money
+title: Best Mutual Funds for 2020 to invest as SIP
+date:             2020-02-01T13:05:19+05:45
+last_modified_at: 2020-02-01T05:21:00+05:45
+image:            https://images.pexels.com/photos/9660/business-money-pink-coins.jpg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940
+excerpt:          These are the top and best mutual funds for 2020 for SIP investment. Always choose the best brokerage firm house or mutual fund house.
+tags: earn-money equity-share intraday-treding share-market-tips top-mutual-funds
 ---
 
 <p><img src="https://images.pexels.com/photos/9660/business-money-pink-coins.jpg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940" width="350" height="150" alt="graph"></p>
