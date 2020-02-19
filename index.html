@@ -2,88 +2,33 @@
 layout: default
 title: "Home"
 excerpt: "Googlepass offers tips and tricks how to recover Forget-password, Data-backup, Computer-repair, Website-Design, Earn-money, Equity-share, Trading-tips"
-tags: Googlepass offers, tips-and-tricks, how-to, recover, Forget-password, Data-backup, Computer-repair, Website-Design, Earn-money, Equity-share, Trading-tips
 ---
 
 <div align="center">
 <h1>{{ site.name }}</h1></div>
 
-<div class="posts">
-  <!-- Pined posts -->
-  {% if paginator.page == 1 %}
-    {% for post in site.posts %}
-      {% if post.pined %}
-        {% if post.lang %}
-        <div class="post" lang="{{post.lang}}">
-        {% else %}
-        <div class="post">
-        {% endif %}
-          <h2 class="post-title"><i class="em em-round_pushpin"></i>&nbsp;<a href="{{ post.url }}">{{ post.title }}</a></h2>
-
-          <span class="post-tags">
-            [&nbsp;
-            {% for tag in post.tags %}
-              {% capture tag_name %}{{ tag }}{% endcapture %}
-              <a class="no-underline" href="/tag/{{ tag_name }}"><code class="highligher-rouge"><nobr>{{ tag_name }}</nobr></code>&nbsp;</a>    
-            {% endfor %}
-            ]
-          </span>
-
-          <span class="post-date">{{ post.date | date_to_string }}</span>
-
-          {{ post.content }}
-        </div>
-        <hr>
-      {% endif %}
-    {% endfor %}
-  {% endif %}
-
-  <!-- Normal posts listed in the order of time -->
-
-  {% for post in paginator.posts %}
+<div class="post">
+  <style>
+div.a {
+  text-transform: uppercase;
+}</style>
+  
+<div class="a"><h2> {{ page.tag }}</h2></div>
+<ul>
+{% for post in site.tags[page.tag] %}
   {% if post.lang %}
-  <div class="post" lang="{{post.lang}}">
+  <li lang="{{post.lang}}">
   {% else %}
-  <div class="post">
+  <li>
   {% endif %}
-    <h2 class="post-title">
-      <a href="{{ post.url }}">
-        {{ post.title }}
-      </a>
-    </h2>
-
-    <span class="post-tags">
-      [&nbsp;
-      {% for tag in post.tags %}
-        {% capture tag_name %}{{ tag }}{% endcapture %}
-        <a class="no-underline" href="/tag/{{ tag_name }}"><code class="highligher-rouge"><nobr>{{ tag_name }}</nobr></code>&nbsp;</a>    
-      {% endfor %}
-      ]
-    </span>
-
-    <span class="post-date">{{ post.date | date_to_string }}</span>
-
-    {{ post.content }}
-  </div>
-  <hr>
-  {% endfor %}
+  	<a href="{{ post.url }}">{{ post.title }}</a> ({{ post.date | date_to_string }})<br>
+  	{{ post.description }}
+  	<!-- Tags: {{ post.tags | join: ", " }} -->
+  </li>
+{% endfor %}
+</ul>
 </div>
 
-          
-<!-- Pagination -->
-<div class="pagination">
-  {% if paginator.next_page %}
-    <a class="pagination-item older" href="/page{{paginator.next_page}}">Older</a>
-  {% else %}
-    <span class="pagination-item older">Older</span>
-  {% endif %}
-  {% if paginator.previous_page %}
-    {% if paginator.page == 2 %}
-      <a class="pagination-item newer" href="/">Newer</a>
-    {% else %}
-      <a class="pagination-item newer" href="/page{{paginator.previous_page}}">Newer</a>
-    {% endif %}
-  {% else %}
-    <span class="pagination-item newer">Newer</span>
-  {% endif %}  
-</div>
+<hr>
+
+{% include archive.html %} 
