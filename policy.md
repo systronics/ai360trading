@@ -1,7 +1,6 @@
 ---
 layout: page
-excerpt: I am the owner of Googlepass App, Blog, Page and Website . These are an Ad Supported services . These services are provided by Googlepass for entertaining and learning purpose
-tags: googlepass blogger policy systronics amitkumar
+excerpt: I am the owner of Googlepass App, Blog, Page and Website . These are an Ad Supported services . These services are provided by Googlepass.
 ---
 
 # Privacy Policy
@@ -32,5 +31,5 @@ tags: googlepass blogger policy systronics amitkumar
 <p><strong>Security -</strong> I value your trust in providing us your Personal Information, thus we are striving to use commercially acceptable means of protecting it. But remember that no method of transmission over the internet, or method of electronic storage is 100% secure and reliable, and I cannot guarantee its absolute security.</p>
 <p><h2>Links to Other Sites-</h2>This Service may contain links to other sites. If you click on a third-party link, you will be directed to that site. Note that these external sites are not operated by me. Therefore, I strongly advise you to review the Privacy Policy of these websites. I have no control over and assume no responsibility for the content, privacy policies, or practices of any third-party sites or services.</p>
 <p><h2>Children's Privacy -</h2> These Services do not address anyone under the age of 13. I do not knowingly collect personally identifiable information from children under 13. In the case I discover that a child under 13 has provided me with personal information, I immediately delete this from our servers. If you are a parent or guardian and you are aware that your child has provided us with personal information, please contact me so that I will be able to do necessary actions.</p>
-<p><h2>Changes to This Privacy Policy -</h2> I may update our Privacy Policy from time to time. Thus, you are advised to review this page periodically for any changes. I will notify you of any changes by posting the new Privacy Policy on this page. These changes are effective immediately after they are posted on this page.</p>
+<p><h3>Changes to This Privacy Policy -</h3> I may update our Privacy Policy from time to time. Thus, you are advised to review this page periodically for any changes. I will notify you of any changes by posting the new Privacy Policy on this page. These changes are effective immediately after they are posted on this page.</p>
 <p>If you have any questions or suggestions about my Privacy Policy. <a href="mailto:amit@googlepass.net">Contact me</a></p>
