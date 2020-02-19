@@ -19,8 +19,9 @@ layout: default
   <span class="post-date">{{ page.date | date_to_string }}</span>
   {{ content }}
   {% include related.html %}
+  </div>
   
-  <!-- Pagination -->
+    <!-- Pagination -->
 <div class="pagination">
   {% if paginator.next_page %}
     <a class="pagination-item older" href="/page{{paginator.next_page}}">Older</a>
@@ -39,4 +40,4 @@ layout: default
 </div>
   
 {% include disqus.html %}
-  </div>
+
