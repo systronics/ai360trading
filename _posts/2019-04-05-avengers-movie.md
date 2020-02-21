@@ -5,7 +5,7 @@ date:             2019-05-04T13:04:19+05:45
 last_modified_at: 2019-05-04T05:20:00+05:45
 image:            https://upload.wikimedia.org/wikipedia/commons/4/4f/Marvel%27s_The_Avengers_logo.svg
 excerpt:          Download or watch onlne Avengers The End Game movie hindi in HD.
-tags: latest-movies downloads new-movies trendings
+tags: latest-movies downloads new-movies
 ---
 
 <p><strong>Download or watch onlne Avengers The End Game movie hindi in HD.</strong></p>
