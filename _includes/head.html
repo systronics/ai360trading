@@ -107,17 +107,6 @@
 <meta name="twitter:image" content="{% if page.image %}{{ page.image | prepend: site.baseurl | prepend: site.url }}{% else %}{{ site.logo | prepend: site.baseurl | prepend: site.url }}{% endif %}">
 <meta name="twitter:url" content="{{ page.url | replace:'/index.html','/' | prepend: site.baseurl | prepend: site.url }}">
 
-{% if page.robots %}
-  <meta name="robots" content="{{ page.robots }}">
-{% endif %}
-
-{% if paginator.previous_page %}
-  <link rel="prev" href="{{ paginator.previous_page_path | replace:'/index.html','/' | prepend: site.baseurl | prepend: site.url }}">
-{% endif %}
-
-{% if paginator.next_page %}
-  <link rel="next" href="{{ paginator.next_page_path | replace:'/index.html','/' | prepend: site.baseurl | prepend: site.url }}">
-{% endif %}
   
   <!-- Google analytics -->
   {% if site.google_analytics and jekyll.environment == 'production' %}
