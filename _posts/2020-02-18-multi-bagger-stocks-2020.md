@@ -5,7 +5,7 @@ date:             2020-02-18T13:04:19+05:45
 last_modified_at: 2020-02-18T05:20:00+05:45
 image:            https://images.pexels.com/photos/534216/pexels-photo-534216.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940
 excerpt:          These are best multi bagger stocks to buy in 2020 for long or short term period. These are best stocks for intraday.
-tags:             top-mutual-funds intraday-treding share-market-tips
+tags:             top-mutual-funds intraday-trading share-market-tips
 ---
 
 <p><img src="https://images.pexels.com/photos/534216/pexels-photo-534216.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940" width="600" height="300" alt="stocks"></p>
