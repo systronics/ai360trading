@@ -19,9 +19,11 @@ author:
   name:         Amit Kumar
   email:        amit@googlepass.net
   
-facebook:
+fb:
   app_id:       451548405334620
-  publisher:    
+  
+facebook:
+  publisher:    systronics
   admin:        systronics
   
 facebook:
