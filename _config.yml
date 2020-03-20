@@ -13,6 +13,8 @@ baseurl:        ""
 logo:           /public/image/logo.png
 timezone:       Asia/India
 
+googlepassjobs:           https://googlepass.net/contact/contactus.php/
+  
 author:
   facebook:     systronics
   twitter:      systronics
