@@ -11,7 +11,7 @@ excerpt: Googlepass is a place for computer repair, data recovery, online suppor
   For any query, <a href="mailto:{{site.author.email}}">Mail me</a>
 </p>
 
-Googlepass is a palce for computer repair, data recovery, online support. Googlepass is in New vishnu garden, haridwar, INDIA. Cheapest and genuine services and prices in marketplace. You can reach easily through this google map-<br>
+Googlepass is a place for computer repair, data recovery, online support. Googlepass is in New vishnu garden, haridwar, INDIA. Cheapest and genuine services and prices in marketplace. You can reach easily through this google map-<br>
 
 <h2>Google Map Location</h2>
 
