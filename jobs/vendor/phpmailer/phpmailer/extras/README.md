@@ -1,4 +1,4 @@
-# PHPMailer Extras
+PHPMailer Extras
 
 These classes provide optional additional functions to PHPMailer.
 
