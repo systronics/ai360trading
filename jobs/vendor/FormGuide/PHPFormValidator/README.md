@@ -1,4 +1,4 @@
-# PHPFormValidator
+PHPFormValidator
 
 A PHP Library for 'self-documenting' server side Form Validations.
 
