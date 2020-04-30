@@ -8,6 +8,8 @@ excerpt:          Everone must do Pranayam, meditation, yogasan daily and use wa
 tags: trendings top-ten hindi-tutorials
 ---
 
+<p><img src="https://googlepass.net/public/image/immunity.png" width="600" height="300" alt="immunity"></p>
+
 Top 10 tips how to increase immunity-
 इम्यूनिटी बढ़ाने के 10 बेस्ट टिप्स-
 
