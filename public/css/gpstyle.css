@@ -1,0 +1,20 @@
+#outer-frame
+{
+    width: 600px;
+    height: 800px;
+    overflow: hidden;
+    position: relative;
+}
+
+#inner-iguru
+{
+    position: absolute;
+    top: -350px;
+    left: -300px;
+    width: 1200px;
+    height: 1200px;
+    pointer-events: none; 
+    cursor: default; 
+    text-decoration: none; 
+    color: black; 
+}
