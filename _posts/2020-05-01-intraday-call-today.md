@@ -8,10 +8,11 @@ excerpt:          Free intraday trading tips and calls.
 tags:             intraday-trading share-market-tips
 ---
 
-<p><img src="/public/image/intraday.png" width="120" height="60" alt="intraday"></p>
+Daily Free Intraday calls, Bookmark this page.<br>
+Join our Telegram Channel <strong><a href="https://t.me/gptips">GPTips</a><br>
 
-Daily Free Intraday calls, Join our Telegram Channel <strong><a href="https://t.me/gptips">GPTips</a><br>
-Loading.........</strong>
+<p><img src="/public/image/intraday.png" width="250" height="100" alt="intraday"></p>
+Loading...........</strong>
 
 <div id="outer-frame"> 
 <iframe src="https://investmentguruindia.com/intradaytips/" id="inner-iguru" scrolling="no"></iframe> 
