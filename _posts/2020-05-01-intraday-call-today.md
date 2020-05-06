@@ -10,8 +10,8 @@ tags:             intraday-trading share-market-tips
 
 <p><img src="/public/image/intraday.png" width="250" height="100" alt="intraday"></p>
 
-Bookmark Page and Join Telegram Channel <strong><a href="https://t.me/gptips" target="_blank" rel="noopener noreferrer">@GPTips</a></strong>
-<strong><p>Loading.............</p></strong>
+Bookmark Page and Join Telegram Channel <strong><a href="https://t.me/gptips" target="_blank" rel="noopener noreferrer">@GPTips</a><br>
+<br>Loading..............</strong>
 
 <div id="outer-frame"> 
 <iframe src="https://investmentguruindia.com/intradaytips/" id="inner-iguru" scrolling="no"></iframe> 
