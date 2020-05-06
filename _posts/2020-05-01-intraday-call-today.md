@@ -10,7 +10,7 @@ tags:             intraday-trading share-market-tips
 
 <p><img src="/public/image/intraday.png" width="250" height="100" alt="intraday"></p>
 
-Bookmark and Join Telegram Channel <strong><a href="https://t.me/gptips">GPTips</a>
+Bookmark Page and Join Telegram Channel <strong><a href="https://t.me/gptips" target="_blank" rel="noopener noreferrer">@GPTips</a>
 <p>Loading.............</p></strong>
 
 <div id="outer-frame"> 
