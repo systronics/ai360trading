@@ -8,7 +8,7 @@ excerpt:          Free intraday trading tips and calls.
 tags:             intraday-trading share-market-tips
 ---
 
-<p><img src="/public/image/intraday.png" width="250" height="100" alt="intraday"></p>
+<p><img src="https://googlepass.net/public/image/intraday.png" width="250" height="100" alt="intraday"></p>
 
 Bookmark Page and Join Telegram Channel <strong><a href="https://t.me/gptips" target="_blank" rel="noopener noreferrer">@GPTips</a><br>
 <br>Loading..............</strong>
