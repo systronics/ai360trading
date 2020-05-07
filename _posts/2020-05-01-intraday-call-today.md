@@ -10,6 +10,9 @@ tags:             intraday-trading share-market-tips
 
 <p><img src="https://googlepass.net/public/image/intraday.png" width="250" height="100" alt="intraday"></p>
 
+
+<div class="fb-like" data-href="https://googlepass.net" data-width="" data-layout="button_count" data-action="like" data-size="large" data-share="true"></div>
+
 Bookmark Page and Join Telegram Channel <strong><a href="https://t.me/gptips" target="_blank" rel="noopener noreferrer">@GPTips</a><br>
 <br>Loading..............</strong>
 
