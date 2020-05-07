@@ -60,6 +60,19 @@
 <meta property="og:description" content="{% if page.excerpt %}{{ page.excerpt | markdownify | strip_html | strip_newlines | truncate: 160 | escape_once }}{% else %}{{ site.description }}{% endif %}">
 <meta property="og:site_name" content="{{ site.name }}">
 
+<script>
+  window.fbAsyncInit = function() {
+    FB.init({
+      appId            : '451548405334620',
+      autoLogAppEvents : true,
+      xfbml            : true,
+      version          : 'v7.0'
+    });
+  };
+</script>
+<script async defer src="https://connect.facebook.net/en_US/sdk.js"></script>
+
+
 {% if site.facebook %}
   {% if site.facebook.admin %}
     <meta property="fb:admin" content="{{ site.facebook.admin }}">
