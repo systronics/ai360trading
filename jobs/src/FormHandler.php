@@ -21,7 +21,7 @@ use Gregwar\Captcha\CaptchaBuilder;
  *   	       	$validator->field('email')->isEmail();
  *   	       	
  *           })->useMailTemplate(__DIR__.'/templ/email.php')
- *           ->sendEmailTo('you@website.com');
+ *           ->sendEmailTo('amit@googlepass.net');
  *           
  *   $fh->process($_POST);
  */
