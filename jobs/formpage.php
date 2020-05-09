@@ -1,9 +1,12 @@
----
-layout: post
-title: Jobs
----
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Jobs</title>
+</head>
+<body>
+<div class="page">
+<h2>Contact me-</h2><br />
 
-<p><strong>Contact me-</strong></p>
 <hr>
 	<?php 
 		if(isset($_POST['sendmail'])) {
