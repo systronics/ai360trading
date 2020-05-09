@@ -1,13 +1,8 @@
-<!DOCTYPE html>
-<html>
-<head>
-	<title>Send mail from PHP using SMTP</title>
-	<link rel="stylesheet" href="css/bootstrap.min.css">
-</head>
-<body>
+
+<link rel="stylesheet" href="css/bootstrap.min.css">
 <div class="container">
-<h1 class="text-center">Sending Emails in PHP from localhost with SMTP</h1>
-<h2 class="text-center">Part 3: Using PHPMailer with attachments</h2>
+<h1 class="text-center">Contact me-</h1>
+
 <hr>
 	<?php 
 		if(isset($_POST['sendmail'])) {
@@ -20,10 +15,10 @@
 
 			$mail->isSMTP();                                      // Set mailer to use SMTP
 			$mail->Host = 'smtp.googlepass.net';  // Specify main and backup SMTP servers
-			$mail->SMTPAuth = true;                               // Enable SMTP authentication
+			//$mail->SMTPAuth = true;                               // Enable SMTP authentication
 			$mail->Username = EMAIL;                 // SMTP username
 			$mail->Password = PASS;                           // SMTP password
-			$mail->SMTPSecure = 'tls';                            // Enable TLS encryption, `ssl` also accepted
+			//$mail->SMTPSecure = 'tls';                            // Enable TLS encryption, `ssl` also accepted
 			$mail->Port = 587;                                    // TCP port to connect to
 
 			$mail->setFrom(EMAIL, 'amit');
@@ -85,5 +80,3 @@
         </form>
 	</div>
 </div>
-</body>
-</html>
