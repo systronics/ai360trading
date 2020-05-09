@@ -1,5 +1,5 @@
 <?php 
 	/*Update credentials*/
 	define('EMAIL', 'amit@googlepass.net');
-	define('PASS', 'Googlepass$123');
+	define('PASS', '');
  ?>
