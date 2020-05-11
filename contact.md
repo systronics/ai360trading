@@ -6,7 +6,7 @@ image:            https://googlepass.net/public/image/profile.png
 
 # Contact me
 
-<form method="post" action="/jobs/contact.php">
+<form method="post" action="contact.php">
 	<label for="name">Name:</label>
 	<input type="text" class="text" name="cf_name" id="name" />
 	<label for="email">email:</label>
