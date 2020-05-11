@@ -5,23 +5,13 @@ image:            https://googlepass.net/public/image/profile.png
 ---
 
 # Contact me
-  <form id="contact" action="/jobs/sendmemail.php" method="post">
-    
-    <h4>Contact us today, and get reply with in 24 hours!</h4>
-    <fieldset>
-      <input placeholder="Full Name" type="text" name="name" tabindex="1" required autofocus>
-    </fieldset>
-    <fieldset>
-      <input placeholder="Email Address" type="email" name="email" tabindex="2" required>
-    </fieldset>
-    <fieldset>
-      <input placeholder="Subject" type="text" name="subject" tabindex="3" required>
-    </fieldset>
-   
-    <fieldset>
-      <textarea placeholder="Type your Message Here...." name="message" tabindex="5" required></textarea>
-    </fieldset>
-    <fieldset>
-      <button name="submit" type="submit" id="contact-submit" data-submit="...Sending">Submit</button>
-    </fieldset>
-  </form>
+
+<form method="post" action="contact.php">
+	<label for="name">Name:</label>
+	<input type="text" class="text" name="cf_name" id="name" />
+	<label for="email">email:</label>
+	<input type="text" class="text" name="cf_email" id="email" />
+	<label for="text">Message:</label>
+	<textarea class="text" name="cf_message" id="message"></textarea>
+	<input type="submit" class="submit" value="Send" />
+</form>
