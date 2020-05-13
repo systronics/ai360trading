@@ -13,4 +13,4 @@ tags:             intraday-trading share-market-tips
 
 <strong> Daily Free Intraday Calls, Telegram Channel- <strong><a href="https://t.me/gptips" target="_blank" rel="noopener noreferrer">@GPTips</a></strong>
 
-<p><iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vQBCnTPrdXchP19ntThLKXXsX8MX6o-nt8_F4vjL_JuCxUo2rb36UUkQAlFbURYcA/pubhtml?gid=2137604287&amp;single=true&amp;widget=true&amp;headers=false" width="450px" height="300px"></iframe></p>
+<p><iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vSjlAZKb0KgLvF6zuc84oyY34PxTZG50gbsk9Kwiw61GL-YQbBXcvRCP_t6ATIklbYbMOBMAwavkU1D/pubhtml?gid=1248142820&single=true&amp;widget=true&amp;headers=false" width="450px" height="300px"></iframe></p>
