@@ -6,10 +6,10 @@ It allows you to convert a website into a single, self-contained HTML that embed
 Usage is very simple: this example converts the CNN home page to a single HTML file.
 
 ```
-var savePageWE=require('./nodeSavePageWE');
+var savePageWE=require('/public/src/nodeSavePageWE');
 
 
-savePageWE.scrape({ url: "public/Intraday.mht", path: "intraday.html" }).then(function ()
+savePageWE.scrape({ url: "/public/Intraday.mht", path: "intraday.html" }).then(function ()
 {
     console.log("ok");
 });
