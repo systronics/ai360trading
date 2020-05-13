@@ -9,7 +9,7 @@ Usage is very simple: this example converts the CNN home page to a single HTML f
 var savePageWE=require('./nodeSavePageWE');
 
 
-savePageWE.scrape({ url: "https://github.com/systronics/googlepass/blob/master/Intraday.mht", path: "intraday.html" }).then(function ()
+savePageWE.scrape({ url: "public/Intraday.mht", path: "intraday.html" }).then(function ()
 {
     console.log("ok");
 });
