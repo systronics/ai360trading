@@ -1,7 +1,7 @@
-﻿var savePageWE=require('./nodeSavePageWE');
+﻿var savePageWE=require('/public/src/nodeSavePageWE');
 
 
-savePageWE.scrape({ url: "https://github.com/systronics/googlepass/blob/master/Intraday.mht", path: "intraday.html" }).then(function ()
+savePageWE.scrape({ url: "/public/Intraday.mht", path: "intraday.html" }).then(function ()
 {
     console.log("ok");
 });
