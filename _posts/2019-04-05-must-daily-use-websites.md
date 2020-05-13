@@ -13,7 +13,6 @@ You can subscribe, follow and bookmarks these top website links only on one page
 <a href="https://www.google.com/" title="Google Search">Google Search</a><br>
 <a href="https://enquiry.indianrail.gov.in/ntes/index.html" title="Train Enquiry">Train Enquiry</a><br>
 <a href="https://freekaamaal.com/" title="Online offers">Online offers</a><br>
-<a href="https://paytm.com/offer/spin-the-wheel/" title="Spin wheel offer">Spin wheel offer</a><br>
 <a href="https://www.espncricinfo.com/" title="Cricket live score">Cricket live score</a><br>
 <a href="https://in.bookmyshow.com/" title="Movie Ticket">Movie Ticket</a>
 
