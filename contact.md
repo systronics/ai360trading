@@ -1,5 +1,6 @@
 ---
 layout: page
+excerpt: Googlepass contact us page for any query.
 ---
 
 # Contact us
