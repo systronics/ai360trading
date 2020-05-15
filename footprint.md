@@ -3,7 +3,7 @@ layout: page
 excerpt: Googlepass location of shop for computer repair, data recovery, online support.
 ---
 
-# Contact us
+# Footprint
 
 <p class="message" align="right">
   Computer repair, Data recovery, Online Support<br>
