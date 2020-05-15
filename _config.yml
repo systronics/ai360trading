@@ -12,9 +12,7 @@ url:            https://googlepass.net
 baseurl:        ""
 logo:           /public/image/logo.png
 timezone:       Asia/India
-
-googlepassjobs:           https://googlepass.net/jobs/formpage
-  
+ 
 author:
   facebook:     systronics
   twitter:      systronics
