@@ -32,13 +32,13 @@ excerpt: Googlepass contact us page for any query.
             </div>
         </div>
 
+<form action="index.php" enctype="multipart/form-data">
+  Select a file to upload: <input type="file" name="selectedfile">
+ </form><br>
+ 
         <div class="fcf-form-group">
             <button type="submit" id="fcf-button" class="fcf-btn fcf-btn-primary fcf-btn-lg fcf-btn-block">Send Message</button>
         </div>
-
-<form action="index.php" enctype="multipart/form-data">
-  Select a file to upload: <input type="file" name="selectedfile">
- </form>
 
     </form>
     </div>
