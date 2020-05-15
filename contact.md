@@ -1,13 +1,9 @@
-<!DOCTYPE html>
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>contact form</title>
-</head>
+---
+layout: page
+excerpt: Googlepass is a place for computer repair, data recovery, online support. Googlepass is in New vishnu garden, haridwar, INDIA.
+---
 
-<body>
-
-<link href="contact-form.css" rel="stylesheet">
+# Contact us
 
 <div class="fcf-body">
 
@@ -49,6 +45,3 @@
     </div>
 
 </div>
-
-</body>
-</html>
