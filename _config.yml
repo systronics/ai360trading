@@ -44,6 +44,7 @@ github:
 
 gems:           [jekyll-paginate, jekyll-seo-tag, jekyll-sitemap]
 
+google_analytics: UA-8307371-4
 
 github:
   repo:         https://github.com/systronics/googlepass/
