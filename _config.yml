@@ -38,14 +38,11 @@ youtube:
 instagram:
   username:     systronics
 telegram:
-  username:     amitkumarsystronics
-reddit:
-  username:     googlepass
-quora:
-  username:     systronics-1
+  username:     aksystronics
 github:
   username:     systronics
 
+google_analytics: UA-8307371-4
 
 gems:           [jekyll-paginate, jekyll-seo-tag, jekyll-sitemap]
 
