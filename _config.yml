@@ -3,7 +3,7 @@ markdown:       kramdown
 highlighter:    rouge
 
 # Permalinks
-permalink:      pretty
+permalink:      none
 
 # Setup
 name:           "Googlepass- Tips and Tricks How to Recover"
