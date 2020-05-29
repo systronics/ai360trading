@@ -4,7 +4,6 @@ highlighter:    rouge
 
 # Permalinks
 permalink:      pretty
-permalink:      /:categories/:year/:month/:day/:title:output_ext
 
 # Setup
 name:           "Googlepass- Tips and Tricks How to Recover"
