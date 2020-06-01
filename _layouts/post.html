@@ -6,8 +6,7 @@ layout: default
 {% else %}
 <div class="post">
 {% endif %}
-  <h1 class="post-title">{{ page.title }}</h1>
-  <div class="sharethis-inline-share-buttons"></div>
+  <h1 class="post-title">{{ page.title }}</h1>  
   <span class="post-tags">
     [&nbsp;
     {% for tag in page.tags %}
@@ -17,6 +16,7 @@ layout: default
     ]
   </span>  
   {{ content }}
+  <div class="sharethis-inline-share-buttons"></div>
   {% include related.html %}
   </div>
    
