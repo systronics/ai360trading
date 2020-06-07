@@ -5,7 +5,7 @@ date:             2020-05-01T08:07:18+05:45
 last_modified_at: 2020-05-01T08:07:18+05:45
 image:            https://googlepass.net/public/image/intraday.png
 excerpt:          Free intraday calls and trading tips.
-tags:             share-market-tips
+tags:             intraday-share-market
 ---
 
 <p><img src="https://googlepass.net/public/image/intraday.png" width="350" height="350" alt="intraday"></p>
