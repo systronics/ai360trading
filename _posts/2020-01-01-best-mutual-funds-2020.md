@@ -5,7 +5,7 @@ date:             2020-02-01T13:05:19+05:45
 last_modified_at: 2020-02-01T05:21:00+05:45
 image:            https://googlepass.net/public/image/mutual.png
 excerpt:          These are the top and best mutual funds for 2020 for SIP investment. Always choose the best brokerage firm house or mutual fund house.
-tags: share-market-tips
+tags: intraday-share-market
 ---
 
 <p><img src="https://googlepass.net/public/image/mutual.png" width="350" height="350" alt="graph"></p>
