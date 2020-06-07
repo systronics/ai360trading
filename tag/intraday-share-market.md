@@ -1,7 +1,7 @@
 ---
 layout: tagpage
-title: "share-market-tips"
-tag: share-market-tips
+title: "intraday-share-market"
+tag: intraday-share-market
 excerpt: Invest and earn money through share market, mutual funds and intraday trading
 robots: noindex disallow
 ---
