@@ -5,7 +5,7 @@ date:             2019-04-22T13:02:19+05:45
 last_modified_at: 2019-04-22T05:20:00+05:45
 image:            https://googlepass.net/public/image/ytd.png
 excerpt:          A youtube channels amitkumarsystronics provide hindi tutorials about website designing, tips and tricks, computer repair and data recovery.
-tags: trendings hindi-tutorials top-ten
+tags: blogging-tutorial
 ---
 
 Subscribe my Youtube Channel amitkumarsystronics for hindi tutorials, website designing, tips and tricks, computer repair and data recovery, github jekyll support and much more entertainment.
