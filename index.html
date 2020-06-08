@@ -4,26 +4,30 @@ title: "Googlepass"
 excerpt: "Googlepass offers-online tips-and-tricks how-to search Forget-password, Data-recovery, Computer-repair, Website-Design, Earn-money, Share-market-tips"
 ---
 
-<h1>{{ site.name }}</h1>
+<h1>intraday-share-market</h1>
 
-<p><h2>Here your will find various topics, articles and tips and tricks. Click any topic to find related articles and post</h2></p>
+ {% else %}
+    {% assign posts = site.posts %}
+    {% endif %}
 
-<a class="no-underline" href="/tag/blogging-tips"><code class="highligher-rouge"><nobr>Blogging Tips</nobr></code></a>
-
-<a class="no-underline" href="/tag/health-and-fitness"><code class="highligher-rouge"><nobr>Health and Fitness</nobr></code></a>
-
-<a class="no-underline" href="/tag/hindu-and-hinduism"><code class="highligher-rouge"><nobr>Hindu and Hinduism</nobr></code></a>
-
-<a class="no-underline" href="/tag/ads-alternative"><code class="highligher-rouge"><nobr>Ads Alternative</nobr></code></a>
-
-<a class="no-underline" href="/tag/earn-money-online"><code class="highligher-rouge"><nobr>Earn Money Online</nobr></code></a>
-
-<a class="no-underline" href="/tag/intraday-share-market"><code class="highligher-rouge"><nobr>Intraday Share Market</nobr></code></a>
-
-<a class="no-underline" href="/tag/deals-and-offers"><code class="highligher-rouge"><nobr>Deals and Offers</nobr></code></a>
-
-<a class="no-underline" href="/tag/how-to-guide"><code class="highligher-rouge"><nobr>how-to Guide</nobr></code></a>
-
-<a class="no-underline" href="/tag/best-top-ten"><code class="highligher-rouge"><nobr>Best Top Ten</nobr></code></a>
-
-<a class="no-underline" href="/tag/viral-videos"><code class="highligher-rouge"><nobr>Viral Videos</nobr></code></a>
+    {%- if posts.size > 0 -%}
+    {%- if page.list_title -%}
+    <h2 class="post-list-heading">{{ page.list_title }}</h2>
+    {%- endif -%}
+    <ul class="post-list">
+        {%- assign date_format = site.minima.date_formssssat | default: "%b %-d, %Y" -%}
+        {%- for post in posts -%}
+        <li>
+            <span class="post-meta">{{ post.date | date: date_format }}</span>
+            <h3>
+                <a class="post-link" href="{{ post.url | relative_url }}">
+                    {{ post.title | escape }}
+                </a>
+            </h3>
+            {%- if site.show_excerpts -%}
+            {{ post.excerpt }}
+            {%- endif -%}
+            <img src="{{ post.thumbnail_image }}" />
+        </li>
+        {%- endfor -%}
+    </ul>
