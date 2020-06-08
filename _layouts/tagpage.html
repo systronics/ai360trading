@@ -1,12 +1,8 @@
 ---
 layout: default
 ---
-  <style>
-div.a {
-  text-transform: uppercase;
-}</style>
-  
-<div class="a"><h1> {{ page.tag }}</h1></div>
+    
+<h1> {{ page.tag }}</h1>
 <ul>
 {% for post in site.tags[page.tag] %}
   {% if post.lang %}
