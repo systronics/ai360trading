@@ -7,14 +7,7 @@ layout: default
 <div class="post">
 {% endif %}
   <h1 class="post-title">{{ page.title }}</h1>  
-  <span class="post-tags">
-    
-    {% for tag in page.tags %}
-      {% capture tag_name %}{{ tag }}{% endcapture %}
-      <a class="no-underline" href="/tag/{{ tag_name }}"><code class="highligher-rouge"><nobr>{{ tag_name }}</nobr></code></a>    
-    {% endfor %}
-    
-  </span>  
+   
   {{ content }}
     </div>
   <div class="sharethis-inline-share-buttons"></div>
