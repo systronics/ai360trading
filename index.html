@@ -1,16 +1,14 @@
 ---
 layout: default
-title: "Home"
+title: "Googlepass"
 ---
 
-<ul class="posts">
+<ul>
   {% for post in site.posts %}
     <li>
-      <span class="post-date">{{ post.date | date: "%b %-d, %Y" }}</span>
-      <a class="post-link" href="{{ post.url | prepend: site.baseurl }}">{{ post.title }}</a>
-      {{ post.excerpt }}
-      {% assign image = post.images[0] %}
-      {% include image.html image=image %}
+      <h2><a href="{{ post.url }}">{{ post.title }}</a></h2>
+   <p>{{ post.excerpt }}</p>
+     {% include image.html image=image %}
     </li>
-  {% endfor %}
+  {% endfor %}  
 </ul>
