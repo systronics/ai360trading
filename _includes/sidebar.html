@@ -21,8 +21,7 @@
           {% if node.layout == "page" %}
             <li class="sidebar-nav-item{% if page.url == node.url %} active{% endif %}">
               <a href="{{ node.url }}">{{ node.title }}</a>
-            </li>
-          {% endif %}
+             {% endif %}
         {% endif %}
       {% endfor %}<br>
      
