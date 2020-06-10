@@ -8,7 +8,7 @@ excerpt:          These are the top and best mutual funds for 2020 for SIP inves
 tags: intraday-share-market
 ---
 
-<p><img src="https://googlepass.net/public/image/mutual.png" width="350" height="350" alt="graph"></p>
+<p><img src="https://googlepass.net/public/image/mutual.png" width="100%" height="100%" alt="mutual"></p>
 
 <p>These are the top and best mutual funds for 2020 for SIP investment.</p>
 
