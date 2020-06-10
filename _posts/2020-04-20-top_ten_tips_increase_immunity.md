@@ -8,7 +8,7 @@ excerpt:          Everone must do Pranayam, meditation, yogasan daily and use wa
 tags: health-and-fitness
 ---
 
-<p><img src="/public/image/immunity.png" width="350" height="350" alt="immunity"></p>
+<p><img src="/public/image/immunity.png" width="100%" height="100%" alt="immunity"></p>
 
 Top 10 tips how to increase immunity-
 
