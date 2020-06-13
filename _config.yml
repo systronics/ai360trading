@@ -6,8 +6,8 @@ highlighter:    rouge
 permalink:      none
 
 # Setup
-name:           "Tips and Tricks How to Recover"
-tagline:        'Googlepass'
+name:           "Googlepass"
+tagline:        'Tips and Tricks How to Recover'
 url:            https://googlepass.net
 baseurl:        ""
 logo:           /public/image/logo.png
