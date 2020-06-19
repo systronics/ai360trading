@@ -4,7 +4,7 @@ title: Best Mutual Funds for 2020 to invest as SIP
 date:             2020-02-01T13:05:19+05:45
 last_modified_at: 2020-02-01T05:21:00+05:45
 image:            https://images.pexels.com/photos/1072824/pexels-photo-1072824.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500
-excerpt:          These are the top and best mutual funds for 2020 for SIP investment. Always choose the best brokerage firm house or mutual fund house.
+excerpt:          top and best mutual funds for 2020-2021 for SIP investment. Invest lumpsum when market bearish.
 tags: intraday-share-market
 ---
 
