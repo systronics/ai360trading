@@ -1,11 +1,11 @@
 ---
 layout: post
-title: Must Daily Use Websites links on one page
+title: Useful Websites links
 date:             2019-04-05T13:04:19+05:45
 last_modified_at: 2019-04-05T05:20:00+05:45
 image:            https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Underground.svg/1267px-Underground.svg.png
-excerpt:          Here are top websites link on one page, which everyone use in daily routine links.
-tags: deals-and-offers
+excerpt:          Here are the links to earn money from home, bookmark this page, which everyone use in daily routine links.
+tags: work-from-home
 ---
 
 You can subscribe, follow and bookmarks these top website links only on one page for daily use.
