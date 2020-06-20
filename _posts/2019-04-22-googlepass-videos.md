@@ -1,11 +1,11 @@
 ---
 layout: post
-title: My Youtube Videos
+title: Googlepass Videos
 date:             2019-04-22T13:02:19+05:45
 last_modified_at: 2019-04-22T05:20:00+05:45
 image:            https://cdn.pixabay.com/photo/2019/04/24/21/55/cinema-4153289_960_720.jpg
-excerpt:          Top Viral videos on channels provide hindi tutorials, Blogging, tips and tricks, computer repair and data recovery.
-tags: viral-videos
+excerpt:          Googlepass videos on channels provide hindi tutorials, Blogging, tips and tricks, computer repair and data recovery.
+tags: entertainment-zone
 ---
 
 <p><img src="https://cdn.pixabay.com/photo/2019/04/24/21/55/cinema-4153289_960_720.jpg" width="400" height="300" alt="video"></p>
