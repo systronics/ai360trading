@@ -27,7 +27,7 @@
      
             <!-- social buttons -->
       {% if site.facebook.username %}
-      <a href="https://www.facebook.com/groups/{{ site.facebook.username }}" target="_blank" title="Facebook">
+      <a href="https://www.facebook.com/{{ site.facebook.username }}" target="_blank" title="Facebook">
         <i class="fa fa-fw fa-facebook fa-lg"></i>
       </a>
       {% endif %}
@@ -36,9 +36,9 @@
         <i class="fa fa-fw fa-twitter fa-lg"></i>
       </a>            
       {% endif %}
-      {% if site.linkedin.username %}
-      <a href="https://www.linkedin.com/in/{{site.linkedin.username}}" target="_blank" title="Linkedin">
-        <i class="fa fa-fw fa-linkedin fa-lg"></i>
+              {% if site.instagram.username %}
+      <a href="https://instagram.com/{{site.instagram.username}}" target="_blank" title="Instagram">
+        <i class="fa fa-fw fa-instagram fa-lg"></i>
       </a>
       {% endif %}
       {% if site.youtube.username %}
@@ -46,16 +46,11 @@
         <i class="fa fa-fw fa-youtube fa-lg"></i>
       </a>
       {% endif %}
-      {% if site.instagram.username %}
-      <a href="https://instagram.com/{{site.instagram.username}}" target="_blank" title="Instagram">
-        <i class="fa fa-fw fa-instagram fa-lg"></i>
+      {% if site.telegram.username %}
+      <a href="https://www.telegram.me/{{site.linkedin.username}}" target="_blank" title="Telegram">
+        <i class="fa fa-fw fa-telegram fa-lg"></i>
       </a>
-      {% endif %}
-      {% if site.pinterest.username %}
-      <a href="https://pinterest.com/{{site.pinterest.username}}" target="_blank" title="Pinterest">
-        <i class="fa fa-fw fa-pinterest fa-lg"></i>
-      </a>
-      {% endif %}
+      {% endif %}      
     <br>
         
 <a href="https://www.paypal.me/systronics" title="PayPal" target="_blank" rel="nofollow noopener noreferrer"><img src="/public/image/paypalbmc.png" width="140" height="50" alt="Buy me a coffee!"></a>
