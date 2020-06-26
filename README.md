@@ -1,4 +1,4 @@
-# Googlepass- Tips and Tricks How to Recover
+# Googlepass- Digital Process
 
 A Blog [https://googlepass.net](https://googlepass.net) by [Amit Kumar](https://googlepass.net/aboutme).
 
