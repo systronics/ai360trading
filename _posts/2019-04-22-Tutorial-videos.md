@@ -1,14 +1,13 @@
 ---
 layout: post
-title: Googlepass Videos
+title: Tutorial Videos
 date:             2019-04-22T13:02:19+05:45
 last_modified_at: 2019-04-22T05:20:00+05:45
 image:            https://cdn.pixabay.com/photo/2019/04/24/21/55/cinema-4153289_960_720.jpg
-excerpt:          Googlepass videos on channels provide hindi tutorials, Blogging, tips and tricks, computer repair and data recovery.
+excerpt:          Tutorial videos provide hindi tutorials, Blogging, tips and tricks, computer repair and data recovery.
 tags: entertainment-zone
 ---
 
-<p><img src="https://cdn.pixabay.com/photo/2019/04/24/21/55/cinema-4153289_960_720.jpg" width="400" height="300" alt="video"></p>
 
 <iframe width="400" height="300" src="https://www.youtube.com/embed/ntyhz7IECbw?autoplay=0&showinfo=0&loop=1&rel=0" 
 frameborder="0" 
