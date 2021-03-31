@@ -12,4 +12,5 @@ tags:             investment-ideas
 
 <strong> Daily Free Intraday Calls, Telegram Channel- <strong><a href="https://t.me/googlepass" target="_blank" rel="noopener noreferrer">@Googlepass</a></strong><br>
 
-<iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vSjlAZKb0KgLvF6zuc84oyY34PxTZG50gbsk9Kwiw61GL-YQbBXcvRCP_t6ATIklbYbMOBMAwavkU1D/pubhtml?gid=1248142820&amp;single=true&amp;widget=true&amp;headers=false" width="100%" height="100%"></iframe>
+<iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vSjlAZKb0KgLvF6zuc84oyY34PxTZG50gbsk9Kwiw61GL-YQbBXcvRCP_t6ATIklbYbMOBMAwavkU1D/pubhtml?gid=1248142820&amp;single=true&amp;widget=true&amp;headers=false" scrolling="no" style="border: 1px solid black; position: relative; margin-left: 10px; margin-top: 10px; width: 410px; height: 300px; ">
+</iframe>
