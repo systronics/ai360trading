@@ -1,10 +1,10 @@
 ---
 layout:           post
-title:            Free intraday calls
+title:            intraday btstt calls
 date:             2020-05-01T08:07:18+05:45
 last_modified_at: 2020-05-01T08:07:18+05:45
 image:            https://googlepass.net/public/image/intraday.png
-excerpt:          Free intraday calls and trading tips.
+excerpt:          Free intraday or btstt calls.
 tags:             investment-ideas
 ---
 
