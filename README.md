@@ -1,4 +1,4 @@
-# Googlepass- Digital Progress
+# Googlepass
 
 A Blog [https://googlepass.net](https://googlepass.net) by [Amit Kumar](https://googlepass.net/aboutme).
 
