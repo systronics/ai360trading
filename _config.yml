@@ -7,7 +7,6 @@ permalink:      none
 
 # Setup
 name:           "Googlepass"
-tagline:        'Digital Progress'
 url:            https://googlepass.net
 baseurl:        ""
 logo:           /public/image/logo.png
