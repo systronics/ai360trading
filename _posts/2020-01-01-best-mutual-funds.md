@@ -1,16 +1,16 @@
 ---
 layout: post
-title: Best Mutual Funds for 2020 to invest as SIP
-date:             2020-02-01T13:05:19+05:45
-last_modified_at: 2020-02-01T05:21:00+05:45
+title: Best Mutual Funds to invest as SIP
+date:             2021-04-01T13:05:19+05:45
+last_modified_at: 2021-04-01T05:21:00+05:45
 image:            https://images.pexels.com/photos/1072824/pexels-photo-1072824.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500
-excerpt:          top and best mutual funds for 2020-2021 for SIP investment. Invest lumpsum when market bearish.
+excerpt:          top and best mutual funds for SIP investment. Invest lumpsum when market bearish.
 tags: investment-ideas
 ---
 
 <p><img src="https://images.pexels.com/photos/1072824/pexels-photo-1072824.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500" width="100%" height="100%" alt="mutual"></p>
 
-<p>These are top and best mutual funds SIP Investment for 2020-2021.</p>
+<p>These are top and best mutual funds SIP Investment.</p>
 <p>Always choose the best brokerage firm house or mutual fund house.<br />Always choose Growth option.<br />Use 20% in SIP, 30% in ELSS and 50% in lumpsum.<br />When the market is Bearish, invest in lumpsum.<br />Don't withdraw any amount before one year.</p>
 <p><strong>Top Equity Mutual Funds to Invest-</strong></p>
 <p>Large Cap-</p>
