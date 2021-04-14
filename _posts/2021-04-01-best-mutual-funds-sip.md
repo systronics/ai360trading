@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Best Mutual Funds to invest as SIP
+title: Best Mutual Funds SIP
 date:             2021-04-01T13:05:19+05:45
 last_modified_at: 2021-04-01T05:21:00+05:45
 image:            https://images.pexels.com/photos/1072824/pexels-photo-1072824.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500
