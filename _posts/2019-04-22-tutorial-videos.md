@@ -8,9 +8,13 @@ excerpt:          Tutorial videos provide hindi tutorials, Blogging, tips and tr
 tags: entertainment-zone
 ---
 
-<a href="https://www.youtube.com/embed/ntyhz7IECbw" target="vidframe">Happy Diwali</a><p>
-<a href="https://www.youtube.com/embed/MlePPVEJEP8" target="vidframe">New Born Baby</a><p>
+<table>
 
+<tr><td><a href="https://www.youtube.com/embed/ntyhz7IECbw" target="vidframe">Happy Diwali</a></td></tr>
+
+<tr><td><a href="https://www.youtube.com/embed/MlePPVEJEP8" target="vidframe">New Born Baby</a></td></tr>
+
+</table>
 
 <iframe width="560" height="315" src="about:blank" id="vidframe" name="vidframe" frameborder="0" controls="controls" allowfullscreen="allowfullscreen" mozallowfullscreen="mozallowfullscreen" msallowfullscreen="msallowfullscreen" oallowfullscreen="oallowfullscreen" webkitallowfullscreen="webkitallowfullscreen"></iframe>
 <script>
