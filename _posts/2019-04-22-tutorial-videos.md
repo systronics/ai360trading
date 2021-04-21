@@ -8,16 +8,49 @@ excerpt:          Tutorial videos provide hindi tutorials, Blogging, tips and tr
 tags: entertainment-zone
 ---
 
-<table>
+<a class="popup-youtube" href="https://www.youtube.com/embed/ntyhz7IECbw?autoplay=&showinfo=0&loop=1&rel=0" frameborder="0" controls="controls" allowfullscreen="allowfullscreen" mozallowfullscreen="mozallowfullscreen" msallowfullscreen="msallowfullscreen" oallowfullscreen="oallowfullscreen" webkitallowfullscreen="webkitallowfullscreen">Happy Diwali</a><br>
 
-<tr><td><a href="https://www.youtube.com/embed/ntyhz7IECbw" target="vidframe">Happy Diwali</a></td></tr>
+<a class="popup-youtube" href="https://www.youtube.com/embed/MlePPVEJEP8?autoplay=&showinfo=0&loop=1&rel=0" frameborder="0" controls="controls" allowfullscreen="allowfullscreen" mozallowfullscreen="mozallowfullscreen" msallowfullscreen="msallowfullscreen" oallowfullscreen="oallowfullscreen" webkitallowfullscreen="webkitallowfullscreen">New Born Baby</a><br>
 
-<tr><td><a href="https://www.youtube.com/embed/MlePPVEJEP8" target="vidframe">New Born Baby</a></td></tr>
 
-</table>
-
-<iframe width="560" height="315" src="about:blank" id="vidframe" name="vidframe" frameborder="0" controls="controls" allowfullscreen="allowfullscreen" mozallowfullscreen="mozallowfullscreen" msallowfullscreen="msallowfullscreen" oallowfullscreen="oallowfullscreen" webkitallowfullscreen="webkitallowfullscreen"></iframe>
 <script>
-    var vidframe = document.getElementById("vidframe");
-<iframe>
+$(document).ready(function() {
+	$('.popup-youtube').magnificPopup({
+		disableOn: 700,
+		type: 'iframe',
+		mainClass: 'mfp-fade',
+		removalDelay: 160,
+		preloader: false,
+
+		fixedContentPos: false
+	});
+});
 </script>
+
+<style>
+.mfp-fade.mfp-bg {
+	opacity: 0;
+	-webkit-transition: all 0.15s ease-out; 
+	-moz-transition: all 0.15s ease-out; 
+	transition: all 0.15s ease-out;
+}
+.mfp-fade.mfp-bg.mfp-ready {
+	opacity: 0.8;
+}
+.mfp-fade.mfp-bg.mfp-removing {
+	opacity: 0;
+}
+
+.mfp-fade.mfp-wrap .mfp-content {
+	opacity: 0;
+	-webkit-transition: all 0.15s ease-out; 
+	-moz-transition: all 0.15s ease-out; 
+	transition: all 0.15s ease-out;
+}
+.mfp-fade.mfp-wrap.mfp-ready .mfp-content {
+	opacity: 1;
+}
+.mfp-fade.mfp-wrap.mfp-removing .mfp-content {
+	opacity: 0;
+}
+</style>
