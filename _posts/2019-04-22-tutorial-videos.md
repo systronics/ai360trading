@@ -8,9 +8,9 @@ excerpt:          Tutorial videos provide hindi tutorials, Blogging, tips and tr
 tags: entertainment-zone
 ---
 
-<a class="popup-youtube" href="https://www.youtube.com/embed/ntyhz7IECbw?autoplay=&showinfo=0&loop=1&rel=0" frameborder="0" controls="controls" allowfullscreen="allowfullscreen" mozallowfullscreen="mozallowfullscreen" msallowfullscreen="msallowfullscreen" oallowfullscreen="oallowfullscreen" webkitallowfullscreen="webkitallowfullscreen">Happy Diwali</a><br>
+<a class="popup-youtube" href="https://www.youtube.com/embed/ntyhz7IECbw?autoplay=1&showinfo=0&loop=1&rel=0" frameborder="0" controls="controls" allowfullscreen="allowfullscreen" mozallowfullscreen="mozallowfullscreen" msallowfullscreen="msallowfullscreen" oallowfullscreen="oallowfullscreen" webkitallowfullscreen="webkitallowfullscreen">Happy Diwali</a><br>
 
-<a class="popup-youtube" href="https://www.youtube.com/embed/MlePPVEJEP8?autoplay=&showinfo=0&loop=1&rel=0" frameborder="0" controls="controls" allowfullscreen="allowfullscreen" mozallowfullscreen="mozallowfullscreen" msallowfullscreen="msallowfullscreen" oallowfullscreen="oallowfullscreen" webkitallowfullscreen="webkitallowfullscreen">New Born Baby</a><br>
+<a class="popup-youtube" href="https://www.youtube.com/embed/MlePPVEJEP8?autoplay=1&showinfo=0&loop=1&rel=0" frameborder="0" controls="controls" allowfullscreen="allowfullscreen" mozallowfullscreen="mozallowfullscreen" msallowfullscreen="msallowfullscreen" oallowfullscreen="oallowfullscreen" webkitallowfullscreen="webkitallowfullscreen">New Born Baby</a><br>
 
 
 <script>
