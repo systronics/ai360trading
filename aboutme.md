@@ -1,6 +1,6 @@
 ---
 layout: page
-excerpt: Myself Amit Kumar a Blogger, an author, a writer and a tech engineer. My social nick name is Systronics.
+excerpt: Myself Amit Kumar a Blogger, Surfer, Trader and a tech engineer. My social nick name is Systronics.
 image:            https://googlepass.net/public/image/profile.png
 ---
 
