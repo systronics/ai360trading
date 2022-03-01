@@ -17,7 +17,7 @@ Join with us-
 <ul>
 <li><a href="https://bit.ly/35zbBBA" target="_blank">Youtube Channel (Googlepass)</a></li>
 <li><a href="https://googlepass.net" target="_blank">Website (Googlepass)</a></li>
-<li><a href="https://bit.ly/2XiJbYv" target="_blank">Playstore apps</a></li>
+<li><a href="https://bit.ly/2XiJbYv" target="_blank">Playstore apps(TradingBTSTT)</a></li>
 <li><a href="https://bit.ly/3JYVjRx" target="_blank">Telegram (Googlepass)</a></li>
 <li><a href="https://bit.ly/3K0KE90" target="_blank">Facebook Groups (Googlepass)</a></li>
 </ul>
