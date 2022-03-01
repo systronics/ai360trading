@@ -3,12 +3,11 @@ layout: post
 title: Top 10 tips how to increase immunity
 date:             2020-04-20
 last_modified_at: 2020-04-20
-image:            https://googlepass.net/public/image/immunity.png
+image:            
 excerpt:          Everone must do Pranayam, meditation, yogasan daily and use warm food and herbal antibiotic to increase immunity. 
 tags: health-and-fitness
 ---
 
-<p><img src="/public/image/immunity.png" width="100%" height="100%" alt="immunity"></p>
 
 Top 10 tips how to increase immunity-
 
