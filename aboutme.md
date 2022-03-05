@@ -1,6 +1,6 @@
 ---
 layout: page
-excerpt: Myself Amit Kumar a Blogger, Net Surfer, Trader and a tech engineer. My social nick name is Systronics.
+excerpt: Amit Kumar is a Blogger, Net Surfer, Stock Market Trader and a Tech Engineer.
 image:            https://googlepass.net/public/image/profile.png
 ---
 
@@ -8,12 +8,12 @@ image:            https://googlepass.net/public/image/profile.png
 
 <p class="full-width no-margin"><img src="/public/image/profile.png" alt="Systronics" width="200" height="200" align="right"/></p>
 
-<blockquote class="full-width"><p>Amit Kumar | Systronics. A Tech Blogger, Tech Savy, Tech Engineer</p></blockquote>
+<blockquote class="full-width"><p>Amit Kumar | Systronics. A Blogger, Trader and Tech Engineer</p></blockquote>
 
 
-Myself Amit Kumar from Haridwar, INDIA. I am a Blogger, Net surfer and a tech engineer. My social nick name is Systronics. I love to share my thoughts and ideas through my blogs, websites and videos. My hobby is  online surfing. I love to learn much more about technology. As much i learnt through internet, i share all from my website name googlepass and on my facebook group name googlepass. I also shared for newbie that how can they earn money through online with a computer or andoid mobile without investment. Sometimes i go live for Intraday trading, you can watch and take advantages. I always like to help and support my subscribers, readers and followers.<br>
+A Blogger, Net Surfer, Stock Market Trader and a Tech Engineer. Who love to share own thoughts and ideas through various platforms. Who love to learn much more about technology, Stock market & Data Analysis. Who support, care and share with followers, subscribers and friends so that they can earn some money through online with digital platform and technology with a small investment.<br>
 
-Join with us-
+Join, Subscribe and Follow me-
 <ul>
 <li><a href="https://bit.ly/35zbBBA" target="_blank">Youtube Channel (Googlepass)</a></li>
 <li><a href="https://googlepass.net" target="_blank">Website (Googlepass)</a></li>
