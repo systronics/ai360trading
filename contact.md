@@ -14,11 +14,11 @@ excerpt: Googlepass is an Educational platform for Live Trading | Intraday Tradi
 
 <b>Googlepass is an Educational platform for Live Trading | Intraday Trading | Bank Nifty Option | Stock Option | Breakout strategies | Price Action | Trading BTSTT<b>
 
-<p>Website (Googlepass)- https://googlepass.net
-Playstore apps (TradingBTSTT)- https://bit.ly/2XiJbYv
-Telegram (Googlepass)- https://bit.ly/3JYVjRx
-Facebook Groups (Googlepass)- https://bit.ly/3K0KE90
-Open account in Zerodha- https://bit.ly/2VK6k5F
-Open account in Binance- https://bit.ly/3lTl4JZ
+<p>Website (Googlepass)- https://googlepass.net <br>
+Playstore apps (TradingBTSTT)- https://bit.ly/2XiJbYv<br>
+Telegram (Googlepass)- https://bit.ly/3JYVjRx<br>
+Facebook Groups (Googlepass)- https://bit.ly/3K0KE90<br>
+Open account in Zerodha- https://bit.ly/2VK6k5F<br>
+Open account in Binance- https://bit.ly/3lTl4JZ<br>
 
 #googlepass #livetrading #niftyoption #bankniftyoption #stockoption #breakout #cryptocurrency #workfromhome #earnmoneyonline #datarecovery </P>
