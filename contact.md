@@ -21,4 +21,4 @@ Facebook Groups (Googlepass)- https://bit.ly/3K0KE90<br>
 Open account in Zerodha- https://bit.ly/2VK6k5F<br>
 Open account in Binance- https://bit.ly/3lTl4JZ<br>
 
-#googlepass #livetrading #niftyoption #bankniftyoption #stockoption #breakout #cryptocurrency #workfromhome #earnmoneyonline #datarecovery </P>
+#googlepass #livetrading #intradaytrading #bankniftyoption #stockoption #breakoutstrategies #priceaction #tradingbtstt #earnmoneyonline #workfromhome </P>
