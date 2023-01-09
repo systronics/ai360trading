@@ -1,18 +1,23 @@
 ---
 layout: page
-excerpt: Googlepass location of shop for computer repair, data recovery, online support.
+excerpt: Googlepass is an Educational platform for Live Trading | Intraday Trading | Bank Nifty Option | Stock Option | Breakout strategies | Price Action | Trading BTSTT.
 ---
 
 # Contact us
 
 <p class="message" align="right">
-  Computer repair, Data recovery, Online Support<br>
-  -- <i>Cheapest price</i>, @Googlepass<br>
-  For any query, <a href="mailto:{{site.author.email}}">Mail me</a>
+  Cheapest price but valuable courses, @Googlepass<br>
+  For details information, <a href="mailto:{{site.author.email}}">Mail me</a>
 </p>
 
-Googlepass is a place for computer repair, data recovery, online support. Googlepass is in New vishnu garden, haridwar, INDIA. Cheapest and genuine services and prices in marketplace. You can reach easily through this google map-<br>
+<iframe src="https://docs.google.com/forms/d/e/1FAIpQLSf4FcVIpXkdFKzxg6R9WIak6yV3CQ6HG6iFdA8NQy34hr8z2Q/viewform?embedded=true" width="640" height="812" frameborder="0" marginheight="0" marginwidth="0">Loading…</iframe>
+Googlepass is an Educational platform for Live Trading | Intraday Trading | Bank Nifty Option | Stock Option | Breakout strategies | Price Action | Trading BTSTT
 
-<h2>Google Map Location</h2>
+Website (Googlepass)- https://googlepass.net
+Playstore apps (TradingBTSTT)- https://bit.ly/2XiJbYv
+Telegram (Googlepass)- https://bit.ly/3JYVjRx
+Facebook Groups (Googlepass)- https://bit.ly/3K0KE90
+Open account in Zerodha- https://bit.ly/2VK6k5F
+Open account in Binance- https://bit.ly/3lTl4JZ
 
-<iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3458.1064352321505!2d78.12959931511215!3d29.918837881928244!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39094640f0ac7da3%3A0x9504c39849b6199!2sGooglepass!5e0!3m2!1sen!2sin!4v1579608912977!5m2!1sen!2sin" width="100%" height="100%" frameborder="0" style="border:0;" allowfullscreen=""></iframe>
+#googlepass #livetrading #niftyoption #bankniftyoption #stockoption #breakout #cryptocurrency #workfromhome #earnmoneyonline #datarecovery 
