@@ -11,7 +11,6 @@ excerpt: Googlepass is an Educational platform for Live Trading | Intraday Tradi
   For details information, <a href="mailto:{{site.author.email}}">Mail me</a>
 </p>
 
- 
    <script type="text/javascript" src="https://form.jotform.com/jsform/230123549488460"></script>
 
 <p><b>Website- <a href="https://googlepass.net">Googlepass </a><br>
