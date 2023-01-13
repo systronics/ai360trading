@@ -26,4 +26,4 @@ I shall not responsible for advertisers, sponsors or blog partners for the accur
 <h3>Refund Policy-</h3><br />
 I have no refund policy, if you purchase a product or service based upon a link from my website or blog from advertisers, sponsors or blog partners, you must take action with them to resolve the issue.<br />
 <br />
-Thank you for visiting here. If you find anything is against copyright law, blog or website rules <a href="mailto:amit@googlepass.net">Mail me</a>
+Thank you for visiting here. If you find anything is against copyright law, blog or website rules <a href="mailto:admin@googlepass.net">Mail me</a>
