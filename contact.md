@@ -5,13 +5,39 @@ excerpt: Googlepass is an Educational platform for Live Trading | Intraday Tradi
 
 # Contact us
 
-<p class="message" align="right">
-  Googlepass is an Educational platform for Live Trading | Intraday Trading | Bank Nifty Option | Stock Option | Breakout strategies | Price Action | Trading BTSTT<br>
-  <b>Cheapest price but valuable courses, @Googlepass</b><br>
-  For details information, <a href="mailto:{{site.author.email}}">Mail me</a>
+  <p>
+Googlepass is an Educational platform for Live Trading | Intraday Trading | Bank Nifty Option | Stock Option | Breakout strategies | Price Action | Trading BTSTT</p>
+<p><b>If you are believe in LEARN AND EARN, Please Signup and Make Payment.</b>
 </p>
+  
 
- <embed src="https://form.jotform.com/230123549488460" style="width:600px; height: 400px;">
+ <span style="display: inline;">
+
+<style>
+        .cont {
+            background-color: white;
+            border: 2px solid black;
+            color: green;
+            padding: 5px 10px;
+            text-align: center;
+            display: inline-block;
+            font-size: 20px;
+            margin: 10px 30px;
+            cursor: pointer;
+        }
+    </style>
+        
+        <button class="cont" 
+    onclick="window.location.href = 'https://form.jotform.com/230123549488460';">
+        SignUp
+    </button>
+    
+     <button class="cont" 
+    onclick="window.location.href = '/public/image/qrcode.png';">
+        Make Payment
+    </button>
+   
+    </span>
 
 <p><b>Website- <a href="https://googlepass.net">Googlepass </a><br>
 Playstore apps- <a href="https://bit.ly/2XiJbYv">TradingBTSTT </a><br>
