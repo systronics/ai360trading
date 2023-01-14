@@ -15,12 +15,11 @@ A Blogger, Net Surfer, Stock Market Trader and a Tech Engineer. Who love to shar
 
 Join, Subscribe and Follow me-
 <ul>
-<li><a href="https://bit.ly/35zbBBA" target="_blank">Youtube Channel (Googlepass)</a></li>
-<li><a href="https://googlepass.net" target="_blank">Website (Googlepass)</a></li>
-<li><a href="https://bit.ly/2XiJbYv" target="_blank">Playstore apps(TradingBTSTT)</a></li>
-<li><a href="https://bit.ly/3JYVjRx" target="_blank">Telegram (Googlepass)</a></li>
-<li><a href="https://bit.ly/3K0KE90" target="_blank">Facebook Groups (Googlepass)</a></li>
-</ul>
+<li> Visit our Website- <a href="https://googlepass.net" target="_blank">Googlepass </a></li>
+<li>Install Playstore App- <a href="https://bit.ly/2XiJbYv"  target="_blank">TradingBTSTT </a></li>
+<li>Join Telegram Channel- <a href="https://bit.ly/3JYVjRx"  target="_blank">Googlepass </a></li>
+<li>Join Facebook Groups- <a href="https://bit.ly/3K0KE90"  target="_blank">Googlepass </a></li>
+<li>Follow Facebook Page- <a href="https://bit.ly/3X7HpDw"  target="_blank">Googlepass </a></li><br>
 
 
 <div class="sharethis-inline-follow-buttons"></div>
