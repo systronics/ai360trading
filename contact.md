@@ -5,9 +5,6 @@ excerpt: Googlepass is an Educational platform for Live Trading | Intraday Tradi
 
 # Contact us
 
-<p class="full-width no-margin"><img src="/public/image/course1.jpg" alt="Course1" width="600" height="300" align="centre"/></p>
-
-
 <ul>
 <li> Visit our Website- <a href="https://googlepass.net" target="_blank">Googlepass </a></li>
 <li>Install Playstore App- <a href="https://bit.ly/2XiJbYv"  target="_blank">TradingBTSTT </a></li>
@@ -16,7 +13,9 @@ excerpt: Googlepass is an Educational platform for Live Trading | Intraday Tradi
 <li>Follow Facebook Page- <a href="bit.ly/3X7HpDw"  target="_blank">Googlepass </a></li>
 <li>Open Trading Account- <a href="https://bit.ly/2VK6k5F"  target="_blank">Zerodha </a></li>
 
-<p><b>LEARN TO EARN</b><br></p>
+  <p class="full-width no-margin"><img src="/public/image/course1.jpg" alt="Course1" width="600" height="300" align="centre"/></p>
+
+  <p><b>IF YOU ARE INTERESTED AND WANT TO LEARN STOCK MARKET</b><br></p>
   
 <style>
         
