@@ -10,8 +10,8 @@ excerpt: Googlepass is an Educational platform for Live Trading | Intraday Tradi
 <li>Install Playstore App- <a href="https://bit.ly/2XiJbYv"  target="_blank">TradingBTSTT </a></li>
 <li>Join Telegram Channel- <a href="https://bit.ly/3JYVjRx"  target="_blank">Googlepass </a></li>
 <li>Join Facebook Groups- <a href="https://bit.ly/3K0KE90"  target="_blank">Googlepass </a></li>
-<li>Follow Facebook Page- <a href="bit.ly/3X7HpDw"  target="_blank">Googlepass </a></li>
-<li>Open Trading Account- <a href="https://bit.ly/2VK6k5F"  target="_blank">Zerodha </a></li>
+<li>Follow Facebook Page- <a href="https://bit.ly/3X7HpDw"  target="_blank">Googlepass </a></li>
+<li>Open Trading Account- <a href="https://bit.ly/2VK6k5F"  target="_blank">Zerodha </a></li><br>
 
   <p class="full-width no-margin"><img src="/public/image/course1.jpg" alt="Course1" width="400" height="200" align="centre"/></p><br>
 
