@@ -27,7 +27,7 @@ image:            https://googlepass.net/public/image/course.png
 
 <p>If you have submitted your details. Please Make payment on below upi/ QR code-
 
-<a href="/public/image/qrcode.png"><img src="/public/image/qrcode.png" border="0" width="200" height="200" alt="qrcode"></a>
+<a href="/public/image/qrcode.png"><img src="/public/image/qrcode.png" border="0" width="250" height="200" alt="qrcode"></a>
         
 <p><b>Please send us Screenshot after Payment with your Name and Number.</b><br></p>
 
