@@ -25,9 +25,9 @@ image:            https://googlepass.net/public/image/course.png
   
 <button onclick="window.open('(https://form.jotform.com/230123549488460)','_self');"><b>SignUp</b></button>
 
-<p>If you have submitted your details. Please Make payment below upi/ QR code-
+<p>If you have submitted your details. Please Make payment on below upi/ QR code-
 
-<a href="/public/image/qrcode.png"><img src="/public/image/qrcode.png" border="0" alt="qrcode"></a>
+<a href="/public/image/qrcode.png"><img src="/public/image/qrcode.png" border="0" width="200" height="200" alt="qrcode"></a>
         
 <p><b>Please send us Screenshot after Payment with your Name and Number.</b><br></p>
 
