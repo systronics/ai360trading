@@ -23,7 +23,7 @@ image:            https://googlepass.net/public/image/course.png
 
 <p>If you are interested and want to learn, Click Signup and send us your details. We will add you in our Group.</p>
   
-<button onclick="window.open('(https://form.jotform.com/230123549488460)','_self');"><h2>SignUp</h2></button></b>
+<button onclick="window.open('(https://form.jotform.com/230123549488460)','_self');"><b>SignUp</b></button>
 
 <p>If you have submitted your details. Please Make payment below upi/ QR code-
 
@@ -31,7 +31,7 @@ image:            https://googlepass.net/public/image/course.png
         
 <p><b>Please send us Screenshot after Payment with your Name and Number.</b><br></p>
 
-<b>YOU CAN JOIN-</b><br>
+<b>You can join-</b><br>
   -If you are a Student/Housewife/Jobseeker/ Employee<br>
   -If you want second source of income<br>
   -If you have time to learn and earn <br>
