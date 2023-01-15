@@ -23,7 +23,7 @@ image:            https://googlepass.net/public/image/course.png
 
 <p>If you are interested and want to learn, Click Signup and send us your details. We will add you in our Group.</p>
   
-<button onclick="window.open('(https://form.jotform.com/230123549488460)','_self');"><b>SignUp</b></button>
+<button onclick="window.open('https://form.jotform.com/230123549488460','_self');"><b>SignUp</b></button>
 
 <p>If you have submitted your details. Please Make payment on below upi/ QR code-
 
