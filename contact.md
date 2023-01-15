@@ -38,7 +38,7 @@ image:            https://googlepass.net/public/image/course.png
   -If you want to be a successful trader<br>
   -If you want to secure your family future<br>
   
-<p>Desclaimer- Googlepass is a Stock market Learning Platform. We are not Sebi regestered. Do your own research before make any decision.</p><br>
+<p><b>Desclaimer-</b> Googlepass is a Stock market Learning Platform. We are not Sebi regestered. Do your own research before make any decision.</p>
   
-<div class="sharethis-inline-follow-buttons"></div>
+
 
