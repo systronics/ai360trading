@@ -1,13 +1,14 @@
 ---
 layout: page
 excerpt: Googlepass is an Educational platform for Learn and Earn | Stock Market | Live Trading | Investment Ideas | Second Income Source | Option Strategies| Grow Your Money | Trading strategies | Price Action | Trading BTSTT.
+image:            https://googlepass.net/public/image/course.png
 ---
 
 # Contact us
 
-<h2>Course Details</h2>
-<h3>Language- Hindi, Platform- Online (Zoom app/Youtube)</h3>
-<h4>1. Three Month Course(Fees- Rs.1000/-)</h4>
+<h3>Online Course in Hindi on Zoom/Youtube app</h3>
+
+<h4> 3 Month Course(Fees- Rs.1000/-)</h4>
 
 <b>Course Contents-</b><br>
   -Mindset<br>
@@ -20,8 +21,6 @@ excerpt: Googlepass is an Educational platform for Learn and Earn | Stock Market
   -Problem Solving<br>
   -Hand holding support<br>
 
-
-  <p>Googlepass is a Stock market Learning Platform. We are not Sebi regestered. Do your own research before make any decision.<br>
   <p>If you are interested and want to learn, Press <b>Signup</b> Button, We will add you in our Telegram/Whatsapp Group. After <b>Make payment</b>, share your Screenshot with your Name and Whatsapp mobile no on group.</p>
   
 <style>
@@ -57,5 +56,7 @@ excerpt: Googlepass is an Educational platform for Learn and Earn | Stock Market
   -If you want to secure your future<br>
   -If you dont have any idea about Stock market<br>
 
+<p>Desclaimer- Googlepass is a Stock market Learning Platform. We are not Sebi regestered. Do your own research before make any decision.</p><br>
+  
 <div class="sharethis-inline-follow-buttons"></div>
 
