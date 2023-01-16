@@ -28,7 +28,7 @@ image:            https://googlepass.net/public/image/course.png
 
 <p>Already Signed up, Pay here-</p>
 
-<a href="/public/image/qrcode.png"><img src="/public/image/qrcode.png" border="0" width="250" height="200" align="left" alt="qrcode"></a>
+<a href="/public/image/qrcode.png"><img src="/public/image/qrcode.png" border="0" width="200" height="200" align="left" alt="qrcode"></a>
         
 <p>Send us Screenshot after Payment with your Name and Number.</p>
 
