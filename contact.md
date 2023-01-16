@@ -24,7 +24,7 @@ image:            https://googlepass.net/public/image/course.png
 
 <p>If you are interested and want to learn, Click Signup and send us your details. We will add you in our Group.</p>
   
-<button onclick="window.open('https://form.jotform.com/230123549488460','_self');"><b>SignUp</b></button>
+<button onclick="window.open('https://form.jotform.com/230123549488460','_self');"><b>SIGN UP</b></button>
 
 <p><align="left" >Already Signed up, Pay here-</align></p>
 
