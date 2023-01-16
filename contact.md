@@ -26,20 +26,20 @@ image:            https://googlepass.net/public/image/course.png
   
 <button onclick="window.open('https://form.jotform.com/230123549488460','_self');"><b>SIGN UP</b></button>
 
-<p>Already Signed up, Pay here-</p>
+<p><b>Already Signed up, Pay here-</b></p>
 
-<a href="/public/image/qrcode.png"><img src="/public/image/qrcode.png" border="0" width="200" height="200" align="left" alt="qrcode"></a>
+<a href="/public/image/qrcode.png"><img src="/public/image/qrcode.png" border="0" width="200" height="200" align="left" alt="qrcode"></a><br>
         
 <p>Send us Screenshot after Payment with your Name and Number.</p>
 
-<b>You can join-</b><br>
+<p>You can join-<br>
   -If you are a Student/Housewife/Jobseeker/ Employee<br>
   -If you want second source of income<br>
   -If you have time to learn and earn <br>
   -If you want to be a successful trader<br>
-  -If you want to secure your family future<br>
+  -If you want to secure your family future<br></p>
 
-<p><b>Desclaimer-</b> Googlepass is a Stock market Learning Platform. We are not Sebi regestered. Do your own research before make any decision.</p>
+<p>Desclaimer- Googlepass is a Stock market Learning Platform. We are not Sebi regestered. Do your own research before make any decision.</p>
   
 
 
