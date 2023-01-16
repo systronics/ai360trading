@@ -26,11 +26,11 @@ image:            https://googlepass.net/public/image/course.png
   
 <button onclick="window.open('https://form.jotform.com/230123549488460','_self');"><b>SIGN UP</b></button>
 
-<p><align="left" >Already Signed up, Pay here-</align></p>
+<p>Already Signed up, Pay here-</p>
 
 <a href="/public/image/qrcode.png"><img src="/public/image/qrcode.png" border="0" width="250" height="200" align="left" alt="qrcode"></a>
         
-<p><align="left" >Send us Screenshot after Payment with your Name and Number.</align></p>
+<p>Send us Screenshot after Payment with your Name and Number.</p>
 
 <b>You can join-</b><br>
   -If you are a Student/Housewife/Jobseeker/ Employee<br>
