@@ -26,7 +26,7 @@ image:            https://googlepass.net/public/image/course.png
   
 <button onclick="window.open('https://form.jotform.com/230123549488460','_self');"><b>SIGN UP</b></button>
 
-<p><b>Already Signed up, Pay to <b>9634759528@upi</b></p>
+<p><b>Pay on 9634759528@upi / QR Code</b></p>
 
 <a href="/public/image/qrcode.png"><img src="/public/image/qrcode.png" border="0" width="200" height="200" align="center" alt="qrcode"></a><br>
         
