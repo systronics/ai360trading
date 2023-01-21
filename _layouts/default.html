@@ -7,12 +7,12 @@
   
 <div style="text-align: center">
   <a href="/" title="Googlepass">
-<img src="/public/image/gpheader.png" alt="Googlepass" width="250" height="80"></a>
+  <img src="/public/image/gpheader.png" alt="Googlepass" width="250" height="80"></a>
 </div>
 
 <div style="text-align: center">
 <div>
-<style>
+   <style>
       button{
         display: inline-block;
         margin: 0 auto;
@@ -24,12 +24,13 @@
     </style>
 <div>
   <button><a href="/">Home</a></button>
-<button><a href="/contact">Contact</a></button>
-<button><a href="/disclaimer">Disclaimer</a></button>
-<button><a href="/policy">Policy</a></button>
-  </div></div>
+  <button><a href="/contact">Contact</a></button>
+  <button><a href="/disclaimer">Disclaimer</a></button>
+  <button><a href="/policy">Policy</a></button>
+</div></div></div>
 
-<!-- social buttons -->
+<div style="text-align: center">  
+
       {% if site.facebook.username %}
       <a href="https://www.facebook.com/{{ site.facebook.username }}" target="_blank" title="Facebook">
         <i class="fa fa-fw fa-facebook fa-lg"></i>
@@ -55,14 +56,14 @@
         <i class="fa fa-fw fa-telegram fa-lg"></i>
       </a>
       {% endif %}      
-
-    </div>
+</div>
 
 <div class="content container">
   
       {{ content }}
-    </div>
-<script id="dsq-count-scr" src="//googlepass.disqus.com/count.js" async></script>
+</div>
+
+    <script id="dsq-count-scr" src="//googlepass.disqus.com/count.js" async></script>
 
 <script>
   window.fbAsyncInit = function() {
@@ -74,11 +75,13 @@
     });
   };
 </script>
-<script async defer src="https://connect.facebook.net/en_US/sdk.js"></script>
+
+    <script async defer src="https://connect.facebook.net/en_US/sdk.js"></script>
 
 <div id="fb-root"></div>
-<script data-cfasync="false" src="https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v7.0"></script>
-   
+
+    <script data-cfasync="false" src="https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v7.0"></script>
+  
     
 </body>
 </html>
