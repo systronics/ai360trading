@@ -7,7 +7,7 @@ excerpt: Googlepass (Stock-Market Learn and Earn) Platform for Investment ideas 
 
 
 <h2>Terms of use-</h2><br />
-This website/ Blog/ App has some terms and conditions. Please read carefully before <b>ENTER </b> here. Provided links are here may be hosted on some third party websites/ Blog/ App. You are solely responsible for verifying the accuracy of information, images, text, multimedia, advertisements and other content. I am not responsible or liable in any manner for any content or third party products advertisements posted here.<br />
+This website/ Blog/ App has some terms and conditions. Please read carefully before <b>ENTER </b> here. Provided links are here may be hosted on some third party websites/ Blog/ App. You are solely responsible for verifying the accuracy of information, images, text, multimedia, advertisements and other content. I am not responsible or liable in any manner for any content or third party products advertisements posted here. We are not sebi registered. Please do your own analysis or consult with your financial advisor before any investment or trade. <br />
 <br />
 <h3>Copyright Policy-</h3><br />
 I do not hold any copyrights and not to assume any legal liability and responsibility for any investmetn, accuracy, completeness, or usefulness of any information, or represents that its use would not infringe privately owned rights. All materials, articles, contents, company names, trademarks and logos used here are property of their respective owners.<br />
