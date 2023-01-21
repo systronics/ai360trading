@@ -28,24 +28,15 @@ facebook:
   username:     systronics
 twitter:
   username:     systronics
-linkedin:
-  username:     systronics
-pinterest:
-  username:     systronics
 youtube:
   username:     amitkumarsystronics
 instagram:
   username:     systronics
 telegram:
   username:     googlepass
-github:
-  username:     systronics
 
 gems:           [jekyll-paginate, jekyll-seo-tag, jekyll-sitemap]
 
 google_analytics: UA-8307371-4
-
-github:
-  repo:         https://github.com/systronics/googlepass/
 
 tags:
