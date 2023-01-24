@@ -4,7 +4,7 @@
 tag_generator.py
 
 Copyright 2020 Googlepass
-Contact: amit@googlepass.net
+Contact: admin@googlepass.net
 
 This script creates tags for your Jekyll blog hosted by Github page.
 No plugins required.
