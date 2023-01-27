@@ -1,6 +1,6 @@
 ---
 layout: page
-excerpt: Googlepass is an Educational platform for Learn and Earn | Stock Market | Live Trading | Investment Ideas | Second Income Source | Option Strategies| Grow Your Money | Trading strategies | Price Action | Trading BTSTT.
+excerpt: Contact and join with us to learn stock market online courses and Live trading from basic to advanced.
 image:            https://googlepass.net/public/image/cover.png
 ---
 
@@ -38,7 +38,7 @@ image:            https://googlepass.net/public/image/cover.png
   -If you have time to learn and earn <br>
   -If you want to be a successful trader<br></p>
 
-<p>Desclaimer- Googlepass is a Stock market Learning Platform. We are not Sebi regestered. Do your own research before make any decision.</p>
+<p>Desclaimer- Market is supreme and all investment are subject to Risk. Read Disclaimer and Policy carefully before investment. </p>
   
 
 
