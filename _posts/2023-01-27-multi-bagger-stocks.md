@@ -1,8 +1,8 @@
 ---
 layout:           post
 title:            Multi Bagger Stocks
-date:             2021-03-18T13:04:19+05:45
-last_modified_at: 2021-03-18T05:20:00+05:45
+date:             2023-01-27T13:04:19+05:45
+last_modified_at: 2023-01-27T05:20:00+05:45
 image:            https://googlepass.net/public/image/stocks.png
 excerpt:          Best multi bagger stocks for short term and Long term.
 tags:             investment-ideas
