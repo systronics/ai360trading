@@ -9,7 +9,7 @@ tags:             investment-ideas
 ---
 
 
-<iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vQvbBzOmjdZ60cOleJqqprE1B61wDQigZAuWR4fE1_2PTqAWTuHXzEq3JsfwWDJeg/pubhtml?gid=1875409448&single=true&amp;widget=true&amp;headers=false" scrolling="yes" style="border: 1px solid black; position: relative; margin-left: 10px; margin-top: 10px; width: 600px; height: 400px; ">
+<iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vQvbBzOmjdZ60cOleJqqprE1B61wDQigZAuWR4fE1_2PTqAWTuHXzEq3JsfwWDJeg/pubhtml?gid=1875409448&single=true&amp;widget=true&amp;headers=false" scrolling="yes" style="border: 1px solid black; position: relative; margin-left: 10px; margin-top: 10px; width: 650px; height: 350px; ">
 </iframe>
 
 
