@@ -3,7 +3,7 @@ layout:           post
 title:            Option Call Put
 date:             2023-03-13T13:04:19+05:45
 last_modified_at: 2023-03-13T05:20:00+05:45
-image:            https://googlepass.net/public/image/stocks.png
+image:            https://googlepass.net/public/image/callput.png
 excerpt:          Stock option, Nifty Option, Bank-nifty Option
 tags:             investment-ideas
 ---
