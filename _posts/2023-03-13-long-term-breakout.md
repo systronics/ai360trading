@@ -9,5 +9,5 @@ tags:             investment-ideas
 ---
 
 
-<iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vQGyE2wCU8gBz2dZZHdmmb18n8IctGu-LzvBqYIvAqY17tbl1G4TrZsNxSIZ9A4vg/pubhtml?gid=1458477254&single=true&amp;widget=true&amp;headers=false" scrolling="yes" style="border: 1px solid black; position: relative; margin-left: 10px; margin-top: 10px; width: 650px; height: 350px; ">
+<iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vQGyE2wCU8gBz2dZZHdmmb18n8IctGu-LzvBqYIvAqY17tbl1G4TrZsNxSIZ9A4vg/pubhtml?gid=1458477254&single=true&amp;widget=true&amp;headers=false" scrolling="yes" style="border: 1px solid black; position: relative; margin-left: 10px; margin-top: 10px; width: 750px; height: 450px; ">
 </iframe>
