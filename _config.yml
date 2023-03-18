@@ -6,37 +6,37 @@ highlighter:    rouge
 permalink:      none
 
 # Setup
-name:           "Googlepass"
-url:            https://googlepass.net
+name:           "ai360trading"
+url:            https://ai360trading.in
 baseurl:        ""
 logo:           /public/image/logo.png
 timezone:       Asia/India
  
 author:
-  facebook:     systronics
-  twitter:      systronics
-  name:         Amit Kumar
-  email:        admin@googlepass.net
+  facebook:     aiSignalTrader
+  twitter:      aiSignalTrader
+  name:         aiSignal Trader
+  email:        admin@ai360trading.in
   
 facebook:
-  publisher:    systronics
-  admin:        systronics
+  publisher:    aiSignalTrader
+  admin:        aiSignalTrader
   fb:app_id:        451548405334620
   
   
 facebook:
-  username:     systronics
+  username:     aiSignalTrader
 twitter:
-  username:     systronics
+  username:     aiSignalTrader
 youtube:
-  username:     amitkumarsystronics
+  username:     aiSignalTrader
 instagram:
-  username:     systronics
+  username:     aiSignalTrader
 telegram:
-  username:     googlepass
+  username:     aiSignalTrader
 
 gems:           [jekyll-paginate, jekyll-seo-tag, jekyll-sitemap]
 
-google_analytics: UA-8307371-4
+google_analytics: 
 
 tags:
