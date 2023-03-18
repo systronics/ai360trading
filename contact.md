@@ -1,7 +1,7 @@
 ---
 layout: page
 excerpt: Contact and join with us to learn stock market online courses and Live trading from basic to advanced.
-image:            https://googlepass.net/public/image/cover.png
+image:            https://ai360trading.in/public/image/cover.png
 ---
 
 # Contact us
