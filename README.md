@@ -1,6 +1,6 @@
 # Googlepass
 
-A Blog [https://googlepass.net](https://googlepass.net) by [Amit Kumar](https://googlepass.net/aboutme).
+A Blog [https://ai360trading.in](https://ai360trading.in) by [aiSignal Trader](https://ai360trading.in/aboutme).
 
 ### Theme
 
