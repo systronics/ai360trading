@@ -1,6 +1,6 @@
 ---
 layout: page
-excerpt: Googlepass (Stock-Market Learn and Earn) Platform for Investment ideas | Earn Money Online | Live Intraday Trading | Trading strategies 
+excerpt: ai360trading (Algo Signal Trading) Platform for Investment ideas | Earn Money Online | Live Intraday Trading | Trading strategies 
 ---
 
 # Disclaimer
@@ -27,4 +27,4 @@ I shall not responsible for advertisers, sponsors or blog partners for the accur
 <h3>Refund Policy-</h3><br />
 I have no refund policy, if you purchase a product or service based upon a link from my website or blog from advertisers, sponsors or blog partners, you must take action with them to resolve the issue.<br />
 <br />
-Thank you for visiting here. If you find anything is against copyright law, blog or website rules <a href="mailto:admin@googlepass.net">Mail me</a>
+Thank you for visiting here. If you find anything is against copyright law, blog or website rules <a href="mailto:admin@ai360trading.in">Mail me</a>
