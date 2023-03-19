@@ -22,18 +22,17 @@ facebook:
   publisher:    aiSignalTrader
   admin:        aiSignalTrader
   fb:app_id:        451548405334620
-  
-  
+ 
 facebook:
   username:     aiSignalTrader
 twitter:
-  username:     aiSignalTrader
-youtube:
   username:     aiSignalTrader
 instagram:
   username:     aiSignalTrader
 telegram:
   username:     aiSignalTrader
+youtube:
+  username:     ai360trading
 
 gems:           [jekyll-paginate, jekyll-seo-tag, jekyll-sitemap]
 
