@@ -32,7 +32,7 @@ instagram:
 telegram:
   username:     aiSignalTrader
 youtube:
-  username:     @ai360trading
+  username:     ai360trading
 
 gems:           [jekyll-paginate, jekyll-seo-tag, jekyll-sitemap]
 
