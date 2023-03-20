@@ -1,4 +1,4 @@
-# Googlepass
+# ai360trading
 
 A Blog [https://ai360trading.in](https://ai360trading.in) by [aiSignal Trader](https://ai360trading.in/aboutme).
 
