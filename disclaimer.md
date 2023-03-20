@@ -1,6 +1,6 @@
 ---
 layout: page
-excerpt: ai360trading (Algo Signal Trading) Platform for Investment ideas | Earn Money Online | Live Intraday Trading | Trading strategies 
+excerpt: Algo Signal Trading | Learn Stock Market | Live Intraday Trading | Stock scanner | Price-action | Live Intraday Trading | ai360trading Technique
 ---
 
 # Disclaimer
@@ -10,7 +10,7 @@ excerpt: ai360trading (Algo Signal Trading) Platform for Investment ideas | Earn
 This website/ Blog/ App has some terms and conditions. Please read carefully before <b>ENTER </b> here. Provided links are here may be hosted on some third party websites/ Blog/ App. You are solely responsible for verifying the accuracy of information, images, text, multimedia, advertisements and other content. I am not responsible or liable in any manner for any content or third party products advertisements posted here. We are not sebi registered. Please do your own analysis or consult with your financial advisor before any investment or trade. <br />
 <br />
 <h3>Copyright Policy-</h3><br />
-I do not hold any copyrights and not to assume any legal liability and responsibility for any investmetn, accuracy, completeness, or usefulness of any information, or represents that its use would not infringe privately owned rights. All materials, articles, contents, company names, trademarks and logos used here are property of their respective owners.<br />
+I do not hold any copyrights and not to assume any legal liability and responsibility for any investment, accuracy, completeness, or usefulness of any information, or represents that its use would not infringe privately owned rights. All materials, articles, contents, company names, trademarks and logos used here are property of their respective owners.<br />
 <br />
 <h3>Hold harmless-</h3><br />
 This website/ Blog/ App is intended for Educational / Entertainment purposes only. You can use this website or blog at your own will and risk. I am not responsible for technical malfunction or problems that occur to you or to your mobile phone, wireless device, computer or any storage medium at anytime. In no event I will be liable to you or any third party for any indirect, consequential, exemplary, incidental or punitive damages.<br />
