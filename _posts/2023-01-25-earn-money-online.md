@@ -5,7 +5,7 @@ date:             2023-01-25T13:04:19+05:45
 last_modified_at: 2023-01-25T05:20:00+05:45
 image:            https://googlepass.net/public/image/emf.png
 excerpt:          Important links to join earn money online.
-tags: earn-money-online
+tags: fundamental-picks
 ---
 
 
