@@ -5,7 +5,7 @@ date:             2023-03-13T08:07:18+05:45
 last_modified_at: 2023-03-13T08:07:18+05:45
 image:            https://googlepass.net/public/image/intraday.png
 excerpt:          Short Term Breakout for btstt
-tags:             investment-ideas
+tags:             technical-picks
 ---
 
 
