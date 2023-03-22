@@ -5,7 +5,7 @@ date:             2023-03-13T13:04:19+05:45
 last_modified_at: 2023-03-13T05:20:00+05:45
 image:            https://googlepass.net/public/image/breakout.png
 excerpt:          Multi bagger stocks for Long term.
-tags:             investment-ideas
+tags:             technical-picks
 ---
 
 
