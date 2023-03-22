@@ -1,6 +1,6 @@
 ---
 layout: page
-excerpt: Algo Signal Trading | Learn Stock Market | Live Intraday Trading | Stock scanner | Price-action | Live Intraday Trading | ai360trading Technique
+excerpt: Learn Stock Market | ai360trading Scanner | Algo Signal Trading | Live Intraday Trading | Fundamental Picks | Technical Picks 
 ---
 
 # Disclaimer
