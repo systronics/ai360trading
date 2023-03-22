@@ -3,8 +3,8 @@
 '''
 tag_generator.py
 
-Copyright 2020 Googlepass
-Contact: admin@googlepass.net
+Copyright 2023 ai360trading
+Contact: admin@ai360trading.in
 
 This script creates tags for your Jekyll blog hosted by Github page.
 No plugins required.
