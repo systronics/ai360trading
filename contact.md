@@ -1,6 +1,6 @@
 ---
 layout: page
-excerpt: Contact and join with us to learn stock market online courses and Live trading from basic to advanced.
+excerpt: Learn Stock Market | ai360trading Scanner | Algo Signal Trading | Live Intraday Trading | Fundamental Picks | Technical Picks 
 image:            https://ai360trading.in/public/image/cover.png
 ---
 
