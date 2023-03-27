@@ -3,7 +3,7 @@ layout:           post
 title:            Best sip Stocks
 date:             2023-03-13T13:04:19+05:45
 last_modified_at: 2023-03-13T05:20:00+05:45
-image:            https://googlepass.net/public/image/invest.png
+image:            https://ai360trading.in/public/image/breakout.jpg
 excerpt:          Sip Stocks for Portfolio Build
 tags:             fundamental-picks
 ---
