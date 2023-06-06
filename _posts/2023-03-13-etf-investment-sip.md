@@ -10,5 +10,5 @@ tags:             fundamental-picks
 
 
 
-<iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vTMSUwqv4lF_YhFJ_yUJlz8of9Dzymbqps0u7CcnofOSFxDWcXVscYSzkwxFkVveZNJJ_yAGk3_VZqJ/pubhtml?gid=1250363048&single=true&amp;headers=false" scrolling="yes" style="border: 1px solid black; position: relative; margin-left: 10px; margin-top: 10px; width: 800px; height: 800px; ">
+<iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vTyz5J7Q54eAA1pezzgR84Vzk52gZjsEC-DIWjxKhWdPPGXhVuVFn3W2Se8qC9379YbOTAs6jMOTMXg/pubhtml?gid=1531472798&single=true&amp;headers=false" scrolling="yes" style="border: 1px solid black; position: relative; margin-left: 10px; margin-top: 10px; width: 800px; height: 800px; ">
 </iframe>
