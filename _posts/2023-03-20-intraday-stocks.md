@@ -3,7 +3,7 @@ layout:           post
 title:            Intraday Stocks
 date:             2023-03-20T13:04:19+05:45
 last_modified_at: 2023-03-20T05:20:00+05:45
-image:            https://ai360trading.in/public/image/callput.jpg
+image:            https://ai360trading.in/public/image/callput.webp
 excerpt:          Stock option, Intraday picks, Swing Trade, Breakout Stocks, Breakdown Stocks
 tags:             technical-picks
 ---
