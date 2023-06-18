@@ -3,7 +3,7 @@ layout:           post
 title:            ETF investment SIP
 date:             2023-03-13T13:04:19+05:45
 last_modified_at: 2023-03-13T05:20:00+05:45
-image:            https://ai360trading.in/public/image/breakout.jpg
+image:            https://ai360trading.in/public/image/breakout.webp
 excerpt:          Gold and ETF Investment Sip
 tags:             fundamental-picks
 ---
