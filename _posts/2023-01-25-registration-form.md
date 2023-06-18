@@ -3,7 +3,7 @@ layout: post
 title: Registration Form
 date:             2023-01-25T13:02:19+05:45
 last_modified_at: 2023-01-25T05:20:00+05:45
-image:            https://ai360trading.in/public/image/cover.png
+image:            https://ai360trading.in/public/image/cover.webp
 excerpt:          Stock market course, Registration, Trading course, Technical, Fundamental
 tags: learn-stockmarket
 ---
@@ -30,7 +30,7 @@ tags: learn-stockmarket
 
 <p><b>Pay on 9634759528@upi / QR Code</b></p>
 
-<a href="/public/image/qrcode.png"><img src="/public/image/qrcode.png" border="0" width="200" height="200" align="center" alt="qrcode"></a><br>
+<a href="/public/image/qrcode.png"><img src="/public/image/qrcode.webp" border="0" width="200" height="200" align="center" alt="qrcode"></a><br>
         
 <p>Send us Screenshot after Payment with your Name and Number.</p>
 
