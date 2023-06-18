@@ -1,11 +1,16 @@
 # ai360trading
 
-A Blog [https://ai360trading.in](https://ai360trading.in)
+A Blog for Stock market- [https://ai360trading.in](https://ai360trading.in)
 
-### Theme
+###  Topics
+Technical Picks
+Fundamental Picks
+Learn Stock Market
 
-The theme is forked from [hyde](https://github.com/poole/hyde).
-
-### License
-
-Open sourced under the [MIT license](LICENSE.md).
+###  Follow us-
+<a href="https://www.instagram.com/ai360trading"  target="_blank">Follow on Instagram </a>
+<a href="https://twitter.com/ai360trading"  target="_blank">Follow on Twitter </a>
+<a href="https://www.youtube.com/@ai360trading"  target="_blank">Subscribe Youtube Channel </a>
+<a href="https://telegram.me/ai360trading"  target="_blank">Join Telegram Channel </a>
+<a href="https://www.facebook.com/groups/ai360trading"  target="_blank">Join Facebook Groups </a>
+<a href="https://www.facebook.com/ai360trading"  target="_blank">Follow Facebook Page </a>
