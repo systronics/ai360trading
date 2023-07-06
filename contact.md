@@ -8,7 +8,7 @@ image:            https://ai360trading.in/public/image/cover.webp
 
 <h3>Online Course in Hindi on Zoom/Youtube app</h3>
 
-<h4> 3 Month Course(Fees- Rs.1000/-)</h4>
+<h4> 3 Month Course(Fees- Rs.3000/-)</h4>
 
 <b>Course Contents-</b><br>
   -Mindset<br>
@@ -28,7 +28,7 @@ image:            https://ai360trading.in/public/image/cover.webp
 
 <p><b>Pay on 9634759528@upi / QR Code</b></p>
 
-<a href="/public/image/qrcode.png"><img src="/public/image/qrcode.webp" border="0" width="200" height="200" align="center" alt="qrcode"></a><br>
+<a href="/public/image/qrcode.webp"><img src="/public/image/qrcode.webp" border="0" width="200" height="200" align="center" alt="qrcode"></a><br>
         
 <p>Send us Screenshot after Payment with your Name and Number.</p>
 
