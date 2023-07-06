@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Registration Form
+title: Registration
 date:             2023-01-25T13:02:19+05:45
 last_modified_at: 2023-01-25T05:20:00+05:45
 image:            https://ai360trading.in/public/image/cover.webp
