@@ -24,15 +24,15 @@ tags: learn-stockmarket
   -Hand holding support<br>
 
 
-<p>If you are interested and want to learn, Click Signup and send us your details. We will add you in our Group.</p>
-  
-<button onclick="window.open('https://form.jotform.com/230123549488460','_self');"><b>SIGN UP</b></button>
+<p>If you are interested and want to learn, Send us your details on 9634759528. We will add you in our Group.</p>
+ 
 
 <p><b>Pay on 9634759528@upi / QR Code</b></p>
 
-<a href="/public/image/qrcode.png"><img src="/public/image/qrcode.webp" border="0" width="200" height="200" align="center" alt="qrcode"></a><br>
+<a href="/public/image/qrcode.webp"><img src="/public/image/qrcode.webp" border="0" width="200" height="200" align="center" alt="qrcode"></a><br>
         
 <p>Send us Screenshot after Payment with your Name and Number.</p>
+
 
 <p>You can join-<br>
   -If you are a Student/Housewife/Jobseeker/ Employee<br>
