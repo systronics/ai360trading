@@ -1,6 +1,6 @@
 ---
 layout: page
-excerpt: Learn Stock Market | ai360trading Scanner | Algo Signal Trading | Live Intraday Trading | Fundamental Picks | Technical Picks 
+excerpt: ai360trading, AlgoTrading, LiveIntraday, PriceAction, Breakout, Scalping, Option,  BankNifty, Crypto, Bitcoin 
 ---
 
 # Disclaimer
