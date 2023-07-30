@@ -1,6 +1,6 @@
 ---
 layout: page
-excerpt: Learn Stock Market | ai360trading Scanner | Algo Signal Trading | Live Intraday Trading | Fundamental Picks | Technical Picks 
+excerpt: ai360trading, AlgoTrading, LiveIntraday, PriceAction, Breakout, Scalping, Option,  BankNifty, Crypto, Bitcoin 
 image:            https://ai360trading.in/public/image/cover.webp
 ---
 
@@ -37,7 +37,7 @@ image:            https://ai360trading.in/public/image/cover.webp
   -If you have time to learn and earn <br>
   -If you want to be a successful trader<br></p>
 
-<p>Desclaimer- Market is supreme and all investment are subject to Risk. Read Disclaimer and Policy carefully before investment. </p>
+<p>Desclaimer- We are not a Sebi Registered. Market is supreme and all investment are subject to Risk. Read Disclaimer and Policy carefully before investment. </p>
   
 
 
