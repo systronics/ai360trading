@@ -1,10 +1,10 @@
 ---
 layout: post
-title: Earn Money Online
+title: Long Term Investment
 date:             2023-01-25T13:04:19+05:45
 last_modified_at: 2023-01-25T05:20:00+05:45
 image:            https://ai360trading.in/public/image/swing.webp
-excerpt:          fundamental-picks, sip, swing
+excerpt:          fundamental-picks, sip, long-term, investment
 tags: fundamental-picks
 ---
 
