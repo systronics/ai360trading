@@ -3,7 +3,7 @@ layout: post
 title: Long Term Investment
 date:             2023-01-25T13:04:19+05:45
 last_modified_at: 2023-01-25T05:20:00+05:45
-image:            https://ai360trading.in/public/image/swing.webp
+image:            https://ai360trading.in/public/image/invest.webp
 excerpt:          fundamental-picks, sip, long-term, investment
 tags: fundamental-picks
 ---
