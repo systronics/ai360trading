@@ -1,6 +1,6 @@
 ---
 layout:           post
-title:            Intraday
+title:            Option Trading
 date:             2024-03-20T13:04:19+05:45
 last_modified_at: 2024-03-20T05:20:00+05:45
 image:            https://ai360trading.in/public/image/breakout.webp
