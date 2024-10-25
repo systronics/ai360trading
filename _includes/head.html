@@ -86,15 +86,15 @@
   {% endfor %}
 {% endif %}
 	
-	<meta name="twitter:card" content="summary">
-<meta name="twitter:site" content="@{{ site.twitter.username | replace:'@','' }}">
+	<meta name="x:card" content="summary">
+<meta name="x:site" content="@{{ site.x.username | replace:'@','' }}">
 {% if page.date %}
-  <meta name="twitter:creator" content="@{{ site.author.twitter | replace:'@','' }}">
+  <meta name="x:creator" content="@{{ site.author.x | replace:'@','' }}">
 {% endif %}
-<meta name="twitter:title" content="{% if page.title %}{{ page.title | smartify | strip_html | strip_newlines | escape_once }}{% else %}{{ site.name }}{% endif %}">
-<meta name="twitter:description" content="{% if page.excerpt %}{{ page.excerpt | markdownify | strip_html | strip_newlines | truncate: 160 | escape_once }}{% else %}{{ site.description }}{% endif %}">
-<meta name="twitter:image" content="{% if page.image %}{{ page.image | prepend: site.baseurl }}{% else %}{{ site.logo | prepend: site.baseurl | prepend: site.url }}{% endif %}">
-<meta name="twitter:url" content="{{ page.url | replace:'/index.html','/' | prepend: site.baseurl | prepend: site.url }}">
+<meta name="x:title" content="{% if page.title %}{{ page.title | smartify | strip_html | strip_newlines | escape_once }}{% else %}{{ site.name }}{% endif %}">
+<meta name="x:description" content="{% if page.excerpt %}{{ page.excerpt | markdownify | strip_html | strip_newlines | truncate: 160 | escape_once }}{% else %}{{ site.description }}{% endif %}">
+<meta name="x:image" content="{% if page.image %}{{ page.image | prepend: site.baseurl }}{% else %}{{ site.logo | prepend: site.baseurl | prepend: site.url }}{% endif %}">
+<meta name="x:url" content="{{ page.url | replace:'/index.html','/' | prepend: site.baseurl | prepend: site.url }}">
 
   
   <!-- Google analytics -->
