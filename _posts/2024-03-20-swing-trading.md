@@ -8,5 +8,5 @@ excerpt:          BTST, Swing, Breakout, Screener, Buy on Dip, Bottom out huntin
 tags:             fundamental-picks
 ---
 
-<iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRxX73tu9ya9TkJP18mI2GfD7wMiaZ-KqDQ9ptGYFMZjg2nfobm92ym04sZTyfst_hxdavT7OzWNHsL/pubhtml?gid=1080335833&single=true&amp;headers=false" scrolling="yes" style="border: 1px solid black; position: relative; margin-left: 10px; margin-top: 10px; width: 800px; height: 800px; ">
+<iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRjzxaN4MT6gYkmZz-atLqYX453kaejWsGUX5FARfrkZCYEXIZh-ppXDxyAR1NkLY6NPPAGpPgSyIdN/pubhtml" scrolling="yes" style="border: 1px solid black; position: relative; margin-left: 10px; margin-top: 10px; width: 800px; height: 800px; ">
 </iframe>
