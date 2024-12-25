@@ -9,3 +9,4 @@ tags:             fundamental-picks
 ---
 
 <iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRjzxaN4MT6gYkmZz-atLqYX453kaejWsGUX5FARfrkZCYEXIZh-ppXDxyAR1NkLY6NPPAGpPgSyIdN/pubhtml?widget=true&amp;headers=false" width="850" height="500"></iframe>
+
