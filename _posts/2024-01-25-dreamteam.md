@@ -5,7 +5,7 @@ date:             2025-02-25T13:04:19+05:45
 last_modified_at: 2025-02-25T05:20:00+05:45
 image:            https://ai360trading.in/public/image/logo.webp
 excerpt:          Dream11, Dream Team, Dream Team ai 
-tags:             ai-tools
+tags:             free-ai-tools
 ---
 
     <style>
