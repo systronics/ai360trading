@@ -8,17 +8,7 @@ excerpt:          Dream11, Dream Team, Dream Team ai
 tags:             free-ai-tools
 ---
 
-    <style>
-        .container { max-width: 800px; margin: 10px auto; padding: 10px; font-size: 0.9em; }
-        .input-row { display: grid; grid-template-columns: 25% 20% 15% 15% 10%; gap: 5px; margin-bottom: 5px; }
-        input, select { padding: 3px; font-size: 0.9em; }
-        button { padding: 6px 10px; margin: 5px 0; font-size: 0.9em; }
-        .teams-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; max-height: 60vh; overflow-y: auto; }
-        .team-box { padding: 5px; border: 1px solid #ddd; margin: 2px; }
-        .player-line { display: flex; justify-content: space-between; }
-        #add-player-btn { margin-bottom: 10px; }
-    </style>
-
+    
 <body>
     <div class="container">
         <h3 style="margin:5px 0">Team Generator</h3>
