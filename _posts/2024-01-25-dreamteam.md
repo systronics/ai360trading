@@ -10,34 +10,21 @@ tags:             free-ai-tools
 
     
 <body>
-    <div class="container">
-        <h3 style="margin:5px 0">Team Generator</h3>
-        
-        <button id="add-player-btn" onclick="addPlayer()">+ Add Player</button>
-        
-        <div id="players-container">
-            <div class="input-row">
-                <input type="text" placeholder="Name" class="name">
-                <select class="role">
-                    <option value="Batsman">Batsman</option>
-                    <option value="Bowler">Bowler</option>
-                    <option value="All-Rounder">All-Rounder</option>
-                    <option value="Wicketkeeper">Wicketkeeper</option>
-                </select>
-                <input type="number" placeholder="Points" class="points" min="0">
-                <input type="number" placeholder="Credit" class="credit" min="1" max="12" step="0.5">
-            </div>
-        </div>
-
-        <button onclick="generateTeams()">Generate 20 Teams</button>
-        <div id="results" class="teams-grid"></div>
-    </div>
+    <!-- ... (keep HTML structure the same) ... -->
 
     <script>
         function addPlayer() {
             const newRow = document.querySelector('.input-row').cloneNode(true);
             newRow.querySelectorAll('input').forEach(input => input.value = '');
             document.getElementById('players-container').appendChild(newRow);
+        }
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
         }
 
         function generateTeams() {
@@ -53,27 +40,94 @@ tags:             free-ai-tools
                 return;
             }
 
+            const CREDIT_LIMIT = 100;
+            const REQUIRED_ROLES = {
+                'Batsman': 3,
+                'Bowler': 3,
+                'Wicketkeeper': 1,
+                'All-Rounder': 1
+            };
+            
             let allTeams = [];
-            for (let i = 0; i < 20; i++) {
+            let attempts = 0;
+            const MAX_ATTEMPTS = 1000;
+
+            while (allTeams.length < 20 && attempts < MAX_ATTEMPTS) {
+                attempts++;
+                let team = [];
+                let credits = 0;
                 const shuffled = shuffle([...players]);
-                const team = shuffled.slice(0, Math.ceil(shuffled.length/2));
-                const sortedTeam = team.sort((a, b) => b.points - a.points);
-                const captain = sortedTeam[0];
-                const vice = sortedTeam.find(p => p.role !== captain.role) || sortedTeam[1];
                 
-                allTeams.push({
-                    players: sortedTeam,
-                    captain: captain.name,
-                    viceCaptain: vice.name,
-                    totalCredit: sortedTeam.reduce((sum, p) => sum + p.credit, 0).toFixed(1)
-                });
+                // Select 11 players within credit limit
+                for (const player of shuffled) {
+                    if (team.length >= 11) break;
+                    if (credits + player.credit <= CREDIT_LIMIT) {
+                        team.push(player);
+                        credits += player.credit;
+                    }
+                }
+
+                // Check if team is valid
+                if (team.length === 11 && credits <= CREDIT_LIMIT) {
+                    // Check role requirements
+                    const roleCounts = team.reduce((acc, p) => {
+                        acc[p.role] = (acc[p.role] || 0) + 1;
+                        return acc;
+                    }, {});
+
+                    const isValid = Object.entries(REQUIRED_ROLES).every(([role, min]) => 
+                        (roleCounts[role] || 0) >= min
+                    );
+
+                    if (isValid) {
+                        // Check for duplicate teams
+                        const signature = team.map(p => p.name).sort().join(',');
+                        const isUnique = !allTeams.some(t => t.signature === signature);
+
+                        if (isUnique) {
+                            // Select captain and vice-captain
+                            const sorted = [...team].sort((a, b) => b.points - a.points);
+                            const captain = sorted[0];
+                            const vice = sorted.slice(1).find(p => p.role !== captain.role) || sorted[1];
+                            
+                            allTeams.push({
+                                players: sorted,
+                                captain: captain.name,
+                                viceCaptain: vice.name,
+                                totalCredit: credits.toFixed(1),
+                                signature: signature
+                            });
+                        }
+                    }
+                }
+            }
+
+            if (allTeams.length < 20) {
+                alert(`Generated ${allTeams.length} teams (max attempts reached)`);
             }
 
             displayTeams(allTeams);
         }
 
-        // Rest of the JavaScript functions remain same
-        // ... [Keep the shuffle(), displayTeams() functions from previous code]
+        function displayTeams(teams) {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '';
+            teams.forEach((team, index) => {
+                const teamDiv = document.createElement('div');
+                teamDiv.className = 'team-box';
+                teamDiv.innerHTML = `
+                    <b>Team ${index + 1}</b> (Credit: ${team.totalCredit})<br>
+                    Captain: ${team.captain}<br>
+                    Vice-Captain: ${team.viceCaptain}<br>
+                    ${team.players.map(p => `
+                        <div class="player-line">
+                            <span>${p.name}</span>
+                            <span>${p.role}</span>
+                        </div>
+                    `).join('')}
+                `;
+                resultsDiv.appendChild(teamDiv);
+            });
+        }
     </script>
 </body>
-
