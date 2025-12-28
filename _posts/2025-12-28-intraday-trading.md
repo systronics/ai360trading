@@ -8,4 +8,5 @@ excerpt:          Intraday, Positional, Chartink, Swing, Breakout, ai360tradingA
 tags:             technical-picks
 ---
 
-<iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vQyI_2dA66bYzzsxZNW9yqSAkmi8_TxLA7PK_x6vtI9uqSbUNz-M5FXrYIt4rsP5B7kl6Mrfi5AUpsp/pubhtml?gid=488777981&single=true&amp;headers=false" width="100%" height="600"frameborder="0"></iframe>
+
+<iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vQ-E98O-wsBDHFmi4L4JHcW2fdTFjisvtJHWE4wj080bz0dUFr_YRHiTCsVLgSQyrr7PvCxPisUMXDf/pubhtml?gid=470978737&single=true&amp;headers=false" width="1200" height="800"></iframe>
