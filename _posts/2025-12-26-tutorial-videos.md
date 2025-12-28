@@ -3,7 +3,7 @@ layout: post
 title: Tutorial Videos
 date:             2023-01-25T13:02:19+05:45
 last_modified_at: 2023-01-25T05:20:00+05:45
-image:            https://cdn.pixabay.com/photo/2019/04/24/21/55/cinema-4153289_960_720.webp
+image:            https://ai360trading.in/public/image/videos.webp
 excerpt:          ai360trading, AlgoTrading, LiveIntraday, PriceAction, YoutubeLive, BankNifty, Crypto, Bitcoin
 tags: learn-stockmarket
 ---
