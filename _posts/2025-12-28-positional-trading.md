@@ -1,6 +1,6 @@
 ---
 layout:           post
-title:            positional Trading
+title:            Positional Trading
 date:             2025-12-28T13:04:19+05:45
 last_modified_at: 2025-12-28T05:20:00+05:45
 image:            https://ai360trading.in/public/image/swing.webp
