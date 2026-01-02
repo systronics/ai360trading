@@ -8,4 +8,10 @@ excerpt:          Earn money free, earn online, work from home
 tags: learn-stockmarket
 ---
 
-<iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRsdvZOGn3Xt6eb3YoKZI9tZWnCMyGOvkextfe4Dj3LmRVn9zKDZBHsyfzb6B8QnqPl31bn32stB8gq/pubhtml?gid=68030724&single=true&amp;headers=false" scrolling="false" width="1200" height="800"></iframe>
+<iframe 
+  src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRsdvZOGn3Xt6eb3YoKZI9tZWnCMyGOvkextfe4Dj3LmRVn9zKDZBHsyfzb6B8QnqPl31bn32stB8gq/pubhtml?gid=68030724&single=true&amp;headers=false&amp;chrome=false&amp;widget=false" 
+  width="100%" 
+  height="500px" 
+  frameborder="0" 
+  scrolling="yes">
+</iframe>
