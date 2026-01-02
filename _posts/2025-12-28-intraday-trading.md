@@ -9,4 +9,10 @@ tags:             technical-picks
 ---
 
 
-<iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vQ-E98O-wsBDHFmi4L4JHcW2fdTFjisvtJHWE4wj080bz0dUFr_YRHiTCsVLgSQyrr7PvCxPisUMXDf/pubhtml?gid=470978737&single=true&amp;headers=false" width="1200" height="800"></iframe>
+<iframe 
+  src="https://docs.google.com/spreadsheets/d/e/2PACX-1vQ-E98O-wsBDHFmi4L4JHcW2fdTFjisvtJHWE4wj080bz0dUFr_YRHiTCsVLgSQyrr7PvCxPisUMXDf/pubhtml?gid=1473515751&amp;single=true&amp;headers=false&amp;chrome=false&amp;widget=false" 
+  width="100%" 
+  height="500px" 
+  frameborder="0" 
+  scrolling="yes">
+</iframe>
