@@ -8,6 +8,10 @@ excerpt:          Positional, Screener, Bottom out, SIP, undervalued
 tags:             fundamental-picks
 ---
 
-
-<iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRxCmYGRepK_DgUk-KMeudF4PoQ9B89msVkMeZmImFb-2QaXobqjOthwdMDlvxpHtu3S9UtyXo9SrOR/pubhtml?gid=1640788813&single=true&amp;headers=false" width="1200" height="800"></iframe>
-
+<iframe 
+  src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRxCmYGRepK_DgUk-KMeudF4PoQ9B89msVkMeZmImFb-2QaXobqjOthwdMDlvxpHtu3S9UtyXo9SrOR/pubhtml?gid=1640788813&single=true&amp;headers=false&amp;chrome=false&amp;widget=false" 
+  width="100%" 
+  height="500px" 
+  frameborder="0" 
+  scrolling="yes">
+</iframe>
