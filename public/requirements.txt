@@ -1,0 +1,4 @@
+dhanhq
+gspread
+requests
+pandas
