@@ -9,7 +9,7 @@ from dhanhq import dhanhq
 PAPER_TRADING = True  # Set to False only when you want REAL trades
 PROFIT_TARGET = 0.05  # Exit at 5% Profit
 TRAILING_GAP = 0.02   # Trail by 2% (Protects gains if price drops slightly)
-SHEET_NAME = "ai360trading_results" # Ensure this matches your filename
+SHEET_NAME = "Ai360tradingAlgo" # Ensure this matches your filename
 TAB_NAME = "AlertLog"
 
 # --- 2. SETUP CONNECTIONS ---
