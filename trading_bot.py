@@ -1,100 +1,66 @@
 import os
-import json
 import gspread
 import requests
-import pandas as pd
-from dhanhq import dhanhq
+from datetime import datetime
 from google.oauth2.service_account import Credentials
+from dhanhq import dhanhq
 
-# CONFIGURATION
-SHEET_URL = "https://docs.google.com/spreadsheets/d/1fPNGL6AHs-7M-oC22zILg9FlyWi-7DF9NoVVqZQs2vk/edit"
-TELEGRAM_CHAT_ID = "-1001904635185" # e.g., @ai360trading or -100123456789 
+# --- 1. CONFIGURATION & TARGETS ---
+PAPER_TRADING = True  # Set to False only when you want REAL trades
+PROFIT_TARGET = 0.05  # Exit at 5% Profit
+TRAILING_GAP = 0.02   # Trail by 2% (Protects gains if price drops slightly)
+SHEET_NAME = "ai360trading_results" # Ensure this matches your filename
+TAB_NAME = "AlertLog"
 
-def send_telegram(msg):
-    token = os.getenv('TELEGRAM_BOT_TOKEN')
-    if token:
-        url = f"https://api.telegram.org/bot{token}/sendMessage?chat_id={TELEGRAM_CHAT_ID}&text={msg}"
-        requests.get(url)
+# --- 2. SETUP CONNECTIONS ---
+scopes = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
+creds_json = os.environ.get('GCP_SERVICE_ACCOUNT_JSON')
+creds = Credentials.from_service_account_info(eval(creds_json), scopes=scopes)
+gc = gspread.authorize(creds)
 
-def start_algo():
-    print("🤖 Algo Bot Started...")
+# Dhan Connect (Ready for live phase)
+dhan = dhanhq(os.environ.get('DHAN_CLIENT_ID'), os.environ.get('DHAN_API_KEY'))
 
-    # --- 2. CONNECT TO GOOGLE SHEETS ---
-    try:
-        scope = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
-        # Reads the JSON secret you saved in GitHub
-        secret_json = os.getenv('GCP_SERVICE_ACCOUNT_JSON')
-        if not secret_json:
-            raise Exception("GCP_SERVICE_ACCOUNT_JSON Secret is missing!")
-            
-        creds_dict = json.loads(secret_json)
-        creds = Credentials.from_service_account_info(creds_dict, scopes=scope)
-        client = gspread.authorize(creds)
+# --- 3. EXECUTION ENGINE ---
+sh = gc.open(SHEET_NAME)
+sheet = sh.worksheet(TAB_NAME)
+records = sheet.get_all_records()
+
+print(f"🤖 Bot Pulse: {datetime.now().strftime('%H:%M:%S')}")
+
+for i, row in enumerate(records):
+    symbol = row.get('NSE_SYMBOL')
+    action = row.get('FINAL_ACTION') # This reads your "🟢 STRONG BUY"
+    live_price = float(row.get('CMP', 0))
+    status = str(row.get('Status', ''))
+    row_num = i + 2 # Header + 0-index offset
+
+    # A. ENTRY LOGIC: Only for new "STRONG BUY" signals
+    if action == "🟢 STRONG BUY" and status == "":
+        print(f"🚀 Entry Triggered: {symbol} at ₹{live_price}")
         
-        sheet = client.open_by_url(SHEET_URL).sheet1
-        data = sheet.get_all_records()
-        df = pd.DataFrame(data)
-        print("✅ Connected to Google Sheet.")
-    except Exception as e:
-        print(f"❌ Error connecting to Sheet: {e}")
-        return
+        updates = [
+            {'range': f'J{row_num}', 'values': [['TRADED (PAPER)']]},
+            {'range': f'K{row_num}', 'values': [[live_price]]}, # Entry Price
+            {'range': f'L{row_num}', 'values': [[datetime.now().strftime("%Y-%m-%d %H:%M")]]} # Time
+        ]
+        sheet.batch_update(updates)
 
-    # --- 3. CONNECT TO DHAN ---
-    try:
-        client_id = os.getenv('DHAN_CLIENT_ID')
-        api_key = os.getenv('DHAN_API_KEY')
-        # Use API Key as the access token in the latest SDK logic
-        dhan = dhanhq(client_id, api_key)
-        print("✅ Connected to Dhan API.")
-    except Exception as e:
-        print(f"❌ Error connecting to Dhan: {e}")
-        return
+    # B. EXIT LOGIC: Manage trades already marked as "TRADED"
+    elif "TRADED" in status:
+        entry_price = float(row.get('Entry_Price', 0))
+        if entry_price == 0: continue
+        
+        current_pnl = (live_price - entry_price) / entry_price
 
-    # --- 4. CHECK SIGNALS & EXECUTE ---
-    # We look for rows where Signal is 'BULLISH' and Status is 'PENDING'
-    for index, row in df.iterrows():
-        signal = str(row.get('Signal', '')).upper()
-        status = str(row.get('Status', '')).upper()
-
-        if signal == 'BULLISH' and status == 'PENDING':
-            stock_name = row.get('Stock', 'Unknown')
-            price = row.get('Price', '0')
-            sec_id = str(row.get('SecurityID', '')) # Ensure your sheet has this column!
-
-            print(f"🚀 Signal Found for {stock_name}!")
-
-            # A. Send Alert to Telegram
-            msg = f"🟢 *ALGO BUY SIGNAL*\nStock: {stock_name}\nPrice: {price}"
-            send_telegram(msg)
-
-            # B. Place Order on Dhan (PAPER TRADE by default - comment out to go live)
-            # To go live, uncomment the block below:
-            """
-            dhan.place_order(
-                security_id=sec_id,
-                exchange_segment=dhan.NSE,
-                transaction_type=dhan.BUY,
-                quantity=1,
-                order_type=dhan.MARKET,
-                product_type=dhan.INTRA
-            )
-            """
-
-            # C. Update Sheet to 'TRADED' so it doesn't repeat
-            # Sheet rows are 1-indexed, and index 0 is row 2 (header is 1)
-            try:
-                # Find the column number for 'Status'
-                status_col_idx = list(df.columns).index('Status') + 1
-                sheet.update_cell(index + 2, status_col_idx, "TRADED")
-                print(f"✅ {stock_name} marked as TRADED in Sheet.")
-            except Exception as e:
-                print(f"⚠️ Could not update Sheet status: {e}")
-
-    # --- 5. EXPORT FOR WEBSITE ---
-    # Create the live_signals.json file for your website to display
-    with open("live_signals.json", "w") as f:
-        json.dump(data, f)
-    print("✅ live_signals.json updated for website.")
-
-if __name__ == "__main__":
-    start_algo()
+        # Exit Condition: Target Reached (5%)
+        if current_pnl >= PROFIT_TARGET:
+            pnl_str = f"{current_pnl*100:.2f}%"
+            sheet.update_cell(row_num, 10, "CLOSED (PROFIT)")
+            sheet.update_cell(row_num, 13, pnl_str) # Writes to Profit/Loss Column
+            print(f"💰 Target Hit: {symbol} closed at {pnl_str} profit!")
+            
+        # Optional: Stop Loss (e.g., -3% to protect capital)
+        elif current_pnl <= -0.03:
+            sheet.update_cell(row_num, 10, "CLOSED (STOP LOSS)")
+            sheet.update_cell(row_num, 13, f"{current_pnl*100:.2f}%")
