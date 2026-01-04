@@ -5,7 +5,7 @@ from google.oauth2.service_account import Credentials
 
 # --- CONFIG ---
 SHEET_NAME = "Ai360tradingAlgo"
-MAX_NEW_TRADES = 5    # Your Strict Top 5 Limit
+MAX_NEW_TRADES = 5    # Top 5 Limit
 
 # --- SETUP ---
 scopes = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
@@ -16,32 +16,36 @@ sh = gc.open(SHEET_NAME)
 sheet = sh.worksheet('AlertLog')
 
 def run_trading_cycle():
-    # Fetch all 10 records from your updated AlertLog
+    # Fetch all records from AlertLog
     records = sheet.get_all_records()
     new_trades_count = 0
     
     print(f"🤖 Bot Started: {datetime.now().strftime('%H:%M')}")
 
     for i, row in enumerate(records):
-        row_num = i + 2 # Header is Row 1
+        row_num = i + 2 # Account for Header
+        
+        # Mapping to your new Apps Script Columns:
         symbol = row.get('Symbol')
         live_price = row.get('Price')
-        status = str(row.get('Status', ''))
+        status = str(row.get('Status', '')).strip()
         
-        # ENTRY LOGIC: Only trade if Status is empty
+        # ENTRY LOGIC: Only trade if Status is empty and Symbol exists
         if status == "" and symbol != "":
             if new_trades_count < MAX_NEW_TRADES:
-                print(f"✅ Executing Trade {new_trades_count+1}: {symbol}")
+                print(f"✅ Executing Trade: {symbol} at {live_price}")
                 
-                # Update J: Status, K: Entry_Price, L: Entry_Time
+                # UPDATING BOT COLUMNS:
+                # Column J (10): Status
+                # Column K (11): Entry_Price
+                # Column L (12): Entry_Time
                 sheet.update_cell(row_num, 10, "TRADED (PAPER)")
                 sheet.update_cell(row_num, 11, live_price)
                 sheet.update_cell(row_num, 12, datetime.now().strftime("%H:%M"))
                 
                 new_trades_count += 1
             else:
-                # This ensures stocks 6-10 are skipped
-                print(f"⏭️ Limit Reached: {symbol} is ranked > 5. Skipping.")
+                print(f"⏭️ Limit Reached: Skipping {symbol}")
 
 if __name__ == "__main__":
     run_trading_cycle()
