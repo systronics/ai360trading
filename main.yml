@@ -19,11 +19,13 @@ jobs:
       - name: Install Libraries
         run: pip install -r requirements.txt
 
-      - name: Run Trading Script
-        run: python trading_bot.py # This will be your main script
+      - name: run trading script
         env:
+          GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
           DHAN_CLIENT_ID: ${{ secrets.DHAN_CLIENT_ID }}
-          DHAN_ACCESS_TOKEN: ${{ secrets.DHAN_ACCESS_TOKEN }}
+          DHAN_API_KEY: ${{ secrets.DHAN_API_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        run: python trading_bot.py
 
       - name: Auto-Commit Results
         run: |
