@@ -1,4 +1,5 @@
 dhanhq
 gspread
+oauth2client
 requests
 pandas
