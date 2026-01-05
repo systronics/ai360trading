@@ -1,38 +1,41 @@
 # Dependencies
-markdown:       kramdown
-highlighter:    rouge
+markdown:    kramdown
+highlighter: rouge
 
 # Permalinks
-permalink:      none
+permalink:   none
 
 # Setup
-name:           "ai360trading"
-url:            https://ai360trading.in
-baseurl:        ""
-logo:           /public/image/logo.webp
-timezone:       Asia/India
- 
+name:        "ai360trading"
+url:         https://ai360trading.in
+baseurl:     ""
+logo:        /public/image/logo.webp
+timezone:    Asia/Kolkata # Updated to the standard TZ string
+future:      true        # IMPORTANT: Ensures your 2026 posts appear immediately
+
 author:
-  name:         Amit Kumar
-  email:        admin@ai360trading.in
+  name:      Amit Kumar
+  email:     admin@ai360trading.in
   
 facebook:
-  publisher:    ai360trading
-  admin:        ai360trading  
- 
-facebook:
-  username:     ai360trading
+  publisher: ai360trading
+  admin:     ai360trading
+  username:  ai360trading
+
 x:
-  username:     ai360trading
+  username:  ai360trading
 instagram:
-  username:     ai360trading
-
+  username:  ai360trading
 telegram:
-  username:     ai360trading
+  username:  ai360trading
 youtube:
-  username:     ai360trading
+  username:  ai360trading
 
-gems:           [jekyll-paginate, jekyll-seo-tag, jekyll-sitemap]
+# Plugins (Modern replacement for 'gems')
+plugins:
+  - jekyll-paginate
+  - jekyll-seo-tag
+  - jekyll-sitemap
 
 google_analytics: G-K9R4R0WD9C
 
