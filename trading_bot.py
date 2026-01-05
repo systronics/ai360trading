@@ -1,73 +1,38 @@
-import os
-import gspread
-import json
+import os, gspread, json, requests
 from datetime import datetime
 from google.oauth2.service_account import Credentials
 
 # --- CONFIG ---
-SHEET_NAME = "Ai360tradingAlgo"
-LOG_SHEET = "AlertLog"
-MAX_NEW_TRADES = 5  # Limit daily risk
+TELEGRAM_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
+CHAT_ID = os.environ.get('TELEGRAM_CHAT_ID')
 
-# --- SETUP ---
-scopes = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
-creds_json = os.environ.get('GCP_SERVICE_ACCOUNT_JSON')
-
-# Safety check for the Service Account JSON
-if not creds_json:
-    print("❌ ERROR: GCP_SERVICE_ACCOUNT_JSON not found in secrets!")
-    exit()
-
-creds = Credentials.from_service_account_info(json.loads(creds_json), scopes=scopes)
-gc = gspread.authorize(creds)
-sh = gc.open(SHEET_NAME)
-log_sheet = sh.worksheet(LOG_SHEET)
+def send_telegram(msg):
+    url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
+    payload = {"chat_id": CHAT_ID, "text": msg, "parse_mode": "HTML"}
+    requests.post(url, json=payload)
 
 def run_trading_cycle():
-    # 1. Fetch all records from AlertLog
+    # ... (Standard Gspread setup) ...
     records = log_sheet.get_all_records()
-    new_trades_count = 0
     
-    print(f"🤖 Bot Started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-
-    # 2. Iterate through records to find new signals
     for i, row in enumerate(records):
-        row_num = i + 2  # Account for Header row
-        
-        symbol = row.get('Symbol')
-        live_price = row.get('Price')
-        status = str(row.get('Status', '')).strip()
+        row_num = i + 2
+        symbol, price, status = row.get('Symbol'), row.get('Price'), row.get('Status')
+        entry, sl, tgt = row.get('Entry Price'), row.get('StopLoss'), row.get('Target')
 
-        # ENTRY LOGIC: Only trade if Status is empty and a Symbol exists
+        # --- CASE 1: NEW ENTRY ---
         if not status and symbol:
-            if new_trades_count < MAX_NEW_TRADES:
-                print(f"🚀 SIGNAL DETECTED: {symbol} at ₹{live_price}")
-                
-                # --- DHAN API EXECUTION START ---
-                # You can add your dhan.place_order() logic here
-                # For now, we are marking it as TRADED (PAPER)
-                # --- DHAN API EXECUTION END ---
+            log_sheet.update_cell(row_num, 11, "TRADED (PAPER)")
+            send_telegram(f"🚀 <b>NEW TRADE ENTRY</b>\nStock: {symbol}\nPrice: ₹{price}\nTgt: ₹{tgt}\nSL: ₹{sl}")
 
-                # 3. LOCK THE TRADE IN THE SHEET
-                # Column 11 (K): Status
-                # Column 12 (L): Entry_Price
-                # Column 13 (M): Entry_Time
-                
-                try:
-                    # Update status first to signal Apps Script to LOCK the row
-                    log_sheet.update_cell(row_num, 11, "TRADED (PAPER)")
-                    log_sheet.update_cell(row_num, 12, live_price)
-                    log_sheet.update_cell(row_num, 13, datetime.now().strftime("%H:%M:%S"))
-                    
-                    print(f"✅ Trade Locked for {symbol} at {live_price}")
-                    new_trades_count += 1
-                except Exception as e:
-                    print(f"❌ Error updating sheet for {symbol}: {e}")
-            else:
-                print(f"⏭️ Daily Limit Reached: Skipping {symbol}")
-
-    if new_trades_count == 0:
-        print("😴 No new signals to trade at this time.")
+        # --- CASE 2: MONITOR EXIT ---
+        elif "TRADED" in status:
+            if price >= tgt:
+                log_sheet.update_cell(row_num, 11, "EXIT (TARGET ✅)")
+                send_telegram(f"💰 <b>TARGET HIT!</b>\nStock: {symbol}\nExit: ₹{price}\nProfit: +2.00%")
+            elif price <= sl:
+                log_sheet.update_cell(row_num, 11, "EXIT (STOPLOSS ❌)")
+                send_telegram(f"📉 <b>STOPLOSS HIT</b>\nStock: {symbol}\nExit: ₹{price}\nLoss: -1.00%")
 
 if __name__ == "__main__":
     run_trading_cycle()
