@@ -1,12 +1,68 @@
 ---
 layout: default
 ---
-{% if page.lang %}
-<div class="post" lang="{{page.lang}}">
-{% else %}
-<div class="post">
-{% endif %}
-  <h1 class="post-title">{{ page.title }}</h1>  
-   
-  {{ content }}
+
+<article class="post-container">
+  {% if page.lang %}
+  <div class="pro-post-card" lang="{{page.lang}}">
+  {% else %}
+  <div class="pro-post-card">
+  {% endif %}
+    
+    <header class="post-header" style="margin-bottom: 30px; text-align: center;">
+      <h1 class="post-title" style="color: #0088cc; font-weight: 800; margin-bottom: 10px;">
+        {{ page.title }}
+      </h1>
+      
+      <div class="post-meta" style="font-size: 13px; color: #888; font-weight: 600;">
+        <span class="post-date">📅 {{ page.date | date: "%b %-d, %Y" }}</span>
+        {% if page.author %}
+          <span style="margin: 0 10px;">|</span>
+          <span class="post-author">👤 {{ page.author }}</span>
+        {% endif %}
+      </div>
+    </header>
+
+    <div class="post-content">
+      {{ content }}
     </div>
+
+    <footer style="margin-top: 50px; padding-top: 20px; border-top: 1px dashed #ddd; text-align: center;">
+      <p style="font-size: 14px; color: #666;">View more <a href="/tag/technical-picks" style="color: #0088cc; font-weight: bold;">Technical Picks</a></p>
+    </footer>
+    
+  </div>
+</article>
+
+<style>
+  .pro-post-card {
+    background: #ffffff;
+    padding: 30px;
+    border-radius: 15px;
+    border: 1px solid #e1e8ed;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    margin-bottom: 30px;
+  }
+
+  /* Ensures Google Sheet iframes are readable */
+  .post-content {
+    line-height: 1.7;
+    color: #1a1a1a;
+  }
+
+  /* Specific fix for images in posts */
+  .post-content img {
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    margin: 20px 0;
+  }
+
+  /* Mobile Adjustments */
+  @media (max-width: 600px) {
+    .pro-post-card {
+      padding: 15px;
+      border-radius: 8px;
+    }
+    .post-title { font-size: 22px; }
+  }
+</style>
