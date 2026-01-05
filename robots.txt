@@ -1,1 +1,13 @@
+# ai360trading.in Robots File
+User-agent: *
+Allow: /
+Disallow: /_layouts/
+Disallow: /_includes/
+Disallow: /_posts/
+Disallow: /public/image/ # Optional: Disallow if you want to prevent image-only indexing
+
+# Host
+Host: https://ai360trading.in
+
+# Sitemap Location
 Sitemap: https://ai360trading.in/sitemap.xml
