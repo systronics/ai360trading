@@ -4,42 +4,52 @@
   
   <body class="theme-base-0d">
 
-    <header style="text-align: center; padding: 20px 0; background: transparent; border-bottom: 1px solid rgba(0,0,0,0.1);">
+    <header style="text-align: center; padding: 15px 0; background: #f8faff; border-bottom: 1px solid #d1d9e6;">
       <div class="container">
-        <a href="/" title="ai360trading" style="border:none; background:transparent;">
-          <img src="/public/image/header.webp" alt="ai360trading" style="max-width: 90%; height: auto; max-height: 80px;">
+        <a href="/" title="ai360trading" style="border:none;">
+          <img src="/public/image/header.webp" alt="ai360trading" style="max-width: 85%; height: auto; max-height: 75px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.05));">
         </a>
 
-        <nav style="margin: 15px 0;">
+        <nav style="margin: 12px 0;">
           <style>
             .nav-link {
               display: inline-block;
-              margin: 5px 10px;
+              margin: 4px 8px;
               text-decoration: none;
-              color: #333;
+              color: #2c3e50;
               font-weight: 700;
-              font-size: 14px;
+              font-size: 13px;
               text-transform: uppercase;
-              transition: 0.3s;
+              letter-spacing: 0.5px;
+              transition: 0.2s ease-in-out;
             }
             .nav-link:hover { color: #0088cc; }
+            .active-signals { color: #0088cc !important; border-bottom: 2px solid #0088cc; }
+            
+            /* Social Button Styles */
+            .social-links a { 
+              margin: 0 12px; 
+              color: #546e7a; 
+              font-size: 19px;
+              transition: 0.3s;
+              display: inline-block;
+            }
+            .social-links a:hover { transform: translateY(-3px); }
+            .fa-facebook:hover { color: #1877F2; }
+            .fa-twitter:hover { color: #000000; }
+            .fa-instagram:hover { color: #E4405F; }
+            .fa-youtube:hover { color: #FF0000; }
+            .fa-telegram:hover { color: #0088cc; }
           </style>
+          
           <a href="/" class="nav-link">Home</a>
-          <a href="/swing-trading.html" class="nav-link" style="color:#0088cc;">Swing Trading</a>
+          <a href="/swing-trading.html" class="nav-link active-signals">Swing Trading</a>
           <a href="/contact" class="nav-link">Contact</a>
           <a href="/disclaimer" class="nav-link">Disclaimer</a>
           <a href="/policy" class="nav-link">Policy</a>
         </nav>
 
-        <div class="social-links" style="font-size: 20px;">
-          <style>
-            .social-links a { margin: 0 10px; color: #555; transition: 0.3s; }
-            .fa-facebook:hover { color: #3b5998; }
-            .fa-twitter:hover { color: #000000; }
-            .fa-instagram:hover { color: #e4405f; }
-            .fa-youtube:hover { color: #cd201f; }
-            .fa-telegram:hover { color: #0088cc; }
-          </style>
+        <div class="social-links">
           {% if site.facebook.username %}<a href="https://facebook.com/{{ site.facebook.username }}" target="_blank"><i class="fa fa-facebook"></i></a>{% endif %}
           {% if site.x.username %}<a href="https://x.com/{{ site.x.username }}" target="_blank"><i class="fa fa-twitter"></i></a>{% endif %}
           {% if site.instagram.username %}<a href="https://instagram.com/{{ site.instagram.username }}" target="_blank"><i class="fa fa-instagram"></i></a>{% endif %}
@@ -49,8 +59,10 @@
       </div>
     </header>
 
-    <div class="content container" style="margin-top: 20px;">
-      {{ content }}
+    <div class="content container" style="margin-top: 25px; max-width: 95%;">
+      <div class="pro-card" style="background: rgba(255,255,255,0.9); padding: 20px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid #e1e8ed;">
+        {{ content }}
+      </div>
     </div>
 
   </body>
