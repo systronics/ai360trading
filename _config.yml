@@ -9,7 +9,7 @@ permalink:      none
 name:           "ai360trading"
 url:            https://ai360trading.in
 baseurl:        ""
-logo:           /public/image/logo.png
+logo:           /public/image/logo.webp
 timezone:       Asia/India
  
 author:
