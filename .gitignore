@@ -1,7 +1,16 @@
-# Ignore docs files
+# Jekyll & Build Files
 _gh_pages
 _site
+.jekyll-cache/
+.jekyll-metadata
+.sass-cache/
 .ruby-version
+bin/
+
+# Ruby/Gem Files
+vendor/
+.bundle/
+Gemfile.lock # Optional: Keep if you want exact versions, ignore if you want flexibility
 
 # Numerous always-ignore extensions
 *.diff
@@ -27,7 +36,8 @@ Thumbs.db
 nbproject
 *.sublime-project
 *.sublime-workspace
-.idea
+.idea/
+.vscode/
 
 # Komodo
 *.komodoproject
@@ -37,5 +47,5 @@ nbproject
 validation-status.json
 validation-report.json
 
-# Folders to ignore
+# Development Folders
 node_modules
