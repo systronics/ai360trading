@@ -1,18 +1,18 @@
 ---
-layout:           post
-title:            Masterclass: Algo Trading & Price Action Tutorials
-date:             2025-12-26T13:02:19+05:30
+layout: post
+title: "Masterclass: Algo Trading & Price Action Tutorials"
+date: 2026-01-06T00:15:00+05:30
 last_modified_at: 2026-01-06T00:15:00+05:30
-image:            https://ai360trading.in/public/image/videos.webp
-excerpt:          "Watch our step-by-step video guides on Algo Trading, Live Intraday strategies, and Price Action mastery."
-tags:             learn-stockmarket
+image: "https://ai360trading.in/public/image/videos.webp"
+excerpt: "ai360trading, AlgoTrading, LiveIntraday, PriceAction, YoutubeLive, BankNifty, Crypto, Bitcoin"
+tags: learn-stockmarket
 ---
 
 <style>
   /* Learning Center UI */
   .learning-header {
     text-align: center;
-    background: #fff5f5; /* Light reddish tint to match YouTube branding */
+    background: #fff5f5; /* Light reddish tint for YouTube feel */
     padding: 25px;
     border-radius: 12px;
     border: 1px solid #ffebeb;
@@ -26,11 +26,12 @@ tags:             learn-stockmarket
     border-radius: 12px;
     box-shadow: 0 8px 30px rgba(0,0,0,0.05);
     background: #fff;
+    -webkit-overflow-scrolling: touch;
   }
 
   iframe {
     width: 100%;
-    min-width: 900px; /* Keeps the video list columns organized */
+    min-width: 900px; /* Maintains table structure on mobile */
     height: 750px;
     border: none;
     display: block;
@@ -47,7 +48,10 @@ tags:             learn-stockmarket
     margin-top: 15px;
     transition: 0.3s;
   }
-  .youtube-btn:hover { background: #cc0000; transform: scale(1.05); }
+  .youtube-btn:hover { 
+    background: #cc0000; 
+    transform: scale(1.05); 
+  }
 </style>
 
 <div class="learning-header">
@@ -55,7 +59,7 @@ tags:             learn-stockmarket
   <h2 style="margin: 0; color: #c0392b;">Video Tutorial Library</h2>
   <p style="color: #666; font-size: 14px; margin-top: 5px;">Step-by-step guides for Scalping, Options, and Crypto Trading</p>
   
-  <a href="https://youtube.com/@{{ site.youtube.username }}" target="_blank" class="youtube-btn">
+  <a href="https://youtube.com/@ai360trading" target="_blank" class="youtube-btn">
     <i class="fa fa-youtube-play"></i> Subscribe for Live Sessions
   </a>
 </div>
