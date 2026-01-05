@@ -107,5 +107,36 @@
   {% if site.tags == "" %}
     {% include collecttags.html %}
   {% endif %}
+
+	<style>
+  /* Professional Typography */
+  body { 
+    font-family: 'Inter', -apple-system, system-ui, sans-serif !important; 
+    color: #2c3e50; 
+    line-height: 1.6;
+  }
+
+  /* Fix Hyde Sidebar & Content Width */
+  @media (min-width: 48rem) {
+    .content {
+      max-width: 85% !important; /* Makes all posts look wider and cleaner */
+      margin-left: 18rem !important; 
+    }
+  }
+
+  /* Make images look professional */
+  img { border-radius: 8px; }
+
+  /* Style for standard buttons across the site */
+  .button, button {
+    background: #0088cc !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 5px !important;
+    padding: 10px 20px !important;
+    font-weight: bold !important;
+    cursor: pointer;
+  }
+</style>
 	
 </head>
