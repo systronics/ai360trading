@@ -1,62 +1,43 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
-
   {% include head.html %}
   
- <body>
-  <header style="text-align: center; padding: 15px 0; border-bottom: 1px solid #eee; background: #fff;">
-    <div class="container">
-      <a href="/" title="ai360trading">
-        <img src="/public/image/header.webp" alt="ai360trading" style="max-width: 90%; height: auto; max-height: 70px;">
-      </a>
-
-      <nav style="margin: 15px 0;">
-        <style>
-          .nav-btn {
-            display: inline-block;
-            background: #f8f9fa;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            padding: 8px 16px;
-            margin: 2px;
-            text-decoration: none;
-            color: #333;
-            font-weight: bold;
-            font-size: 14px;
-            transition: 0.3s;
-          }
-          .nav-btn:hover {
-            background: #0088cc;
-            color: white !important;
-            border-color: #0088cc;
-          }
-          .social-icons a {
-            color: #555;
-            margin: 0 8px;
-            text-decoration: none;
-            transition: 0.3s;
-          }
-          .social-icons a:hover { color: #0088cc; }
-        </style>
+  <body class="theme-base-0d"> <header style="text-align: center; padding: 20px 0; background: #fff; border-bottom: 1px solid #eee;">
+      <div class="container">
+        <a href="/" title="ai360trading">
+          <img src="/public/image/header.webp" alt="ai360trading" style="max-width: 280px; height: auto;">
+        </a>
         
-        <a href="/" class="nav-btn">Home</a>
-        <a href="/swing-trading.html" class="nav-btn" style="border-color: #0088cc; color: #0088cc;">Swing Trading</a>
-        <a href="/contact" class="nav-btn">Contact</a>
-        <a href="/disclaimer" class="nav-btn">Disclaimer</a>
-      </nav>
+        <nav style="margin-top: 15px;">
+          <style>
+            .nav-link {
+              display: inline-block;
+              margin: 0 10px;
+              text-decoration: none;
+              color: #333;
+              font-weight: 600;
+              font-size: 15px;
+              transition: 0.2s;
+            }
+            .nav-link:hover { color: #0088cc; }
+            .active-link { color: #0088cc; border-bottom: 2px solid #0088cc; }
+          </style>
+          <a href="/" class="nav-link">Home</a>
+          <a href="/swing-trading.html" class="nav-link">Swing Trading</a>
+          <a href="/contact" class="nav-link">Contact</a>
+          <a href="/disclaimer" class="nav-link">Disclaimer</a>
+        </nav>
 
-      <div class="social-icons" style="font-size: 18px;">
-        {% if site.facebook.username %}<a href="https://www.facebook.com/{{ site.facebook.username }}" target="_blank"><i class="fa fa-facebook"></i></a>{% endif %}
-        {% if site.x.username %}<a href="https://twitter.com/{{ site.x.username }}" target="_blank"><i class="fa fa-twitter"></i></a>{% endif %}
-        {% if site.instagram.username %}<a href="https://instagram.com/{{ site.instagram.username }}" target="_blank"><i class="fa fa-instagram"></i></a>{% endif %}
-        {% if site.youtube.username %}<a href="https://youtube.com/@{{ site.youtube.username }}" target="_blank"><i class="fa fa-youtube"></i></a>{% endif %}
-        {% if site.telegram.username %}<a href="https://t.me/{{ site.telegram.username }}" target="_blank"><i class="fa fa-telegram"></i></a>{% endif %}
+        <div class="social-links" style="margin-top: 10px; font-size: 18px;">
+          {% if site.telegram.username %}<a href="https://t.me/{{ site.telegram.username }}" style="color: #0088cc; margin: 0 8px;"><i class="fa fa-telegram"></i></a>{% endif %}
+          {% if site.youtube.username %}<a href="https://youtube.com/@{{ site.youtube.username }}" style="color: #ff0000; margin: 0 8px;"><i class="fa fa-youtube"></i></a>{% endif %}
+        </div>
       </div>
-    </div>
-  </header>
+    </header>
 
-  <div class="content container" style="margin-top: 20px;">
-    {{ content }}
-  </div>
-</body>
+    <div class="content container" style="padding-top: 2rem;">
+      {{ content }}
+    </div>
+
+  </body>
 </html>
