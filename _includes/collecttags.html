@@ -1,19 +1,19 @@
-{% assign rawtags = "" %}
-{% for post in site.posts %}
-  {% assign ttags = post.tags | join:'|' | append:'|' %}
-  {% assign rawtags = rawtags | append:ttags %}
-{% endfor %}
-{% assign rawtags = rawtags | split:'|' | sort %}
+{% comment %}
+  Optimized tag collection for ai360trading.
+  This ensures all strategy categories are gathered efficiently.
+{% endcomment %}
 
-{% assign site.tags = "" %}
-{% for tag in rawtags %}
-  {% if tag != "" %}
-    {% if tags == "" %}
-      {% assign tags = tag | split:'|' %}
-    {% endif %}
-    {% unless tags contains tag %}
-      {% assign tags = tags | join:'|' | append:'|' | append:tag | split:'|' %}
-    {% endunless %}
+{% assign all_tags = "" %}
+
+{% for post in site.posts %}
+  {% if post.tags %}
+    {% assign post_tags = post.tags | join: '|' %}
+    {% assign all_tags = all_tags | append: '|' | append: post_tags %}
   {% endif %}
 {% endfor %}
 
+{% assign site_tags = all_tags | remove_first: '|' | split: '|' | uniq | sort %}
+
+{% comment %}
+  The tags are now ready for use in your professional archive badges.
+{% endcomment %}
