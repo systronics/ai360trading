@@ -21,11 +21,10 @@ def run_trading_cycle():
     new_trades_count = 0
     
     print(f"🤖 Bot Started: {datetime.now().strftime('%H:%M')}")
-
     for i, row in enumerate(records):
         row_num = i + 2 # Account for Header
         
-        # Mapping to your new Apps Script Columns:
+        # Mapping to your Apps Script Columns:
         symbol = row.get('Symbol')
         live_price = row.get('Price')
         status = str(row.get('Status', '')).strip()
@@ -35,13 +34,13 @@ def run_trading_cycle():
             if new_trades_count < MAX_NEW_TRADES:
                 print(f"✅ Executing Trade: {symbol} at {live_price}")
                 
-                # UPDATING BOT COLUMNS:
-                # Column J (10): Status
-                # Column K (11): Entry_Price
-                # Column L (12): Entry_Time
-                sheet.update_cell(row_num, 10, "TRADED (PAPER)")
-                sheet.update_cell(row_num, 11, live_price)
-                sheet.update_cell(row_num, 12, datetime.now().strftime("%H:%M"))
+                # UPDATED COLUMN POSITIONS (after adding Breakout_Stage in Column G):
+                # Column K (11): Status
+                # Column L (12): Entry_Price
+                # Column M (13): Entry_Time
+                sheet.update_cell(row_num, 11, "TRADED (PAPER)")
+                sheet.update_cell(row_num, 12, live_price)
+                sheet.update_cell(row_num, 13, datetime.now().strftime("%H:%M"))
                 
                 new_trades_count += 1
             else:
