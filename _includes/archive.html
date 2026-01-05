@@ -1,12 +1,65 @@
-<h2>Archive</h2>
-{% capture temptags %}
-  {% for tag in site.tags %}
-    {{ tag[1].size | plus: 1000 }}#{{ tag[0] }}#{{ tag[1].size }}
-  {% endfor %}
-{% endcapture %}
-{% assign sortedtemptags = temptags | split:' ' | sort | reverse %}
-{% for temptag in sortedtemptags %}
-  {% assign tagitems = temptag | split: '#' %}
-  {% capture tagname %}{{ tagitems[1] }}{% endcapture %}
-  <a class="no-underline" href="/tag/{{ tagname }}"><code class="highligher-rouge"><nobr>{{ tagname }}</nobr></code></a>
-{% endfor %}
+<div class="archive-section" style="margin-top: 30px;">
+  <h2 style="color: #2c3e50; font-size: 22px; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px;">
+    Explore Categories
+  </h2>
+  
+  <div class="tag-cloud" style="display: flex; flex-wrap: wrap; gap: 10px;">
+    {% capture temptags %}
+      {% for tag in site.tags %}
+        {{ tag[1].size | plus: 1000 }}#{{ tag[0] }}#{{ tag[1].size }}
+      {% endfor %}
+    {% endcapture %}
+    
+    {% assign sortedtemptags = temptags | split:' ' | sort | reverse %}
+    
+    {% for temptag in sortedtemptags %}
+      {% assign tagitems = temptag | split: '#' %}
+      {% capture tagname %}{{ tagitems[1] }}{% endcapture %}
+      {% assign tagcount = tagitems[2] %}
+      
+      <a href="/tag/{{ tagname }}" class="pro-tag-badge">
+        <span class="tag-name">{{ tagname | replace: "-", " " | capitalize }}</span>
+        <span class="tag-count">{{ tagcount }}</span>
+      </a>
+    {% endfor %}
+  </div>
+</div>
+
+<style>
+  .pro-tag-badge {
+    display: flex;
+    align-items: center;
+    background: #ffffff;
+    border: 1px solid #d1d9e6;
+    border-radius: 8px;
+    text-decoration: none !important;
+    transition: 0.3s ease;
+    overflow: hidden;
+  }
+
+  .tag-name {
+    padding: 6px 12px;
+    color: #2c3e50;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .tag-count {
+    background: #f0f4f8;
+    padding: 6px 10px;
+    color: #0088cc;
+    font-size: 11px;
+    font-weight: 800;
+    border-left: 1px solid #d1d9e6;
+  }
+
+  .pro-tag-badge:hover {
+    transform: translateY(-2px);
+    border-color: #0088cc;
+    box-shadow: 0 4px 10px rgba(0, 136, 204, 0.1);
+  }
+
+  .pro-tag-badge:hover .tag-name {
+    color: #0088cc;
+  }
+</style>
