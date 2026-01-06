@@ -1,5 +1,5 @@
 import os, json, gspread, requests, pandas as pd, pyotp, pytz
-from dhanhq import dhanhq, DhanLogin
+from dhanhq import dhanhq
 from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
 
