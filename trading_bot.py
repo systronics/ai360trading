@@ -1,5 +1,6 @@
 import os, json, gspread, requests, pandas as pd, pyotp, pytz
 from dhanhq import dhanhq
+dhan = dhanhq("your_client_id", "your_access_token")
 from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
 
