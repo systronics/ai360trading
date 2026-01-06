@@ -3,3 +3,5 @@ gspread
 oauth2client
 requests
 pandas
+pyotp
+pytz
