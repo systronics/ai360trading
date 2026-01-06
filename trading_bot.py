@@ -4,7 +4,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
 
 # --- CONFIG ---
-LIVE_MODE = True  
+LIVE_MODE = False  
 CAP_PER_TRADE = 10000 
 MAX_TRADES = 5
 
