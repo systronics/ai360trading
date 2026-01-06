@@ -7,7 +7,7 @@ from dhanhq import dhanhq
 from oauth2client.service_account import ServiceAccountCredentials
 
 # --- AUTOMATION CONFIG ---
-LIVE_MODE = True  
+LIVE_MODE = False  
 TOTAL_CAPITAL = 50000
 MAX_TRADES = 5
 CAP_PER_TRADE = 10000 
