@@ -52,13 +52,14 @@ def run_trading_cycle():
         if len(all_values) < 2: return
         data_rows = all_values[1:]
         
+        # Count only rows that are currently "TRADED" but not "EXITED"
         active_trades = [r for r in data_rows if len(r) > 10 and "TRADED" in str(r[10]).upper() and "EXITED" not in str(r[10]).upper()]
         active_count = len(active_trades)
 
         # 4. Process Rows
         for i, row in enumerate(data_rows):
             row_num = i + 2
-            if len(row) < 12: continue # Ensure row reaches Column L
+            if len(row) < 12: continue 
 
             symbol = str(row[1]).strip()
             status = str(row[10]).strip().upper()
@@ -70,10 +71,10 @@ def run_trading_cycle():
                     clean = str(val).replace(',', '').replace('₹', '').strip()
                     return float(clean)
 
-                price = to_f(row[2])       # Column C
-                sl = to_f(row[7])          # Column H
-                target = to_f(row[8])      # Column I
-                entry_price = to_f(row[11]) # Column L (Added for Trailing)
+                price = to_f(row[2])        # Column C
+                sl = to_f(row[7])           # Column H
+                target = to_f(row[8])       # Column I
+                entry_price = to_f(row[11])  # Column L (Captured at Entry)
             except ValueError:
                 continue
 
@@ -84,30 +85,26 @@ def run_trading_cycle():
                 if entry_price > 0:
                     profit_pct = ((price - entry_price) / entry_price) * 100
 
-                # --- TRAILING STOPLOSS LOGIC ---
+                # --- AGGRESSIVE TRAILING LOGIC ---
                 new_sl = sl
-                # If profit > 4%, Move SL to +2%
+                # If profit > 4%, Lock in 2% Profit
                 if profit_pct >= 4.0:
-                    trail_level = entry_price * 1.02
-                    if trail_level > sl:
-                        new_sl = trail_level
-                        print(f"🛡️ Trailing SL to +2% for {symbol}")
+                    trail_at_2_pct = entry_price * 1.02
+                    if trail_at_2_pct > sl:
+                        new_sl = trail_at_2_pct
                 
-                # If profit > 2%, Move SL to Break-Even (Entry)
+                # If profit > 2%, Move to Break-Even (Risk-Free)
                 elif profit_pct >= 2.0:
                     if entry_price > sl:
                         new_sl = entry_price
-                        print(f"🛡️ Trailing SL to Break-even for {symbol}")
 
-                # Update Sheet if SL Trailed Up
+                # Update Sheet if TSL moved up
                 if new_sl > sl:
-                    sheet.update_cell(row_num, 8, round(new_sl, 2)) # Update Column H
-                    send_telegram(f"🛡️ <b>TSL UPDATED:</b> {symbol} SL moved up to {round(new_sl, 2)} (+{round(profit_pct, 1)}% move)")
-                    sl = new_sl # Update local variable for exit check
+                    sheet.update_cell(row_num, 8, round(new_sl, 2)) # Column H
+                    send_telegram(f"🛡️ <b>TSL UPDATED:</b> {symbol} SL moved to {round(new_sl, 2)} (+{round(profit_pct, 1)}% profit)")
+                    sl = new_sl 
 
-                # --- EXIT TRIGGER CHECK ---
-                print(f"🔍 Monitoring {symbol} | Price: {price} | SL: {sl} | Target: {target}")
-
+                # --- FINAL EXIT CHECK ---
                 is_target_hit = target > 0 and price >= target
                 is_sl_hit = sl > 0 and price <= sl
 
@@ -124,14 +121,16 @@ def run_trading_cycle():
                     send_telegram(f"🚀 <b>PAPER ENTRY:</b> {symbol} @ {price} (Slot {active_count+1}/5)")
                     sheet.update_cell(row_num, 11, "TRADED (PAPER)")
                     
-                    # Store Entry Price in Column L for Trailing Math
+                    # IMPORTANT: Store Entry Price in Column L for TSL Math
                     sheet.update_cell(row_num, 12, price) 
                     
                     now_ist = datetime.now(pytz.timezone('Asia/Kolkata')).strftime('%H:%M:%S')
                     sheet.update_cell(row_num, 13, now_ist)
                     active_count += 1
+                else:
+                    print(f"⏳ Slots full ({active_count}/5). {symbol} skipped.")
 
-        # 5. Update Heartbeat
+        # 5. Heartbeat Update
         now_time = datetime.now(pytz.timezone('Asia/Kolkata')).strftime('%H:%M:%S')
         sheet.update_acell("O3", f"Bot Live | Active: {active_count}/5 | {now_time}")
 
