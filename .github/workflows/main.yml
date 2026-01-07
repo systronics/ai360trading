@@ -10,7 +10,6 @@ on:
 jobs:
   trade:
     runs-on: ubuntu-latest
-    # This prevents two jobs from running at once and double-trading
     concurrency:
       group: trading-group
       cancel-in-progress: false
@@ -30,11 +29,15 @@ jobs:
 
       - name: Run trading script
         env:
-          # Ensure these match your GitHub Repository Secrets exactly
+          # Required for Google Sheets
           GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
+          
+          # Required for Dhan v2.0 Authentication
           DHAN_CLIENT_ID: ${{ secrets.DHAN_CLIENT_ID }}
-          DHAN_API_KEY: ${{ secrets.DHAN_API_KEY }}
-          DHAN_API_SECRET: ${{ secrets.DHAN_API_SECRET }}
+          DHAN_TOTP_KEY: ${{ secrets.DHAN_TOTP_KEY }}
+          DHAN_PIN: ${{ secrets.DHAN_PIN }}
+          
+          # Required for Notifications
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python trading_bot.py
