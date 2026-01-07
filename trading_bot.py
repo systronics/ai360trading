@@ -24,9 +24,10 @@ def send_telegram(message):
     if not token or not chat_id: return
     url = f"https://api.telegram.org/bot{token}/sendMessage"
     try:
-        requests.post(url, json={"chat_id": chat_id, "text": message, "parse_mode": "HTML"}, timeout=10)
-    except:
-        pass
+        # Increased timeout for better reliability
+        requests.post(url, json={"chat_id": chat_id, "text": message, "parse_mode": "HTML"}, timeout=15)
+    except Exception as e:
+        print(f"Telegram failed: {e}")
 
 def run_trading_cycle():
     try:
@@ -49,16 +50,12 @@ def run_trading_cycle():
 
         # 3. Get Data
         all_values = sheet.get_all_values()
-        if len(all_values) < 2:
-            return
+        if len(all_values) < 2: return
 
         data_rows = all_values[1:]
         
-        # --- NEW: COUNT CURRENTLY ACTIVE TRADES ---
-        # Checks Column K (Index 10) for any row that contains "TRADED" but not "EXITED"
         active_trades = [r for r in data_rows if len(r) > 10 and "TRADED" in str(r[10]) and "EXITED" not in str(r[10])]
         active_count = len(active_trades)
-        print(f"Active Trades Found: {active_count}/{MAX_ACTIVE_SLOTS}")
 
         # 4. Process Rows
         for i, row in enumerate(data_rows):
@@ -73,33 +70,34 @@ def run_trading_cycle():
             except ValueError:
                 continue
 
-            # --- CASE A: MONITOR EXIT (Existing Trades) ---
-            if "TRADED" in status and "EXIT" not in status:
+            # --- CASE A: MONITOR EXIT ---
+            if "TRADED" in status and "EXITED" not in status:
                 if (target > 0 and price >= target) or (sl > 0 and price <= sl):
                     label = "TARGET 🎯" if price >= target else "STOPLOSS 🛑"
-                    sheet.update_cell(row_num, 11, f"EXITED ({label})")
+                    
+                    # 1. SEND TELEGRAM FIRST (Ensures followers see it)
                     send_telegram(f"💰 <b>PAPER EXIT:</b> {symbol} @ {price} ({label})")
-                    active_count -= 1 # Free up slot for current cycle
+                    
+                    # 2. UPDATE SHEET
+                    sheet.update_cell(row_num, 11, f"EXITED ({label})")
+                    active_count -= 1
+                    print(f"Exited {symbol} at {price}")
 
-            # --- CASE B: NEW SIGNAL (Entry) ---
+            # --- CASE B: NEW SIGNAL ---
             elif not status and symbol:
                 if active_count < MAX_ACTIVE_SLOTS:
-                    # Mark as TRADED in Col K
+                    send_telegram(f"🚀 <b>PAPER ENTRY:</b> {symbol} @ {price} (Slot {active_count+1}/5)")
                     sheet.update_cell(row_num, 11, "TRADED (PAPER)")
                     
-                    # Update Timestamp in Col M (Index 13) for followers
                     now_ist = datetime.now(pytz.timezone('Asia/Kolkata')).strftime('%H:%M:%S')
                     sheet.update_cell(row_num, 13, now_ist)
-                    
-                    send_telegram(f"🚀 <b>PAPER ENTRY:</b> {symbol} @ {price} (Slot {active_count+1}/5)")
                     active_count += 1
                 else:
-                    print(f"⏳ Slot limit reached. {symbol} waiting in queue.")
+                    print(f"⏳ {symbol} waiting in queue.")
 
         # 5. Update Heartbeat
         now_time = datetime.now(pytz.timezone('Asia/Kolkata')).strftime('%H:%M:%S')
         sheet.update_acell("O3", f"Bot Live | Active: {active_count}/5 | {now_time}")
-        print(f"Cycle Complete at {now_time}")
 
     except Exception as e:
         print(f"System Error: {e}")
