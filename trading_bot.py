@@ -5,7 +5,7 @@ from datetime import datetime
 
 # --- CONFIG ---
 LIVE_MODE = False  
-MAX_ACTIVE_SLOTS = 5  # We only want top 5 to be traded
+MAX_ACTIVE_SLOTS = 5  
 
 def get_dhan_client():
     client_id = os.environ.get('DHAN_CLIENT_ID')
@@ -24,7 +24,6 @@ def send_telegram(message):
     if not token or not chat_id: return
     url = f"https://api.telegram.org/bot{token}/sendMessage"
     try:
-        # Increased timeout for better reliability
         requests.post(url, json={"chat_id": chat_id, "text": message, "parse_mode": "HTML"}, timeout=15)
     except Exception as e:
         print(f"Telegram failed: {e}")
@@ -54,34 +53,41 @@ def run_trading_cycle():
 
         data_rows = all_values[1:]
         
-        active_trades = [r for r in data_rows if len(r) > 10 and "TRADED" in str(r[10]) and "EXITED" not in str(r[10])]
+        # Fixed: Improved status detection
+        active_trades = [r for r in data_rows if len(r) > 10 and "TRADED" in str(r[10]).upper() and "EXITED" not in str(r[10]).upper()]
         active_count = len(active_trades)
 
         # 4. Process Rows
         for i, row in enumerate(data_rows):
             row_num = i + 2
             symbol = str(row[1]).strip() if len(row) > 1 else ""
-            status = str(row[10]).strip() if len(row) > 10 else ""
+            status = str(row[10]).strip().upper() if len(row) > 10 else ""
             
+            if not symbol: continue
+
             try:
-                price = float(row[2]) if len(row) > 2 and row[2] else 0
-                sl = float(row[7]) if len(row) > 7 and row[7] else 0
-                target = float(row[8]) if len(row) > 8 and row[8] else 0
+                # Cleaning values to ensure they are floats
+                price = float(str(row[2]).replace(',', '')) if len(row) > 2 and row[2] else 0
+                sl = float(str(row[7]).replace(',', '')) if len(row) > 7 and row[7] else 0
+                target = float(str(row[8]).replace(',', '')) if len(row) > 8 and row[8] else 0
             except ValueError:
                 continue
 
             # --- CASE A: MONITOR EXIT ---
             if "TRADED" in status and "EXITED" not in status:
+                # DEBUG PRINT: Check this in GitHub Actions logs
+                print(f"🔍 Monitoring {symbol}: Price={price}, SL={sl}, Target={target}")
+
                 if (target > 0 and price >= target) or (sl > 0 and price <= sl):
                     label = "TARGET 🎯" if price >= target else "STOPLOSS 🛑"
                     
-                    # 1. SEND TELEGRAM FIRST (Ensures followers see it)
+                    # 1. SEND TELEGRAM
                     send_telegram(f"💰 <b>PAPER EXIT:</b> {symbol} @ {price} ({label})")
                     
-                    # 2. UPDATE SHEET
+                    # 2. UPDATE SHEET (Column K)
                     sheet.update_cell(row_num, 11, f"EXITED ({label})")
                     active_count -= 1
-                    print(f"Exited {symbol} at {price}")
+                    print(f"✅ Successfully Exited {symbol} via {label}")
 
             # --- CASE B: NEW SIGNAL ---
             elif not status and symbol:
