@@ -50,21 +50,18 @@ def run_trading_cycle():
         # 3. Get Data
         all_values = sheet.get_all_values()
         if len(all_values) < 2: return
-
         data_rows = all_values[1:]
         
-        # Count currently active trades
         active_trades = [r for r in data_rows if len(r) > 10 and "TRADED" in str(r[10]).upper() and "EXITED" not in str(r[10]).upper()]
         active_count = len(active_trades)
 
         # 4. Process Rows
         for i, row in enumerate(data_rows):
             row_num = i + 2
-            if len(row) < 11: continue 
+            if len(row) < 12: continue # Ensure row reaches Column L
 
             symbol = str(row[1]).strip()
             status = str(row[10]).strip().upper()
-            
             if not symbol: continue
 
             try:
@@ -73,14 +70,42 @@ def run_trading_cycle():
                     clean = str(val).replace(',', '').replace('₹', '').strip()
                     return float(clean)
 
-                price = to_f(row[2])   # Column C
-                sl = to_f(row[7])      # Column H
-                target = to_f(row[8])  # Column I
+                price = to_f(row[2])       # Column C
+                sl = to_f(row[7])          # Column H
+                target = to_f(row[8])      # Column I
+                entry_price = to_f(row[11]) # Column L (Added for Trailing)
             except ValueError:
                 continue
 
-            # --- CASE A: MONITOR EXIT ---
+            # --- CASE A: MONITOR EXIT WITH TRAILING ---
             if "TRADED" in status and "EXITED" not in status:
+                # Calculate Current Profit Percentage
+                profit_pct = 0
+                if entry_price > 0:
+                    profit_pct = ((price - entry_price) / entry_price) * 100
+
+                # --- TRAILING STOPLOSS LOGIC ---
+                new_sl = sl
+                # If profit > 4%, Move SL to +2%
+                if profit_pct >= 4.0:
+                    trail_level = entry_price * 1.02
+                    if trail_level > sl:
+                        new_sl = trail_level
+                        print(f"🛡️ Trailing SL to +2% for {symbol}")
+                
+                # If profit > 2%, Move SL to Break-Even (Entry)
+                elif profit_pct >= 2.0:
+                    if entry_price > sl:
+                        new_sl = entry_price
+                        print(f"🛡️ Trailing SL to Break-even for {symbol}")
+
+                # Update Sheet if SL Trailed Up
+                if new_sl > sl:
+                    sheet.update_cell(row_num, 8, round(new_sl, 2)) # Update Column H
+                    send_telegram(f"🛡️ <b>TSL UPDATED:</b> {symbol} SL moved up to {round(new_sl, 2)} (+{round(profit_pct, 1)}% move)")
+                    sl = new_sl # Update local variable for exit check
+
+                # --- EXIT TRIGGER CHECK ---
                 print(f"🔍 Monitoring {symbol} | Price: {price} | SL: {sl} | Target: {target}")
 
                 is_target_hit = target > 0 and price >= target
@@ -88,7 +113,6 @@ def run_trading_cycle():
 
                 if is_target_hit or is_sl_hit:
                     label = "TARGET 🎯" if is_target_hit else "STOPLOSS 🛑"
-                    
                     send_telegram(f"💰 <b>PAPER EXIT:</b> {symbol} @ {price} ({label})")
                     sheet.update_cell(row_num, 11, f"EXITED ({label})")
                     active_count -= 1
@@ -100,11 +124,12 @@ def run_trading_cycle():
                     send_telegram(f"🚀 <b>PAPER ENTRY:</b> {symbol} @ {price} (Slot {active_count+1}/5)")
                     sheet.update_cell(row_num, 11, "TRADED (PAPER)")
                     
+                    # Store Entry Price in Column L for Trailing Math
+                    sheet.update_cell(row_num, 12, price) 
+                    
                     now_ist = datetime.now(pytz.timezone('Asia/Kolkata')).strftime('%H:%M:%S')
                     sheet.update_cell(row_num, 13, now_ist)
                     active_count += 1
-                else:
-                    print(f"⏳ {symbol} waiting in queue. Slots full ({active_count}/5)")
 
         # 5. Update Heartbeat
         now_time = datetime.now(pytz.timezone('Asia/Kolkata')).strftime('%H:%M:%S')
