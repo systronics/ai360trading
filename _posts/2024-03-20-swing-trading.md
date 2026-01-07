@@ -89,7 +89,7 @@ tags:             technical-picks
 <div class="terminal-container">
   <iframe 
     id="live-terminal"
-    src="https://docs.google.com/spreadsheets/d/e/2PACX-1vQyI_2dA66bYzzsxZNW9yqSAkmi8_TxLA7PK_x6vtI9uqSbUNz-M5FXrYIt4rsP5B7kl6Mrfi5AUpsp/pubhtml?gid=1037713694&single=true&headers=false&chrome=false&widget=false">
+    src="https://docs.google.com/spreadsheets/d/e/2PACX-1vQyI_2dA66bYzzsXZNW9yqSAkml8_TxLA7PK_x6vtl9uqSbUNz-M5FXrYlt4rsP5B7kl6Mrfi5AUpsp/pubhtml?gid=1037713694&amp;single=true&headers=false&chrome=false&widget=false">
   </iframe>
 </div>
 
@@ -101,3 +101,4 @@ tags:             technical-picks
     iframe.src += (iframe.src.indexOf('?') > -1 ? "&" : "?") + "cb=" + timestamp;
   };
 </script>
+
