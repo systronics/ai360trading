@@ -53,41 +53,49 @@ def run_trading_cycle():
 
         data_rows = all_values[1:]
         
-        # Fixed: Improved status detection
+        # Count currently active trades (excluding those already exited)
         active_trades = [r for r in data_rows if len(r) > 10 and "TRADED" in str(r[10]).upper() and "EXITED" not in str(r[10]).upper()]
         active_count = len(active_trades)
 
         # 4. Process Rows
         for i, row in enumerate(data_rows):
             row_num = i + 2
-            symbol = str(row[1]).strip() if len(row) > 1 else ""
-            status = str(row[10]).strip().upper() if len(row) > 10 else ""
+            if len(row) < 11: continue # Skip incomplete rows
+
+            symbol = str(row[1]).strip()
+            status = str(row[10]).strip().upper()
             
             if not symbol: continue
 
             try:
-                # Cleaning values to ensure they are floats
-                price = float(str(row[2]).replace(',', '')) if len(row) > 2 and row[2] else 0
-                sl = float(str(row[7]).replace(',', '')) if len(row) > 7 and row[7] else 0
-                target = float(str(row[8]).replace(',', '')) if len(row) > 8 and row[8] else 0
+                # STRONGER NUMBER CLEANING (Removes commas, spaces, currency symbols)
+                def to_f(val):
+                    if not val: return 0.0
+                    clean = str(val).replace(',', '').replace('₹', '').strip()
+                    return float(clean)
+
+                price = to_f(row[2])   # Column C
+                sl = to_f(row[7])      # Column H
+                target = to_f(row[8])  # Column I
             except ValueError:
                 continue
 
             # --- CASE A: MONITOR EXIT ---
             if "TRADED" in status and "EXITED" not in status:
-                # DEBUG PRINT: Check this in GitHub Actions logs
-                print(f"🔍 Monitoring {symbol}: Price={price}, SL={sl}, Target={target}")
+                # This log is vital: check it in GitHub Actions to see what the bot 'sees'
+                print(f"🔍 Monitoring {symbol} | Price: {price} | SL: {sl} | Target: {target}")
 
-                if (target > 0 and price >= target) or (sl > 0 and price <= sl):
-                    label = "TARGET 🎯" if price >= target else "STOPLOSS 🛑"
+                # Logic Check
+                is_target_hit = target > 0 and price >= target
+                is_sl_hit = sl > 0 and price <= sl
+
+                if is_target_hit or is_sl_hit:
+                    label = "TARGET 🎯" if is_target_hit else "STOPLOSS 🛑"
                     
-                    # 1. SEND TELEGRAM
                     send_telegram(f"💰 <b>PAPER EXIT:</b> {symbol} @ {price} ({label})")
-                    
-                    # 2. UPDATE SHEET (Column K)
                     sheet.update_cell(row_num, 11, f"EXITED ({label})")
                     active_count -= 1
-                    print(f"✅ Successfully Exited {symbol} via {label}")
+                    print(f"✅ {symbol} closed via {label}")
 
             # --- CASE B: NEW SIGNAL ---
             elif not status and symbol:
@@ -98,8 +106,6 @@ def run_trading_cycle():
                     now_ist = datetime.now(pytz.timezone('Asia/Kolkata')).strftime('%H:%M:%S')
                     sheet.update_cell(row_num, 13, now_ist)
                     active_count += 1
-                else:
-                    print(f"⏳ {symbol} waiting in queue.")
 
         # 5. Update Heartbeat
         now_time = datetime.now(pytz.timezone('Asia/Kolkata')).strftime('%H:%M:%S')
