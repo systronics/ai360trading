@@ -53,14 +53,14 @@ def run_trading_cycle():
 
         data_rows = all_values[1:]
         
-        # Count currently active trades (excluding those already exited)
+        # Count currently active trades
         active_trades = [r for r in data_rows if len(r) > 10 and "TRADED" in str(r[10]).upper() and "EXITED" not in str(r[10]).upper()]
         active_count = len(active_trades)
 
         # 4. Process Rows
         for i, row in enumerate(data_rows):
             row_num = i + 2
-            if len(row) < 11: continue # Skip incomplete rows
+            if len(row) < 11: continue 
 
             symbol = str(row[1]).strip()
             status = str(row[10]).strip().upper()
@@ -68,7 +68,6 @@ def run_trading_cycle():
             if not symbol: continue
 
             try:
-                # STRONGER NUMBER CLEANING (Removes commas, spaces, currency symbols)
                 def to_f(val):
                     if not val: return 0.0
                     clean = str(val).replace(',', '').replace('₹', '').strip()
@@ -82,10 +81,8 @@ def run_trading_cycle():
 
             # --- CASE A: MONITOR EXIT ---
             if "TRADED" in status and "EXITED" not in status:
-                # This log is vital: check it in GitHub Actions to see what the bot 'sees'
                 print(f"🔍 Monitoring {symbol} | Price: {price} | SL: {sl} | Target: {target}")
 
-                # Logic Check
                 is_target_hit = target > 0 and price >= target
                 is_sl_hit = sl > 0 and price <= sl
 
@@ -97,8 +94,8 @@ def run_trading_cycle():
                     active_count -= 1
                     print(f"✅ {symbol} closed via {label}")
 
-            # --- CASE B: NEW SIGNAL ---
-            elif not status and symbol:
+            # --- CASE B: NEW SIGNAL (Entry) ---
+            elif status == "" and symbol:
                 if active_count < MAX_ACTIVE_SLOTS:
                     send_telegram(f"🚀 <b>PAPER ENTRY:</b> {symbol} @ {price} (Slot {active_count+1}/5)")
                     sheet.update_cell(row_num, 11, "TRADED (PAPER)")
@@ -106,6 +103,8 @@ def run_trading_cycle():
                     now_ist = datetime.now(pytz.timezone('Asia/Kolkata')).strftime('%H:%M:%S')
                     sheet.update_cell(row_num, 13, now_ist)
                     active_count += 1
+                else:
+                    print(f"⏳ {symbol} waiting in queue. Slots full ({active_count}/5)")
 
         # 5. Update Heartbeat
         now_time = datetime.now(pytz.timezone('Asia/Kolkata')).strftime('%H:%M:%S')
