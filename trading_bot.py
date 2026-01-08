@@ -255,26 +255,3 @@ def run_trading_cycle():
 
 if __name__ == "__main__":
     run_trading_cycle()
-```
-
----
-
-## 🎯 **WHAT THIS CODE DOES:**
-
-### **Exit Flow:**
-1. ✅ Stock hits Target/SL
-2. ✅ Updates Status to "EXITED (TARGET 🎯)" or "EXITED (STOPLOSS 🛑)"
-3. ✅ Sends Telegram notification with P/L
-4. ✅ **Moves trade to History sheet** with all details
-5. ✅ **Deletes row from AlertLog** (keeps it clean)
-6. ✅ Formulas in Q2-Q5 auto-update from History data
-
-### **History Sheet Entry:**
-When a trade exits, it creates this row:
-```
-Symbol: NSE:TITAN
-Entry Price: 3500.00
-Exit Price: 3710.00
-P/L %: 6.00%
-Result: WIN
-Date: 2026-01-08 14:30:00
