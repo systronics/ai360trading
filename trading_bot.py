@@ -28,6 +28,15 @@ def send_telegram(message):
     except Exception as e:
         print(f"Telegram failed: {e}")
 
+def to_f(val):
+    """Convert value to float, handling various formats"""
+    if not val: return 0.0
+    clean = str(val).replace(',', '').replace('₹', '').replace('%', '').strip()
+    try:
+        return float(clean)
+    except:
+        return 0.0
+
 def run_trading_cycle():
     try:
         # 1. Setup Google Sheets
@@ -56,7 +65,7 @@ def run_trading_cycle():
         active_trades = [r for r in data_rows if len(r) > 10 and "TRADED" in str(r[10]).upper() and "EXITED" not in str(r[10]).upper()]
         active_count = len(active_trades)
 
-        # 4. Process Rows
+        # 4. Process Rows - MONITOR & EXIT
         for i, row in enumerate(data_rows):
             row_num = i + 2
             if len(row) < 12: continue 
@@ -66,11 +75,6 @@ def run_trading_cycle():
             if not symbol: continue
 
             try:
-                def to_f(val):
-                    if not val: return 0.0
-                    clean = str(val).replace(',', '').replace('₹', '').replace('%', '').strip()
-                    return float(clean)
-
                 price = to_f(row[2])         # Column C
                 sl = to_f(row[7])            # Column H
                 target = to_f(row[8])        # Column I
@@ -114,7 +118,7 @@ def run_trading_cycle():
                 if active_count < MAX_ACTIVE_SLOTS:
                     # Update status first to lock the slot
                     sheet.update_cell(row_num, 11, "TRADED (PAPER)")
-                    # Store Entry Price in Column L (This triggers your M1 & N1 ArrayFormulas)
+                    # Store Entry Price in Column L
                     sheet.update_cell(row_num, 12, price) 
                     
                     send_telegram(f"🚀 <b>PAPER ENTRY:</b> {symbol} @ {price}\nTarget: {target} (6%)\nSL: {sl} (1.5%)\nSlot: {active_count+1}/5")
@@ -122,12 +126,47 @@ def run_trading_cycle():
                 else:
                     print(f"⏳ Slots full. {symbol} skipped.")
 
-        # 5. Heartbeat Update
+        # 5. AUTO-PROMOTE WAITING STOCKS (After monitoring exits)
+        if active_count < MAX_ACTIVE_SLOTS:
+            print(f"🔄 Checking for WAITING stocks to promote... (Active: {active_count}/{MAX_ACTIVE_SLOTS})")
+            
+            for i, row in enumerate(data_rows):
+                row_num = i + 2
+                if len(row) < 12: continue
+                
+                symbol = str(row[1]).strip()
+                status = str(row[10]).strip().upper()
+                
+                if not symbol: continue
+                
+                # Promote WAITING stocks to active
+                if "WAITING" in status and active_count < MAX_ACTIVE_SLOTS:
+                    try:
+                        price = to_f(row[2])
+                        sl = to_f(row[7])
+                        target = to_f(row[8])
+                        
+                        # Promote: Clear status so it becomes active, then trade it
+                        sheet.update_cell(row_num, 11, "TRADED (PAPER)")
+                        sheet.update_cell(row_num, 12, price)
+                        
+                        send_telegram(f"⬆️ <b>PROMOTED & ENTERED:</b> {symbol} @ {price}\nTarget: {target} (6%)\nSL: {sl} (1.5%)\nSlot: {active_count+1}/5")
+                        active_count += 1
+                        print(f"✅ Promoted {symbol} from WAITING to ACTIVE")
+                    except Exception as e:
+                        print(f"Failed to promote {symbol}: {e}")
+
+        # 6. Count waiting stocks for display
+        waiting_count = sum(1 for r in data_rows if len(r) > 10 and "WAITING" in str(r[10]).upper())
+
+        # 7. Heartbeat Update
         now_time = datetime.now(pytz.timezone('Asia/Kolkata')).strftime('%H:%M:%S')
-        sheet.update_acell("O3", f"Bot Live | Active: {active_count}/5 | {now_time}")
+        sheet.update_acell("O3", f"Bot Live | Active: {active_count}/5 | Waiting: {waiting_count} | {now_time}")
 
     except Exception as e:
         print(f"System Error: {e}")
+        import traceback
+        traceback.print_exc()
 
 if __name__ == "__main__":
     run_trading_cycle()
