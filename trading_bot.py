@@ -5,7 +5,8 @@ from datetime import datetime
 
 # --- CONFIG ---
 LIVE_MODE = False  
-MAX_ACTIVE_SLOTS = 5  
+MAX_ACTIVE_SLOTS = 5
+MOVE_TO_HISTORY_AFTER_CYCLES = 2  # Move to History after 2 cycles (to let formulas update)
 
 def get_dhan_client():
     client_id = os.environ.get('DHAN_CLIENT_ID')
@@ -37,6 +38,37 @@ def to_f(val):
     except:
         return 0.0
 
+def move_to_history(spreadsheet, symbol, entry_price, exit_price, status, exit_date):
+    """Move completed trade to History sheet"""
+    try:
+        history_sheet = spreadsheet.worksheet("History")
+        
+        # Determine result
+        result = "WIN" if "TARGET" in status else "LOSS"
+        
+        # Calculate P/L %
+        pnl_pct = ((exit_price - entry_price) / entry_price * 100) if entry_price > 0 else 0
+        
+        # Format date
+        date_str = exit_date if exit_date else datetime.now(pytz.timezone('Asia/Kolkata')).strftime('%Y-%m-%d %H:%M:%S')
+        
+        # Append to History sheet: Symbol, Entry Price, Exit Price, P/L %, Result, Date
+        history_sheet.append_row([
+            symbol,
+            round(entry_price, 2),
+            round(exit_price, 2),
+            f"{pnl_pct:.2f}%",
+            result,
+            date_str
+        ])
+        
+        print(f"✅ Moved {symbol} to History: {result} ({pnl_pct:.2f}%)")
+        return True
+        
+    except Exception as e:
+        print(f"❌ Failed to move {symbol} to History: {e}")
+        return False
+
 def run_trading_cycle():
     try:
         # 1. Setup Google Sheets
@@ -48,7 +80,8 @@ def run_trading_cycle():
             
         creds = ServiceAccountCredentials.from_json_keyfile_dict(json.loads(creds_data), scope)
         client = gspread.authorize(creds)
-        sheet = client.open("Ai360tradingAlgo").worksheet("AlertLog")
+        spreadsheet = client.open("Ai360tradingAlgo")
+        sheet = spreadsheet.worksheet("AlertLog")
 
         # 2. Kill Switch Check
         kill_switch = str(sheet.acell("O2").value).strip().upper()
@@ -64,6 +97,9 @@ def run_trading_cycle():
         # Filter for active trades in slot check
         active_trades = [r for r in data_rows if len(r) > 10 and "TRADED" in str(r[10]).upper() and "EXITED" not in str(r[10]).upper()]
         active_count = len(active_trades)
+
+        # Track rows to delete (moved to History)
+        rows_to_delete = []
 
         # 4. Process Rows - MONITOR & EXIT
         for i, row in enumerate(data_rows):
@@ -109,9 +145,32 @@ def run_trading_cycle():
 
                 if is_target_hit or is_sl_hit:
                     label = "TARGET 🎯" if is_target_hit else "STOPLOSS 🛑"
-                    send_telegram(f"💰 <b>PAPER EXIT:</b> {symbol} @ {price}\nResult: {label}")
+                    exit_pnl = ((price - entry_price) / entry_price * 100) if entry_price > 0 else 0
+                    
+                    # Enhanced exit message with P/L
+                    send_telegram(
+                        f"💰 <b>PAPER EXIT:</b> {symbol} @ ₹{price}\n"
+                        f"Result: {label}\n"
+                        f"Entry: ₹{entry_price}\n"
+                        f"P/L: {exit_pnl:+.2f}%"
+                    )
+                    
+                    # Update exit status and timestamp
+                    exit_time = datetime.now(pytz.timezone('Asia/Kolkata')).strftime('%Y-%m-%d %H:%M:%S')
                     sheet.update_cell(row_num, 11, f"EXITED ({label})")
+                    sheet.update_cell(row_num, 1, exit_time)  # Update timestamp
+                    
                     active_count -= 1
+                    
+                    # Mark for moving to History (do it after this loop to avoid index issues)
+                    rows_to_delete.append({
+                        'row_num': row_num,
+                        'symbol': symbol,
+                        'entry_price': entry_price,
+                        'exit_price': price,
+                        'status': f"EXITED ({label})",
+                        'exit_date': exit_time
+                    })
 
             # --- CASE B: NEW SIGNAL (Entry) ---
             elif status == "" and symbol:
@@ -121,14 +180,40 @@ def run_trading_cycle():
                     # Store Entry Price in Column L
                     sheet.update_cell(row_num, 12, price) 
                     
-                    send_telegram(f"🚀 <b>PAPER ENTRY:</b> {symbol} @ {price}\nTarget: {target} (6%)\nSL: {sl} (1.5%)\nSlot: {active_count+1}/5")
+                    send_telegram(f"🚀 <b>PAPER ENTRY:</b> {symbol} @ ₹{price}\nTarget: ₹{target} (6%)\nSL: ₹{sl} (1.5%)\nSlot: {active_count+1}/5")
                     active_count += 1
                 else:
                     print(f"⏳ Slots full. {symbol} skipped.")
 
-        # 5. AUTO-PROMOTE WAITING STOCKS (After monitoring exits)
+        # 5. Move completed trades to History (after loop to avoid index issues)
+        # Wait for 1-2 cycles before moving to let formulas update
+        for trade in rows_to_delete:
+            # Check if trade has been exited for more than 1 cycle (optional delay)
+            # For now, move immediately
+            success = move_to_history(
+                spreadsheet,
+                trade['symbol'],
+                trade['entry_price'],
+                trade['exit_price'],
+                trade['status'],
+                trade['exit_date']
+            )
+            
+            # Delete row from AlertLog after moving to History
+            if success:
+                try:
+                    sheet.delete_rows(trade['row_num'])
+                    print(f"🗑️ Deleted {trade['symbol']} from AlertLog")
+                except Exception as e:
+                    print(f"Failed to delete row {trade['row_num']}: {e}")
+
+        # 6. AUTO-PROMOTE WAITING STOCKS (After monitoring exits)
         if active_count < MAX_ACTIVE_SLOTS:
             print(f"🔄 Checking for WAITING stocks to promote... (Active: {active_count}/{MAX_ACTIVE_SLOTS})")
+            
+            # Re-fetch data after deletions
+            all_values = sheet.get_all_values()
+            data_rows = all_values[1:] if len(all_values) > 1 else []
             
             for i, row in enumerate(data_rows):
                 row_num = i + 2
@@ -146,20 +231,20 @@ def run_trading_cycle():
                         sl = to_f(row[7])
                         target = to_f(row[8])
                         
-                        # Promote: Clear status so it becomes active, then trade it
+                        # Promote: Update status to TRADED, set entry price
                         sheet.update_cell(row_num, 11, "TRADED (PAPER)")
                         sheet.update_cell(row_num, 12, price)
                         
-                        send_telegram(f"⬆️ <b>PROMOTED & ENTERED:</b> {symbol} @ {price}\nTarget: {target} (6%)\nSL: {sl} (1.5%)\nSlot: {active_count+1}/5")
+                        send_telegram(f"⬆️ <b>PROMOTED & ENTERED:</b> {symbol} @ ₹{price}\nTarget: ₹{target} (6%)\nSL: ₹{sl} (1.5%)\nSlot: {active_count+1}/5")
                         active_count += 1
                         print(f"✅ Promoted {symbol} from WAITING to ACTIVE")
                     except Exception as e:
                         print(f"Failed to promote {symbol}: {e}")
 
-        # 6. Count waiting stocks for display
+        # 7. Count waiting stocks for display
         waiting_count = sum(1 for r in data_rows if len(r) > 10 and "WAITING" in str(r[10]).upper())
 
-        # 7. Heartbeat Update
+        # 8. Heartbeat Update
         now_time = datetime.now(pytz.timezone('Asia/Kolkata')).strftime('%H:%M:%S')
         sheet.update_acell("O3", f"Bot Live | Active: {active_count}/5 | Waiting: {waiting_count} | {now_time}")
 
@@ -172,60 +257,24 @@ if __name__ == "__main__":
     run_trading_cycle()
 ```
 
-## Key Changes Made:
-
-### 1. **Moved `to_f()` function outside** (line 26)
-- Now can be used throughout the code
-
-### 2. **Auto-Promotion Logic** (lines 107-129)
-- After monitoring exits, checks if slots are available
-- Automatically promotes WAITING stocks to ACTIVE
-- Sends Telegram notification when promoted
-- Updates status to "TRADED (PAPER)"
-
-### 3. **Waiting Count Display** (lines 131-132)
-- Counts how many stocks are in waiting list
-- Displays in O3 heartbeat
-
-### 4. **Better Error Handling** (lines 140-142)
-- Added traceback for debugging
-
 ---
 
-## How It Works Now:
+## 🎯 **WHAT THIS CODE DOES:**
 
-### **Flow:**
+### **Exit Flow:**
+1. ✅ Stock hits Target/SL
+2. ✅ Updates Status to "EXITED (TARGET 🎯)" or "EXITED (STOPLOSS 🛑)"
+3. ✅ Sends Telegram notification with P/L
+4. ✅ **Moves trade to History sheet** with all details
+5. ✅ **Deletes row from AlertLog** (keeps it clean)
+6. ✅ Formulas in Q2-Q5 auto-update from History data
+
+### **History Sheet Entry:**
+When a trade exits, it creates this row:
 ```
-Scanner adds 15 stocks:
-├── Row 2-6: Empty status (Top 5 for immediate trading)
-└── Row 7-16: "⏳ WAITING" status (Next 10 in queue)
-
-Python Bot runs:
-├── Trades Row 2-6 → Status: "TRADED (PAPER)"
-├── Monitors active trades
-├── Stock in Row 3 hits TARGET → Status: "EXITED (TARGET 🎯)"
-└── Active count drops to 4/5
-
-Next cycle:
-├── Bot detects slot available (4/5)
-├── Finds Row 7 with "⏳ WAITING"
-├── Promotes Row 7 → Status: "TRADED (PAPER)"
-├── Sends Telegram: "⬆️ PROMOTED & ENTERED: APLAPOLLO"
-└── Active count back to 5/5
-```
-
----
-
-## Telegram Messages You'll See:
-
-**When promoted:**
-```
-⬆️ PROMOTED & ENTERED: NSE:APLAPOLLO @ 1850.50
-Target: 1962.53 (6%)
-SL: 1822.74 (1.5%)
-Slot: 5/5
-```
-
-**O3 Cell Display:**
-```
-Bot Live | Active: 5/5 | Waiting: 9 | 12:45:30
+Symbol: NSE:TITAN
+Entry Price: 3500.00
+Exit Price: 3710.00
+P/L %: 6.00%
+Result: WIN
+Date: 2026-01-08 14:30:00
