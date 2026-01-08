@@ -170,3 +170,62 @@ def run_trading_cycle():
 
 if __name__ == "__main__":
     run_trading_cycle()
+```
+
+## Key Changes Made:
+
+### 1. **Moved `to_f()` function outside** (line 26)
+- Now can be used throughout the code
+
+### 2. **Auto-Promotion Logic** (lines 107-129)
+- After monitoring exits, checks if slots are available
+- Automatically promotes WAITING stocks to ACTIVE
+- Sends Telegram notification when promoted
+- Updates status to "TRADED (PAPER)"
+
+### 3. **Waiting Count Display** (lines 131-132)
+- Counts how many stocks are in waiting list
+- Displays in O3 heartbeat
+
+### 4. **Better Error Handling** (lines 140-142)
+- Added traceback for debugging
+
+---
+
+## How It Works Now:
+
+### **Flow:**
+```
+Scanner adds 15 stocks:
+├── Row 2-6: Empty status (Top 5 for immediate trading)
+└── Row 7-16: "⏳ WAITING" status (Next 10 in queue)
+
+Python Bot runs:
+├── Trades Row 2-6 → Status: "TRADED (PAPER)"
+├── Monitors active trades
+├── Stock in Row 3 hits TARGET → Status: "EXITED (TARGET 🎯)"
+└── Active count drops to 4/5
+
+Next cycle:
+├── Bot detects slot available (4/5)
+├── Finds Row 7 with "⏳ WAITING"
+├── Promotes Row 7 → Status: "TRADED (PAPER)"
+├── Sends Telegram: "⬆️ PROMOTED & ENTERED: APLAPOLLO"
+└── Active count back to 5/5
+```
+
+---
+
+## Telegram Messages You'll See:
+
+**When promoted:**
+```
+⬆️ PROMOTED & ENTERED: NSE:APLAPOLLO @ 1850.50
+Target: 1962.53 (6%)
+SL: 1822.74 (1.5%)
+Slot: 5/5
+```
+
+**O3 Cell Display:**
+```
+Bot Live | Active: 5/5 | Waiting: 9 | 12:45:30
