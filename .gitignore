@@ -1,3 +1,7 @@
+# ============================================================
+# WEBSITE (Jekyll) - Your Original Rules
+# ============================================================
+
 # Jekyll & Build Files
 _gh_pages
 _site
@@ -10,19 +14,103 @@ bin/
 # Ruby/Gem Files
 vendor/
 .bundle/
-Gemfile.lock # Optional: Keep if you want exact versions, ignore if you want flexibility
+Gemfile.lock
+
+# ============================================================
+# TRADING BOT (Python) - New Rules
+# ============================================================
+
+# Python Cache & Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual Environments
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.venv/
+
+# Python Package Management
+pip-log.txt
+pip-delete-this-directory.txt
+*.egg-info/
+dist/
+build/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# PyCharm
+.idea/
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# ============================================================
+# SENSITIVE FILES - NEVER COMMIT THESE!
+# ============================================================
+
+# Credentials & API Keys
+.env
+.env.local
+.env.*.local
+credentials.json
+service_account.json
+config.py
+secrets.py
+*_secrets.json
+*.key
+*.pem
+
+# Trading Bot Local Testing
+trading_bot_test.py
+test_*.py
+debug.log
+*.log
+
+# Local Configuration
+local_settings.py
+.config
+
+# ============================================================
+# GENERAL (Common to Both)
+# ============================================================
 
 # Numerous always-ignore extensions
 *.diff
 *.err
 *.orig
-*.log
 *.rej
 *.swo
 *.swp
 *.zip
 *.vi
 *~
+*.bak
+*.tmp
 
 # OS or Editor folders
 .DS_Store
@@ -36,7 +124,6 @@ Thumbs.db
 nbproject
 *.sublime-project
 *.sublime-workspace
-.idea/
 .vscode/
 
 # Komodo
@@ -48,4 +135,19 @@ validation-status.json
 validation-report.json
 
 # Development Folders
-node_modules
+node_modules/
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Backup files
+*backup*
+*.backup
+
+# ============================================================
+# ALLOWED FILES (Explicitly Track)
+# ============================================================
+# If you accidentally ignored something important, you can force-add it:
+# !important_file.py
