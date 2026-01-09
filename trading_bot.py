@@ -6,32 +6,59 @@ from datetime import datetime
 # --- CONFIG ---
 LIVE_MODE = False  
 MAX_ACTIVE_SLOTS = 5
-MOVE_TO_HISTORY_AFTER_CYCLES = 2  # Move to History after 2 cycles (to let formulas update)
 
 def get_dhan_client():
+    """Initialize Dhan client with TOTP authentication"""
     client_id = os.environ.get('DHAN_CLIENT_ID')
     totp_key = os.environ.get('DHAN_TOTP_KEY')
     pin = os.environ.get('DHAN_PIN')
-    totp_gen = pyotp.TOTP(totp_key)
     
-    temp_client = dhanhq(client_id, "")
-    auth_data = temp_client.generate_token(pin, totp_gen.now())
-    access_token = auth_data.get('access_token') or auth_data.get('data', {}).get('access_token')
-    return dhanhq(client_id, access_token)
+    if not all([client_id, totp_key, pin]):
+        print("❌ Missing Dhan credentials in environment variables")
+        return None
+    
+    try:
+        totp_gen = pyotp.TOTP(totp_key)
+        temp_client = dhanhq(client_id, "")
+        auth_data = temp_client.generate_token(pin, totp_gen.now())
+        access_token = auth_data.get('access_token') or auth_data.get('data', {}).get('access_token')
+        
+        if not access_token:
+            print("❌ Failed to get Dhan access token")
+            return None
+            
+        return dhanhq(client_id, access_token)
+    except Exception as e:
+        print(f"❌ Dhan authentication failed: {e}")
+        return None
 
 def send_telegram(message):
+    """Send notification to Telegram"""
     token = os.environ.get('TELEGRAM_BOT_TOKEN')
     chat_id = os.environ.get('TELEGRAM_CHAT_ID')
-    if not token or not chat_id: return
+    
+    if not token or not chat_id:
+        print("⚠️ Telegram credentials not found, skipping notification")
+        return
+    
     url = f"https://api.telegram.org/bot{token}/sendMessage"
     try:
-        requests.post(url, json={"chat_id": chat_id, "text": message, "parse_mode": "HTML"}, timeout=15)
+        response = requests.post(
+            url, 
+            json={"chat_id": chat_id, "text": message, "parse_mode": "HTML"}, 
+            timeout=15
+        )
+        if response.status_code == 200:
+            print("✅ Telegram notification sent")
+        else:
+            print(f"⚠️ Telegram API returned status {response.status_code}")
     except Exception as e:
-        print(f"Telegram failed: {e}")
+        print(f"❌ Telegram failed: {e}")
 
 def to_f(val):
     """Convert value to float, handling various formats"""
-    if not val: return 0.0
+    if not val: 
+        return 0.0
     clean = str(val).replace(',', '').replace('₹', '').replace('%', '').strip()
     try:
         return float(clean)
@@ -39,7 +66,7 @@ def to_f(val):
         return 0.0
 
 def calculate_hold_duration(entry_time_str):
-    """Calculate how many days a position has been held"""
+    """Calculate how many days/hours a position has been held"""
     try:
         entry_time = datetime.strptime(entry_time_str, '%Y-%m-%d %H:%M:%S')
         entry_time = pytz.timezone('Asia/Kolkata').localize(entry_time)
@@ -53,7 +80,8 @@ def calculate_hold_duration(entry_time_str):
             return f"{days}d {hours}h"
         else:
             return f"{hours}h"
-    except:
+    except Exception as e:
+        print(f"⚠️ Failed to calculate hold duration: {e}")
         return "0h"
 
 def move_to_history(spreadsheet, symbol, entry_price, exit_price, status, exit_date, entry_date):
@@ -78,7 +106,7 @@ def move_to_history(spreadsheet, symbol, entry_price, exit_price, status, exit_d
         except:
             duration_str = "N/A"
         
-        # Append to History sheet: Symbol, Entry Date, Entry Price, Exit Date, Exit Price, P/L %, Result, Hold Duration
+        # Append to History: Symbol, Entry Date, Entry Price, Exit Date, Exit Price, P/L %, Result, Hold Duration
         history_sheet.append_row([
             symbol,
             entry_date,
@@ -98,33 +126,49 @@ def move_to_history(spreadsheet, symbol, entry_price, exit_price, status, exit_d
         return False
 
 def run_trading_cycle():
+    """Main trading cycle - runs every 5 minutes during market hours"""
+    print("=" * 60)
+    print(f"🤖 Trading Bot Cycle Started at {datetime.now(pytz.timezone('Asia/Kolkata')).strftime('%Y-%m-%d %H:%M:%S')}")
+    print("=" * 60)
+    
     try:
         # 1. Setup Google Sheets
         scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
         creds_data = os.environ.get('GCP_SERVICE_ACCOUNT_JSON')
+        
         if not creds_data:
-            print("Error: GCP_SERVICE_ACCOUNT_JSON not found")
+            print("❌ Error: GCP_SERVICE_ACCOUNT_JSON not found in environment variables")
             return
-            
+        
+        print("🔑 Authenticating with Google Sheets...")
         creds = ServiceAccountCredentials.from_json_keyfile_dict(json.loads(creds_data), scope)
         client = gspread.authorize(creds)
         spreadsheet = client.open("Ai360tradingAlgo")
         sheet = spreadsheet.worksheet("AlertLog")
+        print("✅ Connected to Google Sheets")
 
         # 2. Kill Switch Check
         kill_switch = str(sheet.acell("O2").value).strip().upper()
+        print(f"🔍 Kill Switch Status: {kill_switch}")
+        
         if kill_switch != "YES":
-            print(f"🛑 Kill Switch is {kill_switch}. Stopping.")
+            print(f"🛑 Trading is PAUSED (Kill Switch: {kill_switch})")
+            sheet.update_acell("O3", f"Bot Paused | {datetime.now(pytz.timezone('Asia/Kolkata')).strftime('%H:%M:%S')}")
             return
 
         # 3. Get Data
         all_values = sheet.get_all_values()
-        if len(all_values) < 2: return
+        if len(all_values) < 2:
+            print("ℹ️ No data in AlertLog sheet")
+            return
+            
         data_rows = all_values[1:]
+        print(f"📊 Found {len(data_rows)} rows in AlertLog")
         
-        # Filter for active trades in slot check
+        # Filter for active trades
         active_trades = [r for r in data_rows if len(r) > 10 and "TRADED" in str(r[10]).upper() and "EXITED" not in str(r[10]).upper()]
         active_count = len(active_trades)
+        print(f"📈 Active Trades: {active_count}/{MAX_ACTIVE_SLOTS}")
 
         # Track rows to delete (moved to History)
         rows_to_delete = []
@@ -132,11 +176,14 @@ def run_trading_cycle():
         # 4. Process Rows - MONITOR & EXIT
         for i, row in enumerate(data_rows):
             row_num = i + 2
-            if len(row) < 14: continue  # Need at least 14 columns (up to N)
+            if len(row) < 14:
+                continue
 
             symbol = str(row[1]).strip()
             status = str(row[10]).strip().upper()
-            if not symbol: continue
+            
+            if not symbol:
+                continue
 
             try:
                 price = to_f(row[2])         # Column C - Live Price
@@ -144,10 +191,11 @@ def run_trading_cycle():
                 target = to_f(row[8])        # Column I - Target
                 entry_price = to_f(row[11])  # Column L - Entry Price
                 entry_time = str(row[12]).strip() if len(row) > 12 else ""  # Column M - Entry Time
-            except ValueError:
+            except (ValueError, IndexError) as e:
+                print(f"⚠️ Skipping row {row_num}: Invalid data format")
                 continue
 
-            # --- CASE A: MONITOR EXIT & TRAILING ---
+            # --- CASE A: MONITOR ACTIVE TRADES & EXIT ---
             if "TRADED" in status and "EXITED" not in status:
                 # Calculate current P/L %
                 profit_pct = 0
@@ -156,21 +204,29 @@ def run_trading_cycle():
                 
                 # Update P/L % in real-time (Column N)
                 sheet.update_cell(row_num, 14, f"{profit_pct:.2f}%")
+                print(f"📊 {symbol}: Price=₹{price}, Entry=₹{entry_price}, P/L={profit_pct:.2f}%")
 
-                # --- TRAILING LOGIC ---
+                # --- TRAILING STOP-LOSS LOGIC ---
                 new_sl = sl
                 if profit_pct >= 4.0:
+                    # At 4%+ profit, trail SL to 2% above entry
                     trail_at_2_pct = entry_price * 1.02
                     if trail_at_2_pct > sl:
                         new_sl = trail_at_2_pct
                 elif profit_pct >= 2.0:
+                    # At 2%+ profit, move SL to entry (breakeven)
                     if entry_price > sl:
                         new_sl = entry_price
 
                 if new_sl > sl:
-                    sheet.update_cell(row_num, 8, round(new_sl, 2)) # Update Column H
-                    send_telegram(f"🛡️ <b>TSL UPDATED:</b> {symbol}\nSL moved to: ₹{round(new_sl, 2)}\nCurrent Profit: {round(profit_pct, 1)}%")
-                    sl = new_sl 
+                    sheet.update_cell(row_num, 8, round(new_sl, 2))
+                    print(f"🛡️ TSL Updated: {symbol} SL moved to ₹{round(new_sl, 2)}")
+                    send_telegram(
+                        f"🛡️ <b>TSL UPDATED:</b> {symbol}\n"
+                        f"SL moved to: ₹{round(new_sl, 2)}\n"
+                        f"Current Profit: {round(profit_pct, 1)}%"
+                    )
+                    sl = new_sl
 
                 # --- EXIT CHECK ---
                 is_target_hit = target > 0 and price >= target
@@ -183,7 +239,9 @@ def run_trading_cycle():
                     # Calculate hold duration
                     hold_duration = calculate_hold_duration(entry_time) if entry_time else "N/A"
                     
-                    # Enhanced exit message with P/L and hold duration
+                    print(f"🚪 EXIT: {symbol} @ ₹{price} - {label} - P/L: {exit_pnl:+.2f}%")
+                    
+                    # Enhanced exit message
                     send_telegram(
                         f"💰 <b>PAPER EXIT:</b> {symbol} @ ₹{price}\n"
                         f"Result: {label}\n"
@@ -195,7 +253,7 @@ def run_trading_cycle():
                     # Update exit status and timestamp
                     exit_time = datetime.now(pytz.timezone('Asia/Kolkata')).strftime('%Y-%m-%d %H:%M:%S')
                     sheet.update_cell(row_num, 11, f"EXITED ({label})")
-                    sheet.update_cell(row_num, 1, exit_time)  # Update timestamp in Column A
+                    sheet.update_cell(row_num, 1, exit_time)
                     
                     active_count -= 1
                     
@@ -213,30 +271,31 @@ def run_trading_cycle():
             # --- CASE B: NEW SIGNAL (Entry) ---
             elif status == "" and symbol:
                 if active_count < MAX_ACTIVE_SLOTS:
-                    # Get current timestamp for entry
                     entry_timestamp = datetime.now(pytz.timezone('Asia/Kolkata')).strftime('%Y-%m-%d %H:%M:%S')
                     
-                    # Update status to lock the slot
+                    print(f"🚀 NEW ENTRY: {symbol} @ ₹{price}")
+                    
+                    # Update status and entry details
                     sheet.update_cell(row_num, 11, "TRADED (PAPER)")
-                    # Store Entry Price in Column L
-                    sheet.update_cell(row_num, 12, price)
-                    # Store Entry Time in Column M (not entry price!)
-                    sheet.update_cell(row_num, 13, entry_timestamp)
-                    # Initialize P/L % as 0.00%
-                    sheet.update_cell(row_num, 14, "0.00%")
+                    sheet.update_cell(row_num, 12, price)        # Entry Price
+                    sheet.update_cell(row_num, 13, entry_timestamp)  # Entry Time
+                    sheet.update_cell(row_num, 14, "0.00%")      # P/L %
                     
                     send_telegram(
                         f"🚀 <b>PAPER ENTRY:</b> {symbol} @ ₹{price}\n"
                         f"Target: ₹{target} (6%)\n"
                         f"SL: ₹{sl} (1.5%)\n"
-                        f"Slot: {active_count+1}/5\n"
+                        f"Slot: {active_count+1}/{MAX_ACTIVE_SLOTS}\n"
                         f"Time: {entry_timestamp}"
                     )
                     active_count += 1
                 else:
-                    print(f"⏳ Slots full. {symbol} skipped.")
+                    print(f"⏳ Slots full ({active_count}/{MAX_ACTIVE_SLOTS}). {symbol} skipped.")
 
         # 5. Move completed trades to History
+        if rows_to_delete:
+            print(f"📜 Moving {len(rows_to_delete)} completed trades to History...")
+            
         for trade in rows_to_delete:
             success = move_to_history(
                 spreadsheet,
@@ -254,7 +313,7 @@ def run_trading_cycle():
                     sheet.delete_rows(trade['row_num'])
                     print(f"🗑️ Deleted {trade['symbol']} from AlertLog")
                 except Exception as e:
-                    print(f"Failed to delete row {trade['row_num']}: {e}")
+                    print(f"❌ Failed to delete row {trade['row_num']}: {e}")
 
         # 6. AUTO-PROMOTE WAITING STOCKS
         if active_count < MAX_ACTIVE_SLOTS:
@@ -266,12 +325,14 @@ def run_trading_cycle():
             
             for i, row in enumerate(data_rows):
                 row_num = i + 2
-                if len(row) < 14: continue
+                if len(row) < 14:
+                    continue
                 
                 symbol = str(row[1]).strip()
                 status = str(row[10]).strip().upper()
                 
-                if not symbol: continue
+                if not symbol:
+                    continue
                 
                 # Promote WAITING stocks to active
                 if "WAITING" in status and active_count < MAX_ACTIVE_SLOTS:
@@ -280,8 +341,9 @@ def run_trading_cycle():
                         sl = to_f(row[7])
                         target = to_f(row[8])
                         
-                        # Get entry timestamp
                         entry_timestamp = datetime.now(pytz.timezone('Asia/Kolkata')).strftime('%Y-%m-%d %H:%M:%S')
+                        
+                        print(f"⬆️ PROMOTING: {symbol} from WAITING to ACTIVE")
                         
                         # Promote: Update status to TRADED, set entry price, entry time, and P/L %
                         sheet.update_cell(row_num, 11, "TRADED (PAPER)")
@@ -293,25 +355,37 @@ def run_trading_cycle():
                             f"⬆️ <b>PROMOTED & ENTERED:</b> {symbol} @ ₹{price}\n"
                             f"Target: ₹{target} (6%)\n"
                             f"SL: ₹{sl} (1.5%)\n"
-                            f"Slot: {active_count+1}/5\n"
+                            f"Slot: {active_count+1}/{MAX_ACTIVE_SLOTS}\n"
                             f"Time: {entry_timestamp}"
                         )
                         active_count += 1
                         print(f"✅ Promoted {symbol} from WAITING to ACTIVE")
                     except Exception as e:
-                        print(f"Failed to promote {symbol}: {e}")
+                        print(f"❌ Failed to promote {symbol}: {e}")
 
         # 7. Count waiting stocks for display
         waiting_count = sum(1 for r in data_rows if len(r) > 10 and "WAITING" in str(r[10]).upper())
 
         # 8. Heartbeat Update
         now_time = datetime.now(pytz.timezone('Asia/Kolkata')).strftime('%H:%M:%S')
-        sheet.update_acell("O3", f"Bot Live | Active: {active_count}/5 | Waiting: {waiting_count} | {now_time}")
+        heartbeat = f"Bot Live | Active: {active_count}/{MAX_ACTIVE_SLOTS} | Waiting: {waiting_count} | {now_time}"
+        sheet.update_acell("O3", heartbeat)
+        print(f"💚 {heartbeat}")
+        
+        print("=" * 60)
+        print("✅ Trading cycle completed successfully")
+        print("=" * 60)
 
     except Exception as e:
-        print(f"System Error: {e}")
+        print(f"❌ System Error: {e}")
         import traceback
         traceback.print_exc()
+        
+        # Try to send error notification
+        try:
+            send_telegram(f"🚨 <b>BOT ERROR:</b>\n{str(e)[:200]}")
+        except:
+            pass
 
 if __name__ == "__main__":
     run_trading_cycle()
