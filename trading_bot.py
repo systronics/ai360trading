@@ -126,7 +126,7 @@ def move_to_history(spreadsheet, symbol, entry_price, exit_price, status, exit_d
         return False
 
 def run_trading_cycle():
-    """Main trading cycle - runs every 5 minutes during market hours"""
+    """Main trading cycle - runs every 2 minutes during market hours"""
     print("=" * 60)
     print(f"🤖 Trading Bot Cycle Started at {datetime.now(pytz.timezone('Asia/Kolkata')).strftime('%Y-%m-%d %H:%M:%S')}")
     print("=" * 60)
@@ -186,7 +186,7 @@ def run_trading_cycle():
                 continue
 
             try:
-                price = to_f(row[2])         # Column C - Live Price
+                price = to_f(row[2])         # Column C - Live Price (VLOOKUP formula)
                 sl = to_f(row[7])            # Column H - StopLoss
                 target = to_f(row[8])        # Column I - Target
                 entry_price = to_f(row[11])  # Column L - Entry Price
@@ -197,13 +197,12 @@ def run_trading_cycle():
 
             # --- CASE A: MONITOR ACTIVE TRADES & EXIT ---
             if "TRADED" in status and "EXITED" not in status:
-                # Calculate current P/L %
+                # Calculate current P/L % for logging (formula in sheet handles display)
                 profit_pct = 0
                 if entry_price > 0:
                     profit_pct = ((price - entry_price) / entry_price) * 100
                 
-                # Update P/L % in real-time (Column N)
-                sheet.update_cell(row_num, 14, f"{profit_pct:.2f}%")
+                # Note: Column N (P/L %) is now auto-calculated by formula - no need to update
                 print(f"📊 {symbol}: Price=₹{price}, Entry=₹{entry_price}, P/L={profit_pct:.2f}%")
 
                 # --- TRAILING STOP-LOSS LOGIC ---
@@ -279,7 +278,7 @@ def run_trading_cycle():
                     sheet.update_cell(row_num, 11, "TRADED (PAPER)")
                     sheet.update_cell(row_num, 12, price)        # Entry Price
                     sheet.update_cell(row_num, 13, entry_timestamp)  # Entry Time
-                    sheet.update_cell(row_num, 14, "0.00%")      # P/L %
+                    # Column N (P/L %) auto-calculates via formula - no need to set
                     
                     send_telegram(
                         f"🚀 <b>PAPER ENTRY:</b> {symbol} @ ₹{price}\n"
@@ -345,11 +344,11 @@ def run_trading_cycle():
                         
                         print(f"⬆️ PROMOTING: {symbol} from WAITING to ACTIVE")
                         
-                        # Promote: Update status to TRADED, set entry price, entry time, and P/L %
+                        # Promote: Update status to TRADED, set entry price and entry time
                         sheet.update_cell(row_num, 11, "TRADED (PAPER)")
                         sheet.update_cell(row_num, 12, price)
                         sheet.update_cell(row_num, 13, entry_timestamp)
-                        sheet.update_cell(row_num, 14, "0.00%")
+                        # Column N (P/L %) auto-calculates via formula - no need to set
                         
                         send_telegram(
                             f"⬆️ <b>PROMOTED & ENTERED:</b> {symbol} @ ₹{price}\n"
