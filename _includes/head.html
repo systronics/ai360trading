@@ -1,142 +1,87 @@
 <head>
-<!-- Basic meta elements -->
-<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- CSS-->
-<link rel="stylesheet" href="https://ai360trading.in/public/css/poole.css">
-<link rel="stylesheet" href="https://ai360trading.in/public/css/syntax.css">
-<link rel="stylesheet" href="https://ai360trading.in/public/css/hyde.css">
-<link rel="stylesheet" href="https://ai360trading.in/public/css/fonts.css">
-<link rel="stylesheet" href="https://ai360trading.in/public/font-awesome/css/font-awesome.min.css">
-<link rel="stylesheet" href="https://ai360trading.in/public/css/gpstyle.css">
-	
-<!-- Icons-->	
-<link href='https://ai360trading.in/public/image/favicon.webp' rel='icon' type='image/x-icon' />
-<link href="https://ai360trading.in/public/image/favicon.ico" rel='icon' type='image/x-icon' />
-<link href='https://ai360trading.in/public/image/apple-touch-icon.webp' rel='apple-touch-icon' sizes='180x180' />
-<link href='https://ai360trading.in/public/image/favicon-192x192.webp' rel='icon' sizes='192x192' />
-<link href='https://ai360trading.in/public/image/favicon-32x32.webp' rel='icon' sizes='32x32' />
-<link href='https://ai360trading.in/public/image/favicon-16x16.webp' rel='icon' sizes='16x16' />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-	
-<!-- RSS -->
-<link rel="alternate" type="application/rss+xml" title="RSS" href="https://ai360trading.in/atom.xml">
-	
-<!-- Enable responsiveness on mobile devices-->
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<!-- Other meta elements-->
-<meta name="google-site-verification" content="i_Rls5I6BZNtmvAZzmK4kzuXCM5XMWMedacKmWb7D4Q" />
-<meta name="robots" content="index, follow" /> 
-<meta name="resource-type" content="document" />
-<meta content='global' name='distribution' />
-<meta content='1 days' name='revisit' />
-<meta content='1 days' name='revisit-after' />
-<meta content='all' name='audience' />
-<meta content='general' name='rating' />
-<meta content='all' name='robots' />
-<meta content='en' name='language' />
-<meta content='INDIA' name='country' />
-<meta content='320' name='MobileOptimized' />
-<meta content='aiSignal Trader' name='author' />
-	
-<!-- Social-->	
-<meta property="og:title" content="{% if page.title %}{{ page.title | smartify | strip_html | strip_newlines | escape_once }}{% else %}{{ site.name }}{% endif %}">
-<meta property="og:type" content="{% if page.date %}article{% else %}website{% endif %}">
-<meta property="og:url" content="{{ page.url | replace:'/index.html','/' | prepend: site.baseurl | prepend: site.url }}">
-<meta property="og:image" content="{% if page.image %}{{ page.image | prepend: site.baseurl }}{% else %}{{ site.logo | prepend: site.baseurl | prepend: site.url }}{% endif %}">
-<meta property="og:description" content="{% if page.excerpt %}{{ page.excerpt | markdownify | strip_html | strip_newlines | truncate: 160 | escape_once }}{% else %}{{ site.description }}{% endif %}">
-<meta property="og:site_name" content="{{ site.name }}">
-
-{% if site.facebook %}
-  {% if site.facebook.admin %}
-    <meta property="fb:admin" content="{{ site.facebook.admin }}">
-  {% endif %}
-  {% if site.facebook.publisher %}
-    <meta property="article:publisher" content="{{ site.facebook.publisher }}">
-  {% endif %}
-  {% if site.facebook.app_id %}
-    <meta property="fb:app_id" content="{{ site.facebook.app_id }}">
-  {% endif %}
-{% endif %}
-
-{% if page.date %}
-  <meta property="article:author" content="https://www.facebook.com/{{ site.author.facebook }}">
-  <meta property="article:modified_time" content="{% if page.last_modified_at %}{{ page.last_modified_at | date_to_xmlschema }}{% else %}{{ page.date | date_to_xmlschema }}{% endif %}">
-  <meta property="article:published_time" content="{{ page.date | date_to_xmlschema }}">
-  {% for post in site.related_posts limit:3 %}
-    <meta property="og:see_also" content="{{ post.url | replace:'/index.html','/' | prepend: site.baseurl | prepend: site.url }}">
-  {% endfor %}
-{% endif %}
-
-{% if page.categories %}
-  {% for category in page.categories limit:1 %}
-  <meta property="article:section" content="{{ category }}">
-  {% endfor %}
-{% endif %}
-	
-{%if page.tags %}
-<meta name="keywords" content="{{ page.tags | join: ', ' | escape }}"/>
-{%endif %}
-
-{% if page.tags %}
-  {% for tag in page.tags %}
-  <meta property="article:tag" content="{{ tag }}">
-  {% endfor %}
-{% endif %}
-	
-	<meta name="x:card" content="summary">
-<meta name="x:site" content="@{{ site.x.username | replace:'@','' }}">
-{% if page.date %}
-  <meta name="x:creator" content="@{{ site.author.x | replace:'@','' }}">
-{% endif %}
-<meta name="x:title" content="{% if page.title %}{{ page.title | smartify | strip_html | strip_newlines | escape_once }}{% else %}{{ site.name }}{% endif %}">
-<meta name="x:description" content="{% if page.excerpt %}{{ page.excerpt | markdownify | strip_html | strip_newlines | truncate: 160 | escape_once }}{% else %}{{ site.description }}{% endif %}">
-<meta name="x:image" content="{% if page.image %}{{ page.image | prepend: site.baseurl }}{% else %}{{ site.logo | prepend: site.baseurl | prepend: site.url }}{% endif %}">
-<meta name="x:url" content="{{ page.url | replace:'/index.html','/' | prepend: site.baseurl | prepend: site.url }}">
-
+  <link rel="stylesheet" href="https://ai360trading.in/public/css/poole.css">
+  <link rel="stylesheet" href="https://ai360trading.in/public/css/syntax.css">
+  <link rel="stylesheet" href="https://ai360trading.in/public/css/hyde.css">
   
-  <!-- Google analytics -->
-  {% if site.google_analytics and jekyll.environment == 'production' %}
-  {% include analytics.html %}
+  <link rel="stylesheet" href="https://ai360trading.in/public/css/fonts.css" media="print" onload="this.media='all'">
+  
+  <link rel="stylesheet" href="https://ai360trading.in/public/font-awesome/css/font-awesome.min.css" media="print" onload="this.media='all'">
+  <link rel="stylesheet" href="https://ai360trading.in/public/css/gpstyle.css">
+	
+  <link href='https://ai360trading.in/public/image/favicon.webp' rel='icon' type='image/x-icon' />
+  <link href="https://ai360trading.in/public/image/favicon.ico" rel='icon' type='image/x-icon' />
+  <link href='https://ai360trading.in/public/image/apple-touch-icon.webp' rel='apple-touch-icon' sizes='180x180' />
+  <link href='https://ai360trading.in/public/image/favicon-192x192.webp' rel='icon' sizes='192x192' />
+  <link href='https://ai360trading.in/public/image/favicon-32x32.webp' rel='icon' sizes='32x32' />
+  <link href='https://ai360trading.in/public/image/favicon-16x16.webp' rel='icon' sizes='16x16' />
+	
+  <link rel="alternate" type="application/rss+xml" title="RSS" href="https://ai360trading.in/atom.xml">
+	
+  <meta name="google-site-verification" content="i_Rls5I6BZNtmvAZzmK4kzuXCM5XMWMedacKmWb7D4Q" />
+  <meta name="robots" content="index, follow, max-image-preview:large" /> 
+  <meta name="author" content="Amit Kumar" />
+  <meta name="language" content="en" />
+  <meta name="country" content="INDIA" />
+	
+  <meta property="og:title" content="{% if page.title %}{{ page.title | smartify | strip_html | strip_newlines | escape_once }}{% else %}{{ site.name }}{% endif %}">
+  <meta property="og:type" content="{% if page.date %}article{% else %}website{% endif %}">
+  <meta property="og:url" content="{{ page.url | replace:'/index.html','/' | prepend: site.baseurl | prepend: site.url }}">
+  <meta property="og:image" content="{% if page.image %}{{ page.image | prepend: site.baseurl }}{% else %}{{ site.logo | prepend: site.baseurl | prepend: site.url }}{% endif %}">
+  <meta property="og:description" content="{% if page.excerpt %}{{ page.excerpt | markdownify | strip_html | strip_newlines | truncate: 160 | escape_once }}{% else %}{{ site.description }}{% endif %}">
+  <meta property="og:site_name" content="{{ site.name }}">
+
+  {% if site.facebook %}
+    {% if site.facebook.admin %}<meta property="fb:admin" content="{{ site.facebook.admin }}">{% endif %}
+    {% if site.facebook.publisher %}<meta property="article:publisher" content="{{ site.facebook.publisher }}">{% endif %}
   {% endif %}
 
+  <meta name="x:card" content="summary_large_image">
+  <meta name="x:site" content="@{{ site.x.username | replace:'@','' }}">
+  <meta name="x:title" content="{% if page.title %}{{ page.title | smartify | strip_html | strip_newlines | escape_once }}{% else %}{{ site.name }}{% endif %}">
+  <meta name="x:description" content="{% if page.excerpt %}{{ page.excerpt | markdownify | strip_html | strip_newlines | truncate: 160 | escape_once }}{% else %}{{ site.description }}{% endif %}">
+  <meta name="x:image" content="{% if page.image %}{{ page.image | prepend: site.baseurl }}{% else %}{{ site.logo | prepend: site.baseurl | prepend: site.url }}{% endif %}">
+
+  {% if site.google_analytics and jekyll.environment == 'production' %}
+    {% include analytics.html %}
+  {% endif %}
   {% seo %}
 
-  {% if site.tags == "" %}
-    {% include collecttags.html %}
-  {% endif %}
-
-	<style>
-  /* Professional Typography */
-  body { 
-    font-family: 'Inter', -apple-system, system-ui, sans-serif !important; 
-    color: #2c3e50; 
-    line-height: 1.6;
-  }
-
-  /* Fix Hyde Sidebar & Content Width */
-  @media (min-width: 48rem) {
-    .content {
-      max-width: 85% !important; /* Makes all posts look wider and cleaner */
-      margin-left: 18rem !important; 
+  <style>
+    /* Professional Typography & Speed Fixes */
+    body { 
+      font-family: 'Inter', -apple-system, system-ui, sans-serif !important; 
+      color: #2c3e50; 
+      line-height: 1.6;
+      font-display: swap; /* Fixes Font Display issue */
     }
-  }
 
-  /* Make images look professional */
-  img { border-radius: 8px; }
+    /* Fixed Hyde Sidebar - Removing 18rem margin to keep your full-width layout */
+    @media (min-width: 48rem) {
+      .content {
+        max-width: 98% !important;
+        margin: 0 auto !important; 
+        padding: 20px !important;
+      }
+      .sidebar { display: none; } /* Ensures sidebar doesn't push your wide dashboard */
+    }
 
-  /* Style for standard buttons across the site */
-  .button, button {
-    background: #0088cc !important;
-    color: white !important;
-    border: none !important;
-    border-radius: 5px !important;
-    padding: 10px 20px !important;
-    font-weight: bold !important;
-    cursor: pointer;
-  }
-</style>
-	
+    img { border-radius: 8px; font-display: swap; }
+
+    .button, button {
+      background: #0088cc !important;
+      color: white !important;
+      border-radius: 5px !important;
+      padding: 10px 20px !important;
+      font-weight: bold !important;
+      transition: 0.3s;
+    }
+    .button:hover { background: #005f8d !important; }
+  </style>
 </head>
