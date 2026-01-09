@@ -2,35 +2,42 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
   {% include head.html %}
   
-  <body class="theme-base-0d">
+  <body class="theme-base-0d" style="margin: 0; padding: 0; background-color: #f4f7f9;">
 
-    <header style="text-align: center; padding: 15px 0; background: #f8faff; border-bottom: 1px solid #d1d9e6;">
-      <div class="container">
+    <header style="text-align: center; padding: 15px 0; background: #ffffff; border-bottom: 2px solid #0088cc; width: 100%;">
+      <div class="full-container" style="width: 98%; margin: 0 auto;">
         <a href="/" title="ai360trading" style="border:none;">
-          <img src="/public/image/header.webp" alt="ai360trading" style="max-width: 85%; height: auto; max-height: 75px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.05));">
+          <img src="/public/image/header.webp" alt="ai360trading" style="max-width: 90%; height: auto; max-height: 80px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.05));">
         </a>
 
         <nav style="margin: 12px 0;">
           <style>
+            /* Force Full Screen Layout */
+            .container, .content {
+              max-width: 98% !important;
+              width: 98% !important;
+              margin-left: auto !important;
+              margin-right: auto !important;
+            }
+
             .nav-link {
               display: inline-block;
-              margin: 4px 8px;
+              margin: 4px 12px;
               text-decoration: none;
               color: #2c3e50;
               font-weight: 700;
-              font-size: 13px;
+              font-size: 14px;
               text-transform: uppercase;
               letter-spacing: 0.5px;
               transition: 0.2s ease-in-out;
             }
             .nav-link:hover { color: #0088cc; }
-            .active-signals { color: #0088cc !important; border-bottom: 2px solid #0088cc; }
             
             /* Social Button Styles */
             .social-links a { 
-              margin: 0 12px; 
+              margin: 0 15px; 
               color: #546e7a; 
-              font-size: 19px;
+              font-size: 22px;
               transition: 0.3s;
               display: inline-block;
             }
@@ -40,6 +47,24 @@
             .fa-instagram:hover { color: #E4405F; }
             .fa-youtube:hover { color: #FF0000; }
             .fa-telegram:hover { color: #0088cc; }
+
+            /* Dashboard Style for Trading Content */
+            .pro-card {
+              background: #ffffff !important;
+              padding: 25px !important;
+              border-radius: 8px !important;
+              box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+              border: 1px solid #d1d9e6 !important;
+              min-height: 80vh;
+            }
+
+            @media (max-width: 768px) {
+              .container, .content {
+                width: 95% !important;
+                padding: 10px !important;
+              }
+              .pro-card { padding: 15px !important; }
+            }
           </style>
           
           <a href="/" class="nav-link">Home</a>
@@ -58,11 +83,15 @@
       </div>
     </header>
 
-    <div class="content container" style="margin-top: 25px; max-width: 95%;">
-      <div class="pro-card" style="background: rgba(255,255,255,0.9); padding: 20px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid #e1e8ed;">
+    <div class="content container" style="margin-top: 20px;">
+      <div class="pro-card">
         {{ content }}
       </div>
     </div>
+
+    <footer style="text-align: center; padding: 20px; color: #666; font-size: 13px;">
+      &copy; {{ site.time | date: '%Y' }} {{ site.name }}. All rights reserved.
+    </footer>
 
   </body>
 </html>
