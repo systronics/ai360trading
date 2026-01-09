@@ -2,17 +2,17 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
   {% include head.html %}
   
-  <body class="theme-base-0d" style="margin: 0; padding: 0; background-color: #f4f7f9;">
+  <body class="theme-base-0d" style="margin: 0; padding: 0; background-color: #f0f4f8;">
 
     <header style="text-align: center; padding: 15px 0; background: #ffffff; border-bottom: 2px solid #0088cc; width: 100%;">
-      <div class="full-container" style="width: 98%; margin: 0 auto;">
+      <div class="header-container" style="width: 98%; margin: 0 auto;">
         <a href="/" title="ai360trading" style="border:none;">
           <img src="/public/image/header.webp" alt="ai360trading" style="max-width: 90%; height: auto; max-height: 80px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.05));">
         </a>
 
         <nav style="margin: 12px 0;">
           <style>
-            /* Force Full Screen Layout */
+            /* Force Full Screen Width */
             .container, .content {
               max-width: 98% !important;
               width: 98% !important;
@@ -20,6 +20,17 @@
               margin-right: auto !important;
             }
 
+            /* Dashboard Styling */
+            .pro-card {
+              background: #ffffff !important;
+              padding: 25px !important;
+              border-radius: 12px !important;
+              box-shadow: 0 4px 20px rgba(0,0,0,0.08) !important;
+              border: 1px solid #d1d9e6 !important;
+              min-height: 85vh;
+            }
+
+            /* Navigation Links */
             .nav-link {
               display: inline-block;
               margin: 4px 12px;
@@ -33,7 +44,7 @@
             }
             .nav-link:hover { color: #0088cc; }
             
-            /* Social Button Styles */
+            /* Social Icons */
             .social-links a { 
               margin: 0 15px; 
               color: #546e7a; 
@@ -48,22 +59,14 @@
             .fa-youtube:hover { color: #FF0000; }
             .fa-telegram:hover { color: #0088cc; }
 
-            /* Dashboard Style for Trading Content */
-            .pro-card {
-              background: #ffffff !important;
-              padding: 25px !important;
-              border-radius: 8px !important;
-              box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
-              border: 1px solid #d1d9e6 !important;
-              min-height: 80vh;
-            }
-
+            /* Mobile Optimization */
             @media (max-width: 768px) {
               .container, .content {
-                width: 95% !important;
-                padding: 10px !important;
+                width: 96% !important;
+                padding: 10px 0 !important;
               }
               .pro-card { padding: 15px !important; }
+              .nav-link { margin: 4px 6px; font-size: 12px; }
             }
           </style>
           
@@ -89,8 +92,8 @@
       </div>
     </div>
 
-    <footer style="text-align: center; padding: 20px; color: #666; font-size: 13px;">
-      &copy; {{ site.time | date: '%Y' }} {{ site.name }}. All rights reserved.
+    <footer style="text-align: center; padding: 25px; color: #546e7a; font-size: 14px; background: #ffffff; border-top: 1px solid #d1d9e6; margin-top: 40px;">
+      &copy; {{ site.time | date: '%Y' }} <strong>{{ site.name }}</strong>. Built for Algo Trading.
     </footer>
 
   </body>
