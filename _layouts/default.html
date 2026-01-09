@@ -4,69 +4,45 @@
   
   <body class="theme-base-0d" style="margin: 0; padding: 0; background-color: #f0f4f8;">
 
-    <header style="text-align: center; padding: 15px 0; background: #ffffff; border-bottom: 2px solid #0088cc; width: 100%;">
-      <div class="header-container" style="width: 98%; margin: 0 auto;">
+    <header style="text-align: center; padding: 10px 0; background: #ffffff; border-bottom: 2px solid #0088cc; width: 100%;">
+      <div style="width: 98%; margin: 0 auto;">
         <a href="/" title="ai360trading" style="border:none;">
-          <img src="/public/image/header.webp" alt="ai360trading" style="max-width: 90%; height: auto; max-height: 80px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.05));">
+          <img src="/public/image/header.webp" alt="ai360trading" style="max-width: 95%; height: auto; max-height: 80px;">
         </a>
 
-        <nav style="margin: 12px 0;">
+        <nav style="margin: 10px 0;">
           <style>
-            /* Force Full Screen Width */
-            .container, .content {
+            /* CLEAN FULL WIDTH RESET */
+            .container, .content, .message {
               max-width: 98% !important;
               width: 98% !important;
-              margin-left: auto !important;
-              margin-right: auto !important;
+              margin: 0 auto !important;
+              padding: 0 !important;
+              float: none !important; /* Fixes the overlapping issue */
             }
 
-            /* Dashboard Styling */
-            .pro-card {
-              background: #ffffff !important;
-              padding: 25px !important;
-              border-radius: 12px !important;
-              box-shadow: 0 4px 20px rgba(0,0,0,0.08) !important;
-              border: 1px solid #d1d9e6 !important;
-              min-height: 85vh;
+            /* FIX FOR MOBILE OVERLAP */
+            @media (max-width: 768px) {
+              .sidebar { display: none !important; } /* Removes Hyde Sidebar */
+              body { margin: 0 !important; padding: 0 !important; }
+              .content { margin: 0 auto !important; width: 95% !important; }
             }
 
-            /* Navigation Links */
             .nav-link {
               display: inline-block;
-              margin: 4px 12px;
+              margin: 4px 10px;
               text-decoration: none;
               color: #2c3e50;
               font-weight: 700;
-              font-size: 14px;
+              font-size: 13px;
               text-transform: uppercase;
-              letter-spacing: 0.5px;
-              transition: 0.2s ease-in-out;
             }
-            .nav-link:hover { color: #0088cc; }
             
-            /* Social Icons */
             .social-links a { 
-              margin: 0 15px; 
+              margin: 0 10px; 
               color: #546e7a; 
-              font-size: 22px;
-              transition: 0.3s;
+              font-size: 20px;
               display: inline-block;
-            }
-            .social-links a:hover { transform: translateY(-3px); }
-            .fa-facebook:hover { color: #1877F2; }
-            .fa-twitter:hover { color: #000000; }
-            .fa-instagram:hover { color: #E4405F; }
-            .fa-youtube:hover { color: #FF0000; }
-            .fa-telegram:hover { color: #0088cc; }
-
-            /* Mobile Optimization */
-            @media (max-width: 768px) {
-              .container, .content {
-                width: 96% !important;
-                padding: 10px 0 !important;
-              }
-              .pro-card { padding: 15px !important; }
-              .nav-link { margin: 4px 6px; font-size: 12px; }
             }
           </style>
           
@@ -86,14 +62,14 @@
       </div>
     </header>
 
-    <div class="content container" style="margin-top: 20px;">
-      <div class="pro-card">
+    <div class="content container" style="margin-top: 15px;">
+      <div style="background: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border: 1px solid #d1d9e6;">
         {{ content }}
       </div>
     </div>
 
-    <footer style="text-align: center; padding: 25px; color: #546e7a; font-size: 14px; background: #ffffff; border-top: 1px solid #d1d9e6; margin-top: 40px;">
-      &copy; {{ site.time | date: '%Y' }} <strong>{{ site.name }}</strong>. Built for Algo Trading.
+    <footer style="text-align: center; padding: 20px; color: #546e7a; font-size: 13px;">
+      &copy; {{ site.time | date: '%Y' }} {{ site.name }}
     </footer>
 
   </body>
