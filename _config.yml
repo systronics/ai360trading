@@ -10,8 +10,16 @@ name:        "ai360trading"
 url:         https://ai360trading.in
 baseurl:     ""
 logo:        /public/image/logo.webp
-timezone:    Asia/Kolkata # Updated to the standard TZ string
+timezone:    Asia/Kolkata
 future:      true        # IMPORTANT: Ensures your 2026 posts appear immediately
+
+# Layout Settings
+defaults:
+  - scope:
+      path: ""
+    values:
+      layout: "default"
+      wide_layout: true   # Custom variable to trigger full-width CSS
 
 author:
   name:      Amit Kumar
@@ -31,7 +39,7 @@ telegram:
 youtube:
   username:  ai360trading
 
-# Plugins (Modern replacement for 'gems')
+# Plugins
 plugins:
   - jekyll-paginate
   - jekyll-seo-tag
