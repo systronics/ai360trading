@@ -30,15 +30,21 @@
     {{ content }}
   </main>
 
-  <footer style="background: #2c3e50; color: #fff; padding: 40px 20px; text-align: center; margin-top: 50px;">
-    <div style="margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid #455a64;">
-        <h4 style="color: #0088cc; margin-bottom: 10px;">OFFICIAL TRADING PARTNER</h4>
-        <p style="font-size: 14px; color: #bdc3c7; margin-bottom: 15px;">Open your Demat account with our partner broker for seamless algo execution.</p>
-        <a href="YOUR_BROKER_AFFILIATE_URL_HERE" target="_blank" style="background: #0088cc; color: white; padding: 10px 25px; border-radius: 5px; text-decoration: none; font-weight: bold; display: inline-block;">
+  <footer style="background: #2c3e50; color: #fff; padding: 50px 20px; text-align: center; margin-top: 60px;">
+    
+    {% unless page.url == "/" or page.url == "/index.html" %}
+    <div style="margin-bottom: 35px; padding-bottom: 25px; border-bottom: 1px solid #3e4f5f;">
+        <h4 style="color: #3498db; margin-bottom: 10px; letter-spacing: 1px;">OFFICIAL TRADING PARTNER</h4>
+        <p style="font-size: 14px; color: #bdc3c7; margin-bottom: 20px;">Open your Demat account with our partner broker for seamless algo execution.</p>
+        <a href="{{ site.broker.affiliate_url }}" target="_blank" style="background: #3498db; color: white; padding: 12px 35px; border-radius: 50px; text-decoration: none; font-weight: bold; display: inline-block; box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);">
             Open Trading Account
         </a>
     </div>
-    <p>&copy; {{ site.time | date: '%Y' }} {{ site.name | upcase }}. All rights reserved.</p>
+    {% endunless %}
+
+    <div style="font-size: 14px; color: #95a5a6;">
+        <p>&copy; {{ site.time | date: '%Y' }} {{ site.name | upcase }}. All rights reserved.</p>
+    </div>
   </footer>
 
 </body>
