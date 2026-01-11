@@ -1,22 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
 {% include head.html %}
-<body class="theme-base-0d">
+<body>
 
   <header class="site-header">
-    <div class="header-container" style="max-width: 1200px; margin: 0 auto; padding: 15px 20px; display: flex; flex-direction: column; align-items: center; gap: 15px;">
-      <a href="/" class="header-logo">
+    <div class="header-container" style="max-width: 1200px; margin: 0 auto; padding: 15px; display: flex; flex-direction: column; align-items: center; gap: 15px;">
+      <a href="/">
         <img src="/public/image/header.webp" alt="{{ site.name }}" style="max-height: 75px; width: auto;">
       </a>
       
-      <nav class="main-nav" style="display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;">
-        <a href="/" class="nav-link" style="font-weight: 700;">HOME</a>
-        <a href="/contact" class="nav-link" style="font-weight: 700;">CONTACT</a>
-        <a href="/disclaimer" class="nav-link" style="font-weight: 700;">DISCLAIMER</a>
-        <a href="/policy" class="nav-link" style="font-weight: 700;">POLICY</a>
+      <nav style="display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;">
+        <a href="/" class="nav-link">HOME</a>
+        <a href="/contact" class="nav-link">CONTACT</a>
+        <a href="/disclaimer" class="nav-link">DISCLAIMER</a>
+        <a href="/policy" class="nav-link">POLICY</a>
       </nav>
 
-      <div class="social-links" style="display: flex; gap: 20px; font-size: 20px;">
+      <div class="social-links" style="display: flex; gap: 20px;">
         <a href="https://facebook.com/{{ site.facebook.username }}" target="_blank"><i class="fa fa-facebook"></i></a>
         <a href="https://t.me/{{ site.telegram.username }}" target="_blank"><i class="fa fa-telegram"></i></a>
         <a href="https://youtube.com/@{{ site.youtube.username }}" target="_blank"><i class="fa fa-youtube"></i></a>
@@ -28,13 +28,8 @@
     {{ content }}
   </main>
 
-  <footer style="background: #2c3e50; color: #fff; padding: 50px 20px; text-align: center; margin-top: 60px;">
-    <div class="footer-container" style="max-width: 1200px; margin: 0 auto;">
-      <p style="font-weight: bold;">&copy; {{ site.time | date: '%Y' }} {{ site.name | upcase }}. All rights reserved.</p>
-      <p style="font-size: 13px; color: #bdc3c7; max-width: 700px; margin: 15px auto;">
-        Disclaimer: Trading in the stock market involves significant risk. Our AI signals are for educational purposes. Always consult a financial advisor before making real trades.
-      </p>
-    </div>
+  <footer style="background: #2c3e50; color: #fff; padding: 40px 20px; text-align: center; margin-top: 50px;">
+    <p>&copy; {{ site.time | date: '%Y' }} {{ site.name | upcase }}. All rights reserved.</p>
   </footer>
 
 </body>
