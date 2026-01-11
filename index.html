@@ -9,7 +9,7 @@ image: "https://ai360trading.in/public/image/cover.webp"
   
   <a href="/tag/technical-picks" class="card-link">
     <div class="pro-card">
-      <div class="card-icon">📊</div>
+      <div class="card-icon" role="img" aria-label="Chart icon">📊</div>
       <div class="card-content">
         <h2 class="card-heading">Technical Picks</h2>
         <p class="card-subtext">View live algo-generated swing and intraday signals with precise entry and exit levels.</p>
@@ -19,7 +19,7 @@ image: "https://ai360trading.in/public/image/cover.webp"
 
   <a href="/tag/fundamental-picks" class="card-link">
     <div class="pro-card">
-      <div class="card-icon">🏗️</div>
+      <div class="card-icon" role="img" aria-label="Building icon">🏗️</div>
       <div class="card-content">
         <h2 class="card-heading">Fundamental Picks</h2>
         <p class="card-subtext">Long-term wealth creation ideas based on institutional buying and core company strength.</p>
@@ -29,28 +29,56 @@ image: "https://ai360trading.in/public/image/cover.webp"
 
   <a href="/tag/learn-stockmarket" class="card-link">
     <div class="pro-card">
-      <div class="card-icon">📚</div>
+      <div class="card-icon" role="img" aria-label="Books icon">📚</div>
       <div class="card-content">
         <h2 class="card-heading">Learning Center</h2>
         <p class="card-subtext">Understand the AI behind the algo and master Price Action trading techniques.</p>
       </div>
     </div>
   </a>
+
 </div>
 
-<div class="broker-section">
+<section class="broker-section">
   <h3 class="section-title">Partner Brokerage Platforms</h3>
   
   <div class="broker-grid">
-    <a href="https://zerodha.com/open-account?c=YS3694" target="_blank" class="broker-link">Zerodha</a>
-    <a href="https://invite.dhan.co/?invite=MSIVC45309" target="_blank" class="broker-link">Dhan</a>
-    <a href="https://invite.coindcx.com/13383200" target="_blank" class="broker-link">CoinDCX</a>
-    <a href="https://www.delta.exchange/?code=LVPCDR" target="_blank" class="broker-link">Delta Exchange</a>
+    <a href="https://zerodha.com/open-account?c=YS3694" 
+       target="_blank" 
+       rel="noopener noreferrer sponsored" 
+       class="broker-link"
+       aria-label="Open trading account with Zerodha">
+      Zerodha
+    </a>
+    
+    <a href="https://invite.dhan.co/?invite=MSIVC45309" 
+       target="_blank" 
+       rel="noopener noreferrer sponsored" 
+       class="broker-link"
+       aria-label="Open trading account with Dhan">
+      Dhan
+    </a>
+    
+    <a href="https://invite.coindcx.com/13383200" 
+       target="_blank" 
+       rel="noopener noreferrer sponsored" 
+       class="broker-link"
+       aria-label="Open crypto trading account with CoinDCX">
+      CoinDCX
+    </a>
+    
+    <a href="https://www.delta.exchange/?code=LVPCDR" 
+       target="_blank" 
+       rel="noopener noreferrer sponsored" 
+       class="broker-link"
+       aria-label="Open crypto derivatives account with Delta Exchange">
+      Delta Exchange
+    </a>
   </div>
-</div>
+</section>
 
 <style>
-  /* Base Desktop Grid */
+  /* === BASE DESKTOP GRID === */
   .dashboard-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(30%, 1fr));
@@ -59,7 +87,10 @@ image: "https://ai360trading.in/public/image/cover.webp"
     width: 100%;
   }
 
-  .card-link { text-decoration: none; display: flex; }
+  .card-link { 
+    text-decoration: none; 
+    display: flex; 
+  }
 
   .pro-card {
     background: #ffffff;
@@ -81,14 +112,51 @@ image: "https://ai360trading.in/public/image/cover.webp"
     border-color: #0088cc;
   }
 
-  .card-icon { font-size: 40px; margin-bottom: 15px; }
-  .card-heading { margin: 0; color: #0088cc; font-size: 22px; font-weight: 700; }
-  .card-subtext { color: #546e7a; font-size: 15px; margin-top: 12px; line-height: 1.6; }
+  .card-icon { 
+    font-size: 40px; 
+    margin-bottom: 15px; 
+    line-height: 1;
+  }
 
-  /* Broker Section */
-  .broker-section { margin-top: 50px; text-align: center; }
-  .section-title { color: #2c3e50; margin-bottom: 25px; font-weight: 700; font-size: 22px; }
-  .broker-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+  .card-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .card-heading { 
+    margin: 0; 
+    color: #0088cc; 
+    font-size: 22px; 
+    font-weight: 700; 
+    line-height: 1.3;
+  }
+
+  .card-subtext { 
+    color: #546e7a; 
+    font-size: 15px; 
+    margin-top: 12px; 
+    line-height: 1.6; 
+  }
+
+  /* === BROKER SECTION === */
+  .broker-section { 
+    margin-top: 50px; 
+    text-align: center; 
+  }
+
+  .section-title { 
+    color: #2c3e50; 
+    margin-bottom: 25px; 
+    font-weight: 700; 
+    font-size: 22px; 
+  }
+
+  .broker-grid { 
+    display: grid; 
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); 
+    gap: 12px; 
+  }
 
   .broker-link {
     display: block;
@@ -100,12 +168,33 @@ image: "https://ai360trading.in/public/image/cover.webp"
     font-weight: 700;
     border-radius: 8px;
     font-size: 14px;
-    transition: 0.3s;
+    transition: all 0.3s ease;
   }
 
-  /* MOBILE OPTIMIZATION - COMPACT MODE */
+  .broker-link:hover {
+    background: #2ecc71;
+    color: #ffffff !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(46, 204, 113, 0.2);
+  }
+
+  /* === TABLET (600px - 900px) === */
+  @media (max-width: 900px) and (min-width: 601px) {
+    .dashboard-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+
+    .broker-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  /* === MOBILE OPTIMIZATION - COMPACT MODE === */
   @media (max-width: 600px) {
-    .dashboard-grid { gap: 12px; }
+    .dashboard-grid { 
+      gap: 12px; 
+    }
     
     .pro-card {
       flex-direction: row; /* Icon next to text instead of above */
@@ -120,12 +209,67 @@ image: "https://ai360trading.in/public/image/cover.webp"
       margin-bottom: 0; 
       margin-right: 15px; 
       min-width: 40px;
+      flex-shrink: 0;
     }
 
-    .card-heading { font-size: 17px; }
-    .card-subtext { font-size: 13px; margin-top: 4px; line-height: 1.3; }
+    .card-content {
+      text-align: left;
+    }
 
-    .broker-grid { grid-template-columns: 1fr 1fr; } /* Two buttons per row on mobile */
-    .broker-link { padding: 10px; font-size: 12px; }
+    .card-heading { 
+      font-size: 17px;
+      margin-bottom: 4px;
+    }
+
+    .card-subtext { 
+      font-size: 13px; 
+      margin-top: 4px; 
+      line-height: 1.3; 
+    }
+
+    .broker-section {
+      margin-top: 40px;
+    }
+
+    .section-title {
+      font-size: 20px;
+      margin-bottom: 16px;
+    }
+
+    .broker-grid { 
+      grid-template-columns: 1fr 1fr; /* Two buttons per row on mobile */
+    }
+
+    .broker-link { 
+      padding: 10px; 
+      font-size: 12px; 
+    }
+  }
+
+  /* === SMALL MOBILE (< 400px) === */
+  @media (max-width: 400px) {
+    .pro-card {
+      padding: 12px !important;
+    }
+
+    .card-icon {
+      font-size: 24px;
+      margin-right: 12px;
+      min-width: 35px;
+    }
+
+    .card-heading {
+      font-size: 16px;
+    }
+
+    .card-subtext {
+      font-size: 12px;
+      line-height: 1.3;
+    }
+
+    .broker-link {
+      padding: 8px;
+      font-size: 11px;
+    }
   }
 </style>
