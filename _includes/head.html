@@ -20,31 +20,31 @@
   {% seo %}
 
   <style>
-    /* Stop Hyde Sidebar Interference */
+    /* Kill Hyde theme sidebar logic */
     .sidebar { display: none !important; visibility: hidden !important; }
     
-    /* Centering the content - Fixes the text cutting off on the left */
-    .content { 
+    /* Global Reset - Prevents edge cutting */
+    body { background-color: #f8faff; color: #2c3e50; margin: 0; padding: 0; overflow-x: hidden; }
+    
+    /* Centering Engine - Forces content to the middle of the screen */
+    .container, .content { 
       max-width: 1200px !important; 
-      margin: 0 auto !important; 
-      padding: 40px 20px !important; 
+      margin-left: auto !important; 
+      margin-right: auto !important; 
+      padding-left: 20px !important;
+      padding-right: 20px !important;
       float: none !important; 
       width: 100% !important;
       display: block !important;
     }
 
-    /* Container alignment - Ensures margins exist on mobile */
-    .container { 
-      max-width: 1200px !important; 
-      margin-left: auto !important; 
-      margin-right: auto !important; 
-      padding-left: 15px !important;
-      padding-right: 15px !important;
-    }
-    
-    /* Header & General UI */
+    /* Header Styling */
     .site-header { background: #fff; border-bottom: 1px solid #eee; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 8px rgba(0,0,0,.05); }
-    body { background-color: #f8faff; color: #2c3e50; margin: 0; overflow-x: hidden; }
     img { max-width: 100%; height: auto; border-radius: 8px; display: block; margin: 0 auto; }
+
+    /* Mobile First Fixes */
+    @media (max-width: 768px) {
+      .container, .content { padding-left: 15px !important; padding-right: 15px !important; }
+    }
   </style>
 </head>
