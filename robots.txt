@@ -1,13 +1,24 @@
 # ai360trading.in Robots File
+
+# Allow all search engines
 User-agent: *
 Allow: /
+
+# Block backend/admin files
 Disallow: /_layouts/
 Disallow: /_includes/
-Disallow: /_posts/
-Disallow: /public/image/ # Optional: Disallow if you want to prevent image-only indexing
+Disallow: /_sass/
+Disallow: /admin/
+Disallow: /private/
 
-# Host
+# Allow images for Google Images search (CHANGED - was blocked before)
+Allow: /public/image/
+
+# Host (Preferred domain)
 Host: https://ai360trading.in
 
 # Sitemap Location
 Sitemap: https://ai360trading.in/sitemap.xml
+
+# Crawl delay (optional - prevents aggressive crawling)
+# Crawl-delay: 1
