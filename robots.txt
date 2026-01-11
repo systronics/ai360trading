@@ -1,3 +1,6 @@
+---
+layout: null
+---
 # ai360trading.in Robots File
 
 User-agent: *
@@ -8,4 +11,5 @@ Disallow: /_sass/
 Disallow: /admin/
 Disallow: /private/
 
-Sitemap: https://ai360trading.in/sitemap.xml
+# This links your robots file directly to your map
+Sitemap: {{ site.url }}/sitemap.xml
