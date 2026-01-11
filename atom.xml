@@ -12,8 +12,8 @@ layout: null
   <id>{{ site.url }}/</id>
   
   <author>
-    <name>{{ site.author.name | xml_escape }}</name>
-    <email>{{ site.author.email | xml_escape }}</email>
+    <name>{{ site.name | xml_escape }}</name>
+    <email>admin@ai360trading.in</email>
   </author>
 
   {% for post in site.posts limit:20 %}
