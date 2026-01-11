@@ -47,7 +47,7 @@ image: "https://ai360trading.in/public/image/cover.webp"
 <section class="broker-section" style="margin-top: 50px;">
   <h3 class="section-title">Partner Brokerage Platforms</h3>
   
-  <div class="broker-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; padding: 0 10px;">
+  <div class="broker-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; padding: 0 15px;">
     <a href="https://zerodha.com/open-account?c=YS3694" target="_blank" rel="noopener noreferrer sponsored" class="broker-link">Zerodha</a>
     <a href="https://invite.dhan.co/?invite=MSIVC45309" target="_blank" rel="noopener noreferrer sponsored" class="broker-link">Dhan</a>
     <a href="https://invite.coindcx.com/13383200" target="_blank" rel="noopener noreferrer sponsored" class="broker-link">CoinDCX</a>
@@ -62,11 +62,33 @@ image: "https://ai360trading.in/public/image/cover.webp"
 
   <h3 class="subsection-heading" style="color: #2c3e50; font-size: 20px; margin-bottom: 15px;">Advanced Trading Features</h3>
   
-  <div style="background: #fdfdfd; border-left: 4px solid #0088cc; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+  <div style="background: #fdfdfd; border-left: 4px solid #0088cc; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
     <p style="margin: 0;"><strong>Real-Time Market Analysis:</strong> Our AI algorithms scan thousands of stocks every second, identifying potential opportunities based on momentum and technical patterns.</p>
   </div>
 
-  <div style="background: #fdfdfd; border-left: 4px solid #0088cc; padding: 20px; border-radius: 8px;">
+  <div style="background: #fdfdfd; border-left: 4px solid #0088cc; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
     <p style="margin: 0;"><strong>Precise Entry and Exit Points:</strong> Every trading signal comes with clear entry prices, target levels, and stop-loss points to ensure disciplined risk management.</p>
   </div>
 </section>
+
+<style>
+  /* All your original CSS styles follow here to maintain the dashboard layout */
+  .main-heading { text-align: center; color: #0088cc; font-size: 32px; font-weight: 700; margin: 20px 0 16px; }
+  .intro-text { text-align: center; color: #2c3e50; font-size: 16px; line-height: 1.8; max-width: 900px; margin: 0 auto 32px; }
+  .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(30%, 1fr)); gap: 25px; width: 100%; }
+  .card-link { text-decoration: none; display: flex; }
+  .pro-card { background: #ffffff; padding: 40px 25px; border-radius: 12px; border: 1px solid #e1e8ed; text-align: center; width: 100%; display: flex; flex-direction: column; align-items: center; transition: 0.3s; }
+  .pro-card:hover { transform: translateY(-5px); border-color: #0088cc; box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+  .card-icon { font-size: 40px; margin-bottom: 15px; }
+  .card-heading { color: #0088cc; font-size: 22px; font-weight: 700; }
+  .card-subtext { color: #546e7a; font-size: 15px; margin-top: 12px; }
+  .broker-link { display: block; padding: 16px; background: #fff; border: 2px solid #2ecc71; color: #27ae60 !important; text-decoration: none; font-weight: 700; border-radius: 8px; text-align: center; transition: 0.3s; }
+  .broker-link:hover { background: #2ecc71; color: #fff !important; }
+
+  @media (max-width: 600px) {
+    .pro-card { flex-direction: row; text-align: left; padding: 20px !important; }
+    .card-icon { margin-bottom: 0; margin-right: 15px; font-size: 30px; }
+    .card-heading { font-size: 18px; }
+    .card-subtext { font-size: 13px; }
+  }
+</style>
