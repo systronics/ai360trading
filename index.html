@@ -8,12 +8,11 @@ image: "https://ai360trading.in/public/image/cover.webp"
 <h1 class="main-heading">AI-Powered Stock Market Trading Platform</h1>
 
 <p class="intro-text">
-  {{ site.description }} 
-  Welcome to AI360Trading - your trusted source for algorithmic trading signals. Our advanced AI system analyzes market data in real-time to provide precise entry and exit levels for stocks, options, and cryptocurrency.
+  Welcome to <strong>AI360Trading</strong> - your trusted source for algorithmic trading signals. 
+  Our advanced AI system analyzes market data in real-time to provide you with accurate trading signals for stocks, options, BankNifty, and cryptocurrency markets.
 </p>
 
 <div class="dashboard-grid">
-  
   <a href="/tag/technical-picks" class="card-link">
     <div class="pro-card">
       <div class="card-icon" role="img" aria-label="Chart icon">📊</div>
@@ -29,7 +28,7 @@ image: "https://ai360trading.in/public/image/cover.webp"
       <div class="card-icon" role="img" aria-label="Building icon">🏗️</div>
       <div class="card-content">
         <h2 class="card-heading">Fundamental Picks</h2>
-        <p class="card-subtext">Long-term wealth creation ideas based on institutional buying and core strength.</p>
+        <p class="card-subtext">Long-term wealth creation ideas based on institutional buying and core company strength.</p>
       </div>
     </div>
   </a>
@@ -43,51 +42,32 @@ image: "https://ai360trading.in/public/image/cover.webp"
       </div>
     </div>
   </a>
-
 </div>
 
 <section class="broker-section">
-  <h3 class="section-title">Official Trading Partners</h3>
+  <h3 class="section-title">Partner Brokerage Platforms</h3>
   
   <div class="broker-grid">
-    <a href="https://zerodha.com/open-account?c=YS3694" 
-       target="_blank" rel="noopener noreferrer sponsored" class="broker-link">
-      Zerodha (Best for Stocks)
-    </a>
-    
-    <a href="https://invite.dhan.co/?invite=MSIVC45309" 
-       target="_blank" rel="noopener noreferrer sponsored" class="broker-link">
-      Dhan (Best for Options)
-    </a>
-    
-    <a href="https://invite.coindcx.com/13383200" 
-       target="_blank" rel="noopener noreferrer sponsored" class="broker-link">
-      CoinDCX (Best for Crypto)
-    </a>
+    <a href="https://zerodha.com/open-account?c=YS3694" target="_blank" rel="noopener noreferrer sponsored" class="broker-link">Zerodha</a>
+    <a href="https://invite.dhan.co/?invite=MSIVC45309" target="_blank" rel="noopener noreferrer sponsored" class="broker-link">Dhan</a>
     
     <a href="{{ site.broker.affiliate_url }}" 
-       target="_blank" rel="noopener noreferrer sponsored" class="broker-link">
-      Recommended Partner
+       target="_blank" 
+       rel="noopener noreferrer sponsored" 
+       class="broker-link"
+       style="border-color: #0088cc; color: #0088cc !important;">
+      {{ site.broker.name | default: "Recommended Broker" }}
     </a>
+    
+    <a href="https://invite.coindcx.com/13383200" target="_blank" rel="noopener noreferrer sponsored" class="broker-link">CoinDCX</a>
   </div>
 </section>
 
 <section class="content-section">
   <h2 class="section-heading">Why Choose AI360Trading for Algorithmic Trading?</h2>
-  
-  <p>Our algorithmic trading platform combines <strong>Artificial Intelligence</strong> with <strong>Technical Analysis</strong> to deliver superior trading results. We specialize in multiple trading strategies including Price Action analysis, Breakout trading, Scalping techniques, and Swing trading methodologies.</p>
+  <p>Our algorithmic trading platform combines <strong>Artificial Intelligence</strong> with <strong>Technical Analysis</strong> to deliver superior trading results. We specialize in strategies including price action, breakout trading, and scalping.</p>
 
   <h3 class="subsection-heading">Advanced Trading Features</h3>
-  
-  <p><strong>Real-Time Market Analysis:</strong> Our AI algorithms scan thousands of stocks every second, identifying potential trading opportunities based on market momentum. Get instant alerts when our system detects high-probability setups.</p>
-
-  <p><strong>Precise Entry and Exit Points:</strong> Every trading signal comes with clear entry prices, target levels, and stop-loss points. Our risk management system ensures you never risk more than necessary on any single trade.</p>
-
-  <h3 class="subsection-heading">Multi-Market Coverage</h3>
-  <p>Trade across multiple markets including Equity Stocks, Bank Nifty Options, Nifty Futures, and major cryptocurrencies like Bitcoin and Ethereum. Our system works across all timeframes to provide signals for every type of trader.</p>
+  <p><strong>Real-Time Market Analysis:</strong> Our algorithms scan thousands of stocks every second, identifying potential opportunities based on technical indicators and market momentum.</p>
+  <p><strong>Precise Entry and Exit Points:</strong> Every trading signal comes with clear entry prices, target levels, and stop-loss points.</p>
 </section>
-
-<style>
-  /* Use the existing styles from your index.html here - They are excellent for mobile responsiveness */
-  /* (Keep the .main-heading, .dashboard-grid, and @media queries from your provided content) */
-</style>
