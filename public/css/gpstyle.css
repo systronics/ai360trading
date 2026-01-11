@@ -59,3 +59,17 @@ body {
     .card-icon { margin-right: 20px; margin-bottom: 0; font-size: 30px; }
     h2 { font-size: 18px; margin: 0; }
 }
+
+/* Ensure social icons are sized correctly on mobile */
+.social-links a {
+    padding: 10px;
+    font-size: 20px;
+    display: inline-block;
+}
+
+@media (max-width: 480px) {
+    .social-links a {
+        font-size: 18px;
+        padding: 8px;
+    }
+}
