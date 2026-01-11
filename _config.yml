@@ -3,18 +3,18 @@ markdown:    kramdown
 highlighter: rouge
 
 # Permalinks
-permalink:   none
+permalink:   /:title/
 
 # Setup
-name:        "ai360trading"
-url:         https://ai360trading.in
+name:        "AI360Trading"
+url:         "https://ai360trading.in"
 baseurl:     ""
-logo:        /public/image/logo.webp
-timezone:    Asia/Kolkata
-future:      true        # IMPORTANT: Ensures your 2026 posts appear immediately
+logo:        "/public/image/logo.webp"
+timezone:    "Asia/Kolkata"
+future:      true        # IMPORTANT: Ensures 2026 posts appear
 
-# Description for SEO
-description: "Stock Market Algo Trading - Live Intraday, Price Action, Breakout, Scalping, Options, BankNifty, Crypto Trading Signals"
+# Description for SEO (Enhanced for rankings)
+description: "AI-Powered Stock Market Trading Platform - Live Intraday, Price Action, Breakout, Scalping, Options, BankNifty, and Crypto Trading Signals."
 
 # Layout Settings
 defaults:
@@ -22,82 +22,55 @@ defaults:
       path: ""
     values:
       layout: "default"
-      wide_layout: true   # Custom variable to trigger full-width CSS
-      image: "https://ai360trading.in/public/image/cover.webp"  # Default OG image
+      wide_layout: true
+      image: "https://ai360trading.in/public/image/cover.webp"
 
-# Author Info
+# Author Info - Verified for Clean Break
 author:
-  name:      ai360trading
-  email:     admin@ai360trading.in
+  name:      "AI360Trading"
+  email:     "admin@ai360trading.in"
 
 # Social Media Usernames
-# These variables restore the missing Twitter (X) and Instagram icons in your header
 facebook:
-  publisher: ai360trading
-  admin:     ai360trading
-  username:  ai360trading
+  username:  "ai360trading"
 x:
-  username:  ai360trading
+  username:  "ai360trading"
 instagram:
-  username:  ai360trading
+  username:  "ai360trading"
 telegram:
-  username:  ai360trading
+  username:  "ai360trading"
 youtube:
-  username:  ai360trading
+  username:  "ai360trading"
 
-# Broker Affiliate Section (Used in index.html)
+# Broker Affiliate Section (Update with your Zerodha or Dhan link)
 broker:
-  name: "Recommended Broker"
-  affiliate_url: "https://YOUR_PRIMARY_AFFILIATE_LINK_HERE" # Update this link as needed
+  name: "Official Partner"
+  affiliate_url: "https://zerodha.com/open-account?c=YS3694"
 
 # Plugins
 plugins:
   - jekyll-paginate
   - jekyll-seo-tag
   - jekyll-sitemap
+  - jekyll-feed # Added to ensure atom.xml is generated correctly
 
-# ========================================
 # PERFORMANCE OPTIMIZATION
-# ========================================
-
-# HTML Compression for Speed
 compress_html:
   clippings: all
   comments: all
   endings: all
   profile: false
   blanklines: false
-  ignore:
-    envs: [development]
 
-# Sass/SCSS Compression
 sass:
   style: compressed
   sass_dir: _sass
 
-# Exclude unnecessary files from build to speed up generation
 exclude:
   - README.md
   - Gemfile
   - Gemfile.lock
   - node_modules
-  - vendor
   - .sass-cache
   - .jekyll-cache
   - .git
-  - .gitignore
-
-# Include necessary files
-include:
-  - _headers
-  - .htaccess
-
-# Markdown settings for GFM (GitHub Flavored Markdown)
-kramdown:
-  input: GFM
-  hard_wrap: false
-  auto_ids: true
-  syntax_highlighter: rouge
-  syntax_highlighter_opts:
-    block:
-      line_numbers: false
