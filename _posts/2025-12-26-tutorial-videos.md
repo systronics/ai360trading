@@ -9,60 +9,75 @@ tags: learn-stockmarket
 ---
 
 <style>
-  /* Learning Center UI */
+  /* 1. Global Page Width Sync - Fixes left-side cutting */
+  .post-content, .wrapper {
+    max-width: 1200px !important;
+    margin: 0 auto !important;
+    padding: 0 15px !important;
+  }
+
+  /* 2. Learning Center UI */
   .learning-header {
     text-align: center;
     background: #fff5f5; /* Light reddish tint for YouTube feel */
-    padding: 25px;
+    padding: 30px;
     border-radius: 12px;
     border: 1px solid #ffebeb;
-    margin-bottom: 25px;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
   }
   
+  /* 3. Video Container - Scrollable for Mobile */
   .video-container {
     width: 100%;
     overflow-x: auto;
-    border: 1px solid #ddd;
+    border: 1px solid #e1e8ed;
     border-radius: 12px;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.05);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
     background: #fff;
     -webkit-overflow-scrolling: touch;
+    margin-bottom: 30px;
   }
 
   iframe {
     width: 100%;
-    min-width: 900px; /* Maintains table structure on mobile */
-    height: 750px;
+    min-width: 1000px; /* Essential for mobile readability */
+    height: 800px;
     border: none;
     display: block;
   }
 
+  /* 4. YouTube Button Styling */
   .youtube-btn {
     display: inline-block;
     background: #ff0000;
     color: white !important;
-    padding: 10px 20px;
-    border-radius: 6px;
+    padding: 12px 25px;
+    border-radius: 50px;
     text-decoration: none !important;
     font-weight: bold;
     margin-top: 15px;
     transition: 0.3s;
+    box-shadow: 0 4px 15px rgba(255, 0, 0, 0.3);
   }
   .youtube-btn:hover { 
     background: #cc0000; 
-    transform: scale(1.05); 
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 0, 0, 0.4);
   }
 </style>
 
 <div class="learning-header">
-  <div style="font-size: 35px; margin-bottom: 10px;">🎥</div>
-  <h2 style="margin: 0; color: #c0392b;">Video Tutorial Library</h2>
-  <p style="color: #666; font-size: 14px; margin-top: 5px;">Step-by-step guides for Scalping, Options, and Crypto Trading</p>
+  <div style="font-size: 45px; margin-bottom: 10px;">🎥</div>
+  <h2 style="margin: 0; color: #c0392b; font-size: 28px;">Video Tutorial Library</h2>
+  <p style="color: #4a5568; font-size: 16px; margin-top: 8px;">Step-by-step guides for Scalping, Options, and Crypto Trading</p>
   
-  <a href="https://youtube.com/@ai360trading" target="_blank" class="youtube-btn">
+  <a href="https://youtube.com/@{{ site.youtube.username }}" target="_blank" class="youtube-btn">
     <i class="fa fa-youtube-play"></i> Subscribe for Live Sessions
   </a>
 </div>
+
+
 
 <div class="video-container">
   <iframe 
@@ -70,8 +85,8 @@ tags: learn-stockmarket
   </iframe>
 </div>
 
-<div style="margin-top: 25px; padding: 15px; background: #f9f9f9; border-radius: 8px; text-align: center;">
-  <p style="font-size: 14px; color: #555; margin: 0;">
-    💡 <strong>Pro Tip:</strong> Click the video titles in the table above to open the tutorial directly on YouTube.
+<div style="margin-top: 20px; padding: 20px; background: #f8f9fa; border-radius: 10px; text-align: center; border: 1px solid #eee;">
+  <p style="font-size: 15px; color: #4a5568; margin: 0; line-height: 1.6;">
+    💡 <strong>Pro Tip:</strong> All tutorials are organized by skill level. Click the <strong>Video Titles</strong> in the library above to open the lesson directly on YouTube.
   </p>
 </div>
