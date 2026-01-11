@@ -1,46 +1,30 @@
-/* AI360TRADING MASTER CSS 2026 
-   Consolidated from Poole, Hyde, and Custom Fixes
-*/
+/* AI360TRADING MASTER CSS - JANUARY 2026 */
 
-/* 1. CORE RESET & TYPOGRAPHY (From Poole) */
-* { -webkit-box-sizing: border-box; -moz-box-sizing: border-box; box-sizing: border-box; }
-html { font-family: "PT Sans", Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.5; color: #3a3b58; }
-body { margin: 0; padding: 0; background-color: #f8faff; -webkit-text-size-adjust: 100%; overflow-x: hidden; }
+/* 1. Reset & Global Layout */
+* { box-sizing: border-box; }
+body { 
+    margin: 0; 
+    padding: 0; 
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background-color: #f8faff; 
+    color: #2c3e50;
+    overflow-x: hidden;
+}
 
-h1, h2, h3 { margin-top: 1rem; margin-bottom: 1rem; font-weight: 700; line-height: 1.2; text-transform: uppercase; }
-a { color: #0088cc; text-decoration: none; transition: 0.2s; }
-a:hover { color: #005f8d; }
-
-/* 2. LAYOUT ENGINE (Fixes the overlapping/squishing) */
+/* 2. Container Fix (Crucial for Mobile) */
 .container {
-    max-width: 1200px !important; /* Expanded from 38rem */
+    max-width: 1200px !important;
     width: 100% !important;
     margin: 0 auto !important;
-    padding: 0 20px;
+    padding: 0 15px;
 }
 
-.content {
-    padding: 40px 0;
-    display: block;
-    width: 100%;
-}
-
-/* 3. DASHBOARD GRID (The Card Fix) */
-#outer-frame {
-    width: 100%;
-    position: relative;
-}
-
-#inner-iguru {
-    width: 100%;
-    pointer-events: auto; /* Fixed: Links are now clickable */
-}
-
+/* 3. Dashboard Grid & Cards */
 .dashboard-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Auto-adjust columns */
-    gap: 24px;
-    margin-top: 30px;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 25px;
+    margin: 40px 0;
 }
 
 .pro-card {
@@ -50,11 +34,11 @@ a:hover { color: #005f8d; }
     padding: 30px;
     text-align: center;
     box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    height: 100%;
+    transition: 0.3s;
     display: flex;
     flex-direction: column;
     align-items: center;
+    height: 100%;
 }
 
 .pro-card:hover {
@@ -63,27 +47,15 @@ a:hover { color: #005f8d; }
     border-color: #0088cc;
 }
 
-.card-icon { font-size: 45px; margin-bottom: 15px; }
+/* 4. Navigation & Header Fixes */
+.site-header { padding: 20px 0; background: #fff; border-bottom: 1px solid #eee; }
+.nav-link { margin: 0 15px; font-weight: bold; color: #2c3e50; text-decoration: none; }
+.nav-link:hover { color: #0088cc; }
 
-/* 4. MOBILE-SPECIFIC ADJUSTMENTS */
+/* 5. Mobile Adjustments */
 @media (max-width: 768px) {
-    .container { padding: 0 15px; }
-    .content { padding: 20px 0; }
-    
-    .dashboard-grid {
-        grid-template-columns: 1fr; /* Single column stack */
-        gap: 16px;
-    }
-    
-    .pro-card {
-        padding: 20px;
-        flex-direction: row; /* Horizontal cards on phone look better */
-        text-align: left;
-    }
-    
-    .card-icon {
-        margin-bottom: 0;
-        margin-right: 20px;
-        font-size: 35px;
-    }
+    .dashboard-grid { grid-template-columns: 1fr; }
+    .pro-card { flex-direction: row; text-align: left; padding: 20px; }
+    .card-icon { margin-right: 20px; margin-bottom: 0; font-size: 30px; }
+    h2 { font-size: 18px; margin: 0; }
 }
