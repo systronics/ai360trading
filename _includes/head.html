@@ -3,114 +3,54 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- DNS Prefetch for Performance -->
   <link rel="dns-prefetch" href="https://fonts.googleapis.com">
   <link rel="dns-prefetch" href="https://fonts.gstatic.com">
-  
-  <!-- Preconnect to Critical Origins -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   
-  <!-- Preload Critical Assets -->
   <link rel="preload" as="image" href="/public/image/header.webp">
   <link rel="preload" as="style" href="/public/css/poole.css">
+  <link rel="preload" as="style" href="/public/css/gpstyle.css">
 
-  <!-- Core Stylesheets -->
   <link rel="stylesheet" href="/public/css/poole.css">
   <link rel="stylesheet" href="/public/css/gpstyle.css">
   
-  <!-- Async Non-Critical Styles -->
-  <link rel="stylesheet" href="/public/css/fonts.css" media="print" onload="this.media='all'">
-  <noscript><link rel="stylesheet" href="/public/css/fonts.css"></noscript>
-  
-  <!-- Font Awesome - Deferred -->
   <link rel="stylesheet" href="/public/font-awesome/css/font-awesome.min.css" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="/public/font-awesome/css/font-awesome.min.css"></noscript>
   
-  <!-- Favicons -->
   <link rel="shortcut icon" type="image/x-icon" href="/public/image/favicon.ico">
   <link rel="icon" type="image/webp" href="/public/image/favicon.webp">
   <link rel="apple-touch-icon" sizes="180x180" href="/public/image/apple-touch-icon.webp">
-  <link rel="icon" sizes="192x192" href="/public/image/favicon-192x192.webp">
-  <link rel="icon" sizes="32x32" href="/public/image/favicon-32x32.webp">
-  <link rel="icon" sizes="16x16" href="/public/image/favicon-16x16.webp">
   
-  <!-- RSS Feed -->
   <link rel="alternate" type="application/rss+xml" title="RSS" href="/atom.xml">
   
-  <!-- SEO Meta Tags -->
   <meta name="google-site-verification" content="i_Rls5I6BZNtmvAZzmK4kzuXCM5XMWMedacKmWb7D4Q">
   <meta name="robots" content="index, follow, max-image-preview:large">
   <meta name="author" content="Amit Kumar">
-  <meta name="language" content="en">
-  <meta name="country" content="INDIA">
   <meta name="theme-color" content="#0088cc">
-  
-  <!-- Open Graph Meta Tags -->
-  <meta property="og:title" content="{% if page.title %}{{ page.title | smartify | strip_html | strip_newlines | escape_once }}{% else %}{{ site.name }}{% endif %}">
-  <meta property="og:type" content="{% if page.date %}article{% else %}website{% endif %}">
-  <meta property="og:url" content="{{ page.url | replace:'/index.html','/' | prepend: site.baseurl | prepend: site.url }}">
-  <meta property="og:image" content="{% if page.image %}{{ page.image }}{% else %}{{ site.logo | prepend: site.baseurl | prepend: site.url }}{% endif %}">
-  <meta property="og:description" content="{% if page.excerpt %}{{ page.excerpt | markdownify | strip_html | strip_newlines | truncate: 160 | escape_once }}{% else %}{{ site.description }}{% endif %}">
-  <meta property="og:site_name" content="{{ site.name }}">
-
-  {% if site.facebook %}
-    {% if site.facebook.admin %}<meta property="fb:admin" content="{{ site.facebook.admin }}">{% endif %}
-    {% if site.facebook.publisher %}<meta property="article:publisher" content="{{ site.facebook.publisher }}">{% endif %}
-  {% endif %}
-
-  <!-- Twitter Card Meta Tags -->
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:site" content="@{{ site.x.username | replace:'@','' }}">
-  <meta name="twitter:title" content="{% if page.title %}{{ page.title | smartify | strip_html | strip_newlines | escape_once }}{% else %}{{ site.name }}{% endif %}">
-  <meta name="twitter:description" content="{% if page.excerpt %}{{ page.excerpt | markdownify | strip_html | strip_newlines | truncate: 160 | escape_once }}{% else %}{{ site.description }}{% endif %}">
-  <meta name="twitter:image" content="{% if page.image %}{{ page.image }}{% else %}{{ site.logo | prepend: site.baseurl | prepend: site.url }}{% endif %}">
-
-  <!-- Analytics - Async -->
-  {% if site.google_analytics and jekyll.environment == 'production' %}
-    {% include analytics.html %}
-  {% endif %}
   
   {% seo %}
 
-  <!-- Critical Inline CSS -->
   <style>
-    /* === CRITICAL CSS - Above the Fold Only === */
+    /* RESET & CORE LAYOUT */
     *{box-sizing:border-box}
-    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#2c3e50;line-height:1.6;margin:0;padding:0;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#2c3e50;margin:0;padding:0;background-color:#f8faff}
     
-    /* Web Font Loading - Swap for Performance */
-    @font-face{font-family:'Inter';font-display:swap}
-    
-    /* Remove Sidebar & Fix Layout */
+    /* REMOVE HYDE SIDEBAR INTERFERENCE */
     .sidebar{display:none!important}
-    .content{max-width:1200px!important;margin:0 auto!important;padding:40px 20px!important;margin-left:0!important}
+    .content{max-width:1200px!important;margin:0 auto!important;padding:40px 20px!important;float:none!important}
     .container{max-width:100%!important;margin:0!important;padding:0!important}
     
-    /* Header - Above Fold Critical */
-    .site-header{background:#f8faff;border-bottom:1px solid #d1e8ed;padding:16px 0;position:sticky;top:0;z-index:1000;box-shadow:0 2px 8px rgba(0,0,0,.05)}
-    .header-container{max-width:1200px;margin:0 auto;padding:0 20px;display:flex;flex-direction:column;align-items:center;gap:16px}
+    /* STICKY HEADER */
+    .site-header{background:#fff;border-bottom:1px solid #eee;position:sticky;top:0;z-index:1000;box-shadow:0 2px 8px rgba(0,0,0,.05)}
     
-    /* Typography */
-    h1,h2,h3,h4,h5,h6{font-weight:700;line-height:1.3;margin-top:0}
-    a{color:#0088cc;transition:color .2s ease;text-decoration:none}
-    a:hover{color:#005f8d}
-    img{max-width:100%;height:auto;border-radius:8px;display:block}
+    /* BUTTONS */
+    .button,button,input[type=submit]{background:#0088cc!important;color:#fff!important;border:none!important;border-radius:6px!important;padding:12px 24px!important;font-weight:600;cursor:pointer}
     
-    /* Buttons */
-    .button,button,input[type=submit],input[type=button]{background:#0088cc!important;color:#fff!important;border:none!important;border-radius:6px!important;padding:12px 24px!important;font-weight:600!important;font-size:15px!important;cursor:pointer;transition:all .3s ease;display:inline-block}
-    
-    /* Mobile First */
-    @media (min-width:48em){.content{margin-left:0!important}}
-    @media (max-width:768px){.content{padding:24px 16px!important}h1{font-size:28px}h2{font-size:24px}h3{font-size:20px}}
-    @media (max-width:480px){.content{padding:20px 12px!important}h1{font-size:24px}h2{font-size:20px}h3{font-size:18px}}
-    
-    /* Accessibility */
-    :focus{outline:2px solid #0088cc;outline-offset:2px}
-    :focus:not(:focus-visible){outline:none}
+    /* MOBILE FIRST FIXES */
+    @media (max-width:768px){
+      .content{padding:20px 15px!important}
+      h1{font-size:24px!important}
+    }
   </style>
-
-  <!-- Non-Critical CSS (Loaded After Page Load) -->
-  <link rel="stylesheet" href="/public/css/extended.css" media="print" onload="this.media='all'">
-  <noscript><link rel="stylesheet" href="/public/css/extended.css"></noscript>
 </head>
