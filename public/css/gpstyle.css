@@ -2,21 +2,26 @@
 
 /* 1. Reset & Global Layout */
 * { box-sizing: border-box; }
+
 body { 
     margin: 0; 
     padding: 0; 
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     background-color: #f8faff; 
     color: #2c3e50;
-    overflow-x: hidden;
+    overflow-x: hidden; /* Prevents horizontal scrolling */
 }
 
-/* 2. Container Fix (Crucial for Mobile) */
-.container {
+/* 2. Centering Engine (Fixes the "Left Cutting" issue) */
+.container, .content.container {
     max-width: 1200px !important;
     width: 100% !important;
-    margin: 0 auto !important;
-    padding: 0 15px;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+    display: block !important;
+    float: none !important;
 }
 
 /* 3. Dashboard Grid & Cards */
@@ -47,50 +52,75 @@ body {
     border-color: #0088cc;
 }
 
-/* 4. Navigation & Header Fixes */
-.site-header { padding: 20px 0; background: #fff; border-bottom: 1px solid #eee; }
-.nav-link { margin: 0 15px; font-weight: bold; color: #2c3e50; text-decoration: none; }
-.nav-link:hover { color: #0088cc; }
-
-/* 5. Mobile Adjustments */
-@media (max-width: 768px) {
-    .dashboard-grid { grid-template-columns: 1fr; }
-    .pro-card { flex-direction: row; text-align: left; padding: 20px; }
-    .card-icon { margin-right: 20px; margin-bottom: 0; font-size: 30px; }
-    h2 { font-size: 18px; margin: 0; }
+.card-icon {
+    font-size: 45px;
+    margin-bottom: 15px;
 }
 
-/* Ensure social icons are sized correctly on mobile */
+/* 4. Navigation & Header Fixes */
+.site-header { 
+    padding: 20px 0; 
+    background: #fff; 
+    border-bottom: 1px solid #eee; 
+}
+
+.nav-link { 
+    margin: 0 15px; 
+    font-weight: bold; 
+    color: #2c3e50; 
+    text-decoration: none; 
+}
+
+.nav-link:hover { 
+    color: #0088cc; 
+}
+
+/* 5. Mobile Adjustments (Stacks cards vertically) */
+@media (max-width: 768px) {
+    .container, .content.container {
+        padding-left: 15px !important;
+        padding-right: 15px !important;
+    }
+
+    .dashboard-grid { 
+        grid-template-columns: 1fr; 
+    }
+    
+    .pro-card { 
+        flex-direction: row; 
+        text-align: left; 
+        padding: 20px; 
+        margin: 10px 0; 
+    }
+    
+    .card-icon { 
+        margin-right: 20px; 
+        margin-bottom: 0; 
+        font-size: 35px; 
+    }
+    
+    h2 { 
+        font-size: 18px; 
+        margin: 0; 
+    }
+}
+
+/* 6. Social Media Icons Fix */
 .social-links a {
     padding: 10px;
     font-size: 20px;
     display: inline-block;
+    color: #2c3e50;
+    transition: color 0.3s;
+}
+
+.social-links a:hover {
+    color: #0088cc;
 }
 
 @media (max-width: 480px) {
     .social-links a {
         font-size: 18px;
         padding: 8px;
-    }
-}
-
-/* FINAL ALIGNMENT FIX */
-.content.container {
-    margin-left: auto !important;
-    margin-right: auto !important;
-    padding-left: 20px !important;
-    padding-right: 20px !important;
-    display: block !important;
-    float: none !important;
-}
-
-/* Mobile specific breathing room */
-@media (max-width: 768px) {
-    .content.container {
-        padding-left: 15px !important;
-        padding-right: 15px !important;
-    }
-    .pro-card {
-        margin: 10px 0; /* Adds vertical space between stacked cards */
     }
 }
