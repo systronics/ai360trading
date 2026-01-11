@@ -73,3 +73,24 @@ body {
         padding: 8px;
     }
 }
+
+/* FINAL ALIGNMENT FIX */
+.content.container {
+    margin-left: auto !important;
+    margin-right: auto !important;
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+    display: block !important;
+    float: none !important;
+}
+
+/* Mobile specific breathing room */
+@media (max-width: 768px) {
+    .content.container {
+        padding-left: 15px !important;
+        padding-right: 15px !important;
+    }
+    .pro-card {
+        margin: 10px 0; /* Adds vertical space between stacked cards */
+    }
+}
