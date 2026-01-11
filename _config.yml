@@ -13,7 +13,7 @@ logo:        /public/image/logo.webp
 timezone:    Asia/Kolkata
 future:      true        # IMPORTANT: Ensures your 2026 posts appear immediately
 
-# Description for SEO (ADD THIS - NEW)
+# Description for SEO
 description: "Stock Market Algo Trading - Live Intraday, Price Action, Breakout, Scalping, Options, BankNifty, Crypto Trading Signals"
 
 # Layout Settings
@@ -23,14 +23,14 @@ defaults:
     values:
       layout: "default"
       wide_layout: true   # Custom variable to trigger full-width CSS
-      image: "https://ai360trading.in/public/image/cover.webp"  # ADD THIS - Default OG image
+      image: "https://ai360trading.in/public/image/cover.webp"  # Default OG image
 
 # Author Info
 author:
   name:      Amit Kumar
   email:     admin@ai360trading.in
-  
-# Social Media
+
+# Social Media Usernames (Used to restore missing icons)
 facebook:
   publisher: ai360trading
   admin:     ai360trading
@@ -44,6 +44,11 @@ telegram:
 youtube:
   username:  ai360trading
 
+# Broker Affiliate (ADD THIS - NEW)
+broker:
+  name: "Partner Broker"
+  affiliate_url: "https://YOUR_AFFILIATE_LINK_HERE"
+
 # Plugins
 plugins:
   - jekyll-paginate
@@ -51,7 +56,7 @@ plugins:
   - jekyll-sitemap
 
 # ========================================
-# PERFORMANCE OPTIMIZATION (ADD THIS SECTION - NEW)
+# PERFORMANCE OPTIMIZATION
 # ========================================
 
 # HTML Compression for Speed
@@ -64,12 +69,12 @@ compress_html:
   ignore:
     envs: [development]
 
-# Sass/SCSS Compression (ADD THIS - NEW)
+# Sass/SCSS Compression
 sass:
   style: compressed
   sass_dir: _sass
 
-# Exclude unnecessary files from build (ADD THIS - NEW)
+# Exclude unnecessary files from build
 exclude:
   - README.md
   - Gemfile
@@ -83,12 +88,12 @@ exclude:
   - optimize-images.sh
   - package.json
 
-# Include necessary files (ADD THIS - NEW)
+# Include necessary files
 include:
   - _headers
   - .htaccess
 
-# Markdown settings for better performance (ADD THIS - NEW)
+# Markdown settings for better performance
 kramdown:
   input: GFM
   hard_wrap: false
@@ -97,11 +102,3 @@ kramdown:
   syntax_highlighter_opts:
     block:
       line_numbers: false
-
-# Pagination (if you use it) - OPTIONAL
-# paginate: 10
-# paginate_path: "/page:num/"
-
-google_analytics: G-K9R4R0WD9C
-
-tags: G-K9R4R0WD9C
