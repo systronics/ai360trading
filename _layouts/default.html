@@ -5,8 +5,9 @@ excerpt: "ai360trading, AlgoTrading, LiveIntraday, PriceAction, Breakout, Scalpi
 image: "https://ai360trading.in/public/image/cover.webp"
 ---
 
+<div style="margin-top: 20px;"></div>
+
 <div class="dashboard-grid">
-  
   <a href="/tag/technical-picks" class="card-link">
     <div class="pro-card">
       <div class="card-icon">📊</div>
@@ -34,7 +35,6 @@ image: "https://ai360trading.in/public/image/cover.webp"
 
 <div class="broker-section">
   <h3 class="section-title">Partner Brokerage Platforms</h3>
-  
   <div class="broker-grid">
     <a href="https://zerodha.com/open-account?c=YS3694" target="_blank" class="broker-link">Open Account in Zerodha</a>
     <a href="https://invite.dhan.co/?invite=MSIVC45309" target="_blank" class="broker-link">Open Account in Dhan</a>
@@ -44,83 +44,58 @@ image: "https://ai360trading.in/public/image/cover.webp"
 </div>
 
 <style>
-  /* High-Width Dashboard Grid */
+  /* Resetting potential layout conflicts */
   .dashboard-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(30%, 1fr));
-    gap: 25px;
-    margin-top: 10px;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
     width: 100%;
+    margin-bottom: 40px;
   }
 
-  .card-link {
-    text-decoration: none;
-  }
+  .card-link { text-decoration: none; display: flex; }
 
-  /* Professional Card Styling */
   .pro-card {
     background: #ffffff;
-    padding: 40px 25px;
+    padding: 30px 20px;
     border-radius: 12px;
     border: 1px solid #e1e8ed;
     text-align: center;
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    width: 100%;
   }
   
   .pro-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+    transform: translateY(-5px);
     border-color: #0088cc;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
   }
 
-  .card-icon { font-size: 40px; margin-bottom: 15px; }
-  .card-heading { margin: 0; color: #0088cc; font-size: 22px; font-weight: 700; }
-  .card-subtext { color: #546e7a; font-size: 15px; margin-top: 12px; line-height: 1.6; }
+  .card-icon { font-size: 35px; margin-bottom: 10px; }
+  .card-heading { margin: 0; color: #0088cc; font-size: 20px; font-weight: 700; }
+  .card-subtext { color: #546e7a; font-size: 14px; margin-top: 10px; line-height: 1.5; }
 
-  /* Partner Section */
-  .broker-section { margin-top: 60px; text-align: center; width: 100%; }
-  .section-title { color: #2c3e50; margin-bottom: 30px; font-weight: 700; font-size: 24px; }
+  /* Brokerage Buttons */
+  .broker-section { margin-top: 40px; padding-bottom: 40px; }
+  .section-title { color: #2c3e50; margin-bottom: 20px; font-size: 20px; }
+  .broker-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
 
-  .broker-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 15px;
-  }
-
-  /* Button Styling */
   .broker-link {
-    display: block;
-    padding: 16px;
+    padding: 12px;
     background: #ffffff;
     border: 2px solid #2ecc71;
     color: #27ae60 !important;
     text-decoration: none !important;
     font-weight: 700;
-    border-radius: 10px;
-    font-size: 15px;
-    transition: 0.3s;
+    border-radius: 8px;
+    font-size: 13px;
+    transition: 0.2s;
   }
 
-  .broker-link:hover {
-    background: #2ecc71;
-    color: #ffffff !important;
-    box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3);
-  }
-
-  /* Responsive Adjustments */
-  @media (max-width: 992px) {
-    .dashboard-grid { grid-template-columns: repeat(auto-fit, minmax(45%, 1fr)); }
-  }
-
+  /* Mobile Overlap Fix */
   @media (max-width: 600px) {
     .dashboard-grid { grid-template-columns: 1fr; }
-    .pro-card { padding: 30px 20px; }
-    .card-heading { font-size: 20px; }
-    .section-title { font-size: 20px; }
+    .pro-card { padding: 20px; }
   }
 </style>
