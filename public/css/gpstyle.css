@@ -1,19 +1,89 @@
-#outer-frame
-{
-    width: 1024px;
-    height: 968px;
-    overflow: hidden;
+/* AI360TRADING MASTER CSS 2026 
+   Consolidated from Poole, Hyde, and Custom Fixes
+*/
+
+/* 1. CORE RESET & TYPOGRAPHY (From Poole) */
+* { -webkit-box-sizing: border-box; -moz-box-sizing: border-box; box-sizing: border-box; }
+html { font-family: "PT Sans", Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.5; color: #3a3b58; }
+body { margin: 0; padding: 0; background-color: #f8faff; -webkit-text-size-adjust: 100%; overflow-x: hidden; }
+
+h1, h2, h3 { margin-top: 1rem; margin-bottom: 1rem; font-weight: 700; line-height: 1.2; text-transform: uppercase; }
+a { color: #0088cc; text-decoration: none; transition: 0.2s; }
+a:hover { color: #005f8d; }
+
+/* 2. LAYOUT ENGINE (Fixes the overlapping/squishing) */
+.container {
+    max-width: 1200px !important; /* Expanded from 38rem */
+    width: 100% !important;
+    margin: 0 auto !important;
+    padding: 0 20px;
+}
+
+.content {
+    padding: 40px 0;
+    display: block;
+    width: 100%;
+}
+
+/* 3. DASHBOARD GRID (The Card Fix) */
+#outer-frame {
+    width: 100%;
     position: relative;
 }
 
-#inner-iguru
-{
-    position: absolute;
-    top: -200px;
-    left: -100px;
-    right: -100px;
-    pointer-events: none; 
-    cursor: default; 
-    text-decoration: none; 
-    color: black; 
+#inner-iguru {
+    width: 100%;
+    pointer-events: auto; /* Fixed: Links are now clickable */
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Auto-adjust columns */
+    gap: 24px;
+    margin-top: 30px;
+}
+
+.pro-card {
+    background: #fff;
+    border: 1px solid #e1e8ed;
+    border-radius: 12px;
+    padding: 30px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.pro-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+    border-color: #0088cc;
+}
+
+.card-icon { font-size: 45px; margin-bottom: 15px; }
+
+/* 4. MOBILE-SPECIFIC ADJUSTMENTS */
+@media (max-width: 768px) {
+    .container { padding: 0 15px; }
+    .content { padding: 20px 0; }
+    
+    .dashboard-grid {
+        grid-template-columns: 1fr; /* Single column stack */
+        gap: 16px;
+    }
+    
+    .pro-card {
+        padding: 20px;
+        flex-direction: row; /* Horizontal cards on phone look better */
+        text-align: left;
+    }
+    
+    .card-icon {
+        margin-bottom: 0;
+        margin-right: 20px;
+        font-size: 35px;
+    }
 }
