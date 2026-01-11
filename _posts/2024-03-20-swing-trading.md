@@ -4,17 +4,18 @@ title:            "Live Swing Trading Dashboard | Institutional Buy Signals"
 date:             2026-01-05T09:15:00+05:30
 last_modified_at: 2026-01-05T23:10:00+05:30
 author:           "Amit Kumar"
-image:            https://ai360trading.in/public/image/swing.webp
+image:            "https://ai360trading.in/public/image/swing.webp"
 excerpt:          "Track real-time institutional buy signals with automated target and stop-loss tracking for NSE Nifty 200 stocks."
 description:      "Automated stock scanner for NSE. View live P/L, entry prices, and exit targets on our trading terminal."
 tags:             technical-picks
 ---
 
 <style>
-  /* 1. Global Page Width Upgrade */
+  /* 1. Global Page Width Upgrade - Centers content for Real Trading */
   .post-content, .wrapper {
-    max-width: 98% !important;
-    padding: 0 10px !important;
+    max-width: 1200px !important;
+    margin: 0 auto !important;
+    padding: 0 15px !important;
   }
 
   /* 2. Professional Button Row */
@@ -35,7 +36,7 @@ tags:             technical-picks
     box-shadow: 0 4px 15px rgba(0,136,204,0.3);
     transition: 0.3s;
   }
-  .btn-tg:hover { transform: translateY(-2px); }
+  .btn-tg:hover { transform: translateY(-2px); background-color: #005f8d; }
 
   /* 3. Live Blinking Indicator */
   .live-status {
@@ -43,47 +44,47 @@ tags:             technical-picks
     align-items: center;
     justify-content: center;
     gap: 8px;
-    margin-bottom: 10px;
+    margin: 20px 0;
     color: #2ecc71;
     font-weight: bold;
-    font-size: 14px;
+    font-size: 16px;
   }
   .blink {
-    height: 10px;
-    width: 10px;
+    height: 12px;
+    width: 12px;
     background-color: #2ecc71;
     border-radius: 50%;
     animation: blink-animation 1.5s infinite;
   }
   @keyframes blink-animation {
-    0% { opacity: 1; }
-    50% { opacity: 0.3; }
-    100% { opacity: 1; }
+    0% { opacity: 1; scale: 1; }
+    50% { opacity: 0.4; scale: 0.8; }
+    100% { opacity: 1; scale: 1; }
   }
 
-  /* 4. Terminal Container */
+  /* 4. Terminal Container - Mobile Responsive */
   .terminal-container {
     width: 100%;
     overflow-x: auto;
     border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    border: 1px solid #e1e8ed;
     background: #fff;
     -webkit-overflow-scrolling: touch;
   }
   iframe {
     width: 100%;
-    min-width: 1100px; /* Prevents column squeezing */
-    height: 750px;
+    min-width: 1000px; /* Ensures columns stay readable on phones */
+    height: 800px;
     border: none;
   }
 </style>
 
 <div class="action-buttons">
-  <a href="https://t.me/ai360trading" target="_blank" class="btn-tg">📱 Join Telegram Alerts</a>
+  <a href="https://t.me/{{ site.telegram.username }}" target="_blank" class="btn-tg">📱 Join Telegram Alerts</a>
 </div>
 
 <div class="live-status">
-  <div class="blink"></div> SYSTEM LIVE: TRACKING NIFTY 200
+  <div class="blink"></div> ALGO SYSTEM LIVE: TRACKING NIFTY 200
 </div>
 
 <div class="terminal-container">
@@ -94,11 +95,10 @@ tags:             technical-picks
 </div>
 
 <script>
-  // Cache-Buster Script (Zero Speed Impact)
+  // Automatic Refresh to prevent stale trading data
   window.onload = function() {
     var iframe = document.getElementById('live-terminal');
     var timestamp = new Date().getTime();
     iframe.src += (iframe.src.indexOf('?') > -1 ? "&" : "?") + "cb=" + timestamp;
   };
 </script>
-
