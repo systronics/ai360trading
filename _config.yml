@@ -13,6 +13,9 @@ logo:        /public/image/logo.webp
 timezone:    Asia/Kolkata
 future:      true        # IMPORTANT: Ensures your 2026 posts appear immediately
 
+# Description for SEO (ADD THIS - NEW)
+description: "Stock Market Algo Trading - Live Intraday, Price Action, Breakout, Scalping, Options, BankNifty, Crypto Trading Signals"
+
 # Layout Settings
 defaults:
   - scope:
@@ -20,16 +23,18 @@ defaults:
     values:
       layout: "default"
       wide_layout: true   # Custom variable to trigger full-width CSS
+      image: "https://ai360trading.in/public/image/cover.webp"  # ADD THIS - Default OG image
 
+# Author Info
 author:
   name:      Amit Kumar
   email:     admin@ai360trading.in
   
+# Social Media
 facebook:
   publisher: ai360trading
   admin:     ai360trading
   username:  ai360trading
-
 x:
   username:  ai360trading
 instagram:
@@ -44,6 +49,58 @@ plugins:
   - jekyll-paginate
   - jekyll-seo-tag
   - jekyll-sitemap
+
+# ========================================
+# PERFORMANCE OPTIMIZATION (ADD THIS SECTION - NEW)
+# ========================================
+
+# HTML Compression for Speed
+compress_html:
+  clippings: all
+  comments: all
+  endings: all
+  profile: false
+  blanklines: false
+  ignore:
+    envs: [development]
+
+# Sass/SCSS Compression (ADD THIS - NEW)
+sass:
+  style: compressed
+  sass_dir: _sass
+
+# Exclude unnecessary files from build (ADD THIS - NEW)
+exclude:
+  - README.md
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor
+  - .sass-cache
+  - .jekyll-cache
+  - .git
+  - .gitignore
+  - optimize-images.sh
+  - package.json
+
+# Include necessary files (ADD THIS - NEW)
+include:
+  - _headers
+  - .htaccess
+
+# Markdown settings for better performance (ADD THIS - NEW)
+kramdown:
+  input: GFM
+  hard_wrap: false
+  auto_ids: true
+  syntax_highlighter: rouge
+  syntax_highlighter_opts:
+    block:
+      line_numbers: false
+
+# Pagination (if you use it) - OPTIONAL
+# paginate: 10
+# paginate_path: "/page:num/"
 
 google_analytics: G-K9R4R0WD9C
 
