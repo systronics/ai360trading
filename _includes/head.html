@@ -4,8 +4,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <link rel="dns-prefetch" href="https://fonts.googleapis.com">
-  <link rel="dns-prefetch" href="https://fonts.gstatic.com">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   
   <link rel="preload" as="image" href="/public/image/header.webp">
@@ -19,38 +17,23 @@
   <noscript><link rel="stylesheet" href="/public/font-awesome/css/font-awesome.min.css"></noscript>
   
   <link rel="shortcut icon" type="image/x-icon" href="/public/image/favicon.ico">
-  <link rel="icon" type="image/webp" href="/public/image/favicon.webp">
-  <link rel="apple-touch-icon" sizes="180x180" href="/public/image/apple-touch-icon.webp">
-  
-  <link rel="alternate" type="application/rss+xml" title="RSS" href="/atom.xml">
-  
-  <meta name="google-site-verification" content="i_Rls5I6BZNtmvAZzmK4kzuXCM5XMWMedacKmWb7D4Q">
-  <meta name="robots" content="index, follow, max-image-preview:large">
-  <meta name="author" content="Amit Kumar">
-  <meta name="theme-color" content="#0088cc">
-  
   {% seo %}
 
   <style>
-    /* RESET & CORE LAYOUT */
-    *{box-sizing:border-box}
-    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#2c3e50;margin:0;padding:0;background-color:#f8faff}
-    
-    /* REMOVE HYDE SIDEBAR INTERFERENCE */
-    .sidebar{display:none!important}
-    .content{max-width:1200px!important;margin:0 auto!important;padding:40px 20px!important;float:none!important}
-    .container{max-width:100%!important;margin:0!important;padding:0!important}
-    
-    /* STICKY HEADER */
-    .site-header{background:#fff;border-bottom:1px solid #eee;position:sticky;top:0;z-index:1000;box-shadow:0 2px 8px rgba(0,0,0,.05)}
-    
-    /* BUTTONS */
-    .button,button,input[type=submit]{background:#0088cc!important;color:#fff!important;border:none!important;border-radius:6px!important;padding:12px 24px!important;font-weight:600;cursor:pointer}
-    
-    /* MOBILE FIRST FIXES */
-    @media (max-width:768px){
-      .content{padding:20px 15px!important}
-      h1{font-size:24px!important}
+    /* Stop Hyde Sidebar Interference */
+    .sidebar { display: none !important; visibility: hidden !important; }
+    .content { 
+      max-width: 1200px !important; 
+      margin: 0 auto !important; 
+      padding: 40px 20px !important; 
+      float: none !important; 
+      width: 100% !important;
     }
+    .container { max-width: 100% !important; margin: 0 !important; padding: 0 !important; }
+    
+    /* Header & General UI */
+    .site-header { background: #fff; border-bottom: 1px solid #eee; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 8px rgba(0,0,0,.05); }
+    body { background-color: #f8faff; color: #2c3e50; margin: 0; }
+    img { max-width: 100%; height: auto; border-radius: 8px; }
   </style>
 </head>
