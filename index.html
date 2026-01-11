@@ -15,59 +15,53 @@ image: "https://ai360trading.in/public/image/cover.webp"
 <div class="dashboard-grid">
   <a href="/tag/technical-picks" class="card-link">
     <div class="pro-card">
-      <div class="card-icon" role="img" aria-label="Chart icon">📊</div>
+      <div class="card-icon">📊</div>
       <div class="card-content">
         <h2 class="card-heading">Technical Picks</h2>
-        <p class="card-subtext">View live algo-generated swing and intraday signals for Stocks & BankNifty.</p>
+        <p class="card-subtext">View live algo-generated signals for Stocks & BankNifty.</p>
       </div>
     </div>
   </a>
 
   <a href="/tag/fundamental-picks" class="card-link">
     <div class="pro-card">
-      <div class="card-icon" role="img" aria-label="Building icon">🏗️</div>
+      <div class="card-icon">🏗️</div>
       <div class="card-content">
         <h2 class="card-heading">Fundamental Picks</h2>
-        <p class="card-subtext">Long-term wealth creation ideas based on institutional buying and core company strength.</p>
+        <p class="card-subtext">Long-term wealth creation ideas based on institutional buying.</p>
       </div>
     </div>
   </a>
 
   <a href="/tag/learn-stockmarket" class="card-link">
     <div class="pro-card">
-      <div class="card-icon" role="img" aria-label="Books icon">📚</div>
+      <div class="card-icon">📚</div>
       <div class="card-content">
         <h2 class="card-heading">Learning Center</h2>
-        <p class="card-subtext">Understand the AI behind the algo and master Price Action trading techniques.</p>
+        <p class="card-subtext">Understand the AI behind the algo and master Price Action techniques.</p>
       </div>
     </div>
   </a>
 </div>
 
-<section class="broker-section">
+<section class="broker-section" style="margin-top: 50px;">
   <h3 class="section-title">Partner Brokerage Platforms</h3>
   
-  <div class="broker-grid">
+  <div class="broker-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
     <a href="https://zerodha.com/open-account?c=YS3694" target="_blank" rel="noopener noreferrer sponsored" class="broker-link">Zerodha</a>
     <a href="https://invite.dhan.co/?invite=MSIVC45309" target="_blank" rel="noopener noreferrer sponsored" class="broker-link">Dhan</a>
-    
-    <a href="{{ site.broker.affiliate_url }}" 
-       target="_blank" 
-       rel="noopener noreferrer sponsored" 
-       class="broker-link"
-       style="border-color: #0088cc; color: #0088cc !important;">
-      {{ site.broker.name | default: "Recommended Broker" }}
-    </a>
-    
     <a href="https://invite.coindcx.com/13383200" target="_blank" rel="noopener noreferrer sponsored" class="broker-link">CoinDCX</a>
+    <a href="{{ site.broker.affiliate_url }}" target="_blank" rel="noopener noreferrer sponsored" class="broker-link" style="border-color: #0088cc; color: #0088cc !important;">{{ site.broker.name }}</a>
   </div>
 </section>
 
-<section class="content-section">
-  <h2 class="section-heading">Why Choose AI360Trading for Algorithmic Trading?</h2>
-  <p>Our algorithmic trading platform combines <strong>Artificial Intelligence</strong> with <strong>Technical Analysis</strong> to deliver superior trading results. We specialize in strategies including price action, breakout trading, and scalping.</p>
+<section class="content-section" style="max-width: 1000px; margin: 60px auto; line-height: 1.8;">
+  <h2 class="section-heading" style="color: #0088cc; margin-bottom: 20px;">Why Choose AI360Trading for Algorithmic Trading?</h2>
+  <p style="margin-bottom: 25px;">Our algorithmic trading platform combines <strong>Artificial Intelligence</strong> with <strong>Technical Analysis</strong> to deliver superior trading results. We specialize in strategies including price action, breakout trading, and scalping.</p>
 
   <h3 class="subsection-heading">Advanced Trading Features</h3>
-  <p><strong>Real-Time Market Analysis:</strong> Our algorithms scan thousands of stocks every second, identifying potential opportunities based on technical indicators and market momentum.</p>
-  <p><strong>Precise Entry and Exit Points:</strong> Every trading signal comes with clear entry prices, target levels, and stop-loss points.</p>
+  <div style="background: #f8f9fa; padding: 25px; border-radius: 12px; margin-bottom: 20px;">
+    <p><strong>Real-Time Market Analysis:</strong> Our algorithms scan thousands of stocks every second, identifying potential opportunities based on technical indicators and market momentum.</p>
+    <p><strong>Precise Entry and Exit Points:</strong> Every trading signal comes with clear entry prices, target levels, and stop-loss points.</p>
+  </div>
 </section>
