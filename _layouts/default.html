@@ -18,6 +18,8 @@
 
       <div class="social-links" style="display: flex; gap: 20px; font-size: 20px;">
         <a href="https://facebook.com/{{ site.facebook.username }}" target="_blank"><i class="fa fa-facebook"></i></a>
+        <a href="https://twitter.com/{{ site.x.username }}" target="_blank"><i class="fa fa-twitter"></i></a>
+        <a href="https://instagram.com/{{ site.instagram.username }}" target="_blank"><i class="fa fa-instagram"></i></a>
         <a href="https://t.me/{{ site.telegram.username }}" target="_blank"><i class="fa fa-telegram"></i></a>
         <a href="https://youtube.com/@{{ site.youtube.username }}" target="_blank"><i class="fa fa-youtube"></i></a>
       </div>
@@ -29,6 +31,13 @@
   </main>
 
   <footer style="background: #2c3e50; color: #fff; padding: 40px 20px; text-align: center; margin-top: 50px;">
+    <div style="margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid #455a64;">
+        <h4 style="color: #0088cc; margin-bottom: 10px;">OFFICIAL TRADING PARTNER</h4>
+        <p style="font-size: 14px; color: #bdc3c7; margin-bottom: 15px;">Open your Demat account with our partner broker for seamless algo execution.</p>
+        <a href="YOUR_BROKER_AFFILIATE_URL_HERE" target="_blank" style="background: #0088cc; color: white; padding: 10px 25px; border-radius: 5px; text-decoration: none; font-weight: bold; display: inline-block;">
+            Open Trading Account
+        </a>
+    </div>
     <p>&copy; {{ site.time | date: '%Y' }} {{ site.name | upcase }}. All rights reserved.</p>
   </footer>
 
