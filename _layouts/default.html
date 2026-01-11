@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
-{% include head.html %}
+<head>
+  {% include head.html %}
+  
+  {% seo %}
+  
+  </head>
 <body>
 
   <header class="site-header">
@@ -17,16 +22,16 @@
       </nav>
 
       <div class="social-links" style="display: flex; gap: 20px; font-size: 20px;">
-        <a href="https://facebook.com/{{ site.facebook.username }}" target="_blank"><i class="fa fa-facebook"></i></a>
-        <a href="https://twitter.com/{{ site.x.username }}" target="_blank"><i class="fa fa-twitter"></i></a>
-        <a href="https://instagram.com/{{ site.instagram.username }}" target="_blank"><i class="fa fa-instagram"></i></a>
-        <a href="https://t.me/{{ site.telegram.username }}" target="_blank"><i class="fa fa-telegram"></i></a>
-        <a href="https://youtube.com/@{{ site.youtube.username }}" target="_blank"><i class="fa fa-youtube"></i></a>
+        <a href="https://facebook.com/{{ site.facebook.username }}" target="_blank" aria-label="Facebook"><i class="fa fa-facebook"></i></a>
+        <a href="https://twitter.com/{{ site.x.username }}" target="_blank" aria-label="Twitter"><i class="fa fa-twitter"></i></a>
+        <a href="https://instagram.com/{{ site.instagram.username }}" target="_blank" aria-label="Instagram"><i class="fa fa-instagram"></i></a>
+        <a href="https://t.me/{{ site.telegram.username }}" target="_blank" aria-label="Telegram"><i class="fa fa-telegram"></i></a>
+        <a href="https://youtube.com/@{{ site.youtube.username }}" target="_blank" aria-label="YouTube"><i class="fa fa-youtube"></i></a>
       </div>
     </div>
   </header>
 
-  <main class="content container">
+  <main class="content container" style="max-width: 1200px; margin: 0 auto; padding: 0 15px;">
     {{ content }}
   </main>
 
