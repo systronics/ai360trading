@@ -44,10 +44,9 @@ image: "https://ai360trading.in/public/image/cover.webp"
   </a>
 </div>
 
-<section class="broker-section" style="margin-top: 50px;">
+<section class="broker-section">
   <h3 class="section-title">Partner Brokerage Platforms</h3>
-  
-  <div class="broker-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; padding: 0 15px;">
+  <div class="broker-grid">
     <a href="https://zerodha.com/open-account?c=YS3694" target="_blank" rel="noopener noreferrer sponsored" class="broker-link">Zerodha</a>
     <a href="https://invite.dhan.co/?invite=MSIVC45309" target="_blank" rel="noopener noreferrer sponsored" class="broker-link">Dhan</a>
     <a href="https://invite.coindcx.com/13383200" target="_blank" rel="noopener noreferrer sponsored" class="broker-link">CoinDCX</a>
@@ -55,40 +54,77 @@ image: "https://ai360trading.in/public/image/cover.webp"
   </div>
 </section>
 
-<section class="content-section" style="max-width: 900px; margin: 60px auto; padding: 0 20px; line-height: 1.8; text-align: left;">
-  <h2 class="section-heading" style="color: #0088cc; font-size: 26px; margin-bottom: 20px;">Why Choose AI360Trading for Algorithmic Trading?</h2>
-  
-  <p style="margin-bottom: 25px;">Our algorithmic trading platform combines <strong>Artificial Intelligence</strong> with <strong>Technical Analysis</strong> to deliver superior trading results. We specialize in strategies including price action analysis, breakout trading, and scalping techniques.</p>
+<section class="content-section">
+  <h2 class="section-heading">Why Choose AI360Trading for Algorithmic Trading?</h2>
+  <p>Our algorithmic trading platform combines <strong>Artificial Intelligence</strong> with <strong>Technical Analysis</strong> to deliver superior trading results. We specialize in strategies including price action analysis, breakout trading, and scalping techniques.</p>
 
-  <h3 class="subsection-heading" style="color: #2c3e50; font-size: 20px; margin-bottom: 15px;">Advanced Trading Features</h3>
+  <h3 class="subsection-heading">Advanced Trading Features</h3>
   
-  <div style="background: #fdfdfd; border-left: 4px solid #0088cc; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
-    <p style="margin: 0;"><strong>Real-Time Market Analysis:</strong> Our AI algorithms scan thousands of stocks every second, identifying potential opportunities based on momentum and technical patterns.</p>
+  <div class="feature-box">
+    <p><strong>Real-Time Market Analysis:</strong> Our AI algorithms scan thousands of stocks every second, identifying potential opportunities based on momentum and technical patterns.</p>
   </div>
 
-  <div style="background: #fdfdfd; border-left: 4px solid #0088cc; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
-    <p style="margin: 0;"><strong>Precise Entry and Exit Points:</strong> Every trading signal comes with clear entry prices, target levels, and stop-loss points to ensure disciplined risk management.</p>
+  <div class="feature-box">
+    <p><strong>Precise Entry and Exit Points:</strong> Every trading signal comes with clear entry prices, target levels, and stop-loss points to ensure disciplined risk management.</p>
   </div>
 </section>
 
 <style>
-  /* Styles for the Dashboard and Headers */
-  .main-heading { text-align: center; color: #0088cc; font-size: 32px; font-weight: 700; margin: 20px 0 16px; }
-  .intro-text { text-align: center; color: #2c3e50; font-size: 16px; line-height: 1.8; max-width: 900px; margin: 0 auto 32px; }
-  .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(30%, 1fr)); gap: 25px; width: 100%; }
-  .card-link { text-decoration: none; display: flex; }
-  .pro-card { background: #ffffff; padding: 40px 25px; border-radius: 12px; border: 1px solid #e1e8ed; text-align: center; width: 100%; display: flex; flex-direction: column; align-items: center; transition: 0.3s; }
-  .pro-card:hover { transform: translateY(-5px); border-color: #0088cc; box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
-  .card-icon { font-size: 40px; margin-bottom: 15px; }
-  .card-heading { color: #0088cc; font-size: 22px; font-weight: 700; }
-  .card-subtext { color: #546e7a; font-size: 15px; margin-top: 12px; }
-  .broker-link { display: block; padding: 16px; background: #fff; border: 2px solid #2ecc71; color: #27ae60 !important; text-decoration: none; font-weight: 700; border-radius: 8px; text-align: center; transition: 0.3s; }
-  .broker-link:hover { background: #2ecc71; color: #fff !important; }
+  /* --- Global Styles --- */
+  .main-heading { text-align: center; color: #0088cc; font-size: 28px; font-weight: 700; margin: 20px 0 15px; padding: 0 10px; }
+  .intro-text { text-align: center; color: #2c3e50; font-size: 15px; line-height: 1.6; max-width: 800px; margin: 0 auto 30px; padding: 0 15px; }
 
-  @media (max-width: 600px) {
-    .pro-card { flex-direction: row; text-align: left; padding: 20px !important; }
-    .card-icon { margin-bottom: 0; margin-right: 15px; font-size: 30px; }
-    .card-heading { font-size: 18px; }
-    .card-subtext { font-size: 13px; }
+  /* --- Dashboard Grid (PC: 3 Columns | Mobile: 1 Column) --- */
+  .dashboard-grid { 
+    display: grid; 
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+    gap: 20px; 
+    padding: 0 15px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .card-link { text-decoration: none; color: inherit; display: block; }
+  .pro-card { 
+    background: #fff; 
+    padding: 30px 20px; 
+    border-radius: 12px; 
+    border: 1px solid #e1e8ed; 
+    text-align: center; 
+    height: 100%;
+    transition: 0.3s ease;
+    box-sizing: border-box;
+  }
+  .pro-card:hover { transform: translateY(-5px); border-color: #0088cc; box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+  .card-icon { font-size: 35px; margin-bottom: 15px; }
+  .card-heading { color: #0088cc; font-size: 20px; margin: 0; }
+  .card-subtext { color: #546e7a; font-size: 14px; margin-top: 10px; line-height: 1.5; }
+
+  /* --- Broker Grid (PC: 4 Columns | Mobile: 2 Columns) --- */
+  .broker-section { margin-top: 50px; text-align: center; }
+  .section-title { font-size: 20px; margin-bottom: 20px; color: #2c3e50; }
+  .broker-grid { 
+    display: grid; 
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); 
+    gap: 12px; 
+    padding: 0 15px; 
+  }
+  .broker-link { 
+    display: flex; align-items: center; justify-content: center;
+    padding: 12px; background: #fff; border: 2px solid #2ecc71; 
+    color: #27ae60 !important; text-decoration: none; font-weight: 700; 
+    border-radius: 8px; font-size: 14px; 
+  }
+
+  /* --- Content Section --- */
+  .content-section { max-width: 800px; margin: 50px auto; padding: 0 20px; line-height: 1.7; }
+  .section-heading { color: #0088cc; font-size: 22px; margin-bottom: 15px; }
+  .feature-box { background: #fdfdfd; border-left: 4px solid #0088cc; padding: 15px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+
+  /* --- MOBILE FIXES (< 768px) --- */
+  @media (max-width: 768px) {
+    .main-heading { font-size: 22px; }
+    .dashboard-grid { grid-template-columns: 1fr; } /* Force 1 column to prevent overlap */
+    .pro-card { padding: 20px; }
+    .broker-grid { grid-template-columns: 1fr 1fr; } /* 2 per row on mobile */
   }
 </style>
