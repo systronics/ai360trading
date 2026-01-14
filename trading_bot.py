@@ -291,88 +291,76 @@ def run_trading_cycle():
                 else:
                     print(f"⏳ Slots full ({active_count}/{MAX_ACTIVE_SLOTS}). {symbol} skipped.")
 
-# 5. Move completed trades to History (DELETE IN REVERSE ORDER)
-if rows_to_delete:
-    print(f"📜 Moving {len(rows_to_delete)} completed trades to History...")
-    
-    # Sort by row number in DESCENDING order (delete from bottom to top)
-    rows_to_delete.sort(key=lambda x: x['row_num'], reverse=True)
-    
-    for trade in rows_to_delete:
-        success = move_to_history(
-            spreadsheet,
-            trade['symbol'],
-            trade['entry_price'],
-            trade['exit_price'],
-            trade['status'],
-            trade['exit_date'],
-            trade['entry_date']
-        )
-        
-        # Delete row from AlertLog after moving to History
-        if success:
-            try:
-                sheet.delete_rows(trade['row_num'])
-                print(f"🗑️ Deleted {trade['symbol']} from AlertLog (row {trade['row_num']})")
-            except Exception as e:
-                print(f"❌ Failed to delete row {trade['row_num']}: {e}")
+        # 5. Move completed trades to History
+        if rows_to_delete:
+            print(f"📜 Moving {len(rows_to_delete)} completed trades to History...")
+            
+        for trade in rows_to_delete:
+            success = move_to_history(
+                spreadsheet,
+                trade['symbol'],
+                trade['entry_price'],
+                trade['exit_price'],
+                trade['status'],
+                trade['exit_date'],
+                trade['entry_date']
+            )
+            
+            # Delete row from AlertLog after moving to History
+            if success:
+                try:
+                    sheet.delete_rows(trade['row_num'])
+                    print(f"🗑️ Deleted {trade['symbol']} from AlertLog")
+                except Exception as e:
+                    print(f"❌ Failed to delete row {trade['row_num']}: {e}")
 
-# 6. AUTO-PROMOTE WAITING STOCKS (re-fetch data AFTER deletions)
-print(f"🔄 Re-fetching AlertLog data after deletions...")
-all_values = sheet.get_all_values()
-data_rows = all_values[1:] if len(all_values) > 1 else []
-
-# Recalculate active count
-active_count = 0
-for row in data_rows:
-    if len(row) > 10:
-        status = str(row[10]).strip().upper()
-        if "TRADED" in status and "EXITED" not in status:
-            active_count += 1
-
-print(f"🔄 Current active trades: {active_count}/{MAX_ACTIVE_SLOTS}")
-
-if active_count < MAX_ACTIVE_SLOTS:
-    print(f"🔄 Checking for WAITING stocks to promote...")
-    
-    for i, row in enumerate(data_rows):
-        row_num = i + 2
-        if len(row) < 14:
-            continue
-        
-        symbol = str(row[1]).strip()
-        status = str(row[10]).strip().upper()
-        
-        if not symbol:
-            continue
-        
-        # Promote WAITING stocks to active
-        if "WAITING" in status and active_count < MAX_ACTIVE_SLOTS:
-            try:
-                price = to_f(row[2])
-                sl = to_f(row[7])
-                target = to_f(row[8])
+        # 6. AUTO-PROMOTE WAITING STOCKS
+        if active_count < MAX_ACTIVE_SLOTS:
+            print(f"🔄 Checking for WAITING stocks to promote... (Active: {active_count}/{MAX_ACTIVE_SLOTS})")
+            
+            # Re-fetch data after deletions
+            all_values = sheet.get_all_values()
+            data_rows = all_values[1:] if len(all_values) > 1 else []
+            
+            for i, row in enumerate(data_rows):
+                row_num = i + 2
+                if len(row) < 14:
+                    continue
                 
-                entry_timestamp = datetime.now(pytz.timezone('Asia/Kolkata')).strftime('%Y-%m-%d %H:%M:%S')
+                symbol = str(row[1]).strip()
+                status = str(row[10]).strip().upper()
                 
-                print(f"⬆️ PROMOTING: {symbol} from WAITING to ACTIVE")
+                if not symbol:
+                    continue
                 
-                # Promote: Update status to TRADED, set entry price and entry time
-                sheet.update_cell(row_num, 11, "TRADED (PAPER)")
-                sheet.update_cell(row_num, 12, price)
-                sheet.update_cell(row_num, 13, entry_timestamp)
-                
-                send_telegram(
-                    f"⬆️ <b>PROMOTED & ENTERED:</b> {symbol} @ ₹{price}\n"
-                    f"Target: ₹{target} (6%)\n"
-                    f"SL: ₹{sl} (1.5%)\n"
-                    f"Slot: {active_count+1}/{MAX_ACTIVE_SLOTS}\n"
-                    f"Time: {entry_timestamp}"
-                )
-                active_count += 1
-                print(f"✅ Promoted {symbol} from WAITING to ACTIVE")
-            except Exception as e:
-                print(f"❌ Failed to promote {symbol}: {e}")
+                # Promote WAITING stocks to active
+                if "WAITING" in status and active_count < MAX_ACTIVE_SLOTS:
+                    try:
+                        price = to_f(row[2])
+                        sl = to_f(row[7])
+                        target = to_f(row[8])
+                        
+                        entry_timestamp = datetime.now(pytz.timezone('Asia/Kolkata')).strftime('%Y-%m-%d %H:%M:%S')
+                        
+                        print(f"⬆️ PROMOTING: {symbol} from WAITING to ACTIVE")
+                        
+                        # Promote: Update status to TRADED, set entry price and entry time
+                        sheet.update_cell(row_num, 11, "TRADED (PAPER)")
+                        sheet.update_cell(row_num, 12, price)
+                        sheet.update_cell(row_num, 13, entry_timestamp)
+                        # Column N (P/L %) auto-calculates via formula - no need to set
+                        
+                        send_telegram(
+                            f"⬆️ <b>PROMOTED & ENTERED:</b> {symbol} @ ₹{price}\n"
+                            f"Target: ₹{target} (6%)\n"
+                            f"SL: ₹{sl} (1.5%)\n"
+                            f"Slot: {active_count+1}/{MAX_ACTIVE_SLOTS}\n"
+                            f"Time: {entry_timestamp}"
+                        )
+                        active_count += 1
+                        print(f"✅ Promoted {symbol} from WAITING to ACTIVE")
+                    except Exception as e:
+                        print(f"❌ Failed to promote {symbol}: {e}")
 
         # 7. Count waiting stocks for display
         waiting_count = sum(1 for r in data_rows if len(r) > 10 and "WAITING" in str(r[10]).upper())
