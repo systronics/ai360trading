@@ -1,56 +1,26 @@
 name: AlgoTradeBot
-
 on:
   schedule:
-    # Runs every 2 minutes from 4:00 AM to 10:00 AM UTC
-    # This equals 9:30 AM to 3:30 PM IST (Indian Standard Time)
-    - cron: '*/2 4-10 * * 1-5'
-  
-  workflow_dispatch: # Allows you to start the bot manually for testing
+    - cron: '*/2 4-10 * * 1-5' # 9:30 AM - 3:30 PM IST
+  workflow_dispatch:
 
 jobs:
   trade:
     runs-on: ubuntu-latest
-    
-    # CRITICAL: Prevents two bots from running at the same time
     concurrency:
-      group: trading-bot-single
-      cancel-in-progress: false
-
+      group: trading-bot
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.10'
           cache: 'pip'
-
-      - name: Install Dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install dhanhq gspread oauth2client pandas pyotp pytz requests
-
-      - name: Market Hours Check (IST Safety)
-        run: |
-          # Ensure it doesn't run on Indian holidays or outside hours if cron drifts
-          UTC_HOUR=$(date -u +%H)
-          echo "Current UTC Hour: $UTC_HOUR"
-          if [ $UTC_HOUR -lt 4 ] || [ $UTC_HOUR -gt 10 ]; then
-            echo "Outside Market Hours (9:30 AM - 3:30 PM IST). Skipping."
-            exit 0
-          fi
-
-      - name: Run Trading Bot
+      - name: Install deps
+        run: pip install dhanhq gspread oauth2client pyotp pytz requests
+      - name: Run Bot
         env:
-          # These must match the names in your GitHub Repository Secrets
           GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
           DHAN_CLIENT_ID: ${{ secrets.DHAN_CLIENT_ID }}
           DHAN_TOTP_KEY: ${{ secrets.DHAN_TOTP_KEY }}
           DHAN_PIN: ${{ secrets.DHAN_PIN }}
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        run: |
-          # Use -u to see python logs in real-time
-          python -u trading_bot.py
+        run: python -u trading_bot.py
