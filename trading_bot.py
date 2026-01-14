@@ -252,7 +252,7 @@ def run_trading_cycle():
                     # Update exit status and timestamp
                     exit_time = datetime.now(pytz.timezone('Asia/Kolkata')).strftime('%Y-%m-%d %H:%M:%S')
                     sheet.update_cell(row_num, 11, f"EXITED ({label})")
-                    sheet.update_cell(row_num, 1, exit_time)
+                    sheet.update_cell(row_num, 15, exit_time)
                     
                     active_count -= 1
                     
