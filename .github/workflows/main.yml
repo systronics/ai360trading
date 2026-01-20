@@ -23,6 +23,6 @@ jobs:
           DHAN_CLIENT_ID: ${{ secrets.DHAN_CLIENT_ID }}
           DHAN_TOTP_KEY: ${{ secrets.DHAN_TOTP_KEY }}
           DHAN_PIN: ${{ secrets.DHAN_PIN }}
-          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }} # Added
-          CHAT_ID: ${{ secrets.CHAT_ID }}             # Added
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }} 
+          CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python -u trading_bot.py
