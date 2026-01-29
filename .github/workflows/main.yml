@@ -1,7 +1,7 @@
 name: AlgoTradeBot
 on:
   schedule:
-    - cron: '*/2 4-10 * * 1-5' # 9:30 AM - 3:30 PM IST
+    - cron: '*/5 4-10 * * 1-5' # 9:30 AM - 3:30 PM IST
   workflow_dispatch:
 
 jobs:
