@@ -65,10 +65,9 @@ def move_to_history(ss, trade):
             f"Result: {exit_label}\n"
             f"Hold: {hold_time}"
         )
-        print(f"✅ Moved {trade['sym']} to History: {result} ({pnl:.2f}%)")
         return True
     except Exception as e:
-        print(f"❌ Failed to move {trade['sym']} to History: {e}")
+        print(f"❌ History Error: {e}")
         return False
 
 def send_daily_summary(ss):
@@ -76,18 +75,16 @@ def send_daily_summary(ss):
     try:
         hist = ss.worksheet("History")
         today = datetime.now(IST).strftime('%Y-%m-%d')
-        
-        all_trades = hist.get_all_values()[1:]  # Skip header
-        today_trades = [t for t in all_trades if t[1].startswith(today)]  # Entry Date column
+        all_trades = hist.get_all_values()[1:]
+        today_trades = [t for t in all_trades if t[3].startswith(today)] # Checking Exit Date
         
         if not today_trades:
-            send_tg(f"📊 <b>Daily Summary - {today}</b>\n\nNo trades today.")
+            send_tg(f"📊 <b>Daily Summary - {today}</b>\n\nNo trades exited today.")
             return
         
         wins = sum(1 for t in today_trades if "WIN" in t[6])
         losses = len(today_trades) - wins
-        
-        total_pnl = sum(to_f(t[5]) for t in today_trades)  # P/L % column
+        total_pnl = sum(to_f(t[5]) for t in today_trades)
         
         summary = (
             f"📊 <b>Daily Summary - {today}</b>\n\n"
@@ -99,297 +96,129 @@ def send_daily_summary(ss):
             f"See you tomorrow! 🌙"
         )
         send_tg(summary)
-        print("✅ Daily summary sent")
     except Exception as e:
-        print(f"❌ Failed to send daily summary: {e}")
-
-def send_good_morning():
-    """Send good morning message at market open"""
-    msg = (
-        f"🌅 <b>Good Morning!</b>\n\n"
-        f"Market opens in 15 minutes.\n"
-        f"Bot is active and ready.\n"
-        f"Max Positions: {MAX_ACTIVE_SLOTS}\n\n"
-        f"Let's make today profitable! 💪"
-    )
-    send_tg(msg)
-    print("✅ Good morning message sent")
+        print(f"❌ Summary Error: {e}")
 
 def run_trading_cycle():
-    """Main trading cycle - runs every 2 minutes"""
-    print("=" * 60)
-    print(f"🤖 Bot Started: {datetime.now(IST).strftime('%Y-%m-%d %H:%M:%S')}")
-    print("=" * 60)
+    """Main trading cycle with exact timings"""
+    now = datetime.now(IST)
+    curr_hm = now.strftime("%H:%M")
+    curr_min = now.hour * 60 + now.minute
     
-    current_time = datetime.now(IST)
-    current_hour = current_time.hour
-    current_minute = current_time.minute
-    
+    print("=" * 60)
+    print(f"🤖 Bot Started: {now.strftime('%Y-%m-%d %H:%M:%S')}")
+    print("=" * 60)
+
+    # 1. 9:00 AM Message
+    if curr_hm == "09:00":
+        send_tg("🌅 <b>Good Morning, Market Open</b>")
+        return
+
+    # 2. 3:30 PM Message
+    if curr_hm == "15:30":
+        send_tg("🌙 <b>Good Bye, Market Close</b>")
+
+    # 3. 3:45 PM Summary
+    if curr_hm == "15:45":
+        try:
+            scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+            creds = ServiceAccountCredentials.from_json_keyfile_dict(json.loads(os.environ['GCP_SERVICE_ACCOUNT_JSON']), scope)
+            client = gspread.authorize(creds)
+            ss = client.open("Ai360tradingAlgo")
+            send_daily_summary(ss)
+        except Exception as e:
+            print(f"❌ Summary Trigger Error: {e}")
+        return
+
+    # 4. Trading Window Filter (9:15 AM - 3:30 PM)
+    if not (555 <= curr_min <= 930):
+        print(f"💤 Outside trading hours ({curr_hm}). Skipping logic.")
+        return
+
+    # --- START TRADING LOGIC ---
     try:
-        # Setup Google Sheets
         scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-        creds = ServiceAccountCredentials.from_json_keyfile_dict(
-            json.loads(os.environ['GCP_SERVICE_ACCOUNT_JSON']), scope
-        )
+        creds = ServiceAccountCredentials.from_json_keyfile_dict(json.loads(os.environ['GCP_SERVICE_ACCOUNT_JSON']), scope)
         client = gspread.authorize(creds)
         ss = client.open("Ai360tradingAlgo")
         sheet = ss.worksheet("AlertLog")
-        print("✅ Connected to Google Sheets")
-        
-        # Send Good Morning at 9:15 AM (once per day)
-        if current_hour == 9 and current_minute == 15:
-            send_good_morning()
-        
-        # Send Daily Summary at 3:30 PM (once per day)
-        if current_hour == 15 and current_minute == 30:
-            send_daily_summary(ss)
-            print("📊 Daily summary triggered at market close")
-            return
         
         # Kill Switch Check
         kill_switch = str(sheet.acell("O2").value).strip().upper()
         if kill_switch != "YES":
-            print(f"🛑 Trading PAUSED (Kill Switch: {kill_switch})")
-            sheet.update_acell("O3", f"Scanner Paused | {current_time.strftime('%Y-%m-%d %H:%M:%S')}")
+            sheet.update_acell("O3", f"Scanner Paused | {now.strftime('%H:%M:%S')}")
             return
         
-        # Get all data
-        data = sheet.get_all_values()[1:]  # Skip header
-        print(f"📊 Loaded {len(data)} rows from AlertLog")
-        
-        # Calculate CORRECT active count (exclude EXITED trades)
+        data = sheet.get_all_values()[1:]
         active_count = sum(1 for r in data if len(r) > 10 and "TRADED" in str(r[10]).upper() and "EXITED" not in str(r[10]).upper())
-        print(f"📈 Active trades: {active_count}/{MAX_ACTIVE_SLOTS}")
         
         rows_to_delete = []
-        entries_made = 0
-        exits_made = 0
-        tsl_updates = 0
-        
-        # PHASE 1: MONITOR ACTIVE TRADES & EXIT
+        entries_made, exits_made, tsl_updates = 0, 0, 0
+
+        # PHASE 1: MONITOR ACTIVE TRADES
         for i, row in enumerate(data):
             r_num = i + 2
-            if len(row) < 14:
-                continue
-            
+            if len(row) < 14: continue
             sym = str(row[1]).strip()
-            if not sym:
-                continue
+            if not sym: continue
             
             stat = str(row[10]).strip().upper()
-            
-            # Only process ACTIVE trades (not EXITED, not WAITING)
             if "TRADED" in stat and "EXITED" not in stat:
                 try:
-                    price = to_f(row[2])       # Column C - Live Price
-                    sl = to_f(row[7])          # Column H - StopLoss
-                    tgt = to_f(row[8])         # Column I - Target
-                    entry_p = to_f(row[11])    # Column L - Entry Price
-                    entry_t = str(row[12]).strip() if len(row) > 12 else ""
-                    cat = str(row[5]).strip() if len(row) > 5 else ""
+                    price, sl, entry_p = to_f(row[2]), to_f(row[7]), to_f(row[11])
+                    entry_t, cat = str(row[12]), str(row[5])
                     
-                    if entry_p == 0 or price == 0:
-                        print(f"⚠️ {sym}: Invalid data (entry={entry_p}, price={price})")
-                        continue
-                    
-                    # Calculate current profit %
                     profit_pct = ((price - entry_p) / entry_p) * 100
-                    print(f"📊 {sym}: Price=₹{price:.2f}, Entry=₹{entry_p:.2f}, P/L={profit_pct:+.2f}%, SL=₹{sl:.2f}")
                     
-                    # TRAILING STOP-LOSS LOGIC
-                    new_sl = sl
-                    tsl_triggered = False
-                    
+                    # TSL Logic
+                    new_sl, tsl_triggered = sl, False
                     if profit_pct >= 6.0:
-                        # At 6%+ profit, trail SL to 4% above entry
-                        trail_target = entry_p * 1.04
-                        if trail_target > sl:
-                            new_sl = trail_target
-                            tsl_triggered = True
+                        if (entry_p * 1.04) > sl: new_sl, tsl_triggered = entry_p * 1.04, True
                     elif profit_pct >= 4.0:
-                        # At 4%+ profit, trail SL to 2% above entry
-                        trail_target = entry_p * 1.02
-                        if trail_target > sl:
-                            new_sl = trail_target
-                            tsl_triggered = True
+                        if (entry_p * 1.02) > sl: new_sl, tsl_triggered = entry_p * 1.02, True
                     elif profit_pct >= 2.0:
-                        # At 2%+ profit, move SL to breakeven
-                        if entry_p > sl:
-                            new_sl = entry_p
-                            tsl_triggered = True
-                    
-                    # Update trailing stop-loss in sheet
+                        if entry_p > sl: new_sl, tsl_triggered = entry_p, True
+                        
                     if tsl_triggered:
                         sheet.update_cell(r_num, 8, round(new_sl, 2))
-                        print(f"🛡️ TSL Updated: {sym} SL → ₹{new_sl:.2f} (was ₹{sl:.2f})")
-                        send_tg(
-                            f"🛡️ <b>TSL UPDATED: {sym}</b>\n"
-                            f"New SL: ₹{new_sl:.2f}\n"
-                            f"Current P/L: {profit_pct:+.2f}%"
-                        )
-                        sl = new_sl
-                        tsl_updates += 1
-                    
-                    # EXIT CHECK - ONLY ON STOP-LOSS HIT (NOT TARGET)
-                    # We want to ride the trend, so we never exit at target
+                        send_tg(f"🛡️ <b>TSL UPDATED: {sym}</b>\nNew SL: ₹{new_sl:.2f}\nP/L: {profit_pct:+.2f}%")
+                        sl, tsl_updates = new_sl, tsl_updates + 1
+
+                    # Exit Check
                     if sl > 0 and price <= sl:
-                        print(f"🚪 EXIT: {sym} @ ₹{price:.2f} - STOPLOSS HIT")
-                        
-                        exit_time = datetime.now(IST).strftime('%Y-%m-%d %H:%M:%S')
-                        
-                        if move_to_history(ss, {
-                            'sym': sym,
-                            'entry_p': entry_p,
-                            'exit_p': price,
-                            'entry_t': entry_t,
-                            'exit_t': exit_time,
-                            'cat': cat,
-                            'reason': 'STOPLOSS'
-                        }):
+                        if move_to_history(ss, {'sym': sym, 'entry_p': entry_p, 'exit_p': price, 'entry_t': entry_t, 'exit_t': now.strftime('%Y-%m-%d %H:%M:%S'), 'cat': cat, 'reason': 'STOPLOSS'}):
                             rows_to_delete.append(r_num)
                             active_count -= 1
                             exits_made += 1
-                
-                except Exception as e:
-                    print(f"❌ Error processing {sym}: {e}")
-        
-        # Delete exited trades (reverse order to maintain indices)
+                except: continue
+
         if rows_to_delete:
-            print(f"🗑️ Deleting {len(rows_to_delete)} exited trades...")
-            for r in reversed(rows_to_delete):
-                try:
-                    sheet.delete_rows(r)
-                    print(f"✅ Deleted row {r}")
-                except Exception as e:
-                    print(f"❌ Failed to delete row {r}: {e}")
-        
-        # RE-FETCH DATA after deletions
-        print("🔄 Re-fetching data after deletions...")
-        data = sheet.get_all_values()[1:]
-        
-        # Recalculate active count
-        active_count = sum(1 for r in data if len(r) > 10 and "TRADED" in str(r[10]).upper() and "EXITED" not in str(r[10]).upper())
-        print(f"📈 Active trades after exits: {active_count}/{MAX_ACTIVE_SLOTS}")
-        
-        # PHASE 2: PROMOTE WAITING STOCKS
-        if active_count < MAX_ACTIVE_SLOTS:
-            print(f"⬆️ Checking for WAITING stocks to promote...")
+            for r in reversed(rows_to_delete): sheet.delete_rows(r)
+            data = sheet.get_all_values()[1:]
+
+        # PHASE 2 & 3: PROMOTE WAITING & NEW ENTRIES
+        for i, row in enumerate(data):
+            r_num = i + 2
+            if active_count >= MAX_ACTIVE_SLOTS or len(row) < 11: break
+            sym, stat = str(row[1]).strip(), str(row[10]).strip().upper()
             
-            for i, row in enumerate(data):
-                r_num = i + 2
-                if len(row) < 14:
-                    continue
+            if stat == "" or "WAITING" in stat:
+                price, sl, tgt = to_f(row[2]), to_f(row[7]), to_f(row[11])
+                if price == 0: continue
                 
-                sym = str(row[1]).strip()
-                if not sym:
-                    continue
+                sheet.update_cell(r_num, 11, "TRADED (PAPER)")
+                sheet.update_cell(r_num, 12, price)
+                sheet.update_cell(r_num, 13, now.strftime('%Y-%m-%d %H:%M:%S'))
                 
-                stat = str(row[10]).strip().upper()
-                
-                if "WAITING" in stat and active_count < MAX_ACTIVE_SLOTS:
-                    try:
-                        price = to_f(row[2])
-                        sl = to_f(row[7])
-                        tgt = to_f(row[8])
-                        
-                        if price == 0:
-                            print(f"⚠️ {sym}: No live price available, skipping")
-                            continue
-                        
-                        entry_time = datetime.now(IST).strftime('%Y-%m-%d %H:%M:%S')
-                        
-                        print(f"⬆️ PROMOTING: {sym} @ ₹{price:.2f}")
-                        
-                        sheet.update_cell(r_num, 11, "TRADED (PAPER)")
-                        sheet.update_cell(r_num, 12, price)
-                        sheet.update_cell(r_num, 13, entry_time)
-                        
-                        send_tg(
-                            f"⬆️ <b>PROMOTED: {sym}</b>\n"
-                            f"Entry: ₹{price:.2f}\n"
-                            f"Target: ₹{tgt:.2f}\n"
-                            f"SL: ₹{sl:.2f}\n"
-                            f"Slot: {active_count + 1}/{MAX_ACTIVE_SLOTS}"
-                        )
-                        
-                        active_count += 1
-                        entries_made += 1
-                        print(f"✅ Promoted {sym}")
-                        
-                    except Exception as e:
-                        print(f"❌ Failed to promote {sym}: {e}")
-        
-        # PHASE 3: TAKE NEW ENTRIES (Empty status)
-        if active_count < MAX_ACTIVE_SLOTS:
-            for i, row in enumerate(data):
-                r_num = i + 2
-                if len(row) < 14:
-                    continue
-                
-                sym = str(row[1]).strip()
-                if not sym:
-                    continue
-                
-                stat = str(row[10]).strip()
-                
-                if stat == "" and active_count < MAX_ACTIVE_SLOTS:
-                    try:
-                        price = to_f(row[2])
-                        sl = to_f(row[7])
-                        tgt = to_f(row[8])
-                        
-                        if price == 0:
-                            print(f"⚠️ {sym}: No live price, skipping")
-                            continue
-                        
-                        entry_time = datetime.now(IST).strftime('%Y-%m-%d %H:%M:%S')
-                        
-                        print(f"🚀 NEW ENTRY: {sym} @ ₹{price:.2f}")
-                        
-                        sheet.update_cell(r_num, 11, "TRADED (PAPER)")
-                        sheet.update_cell(r_num, 12, price)
-                        sheet.update_cell(r_num, 13, entry_time)
-                        
-                        send_tg(
-                            f"🚀 <b>NEW ENTRY: {sym}</b>\n"
-                            f"Entry: ₹{price:.2f}\n"
-                            f"Target: ₹{tgt:.2f}\n"
-                            f"SL: ₹{sl:.2f}\n"
-                            f"Slot: {active_count + 1}/{MAX_ACTIVE_SLOTS}"
-                        )
-                        
-                        active_count += 1
-                        entries_made += 1
-                        
-                    except Exception as e:
-                        print(f"❌ Failed to enter {sym}: {e}")
-        
-        # Count waiting stocks
-        waiting_count = sum(1 for r in data if len(r) > 10 and "WAITING" in str(r[10]).upper())
-        
-        # Update heartbeat in O3
-        heartbeat = f"Bot Active | A:{active_count}/{MAX_ACTIVE_SLOTS} | W:{waiting_count} | {current_time.strftime('%H:%M:%S')}"
+                send_tg(f"🚀 <b>NEW ENTRY: {sym}</b>\nPrice: ₹{price:.2f}\nTarget: ₹{row[8]}\nSL: ₹{row[7]}\nSlot: {active_count+1}/{MAX_ACTIVE_SLOTS}")
+                active_count += 1
+                entries_made += 1
+
+        heartbeat = f"Bot Active | A:{active_count}/{MAX_ACTIVE_SLOTS} | {now.strftime('%H:%M:%S')}"
         sheet.update_acell("O3", heartbeat)
-        print(f"💚 {heartbeat}")
-        
-        # Summary
-        print("=" * 60)
-        print(f"✅ Cycle Complete:")
-        print(f"   Entries: {entries_made}")
-        print(f"   Exits: {exits_made}")
-        print(f"   TSL Updates: {tsl_updates}")
-        print(f"   Active: {active_count}/{MAX_ACTIVE_SLOTS}")
-        print(f"   Waiting: {waiting_count}")
-        print("=" * 60)
         
     except Exception as e:
         print(f"❌ SYSTEM ERROR: {e}")
-        import traceback
-        traceback.print_exc()
-        try:
-            send_tg(f"🚨 <b>BOT ERROR:</b>\n{str(e)[:200]}")
-        except:
-            pass
 
 if __name__ == "__main__":
     run_trading_cycle()
