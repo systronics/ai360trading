@@ -1,7 +1,7 @@
 name: AlgoTradeBot
 on:
   schedule:
-    - cron: '*/5 4-10 * * 1-5' # Every 5 minutes, 9:30 AM - 3:30 PM IST, Mon-Fri
+    - cron: '*/5 4-10 * * 0-5' # Every 5 minutes, 9:30 AM - 3:30 PM IST, Mon-Fri
   workflow_dispatch: # Manual trigger
 jobs:
   trade:
