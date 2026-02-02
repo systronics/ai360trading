@@ -76,19 +76,19 @@ def send_daily_summary(ss):
         hist = ss.worksheet("History")
         today = datetime.now(IST).strftime('%Y-%m-%d')
         all_trades = hist.get_all_values()[1:]
-        today_trades = [t for t in all_trades if t[3].startswith(today)] # Checking Exit Date
+        today_trades = [t for t in all_trades if str(t[3]).startswith(today)] 
         
         if not today_trades:
             send_tg(f"📊 <b>Daily Summary - {today}</b>\n\nNo trades exited today.")
             return
         
-        wins = sum(1 for t in today_trades if "WIN" in t[6])
+        wins = sum(1 for t in today_trades if "WIN" in str(t[6]))
         losses = len(today_trades) - wins
         total_pnl = sum(to_f(t[5]) for t in today_trades)
         
         summary = (
             f"📊 <b>Daily Summary - {today}</b>\n\n"
-            f"Total Trades: {len(today_trades)}\n"
+            f"Total Trades Today: {len(today_trades)}\n"
             f"Wins: {wins} 🟢 | Losses: {losses} 🔴\n"
             f"Win Rate: {(wins/len(today_trades)*100):.1f}%\n"
             f"Total P/L: {total_pnl:+.2f}%\n"
@@ -100,7 +100,7 @@ def send_daily_summary(ss):
         print(f"❌ Summary Error: {e}")
 
 def run_trading_cycle():
-    """Main trading cycle with exact timings"""
+    """Main trading cycle with window-based timings"""
     now = datetime.now(IST)
     curr_hm = now.strftime("%H:%M")
     curr_min = now.hour * 60 + now.minute
@@ -109,30 +109,32 @@ def run_trading_cycle():
     print(f"🤖 Bot Started: {now.strftime('%Y-%m-%d %H:%M:%S')}")
     print("=" * 60)
 
-    # 1. 9:00 AM Message
-    if curr_hm == "09:00":
+    # 1. 9:00 AM Notification Window (9:00 - 9:05)
+    if "09:00" <= curr_hm <= "09:05":
         send_tg("🌅 <b>Good Morning, Market Open</b>")
-        return
+        return # Idle until trading starts at 9:15
 
-    # 2. 3:30 PM Message
-    if curr_hm == "15:30":
+    # 2. 3:30 PM Notification Window (15:30 - 15:35)
+    if "15:30" <= curr_hm <= "15:35":
         send_tg("🌙 <b>Good Bye, Market Close</b>")
+        # Do not return; let it process final exit checks
 
-    # 3. 3:45 PM Summary
-    if curr_hm == "15:45":
+    # 3. 3:45 PM Summary Notification Window (15:45 - 15:50)
+    if "15:45" <= curr_hm <= "15:50":
         try:
             scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
             creds = ServiceAccountCredentials.from_json_keyfile_dict(json.loads(os.environ['GCP_SERVICE_ACCOUNT_JSON']), scope)
             client = gspread.authorize(creds)
             ss = client.open("Ai360tradingAlgo")
             send_daily_summary(ss)
+            print("✅ Summary Window Active: Message Sent")
         except Exception as e:
             print(f"❌ Summary Trigger Error: {e}")
         return
 
     # 4. Trading Window Filter (9:15 AM - 3:30 PM)
     if not (555 <= curr_min <= 930):
-        print(f"💤 Outside trading hours ({curr_hm}). Skipping logic.")
+        print(f"💤 Outside trading hours ({curr_hm}). Logic Idling.")
         return
 
     # --- START TRADING LOGIC ---
@@ -143,7 +145,6 @@ def run_trading_cycle():
         ss = client.open("Ai360tradingAlgo")
         sheet = ss.worksheet("AlertLog")
         
-        # Kill Switch Check
         kill_switch = str(sheet.acell("O2").value).strip().upper()
         if kill_switch != "YES":
             sheet.update_acell("O3", f"Scanner Paused | {now.strftime('%H:%M:%S')}")
@@ -153,57 +154,52 @@ def run_trading_cycle():
         active_count = sum(1 for r in data if len(r) > 10 and "TRADED" in str(r[10]).upper() and "EXITED" not in str(r[10]).upper())
         
         rows_to_delete = []
-        entries_made, exits_made, tsl_updates = 0, 0, 0
 
         # PHASE 1: MONITOR ACTIVE TRADES
         for i, row in enumerate(data):
             r_num = i + 2
             if len(row) < 14: continue
             sym = str(row[1]).strip()
-            if not sym: continue
+            if not sym or "TRADED" not in str(row[10]).upper(): continue
             
-            stat = str(row[10]).strip().upper()
-            if "TRADED" in stat and "EXITED" not in stat:
-                try:
-                    price, sl, entry_p = to_f(row[2]), to_f(row[7]), to_f(row[11])
-                    entry_t, cat = str(row[12]), str(row[5])
+            try:
+                price, sl, entry_p = to_f(row[2]), to_f(row[7]), to_f(row[11])
+                entry_t, cat = str(row[12]), str(row[5])
+                profit_pct = ((price - entry_p) / entry_p) * 100
+                
+                # TSL Logic
+                new_sl, tsl_triggered = sl, False
+                if profit_pct >= 6.0:
+                    if (entry_p * 1.04) > sl: new_sl, tsl_triggered = entry_p * 1.04, True
+                elif profit_pct >= 4.0:
+                    if (entry_p * 1.02) > sl: new_sl, tsl_triggered = entry_p * 1.02, True
+                elif profit_pct >= 2.0:
+                    if entry_p > sl: new_sl, tsl_triggered = entry_p, True
                     
-                    profit_pct = ((price - entry_p) / entry_p) * 100
-                    
-                    # TSL Logic
-                    new_sl, tsl_triggered = sl, False
-                    if profit_pct >= 6.0:
-                        if (entry_p * 1.04) > sl: new_sl, tsl_triggered = entry_p * 1.04, True
-                    elif profit_pct >= 4.0:
-                        if (entry_p * 1.02) > sl: new_sl, tsl_triggered = entry_p * 1.02, True
-                    elif profit_pct >= 2.0:
-                        if entry_p > sl: new_sl, tsl_triggered = entry_p, True
-                        
-                    if tsl_triggered:
-                        sheet.update_cell(r_num, 8, round(new_sl, 2))
-                        send_tg(f"🛡️ <b>TSL UPDATED: {sym}</b>\nNew SL: ₹{new_sl:.2f}\nP/L: {profit_pct:+.2f}%")
-                        sl, tsl_updates = new_sl, tsl_updates + 1
+                if tsl_triggered:
+                    sheet.update_cell(r_num, 8, round(new_sl, 2))
+                    send_tg(f"🛡️ <b>TSL UPDATED: {sym}</b>\nNew SL: ₹{new_sl:.2f}\nP/L: {profit_pct:+.2f}%")
+                    sl = new_sl
 
-                    # Exit Check
-                    if sl > 0 and price <= sl:
-                        if move_to_history(ss, {'sym': sym, 'entry_p': entry_p, 'exit_p': price, 'entry_t': entry_t, 'exit_t': now.strftime('%Y-%m-%d %H:%M:%S'), 'cat': cat, 'reason': 'STOPLOSS'}):
-                            rows_to_delete.append(r_num)
-                            active_count -= 1
-                            exits_made += 1
-                except: continue
+                # Exit Check
+                if sl > 0 and price <= sl:
+                    if move_to_history(ss, {'sym': sym, 'entry_p': entry_p, 'exit_p': price, 'entry_t': entry_t, 'exit_t': now.strftime('%Y-%m-%d %H:%M:%S'), 'cat': cat, 'reason': 'STOPLOSS'}):
+                        rows_to_delete.append(r_num)
+                        active_count -= 1
+            except: continue
 
         if rows_to_delete:
             for r in reversed(rows_to_delete): sheet.delete_rows(r)
             data = sheet.get_all_values()[1:]
 
-        # PHASE 2 & 3: PROMOTE WAITING & NEW ENTRIES
+        # PHASE 2: NEW ENTRIES
         for i, row in enumerate(data):
             r_num = i + 2
             if active_count >= MAX_ACTIVE_SLOTS or len(row) < 11: break
             sym, stat = str(row[1]).strip(), str(row[10]).strip().upper()
             
             if stat == "" or "WAITING" in stat:
-                price, sl, tgt = to_f(row[2]), to_f(row[7]), to_f(row[11])
+                price = to_f(row[2])
                 if price == 0: continue
                 
                 sheet.update_cell(r_num, 11, "TRADED (PAPER)")
@@ -212,10 +208,8 @@ def run_trading_cycle():
                 
                 send_tg(f"🚀 <b>NEW ENTRY: {sym}</b>\nPrice: ₹{price:.2f}\nTarget: ₹{row[8]}\nSL: ₹{row[7]}\nSlot: {active_count+1}/{MAX_ACTIVE_SLOTS}")
                 active_count += 1
-                entries_made += 1
 
-        heartbeat = f"Bot Active | A:{active_count}/{MAX_ACTIVE_SLOTS} | {now.strftime('%H:%M:%S')}"
-        sheet.update_acell("O3", heartbeat)
+        sheet.update_acell("O3", f"Bot Active | A:{active_count}/{MAX_ACTIVE_SLOTS} | {now.strftime('%H:%M:%S')}")
         
     except Exception as e:
         print(f"❌ SYSTEM ERROR: {e}")
