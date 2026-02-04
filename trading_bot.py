@@ -3,7 +3,7 @@ from datetime import datetime
 from oauth2client.service_account import ServiceAccountCredentials
 
 IST = pytz.timezone('Asia/Kolkata')
-MAX_ACTIVE_SLOTS = 10  # Increased to 10 to process waiting trades
+MAX_ACTIVE_SLOTS = 10 
 TG_TOKEN = os.environ.get('TELEGRAM_TOKEN')
 TG_CHAT = os.environ.get('CHAT_ID')
 
@@ -70,93 +70,89 @@ def move_to_history(ss, trade):
         print(f"❌ History Error: {e}")
         return False
 
-def send_daily_summary(ss):
-    """Send daily P/L summary at market close"""
+def send_daily_summary(ss, active_trades_data):
+    """Professional Summary: Shows Closed Trades AND Open Portfolio Status"""
     try:
         hist = ss.worksheet("History")
         today = datetime.now(IST).strftime('%Y-%m-%d')
         all_trades = hist.get_all_values()[1:]
         today_trades = [t for t in all_trades if str(t[3]).startswith(today)] 
         
-        if not today_trades:
-            send_tg(f"📊 <b>Daily Summary - {today}</b>\n\nNo trades exited today.")
-            return
-        
         wins = sum(1 for t in today_trades if "WIN" in str(t[6]))
         losses = len(today_trades) - wins
-        total_pnl = sum(to_f(t[5]) for t in today_trades)
+        closed_pnl = sum(to_f(t[5]) for t in today_trades)
         
+        portfolio_report = ""
+        total_open_pnl = 0
+        if active_trades_data:
+            portfolio_report = "\n📊 <b>Current Open Portfolio:</b>\n"
+            for trade in active_trades_data:
+                icon = "🟢" if trade['pnl'] > 0 else "🔴"
+                portfolio_report += f"{icon} {trade['sym']}: {trade['pnl']:+.2f}%\n"
+                total_open_pnl += trade['pnl']
+
         summary = (
-            f"📊 <b>Daily Summary - {today}</b>\n\n"
-            f"Total Trades Today: {len(today_trades)}\n"
-            f"Wins: {wins} 🟢 | Losses: {losses} 🔴\n"
-            f"Total P/L: {total_pnl:+.2f}%\n"
-            f"\n{'='*25}\n"
-            f"See you tomorrow! 🌙"
+            f"🏆 <b>Daily Performance - {today}</b>\n"
+            f"{'='*25}\n"
+            f"✅ <b>Closed Trades:</b> {len(today_trades)}\n"
+            f"Wins: {wins} | Losses: {losses}\n"
+            f"Realized P/L: {closed_pnl:+.2f}%\n"
+            f"{portfolio_report}\n"
+            f"💰 <b>Total Strategy P/L: {(closed_pnl + total_open_pnl):+.2f}%</b>\n"
+            f"{'='*25}\n"
+            f"<i>Holding for targets. See you tomorrow!</i> 🌙"
         )
         send_tg(summary)
     except Exception as e:
         print(f"❌ Summary Error: {e}")
 
 def run_trading_cycle():
-    """Main trading cycle with window-based timings"""
     now = datetime.now(IST)
     curr_hm = now.strftime("%H:%M")
     curr_min = now.hour * 60 + now.minute
     
-    print("=" * 60)
-    print(f"🤖 Bot Started: {now.strftime('%Y-%m-%d %H:%M:%S')}")
-    print("=" * 60)
-
-    # Setup Google Sheets First
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
     creds = ServiceAccountCredentials.from_json_keyfile_dict(json.loads(os.environ['GCP_SERVICE_ACCOUNT_JSON']), scope)
     client = gspread.authorize(creds)
     ss = client.open("Ai360tradingAlgo")
     sheet = ss.worksheet("AlertLog")
 
-    # Tracking to prevent multiple messages
     today_prefix = now.strftime('%Y-%m-%d')
     sent_status = str(sheet.acell("O4").value).strip()
 
-    # 1. Good Morning Window (09:00 - 09:15)
-    if "09:00" <= curr_hm <= "09:15":
-        if sent_status != f"{today_prefix}-AM":
-            send_tg("🌅 <b>Good Morning, Market Open</b>\n<i>Monitoring 10 active slots.</i>")
-            sheet.update_acell("O4", f"{today_prefix}-AM")
-        return
+    # Get data early for Morning Report and Trading Logic
+    data = sheet.get_all_values()[1:]
+    active_trades_data = []
+    
+    # Process current active trades for data list
+    for row in data:
+        if len(row) >= 12 and "TRADED" in str(row[10]).upper():
+            sym, price, entry_p = str(row[1]), to_f(row[2]), to_f(row[11])
+            pnl_pct = ((price - entry_p) / entry_p) * 100
+            active_trades_data.append({'sym': sym, 'pnl': pnl_pct})
 
-    # 2. Market Close Window (15:30 - 15:45)
-    if "15:30" <= curr_hm <= "15:45":
-        if sent_status != f"{today_prefix}-PM":
-            send_tg("🌙 <b>Good Bye, Market Close</b>")
-            sheet.update_acell("O4", f"{today_prefix}-PM")
+    # --- 1. Good Morning Window (Includes Portfolio Status) ---
+    if "09:00" <= curr_hm <= "09:15" and sent_status != f"{today_prefix}-AM":
+        portfolio_status = ""
+        if active_trades_data:
+            portfolio_status = "\n\n📈 <b>Active Portfolio Status:</b>\n"
+            for t in active_trades_data:
+                portfolio_status += f"• {t['sym']}: {t['pnl']:+.2f}%\n"
+        
+        send_tg(f"🌅 <b>Good Morning! Market is Opening.</b>\nBot is active and monitoring 10 slots.{portfolio_status}")
+        sheet.update_acell("O4", f"{today_prefix}-AM")
 
-    # 3. Daily Summary Window (15:45 - 16:15)
-    if "15:45" <= curr_hm <= "16:15":
-        if sent_status != f"{today_prefix}-SUM":
-            send_daily_summary(ss)
-            sheet.update_acell("O4", f"{today_prefix}-SUM")
-        return
+    # --- 2. Market Close Window ---
+    if "15:30" <= curr_hm <= "15:45" and sent_status != f"{today_prefix}-PM":
+        send_tg("🌙 <b>Market Closed. Preparing final report...</b>")
+        sheet.update_acell("O4", f"{today_prefix}-PM")
 
-    # 4. Trading Window Filter (9:15 AM - 3:30 PM)
-    if not (555 <= curr_min <= 930):
-        print(f"💤 Outside trading hours ({curr_hm}).")
-        return
-
-    # --- START TRADING LOGIC ---
+    # --- CORE TRADING LOGIC ---
     try:
-        kill_switch = str(sheet.acell("O2").value).strip().upper()
-        if kill_switch != "YES":
-            sheet.update_acell("O3", f"Scanner Paused | {now.strftime('%H:%M:%S')}")
-            return
-        
-        data = sheet.get_all_values()[1:]
-        active_count = sum(1 for r in data if len(r) > 10 and "TRADED" in str(r[10]).upper() and "EXITED" not in str(r[10]).upper())
-        
+        active_count = len(active_trades_data)
         rows_to_delete = []
 
-        # PHASE 1: MONITOR ACTIVE TRADES
+        # MONITOR ACTIVE TRADES (Exits & Fixed TSL)
         for i, row in enumerate(data):
             r_num = i + 2
             if len(row) < 14 or "TRADED" not in str(row[10]).upper(): continue
@@ -166,18 +162,15 @@ def run_trading_cycle():
                 entry_t, cat = str(row[12]), str(row[5])
                 profit_pct = ((price - entry_p) / entry_p) * 100
                 
-                # TSL Logic
-                new_sl, tsl_triggered = sl, False
-                if profit_pct >= 6.0 and (entry_p * 1.04) > sl:
-                    new_sl, tsl_triggered = entry_p * 1.04, True
-                elif profit_pct >= 4.0 and (entry_p * 1.02) > sl:
-                    new_sl, tsl_triggered = entry_p * 1.02, True
-                elif profit_pct >= 2.0 and entry_p > sl:
-                    new_sl, tsl_triggered = entry_p, True
+                # FIXED TSL Logic
+                new_sl = sl
+                if profit_pct >= 6.0: new_sl = max(sl, entry_p * 1.04)
+                elif profit_pct >= 4.0: new_sl = max(sl, entry_p * 1.02)
+                elif profit_pct >= 2.0: new_sl = max(sl, entry_p)
                     
-                if tsl_triggered:
+                if new_sl > sl:
                     sheet.update_cell(r_num, 8, round(new_sl, 2))
-                    send_tg(f"🛡️ <b>TSL UPDATED: {sym}</b>\nNew SL: ₹{new_sl:.2f}\nP/L: {profit_pct:+.2f}%")
+                    send_tg(f"🛡️ <b>TSL TRAILED: {sym}</b>\nNew SL: ₹{new_sl:.2f}\nFloating P/L: {profit_pct:+.2f}%")
                     sl = new_sl
 
                 # Exit Check
@@ -187,27 +180,30 @@ def run_trading_cycle():
                         active_count -= 1
             except: continue
 
+        # --- 3. SUMMARY TRIGGER ---
+        if "15:45" <= curr_hm <= "16:15" and sent_status != f"{today_prefix}-SUM":
+            send_daily_summary(ss, active_trades_data)
+            sheet.update_acell("O4", f"{today_prefix}-SUM")
+
+        # PHASE 2: NEW ENTRIES (Trading Hours Only)
+        if 555 <= curr_min <= 930:
+            kill_switch = str(sheet.acell("O2").value).strip().upper()
+            if kill_switch == "YES":
+                for i, row in enumerate(data):
+                    r_num = i + 2
+                    if active_count >= MAX_ACTIVE_SLOTS or len(row) < 11: break
+                    if str(row[10]).strip().upper() in ["", "WAITING"]:
+                        price = to_f(row[2])
+                        if price == 0: continue
+                        sheet.update_cell(r_num, 11, "TRADED (PAPER)")
+                        sheet.update_cell(r_num, 12, price)
+                        sheet.update_cell(r_num, 13, now.strftime('%Y-%m-%d %H:%M:%S'))
+                        send_tg(f"🚀 <b>NEW ENTRY: {row[1]}</b>\nPrice: ₹{price:.2f}\nSlot: {active_count+1}/{MAX_ACTIVE_SLOTS}")
+                        active_count += 1
+
         if rows_to_delete:
             for r in reversed(rows_to_delete): sheet.delete_rows(r)
-            data = sheet.get_all_values()[1:]
-
-        # PHASE 2: PROMOTE WAITING & NEW ENTRIES
-        for i, row in enumerate(data):
-            r_num = i + 2
-            if active_count >= MAX_ACTIVE_SLOTS or len(row) < 11: break
-            sym, stat = str(row[1]).strip(), str(row[10]).strip().upper()
-            
-            if stat == "" or "WAITING" in stat:
-                price = to_f(row[2])
-                if price == 0: continue
-                
-                sheet.update_cell(r_num, 11, "TRADED (PAPER)")
-                sheet.update_cell(r_num, 12, price)
-                sheet.update_cell(r_num, 13, now.strftime('%Y-%m-%d %H:%M:%S'))
-                
-                send_tg(f"🚀 <b>NEW ENTRY: {sym}</b>\nPrice: ₹{price:.2f}\nSlot: {active_count+1}/{MAX_ACTIVE_SLOTS}")
-                active_count += 1
-
+        
         sheet.update_acell("O3", f"Scanner Active | A:{active_count}/{MAX_ACTIVE_SLOTS} | {now.strftime('%H:%M:%S')}")
         
     except Exception as e:
