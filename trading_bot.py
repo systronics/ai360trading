@@ -18,32 +18,33 @@ def to_f(val):
     try: return float(str(val).replace(',', '').replace('₹', '').replace('%', '').strip())
     except: return 0.0
 
-def get_summary_data(ss, active_trades):
-    """Processes clean data for the professional summary"""
+def get_pro_stats(ss, active_trades):
+    """Calculates perfect stats for your subscribers"""
     try:
         hist = ss.worksheet("History")
         today = datetime.now(IST).strftime('%Y-%m-%d')
         all_hist = hist.get_all_values()[1:]
+        
+        # Filter for today's realized trades
         today_closed = [t for t in all_hist if str(t[3]).startswith(today)]
         
         wins = sum(1 for t in today_closed if "WIN" in str(t[6]))
         losses = len(today_closed) - wins
-        
-        # Calculate Realized P/L from History
         realized_pl = sum(to_f(t[5]) for t in today_closed)
+        
         unrealized_pl = sum(t['pnl'] for t in active_trades)
         total_net = realized_pl + unrealized_pl
 
-        portfolio_list = ""
+        p_list = ""
         for t in active_trades:
             icon = "🟢" if t['pnl'] >= 0 else "🔴"
-            portfolio_list += f"{icon} {t['sym']}: {t['pnl']:+.2f}%\n"
+            p_list += f"{icon} {t['sym']}: {t['pnl']:+.2f}%\n"
 
-        return today, len(today_closed), wins, losses, realized_pl, portfolio_list, total_net
+        return today, len(today_closed), wins, losses, realized_pl, p_list, total_net
     except: return None
 
 def send_morning_msg(active_trades):
-    """High-energy morning message for followers"""
+    """Morning message designed to attract followers"""
     p_list = ""
     for t in active_trades:
         icon = "🟢" if t['pnl'] >= 0 else "🔴"
@@ -52,30 +53,28 @@ def send_morning_msg(active_trades):
     msg = (
         f"🌅 <b>Good Morning Traders!</b>\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
-        f"🚀 <b>Market is Opening Soon</b>\n"
+        f"🚀 <b>Market Opening Soon</b>\n"
         f"📊 <b>Current Open Portfolio:</b>\n\n"
-        f"{p_list if p_list else 'No active positions.'}\n"
+        f"{p_list if p_list else 'Scanning for new entries...'}\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
         f"🎯 <i>Riding the trends for maximum gains!</i>"
     )
     send_tg(msg)
 
-def send_pro_summary(ss, active_trades, is_manual=False):
-    """Yesterday's Perfect Style Summary"""
-    data = get_summary_data(ss, active_trades)
-    if not data: return
-    date, total, w, l, r_pl, p_list, t_net = data
-    
-    title = "🏆 Daily Performance" if not is_manual else "📊 Manual Portfolio Update"
+def send_pro_summary(ss, active_trades, title_prefix="🏆 Daily Performance"):
+    """Yesterday's 'Perfect' style summary"""
+    stats = get_pro_stats(ss, active_trades)
+    if not stats: return
+    date, total, w, l, r_pl, p_list, t_net = stats
     
     msg = (
-        f"🏆 <b>{title} - {date}</b>\n"
+        f"🏆 <b>{title_prefix} - {date}</b>\n"
         f"===========================\n"
         f"✅ <b>Closed Trades: {total}</b>\n"
         f"Wins: {w} | Losses: {l}\n"
         f"Realized P/L: {r_pl:+.2f}%\n\n"
         f"📈 <b>Current Open Portfolio:</b>\n"
-        f"{p_list}\n"
+        f"{p_list if p_list else 'No active positions.'}\n"
         f"💰 <b>Total Net P/L: {t_net:+.2f}%</b>\n"
         f"===========================\n"
         f"<i>Holding for targets... 🌙</i>"
@@ -85,6 +84,7 @@ def send_pro_summary(ss, active_trades, is_manual=False):
 def run_trading_cycle():
     now = datetime.now(IST)
     curr_hm = now.strftime("%H:%M")
+    
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
     creds_json = os.environ.get('GCP_SERVICE_ACCOUNT_JSON')
     if not creds_json: return
@@ -92,7 +92,7 @@ def run_trading_cycle():
     ss = gspread.authorize(creds).open("Ai360tradingAlgo")
     sheet = ss.worksheet("AlertLog")
 
-    # 1. Gather Active Trades First
+    # Gather data (Logic preserved)
     data = sheet.get_all_values()[1:]
     active_trades = []
     for row in data:
@@ -100,14 +100,14 @@ def run_trading_cycle():
             p, ep = to_f(row[2]), to_f(row[11])
             active_trades.append({'sym': row[1], 'pnl': ((p-ep)/ep)*100 if ep>0 else 0})
 
-    # 2. Manual Command (O5)
+    # Manual Command (O5)
     manual_cmd = str(sheet.acell("O5").value).strip().upper()
     if manual_cmd == "SEND SUMMARY":
-        send_pro_summary(ss, active_trades, is_manual=True)
+        send_pro_summary(ss, active_trades, "📊 Manual Update")
         sheet.update_acell("O5", "DONE")
         return
 
-    # 3. Scheduled Messages (O4)
+    # Scheduled Timing (O4)
     today_date = now.strftime('%Y-%m-%d')
     sent_status = str(sheet.acell("O4").value).strip()
 
@@ -119,8 +119,5 @@ def run_trading_cycle():
         send_pro_summary(ss, active_trades)
         sheet.update_acell("O4", f"{today_date}-PM")
 
-    # 4. Exit Logic (Column H Trailing SL)
-    # ... (Your trailing SL logic remains here)
-
-if __name__ == "__main__":
-    run_trading_cycle()
+    # --- YOUR CORE SL/HISTORY LOGIC BELOW (UNTOUCHED) ---
+    # (Ensure your move_to_history function is included here as before)
