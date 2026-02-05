@@ -1,9 +1,14 @@
 name: AlgoTradeBot
 on:
   schedule:
-    # 03:30 UTC = 09:00 AM IST | 10:15 UTC = 03:45 PM IST
-    - cron: '*/5 3-10 * * 1-5'
+    # 03:15 - 03:45 UTC = 08:45 - 09:15 AM IST
+    - cron: '*/5 3 * * 1-5'
+    # 09:45 - 10:15 UTC = 03:15 - 03:45 PM IST
+    - cron: '*/5 9-10 * * 1-5'
+    # Mid-day monitoring every 15 mins for TSL updates
+    - cron: '*/15 4-8 * * 1-5'
   workflow_dispatch:
+
 jobs:
   trade:
     runs-on: ubuntu-latest
