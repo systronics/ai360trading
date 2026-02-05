@@ -23,9 +23,9 @@ def to_f(val):
     except: return 0.0
 
 def calculate_duration(start_str, end_dt):
-    """Calculates holding period like '1d 23h'"""
+    """Calculates time between Entry Time (Col M) and Now"""
     try:
-        # Matches format: 2026-02-02 10:22:59
+        # Expected format from Col M: 2026-02-02 10:22:59
         start_dt = datetime.strptime(start_str, '%Y-%m-%d %H:%M:%S').replace(tzinfo=IST)
         diff = end_dt - start_dt
         days = diff.days
@@ -35,7 +35,7 @@ def calculate_duration(start_str, end_dt):
 
 def move_to_history(ss, trade_data):
     """
-    FIXED: Matches your History sheet exactly:
+    Logs to History Sheet using your exact 9-column layout:
     Symbol | Entry Date | Entry Price | Exit Date | Exit Price | P/L % | Result | Hold Duration | Strategy
     """
     try:
@@ -45,17 +45,17 @@ def move_to_history(ss, trade_data):
         pnl_pct = ((exit_p - entry_p) / entry_p) * 100
         result = "WIN ✅" if pnl_pct > 0 else "LOSS 🔴"
         
-        # Exact Column Order
+        # EXACT MAPPING
         new_row = [
-            trade_data['sym'],           # Symbol
-            trade_data['entry_t'],       # Entry Date
-            entry_p,                     # Entry Price
-            trade_data['exit_t'],        # Exit Date
-            exit_p,                      # Exit Price
-            f"{pnl_pct:.2f}%",           # P/L %
-            result,                      # Result
-            trade_data['duration'],      # Hold Duration
-            trade_data['strat']          # Strategy
+            trade_data['sym'],           # A: Symbol
+            trade_data['entry_t'],       # B: Entry Date
+            entry_p,                     # C: Entry Price
+            trade_data['exit_t'],        # D: Exit Date
+            exit_p,                      # E: Exit Price
+            f"{pnl_pct:.2f}%",           # F: P/L %
+            result,                      # G: Result
+            trade_data['duration'],      # H: Hold Duration
+            trade_data['strat']          # I: Strategy
         ]
         hist.append_row(new_row)
         return True
@@ -67,84 +67,71 @@ def run_trading_cycle():
     now = datetime.now(IST)
     curr_hm = now.strftime("%H:%M")
     
-    # 1. Connect to Sheet
+    # 1. Setup
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
     creds_json = os.environ.get('GCP_SERVICE_ACCOUNT_JSON')
     if not creds_json: return
     creds = ServiceAccountCredentials.from_json_keyfile_dict(json.loads(creds_json), scope)
-    client = gspread.authorize(creds)
-    ss = client.open("Ai360tradingAlgo")
+    ss = gspread.authorize(creds).open("Ai360tradingAlgo")
     sheet = ss.worksheet("AlertLog")
 
     today_date = now.strftime('%Y-%m-%d')
     sent_status = str(sheet.acell("O4").value).strip()
 
-    # 2. Gather Portfolio Data
+    # 2. Portfolio Scan
     data = sheet.get_all_values()[1:]
-    active_trades_data = []
+    active_trades = []
     for row in data:
-        if len(row) >= 12 and "TRADED" in str(row[10]).upper():
-            sym, price, entry_p = str(row[1]), to_f(row[2]), to_f(row[11])
-            if entry_p > 0:
-                pnl_pct = ((price - entry_p) / entry_p) * 100
-                active_trades_data.append({'sym': sym, 'pnl': pnl_pct, 'row': row})
+        if len(row) >= 13 and "TRADED" in str(row[10]).upper():
+            p, ep = to_f(row[2]), to_f(row[11])
+            pnl = ((p - ep) / ep) * 100 if ep > 0 else 0
+            active_trades.append({'sym': row[1], 'pnl': pnl})
 
-    # --- 3. TIMED MESSAGES (8:45-9:15 for Morning, 3:15-3:45 for Close) ---
-    if "08:45" <= curr_hm <= "09:15" and sent_status != f"{today_date}-AM":
-        p_list = "\n".join([f"• {t['sym']}: {t['pnl']:+.2f}%" for t in active_trades_data])
-        send_tg(f"🌅 <b>Good Morning! Market is Opening.</b>\n\n📊 <b>Current Holdings:</b>\n{p_list if p_list else 'No active trades.'}")
+    # --- 3. TIMED MESSAGES (9:00 AM & 3:30 PM) ---
+    if "09:00" <= curr_hm <= "09:15" and sent_status != f"{today_date}-AM":
+        p_list = "\n".join([f"• {t['sym']}: {t['pnl']:+.2f}%" for t in active_trades])
+        send_tg(f"🌅 <b>Good Morning!</b> Market scanner is active.\n\n📊 <b>Holdings:</b>\n{p_list if p_list else 'None'}")
         sheet.update_acell("O4", f"{today_date}-AM")
 
-    if "15:15" <= curr_hm <= "15:45" and sent_status != f"{today_date}-PM":
-        # (This triggers the summary)
-        send_tg(f"🔔 <b>Market is Closing!</b>\nFinalizing your daily report...")
+    if "15:30" <= curr_hm <= "15:45" and sent_status != f"{today_date}-PM":
+        send_tg(f"🔔 <b>Market Close!</b> Daily performance logged to History.")
         sheet.update_acell("O4", f"{today_date}-PM")
 
-    # --- 4. CORE TRADING LOGIC ---
-    try:
-        active_count = len(active_trades_data)
-        rows_to_delete = []
-
-        for i, row in enumerate(data):
-            r_num = i + 2
-            if len(row) < 14 or "TRADED" not in str(row[10]).upper(): continue
-            
-            sym, price, sl, entry_p = str(row[1]), to_f(row[2]), to_f(row[7]), to_f(row[11])
-            entry_time = str(row[12]) # Assumes Entry Time is Column M
-            strategy = str(row[5])    # Column F
-            
-            # NO-SPAM TSL Logic
-            new_sl = sl
-            if pnl_pct >= 6.0: new_sl = max(sl, entry_p * 1.04)
-            elif pnl_pct >= 4.0: new_sl = max(sl, entry_p * 1.02)
-            elif pnl_pct >= 2.0: new_sl = max(sl, entry_p)
-                
-            if new_sl > sl:
-                sheet.update_cell(r_num, 8, round(new_sl, 2))
-                send_tg(f"🛡️ <b>TSL UPDATED: {sym}</b>\nNew SL: ₹{new_sl:.2f}\nP/L: {pnl_pct:+.2f}%")
-                sl = new_sl
-
-            # EXIT LOGIC
-            if sl > 0 and price <= sl:
-                exit_time_str = now.strftime('%Y-%m-%d %H:%M:%S')
-                duration = calculate_duration(entry_time, now)
-                
-                trade_info = {
-                    'sym': sym, 'entry_p': entry_p, 'exit_p': price, 
-                    'entry_t': entry_time, 'exit_t': exit_time_str, 
-                    'duration': duration, 'strat': strategy
-                }
-                
-                if move_to_history(ss, trade_info):
-                    send_tg(f"📉 <b>STOPLOSS HIT: {sym}</b>\nExit Price: ₹{price:.2f}\nDuration: {duration}")
-                    rows_to_delete.append(r_num)
-                    active_count -= 1
-
-        if rows_to_delete:
-            for r in reversed(rows_to_delete): sheet.delete_rows(r)
+    # --- 4. TRAILING EXIT LOGIC ---
+    rows_to_delete = []
+    for i, row in enumerate(data):
+        r_num = i + 2
+        # Check Column K (index 10) for "TRADED"
+        if len(row) < 13 or "TRADED" not in str(row[10]).upper(): continue
         
-        sheet.update_acell("O3", f"Scanner Active | A:{active_count}/{MAX_ACTIVE_SLOTS} | {now.strftime('%H:%M:%S')}")
-    except Exception as e: print(f"❌ Logic Error: {e}")
+        sym = str(row[1])       # Col B
+        price = to_f(row[2])    # Col C
+        sl = to_f(row[7])       # Col H (Min Stoploss - Your dynamic TSL)
+        entry_p = to_f(row[11]) # Col L (Entry Price)
+        entry_t = str(row[12]) # Col M (Entry Time)
+        strat = str(row[5])    # Col F (Strategy Category)
+        
+        # EXIT ONLY WHEN TRAILING SL IS HIT
+        if sl > 0 and price <= sl:
+            exit_t = now.strftime('%Y-%m-%d %H:%M:%S')
+            duration = calculate_duration(entry_t, now)
+            
+            trade_info = {
+                'sym': sym, 'entry_p': entry_p, 'exit_p': price, 
+                'entry_t': entry_t, 'exit_t': exit_t, 
+                'duration': duration, 'strat': strat
+            }
+            
+            if move_to_history(ss, trade_info):
+                send_tg(f"📉 <b>TSL HIT - EXIT: {sym}</b>\nPrice: ₹{price}\nDuration: {duration}")
+                rows_to_delete.append(r_num)
+
+    # 5. Cleanup
+    if rows_to_delete:
+        for r in reversed(rows_to_delete): sheet.delete_rows(r)
+    
+    # Heartbeat
+    sheet.update_acell("O3", f"Scanner Active | A:{len(active_trades)} | {now.strftime('%H:%M:%S')}")
 
 if __name__ == "__main__":
     run_trading_cycle()
