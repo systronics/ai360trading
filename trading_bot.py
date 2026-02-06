@@ -20,34 +20,36 @@ def to_f(val):
     except: return 0.0
 
 def get_pro_stats(ss, active_trades):
-    """Calculates realized and unrealized stats"""
     try:
         hist = ss.worksheet("History")
         today = datetime.now(IST).strftime('%Y-%m-%d')
         all_hist = hist.get_all_values()[1:]
-        
         today_closed = [t for t in all_hist if str(t[3]).startswith(today)]
         wins = sum(1 for t in today_closed if "WIN" in str(t[6]))
         losses = len(today_closed) - wins
         realized_pl = sum(to_f(t[5]) for t in today_closed)
-        
         unrealized_pl = sum(t['pnl'] for t in active_trades)
         total_net = realized_pl + unrealized_pl
-
-        p_list = ""
-        for t in active_trades:
-            icon = "🟢" if t['pnl'] >= 0 else "🔴"
-            p_list += f"{icon} {t['sym']}: {t['pnl']:+.2f}%\n"
-
+        p_list = "".join([f"{'🟢' if t['pnl'] >= 0 else '🔴'} {t['sym']}: {t['pnl']:+.2f}%\n" for t in active_trades])
         return today, len(today_closed), wins, losses, realized_pl, p_list, total_net
     except: return None
 
+def send_morning_msg(p_list):
+    msg = (
+        f"🌅 <b>Good Morning Traders!</b>\n"
+        f"━━━━━━━━━━━━━━━━━━━━\n"
+        f"🚀 <b>Market is Opening Soon</b>\n"
+        f"📊 <b>Current Open Portfolio:</b>\n\n"
+        f"{p_list if p_list else 'No active positions.'}\n"
+        f"━━━━━━━━━━━━━━━━━━━━\n"
+        f"🎯 <i>Riding the trends for maximum gains!</i>"
+    )
+    send_tg(msg)
+
 def send_pro_summary(ss, active_trades, title_prefix="🏆 Daily Performance"):
-    """Visual summary for subscribers"""
     stats = get_pro_stats(ss, active_trades)
     if not stats: return
     date, total, w, l, r_pl, p_list, t_net = stats
-    
     msg = (
         f"🏆 <b>{title_prefix} - {date}</b>\n"
         f"===========================\n"
@@ -65,6 +67,9 @@ def send_pro_summary(ss, active_trades, title_prefix="🏆 Daily Performance"):
 def run_trading_cycle():
     now = datetime.now(IST)
     curr_hm = now.strftime("%H:%M")
+    curr_hour = now.hour
+    curr_min = now.minute
+    
     creds_json = os.environ.get('GCP_SERVICE_ACCOUNT_JSON')
     if not creds_json: return
     
@@ -73,51 +78,43 @@ def run_trading_cycle():
     ss = gspread.authorize(creds).open("Ai360tradingAlgo")
     sheet = ss.worksheet("AlertLog")
 
-    # 1. Categorize Stocks by Status
+    # 1. Fetch Data & Categorize
     rows = sheet.get_all_values()[1:]
-    active_trades = []
-    waiting_trades = []
-
+    active_trades, waiting_trades = [], []
     for i, row in enumerate(rows):
-        status = str(row[10]).upper() # Col K
-        stock = {
-            'row': i + 2, 'sym': row[1], 'price': to_f(row[2]),
-            'score': to_f(row[3]), 'sl': to_f(row[7]),
-            'entry_p': to_f(row[11]), 'entry_t': row[12], 'strat': row[5]
-        }
+        status = str(row[10]).upper()
+        stock = {'row': i+2, 'sym': row[1], 'price': to_f(row[2]), 'score': to_f(row[3]), 'sl': to_f(row[7]), 'entry_p': to_f(row[11])}
         if "TRADED" in status:
             stock['pnl'] = ((stock['price'] - stock['entry_p']) / stock['entry_p']) * 100 if stock['entry_p'] > 0 else 0
             active_trades.append(stock)
-        elif "WAITING" in status:
-            waiting_trades.append(stock)
+        elif "WAITING" in status: waiting_trades.append(stock)
 
-    # 2. PRIORITY: Pick the Strongest Waiting Stocks
-    waiting_trades.sort(key=lambda x: x['score'], reverse=True)
+    # 2. PRIORITY #1: Morning Message (9:00 - 9:25 AM Window)
+    today_date = now.strftime('%Y-%m-%d')
+    sent_status = str(sheet.acell("O4").value).strip()
     
-    # Logic: If slots < 10, the top of waiting_trades gets entry priority
+    if curr_hour == 9 and curr_min <= 25:
+        if sent_status != f"{today_date}-AM":
+            p_list = "".join([f"{'🟢' if t['pnl'] >= 0 else '🔴'} {t['sym']}: {t['pnl']:+.2f}%\n" for t in active_trades])
+            send_morning_msg(p_list)
+            sheet.update_acell("O4", f"{today_date}-AM")
 
-    # 3. Manual Command Check (Cell O5)
+    # 3. PRIORITY #2: Manual Command (O5)
     manual_cmd = str(sheet.acell("O5").value).strip().upper()
     if manual_cmd == "SEND SUMMARY":
         send_pro_summary(ss, active_trades, "📊 Manual Update")
         sheet.update_acell("O5", "DONE")
         return
 
-    # 4. Scheduled Timing (Cell O4)
-    today_date = now.strftime('%Y-%m-%d')
-    sent_status = str(sheet.acell("O4").value).strip()
+    # 4. Strength-Based Entry Logic
+    waiting_trades.sort(key=lambda x: x['score'], reverse=True)
+    # (Entry Logic based on waiting_trades strength goes here)
 
-    if "09:00" <= curr_hm <= "09:15" and sent_status != f"{today_date}-AM":
-        # Morning Msg Logic
-        send_tg(f"🌅 <b>Good Morning Traders!</b>\nMarket is opening. Portfolio ready.")
-        sheet.update_acell("O4", f"{today_date}-AM")
-
-    if "15:30" <= curr_hm <= "15:45" and sent_status != f"{today_date}-PM":
-        send_pro_summary(ss, active_trades)
-        sheet.update_acell("O4", f"{today_date}-PM")
-
-    # 5. Trailing SL Exit Logic
-    # (Included here as before...)
+    # 5. Market Close Summary (3:30 - 4:00 PM Window)
+    if (curr_hour == 15 and curr_min >= 30) or (curr_hour == 16 and curr_min <= 0):
+        if sent_status != f"{today_date}-PM":
+            send_pro_summary(ss, active_trades)
+            sheet.update_acell("O4", f"{today_date}-PM")
 
 if __name__ == "__main__":
     run_trading_cycle()
