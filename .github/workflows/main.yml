@@ -1,13 +1,20 @@
 name: AlgoTradeBot
+
 on:
   schedule:
-    # 03:15 - 03:45 UTC = 08:45 - 09:15 AM IST
+    # 03:30 AM IST (Morning Message & Market Open)
+    # 03:25 UTC = 08:55 AM IST to ensure it's ready by 9:00
     - cron: '*/5 3 * * 1-5'
-    # 09:45 - 10:15 UTC = 03:15 - 03:45 PM IST
-    - cron: '*/5 9-10 * * 1-5'
-    # Mid-day monitoring every 15 mins for TSL updates
-    - cron: '*/15 4-8 * * 1-5'
-  workflow_dispatch:
+    
+    # Mid-day monitoring for TSL and Priority Entries
+    # 04:00 - 09:00 UTC = 09:30 AM - 02:30 PM IST
+    - cron: '*/10 4-8 * * 1-5'
+    
+    # 03:30 PM IST (Market Close Summary)
+    # 10:00 UTC = 03:30 PM IST
+    - cron: '*/5 10 * * 1-5'
+    
+  workflow_dispatch: # Allows you to run it manually anytime
 
 jobs:
   trade:
