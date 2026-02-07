@@ -1,0 +1,28 @@
+name: Weekly Global SEO Articles
+on:
+  schedule:
+    - cron: '0 0 * * 1' # Every Monday at midnight UTC
+  workflow_dispatch: # Allows manual run for "Review before publishing"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - name: Install dependencies
+        run: pip install google-generativeai
+      - name: Run AI Script
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python generate_articles.py
+      - name: Commit and Push
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add _posts/
+          git commit -m "Added weekly global SEO articles" || echo "No changes"
+          git push
