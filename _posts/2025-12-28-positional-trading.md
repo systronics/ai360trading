@@ -1,8 +1,6 @@
 ---
 layout:           post
 title:            "Positional Trading - Long Term Value Picks"
-date:             2025-12-28T13:04:19+05:45
-last_modified_at: 2026-01-06T00:10:00+05:30
 image:            "https://ai360trading.in/public/image/swing.webp"
 excerpt:          "Institutional grade long-term picks focusing on bottom-out setups and undervalued SIP opportunities."
 tags:             fundamental-picks
