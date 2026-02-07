@@ -2,41 +2,43 @@ import os
 from datetime import datetime
 import google.generativeai as genai
 
-# Setup Gemini 
+# Setup Gemini with API Key from GitHub Secrets
 genai.configure(api_key=os.environ["GEMINI_API_KEY"])
 
-# Correct 2026 tool declaration for Search Grounding
+# Tool declaration for real-time market data
 tools = [{"google_search_retrieval": {}}]
 model = genai.GenerativeModel('gemini-1.5-flash', tools=tools)
 
 regions = {
-    "US": "Wall Street and NASDAQ Trends",
-    "UK": "London Stock Exchange (FTSE 100)",
-    "Europe": "European Markets (DAX, CAC 40)",
-    "Asia": "Asian Markets (Nikkei, Hang Seng)"
+    "US": "Wall Street and NASDAQ",
+    "UK": "London Stock Exchange",
+    "Europe": "DAX and CAC 40",
+    "Asia": "Nikkei and Hang Seng"
 }
 
-def generate_seo_article(region_name, market_focus):
-    print(f"Generating article for {region_name}...")
-    
-    # Prompt optimized for your Jekyll design
-    prompt = (f"Using Google Search, write a professional educational analysis of current stock market trends in {market_focus}. "
-              "Format the output as a Jekyll Markdown post. "
-              "Include this EXACT front matter at the top: "
-              "---\nlayout: post\ntitle: 'Global Market News: " + region_name + " Update'\n"
+def generate_article(region, focus):
+    print(f"Generating for {region}...")
+    prompt = (f"Search for the latest stock market trends in {focus}. "
+              "Write a 300-word educational update. Output as Jekyll Markdown. "
+              "Start exactly with this front matter:\n---\nlayout: post\n"
+              f"title: 'Global Market Insights: {region} Update'\n"
               "categories: [global-news]\n---")
     
     response = model.generate_content(prompt)
+    content = response.text.strip()
     
-    # File naming to stay separate from your manual posts
-    date_prefix = datetime.now().strftime("%Y-%m-%d")
-    filename = f"_posts/{date_prefix}-ai-{region_name.lower()}.md"
+    # Remove AI's markdown code blocks if present
+    if content.startswith("```"):
+        content = "\n".join(content.split("\n")[1:-1])
+
+    date_str = datetime.now().strftime("%Y-%m-%d")
+    filename = f"_posts/{date_str}-ai-{region.lower()}.md"
 
     with open(filename, "w", encoding="utf-8") as f:
-        f.write(response.text)
+        f.write(content)
 
 for region, focus in regions.items():
     try:
-        generate_seo_article(region, focus)
+        generate_article(region, focus)
     except Exception as e:
-        print(f"Error for {region}: {str(e)}")
+        print(f"Error for {region}: {e}")
