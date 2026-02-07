@@ -44,6 +44,26 @@ image: "https://ai360trading.in/public/image/cover.webp"
   </a>
 </div>
 
+<section class="content-section">
+  <h2 class="section-heading">Global Market Insights (AI Powered)</h2>
+  <p style="text-align:center; color:#546e7a; margin-top:-10px; margin-bottom:20px;">Weekly educational analysis for US, UK, Europe, and Asia markets.</p>
+  
+  <div class="ai-news-grid">
+    {% for post in site.categories.global-news limit:4 %}
+      <div class="feature-box ai-post-card">
+        <h3 class="subsection-heading" style="margin-top:0; font-size:18px;">
+          <a href="{{ post.url }}" style="text-decoration:none; color:#0088cc;">{{ post.title }}</a>
+        </h3>
+        <p style="font-size:14px; color:#546e7a; line-height:1.5;">{{ post.excerpt | strip_html | truncate: 110 }}</p>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
+          <span style="font-size:12px; font-weight:bold; color:#2ecc71;">🌍 {{ post.date | date: "%b %d, %Y" }}</span>
+          <span style="font-size:11px; background:#e1f5fe; color:#01579b; padding:2px 8px; border-radius:12px;">{{ post.tags | first }}</span>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</section>
+
 <section class="broker-section">
   <h3 class="section-title">Partner Brokerage Platforms</h3>
   <div class="broker-grid">
@@ -70,11 +90,10 @@ image: "https://ai360trading.in/public/image/cover.webp"
 </section>
 
 <style>
-  /* --- Global Styles --- */
+  /* --- Keeping Your Original Styles --- */
   .main-heading { text-align: center; color: #0088cc; font-size: 28px; font-weight: 700; margin: 20px 0 15px; padding: 0 10px; }
   .intro-text { text-align: center; color: #2c3e50; font-size: 15px; line-height: 1.6; max-width: 800px; margin: 0 auto 30px; padding: 0 15px; }
 
-  /* --- Dashboard Grid (PC: 3 Columns | Mobile: 1 Column) --- */
   .dashboard-grid { 
     display: grid; 
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
@@ -99,7 +118,21 @@ image: "https://ai360trading.in/public/image/cover.webp"
   .card-heading { color: #0088cc; font-size: 20px; margin: 0; }
   .card-subtext { color: #546e7a; font-size: 14px; margin-top: 10px; line-height: 1.5; }
 
-  /* --- Broker Grid (PC: 4 Columns | Mobile: 2 Columns) --- */
+  /* --- Styles for the New AI Section --- */
+  .ai-news-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+  }
+  .ai-post-card {
+    transition: 0.3s;
+  }
+  .ai-post-card:hover {
+    border-color: #0088cc;
+    background: #fcfcfc;
+  }
+
   .broker-section { margin-top: 50px; text-align: center; }
   .section-title { font-size: 20px; margin-bottom: 20px; color: #2c3e50; }
   .broker-grid { 
@@ -115,16 +148,15 @@ image: "https://ai360trading.in/public/image/cover.webp"
     border-radius: 8px; font-size: 14px; 
   }
 
-  /* --- Content Section --- */
-  .content-section { max-width: 800px; margin: 50px auto; padding: 0 20px; line-height: 1.7; }
-  .section-heading { color: #0088cc; font-size: 22px; margin-bottom: 15px; }
-  .feature-box { background: #fdfdfd; border-left: 4px solid #0088cc; padding: 15px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+  .content-section { max-width: 900px; margin: 50px auto; padding: 0 20px; line-height: 1.7; }
+  .section-heading { color: #0088cc; font-size: 22px; margin-bottom: 15px; text-align:center; }
+  .feature-box { background: #fdfdfd; border-left: 4px solid #0088cc; padding: 15px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); border-top: 1px solid #eee; border-right: 1px solid #eee; border-bottom: 1px solid #eee; }
 
-  /* --- MOBILE FIXES (< 768px) --- */
   @media (max-width: 768px) {
     .main-heading { font-size: 22px; }
-    .dashboard-grid { grid-template-columns: 1fr; } /* Force 1 column to prevent overlap */
+    .dashboard-grid { grid-template-columns: 1fr; } 
     .pro-card { padding: 20px; }
-    .broker-grid { grid-template-columns: 1fr 1fr; } /* 2 per row on mobile */
+    .broker-grid { grid-template-columns: 1fr 1fr; } 
+    .ai-news-grid { grid-template-columns: 1fr; }
   }
 </style>
