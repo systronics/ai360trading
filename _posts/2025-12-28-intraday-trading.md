@@ -1,8 +1,6 @@
 ---
 layout: post
 title: "Intraday Trading: Live Algo-Scanner"
-date: 2026-01-06T00:25:00+05:30
-last_modified_at: 2026-01-06T00:25:00+05:30
 image: "https://ai360trading.in/public/image/intraday.webp"
 excerpt: "Real-time Intraday, Breakout, and Momentum signals powered by ai360trading Algo."
 tags: technical-picks
