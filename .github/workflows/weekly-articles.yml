@@ -8,12 +8,12 @@ jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # Essential for the robot to 'push'
+      contents: write
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Fetches all history to avoid push conflicts
+          fetch-depth: 0
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -23,7 +23,7 @@ jobs:
       - name: Install dependencies
         run: pip install google-generativeai
 
-      - name: Run Script
+      - name: Run AI Generator
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: python generate_articles.py
@@ -33,14 +33,15 @@ jobs:
           git config --local user.email "admin@ai360trading.in"
           git config --local user.name "AI360-Automation"
           
-          # Force add all changes in the _posts directory
+          # Force add files even if they are in .gitignore
           git add -f _posts/*.md 
           
-          # If no changes are staged, fail the build so we get a RED X
+          # If no changes are found, fail the build so the tick turns RED
           if git diff --staged --quiet; then
-            echo "ERROR: No new articles were found to commit!"
+            echo "FAILED: No new files were detected to commit."
             exit 1
           else
-            git commit -m "Auto-generated News: $(date +'%Y-%m-%d')"
-            git push origin main
+            git commit -m "Auto-post AI Insights: $(date +'%Y-%m-%d')"
+            # This pushes to whatever branch triggered the workflow
+            git push origin HEAD 
           fi
