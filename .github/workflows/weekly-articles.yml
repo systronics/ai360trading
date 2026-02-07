@@ -20,28 +20,26 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Install dependencies
-        run: pip install google-generativeai
+      - name: Install Dependencies
+        run: pip install google-generativeai pytz
 
       - name: Run AI Generator
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: python generate_articles.py
 
-      - name: Commit and Force Push
+      - name: Commit and Push
         run: |
           git config --local user.email "admin@ai360trading.in"
           git config --local user.name "AI360-Automation"
           
-          # Force add files even if they are in .gitignore
-          git add -f _posts/*.md 
+          # Stage the specific folder
+          git add _posts/*.md
           
-          # If no changes are found, fail the build so the tick turns RED
           if git diff --staged --quiet; then
-            echo "FAILED: No new files were detected to commit."
+            echo "No changes detected. Check Python script logs for errors."
             exit 1
           else
-            git commit -m "Auto-post AI Insights: $(date +'%Y-%m-%d')"
-            # This pushes to whatever branch triggered the workflow
-            git push origin HEAD 
+            git commit -m "AI Update (IST): $(date +'%Y-%m-%d')"
+            git push origin HEAD
           fi
