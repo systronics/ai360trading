@@ -8,20 +8,20 @@ jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # This is the most important line
+      contents: write # Essential for the robot to 'push'
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 0 # Fetches all history to avoid push conflicts
 
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
-      - name: Install Dependencies
-        run: pip install google-generativeai python-dotenv
+      - name: Install dependencies
+        run: pip install google-generativeai
 
       - name: Run Script
         env:
@@ -33,12 +33,14 @@ jobs:
           git config --local user.email "admin@ai360trading.in"
           git config --local user.name "AI360-Automation"
           
-          # Force add to ignore any .gitignore issues
+          # Force add all changes in the _posts directory
           git add -f _posts/*.md 
           
+          # If no changes are staged, fail the build so we get a RED X
           if git diff --staged --quiet; then
-            echo "No changes found. Ending workflow."
+            echo "ERROR: No new articles were found to commit!"
+            exit 1
           else
-            git commit -m "AI Market News: $(date +'%Y-%m-%d')"
+            git commit -m "Auto-generated News: $(date +'%Y-%m-%d')"
             git push origin main
           fi
