@@ -2,12 +2,18 @@ import os
 from datetime import datetime
 import google.generativeai as genai
 
-# Setup Gemini with API Key from GitHub Secrets
+# Setup Gemini 
 genai.configure(api_key=os.environ["GEMINI_API_KEY"])
+model = genai.GenerativeModel('gemini-1.5-flash', tools=[{"google_search_retrieval": {}}])
 
-# Tool declaration for real-time market data
-tools = [{"google_search_retrieval": {}}]
-model = genai.GenerativeModel('gemini-1.5-flash', tools=tools)
+# Force the folder to be in the repository root
+# This ensures it doesn't create a 'ghost' _posts folder elsewhere
+base_dir = os.path.dirname(os.path.abspath(__file__))
+posts_dir = os.path.join(base_dir, '_posts')
+
+if not os.path.exists(posts_dir):
+    os.makedirs(posts_dir)
+    print(f"Created directory at: {posts_dir}")
 
 regions = {
     "US": "Wall Street and NASDAQ",
@@ -18,27 +24,26 @@ regions = {
 
 def generate_article(region, focus):
     print(f"Generating for {region}...")
-    prompt = (f"Search for the latest stock market trends in {focus}. "
-              "Write a 300-word educational update. Output as Jekyll Markdown. "
-              "Start exactly with this front matter:\n---\nlayout: post\n"
-              f"title: 'Global Market Insights: {region} Update'\n"
-              "categories: [global-news]\n---")
+    prompt = (f"Using Google Search, write a 300-word stock market update for {focus}. "
+              "Output as Jekyll Markdown. Front matter must include: "
+              f"layout: post, title: 'Global News: {region} Market', categories: [global-news].")
     
     response = model.generate_content(prompt)
-    content = response.text.strip()
+    text = response.text.strip()
     
-    # Remove AI's markdown code blocks if present
-    if content.startswith("```"):
-        content = "\n".join(content.split("\n")[1:-1])
+    # Strip markdown wrappers if AI adds them
+    if text.startswith("```"):
+        text = "\n".join(text.split("\n")[1:-1])
 
-    date_str = datetime.now().strftime("%Y-%m-%d")
-    filename = f"_posts/{date_str}-ai-{region.lower()}.md"
+    filename = f"{datetime.now().strftime('%Y-%m-%d')}-ai-{region.lower()}.md"
+    file_path = os.path.join(posts_dir, filename)
 
-    with open(filename, "w", encoding="utf-8") as f:
-        f.write(content)
+    with open(file_path, "w", encoding="utf-8") as f:
+        f.write(text)
+    print(f"File saved: {file_path}")
 
 for region, focus in regions.items():
     try:
         generate_article(region, focus)
     except Exception as e:
-        print(f"Error for {region}: {e}")
+        print(f"Error: {e}")
