@@ -1,46 +1,28 @@
 import os
 from datetime import datetime
-from google import genai
-from google.genai import types
+import google.generativeai as genai
 
-# Setup Client
-client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
-MODEL_ID = "gemini-1.5-flash"
+# Setup Gemini with the 2026 stable tool format
+genai.configure(api_key=os.environ["GEMINI_API_KEY"])
 
-# Targeted regions with specific SEO Keywords
+# Use the stable Search tool declaration
+tools = [{"google_search_retrieval": {}}]
+model = genai.GenerativeModel('gemini-1.5-flash', tools=tools)
+
 regions = {
-    "US": {"focus": "Wall Street and NASDAQ", "tags": "NASDAQ, NYSE, US-Economy"},
-    "UK": {"focus": "London Stock Exchange", "tags": "FTSE100, London-Finance, LSE"},
-    "Europe": {"focus": "DAX and CAC 40", "tags": "Eurozone, ECB, Frankfurt-Exchange"},
-    "Asia": {"focus": "Nikkei and Hang Seng", "tags": "Tokyo-Market, Asia-Pivot, Hong-Kong-Finance"}
+    "US": "Wall Street and NASDAQ Trends",
+    "UK": "London Stock Exchange (FTSE 100)",
+    "Europe": "European Markets (DAX, CAC 40)",
+    "Asia": "Asian Markets (Nikkei, Hang Seng)"
 }
 
-def generate_seo_article(region_name, data):
+def generate_seo_article(region_name, market_focus):
     print(f"Generating article for {region_name}...")
     
-    prompt = f"""
-    Search for the top 3 market educational trends for {data['focus']} this week.
-    Write a 300-word educational article.
+    prompt = f"Using Google Search, write a 300-word educational analysis of current stock trends in {market_focus}. Output as Jekyll Markdown with layout: post and categories: [global-news]."
     
-    Output ONLY the Jekyll Markdown content starting with this Front Matter:
-    ---
-    layout: post
-    title: "Global Market Insights: {region_name} Update"
-    categories: [global-news]
-    tags: [{data['tags']}]
-    excerpt: "Educational breakdown of the latest trends in the {region_name} stock markets."
-    ---
-    
-    (Write the article here using Markdown headers)
-    """
-    
-    response = client.models.generate_content(
-        model=MODEL_ID,
-        contents=prompt,
-        config=types.GenerateContentConfig(
-            tools=[types.Tool(google_search=types.GoogleSearchRetrieval())]
-        )
-    )
+    # Use the corrected generation call
+    response = model.generate_content(prompt)
     
     date_prefix = datetime.now().strftime("%Y-%m-%d")
     filename = f"_posts/{date_prefix}-ai-{region_name.lower()}.md"
@@ -48,8 +30,8 @@ def generate_seo_article(region_name, data):
     with open(filename, "w", encoding="utf-8") as f:
         f.write(response.text)
 
-for region, data in regions.items():
+for region, focus in regions.items():
     try:
-        generate_seo_article(region, data)
+        generate_seo_article(region, focus)
     except Exception as e:
-        print(f"Error for {region}: {e}")
+        print(f"Error for {region}: {str(e)}")
