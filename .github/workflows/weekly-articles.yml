@@ -1,17 +1,19 @@
 name: Weekly AI Market News
 on:
+  workflow_dispatch:
   schedule:
-    - cron: '0 0 * * 1' # Every Monday at 00:00 UTC
-  workflow_dispatch: # Allows manual trigger
+    - cron: '0 0 * * 1'
 
 jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # Extra safety for write access
+      contents: write  # This is the most important line
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -26,14 +28,17 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: python generate_articles.py
 
-      - name: Commit and Push
+      - name: Commit and Force Push
         run: |
           git config --local user.email "admin@ai360trading.in"
           git config --local user.name "AI360-Automation"
-          git add _posts/*.md
+          
+          # Force add to ignore any .gitignore issues
+          git add -f _posts/*.md 
+          
           if git diff --staged --quiet; then
-            echo "No new files to commit."
+            echo "No changes found. Ending workflow."
           else
-            git commit -m "Auto-generated global news for $(date +'%Y-%m-%d')"
+            git commit -m "AI Market News: $(date +'%Y-%m-%d')"
             git push origin main
           fi
