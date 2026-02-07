@@ -3,31 +3,35 @@ from datetime import datetime
 from google import genai
 from google.genai import types
 
-# 1. Setup Client
+# Setup Client
 client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
 MODEL_ID = "gemini-1.5-flash"
 
+# Targeted regions with specific SEO Keywords
 regions = {
-    "US": "Wall Street and US Tech Sector",
-    "UK": "London Stock Exchange and FTSE 100",
-    "Europe": "European Central Bank and DAX/CAC 40",
-    "Asia": "Nikkei, Hang Seng, and Asian Emerging Markets"
+    "US": {"focus": "Wall Street and NASDAQ", "tags": "NASDAQ, NYSE, US-Economy"},
+    "UK": {"focus": "London Stock Exchange", "tags": "FTSE100, London-Finance, LSE"},
+    "Europe": {"focus": "DAX and CAC 40", "tags": "Eurozone, ECB, Frankfurt-Exchange"},
+    "Asia": {"focus": "Nikkei and Hang Seng", "tags": "Tokyo-Market, Asia-Pivot, Hong-Kong-Finance"}
 }
 
-def generate_seo_article(region_name, market_focus):
+def generate_seo_article(region_name, data):
     print(f"Generating article for {region_name}...")
     
-    # The prompt forces Jekyll Front Matter and International SEO focus
     prompt = f"""
-    Using Google Search, find the top 3 stock market educational trends for {market_focus} this week.
-    Write a high-quality educational article for a trading blog.
+    Search for the top 3 market educational trends for {data['focus']} this week.
+    Write a 300-word educational article.
     
-    Requirements:
-    - Format: Jekyll Markdown
-    - Layout: post
-    - Category: global-news
-    - Language: Professional English
-    - Content: Analysis of trends, not live trading signals.
+    Output ONLY the Jekyll Markdown content starting with this Front Matter:
+    ---
+    layout: post
+    title: "Global Market Insights: {region_name} Update"
+    categories: [global-news]
+    tags: [{data['tags']}]
+    excerpt: "Educational breakdown of the latest trends in the {region_name} stock markets."
+    ---
+    
+    (Write the article here using Markdown headers)
     """
     
     response = client.models.generate_content(
@@ -38,21 +42,14 @@ def generate_seo_article(region_name, market_focus):
         )
     )
     
-    # 2. Save file with unique prefix to avoid overwriting manual posts
     date_prefix = datetime.now().strftime("%Y-%m-%d")
-    safe_name = region_name.lower().replace(" ", "-")
-    file_path = f"_posts/{date_prefix}-ai-{safe_name}.md"
-    
-    # Ensure the directory exists (if you use the subfolder mentioned above)
-    # os.makedirs("_posts/global-news", exist_ok=True)
-    # file_path = f"_posts/global-news/{date_prefix}-ai-{safe_name}.md"
+    filename = f"_posts/{date_prefix}-ai-{region_name.lower()}.md"
 
-    with open(file_path, "w", encoding="utf-8") as f:
+    with open(filename, "w", encoding="utf-8") as f:
         f.write(response.text)
 
-# Execute for all 4 regions
-for region, focus in regions.items():
+for region, data in regions.items():
     try:
-        generate_seo_article(region, focus)
+        generate_seo_article(region, data)
     except Exception as e:
-        print(f"Error generating {region}: {e}")
+        print(f"Error for {region}: {e}")
