@@ -1,28 +1,34 @@
-name: Weekly Global SEO Articles
+name: Generate Weekly Market News
 on:
   schedule:
-    - cron: '0 0 * * 1' # Every Monday at midnight UTC
-  workflow_dispatch: # Allows manual run for "Review before publishing"
+    - cron: '0 0 * * 1' # Runs every Monday at 00:00 UTC
+  workflow_dispatch: # Allows you to run it manually with one click to test
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
           python-version: '3.10'
-      - name: Install dependencies
-        run: pip install google-generativeai
-      - name: Run AI Script
+
+      - name: Install Dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run Generation Script
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: python generate_articles.py
-      - name: Commit and Push
+
+      - name: Commit and Push Articles
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add _posts/
-          git commit -m "Added weekly global SEO articles" || echo "No changes"
+          git add _posts/*.md
+          git commit -m "Auto-generated weekly market news" || echo "No changes to commit"
           git push
