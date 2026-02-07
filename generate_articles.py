@@ -2,36 +2,29 @@ import os
 from datetime import datetime
 import google.generativeai as genai
 
-# Setup Gemini 
+# Configuration
 genai.configure(api_key=os.environ["GEMINI_API_KEY"])
 model = genai.GenerativeModel('gemini-1.5-flash', tools=[{"google_search_retrieval": {}}])
 
-# Force the folder to be in the repository root
-# This ensures it doesn't create a 'ghost' _posts folder elsewhere
-base_dir = os.path.dirname(os.path.abspath(__file__))
-posts_dir = os.path.join(base_dir, '_posts')
+# Identify the absolute root of your repository
+repo_root = os.getcwd()
+posts_dir = os.path.join(repo_root, '_posts')
 
+# Create directory if it somehow doesn't exist
 if not os.path.exists(posts_dir):
     os.makedirs(posts_dir)
-    print(f"Created directory at: {posts_dir}")
+    print(f"Created: {posts_dir}")
 
-regions = {
-    "US": "Wall Street and NASDAQ",
-    "UK": "London Stock Exchange",
-    "Europe": "DAX and CAC 40",
-    "Asia": "Nikkei and Hang Seng"
-}
+regions = ["US", "UK", "Europe", "Asia"]
 
-def generate_article(region, focus):
-    print(f"Generating for {region}...")
-    prompt = (f"Using Google Search, write a 300-word stock market update for {focus}. "
-              "Output as Jekyll Markdown. Front matter must include: "
-              f"layout: post, title: 'Global News: {region} Market', categories: [global-news].")
+def generate_article(region):
+    print(f"--- Generating for {region} ---")
+    prompt = f"Write a 300-word stock update for {region}. Output in Jekyll Markdown format with layout: post and categories: [global-news]."
     
     response = model.generate_content(prompt)
     text = response.text.strip()
     
-    # Strip markdown wrappers if AI adds them
+    # Clean AI code blocks (```markdown ... ```)
     if text.startswith("```"):
         text = "\n".join(text.split("\n")[1:-1])
 
@@ -40,10 +33,12 @@ def generate_article(region, focus):
 
     with open(file_path, "w", encoding="utf-8") as f:
         f.write(text)
-    print(f"File saved: {file_path}")
+    
+    # Check if file actually exists before finishing
+    if os.path.exists(file_path):
+        print(f"VERIFIED: {filename} exists at {file_path}")
+    else:
+        raise Exception(f"Failed to write {filename}")
 
-for region, focus in regions.items():
-    try:
-        generate_article(region, focus)
-    except Exception as e:
-        print(f"Error: {e}")
+for r in regions:
+    generate_article(r)
