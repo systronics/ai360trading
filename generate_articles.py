@@ -1,26 +1,58 @@
 import os
-import google.generativeai as genai
 from datetime import datetime
+from google import genai
+from google.genai import types
 
-# 1. Setup Gemini
-genai.configure(api_key=os.environ["GEMINI_API_KEY"])
-model = genai.GenerativeModel('gemini-1.5-flash', tools=[{'google_search': {}}])
+# 1. Setup Client
+client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
+MODEL_ID = "gemini-1.5-flash"
 
-regions = ["US", "UK", "Europe", "Asia"]
+regions = {
+    "US": "Wall Street and US Tech Sector",
+    "UK": "London Stock Exchange and FTSE 100",
+    "Europe": "European Central Bank and DAX/CAC 40",
+    "Asia": "Nikkei, Hang Seng, and Asian Emerging Markets"
+}
 
-def create_article(region):
-    prompt = f"Write a professional educational analysis of the current week's stock market trends in {region}. Focus on educational value for traders. Format as Jekyll Markdown with front matter: title, date, and category 'global-news'."
+def generate_seo_article(region_name, market_focus):
+    print(f"Generating article for {region_name}...")
     
-    response = model.generate_content(prompt)
-    content = response.text
+    # The prompt forces Jekyll Front Matter and International SEO focus
+    prompt = f"""
+    Using Google Search, find the top 3 stock market educational trends for {market_focus} this week.
+    Write a high-quality educational article for a trading blog.
     
-    # 2. File Naming (avoids overwriting manual posts)
-    date_str = datetime.now().strftime("%Y-%m-%d")
-    filename = f"_posts/{date_str}-ai-news-{region.lower()}.md"
+    Requirements:
+    - Format: Jekyll Markdown
+    - Layout: post
+    - Category: global-news
+    - Language: Professional English
+    - Content: Analysis of trends, not live trading signals.
+    """
     
-    with open(filename, "w", encoding="utf-8") as f:
-        f.write(content)
+    response = client.models.generate_content(
+        model=MODEL_ID,
+        contents=prompt,
+        config=types.GenerateContentConfig(
+            tools=[types.Tool(google_search=types.GoogleSearchRetrieval())]
+        )
+    )
+    
+    # 2. Save file with unique prefix to avoid overwriting manual posts
+    date_prefix = datetime.now().strftime("%Y-%m-%d")
+    safe_name = region_name.lower().replace(" ", "-")
+    file_path = f"_posts/{date_prefix}-ai-{safe_name}.md"
+    
+    # Ensure the directory exists (if you use the subfolder mentioned above)
+    # os.makedirs("_posts/global-news", exist_ok=True)
+    # file_path = f"_posts/global-news/{date_prefix}-ai-{safe_name}.md"
 
-# Run for all regions
-for r in regions:
-    create_article(r)
+    with open(file_path, "w", encoding="utf-8") as f:
+        f.write(response.text)
+
+# Execute for all 4 regions
+for region, focus in regions.items():
+    try:
+        generate_seo_article(region, focus)
+    except Exception as e:
+        print(f"Error generating {region}: {e}")
