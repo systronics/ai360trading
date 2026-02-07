@@ -1,14 +1,16 @@
-name: Generate Weekly Market News
+name: Weekly AI Market News
 on:
   schedule:
-    - cron: '0 0 * * 1' # Runs every Monday at 00:00 UTC
-  workflow_dispatch: # Allows you to run it manually with one click to test
+    - cron: '0 0 * * 1' # Every Monday at 00:00 UTC
+  workflow_dispatch: # Allows manual trigger
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # Extra safety for write access
     steps:
-      - name: Checkout Repository
+      - name: Checkout Repo
         uses: actions/checkout@v4
 
       - name: Setup Python
@@ -17,18 +19,21 @@ jobs:
           python-version: '3.10'
 
       - name: Install Dependencies
-        run: |
-          pip install -r requirements.txt
+        run: pip install google-generativeai python-dotenv
 
-      - name: Run Generation Script
+      - name: Run Script
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: python generate_articles.py
 
-      - name: Commit and Push Articles
+      - name: Commit and Push
         run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
+          git config --local user.email "admin@ai360trading.in"
+          git config --local user.name "AI360-Automation"
           git add _posts/*.md
-          git commit -m "Auto-generated weekly market news" || echo "No changes to commit"
-          git push
+          if git diff --staged --quiet; then
+            echo "No new files to commit."
+          else
+            git commit -m "Auto-generated global news for $(date +'%Y-%m-%d')"
+            git push origin main
+          fi
