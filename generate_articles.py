@@ -2,10 +2,10 @@ import os
 from datetime import datetime
 import google.generativeai as genai
 
-# Setup Gemini with the 2026 stable tool format
+# Setup Gemini 
 genai.configure(api_key=os.environ["GEMINI_API_KEY"])
 
-# Use the stable Search tool declaration
+# Correct 2026 tool declaration for Search Grounding
 tools = [{"google_search_retrieval": {}}]
 model = genai.GenerativeModel('gemini-1.5-flash', tools=tools)
 
@@ -19,11 +19,16 @@ regions = {
 def generate_seo_article(region_name, market_focus):
     print(f"Generating article for {region_name}...")
     
-    prompt = f"Using Google Search, write a 300-word educational analysis of current stock trends in {market_focus}. Output as Jekyll Markdown with layout: post and categories: [global-news]."
+    # Prompt optimized for your Jekyll design
+    prompt = (f"Using Google Search, write a professional educational analysis of current stock market trends in {market_focus}. "
+              "Format the output as a Jekyll Markdown post. "
+              "Include this EXACT front matter at the top: "
+              "---\nlayout: post\ntitle: 'Global Market News: " + region_name + " Update'\n"
+              "categories: [global-news]\n---")
     
-    # Use the corrected generation call
     response = model.generate_content(prompt)
     
+    # File naming to stay separate from your manual posts
     date_prefix = datetime.now().strftime("%Y-%m-%d")
     filename = f"_posts/{date_prefix}-ai-{region_name.lower()}.md"
 
