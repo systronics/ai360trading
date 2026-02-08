@@ -3,8 +3,21 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX"
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-YR9E0CYRCV"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-YR9E0CYRCV', { 'anonymize_ip': true });
+  </script>
+
+  <script defer src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX"
      crossorigin="anonymous"></script>
+
+  <meta property="og:title" content="{{ page.title | default: site.title }}">
+  <meta property="og:description" content="{{ page.excerpt | default: site.description | strip_html | truncate: 160 }}">
+  <meta property="og:image" content="https://ai360trading.in/public/image/swing.webp">
+  <meta property="og:type" content="website">
 
   <link rel="stylesheet" href="/public/css/poole.css">
   <link rel="stylesheet" href="/public/css/gpstyle.css">
@@ -14,7 +27,7 @@
   {% seo %}
 
   <style>
-    /* Clean, Professional Layout */
+    /* Prevent layout shift while scripts load */
     .sidebar { display: none !important; }
     .content, .container { 
       max-width: 1200px !important; 
