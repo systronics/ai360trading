@@ -1,6 +1,9 @@
-name: Weekly AI Market News
+name: Daily AI Market News
 on:
   workflow_dispatch:
+  schedule:
+    # 01:00 UTC is 06:30 AM IST (Runs every day)
+    - cron: '0 1 * * *'
 
 jobs:
   build:
@@ -34,6 +37,6 @@ jobs:
           if git diff-index --quiet HEAD; then
             echo "No changes detected."
           else
-            git commit -m "AI Update (IST): $(date +'%Y-%m-%d')"
+            git commit -m "Auto-Market Update (IST): $(date +'%Y-%m-%d')"
             git push origin master
           fi
