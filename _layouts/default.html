@@ -3,55 +3,23 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  
   {% include head.html %}
   {% seo %}
   {% include analytics.html %}
 
+  <link rel="stylesheet" href="{{ '/public/css/poole.css' | relative_url }}">
+  <link rel="stylesheet" href="{{ '/public/css/gpstyle.css' | relative_url }}">
+  <link rel="stylesheet" href="{{ '/public/css/font-awesome.min.css' | relative_url }}">
+
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ site.adsense_publisher_id }}" crossorigin="anonymous"></script>
-  
-  <style>
-    /* MOBILE-FIRST & SPEED OPTIMIZATIONS */
-    :root { --primary-color: #3498db; --dark-text: #2c3e50; }
-    
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: var(--dark-text); margin: 0; }
-
-    /* Responsive Navigation */
-    .site-header { border-bottom: 1px solid #eee; background: #fff; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-    .header-container { max-width: 1200px; margin: 0 auto; padding: 10px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
-    
-    .logo-img { max-height: 60px; width: auto; height: auto; }
-    
-    nav { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; }
-    .nav-link { font-weight: bold; color: var(--dark-text); text-decoration: none; font-size: 14px; text-transform: uppercase; transition: color 0.3s; }
-    .nav-link:hover { color: var(--primary-color); }
-
-    /* Social Icons Optimization */
-    .social-links { display: flex; gap: 15px; font-size: 18px; margin-top: 5px; }
-    .social-links a { color: var(--dark-text); transition: transform 0.2s; }
-    .social-links a:hover { color: var(--primary-color); transform: translateY(-2px); }
-
-    /* Content Area */
-    .content { width: 100%; max-width: 1100px; margin: 0 auto; padding: 20px 15px; box-sizing: border-box; }
-
-    /* Mobile Specific Adjustments */
-    @media (max-width: 600px) {
-      .logo-img { max-height: 50px; }
-      nav { gap: 10px; }
-      .nav-link { font-size: 12px; }
-      .content { padding: 15px 10px; }
-    }
-
-    /* Video & Embed Responsiveness */
-    .video-container { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 8px; background: #000; }
-    .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
-  </style>
 </head>
 <body>
 
   <header class="site-header">
     <div class="header-container">
       <a href="/">
-        <img src="/public/image/header.webp" alt="{{ site.name }}" class="logo-img" loading="eager">
+        <img src="/public/image/header.webp" alt="{{ site.name }}" class="logo-img" style="max-height: 60px; width: auto;" loading="eager">
       </a>
       
       <nav>
@@ -76,9 +44,9 @@
     {{ content }}
   </main>
 
-  <footer style="background: var(--dark-text); color: #fff; padding: 30px 15px; text-align: center; margin-top: 40px;">
+  <footer style="background: #2c3e50; color: #fff; padding: 30px 15px; text-align: center; margin-top: 40px;">
     <div style="max-width: 1200px; margin: 0 auto;">
-      <p style="margin: 0; font-size: 14px;">&copy; {{ site.time | date: '%Y' }} {{ site.name | upcase }}</p>
+      <p style="margin: 0; font-size: 14px;">&copy; {{ "now" | date: "%Y" }} {{ site.name | upcase }}</p>
       <p style="font-size: 12px; color: #bdc3c7; margin-top: 5px;">AI-Driven Market Analysis & Trading Tools</p>
     </div>
   </footer>
