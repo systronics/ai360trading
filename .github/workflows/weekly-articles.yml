@@ -1,8 +1,6 @@
 name: Weekly AI Market News
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '30 18 * * 0' # Midnight Monday IST
 
 jobs:
   build:
@@ -10,18 +8,19 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Checkout Repo
+      - name: Checkout master
         uses: actions/checkout@v4
         with:
-          ref: master  # FIXED: Locked to master branch
+          ref: master
+          fetch-depth: 0
 
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11' # MODERN VERSION
+          python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: pip install google-genai pytz
 
       - name: Run AI Script
         env:
@@ -33,10 +32,11 @@ jobs:
           git config --local user.email "admin@ai360trading.in"
           git config --local user.name "AI360-Automation"
           git add _posts/*.md
-          if git diff --staged --quiet; then
-            echo "No changes detected."
-            exit 1
+          
+          # NEW: This line checks for NEW files (untracked) properly
+          if [[ -n "$(git status --porcelain)" ]]; then
+            git commit -m "AI Update $(date)"
+            git push origin master
           else
-            git commit -m "AI Update (IST): $(date +'%Y-%m-%d')"
-            git push origin master # FIXED: Pushing to master
+            echo "No changes found."
           fi
