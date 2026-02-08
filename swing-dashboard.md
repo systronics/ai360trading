@@ -58,44 +58,54 @@ tags: technical-picks
     100% { opacity: 1; transform: scale(1); }
   }
 
-  /* 4. TERMINAL CONTAINER FIX - Smooth Mobile Scroll */
+  /* 4. TERMINAL CONTAINER FIX - Prevents Scroll Locking */
   .terminal-wrapper {
     position: relative;
     width: 100%;
-    overflow: hidden; /* Clips the overflow */
     border-radius: 12px;
     border: 1px solid #e1e8ed;
     background: #fff;
     margin-bottom: 30px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    /* Essential: Allow the wrapper to stay stable while inner container scrolls */
+    overflow: visible; 
   }
 
   .terminal-scroll-container {
     width: 100%;
-    overflow-x: auto !important; /* Enables horizontal scroll */
-    -webkit-overflow-scrolling: touch !important; /* Smooth swipe on iPhone/Android */
+    overflow-x: auto !important;
+    overflow-y: hidden;
+    /* Smooth swipe for mobile */
+    -webkit-overflow-scrolling: touch !important;
+    /* Tells mobile browsers to prioritize horizontal swiping on this element */
+    touch-action: pan-x; 
+    border-radius: 12px;
   }
 
   iframe {
     width: 100%;
-    min-width: 1100px; /* Forces enough width for columns to be readable */
+    min-width: 1050px; /* Maintains professional desktop-grade spacing */
     height: 850px;
     border: none;
     display: block;
   }
 
-  /* Mobile Swipe Hint */
+  /* 5. Mobile Swipe Hint */
   .scroll-hint {
     display: none;
     text-align: center;
-    font-size: 12px;
-    color: #7f8c8d;
-    margin-bottom: 10px;
-    font-weight: bold;
+    font-size: 13px;
+    color: #34495e;
+    margin-bottom: 12px;
+    padding: 10px;
+    background: #f8f9fa;
+    border: 1px dashed #cbd5e0;
+    border-radius: 6px;
   }
 
   @media (max-width: 768px) {
     .scroll-hint { display: block; }
+    iframe { height: 700px; }
   }
 </style>
 
@@ -111,7 +121,7 @@ tags: technical-picks
   <div class="blink"></div> ALGO SYSTEM LIVE: TRACKING NIFTY 200
 </div>
 
-<p class="scroll-hint">↔️ Swipe left/right to view full table</p>
+<p class="scroll-hint">↔️ <b>Expert View:</b> Swipe left/right to view full terminal data</p>
 
 <div class="terminal-wrapper">
   <div class="terminal-scroll-container">
@@ -129,7 +139,6 @@ tags: technical-picks
     if (iframe) {
         var currentSrc = iframe.src;
         var timestamp = new Date().getTime();
-        // Force fresh data from Google Sheets by appending a cache-buster
         iframe.src = currentSrc + (currentSrc.indexOf('?') > -1 ? "&" : "?") + "cb=" + timestamp;
     }
   };
