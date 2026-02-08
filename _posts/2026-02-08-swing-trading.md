@@ -1,9 +1,10 @@
 ---
-layout:           post
-title:            "Live Swing Trading Dashboard | Institutional Buy Signals"
-image:            "https://ai360trading.in/public/image/swing.webp"
-excerpt:          "Track real-time institutional buy signals with automated target and stop-loss tracking for NSE Nifty 200 stocks."
-tags:             technical-picks
+layout: page
+title: "Live Swing Trading Dashboard | Institutional Buy Signals"
+image: "https://ai360trading.in/public/image/swing.webp"
+excerpt: "Track real-time institutional buy signals with automated target and stop-loss tracking for NSE Nifty 200 stocks."
+permalink: /swing-dashboard/
+tags: technical-picks
 ---
 
 <style>
@@ -61,7 +62,7 @@ tags:             technical-picks
   .terminal-wrapper {
     position: relative;
     width: 100%;
-    overflow: hidden; /* Contains the scroll */
+    overflow: hidden; 
     border-radius: 12px;
     border: 1px solid #e1e8ed;
     background: #fff;
@@ -70,11 +71,11 @@ tags:             technical-picks
 
   .terminal-scroll-container {
     width: 100%;
-    overflow-x: auto; /* Enables horizontal scroll */
-    -webkit-overflow-scrolling: touch; /* Essential for smooth iOS/Android sliding */
+    overflow-x: auto; 
+    -webkit-overflow-scrolling: touch; 
   }
 
-  /* Mobile Scroll Help Text */
+  /* Mobile Scroll Hint */
   .scroll-hint {
     display: none;
     text-align: center;
@@ -89,7 +90,7 @@ tags:             technical-picks
 
   iframe {
     width: 100%;
-    min-width: 1100px; /* Forces the sheet to be wide enough to require scrolling */
+    min-width: 1100px; 
     height: 850px;
     border: none;
     display: block;
@@ -122,6 +123,7 @@ tags:             technical-picks
     if (iframe) {
         var currentSrc = iframe.src;
         var timestamp = new Date().getTime();
+        // Adds a unique 'cb' (cache-buster) number to force the browser to fetch fresh data
         iframe.src = currentSrc + (currentSrc.indexOf('?') > -1 ? "&" : "?") + "cb=" + timestamp;
     }
   };
