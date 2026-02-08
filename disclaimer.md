@@ -1,6 +1,7 @@
 ---
-layout: page
-excerpt: ai360trading, AlgoTrading, LiveIntraday, PriceAction, Breakout, Scalping, Option,  BankNifty, Crypto, Bitcoin 
+title: "Read Disclaimer and advice with your financial advisor"
+excerpt: Risk, Pain, GST, Tax, Terms and conditions
+permalink: /disclaimer/
 ---
 
 <h2>Terms of use-</h2><br />
