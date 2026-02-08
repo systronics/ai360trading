@@ -1,7 +1,6 @@
 ---
 layout: page
 excerpt: ai360trading, AlgoTrading, LiveIntraday, PriceAction, Breakout, Scalping, Option,  BankNifty, Crypto, Bitcoin 
-image:            https://ai360trading.in/public/image/cover.webp
 ---
 
 <h3>Online Course in Hindi on Zoom/Youtube app</h3>
