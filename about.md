@@ -1,6 +1,6 @@
 ---
 layout: page
-permalink: /about/
+excerpt: ai360trading, AlgoTrading, LiveIntraday, Technical_Picks, Breakout
 ---
 
 ## Our Algorithmic Trading Vision
