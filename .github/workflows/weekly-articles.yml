@@ -1,14 +1,12 @@
 name: Weekly AI Market News
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '30 18 * * 0'
 
 jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # CRITICAL: Allows the bot to write to master
+      contents: write
     steps:
       - name: Checkout master
         uses: actions/checkout@v4
@@ -32,11 +30,7 @@ jobs:
         run: |
           git config --local user.email "admin@ai360trading.in"
           git config --local user.name "AI360-Automation"
-          
-          # Add ALL changes (including untracked files)
           git add -A _posts/
-          
-          # Check if there is anything to commit
           if git diff-index --quiet HEAD; then
             echo "No changes detected."
           else
