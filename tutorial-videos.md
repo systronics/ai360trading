@@ -26,6 +26,12 @@ tags: learn-stockmarket
   </iframe>
 </div>
 
+<p style="text-align:center; margin-top: 15px;">
+  <a href="https://www.youtube.com/@ai360trading/streams" target="_blank" style="display: inline-block; padding: 10px 20px; background-color: #ff0000; color: #fff; border-radius: 5px; text-decoration: none; font-weight: bold;">
+    🔴 View All Live Streams on YouTube
+  </a>
+</p>
+
 ---
 
 ### 📚 Course Content
@@ -33,4 +39,4 @@ tags: learn-stockmarket
 * **Market Insights:** Daily Indian stock market analysis and technical picks.
 * **Price Action:** Decoding candle patterns for better entry and exit points.
 
-> **Tip:** This playlist updates automatically every time a new video is uploaded to the **ai360trading** YouTube channel!
+> **Tip:** If you see "No Videos" in the player, ensure you have enabled **Embedding** in your YouTube Studio under the **Live** tab!
