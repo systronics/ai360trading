@@ -18,6 +18,10 @@ future:       true        # IMPORTANT: Ensures 2026 posts appear
 description: "AI-Powered Stock Market Trading Platform - Live Intraday, Price Action, Breakout, Scalping, Options, BankNifty, and Crypto Trading Signals."
 google_site_verification: "PASTE_YOUR_CODE_HERE" # ADDED: Get this from Search Console
 adsense_publisher_id: "ca-pub-XXXXXXXXXXXXXXXX" # ADDED: Get this from your NEW AdSense account
+# Alternatively, use this structured format if you have multiple verifications:
+webmaster_verifications:
+  google: "YOUR_UNIQUE_CODE_HERE"
+  bing: "BING_CODE_IF_ANY"
 
 # Layout Settings
 defaults:
