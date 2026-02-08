@@ -3,9 +3,6 @@ layout: page
 excerpt: ai360trading, AlgoTrading, LiveIntraday, PriceAction, Breakout, Scalping, Option,  BankNifty, Crypto, Bitcoin 
 ---
 
-# Disclaimer
-
-
 <h2>Terms of use-</h2><br />
 This website/ Blog/ App has some terms and conditions. Please read carefully before <b>ENTER </b> here. Provided links are here may be hosted on some third party websites/ Blog/ App. You are solely responsible for verifying the accuracy of information, images, text, multimedia, advertisements and other content. I am not responsible or liable in any manner for any content or third party products advertisements posted here. We are not sebi registered. Please do your own analysis or consult with your financial advisor before any investment or trade. <br />
 <br />
