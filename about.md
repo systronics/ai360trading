@@ -1,7 +1,10 @@
 ---
 layout: page
+title: "Earn Money Free: Online Opportunities & Side Income"
 excerpt: ai360trading, AlgoTrading, LiveIntraday, Technical_Picks, Breakout
+permalink: /about/
 ---
+
 
 ## Our Algorithmic Trading Vision
 Welcome to **AI360Trading**, where we leverage Artificial Intelligence to simplify stock market analysis. Our platform provides automated signals for Technical and Fundamental analysis, helping traders find high-probability setups in Nifty, BankNifty, and Crypto.
