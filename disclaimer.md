@@ -1,6 +1,7 @@
 ---
-title: "Read Disclaimer and advice with your financial advisor"
-excerpt: Risk, Pain, GST, Tax, Terms and conditions
+layout: page
+title: "Disclaimer"
+excerpt:  Get advice with your financial advisor
 permalink: /disclaimer/
 ---
 
