@@ -3,43 +3,34 @@ layout: default
 title: "AI Stock Market Trading | Live Algo Signals"
 ---
 
-{% include collecttags.html %}
-
 <h2 class="section-heading" style="text-align: left; border-bottom: 2px solid #2ecc71; padding-bottom: 5px;">LIVE TRADING DASHBOARDS</h2>
-<div class="dashboard-grid">
+<div class="dashboard-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px;">
   
-  <a href="/swing-dashboard/" class="card-link">
-    <div class="pro-card" style="border-top: 4px solid #2ecc71;">
-      <h3>🎯 Live Swing Trades</h3>
-      <p>Real-time signals from Google Sheets.</p>
+  <a href="/swing-dashboard/" style="text-decoration: none; color: inherit;">
+    <div class="pro-card" style="border-top: 4px solid #2ecc71; padding: 15px; background: #fff; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+      <h3 style="margin: 0;">🎯 Live Swing Trades</h3>
+      <p style="font-size: 13px; color: #666;">Real-time signals from Sheets.</p>
     </div>
   </a>
 
-  <a href="/intraday-live/" class="card-link">
-    <div class="pro-card" style="border-top: 4px solid #2ecc71;">
-      <h3>⚡ Intraday Signals</h3>
-      <p>Live day-trading levels & breakouts.</p>
+  <a href="/intraday-live/" style="text-decoration: none; color: inherit;">
+    <div class="pro-card" style="border-top: 4px solid #2ecc71; padding: 15px; background: #fff; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+      <h3 style="margin: 0;">⚡ Intraday Signals</h3>
+      <p style="font-size: 13px; color: #666;">Live day-trading levels.</p>
     </div>
   </a>
 
-  <a href="/positional-picks/" class="card-link">
-    <div class="pro-card" style="border-top: 4px solid #2ecc71;">
-      <h3>📈 Positional Scanner</h3>
-      <p>Powered by Screener.in custom tech.</p>
+  <a href="/positional-picks/" style="text-decoration: none; color: inherit;">
+    <div class="pro-card" style="border-top: 4px solid #2ecc71; padding: 15px; background: #fff; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+      <h3 style="margin: 0;">📈 Positional Scanner</h3>
+      <p style="font-size: 13px; color: #666;">Custom screening tech.</p>
     </div>
   </a>
 
-  <a href="/tutorial-videos/" class="card-link">
-    <div class="pro-card" style="border-top: 4px solid #ff0000;">
-      <h3>🎥 YouTube Masterclass</h3>
-      <p>Watch live streams & video tutorials.</p>
-    </div>
-  </a>
-
-  <a href="/earn-money/" class="card-link">
-    <div class="pro-card" style="border-top: 4px solid #f1c40f;">
-      <h3>💰 Earn Free Income</h3>
-      <p>Verified referral & commission links.</p>
+  <a href="/tutorial-videos/" style="text-decoration: none; color: inherit;">
+    <div class="pro-card" style="border-top: 4px solid #ff0000; padding: 15px; background: #fff; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+      <h3 style="margin: 0;">🎥 Video Masterclass</h3>
+      <p style="font-size: 13px; color: #666;">Watch live streams.</p>
     </div>
   </a>
 </div>
@@ -48,18 +39,16 @@ title: "AI Stock Market Trading | Live Algo Signals"
   <h2 class="section-heading" style="text-align: left; border-bottom: 2px solid #0088cc; padding-bottom: 5px;">DAILY AI MARKET INSIGHTS</h2>
   
   <div class="ai-news-grid" style="margin-top: 20px;">
-    {% for post in site.posts limit:10 %}
-      {% if post.tags contains 'Market Analysis' or post.tags contains 'global-markets' %}
-      <div class="pro-card" style="text-align: left; padding: 15px; margin-bottom: 10px; display: block;">
+    {% for post in site.posts limit:5 %}
+      {% if post.tags contains 'global-markets' %}
+      <div class="pro-card" style="text-align: left; padding: 15px; margin-bottom: 10px; border-left: 4px solid #0088cc; background: #f9f9f9;">
         <span style="font-size: 11px; color: #7f8c8d;">{{ post.date | date: "%b %d, %Y" }}</span>
-        <h3 style="margin: 5px 0; font-size: 16px;">
+        <h3 style="margin: 5px 0; font-size: 18px;">
           <a href="{{ post.url | relative_url }}" style="text-decoration: none; color: #0088cc;">{{ post.title }}</a>
         </h3>
-        <p style="font-size: 13px; color: #546e7a;">{{ post.excerpt | strip_html | truncate: 100 }}</p>
+        <p style="font-size: 14px; color: #444;">{{ post.excerpt | strip_html | truncate: 120 }}</p>
       </div>
       {% endif %}
     {% endfor %}
   </div>
 </div>
-
-{% include archive.html %}
