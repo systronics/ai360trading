@@ -1,7 +1,10 @@
 ---
 layout: page
-excerpt: ai360trading, AlgoTrading, LiveIntraday, PriceAction, Breakout, Scalping, Option,  BankNifty, Crypto, Bitcoin 
+title: "Learn and Earn, Joint us to get earning Side Income"
+excerpt: Live_classes, Live_trading, Youtube_live, LiveIntraday
+permalink: /contact/
 ---
+
 
 <h3>Online Course in Hindi on Zoom/Youtube app</h3>
 
