@@ -8,6 +8,12 @@
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX"
      crossorigin="anonymous"></script>
 
+  <meta property="og:title" content="{{ page.title | default: site.title }}">
+  <meta property="og:description" content="{{ page.excerpt | default: site.description | strip_html | truncate: 160 }}">
+  <meta property="og:image" content="{{ site.url }}/public/image/swing.webp">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+
   <link rel="preload" as="style" href="/public/css/poole.css">
   <link rel="preload" as="style" href="/public/css/gpstyle.css">
 
@@ -20,10 +26,10 @@
   {% seo %}
 
   <style>
-    /* Prevent sidebar interference */
+    /* Prevent sidebar interference for clean dashboard look */
     .sidebar { display: none !important; }
     
-    /* Main Layout Centering */
+    /* Main Layout Centering & Dashboard Width Fix */
     .content, .container { 
       max-width: 1200px !important; 
       margin: 0 auto !important; 
