@@ -3,44 +3,31 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <meta name="google-site-verification" content="PASTE_YOUR_CODE_HERE">
-  
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX"
      crossorigin="anonymous"></script>
 
   <meta property="og:title" content="{{ page.title | default: site.title }}">
   <meta property="og:description" content="{{ page.excerpt | default: site.description | strip_html | truncate: 160 }}">
-  <meta property="og:image" content="{{ site.url }}/public/image/swing.webp">
+  <meta property="og:image" content="https://ai360trading.in/public/image/swing.webp">
   <meta property="og:type" content="website">
-  <meta name="twitter:card" content="summary_large_image">
-
-  <link rel="preload" as="style" href="/public/css/poole.css">
-  <link rel="preload" as="style" href="/public/css/gpstyle.css">
 
   <link rel="stylesheet" href="/public/css/poole.css">
   <link rel="stylesheet" href="/public/css/gpstyle.css">
   <link rel="stylesheet" href="/public/font-awesome/css/font-awesome.min.css">
-  
   <link rel="shortcut icon" type="image/x-icon" href="/public/image/favicon.ico">
   
   {% seo %}
 
   <style>
-    /* Prevent sidebar interference for clean dashboard look */
     .sidebar { display: none !important; }
-    
-    /* Main Layout Centering & Dashboard Width Fix */
     .content, .container { 
       max-width: 1200px !important; 
       margin: 0 auto !important; 
       padding: 0 20px !important;
-      float: none !important; 
       display: block !important;
     }
-
     .site-header { 
       background: #fff; 
-      border-bottom: 1px solid #eee; 
       position: sticky; 
       top: 0; 
       z-index: 1000; 
