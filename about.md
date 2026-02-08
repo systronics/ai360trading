@@ -1,7 +1,7 @@
 ---
 layout: page
-title: "Earn Money Free: Online Opportunities & Side Income"
-excerpt: ai360trading, AlgoTrading, LiveIntraday, Technical_Picks, Breakout
+title: "about"
+excerpt: ai360trading, AlgoTrading
 permalink: /about/
 ---
 
