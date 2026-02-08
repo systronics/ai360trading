@@ -3,6 +3,8 @@ layout: default
 title: "AI Stock Market Trading | Live Algo Signals"
 ---
 
+{% include collecttags.html %}
+
 <h1 style="text-align:center; color:#0088cc;">AI-Powered Market Insights</h1>
 
 <div class="dashboard-grid">
@@ -12,7 +14,7 @@ title: "AI Stock Market Trading | Live Algo Signals"
       <p>Live algo-generated signals for Nifty & Stocks.</p>
     </div>
   </a>
-  </div>
+</div>
 
 <section>
   <h2 style="text-align:center; color:#0088cc;">Global Market Insights</h2>
@@ -21,14 +23,19 @@ title: "AI Stock Market Trading | Live Algo Signals"
       <div class="ai-post-card">
         <h3 style="margin:0;"><a href="{{ post.url }}" style="text-decoration:none; color:#0088cc;">{{ post.title }}</a></h3>
         <p style="font-size:14px; color:#546e7a;">{{ post.excerpt | strip_html | truncate: 120 }}</p>
-        <span style="font-size:12px; color:#2ecc71;">📅 {{ post.date | date: "%b %d, %Y" }}</span>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:12px; color:#2ecc71;">📅 {{ post.date | date: "%b %d, %Y" }}</span>
+          <span style="font-size:11px; background:#e1f5fe; color:#01579b; padding:2px 8px; border-radius:12px;">AI Analysis</span>
+        </div>
       </div>
     {% endfor %}
   </div>
 </section>
 
+{% include archive.html %}
+
 <section class="broker-section" style="margin-top:40px; text-align:center;">
-  <h3>Partner Brokerage Platforms</h3>
+  <h3 style="color:#2c3e50;">Partner Brokerage Platforms</h3>
   <div class="broker-grid">
     <a href="https://zerodha.com/open-account?c=YS3694" target="_blank" class="broker-link">Zerodha</a>
     <a href="https://invite.dhan.co/?invite=MSIVC45309" target="_blank" class="broker-link">Dhan</a>
