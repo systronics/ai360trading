@@ -1,20 +1,23 @@
 # Dependencies
-markdown:    kramdown
-highlighter: rouge
+markdown:     kramdown
+highlighter:  rouge
+encoding:     "utf-8"  # ADDED: Prevents build errors with AI characters
 
 # Permalinks
-permalink:   /:title/
+permalink:    /:title/
 
 # Setup
-name:        "AI360Trading"
-url:         "https://ai360trading.in"
-baseurl:     ""
-logo:        "/public/image/logo.webp"
-timezone:    "Asia/Kolkata"
-future:      true        # IMPORTANT: Ensures 2026 posts appear
+name:         "AI360Trading"
+url:          "https://ai360trading.in"
+baseurl:      ""
+logo:         "/public/image/logo.webp"
+timezone:     "Asia/Kolkata"
+future:       true        # IMPORTANT: Ensures 2026 posts appear
 
-# Description for SEO (Enhanced for rankings)
+# SEO & Ownership (Critical for your new ai360trading@gmail.com account)
 description: "AI-Powered Stock Market Trading Platform - Live Intraday, Price Action, Breakout, Scalping, Options, BankNifty, and Crypto Trading Signals."
+google_site_verification: "PASTE_YOUR_CODE_HERE" # ADDED: Get this from Search Console
+adsense_publisher_id: "ca-pub-XXXXXXXXXXXXXXXX" # ADDED: Get this from your NEW AdSense account
 
 # Layout Settings
 defaults:
@@ -25,24 +28,24 @@ defaults:
       wide_layout: true
       image: "https://ai360trading.in/public/image/cover.webp"
 
-# Author Info - Verified for Clean Break
+# Author Info - Using your official professional identity
 author:
   name:      "AI360Trading"
   email:     "admin@ai360trading.in"
+  url:       "https://ai360trading.in"
 
 # Social Media Usernames
-facebook:
-  username:  "ai360trading"
-x:
-  username:  "ai360trading"
-instagram:
-  username:  "ai360trading"
-telegram:
-  username:  "ai360trading"
-youtube:
-  username:  "ai360trading"
+social: # Recommended: Grouping under 'social' for jekyll-seo-tag
+  facebook: "ai360trading"
+  twitter:  "ai360trading"
+  instagram: "ai360trading"
+  telegram: "ai360trading"
+  youtube:  "ai360trading"
+  links:
+    - https://t.me/ai360trading
+    - https://twitter.com/ai360trading
 
-# Broker Affiliate Section (Update with your Zerodha or Dhan link)
+# Broker Affiliate Section
 broker:
   name: "Official Partner"
   affiliate_url: "https://zerodha.com/open-account?c=YS3694"
@@ -52,7 +55,7 @@ plugins:
   - jekyll-paginate
   - jekyll-seo-tag
   - jekyll-sitemap
-  - jekyll-feed # Added to ensure atom.xml is generated correctly
+  - jekyll-feed
 
 # PERFORMANCE OPTIMIZATION
 compress_html:
@@ -74,3 +77,4 @@ exclude:
   - .sass-cache
   - .jekyll-cache
   - .git
+  - vendor
