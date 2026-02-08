@@ -1,8 +1,9 @@
 ---
-layout: post
+layout: page
 title: "Earn Money Free: Online Opportunities & Side Income"
 image: "https://ai360trading.in/public/image/invest.webp"
 excerpt: "Explore verified ways to earn money online, work from home opportunities, and free income streams."
+permalink: /earn-money/
 tags: learn-stockmarket
 ---
 
