@@ -1,24 +1,24 @@
 # Dependencies
-markdown:     kramdown
-highlighter:  rouge
-encoding:     "utf-8"  # ADDED: Prevents build errors with AI characters
+markdown:      kramdown
+highlighter:   rouge
+encoding:      "utf-8"  # Prevents build errors with AI characters
 
 # Permalinks
-permalink:    /:title/
+permalink:     /:title/
 
 # Setup
-name:         "AI360Trading"
-url:          "https://ai360trading.in"
-baseurl:      ""
-logo:         "/public/image/logo.webp"
-timezone:     "Asia/Kolkata"
-future:       true        # IMPORTANT: Ensures 2026 posts appear
+name:          "AI360Trading"
+url:           "https://ai360trading.in"
+baseurl:       ""
+logo:          "/public/image/logo.webp"
+timezone:      "Asia/Kolkata"
+future:        true        # Ensures 2026 posts appear
 
-# SEO & Ownership (Critical for your new ai360trading@gmail.com account)
+# SEO & Ownership
 description: "AI-Powered Stock Market Trading Platform - Live Intraday, Price Action, Breakout, Scalping, Options, BankNifty, and Crypto Trading Signals."
-google_site_verification: "PASTE_YOUR_CODE_HERE" # ADDED: Get this from Search Console
-adsense_publisher_id: "ca-pub-XXXXXXXXXXXXXXXX" # ADDED: Get this from your NEW AdSense account
-# Alternatively, use this structured format if you have multiple verifications:
+google_site_verification: "PASTE_YOUR_CODE_HERE" 
+adsense_publisher_id: "ca-pub-XXXXXXXXXXXXXXXX" 
+
 webmaster_verifications:
   google: "YOUR_UNIQUE_CODE_HERE"
   bing: "BING_CODE_IF_ANY"
@@ -32,22 +32,29 @@ defaults:
       wide_layout: true
       image: "https://ai360trading.in/public/image/cover.webp"
 
-# Author Info - Using your official professional identity
+# Author Info
 author:
   name:      "AI360Trading"
   email:     "admin@ai360trading.in"
   url:       "https://ai360trading.in"
 
-# Social Media Usernames
-social: # Recommended: Grouping under 'social' for jekyll-seo-tag
-  facebook: "ai360trading"
-  twitter:  "ai360trading"
-  instagram: "ai360trading"
-  telegram: "ai360trading"
-  youtube:  "ai360trading"
+# Social Media Usernames (FIXED: Flattened for Theme Compatibility)
+twitter_username:   ai360trading
+github_username:    ai360trading
+facebook_username:  ai360trading
+instagram_username: ai360trading
+telegram_username:  ai360trading
+youtube_username:   ai360trading
+
+# Structured Social Data for jekyll-seo-tag
+social:
+  name: "AI360Trading"
   links:
     - https://t.me/ai360trading
     - https://twitter.com/ai360trading
+    - https://facebook.com/ai360trading
+    - https://instagram.com/ai360trading
+    - https://youtube.com/@ai360trading
 
 # Broker Affiliate Section
 broker:
