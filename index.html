@@ -8,35 +8,35 @@ title: "AI Stock Market Trading | Live Algo Signals"
 <h2 class="section-heading" style="text-align: left; border-bottom: 2px solid #2ecc71; padding-bottom: 5px;">LIVE TRADING DASHBOARDS</h2>
 <div class="dashboard-grid">
   
-  <a href="/2024/03/20/swing-trading.html" class="card-link">
+  <a href="/swing-dashboard/" class="card-link">
     <div class="pro-card" style="border-top: 4px solid #2ecc71;">
       <h3>🎯 Live Swing Trades</h3>
       <p>Real-time signals from Google Sheets.</p>
     </div>
   </a>
 
-  <a href="/2025/12/28/intraday-trading.html" class="card-link">
+  <a href="/intraday-live/" class="card-link">
     <div class="pro-card" style="border-top: 4px solid #2ecc71;">
       <h3>⚡ Intraday Signals</h3>
       <p>Live day-trading levels & breakouts.</p>
     </div>
   </a>
 
-  <a href="/2025/12/28/positional-trading.html" class="card-link">
+  <a href="/positional-picks/" class="card-link">
     <div class="pro-card" style="border-top: 4px solid #2ecc71;">
       <h3>📈 Positional Scanner</h3>
       <p>Powered by Screener.in custom tech.</p>
     </div>
   </a>
 
-  <a href="/2025/12/26/tutorial-videos.html" class="card-link">
+  <a href="/tutorial-videos/" class="card-link">
     <div class="pro-card" style="border-top: 4px solid #ff0000;">
       <h3>🎥 YouTube Masterclass</h3>
       <p>Watch live streams & video tutorials.</p>
     </div>
   </a>
 
-  <a href="/2025/01/25/earn-money-free.html" class="card-link">
+  <a href="/earn-money/" class="card-link">
     <div class="pro-card" style="border-top: 4px solid #f1c40f;">
       <h3>💰 Earn Free Income</h3>
       <p>Verified referral & commission links.</p>
@@ -49,11 +49,11 @@ title: "AI Stock Market Trading | Live Algo Signals"
   
   <div class="ai-news-grid" style="margin-top: 20px;">
     {% for post in site.posts limit:10 %}
-      {% if post.tags contains 'Market Analysis' %}
+      {% if post.tags contains 'Market Analysis' or post.tags contains 'global-markets' %}
       <div class="pro-card" style="text-align: left; padding: 15px; margin-bottom: 10px; display: block;">
         <span style="font-size: 11px; color: #7f8c8d;">{{ post.date | date: "%b %d, %Y" }}</span>
         <h3 style="margin: 5px 0; font-size: 16px;">
-          <a href="{{ post.url }}" style="text-decoration: none; color: #0088cc;">{{ post.title }}</a>
+          <a href="{{ post.url | relative_url }}" style="text-decoration: none; color: #0088cc;">{{ post.title }}</a>
         </h3>
         <p style="font-size: 13px; color: #546e7a;">{{ post.excerpt | strip_html | truncate: 100 }}</p>
       </div>
