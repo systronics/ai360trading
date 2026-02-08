@@ -113,7 +113,7 @@ tags: technical-picks
   <a href="https://t.me/{{ site.telegram_username }}" 
      target="_blank" 
      class="btn-tg">
-     <i class="fa fa-paper-plane"></i> JOIN TELEGRAM FOR LIVE ALERTS
+     <i class="fa fa-paper-plane"></i> JOIN TELEGRAM
   </a>
 </div>
 
