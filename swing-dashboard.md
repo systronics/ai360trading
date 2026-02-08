@@ -97,8 +97,13 @@ tags: technical-picks
   }
 </style>
 
-<div class="action-buttons">
-  <a href="https://t.me/{{ site.telegram.username }}" target="_blank" class="btn-tg">📱 Join Telegram Alerts</a>
+<div class="action-buttons" style="text-align: center; margin: 20px 0;">
+  <a href="https://t.me/{{ site.telegram_username }}" 
+     target="_blank" 
+     class="btn-tg" 
+     style="display: inline-block; padding: 12px 25px; background: #0088cc; color: #ffffff; text-decoration: none; border-radius: 50px; font-weight: bold; font-size: 16px; transition: transform 0.2s; box-shadow: 0 4px 15px rgba(0,136,204,0.3);">
+     <i class="fa fa-paper-plane"></i> JOIN TELEGRAM FOR LIVE ALERTS
+  </a>
 </div>
 
 <div class="live-status">
