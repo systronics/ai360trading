@@ -5,37 +5,39 @@ title: "AI Stock Market Trading | Live Algo Signals"
 
 {% include collecttags.html %}
 
-<h1 style="text-align:center; color:#0088cc;">AI-Powered Market Insights</h1>
-
 <div class="dashboard-grid">
   <a href="/tag/technical-picks" class="card-link">
-    <div class="pro-card">
-      <h3>📊 Technical Picks</h3>
-      <p>Live algo-generated signals for Nifty & Stocks.</p>
+    <div class="pro-card" style="margin-bottom: 30px; border-top: 4px solid #0088cc;">
+      <h2 style="color: #0088cc; font-size: 24px;">📊 TECHNICAL PICKS</h2>
+      <p style="font-size: 16px; color: #2c3e50; font-weight: bold;">Live algo-generated signals for Nifty & Stocks.</p>
     </div>
   </a>
 </div>
 
-<section>
-  <h2 style="text-align:center; color:#0088cc;">Global Market Insights</h2>
-  <div class="ai-news-grid">
-    {% for post in site.posts limit:4 %}
-      <div class="ai-post-card">
-        <h3 style="margin:0;"><a href="{{ post.url }}" style="text-decoration:none; color:#0088cc;">{{ post.title }}</a></h3>
-        <p style="font-size:14px; color:#546e7a;">{{ post.excerpt | strip_html | truncate: 120 }}</p>
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <span style="font-size:12px; color:#2ecc71;">📅 {{ post.date | date: "%b %d, %Y" }}</span>
-          <span style="font-size:11px; background:#e1f5fe; color:#01579b; padding:2px 8px; border-radius:12px;">AI Analysis</span>
-        </div>
+<div class="content-section">
+  <h2 class="section-heading" style="text-align: left; border-bottom: 2px solid #0088cc; padding-bottom: 5px;">LATEST MARKET UPDATES</h2>
+  
+  <div class="ai-news-grid" style="margin-top: 20px;">
+    {% for post in site.posts limit:6 %}
+      <div class="pro-card" style="text-align: left; padding: 20px; margin-bottom: 15px; display: block;">
+        <span style="font-size: 12px; color: #7f8c8d; display: block; margin-bottom: 5px;">{{ post.date | date: "%b %d, %Y" }}</span>
+        <h3 style="margin: 0 0 10px 0; font-size: 18px;">
+          <a href="{{ post.url }}" style="text-decoration: none; color: #0088cc;">{{ post.title }}</a>
+        </h3>
+        <p style="font-size: 14px; color: #546e7a; line-height: 1.5;">{{ post.excerpt | strip_html | truncate: 140 }}</p>
+        
+        {% if post.tags contains 'Market Analysis' %}
+          <span style="font-size: 10px; background: #e1f5fe; color: #01579b; padding: 3px 8px; border-radius: 4px; font-weight: bold;">AI INSIGHT</span>
+        {% endif %}
       </div>
     {% endfor %}
   </div>
-</section>
+</div>
 
 {% include archive.html %}
 
-<section class="broker-section" style="margin-top:40px; text-align:center;">
-  <h3 style="color:#2c3e50;">Partner Brokerage Platforms</h3>
+<section class="broker-section" style="margin-top: 40px; text-align: center; background: #fff; padding: 20px; border-radius: 12px; border: 1px solid #e1e8ed;">
+  <h3 style="margin-bottom: 20px;">Partner Brokerage Platforms</h3>
   <div class="broker-grid">
     <a href="https://zerodha.com/open-account?c=YS3694" target="_blank" class="broker-link">Zerodha</a>
     <a href="https://invite.dhan.co/?invite=MSIVC45309" target="_blank" class="broker-link">Dhan</a>
