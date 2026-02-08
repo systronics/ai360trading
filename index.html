@@ -4,7 +4,7 @@
   <div class="ai-news-grid" style="margin-top: 20px;">
     {% for post in site.posts limit:5 %}
       {% comment %} 
-         I removed the 'if tags contains' line so your posts always show up.
+         REMOVED the 'global-markets' tag filter. Now ALL daily reports will appear here.
       {% endcomment %}
       <div class="pro-card" style="text-align: left; padding: 15px; margin-bottom: 10px; border-left: 4px solid #0088cc; background: #f9f9f9;">
         <span style="font-size: 11px; color: #7f8c8d;">{{ post.date | date: "%b %d, %Y" }}</span>
