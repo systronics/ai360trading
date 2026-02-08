@@ -2,7 +2,7 @@ name: Weekly AI Market News
 on:
   workflow_dispatch:
   schedule:
-    - cron: '30 18 * * 0' # This is Midnight Monday IST (18:30 Sunday UTC)
+    - cron: '30 18 * * 0' # Midnight Monday IST
 
 jobs:
   build:
@@ -12,6 +12,8 @@ jobs:
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
+        with:
+          ref: master # Explicitly use master branch
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -26,20 +28,16 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: python generate_articles.py
 
-      - name: Debug - List Files
-        run: ls -R _posts/ # This will show us in the logs if the files exist
-
       - name: Commit and Push
         run: |
           git config --local user.email "admin@ai360trading.in"
           git config --local user.name "AI360-Automation"
           git add _posts/*.md
           
-          # Check if changes exist
           if git diff --staged --quiet; then
-            echo "STILL NO CHANGES. The script is not writing to the right folder."
+            echo "No changes detected."
             exit 1
           else
-            git commit -m "AI Market Update (IST): $(date +'%Y-%m-%d')"
-            git push origin HEAD
+            git commit -m "AI Update (IST): $(date +'%Y-%m-%d')"
+            git push origin master # FIXED: Using master branch
           fi
