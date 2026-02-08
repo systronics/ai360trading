@@ -1,8 +1,9 @@
 ---
-layout: post
+layout: page
 title: "Intraday Trading: Live Algo-Scanner"
 image: "https://ai360trading.in/public/image/intraday.webp"
 excerpt: "Real-time Intraday, Breakout, and Momentum signals powered by ai360trading Algo."
+permalink: /intraday-live/
 tags: technical-picks
 ---
 
@@ -71,8 +72,6 @@ tags: technical-picks
   <p style="color: #4a5568; font-size: 15px; margin-top: 10px;">Automatic Breakout & Breakdown signals updated in real-time for fast scalping.</p>
 </div>
 
-
-
 <div class="terminal-box">
   <iframe 
     src="https://docs.google.com/spreadsheets/d/e/2PACX-1vQ-E98O-wsBDHFmi4L4JHcW2fdTFjisvtJHWE4wj080bz0dUFr_YRHiTCsVLgSQyrr7PvCxPisUMXDf/pubhtml?gid=1473515751&single=true&headers=false&chrome=false&widget=false">
@@ -81,6 +80,6 @@ tags: technical-picks
 
 <div style="padding: 20px; background: #fff5f5; border-radius: 10px; border: 1px solid #ffebeb; text-align: center;">
   <p style="font-size: 14px; color: #c0392b; margin: 0; line-height: 1.6;">
-    <strong>High Performance Note:</strong> Data refreshes automatically using your cache-buster settings. For high-speed execution, monitor this terminal during live market hours <strong>(9:15 AM - 3:30 PM IST)</strong>.
+    <strong>High Performance Note:</strong> Data refreshes automatically. For high-speed execution, monitor this terminal during live market hours <strong>(9:15 AM - 3:30 PM IST)</strong>.
   </p>
 </div>
