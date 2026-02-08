@@ -4,8 +4,6 @@ excerpt: ai360trading, AlgoTrading, LiveIntraday, PriceAction, Breakout, Scalpin
 image:            https://ai360trading.in/public/image/cover.webp
 ---
 
-# Contact us
-
 <h3>Online Course in Hindi on Zoom/Youtube app</h3>
 
 <h4> 3 Month Course(Fees- Rs.3000/-)</h4>
