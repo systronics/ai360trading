@@ -1,18 +1,19 @@
 name: Weekly AI Market News
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '30 18 * * 0'
 
 jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: write # CRITICAL: Allows the bot to write to master
     steps:
       - name: Checkout master
         uses: actions/checkout@v4
         with:
           ref: master
-          fetch-depth: 0
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -31,12 +32,14 @@ jobs:
         run: |
           git config --local user.email "admin@ai360trading.in"
           git config --local user.name "AI360-Automation"
-          git add _posts/*.md
           
-          # NEW: This line checks for NEW files (untracked) properly
-          if [[ -n "$(git status --porcelain)" ]]; then
-            git commit -m "AI Update $(date)"
-            git push origin master
+          # Add ALL changes (including untracked files)
+          git add -A _posts/
+          
+          # Check if there is anything to commit
+          if git diff-index --quiet HEAD; then
+            echo "No changes detected."
           else
-            echo "No changes found."
+            git commit -m "AI Update (IST): $(date +'%Y-%m-%d')"
+            git push origin master
           fi
