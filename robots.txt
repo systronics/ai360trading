@@ -1,15 +1,19 @@
 ---
 layout: null
 ---
-# ai360trading.in Robots File
+# robots.txt for ai360trading.in
+# Optimized for 2026 SEO Standards
 
 User-agent: *
 Allow: /
-Disallow: /_layouts/
-Disallow: /_includes/
-Disallow: /_sass/
+
+# Only block folders that actually exist on the live site
+# If you have an admin panel or private folder on the live site:
 Disallow: /admin/
 Disallow: /private/
 
-# This links your robots file directly to your map
+# Block common bot "trap" URLs if you use them
+Disallow: /cgi-bin/
+
+# Link to your Sitemap (Liquid will fill in your URL automatically)
 Sitemap: {{ site.url }}/sitemap.xml
