@@ -12,32 +12,33 @@ now = datetime.now(ist)
 date_str = now.strftime("%Y-%m-%d")
 
 def clean_markdown(text):
-    """Removes AI conversational filler and code block wrappers."""
-    # 1. Remove ```markdown or ``` lines
+    """Removes AI filler and ensures Jekyll compatibility."""
     text = re.sub(r'^```[a-zA-Z]*\n', '', text, flags=re.MULTILINE)
     text = re.sub(r'\n```$', '', text, flags=re.MULTILINE)
-    # 2. Find the first '---' and treat everything before it as garbage
     match = re.search(r'---.*---', text, re.DOTALL)
     if match:
         return text[match.start():].strip()
     return text.strip()
 
 def generate_market_post(region):
-    print(f"Generating Groq report for {region}...")
+    print(f"Generating SEO-Optimized report for {region}...")
     
-    # Precise prompt to ensure Jekyll compatibility
     prompt = (
-        f"Generate a Jekyll blog post for the {region} market on {date_str}. "
-        "IMPORTANT: Start directly with '---' frontmatter. "
-        "Title must include the date. Tags: [Market Analysis, AI Trading, global-markets]. "
-        "Content must include: Market Sentiment, Key Levels (GIFT Nifty, Gold), and Action Plan."
+        f"Act as a Financial Journalist and SEO Expert. Write a Jekyll blog post for {region} market on {date_str}. "
+        "INSTRUCTIONS:\n"
+        "1. Start with Jekyll Frontmatter (title, date, categories, tags, excerpt).\n"
+        "2. Use H2 and H3 tags for structure.\n"
+        "3. BOLD all price levels, support/resistance numbers, and percentages (e.g., **18,500**).\n"
+        "4. Content: Market Sentiment, Global Cues (Nasdaq/Dow), Key Levels (Nifty/BankNifty/Gold), and Trading Strategy.\n"
+        "5. Include a section 'Why This Matters for Algo Traders'.\n"
+        "6. Finish with a 'Standard Trading Disclaimer' in italics."
     )
 
     try:
         completion = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=[{"role": "user", "content": prompt}],
-            temperature=0.3, # Lower temperature = more professional/stable output
+            temperature=0.4,
         )
         
         raw_content = completion.choices[0].message.content
@@ -51,7 +52,7 @@ def generate_market_post(region):
             
         with open(os.path.join(posts_dir, filename), "w", encoding="utf-8") as f:
             f.write(final_content)
-        print(f"✅ Created: {filename}")
+        print(f"✅ SEO Article Created: {filename}")
         
     except Exception as e:
         print(f"❌ Groq Error: {e}")
