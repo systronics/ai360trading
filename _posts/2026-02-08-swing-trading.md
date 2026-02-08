@@ -3,7 +3,6 @@ layout:           post
 title:            "Live Swing Trading Dashboard | Institutional Buy Signals"
 image:            "https://ai360trading.in/public/image/swing.webp"
 excerpt:          "Track real-time institutional buy signals with automated target and stop-loss tracking for NSE Nifty 200 stocks."
-description:      "Automated stock scanner for NSE. View live P/L, entry prices, and exit targets on our trading terminal."
 tags:             technical-picks
 ---
 
