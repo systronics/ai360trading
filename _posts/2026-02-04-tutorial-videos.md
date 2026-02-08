@@ -1,13 +1,12 @@
 ---
-layout: post
+layout: page
 title: "AI360 Masterclass: Algo Trading Tutorials"
-date: 2025-12-26
-categories: tutorials
+permalink: /tutorial-videos/
 ---
 
 <div class="learning-header" style="text-align:center; padding: 30px; background: linear-gradient(135deg, #fdfcfb 0%, #e2d1c3 100%); border-radius:15px; margin-bottom: 30px; border: 1px solid #ddd;">
   <h1 style="color: #2c3e50; margin-bottom: 5px;">🎥 Video Masterclass</h1>
-  <p style="font-size: 1.1em; color: #7f8c8d;">Learn Algo Trading, Price Action & AI Insights</p>
+  <p style="font-size: 1.1em; color: #7f8c8d;">Learn Algo Trading & Price Action</p>
 
   <div style="margin-top: 15px;">
     <script src="https://apis.google.com/js/platform.js"></script>
@@ -19,16 +18,12 @@ categories: tutorials
   <iframe 
     style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;"
     src="https://www.youtube.com/embed?listType=user_uploads&list=UC9dAJakbfPXk8zL31AVuTfA" 
-    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
     allowfullscreen>
   </iframe>
 </div>
 
 ---
 
-### 📚 What you will learn in these videos:
-* **Algo Basics:** How to set up your first paper trade.
-* **Market Analysis:** Daily breakdowns of the Indian Stock Market.
-* **Strategy Building:** Developing "blind-faith" level trading logic.
-
-> **Note:** New videos are added every week. Subscribe above to get notified!
+### 📚 Course Content
+* **Algo Basics:** Paper trading and setup.
+* **Market Insights:** Daily Indian market analysis.
