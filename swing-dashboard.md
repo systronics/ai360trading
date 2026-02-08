@@ -8,14 +8,14 @@ tags: technical-picks
 ---
 
 <style>
-  /* 1. Global Page Width */
+  /* 1. Global Page Width Fix */
   .post-content, .wrapper {
     max-width: 1200px !important;
     margin: 0 auto !important;
     padding: 0 15px !important;
   }
 
-  /* 2. Professional Button Row */
+  /* 2. Professional Button UI */
   .action-buttons {
     display: flex;
     justify-content: center;
@@ -58,50 +58,51 @@ tags: technical-picks
     100% { opacity: 1; transform: scale(1); }
   }
 
-  /* 4. FIXED TERMINAL CONTAINER - Solves Mobile Touch/Scroll */
+  /* 4. TERMINAL CONTAINER FIX - Smooth Mobile Scroll */
   .terminal-wrapper {
     position: relative;
     width: 100%;
-    overflow: hidden; 
+    overflow: hidden; /* Clips the overflow */
     border-radius: 12px;
     border: 1px solid #e1e8ed;
     background: #fff;
     margin-bottom: 30px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
   }
 
   .terminal-scroll-container {
     width: 100%;
-    overflow-x: auto; 
-    -webkit-overflow-scrolling: touch; 
+    overflow-x: auto !important; /* Enables horizontal scroll */
+    -webkit-overflow-scrolling: touch !important; /* Smooth swipe on iPhone/Android */
   }
 
-  /* Mobile Scroll Hint */
+  iframe {
+    width: 100%;
+    min-width: 1100px; /* Forces enough width for columns to be readable */
+    height: 850px;
+    border: none;
+    display: block;
+  }
+
+  /* Mobile Swipe Hint */
   .scroll-hint {
     display: none;
     text-align: center;
     font-size: 12px;
     color: #7f8c8d;
     margin-bottom: 10px;
+    font-weight: bold;
   }
 
   @media (max-width: 768px) {
     .scroll-hint { display: block; }
   }
-
-  iframe {
-    width: 100%;
-    min-width: 1100px; 
-    height: 850px;
-    border: none;
-    display: block;
-  }
 </style>
 
-<div class="action-buttons" style="text-align: center; margin: 20px 0;">
+<div class="action-buttons">
   <a href="https://t.me/{{ site.telegram_username }}" 
      target="_blank" 
-     class="btn-tg" 
-     style="display: inline-block; padding: 12px 25px; background: #0088cc; color: #ffffff; text-decoration: none; border-radius: 50px; font-weight: bold; font-size: 16px; transition: transform 0.2s; box-shadow: 0 4px 15px rgba(0,136,204,0.3);">
+     class="btn-tg">
      <i class="fa fa-paper-plane"></i> JOIN TELEGRAM FOR LIVE ALERTS
   </a>
 </div>
@@ -128,7 +129,7 @@ tags: technical-picks
     if (iframe) {
         var currentSrc = iframe.src;
         var timestamp = new Date().getTime();
-        // Adds a unique 'cb' (cache-buster) number to force the browser to fetch fresh data
+        // Force fresh data from Google Sheets by appending a cache-buster
         iframe.src = currentSrc + (currentSrc.indexOf('?') > -1 ? "&" : "?") + "cb=" + timestamp;
     }
   };
