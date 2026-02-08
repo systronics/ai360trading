@@ -6,8 +6,20 @@
   {% seo %}
 
   {% include analytics.html %}
+
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX"
+     crossorigin="anonymous"></script>
   
-  </head>
+  <style>
+    .nav-link:hover { color: #3498db !important; }
+    .social-links a { color: #2c3e50; transition: 0.3s; }
+    .social-links a:hover { color: #3498db; }
+    @media (max-width: 768px) {
+      .header-container { padding: 10px; }
+      nav { gap: 10px; }
+    }
+  </style>
+</head>
 <body>
 
   <header class="site-header">
@@ -25,22 +37,23 @@
       </nav>
 
       <div class="social-links" style="display: flex; gap: 20px; font-size: 20px;">
-        <a href="https://facebook.com/{{ site.facebook.username }}" target="_blank" aria-label="Facebook"><i class="fa fa-facebook"></i></a>
-        <a href="https://twitter.com/{{ site.x.username }}" target="_blank" aria-label="Twitter"><i class="fa fa-twitter"></i></a>
-        <a href="https://instagram.com/{{ site.instagram.username }}" target="_blank" aria-label="Instagram"><i class="fa fa-instagram"></i></a>
-        <a href="https://t.me/{{ site.telegram.username }}" target="_blank" aria-label="Telegram"><i class="fa fa-telegram"></i></a>
-        <a href="https://youtube.com/@{{ site.youtube.username }}" target="_blank" aria-label="YouTube"><i class="fa fa-youtube"></i></a>
+        {% if site.facebook.username %}<a href="https://facebook.com/{{ site.facebook.username }}" target="_blank" aria-label="Facebook"><i class="fa fa-facebook"></i></a>{% endif %}
+        {% if site.x.username %}<a href="https://twitter.com/{{ site.x.username }}" target="_blank" aria-label="Twitter"><i class="fa fa-twitter"></i></a>{% endif %}
+        {% if site.instagram.username %}<a href="https://instagram.com/{{ site.instagram.username }}" target="_blank" aria-label="Instagram"><i class="fa fa-instagram"></i></a>{% endif %}
+        {% if site.telegram.username %}<a href="https://t.me/{{ site.telegram.username }}" target="_blank" aria-label="Telegram"><i class="fa fa-telegram"></i></a>{% endif %}
+        {% if site.youtube.username %}<a href="https://youtube.com/@{{ site.youtube.username }}" target="_blank" aria-label="YouTube"><i class="fa fa-youtube"></i></a>{% endif %}
       </div>
     </div>
   </header>
 
-  <main class="content container" style="max-width: 1200px; margin: 0 auto; padding: 0 15px;">
+  <main class="content container" style="max-width: 1200px; margin: 0 auto; padding: 20px 15px;">
     {{ content }}
   </main>
 
   <footer style="background: #2c3e50; color: #fff; padding: 30px 20px; text-align: center; margin-top: 60px;">
     <div style="font-size: 14px; color: #95a5a6;">
         <p>&copy; {{ site.time | date: '%Y' }} {{ site.name | upcase }}. All rights reserved.</p>
+        <p style="margin-top: 10px;">Market Analysis powered by AI-360 Automation</p>
     </div>
   </footer>
 
