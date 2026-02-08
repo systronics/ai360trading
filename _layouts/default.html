@@ -11,12 +11,14 @@
      crossorigin="anonymous"></script>
   
   <style>
-    .nav-link:hover { color: #3498db !important; }
-    .social-links a { color: #2c3e50; transition: 0.3s; }
-    .social-links a:hover { color: #3498db; }
+    /* 2026 Navigation and UI Fixes */
+    .nav-link:hover { color: #3498db !important; text-decoration: underline !important; }
+    .social-links a { color: #2c3e50; transition: 0.3s; text-decoration: none; }
+    .social-links a:hover { color: #3498db; transform: scale(1.1); }
+    .site-header { border-bottom: 1px solid #eee; background: #fff; position: sticky; top: 0; z-index: 1000; }
     @media (max-width: 768px) {
       .header-container { padding: 10px; }
-      nav { gap: 10px; }
+      nav { gap: 10px; font-size: 13px; }
     }
   </style>
 </head>
@@ -37,23 +39,25 @@
       </nav>
 
       <div class="social-links" style="display: flex; gap: 20px; font-size: 20px;">
-        {% if site.facebook.username %}<a href="https://facebook.com/{{ site.facebook.username }}" target="_blank" aria-label="Facebook"><i class="fa fa-facebook"></i></a>{% endif %}
-        {% if site.x.username %}<a href="https://twitter.com/{{ site.x.username }}" target="_blank" aria-label="Twitter"><i class="fa fa-twitter"></i></a>{% endif %}
-        {% if site.instagram.username %}<a href="https://instagram.com/{{ site.instagram.username }}" target="_blank" aria-label="Instagram"><i class="fa fa-instagram"></i></a>{% endif %}
-        {% if site.telegram.username %}<a href="https://t.me/{{ site.telegram.username }}" target="_blank" aria-label="Telegram"><i class="fa fa-telegram"></i></a>{% endif %}
-        {% if site.youtube.username %}<a href="https://youtube.com/@{{ site.youtube.username }}" target="_blank" aria-label="YouTube"><i class="fa fa-youtube"></i></a>{% endif %}
+        <a href="https://facebook.com/{{ site.facebook.username }}" target="_blank" aria-label="Facebook"><i class="fa fa-facebook"></i></a>
+        <a href="https://twitter.com/{{ site.x.username }}" target="_blank" aria-label="Twitter"><i class="fa fa-twitter"></i></a>
+        <a href="https://instagram.com/{{ site.instagram.username }}" target="_blank" aria-label="Instagram"><i class="fa fa-instagram"></i></a>
+        <a href="https://t.me/{{ site.telegram.username }}" target="_blank" aria-label="Telegram"><i class="fa fa-telegram"></i></a>
+        <a href="https://youtube.com/@{{ site.youtube.username }}" target="_blank" aria-label="YouTube"><i class="fa fa-youtube"></i></a>
       </div>
     </div>
   </header>
 
-  <main class="content container" style="max-width: 1200px; margin: 0 auto; padding: 20px 15px;">
+  <main class="content container" style="max-width: 1200px; margin: 0 auto; padding: 30px 15px; min-height: 60vh;">
     {{ content }}
   </main>
 
-  <footer style="background: #2c3e50; color: #fff; padding: 30px 20px; text-align: center; margin-top: 60px;">
-    <div style="font-size: 14px; color: #95a5a6;">
-        <p>&copy; {{ site.time | date: '%Y' }} {{ site.name | upcase }}. All rights reserved.</p>
-        <p style="margin-top: 10px;">Market Analysis powered by AI-360 Automation</p>
+  <footer style="background: #2c3e50; color: #fff; padding: 40px 20px; text-align: center; margin-top: 60px;">
+    <div style="max-width: 1200px; margin: 0 auto;">
+      <div style="font-size: 14px; color: #95a5a6;">
+          <p>&copy; {{ site.time | date: '%Y' }} {{ site.name | upcase }}. All rights reserved.</p>
+          <p style="margin-top: 10px;">Daily Market Insights & AI Trading Automation</p>
+      </div>
     </div>
   </footer>
 
