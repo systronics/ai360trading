@@ -2,7 +2,7 @@ name: Weekly AI Market News
 on:
   workflow_dispatch:
   schedule:
-    - cron: '30 1 * * *' # Runs daily at 07:00 AM IST
+    - cron: '30 1 * * *' # Still runs daily at 7:00 AM IST for fresh data
 
 jobs:
   build:
@@ -33,5 +33,5 @@ jobs:
           git config --local user.email "admin@ai360trading.in"
           git config --local user.name "AI360-Automation"
           git add _posts/
-          git commit -m "Market Update: $(date +'%Y-%m-%d')" || exit 0
+          git commit -m "Stable Market Update: $(date +'%Y-%m-%d')" || exit 0
           git push origin master
