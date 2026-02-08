@@ -38,10 +38,11 @@ tags: fundamental-picks
     letter-spacing: 0.5px;
   }
 
-  /* 3. MOBILE SCROLL FIX - Nested Wrapper Method */
+  /* 3. MOBILE SCROLL FIX - Optimized for Human Manual Touch */
   .terminal-box {
+    position: relative;
     width: 100%;
-    overflow: hidden; /* Clips the child to prevent site-wide horizontal scroll */
+    /* Removed overflow:hidden to prevent mobile scroll locking */
     border: 1px solid #e1e8ed;
     border-radius: 12px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.1);
@@ -51,30 +52,41 @@ tags: fundamental-picks
 
   /* This container handles the actual touch swipe */
   .terminal-scroll-container {
-    overflow-x: auto !important;
-    -webkit-overflow-scrolling: touch !important; 
     width: 100%;
+    overflow-x: auto !important;
+    overflow-y: hidden;
+    /* Smooth swipe for mobile */
+    -webkit-overflow-scrolling: touch !important;
+    /* Prioritize horizontal swipe to prevent page wiggle */
+    touch-action: pan-x; 
+    border-radius: 12px;
   }
 
   iframe {
     width: 100%;
-    min-width: 1050px; /* Ensures columns stay wide enough to read on small screens */
-    height: 750px;
+    min-width: 1100px; /* Maintains professional spacing for many columns */
+    height: 800px;
     border: none;
     display: block;
   }
 
+  /* 4. Expert View Hint - Hand-crafted feel */
   .scroll-hint {
     display: none;
     text-align: center;
-    font-size: 12px;
-    color: #7f8c8d;
-    margin-bottom: 10px;
-    font-weight: 600;
+    font-size: 13px;
+    color: #34495e;
+    margin-bottom: 12px;
+    padding: 10px;
+    background: #f8f9fa;
+    border: 1px dashed #cbd5e0;
+    border-radius: 6px;
+    font-weight: 500;
   }
 
   @media (max-width: 768px) {
     .scroll-hint { display: block; }
+    iframe { height: 700px; } /* Slightly shorter for better mobile fit */
   }
 </style>
 
@@ -84,7 +96,7 @@ tags: fundamental-picks
   <p style="font-size: 15px; color: #4a5568; margin-top: 10px;">Focusing on Undervalued Stocks for 3-12 Month Investment Horizon</p>
 </div>
 
-<p class="scroll-hint">↔️ Swipe left/right to view full table</p>
+<p class="scroll-hint">↔️ <b>Expert View:</b> Swipe left/right to view full research table</p>
 
 <div class="terminal-box">
   <div class="terminal-scroll-container">
@@ -97,10 +109,10 @@ tags: fundamental-picks
 
 <div style="margin-top: 30px; padding: 20px; background: #fffdf0; border-left: 5px solid #f1c40f; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
   <p style="font-size: 14px; color: #4a5568; margin: 0; line-height: 1.6;">
-    <strong>Investment Note:</strong> Positional trades are updated weekly based on fundamental shifts and institutional delivery volumes. These picks are designed for wealth creation rather than quick scalps.
+    <strong>Investment Note:</strong> Positional trades are updated weekly based on fundamental shifts and institutional delivery volumes. These picks are hand-vetted for long-term wealth creation rather than speculative scalps.
   </p>
   <p style="font-size: 12px; color: #7f8c8d; margin-top: 10px; font-weight: 600;">
-    🕒 <strong>Last Algo Sync:</strong> {{ "now" | date: "%d-%b-%Y %H:%M" }}
+    🕒 <strong>Market Monitoring Active:</strong> {{ "now" | date: "%d-%b-%Y %H:%M" }} IST
   </p>
 </div>
 
