@@ -26,11 +26,14 @@ tags: learn-stockmarket
   </iframe>
 </div>
 
-<p style="text-align:center; margin-top: 15px;">
-  <a href="https://www.youtube.com/@ai360trading/streams" target="_blank" style="display: inline-block; padding: 10px 20px; background-color: #ff0000; color: #fff; border-radius: 5px; text-decoration: none; font-weight: bold;">
-    🔴 View All Live Streams on YouTube
+<div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px; flex-wrap: wrap;">
+  <a href="https://www.youtube.com/@ai360trading/live" target="_blank" style="padding: 10px 20px; background: #ff0000; color: #fff; border-radius: 5px; text-decoration: none; font-weight: bold; display: flex; align-items: center; gap: 8px;">
+    <span style="width: 10px; height: 10px; background: white; border-radius: 50%; display: inline-block;"></span> Watch Live Now
   </a>
-</p>
+  <a href="https://www.youtube.com/@ai360trading/videos" target="_blank" style="padding: 10px 20px; background: #2c3e50; color: #fff; border-radius: 5px; text-decoration: none; font-weight: bold;">
+    Browse All Videos
+  </a>
+</div>
 
 ---
 
@@ -39,4 +42,4 @@ tags: learn-stockmarket
 * **Market Insights:** Daily Indian stock market analysis and technical picks.
 * **Price Action:** Decoding candle patterns for better entry and exit points.
 
-> **Tip:** If you see "No Videos" in the player, ensure you have enabled **Embedding** in your YouTube Studio under the **Live** tab!
+> **Note:** This page is fully automated. New videos and ended live streams will appear in the player above within minutes of being published.
