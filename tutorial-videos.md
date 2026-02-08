@@ -6,7 +6,7 @@ permalink: /tutorial-videos/
 ---
 
 <div class="learning-header" style="text-align:center; padding: 20px; background: #f8f9fa; border-radius:12px; margin-bottom: 20px; border: 1px solid #eee;">
-  <h1 style="margin:0; font-size: 1.8em;">🎥 Video Masterclass</h1>
+  <h1 style="margin:0; font-size: 1.8em;">🎥 Tutorial Videos</h1>
   <p style="color: #666;">Learn Algo Trading & Price Action</p>
   
   <div style="margin-top: 10px;">
