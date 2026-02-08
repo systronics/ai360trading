@@ -7,7 +7,7 @@
 
   {% include analytics.html %}
 
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX"
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ site.adsense_publisher_id }}"
      crossorigin="anonymous"></script>
   
   <style>
@@ -39,11 +39,25 @@
       </nav>
 
       <div class="social-links" style="display: flex; gap: 20px; font-size: 20px;">
-        <a href="https://facebook.com/{{ site.facebook.username }}" target="_blank" aria-label="Facebook"><i class="fa fa-facebook"></i></a>
-        <a href="https://twitter.com/{{ site.x.username }}" target="_blank" aria-label="Twitter"><i class="fa fa-twitter"></i></a>
-        <a href="https://instagram.com/{{ site.instagram.username }}" target="_blank" aria-label="Instagram"><i class="fa fa-instagram"></i></a>
-        <a href="https://t.me/{{ site.telegram.username }}" target="_blank" aria-label="Telegram"><i class="fa fa-telegram"></i></a>
-        <a href="https://youtube.com/@{{ site.youtube.username }}" target="_blank" aria-label="YouTube"><i class="fa fa-youtube"></i></a>
+        {% if site.facebook_username %}
+          <a href="https://facebook.com/{{ site.facebook_username }}" target="_blank" aria-label="Facebook"><i class="fa fa-facebook"></i></a>
+        {% endif %}
+
+        {% if site.twitter_username %}
+          <a href="https://x.com/{{ site.twitter_username }}" target="_blank" aria-label="Twitter"><i class="fa fa-twitter"></i></a>
+        {% endif %}
+
+        {% if site.instagram_username %}
+          <a href="https://instagram.com/{{ site.instagram_username }}" target="_blank" aria-label="Instagram"><i class="fa fa-instagram"></i></a>
+        {% endif %}
+
+        {% if site.telegram_username %}
+          <a href="https://t.me/{{ site.telegram_username }}" target="_blank" aria-label="Telegram"><i class="fa fa-telegram"></i></a>
+        {% endif %}
+
+        {% if site.youtube_username %}
+          <a href="https://youtube.com/@{{ site.youtube_username }}" target="_blank" aria-label="YouTube"><i class="fa fa-youtube"></i></a>
+        {% endif %}
       </div>
     </div>
   </header>
