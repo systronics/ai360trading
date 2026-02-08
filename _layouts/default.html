@@ -9,25 +9,97 @@
 
   <link rel="stylesheet" href="{{ '/public/css/poole.css' | relative_url }}">
   <link rel="stylesheet" href="{{ '/public/css/gpstyle.css' | relative_url }}">
-  <link rel="stylesheet" href="{{ '/public/css/font-awesome.min.css' | relative_url }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ site.adsense_publisher_id }}" crossorigin="anonymous"></script>
   
   <style>
-    /* YOUR CUSTOM CSS */
-    :root { --primary-color: #3498db; --dark-text: #2c3e50; }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: var(--dark-text); margin: 0; }
-    .site-header { border-bottom: 1px solid #eee; background: #fff; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-    .header-container { max-width: 1200px; margin: 0 auto; padding: 10px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
-    .logo-img { max-height: 60px; width: auto; height: auto; }
-    nav { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; }
-    .nav-link { font-weight: bold; color: var(--dark-text); text-decoration: none; font-size: 14px; text-transform: uppercase; transition: color 0.3s; }
-    .nav-link:hover { color: var(--primary-color); }
-    .social-links { display: flex; gap: 15px; font-size: 18px; margin-top: 5px; }
-    .social-links a { color: var(--dark-text); transition: transform 0.2s; text-decoration: none; }
-    .social-links a:hover { color: var(--primary-color); transform: translateY(-2px); }
-    .content { width: 100%; max-width: 1100px; margin: 0 auto; padding: 20px 15px; box-sizing: border-box; }
-    @media (max-width: 600px) { .logo-img { max-height: 50px; } nav { gap: 10px; } .nav-link { font-size: 12px; } .content { padding: 15px 10px; } }
+    /* PROFESSIONAL BRANDING CSS */
+    :root { 
+      --primary-green: #2ecc71; 
+      --premium-blue: #3498db;
+      --dark-text: #2c3e50; 
+      --soft-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+      line-height: 1.6; 
+      color: var(--dark-text); 
+      margin: 0; 
+      background-color: #fcfcfc;
+    }
+
+    /* HEADER SCALING */
+    .site-header { 
+      background: #fff; 
+      border-bottom: 1px solid #f0f0f0; 
+      padding: 25px 0;
+    }
+
+    .header-container { 
+      max-width: 1200px; 
+      margin: 0 auto; 
+      padding: 0 20px; 
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      gap: 20px; 
+    }
+
+    .logo-img { 
+      height: 80px; /* Scaled for better visibility */
+      width: auto; 
+      transition: 0.3s;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.05));
+    }
+
+    /* NAVIGATION LOGIC */
+    nav { 
+      display: flex; 
+      gap: 25px; 
+      flex-wrap: wrap; 
+      justify-content: center; 
+    }
+
+    .nav-link { 
+      font-weight: 700; 
+      color: var(--dark-text); 
+      text-decoration: none; 
+      font-size: 14px; 
+      text-transform: uppercase; 
+      letter-spacing: 1px;
+      transition: color 0.3s; 
+    }
+
+    .nav-link:hover { color: var(--primary-green); }
+
+    /* SOCIAL ICON SCALING & COLORS */
+    .social-links { 
+      display: flex; 
+      gap: 22px; 
+      border-top: 1px solid #f9f9f9; 
+      padding-top: 15px;
+      margin-top: 10px;
+    }
+
+    .social-links a { font-size: 22px; transition: 0.3s; text-decoration: none; }
+    .social-links a:hover { transform: translateY(-3px); opacity: 0.8; }
+    
+    /* Specific Brand Colors for "Human" Manual look */
+    .fa-facebook { color: #1877F2; }
+    .fa-twitter-x { color: #000000; }
+    .fa-instagram { color: #E4405F; }
+    .fa-telegram { color: #0088cc; }
+    .fa-youtube { color: #FF0000; }
+
+    .content { width: 100%; max-width: 1100px; margin: 0 auto; padding: 40px 15px; box-sizing: border-box; }
+
+    @media (max-width: 768px) { 
+      .logo-img { height: 60px; } 
+      nav { gap: 15px; } 
+      .nav-link { font-size: 13px; } 
+    }
   </style>
 </head>
 <body>
@@ -35,23 +107,23 @@
   <header class="site-header">
     <div class="header-container">
       <a href="/">
-        <img src="/public/image/header.webp" alt="{{ site.name }}" class="logo-img" loading="eager">
+        <img src="/public/image/logo.png" alt="{{ site.name }}" class="logo-img" loading="eager">
       </a>
       
       <nav>
-        <a href="/" class="nav-link">HOME</a>
-        <a href="/about" class="nav-link">ABOUT</a>
-        <a href="/contact" class="nav-link">CONTACT</a>
-        <a href="/disclaimer" class="nav-link">DISCLAIMER</a>
-        <a href="/policy" class="nav-link">POLICY</a>
+        <a href="/" class="nav-link">Home</a>
+        <a href="/about/" class="nav-link">About</a>
+        <a href="/contact/" class="nav-link">Contact</a>
+        <a href="/disclaimer/" class="nav-link">Disclaimer</a>
+        <a href="/policy/" class="nav-link">Policy</a>
       </nav>
 
       <div class="social-links">
-        <a href="https://facebook.com/{{ site.facebook_username }}" target="_blank"><i class="fa fa-facebook"></i></a>
-        <a href="https://x.com/{{ site.twitter_username }}" target="_blank"><i class="fa fa-twitter"></i></a>
-        <a href="https://instagram.com/{{ site.instagram_username }}" target="_blank"><i class="fa fa-instagram"></i></a>
-        <a href="https://t.me/{{ site.telegram_username }}" target="_blank"><i class="fa fa-telegram"></i></a>
-        <a href="https://youtube.com/@{{ site.youtube_username }}" target="_blank"><i class="fa fa-youtube"></i></a>
+        <a href="https://facebook.com/{{ site.facebook_username }}" target="_blank"><i class="fa-brands fa-facebook"></i></a>
+        <a href="https://x.com/{{ site.twitter_username }}" target="_blank"><i class="fa-brands fa-x-twitter"></i></a>
+        <a href="https://instagram.com/{{ site.instagram_username }}" target="_blank"><i class="fa-brands fa-instagram"></i></a>
+        <a href="https://t.me/{{ site.telegram_username }}" target="_blank"><i class="fa-brands fa-telegram"></i></a>
+        <a href="https://youtube.com/@{{ site.youtube_username }}" target="_blank"><i class="fa-brands fa-youtube"></i></a>
       </div>
     </div>
   </header>
@@ -60,10 +132,17 @@
     {{ content }}
   </main>
 
-  <footer style="background: var(--dark-text); color: #fff; padding: 30px 15px; text-align: center; margin-top: 40px;">
+  <footer style="background: var(--dark-text); color: #fff; padding: 50px 15px; text-align: center; margin-top: 60px;">
     <div style="max-width: 1200px; margin: 0 auto;">
-      <p style="margin: 0; font-size: 14px;">&copy; {{ "now" | date: "%Y" }} {{ site.name }}</p>
-      <p style="font-size: 12px; color: #bdc3c7; margin-top: 5px;">Algo Trading Market Research Analysis Tools</p>
+      <p style="margin: 0; font-size: 15px; font-weight: bold;">&copy; {{ "now" | date: "%Y" }} {{ site.name }}</p>
+      <p style="font-size: 13px; color: #bdc3c7; margin-top: 10px; max-width: 600px; margin-left: auto; margin-right: auto;">
+        Expert Indian Market Research & Algorithmic Analysis. 
+        Hand-crafted reports verified through manual price-action logic.
+      </p>
+      <div style="margin-top: 20px;">
+        <a href="/disclaimer/" style="color: #95a5a6; font-size: 12px; margin: 0 10px; text-decoration: none;">Legal Disclaimer</a>
+        <a href="/policy/" style="color: #95a5a6; font-size: 12px; margin: 0 10px; text-decoration: none;">Privacy Policy</a>
+      </div>
     </div>
   </footer>
 
