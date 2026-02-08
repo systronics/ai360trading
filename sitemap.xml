@@ -3,16 +3,24 @@ layout: null
 ---
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  
+  {% comment %} --- LOOP THROUGH PAGES (Home, About, etc.) --- {% endcomment %}
   {% for page in site.pages %}
-    {% unless page.sitemap == false %}
+    {% unless page.sitemap == false or page.url contains "assets" %}
     <url>
       <loc>{{ site.url }}{{ page.url | remove: 'index.html' }}</loc>
-      <lastmod>{{ site.time | date_to_xmlschema }}</lastmod>
+      {% if page.last_modified_at %}
+        <lastmod>{{ page.last_modified_at | date_to_xmlschema }}</lastmod>
+      {% else %}
+        <lastmod>{{ site.time | date_to_xmlschema }}</lastmod>
+      {% endif %}
       <changefreq>weekly</changefreq>
       <priority>0.7</priority>
     </url>
     {% endunless %}
   {% endfor %}
+
+  {% comment %} --- LOOP THROUGH AI-GENERATED POSTS (Market Updates) --- {% endcomment %}
   {% for post in site.posts %}
     <url>
       <loc>{{ site.url }}{{ post.url }}</loc>
@@ -21,4 +29,5 @@ layout: null
       <priority>1.0</priority>
     </url>
   {% endfor %}
+
 </urlset>
