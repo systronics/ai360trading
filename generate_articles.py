@@ -21,17 +21,21 @@ def clean_markdown(text):
     return text.strip()
 
 def generate_market_post(region):
-    print(f"Generating SEO-Optimized report for {region}...")
+    print(f"Generating report for {region}...")
     
     prompt = (
-        f"Act as a Financial Journalist and SEO Expert. Write a Jekyll blog post for {region} market on {date_str}. "
+        f"Write a professional Jekyll blog post for {region} market on {date_str}. "
         "INSTRUCTIONS:\n"
-        "1. Start with Jekyll Frontmatter (title, date, categories, tags, excerpt).\n"
-        "2. Use H2 and H3 tags for structure.\n"
-        "3. BOLD all price levels, support/resistance numbers, and percentages (e.g., **18,500**).\n"
-        "4. Content: Market Sentiment, Global Cues (Nasdaq/Dow), Key Levels (Nifty/BankNifty/Gold), and Trading Strategy.\n"
-        "5. Include a section 'Why This Matters for Algo Traders'.\n"
-        "6. Finish with a 'Standard Trading Disclaimer' in italics."
+        "1. Start with Jekyll Frontmatter:\n"
+        "---\n"
+        "layout: post\n"
+        f"title: '{region} Market Analysis {date_str}'\n"
+        "categories: news\n"
+        "tags: [global-markets]\n"
+        "---\n"
+        "2. Content: Market Sentiment, Global Cues, Key Levels, and Trading Strategy.\n"
+        "3. BOLD all price levels.\n"
+        "4. Finish with a disclaimer."
     )
 
     try:
@@ -52,10 +56,10 @@ def generate_market_post(region):
             
         with open(os.path.join(posts_dir, filename), "w", encoding="utf-8") as f:
             f.write(final_content)
-        print(f"✅ SEO Article Created: {filename}")
+        print(f"✅ Article Created: {filename}")
         
     except Exception as e:
-        print(f"❌ Groq Error: {e}")
+        print(f"❌ Error: {e}")
 
 # Run for Indian Market
 generate_market_post("Indian")
