@@ -3,6 +3,11 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+  <meta name="google-site-verification" content="YOUR_SEARCH_CONSOLE_CODE_HERE">
+  
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX"
+     crossorigin="anonymous"></script>
+
   <link rel="dns-prefetch" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   
@@ -13,10 +18,10 @@
   <link rel="stylesheet" href="/public/css/poole.css">
   <link rel="stylesheet" href="/public/css/gpstyle.css">
   
-  <link rel="stylesheet" href="/public/font-awesome/css/font-awesome.min.css" media="print" onload="this.media='all'">
-  <noscript><link rel="stylesheet" href="/public/font-awesome/css/font-awesome.min.css"></noscript>
+  <link rel="stylesheet" href="/public/font-awesome/css/font-awesome.min.css">
   
   <link rel="shortcut icon" type="image/x-icon" href="/public/image/favicon.ico">
+  
   {% seo %}
 
   <style>
@@ -35,13 +40,31 @@
       display: block !important;
     }
 
-    /* Header & Global UI */
-    .site-header { background: #fff; border-bottom: 1px solid #eee; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 8px rgba(0,0,0,.05); }
+    /* Header & Global UI Sticky Fix */
+    .site-header { 
+      background: #fff; 
+      border-bottom: 1px solid #eee; 
+      position: sticky; 
+      top: 0; 
+      z-index: 1000; 
+      box-shadow: 0 2px 8px rgba(0,0,0,.05); 
+    }
+    
     body { background-color: #f8faff; color: #2c3e50; margin: 0; overflow-x: hidden; }
-    img { max-width: 100%; height: auto; border-radius: 8px; display: block; margin: 0 auto; }
+    
+    /* Global Image Handling for Posts */
+    .post img, .page img { 
+      max-width: 100%; 
+      height: auto; 
+      border-radius: 8px; 
+      display: block; 
+      margin: 20px auto; 
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
 
     @media (max-width: 768px) {
       .content, .container { padding-left: 15px !important; padding-right: 15px !important; }
+      .main-heading { font-size: 1.5rem !important; }
     }
   </style>
 </head>
