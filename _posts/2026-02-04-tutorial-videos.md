@@ -1,7 +1,10 @@
 ---
 layout: page
 title: "AI360 Masterclass: Algo Trading Tutorials"
+image: "https://ai360trading.in/public/image/youtube.webp"
+excerpt: "Master Algo Trading & Price Action with our comprehensive video series. Start your journey toward automated trading today."
 permalink: /tutorial-videos/
+tags: learn-stockmarket
 ---
 
 <div class="learning-header" style="text-align:center; padding: 30px; background: linear-gradient(135deg, #fdfcfb 0%, #e2d1c3 100%); border-radius:15px; margin-bottom: 30px; border: 1px solid #ddd;">
@@ -18,6 +21,7 @@ permalink: /tutorial-videos/
   <iframe 
     style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;"
     src="https://www.youtube.com/embed?listType=user_uploads&list=UC9dAJakbfPXk8zL31AVuTfA" 
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
     allowfullscreen>
   </iframe>
 </div>
@@ -25,5 +29,8 @@ permalink: /tutorial-videos/
 ---
 
 ### 📚 Course Content
-* **Algo Basics:** Paper trading and setup.
-* **Market Insights:** Daily Indian market analysis.
+* **Algo Basics:** How to set up your first paper trade and establish logic.
+* **Market Insights:** Daily Indian stock market analysis and technical picks.
+* **Price Action:** Decoding candle patterns for better entry and exit points.
+
+> **Tip:** This playlist updates automatically every time a new video is uploaded to the **ai360trading** YouTube channel!
