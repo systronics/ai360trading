@@ -2,7 +2,7 @@ name: Weekly AI Market News
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 0 * * 1'
+    - cron: '30 18 * * 0' # This is Midnight Monday IST (18:30 Sunday UTC)
 
 jobs:
   build:
@@ -12,34 +12,34 @@ jobs:
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
-      - name: Install Dependencies
+      - name: Install dependencies
         run: pip install google-generativeai pytz
 
-      - name: Run AI Generator
+      - name: Run AI Script
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: python generate_articles.py
+
+      - name: Debug - List Files
+        run: ls -R _posts/ # This will show us in the logs if the files exist
 
       - name: Commit and Push
         run: |
           git config --local user.email "admin@ai360trading.in"
           git config --local user.name "AI360-Automation"
-          
-          # Stage the specific folder
           git add _posts/*.md
           
+          # Check if changes exist
           if git diff --staged --quiet; then
-            echo "No changes detected. Check Python script logs for errors."
+            echo "STILL NO CHANGES. The script is not writing to the right folder."
             exit 1
           else
-            git commit -m "AI Update (IST): $(date +'%Y-%m-%d')"
+            git commit -m "AI Market Update (IST): $(date +'%Y-%m-%d')"
             git push origin HEAD
           fi
