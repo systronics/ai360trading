@@ -1,15 +1,14 @@
 ---
 layout: default
 title: "AI Stock Market Trading | Live Algo Signals"
-excerpt: "Advanced AI-powered stock market trading platform delivering live intraday and swing trading signals. Get precise entry, exit, and stop-loss levels for stocks, options, BankNifty, and crypto with our algorithmic trading system."
+excerpt: "Advanced AI-powered stock market trading platform delivering live intraday and swing trading signals for BankNifty and Crypto."
 image: "https://ai360trading.in/public/image/cover.webp"
 ---
 
 <h1 class="main-heading">AI-Powered Stock Market Trading Platform</h1>
 
 <p class="intro-text">
-  Welcome to <strong>AI360Trading</strong> - your trusted source for algorithmic trading signals. 
-  Our advanced AI system analyzes market data in real-time to provide accurate entry and exit levels for stocks, options, and cryptocurrency.
+  Welcome to <strong>AI360Trading</strong>. Our advanced AI system analyzes market data in real-time to provide accurate entry and exit levels for professional traders.
 </p>
 
 <div class="dashboard-grid">
@@ -17,8 +16,8 @@ image: "https://ai360trading.in/public/image/cover.webp"
     <div class="pro-card">
       <div class="card-icon">📊</div>
       <div class="card-content">
-        <h2 class="card-heading">Technical Picks</h2>
-        <p class="card-subtext">View live algo-generated swing and intraday signals for Stocks & BankNifty.</p>
+        <h2 style="color:#0088cc; font-size:1.2rem; margin:0;">Technical Picks</h2>
+        <p style="font-size:0.9rem; color:#546e7a; margin-top:5px;">Live algo-generated swing and intraday signals.</p>
       </div>
     </div>
   </a>
@@ -27,8 +26,8 @@ image: "https://ai360trading.in/public/image/cover.webp"
     <div class="pro-card">
       <div class="card-icon">🏗️</div>
       <div class="card-content">
-        <h2 class="card-heading">Fundamental Picks</h2>
-        <p class="card-subtext">Long-term wealth creation ideas based on institutional buying and core strength.</p>
+        <h2 style="color:#0088cc; font-size:1.2rem; margin:0;">Fundamental Picks</h2>
+        <p style="font-size:0.9rem; color:#546e7a; margin-top:5px;">Long-term institutional wealth creation ideas.</p>
       </div>
     </div>
   </a>
@@ -37,27 +36,25 @@ image: "https://ai360trading.in/public/image/cover.webp"
     <div class="pro-card">
       <div class="card-icon">📚</div>
       <div class="card-content">
-        <h2 class="card-heading">Learning Center</h2>
-        <p class="card-subtext">Understand the AI behind the algo and master Price Action trading techniques.</p>
+        <h2 style="color:#0088cc; font-size:1.2rem; margin:0;">Learning Center</h2>
+        <p style="font-size:0.9rem; color:#546e7a; margin-top:5px;">Understand the Price Action AI behind the algo.</p>
       </div>
     </div>
   </a>
 </div>
 
-<section class="content-section">
+<section class="content-section" style="margin-bottom:50px;">
   <h2 class="section-heading">Global Market Insights (AI Powered)</h2>
-  <p style="text-align:center; color:#546e7a; margin-top:-10px; margin-bottom:20px;">Weekly educational analysis for US, UK, Europe, and Asia markets.</p>
-  
   <div class="ai-news-grid">
-    {% for post in site.categories.global-news limit:4 %}
-      <div class="feature-box ai-post-card">
-        <h3 class="subsection-heading" style="margin-top:0; font-size:18px;">
+    {% for post in site.posts limit:4 %}
+      <div class="ai-post-card">
+        <h3 style="margin:0; font-size:1.1rem;">
           <a href="{{ post.url }}" style="text-decoration:none; color:#0088cc;">{{ post.title }}</a>
         </h3>
-        <p style="font-size:14px; color:#546e7a; line-height:1.5;">{{ post.excerpt | strip_html | truncate: 110 }}</p>
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
-          <span style="font-size:12px; font-weight:bold; color:#2ecc71;">🌍 {{ post.date | date: "%b %d, %Y" }}</span>
-          <span style="font-size:11px; background:#e1f5fe; color:#01579b; padding:2px 8px; border-radius:12px;">{{ post.tags | first }}</span>
+        <p style="font-size:0.9rem; color:#546e7a; margin: 12px 0;">{{ post.excerpt | strip_html | truncate: 110 }}</p>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:0.8rem; font-weight:bold; color:#2ecc71;">🌍 {{ post.date | date: "%b %d, %Y" }}</span>
+          <span style="font-size:0.7rem; background:#e1f5fe; color:#01579b; padding:2px 8px; border-radius:12px; font-weight:bold;">AI INSIGHT</span>
         </div>
       </div>
     {% endfor %}
@@ -65,98 +62,11 @@ image: "https://ai360trading.in/public/image/cover.webp"
 </section>
 
 <section class="broker-section">
-  <h3 class="section-title">Partner Brokerage Platforms</h3>
+  <h3 class="section-heading" style="font-size:1.2rem;">Partner Brokerage Platforms</h3>
   <div class="broker-grid">
     <a href="https://zerodha.com/open-account?c=YS3694" target="_blank" rel="noopener noreferrer sponsored" class="broker-link">Zerodha</a>
     <a href="https://invite.dhan.co/?invite=MSIVC45309" target="_blank" rel="noopener noreferrer sponsored" class="broker-link">Dhan</a>
     <a href="https://invite.coindcx.com/13383200" target="_blank" rel="noopener noreferrer sponsored" class="broker-link">CoinDCX</a>
-    <a href="https://www.delta.exchange/?code=LVPCDR" target="_blank" rel="noopener noreferrer sponsored" class="broker-link" style="border-color: #0088cc; color: #0088cc !important;">Delta Exchange</a>
+    <a href="https://www.delta.exchange/?code=LVPCDR" target="_blank" rel="noopener noreferrer sponsored" class="broker-link">Delta Exchange</a>
   </div>
 </section>
-
-<section class="content-section">
-  <h2 class="section-heading">Why Choose AI360Trading for Algorithmic Trading?</h2>
-  <p>Our algorithmic trading platform combines <strong>Artificial Intelligence</strong> with <strong>Technical Analysis</strong> to deliver superior trading results. We specialize in strategies including price action analysis, breakout trading, and scalping techniques.</p>
-
-  <h3 class="subsection-heading">Advanced Trading Features</h3>
-  
-  <div class="feature-box">
-    <p><strong>Real-Time Market Analysis:</strong> Our AI algorithms scan thousands of stocks every second, identifying potential opportunities based on momentum and technical patterns.</p>
-  </div>
-
-  <div class="feature-box">
-    <p><strong>Precise Entry and Exit Points:</strong> Every trading signal comes with clear entry prices, target levels, and stop-loss points to ensure disciplined risk management.</p>
-  </div>
-</section>
-
-<style>
-  /* --- Keeping Your Original Styles --- */
-  .main-heading { text-align: center; color: #0088cc; font-size: 28px; font-weight: 700; margin: 20px 0 15px; padding: 0 10px; }
-  .intro-text { text-align: center; color: #2c3e50; font-size: 15px; line-height: 1.6; max-width: 800px; margin: 0 auto 30px; padding: 0 15px; }
-
-  .dashboard-grid { 
-    display: grid; 
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
-    gap: 20px; 
-    padding: 0 15px;
-    width: 100%;
-    box-sizing: border-box;
-  }
-  .card-link { text-decoration: none; color: inherit; display: block; }
-  .pro-card { 
-    background: #fff; 
-    padding: 30px 20px; 
-    border-radius: 12px; 
-    border: 1px solid #e1e8ed; 
-    text-align: center; 
-    height: 100%;
-    transition: 0.3s ease;
-    box-sizing: border-box;
-  }
-  .pro-card:hover { transform: translateY(-5px); border-color: #0088cc; box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
-  .card-icon { font-size: 35px; margin-bottom: 15px; }
-  .card-heading { color: #0088cc; font-size: 20px; margin: 0; }
-  .card-subtext { color: #546e7a; font-size: 14px; margin-top: 10px; line-height: 1.5; }
-
-  /* --- Styles for the New AI Section --- */
-  .ai-news-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 20px;
-    margin-top: 20px;
-  }
-  .ai-post-card {
-    transition: 0.3s;
-  }
-  .ai-post-card:hover {
-    border-color: #0088cc;
-    background: #fcfcfc;
-  }
-
-  .broker-section { margin-top: 50px; text-align: center; }
-  .section-title { font-size: 20px; margin-bottom: 20px; color: #2c3e50; }
-  .broker-grid { 
-    display: grid; 
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); 
-    gap: 12px; 
-    padding: 0 15px; 
-  }
-  .broker-link { 
-    display: flex; align-items: center; justify-content: center;
-    padding: 12px; background: #fff; border: 2px solid #2ecc71; 
-    color: #27ae60 !important; text-decoration: none; font-weight: 700; 
-    border-radius: 8px; font-size: 14px; 
-  }
-
-  .content-section { max-width: 900px; margin: 50px auto; padding: 0 20px; line-height: 1.7; }
-  .section-heading { color: #0088cc; font-size: 22px; margin-bottom: 15px; text-align:center; }
-  .feature-box { background: #fdfdfd; border-left: 4px solid #0088cc; padding: 15px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); border-top: 1px solid #eee; border-right: 1px solid #eee; border-bottom: 1px solid #eee; }
-
-  @media (max-width: 768px) {
-    .main-heading { font-size: 22px; }
-    .dashboard-grid { grid-template-columns: 1fr; } 
-    .pro-card { padding: 20px; }
-    .broker-grid { grid-template-columns: 1fr 1fr; } 
-    .ai-news-grid { grid-template-columns: 1fr; }
-  }
-</style>
