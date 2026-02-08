@@ -1,43 +1,41 @@
 import os
 import pytz
-import re
-import time
 from datetime import datetime
-from google import genai
-from google.genai import errors
+from groq import Groq
 
-client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
+# Initialize Groq Client
+client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+
 ist = pytz.timezone('Asia/Kolkata')
 now = datetime.now(ist)
 date_str = now.strftime("%Y-%m-%d")
 
 def generate_market_post(region):
-    print(f"Generating report for {region}...")
-    prompt = (f"Act as a senior market analyst. Write a market analysis for {region} on {date_str}. "
-              "Include: 'Market Sentiment', 'Key Levels', and 'Action Plan'. "
-              "Output in Jekyll Markdown with tags: [Market Analysis, AI Trading, global-markets]")
+    print(f"Generating Groq report for {region}...")
     
-    # Retry logic for 429 Errors
-    for attempt in range(3):
-        try:
-            # Switched to 1.5-flash for better free-tier stability
-            response = client.models.generate_content(model="gemini-1.5-flash", contents=prompt)
-            content = response.text.strip()
+    prompt = (f"Act as a senior market analyst. Write a professional market analysis for the {region} market on {date_str}. "
+              "Focus on GIFT Nifty and Gold trends. Include: 'Market Sentiment', 'Key Levels', and 'Action Plan'. "
+              "Output strictly in Jekyll Markdown format with frontmatter tags: [Market Analysis, AI Trading, global-markets]")
+
+    try:
+        completion = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.5,
+        )
+        
+        content = completion.choices[0].message.content
+        filename = f"{date_str}-{region.lower()}-market-pulse.md"
+        
+        posts_dir = os.path.join(os.getcwd(), '_posts')
+        if not os.path.exists(posts_dir):
+            os.makedirs(posts_dir)
             
-            # Clean markdown and save
-            filename = f"{date_str}-{region.lower()}-market-pulse.md"
-            posts_dir = os.path.join(os.getcwd(), '_posts')
-            with open(os.path.join(posts_dir, filename), "w", encoding="utf-8") as f:
-                f.write(f"---\nlayout: post\ntitle: '{region} Market Pulse'\n"
-                        f"date: {date_str}\ntags: [global-markets]\n---\n\n{content}")
-            print(f"✅ Created: {filename}")
-            return # Exit loop on success
-        except errors.ClientError as e:
-            if "429" in str(e):
-                print(f"⚠️ Quota full. Retrying in 60s... (Attempt {attempt+1}/3)")
-                time.sleep(60)
-            else:
-                print(f"❌ Error: {e}")
-                break
+        with open(os.path.join(posts_dir, filename), "w", encoding="utf-8") as f:
+            f.write(content)
+        print(f"✅ Created: {filename}")
+        
+    except Exception as e:
+        print(f"❌ Groq Error: {e}")
 
 generate_market_post("Indian")
