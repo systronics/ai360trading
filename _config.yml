@@ -5,6 +5,13 @@ baseurl: ""
 timezone: "Asia/Kolkata"
 future: true
 
+# SOCIAL MEDIA HANDLES (Update these with your actual IDs)
+facebook_username: ai360trading
+twitter_username: ai360trading
+instagram_username: ai360trading
+telegram_username: ai360trading
+youtube_username: ai360trading
+
 # Build settings
 markdown: kramdown
 highlighter: rouge
