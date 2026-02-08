@@ -13,7 +13,7 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@v4
         with:
-          ref: master # Explicitly use master branch
+          ref: master  # Explicitly using your master branch
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -28,6 +28,9 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: python generate_articles.py
 
+      - name: Verify Files
+        run: ls -R _posts/
+
       - name: Commit and Push
         run: |
           git config --local user.email "admin@ai360trading.in"
@@ -35,9 +38,9 @@ jobs:
           git add _posts/*.md
           
           if git diff --staged --quiet; then
-            echo "No changes detected."
+            echo "FAILED: No changes staged. The script did not write to _posts."
             exit 1
           else
             git commit -m "AI Update (IST): $(date +'%Y-%m-%d')"
-            git push origin master # FIXED: Using master branch
+            git push origin master # Explicitly pushing to master
           fi
