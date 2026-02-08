@@ -1,72 +1,36 @@
 ---
 layout: default
 title: "AI Stock Market Trading | Live Algo Signals"
-excerpt: "Advanced AI-powered stock market trading platform delivering live intraday and swing trading signals for BankNifty and Crypto."
-image: "https://ai360trading.in/public/image/cover.webp"
 ---
 
-<h1 class="main-heading">AI-Powered Stock Market Trading Platform</h1>
-
-<p class="intro-text">
-  Welcome to <strong>AI360Trading</strong>. Our advanced AI system analyzes market data in real-time to provide accurate entry and exit levels for professional traders.
-</p>
+<h1 style="text-align:center; color:#0088cc;">AI-Powered Market Insights</h1>
 
 <div class="dashboard-grid">
   <a href="/tag/technical-picks" class="card-link">
     <div class="pro-card">
-      <div class="card-icon">📊</div>
-      <div class="card-content">
-        <h2 style="color:#0088cc; font-size:1.2rem; margin:0;">Technical Picks</h2>
-        <p style="font-size:0.9rem; color:#546e7a; margin-top:5px;">Live algo-generated swing and intraday signals.</p>
-      </div>
+      <h3>📊 Technical Picks</h3>
+      <p>Live algo-generated signals for Nifty & Stocks.</p>
     </div>
   </a>
+  </div>
 
-  <a href="/tag/fundamental-picks" class="card-link">
-    <div class="pro-card">
-      <div class="card-icon">🏗️</div>
-      <div class="card-content">
-        <h2 style="color:#0088cc; font-size:1.2rem; margin:0;">Fundamental Picks</h2>
-        <p style="font-size:0.9rem; color:#546e7a; margin-top:5px;">Long-term institutional wealth creation ideas.</p>
-      </div>
-    </div>
-  </a>
-
-  <a href="/tag/learn-stockmarket" class="card-link">
-    <div class="pro-card">
-      <div class="card-icon">📚</div>
-      <div class="card-content">
-        <h2 style="color:#0088cc; font-size:1.2rem; margin:0;">Learning Center</h2>
-        <p style="font-size:0.9rem; color:#546e7a; margin-top:5px;">Understand the Price Action AI behind the algo.</p>
-      </div>
-    </div>
-  </a>
-</div>
-
-<section class="content-section" style="margin-bottom:50px;">
-  <h2 class="section-heading">Global Market Insights (AI Powered)</h2>
+<section>
+  <h2 style="text-align:center; color:#0088cc;">Global Market Insights</h2>
   <div class="ai-news-grid">
     {% for post in site.posts limit:4 %}
       <div class="ai-post-card">
-        <h3 style="margin:0; font-size:1.1rem;">
-          <a href="{{ post.url }}" style="text-decoration:none; color:#0088cc;">{{ post.title }}</a>
-        </h3>
-        <p style="font-size:0.9rem; color:#546e7a; margin: 12px 0;">{{ post.excerpt | strip_html | truncate: 110 }}</p>
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <span style="font-size:0.8rem; font-weight:bold; color:#2ecc71;">🌍 {{ post.date | date: "%b %d, %Y" }}</span>
-          <span style="font-size:0.7rem; background:#e1f5fe; color:#01579b; padding:2px 8px; border-radius:12px; font-weight:bold;">AI INSIGHT</span>
-        </div>
+        <h3 style="margin:0;"><a href="{{ post.url }}" style="text-decoration:none; color:#0088cc;">{{ post.title }}</a></h3>
+        <p style="font-size:14px; color:#546e7a;">{{ post.excerpt | strip_html | truncate: 120 }}</p>
+        <span style="font-size:12px; color:#2ecc71;">📅 {{ post.date | date: "%b %d, %Y" }}</span>
       </div>
     {% endfor %}
   </div>
 </section>
 
-<section class="broker-section">
-  <h3 class="section-heading" style="font-size:1.2rem;">Partner Brokerage Platforms</h3>
+<section class="broker-section" style="margin-top:40px; text-align:center;">
+  <h3>Partner Brokerage Platforms</h3>
   <div class="broker-grid">
-    <a href="https://zerodha.com/open-account?c=YS3694" target="_blank" rel="noopener noreferrer sponsored" class="broker-link">Zerodha</a>
-    <a href="https://invite.dhan.co/?invite=MSIVC45309" target="_blank" rel="noopener noreferrer sponsored" class="broker-link">Dhan</a>
-    <a href="https://invite.coindcx.com/13383200" target="_blank" rel="noopener noreferrer sponsored" class="broker-link">CoinDCX</a>
-    <a href="https://www.delta.exchange/?code=LVPCDR" target="_blank" rel="noopener noreferrer sponsored" class="broker-link">Delta Exchange</a>
+    <a href="https://zerodha.com/open-account?c=YS3694" target="_blank" class="broker-link">Zerodha</a>
+    <a href="https://invite.dhan.co/?invite=MSIVC45309" target="_blank" class="broker-link">Dhan</a>
   </div>
 </section>
