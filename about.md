@@ -1,6 +1,5 @@
 ---
 layout: page
-title: "About AI360Trading"
 permalink: /about/
 ---
 
