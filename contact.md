@@ -1,7 +1,7 @@
 ---
 layout: page
-title: "Learn and Earn, Joint us to get earning Side Income"
-excerpt: Live_classes, Live_trading, Youtube_live, LiveIntraday
+title: "contact"
+excerpt: Live_classes, Live_trading, Youtube_live, online_course
 permalink: /contact/
 ---
 
