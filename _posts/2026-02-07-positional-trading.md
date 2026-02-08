@@ -1,9 +1,10 @@
 ---
-layout:           post
-title:            "Positional Trading - Long Term Value Picks"
-image:            "https://ai360trading.in/public/image/swing.webp"
-excerpt:          "Institutional grade long-term picks focusing on bottom-out setups and undervalued SIP opportunities."
-tags:             fundamental-picks
+layout: page
+title: "Positional Trading - Long Term Value Picks"
+image: "https://ai360trading.in/public/image/swing.webp"
+excerpt: "Institutional grade long-term picks focusing on bottom-out setups and undervalued SIP opportunities."
+permalink: /positional-picks/
+tags: fundamental-picks
 ---
 
 <style>
@@ -63,8 +64,6 @@ tags:             fundamental-picks
   <h2 style="margin: 5px 0; color: #2c3e50; font-size: 26px;">Institutional Positional Picks</h2>
   <p style="font-size: 15px; color: #4a5568; margin-top: 10px;">Focusing on Undervalued Stocks for 3-12 Month Investment Horizon</p>
 </div>
-
-
 
 <div class="terminal-box">
   <iframe 
