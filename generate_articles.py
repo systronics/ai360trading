@@ -1,44 +1,43 @@
 import os
 import pytz
 import re
+import time
 from datetime import datetime
 from google import genai
+from google.genai import errors
 
-# SDK Client initialization
 client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
-
 ist = pytz.timezone('Asia/Kolkata')
 now = datetime.now(ist)
 date_str = now.strftime("%Y-%m-%d")
 
-posts_dir = os.path.join(os.getcwd(), '_posts')
-if not os.path.exists(posts_dir):
-    os.makedirs(posts_dir)
-
 def generate_market_post(region):
-    print(f"Generating professional report for {region}...")
-    try:
-        prompt = (f"Act as a senior market analyst. Write a high-quality market analysis for the {region} market on {date_str}. "
-                  "Focus on GIFT Nifty, Nasdaq, and Gold trends. Include: 'Market Sentiment', 'Key Levels', and 'Action Plan'. "
-                  "Output strictly in Jekyll Markdown format with this frontmatter: "
-                  f"---\nlayout: post\ntitle: '{region} Market Pulse: {date_str}'\n"
-                  "tags: [Market Analysis, AI Trading, global-markets]\n"
-                  "excerpt: 'AI-powered technical breakdown for professional traders.'\n---")
-        
-        # Using Gemini 2.0 Flash
-        response = client.models.generate_content(model="gemini-2.0-flash", contents=prompt)
-        content = response.text.strip()
-        
-        # Clean markdown code blocks
-        content = re.sub(r'^```markdown\n|```$', '', content, flags=re.MULTILINE)
-        content = re.sub(r'^```\n|```$', '', content, flags=re.MULTILINE)
-        
-        filename = f"{date_str}-{region.lower()}-market-pulse.md"
-        with open(os.path.join(posts_dir, filename), "w", encoding="utf-8") as f:
-            f.write(content)
-        print(f"✅ Created: {filename}")
-    except Exception as e:
-        print(f"❌ Error: {e}")
+    print(f"Generating report for {region}...")
+    prompt = (f"Act as a senior market analyst. Write a market analysis for {region} on {date_str}. "
+              "Include: 'Market Sentiment', 'Key Levels', and 'Action Plan'. "
+              "Output in Jekyll Markdown with tags: [Market Analysis, AI Trading, global-markets]")
+    
+    # Retry logic for 429 Errors
+    for attempt in range(3):
+        try:
+            # Switched to 1.5-flash for better free-tier stability
+            response = client.models.generate_content(model="gemini-1.5-flash", contents=prompt)
+            content = response.text.strip()
+            
+            # Clean markdown and save
+            filename = f"{date_str}-{region.lower()}-market-pulse.md"
+            posts_dir = os.path.join(os.getcwd(), '_posts')
+            with open(os.path.join(posts_dir, filename), "w", encoding="utf-8") as f:
+                f.write(f"---\nlayout: post\ntitle: '{region} Market Pulse'\n"
+                        f"date: {date_str}\ntags: [global-markets]\n---\n\n{content}")
+            print(f"✅ Created: {filename}")
+            return # Exit loop on success
+        except errors.ClientError as e:
+            if "429" in str(e):
+                print(f"⚠️ Quota full. Retrying in 60s... (Attempt {attempt+1}/3)")
+                time.sleep(60)
+            else:
+                print(f"❌ Error: {e}")
+                break
 
-# Generate Indian market report (runs every morning)
 generate_market_post("Indian")
