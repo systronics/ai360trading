@@ -1,24 +1,14 @@
-# Dependencies & Setup
-markdown: kramdown
-highlighter: rouge
-encoding: "utf-8"
-timezone: "Asia/Kolkata"
-future: true
-
-# Site Info
+# Site settings
 name: "AI360Trading"
 url: "https://ai360trading.in"
 baseurl: ""
+timezone: "Asia/Kolkata"
+future: true
 
-# Permalinks (Clean URLs)
+# Build settings
+markdown: kramdown
+highlighter: rouge
 permalink: /:title/
-
-# Default Layouts
-defaults:
-  - scope:
-      path: ""
-    values:
-      layout: "default"
 
 # Plugins
 plugins:
@@ -27,4 +17,9 @@ plugins:
   - jekyll-sitemap
   - jekyll-feed
 
-exclude: [README.md, Gemfile, Gemfile.lock, node_modules, .sass-cache, .jekyll-cache, .git, vendor]
+# Defaults
+defaults:
+  - scope:
+      path: ""
+    values:
+      layout: "default"
