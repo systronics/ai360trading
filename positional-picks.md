@@ -8,7 +8,7 @@ tags: fundamental-picks
 ---
 
 <style>
-  /* 1. Global Page Width Sync - Fixes left-side cutting */
+  /* 1. Global Page Width Sync - Ensures center alignment */
   .post-content, .wrapper {
     max-width: 1200px !important;
     margin: 0 auto !important;
@@ -25,26 +25,6 @@ tags: fundamental-picks
     border: 1px solid #d1d9e6;
     box-shadow: 0 4px 12px rgba(0,0,0,0.03);
   }
-  
-  /* 3. Terminal Box - Responsive Container */
-  .terminal-box {
-    width: 100%;
-    overflow-x: auto;
-    border: 1px solid #e1e8ed;
-    border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-    background: #fff;
-    -webkit-overflow-scrolling: touch;
-    margin-bottom: 30px;
-  }
-
-  iframe {
-    width: 100%;
-    min-width: 1000px; /* Keeps data readable on mobile devices */
-    height: 750px;
-    border: none;
-    display: block;
-  }
 
   .info-tag {
     display: inline-block;
@@ -57,6 +37,45 @@ tags: fundamental-picks
     margin-bottom: 12px;
     letter-spacing: 0.5px;
   }
+
+  /* 3. MOBILE SCROLL FIX - Nested Wrapper Method */
+  .terminal-box {
+    width: 100%;
+    overflow: hidden; /* Clips the child to prevent site-wide horizontal scroll */
+    border: 1px solid #e1e8ed;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    background: #fff;
+    margin-bottom: 30px;
+  }
+
+  /* This container handles the actual touch swipe */
+  .terminal-scroll-container {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important; 
+    width: 100%;
+  }
+
+  iframe {
+    width: 100%;
+    min-width: 1050px; /* Ensures columns stay wide enough to read on small screens */
+    height: 750px;
+    border: none;
+    display: block;
+  }
+
+  .scroll-hint {
+    display: none;
+    text-align: center;
+    font-size: 12px;
+    color: #7f8c8d;
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+
+  @media (max-width: 768px) {
+    .scroll-hint { display: block; }
+  }
 </style>
 
 <div class="trading-status">
@@ -65,10 +84,15 @@ tags: fundamental-picks
   <p style="font-size: 15px; color: #4a5568; margin-top: 10px;">Focusing on Undervalued Stocks for 3-12 Month Investment Horizon</p>
 </div>
 
+<p class="scroll-hint">↔️ Swipe left/right to view full table</p>
+
 <div class="terminal-box">
-  <iframe 
-    src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRxCmYGRepK_DgUk-KMeudF4PoQ9B89msVkMeZmImFb-2QaXobqjOthwdMDlvxpHtu3S9UtyXo9SrOR/pubhtml?gid=1640788813&single=true&headers=false&chrome=false&widget=false">
-  </iframe>
+  <div class="terminal-scroll-container">
+    <iframe 
+      id="positional-terminal"
+      src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRxCmYGRepK_DgUk-KMeudF4PoQ9B89msVkMeZmImFb-2QaXobqjOthwdMDlvxpHtu3S9UtyXo9SrOR/pubhtml?gid=1640788813&single=true&headers=false&chrome=false&widget=false">
+    </iframe>
+  </div>
 </div>
 
 <div style="margin-top: 30px; padding: 20px; background: #fffdf0; border-left: 5px solid #f1c40f; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
@@ -79,3 +103,16 @@ tags: fundamental-picks
     🕒 <strong>Last Algo Sync:</strong> {{ "now" | date: "%d-%b-%Y %H:%M" }}
   </p>
 </div>
+
+<script>
+  // Automatic Refresh to prevent stale trading data
+  window.onload = function() {
+    var iframe = document.getElementById('positional-terminal');
+    if (iframe) {
+        var currentSrc = iframe.src;
+        var timestamp = new Date().getTime();
+        // Force fresh load with a cache-buster timestamp
+        iframe.src = currentSrc + (currentSrc.indexOf('?') > -1 ? "&" : "?") + "cb=" + timestamp;
+    }
+  };
+</script>
