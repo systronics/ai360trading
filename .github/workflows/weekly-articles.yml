@@ -9,7 +9,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: write  # Crucial for pushing the .md file back to your repo
     steps:
       - name: Checkout master
         uses: actions/checkout@v4
@@ -28,7 +28,8 @@ jobs:
 
       - name: Run AI Script
         env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          # Only Groq is needed now. Gemini removed to prevent errors.
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
         run: python generate_articles.py
 
       - name: Commit and Push
