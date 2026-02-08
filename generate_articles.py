@@ -3,42 +3,29 @@ import pytz
 from datetime import datetime
 import google.generativeai as genai
 
-# Setup Gemini
+# Setup Gemini - Final Stable Config for 2026
 genai.configure(api_key=os.environ["GEMINI_API_KEY"])
 model = genai.GenerativeModel('gemini-1.5-flash')
 
-# Indian Time Zone (IST) - Critical for your workflow
+# Indian Time Zone (IST) - Matches your _config.yml
 ist = pytz.timezone('Asia/Kolkata')
-current_ist_time = datetime.now(ist)
-date_str = current_ist_time.strftime("%Y-%m-%d")
+date_str = datetime.now(ist).strftime("%Y-%m-%d")
 
-print(f"DEBUG: Current IST Date for Filename: {date_str}")
-
-# Force path to the root _posts folder
+# Explicit Root Path
 posts_dir = os.path.join(os.getcwd(), '_posts')
-
 if not os.path.exists(posts_dir):
     os.makedirs(posts_dir)
 
 def generate_post(region):
-    print(f"Generating for {region}...")
-    prompt = f"Write a 300-word market update for {region} stocks. Use Jekyll Markdown with layout: post and categories: [global-news]."
-    
+    prompt = f"Write a 300-word stock update for {region}. Format in Jekyll Markdown (layout: post, categories: [global-news])."
     response = model.generate_content(prompt)
     content = response.text.strip()
+    if content.startswith("```"): content = "\n".join(content.split("\n")[1:-1])
     
-    if content.startswith("```"):
-        content = "\n".join(content.split("\n")[1:-1])
-
     filename = f"{date_str}-ai-{region.lower()}.md"
-    path = os.path.join(posts_dir, filename)
-
-    with open(path, "w", encoding="utf-8") as f:
+    with open(os.path.join(posts_dir, filename), "w", encoding="utf-8") as f:
         f.write(content)
-    print(f"SUCCESS: {filename} created.")
+    print(f"Created: {filename}")
 
-for region in ["US", "UK", "Europe", "Asia"]:
-    try:
-        generate_post(region)
-    except Exception as e:
-        print(f"ERROR on {region}: {e}")
+for r in ["US", "UK", "Europe", "Asia"]:
+    generate_post(r)
