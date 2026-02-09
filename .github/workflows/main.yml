@@ -2,19 +2,15 @@ name: AlgoTradeBot
 
 on:
   schedule:
-    # 03:30 AM IST (Morning Message & Market Open)
-    # 03:25 UTC = 08:55 AM IST to ensure it's ready by 9:00
-    - cron: '*/5 3 * * 1-5'
+    # RUN EVERY 5 MIN: 03:30 UTC to 10:15 UTC (09:00 AM to 03:45 PM IST)
+    # This covers Morning Msg, Mid-day TSL, and Market Close in one continuous flow.
+    - cron: '*/5 3-10 * * 1-5'
     
-    # Mid-day monitoring for TSL and Priority Entries
-    # 04:00 - 09:00 UTC = 09:30 AM - 02:30 PM IST
-    - cron: '*/10 4-8 * * 1-5'
+    # RUN ONCE AT NIGHT: 18:30 UTC (12:00 AM IST)
+    # This is the "Reset" run to clear O4/O5 for the next day.
+    - cron: '0 18 * * 1-5'
     
-    # 03:30 PM IST (Market Close Summary)
-    # 10:00 UTC = 03:30 PM IST
-    - cron: '*/5 10 * * 1-5'
-    
-  workflow_dispatch: # Allows you to run it manually anytime
+  workflow_dispatch: 
 
 jobs:
   trade:
@@ -22,7 +18,7 @@ jobs:
     timeout-minutes: 5
     concurrency:
       group: trading-bot
-      cancel-in-progress: false
+      cancel-in-progress: false # Important: Never kill a run mid-trade
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
