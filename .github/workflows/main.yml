@@ -2,23 +2,20 @@ name: AlgoTradeBot
 
 on:
   schedule:
-    # RUN EVERY 5 MIN: 03:30 UTC to 10:15 UTC (09:00 AM to 03:45 PM IST)
-    # This covers Morning Msg, Mid-day TSL, and Market Close in one continuous flow.
-    - cron: '*/5 3-10 * * 1-5'
+    # 09:05 AM to 03:45 PM IST (Runs every 5 mins, offset by 5 to avoid traffic)
+    - cron: '5/5 3-10 * * 1-5'
     
-    # RUN ONCE AT NIGHT: 18:30 UTC (12:00 AM IST)
-    # This is the "Reset" run to clear O4/O5 for the next day.
-    - cron: '0 18 * * 1-5'
+    # 12:05 AM IST (Midnight Reset)
+    - cron: '35 18 * * 1-5'
     
   workflow_dispatch: 
 
 jobs:
   trade:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
-    concurrency:
-      group: trading-bot
-      cancel-in-progress: false # Important: Never kill a run mid-trade
+    # Added permissions to ensure it can write to the repo if needed
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
