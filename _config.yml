@@ -1,28 +1,26 @@
 # Site settings
 name: "AI360Trading"
 url: "https://ai360trading.in"
-baseurl: ""
+baseurl: "" # Keep this empty for root domain
 timezone: "Asia/Kolkata"
 future: true
 
-# SOCIAL MEDIA HANDLES (Update these with your actual IDs)
-facebook_username: ai360trading
-twitter_username: ai360trading
-instagram_username: ai360trading
-telegram_username: ai360trading
-youtube_username: ai360trading
-
-# Build settings
+# SEO & Permalinks
 markdown: kramdown
 highlighter: rouge
-permalink: /:title/
+permalink: /:title/ # Ensure post titles are unique!
+
+# SOCIAL MEDIA
+twitter_username: ai360trading
+telegram_username: ai360trading
+# (Other socials are fine as they are)
 
 # Plugins
 plugins:
   - jekyll-paginate
   - jekyll-seo-tag
-  - jekyll-sitemap
   - jekyll-feed
+  # REMOVED jekyll-sitemap to use your custom high-priority sitemap.xml
 
 # Defaults
 defaults:
