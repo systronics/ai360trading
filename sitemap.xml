@@ -3,10 +3,10 @@ layout: null
 ---
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  
-  {% comment %} --- LOOP THROUGH PAGES (Home, About, etc.) --- {% endcomment %}
+
+  {% comment %} --- HOME & CORE PAGES --- {% endcomment %}
   {% for page in site.pages %}
-    {% unless page.sitemap == false or page.url contains "assets" %}
+    {% unless page.sitemap == false or page.url contains "assets" or page.url contains "css" %}
     <url>
       <loc>{{ site.url }}{{ page.url | remove: 'index.html' }}</loc>
       {% if page.last_modified_at %}
@@ -20,7 +20,7 @@ layout: null
     {% endunless %}
   {% endfor %}
 
-  {% comment %} --- LOOP THROUGH AI-GENERATED POSTS (Market Updates) --- {% endcomment %}
+  {% comment %} --- TRADING POSTS (High Priority) --- {% endcomment %}
   {% for post in site.posts %}
     <url>
       <loc>{{ site.url }}{{ post.url }}</loc>
