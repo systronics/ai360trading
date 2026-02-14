@@ -1,26 +1,29 @@
 # Site settings
 name: "AI360Trading"
 url: "https://ai360trading.in"
-baseurl: "" # Keep this empty for root domain
+baseurl: ""
 timezone: "Asia/Kolkata"
 future: true
+
+# SEO & Ownership (The ONLY place for these codes!)
+google_site_verification: PASTE_YOUR_NEW_CODE_HERE
+google_analytics: G-YR9E0CYRCV
+# For AdSense, we use the ads.txt file in the root folder, not here.
 
 # SEO & Permalinks
 markdown: kramdown
 highlighter: rouge
-permalink: /:title/ # Ensure post titles are unique!
+permalink: /:title/
 
 # SOCIAL MEDIA
 twitter_username: ai360trading
 telegram_username: ai360trading
-# (Other socials are fine as they are)
 
 # Plugins
 plugins:
   - jekyll-paginate
   - jekyll-seo-tag
   - jekyll-feed
-  # REMOVED jekyll-sitemap to use your custom high-priority sitemap.xml
 
 # Defaults
 defaults:
