@@ -1,6 +1,3 @@
----
-layout: null
----
 # ==========================================
 # robots.txt for ai360trading.in
 # Optimized for Indian Market SEO - 2026
@@ -9,12 +6,12 @@ layout: null
 User-agent: *
 Allow: /
 
-# 1. Block technical folders that look like "AI/Bot" content
+# 1. Block technical folders (Prevent "Bot-Generated" Flag)
 Disallow: /tag/
 Disallow: /assets/js/
 Disallow: /cgi-bin/
 
-# 2. Block draft and script files to maintain "Manual Work" appearance
+# 2. Block Jekyll system files (Maintain Professional Cleanliness)
 Disallow: /_drafts/
 Disallow: /_includes/
 Disallow: /_layouts/
@@ -22,16 +19,20 @@ Disallow: /tag_generator.py
 Disallow: /Gemfile
 Disallow: /Gemfile.lock
 
-# 3. Block admin or private experimental trading folders
+# 3. Block private trading areas
 Disallow: /admin/
 Disallow: /private/
 
-# 4. Crawl-delay for aggressive non-Google bots to save bandwidth
+# 4. Limit aggressive SEO bots to save server energy
 User-agent: dotbot
 Crawl-delay: 10
+Disallow: /admin/
+Disallow: /private/
 
 User-agent: AhrefsBot
 Crawl-delay: 10
+Disallow: /admin/
+Disallow: /private/
 
-# 5. Link to your Sitemap (Liquid auto-fills your domain)
-Sitemap: {{ site.url }}/sitemap.xml
+# 5. Corrected Sitemap (No Liquid Tags)
+Sitemap: https://ai360trading.in/sitemap.xml
