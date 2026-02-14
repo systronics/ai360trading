@@ -6,9 +6,9 @@ timezone: "Asia/Kolkata"
 future: true
 
 # SEO & Ownership (The ONLY place for these codes!)
-google_site_verification: PASTE_YOUR_NEW_CODE_HERE
+# REPLACE the line below with your real code from Search Console
+google_site_verification: YOUR_REAL_NEW_CODE
 google_analytics: G-YR9E0CYRCV
-# For AdSense, we use the ads.txt file in the root folder, not here.
 
 # SEO & Permalinks
 markdown: kramdown
