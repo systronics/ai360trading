@@ -5,3 +5,4 @@ requests>=2.32.0
 pytz>=2025.1
 certifi>=2025.1.0
 python-dotenv>=1.0.1
+pytrends>=4.9.0
