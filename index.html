@@ -52,7 +52,7 @@ title: "AI360Trading | Global Market Intelligence & Expert Dashboards"
     </p>
 
     <h3 style="font-size: 18px; color: #1e293b; margin-bottom: 20px;">Latest Market Reports</h3>
-    <div class="market-reports-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+    <div class="market-reports-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 20px;">
       {% for post in site.posts limit:4 %}
         <div class="report-box" style="padding: 20px; border-left: 4px solid #3498db; background: #fdfdfd; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
           <span style="font-size: 12px; color: #95a5a6; font-weight: bold;">{{ post.date | date: "%d %b %Y" }}</span>
@@ -63,20 +63,14 @@ title: "AI360Trading | Global Market Intelligence & Expert Dashboards"
         </div>
       {% endfor %}
     </div>
-
-    <div style="text-align: center; margin-top: 40px; padding-bottom: 40px;">
-      <a href="/tag/technical-picks" style="display: inline-block; padding: 12px 30px; background: #0088cc; color: #fff; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 15px;">
-        📊 VIEW MORE TECHNICAL PICKS
-      </a>
-    </div>
   </section>
 </div>
 
 <style>
   .dashboard-card:hover { transform: translateY(-5px); box-shadow: 0 12px 25px rgba(0,0,0,0.1) !important; }
   
-  /* Ensuring any automatic subscription boxes are physically hidden */
-  .sub-box, .subscription-container { display: none !important; }
+  /* REMOVING THE TELEGRAM BOX AND DEAD LINKS PERMANENTLY */
+  .sub-box, .subscription-container, #sub-box { display: none !important; }
 
   @media (max-width: 600px) {
     .dashboard-grid { grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
