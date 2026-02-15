@@ -2,18 +2,33 @@
 layout: default
 ---
 
-<article class="page-container">
-  <div class="pro-page-card" {% if page.lang %}lang="{{page.lang}}"{% endif %}>
-    
-    {% if page.title %}
-    <h1 class="page-main-title">
-      {{ page.title }}
-    </h1>
-    {% endif %}
+<div class="page-wrapper">
+  {% if page.title %}
+    <h1 class="page-title">{{ page.title }}</h1>
+  {% endif %}
 
-    <div class="page-content">
-      {{ content }}
-    </div>
-    
+  <div class="page-content">
+    {{ content }}
   </div>
-</article>
+</div>
+
+<style>
+  .page-wrapper { 
+    background: white; 
+    padding: 40px; 
+    border-radius: 12px; 
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  .page-title { 
+    color: #0062ff; 
+    border-bottom: 2px solid #f1f5f9; 
+    padding-bottom: 15px; 
+    font-size: 24px; 
+    font-weight: 900; 
+  }
+  .page-content { font-size: 17px; line-height: 1.8; color: #1e293b; }
+  .page-content h2 { font-size: 19px !important; margin-top: 25px; color: #0f172a; font-weight: 800; }
+</style>
