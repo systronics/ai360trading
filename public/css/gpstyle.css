@@ -75,12 +75,12 @@ body {
 }
 
 /* ========================================== */
-/* NEW: LEGAL & DISCLAIMER STYLES             */
+/* UPDATED: LEGAL & DISCLAIMER STYLES        */
 /* ========================================== */
 .legal-container { 
     line-height: 1.7; 
     color: #34495e; 
-    font-size: 15px; 
+    font-size: 16px; /* INCREASED: from 15px for better mobile readability */
 }
 
 .legal-section { 
@@ -95,7 +95,7 @@ body {
 .legal-section h3 { 
     margin-top: 0; 
     color: #0f172a; 
-    font-size: 18px; 
+    font-size: 17px; /* DECREASED: subtle reduction to balance larger body text */
     border-bottom: 2px solid #2563eb; 
     display: inline-block; 
     padding-bottom: 5px; 
