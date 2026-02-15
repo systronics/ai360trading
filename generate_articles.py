@@ -16,7 +16,6 @@ POSTS_DIR = os.path.join(os.getcwd(), '_posts')
 def get_live_news():
     """Scrapes Global Macro news for US, UK, and China attraction."""
     headlines = []
-    # Targeted search for global high-volume keywords
     query = "US+Fed+Rate+NASDAQ+analysis+FTSE+100+UK+economy+China+stimulus+market"
     url = f"https://news.google.com/rss/search?q={query}&hl=en-US&gl=US&ceid=US:en"
     try:
@@ -33,18 +32,14 @@ def generate_full_report():
     filename = f"{date_str}-global-market-intelligence-report.md"
     file_path = os.path.join(POSTS_DIR, filename)
 
-    # SEO Optimized Prompt for Global Reach
     prompt = (
         f"Today: {date_str}. Write a 1,500-word Market Intelligence Report for ai360trading.in.\n"
         f"Context News:\n{news}\n\n"
-        "SEO GOAL: Rank on Google/Bing for US, UK, and Asian investors.\n\n"
+        "PERFORMANCE RULES (For Google PageSpeed):\n"
+        "1. If you include an image, use this HTML: <img src='URL' width='800' height='450' loading='lazy' alt='Description'>.\n"
+        "2. Use clean H2 and H3 tags. Avoid huge walls of text.\n\n"
         "CONTENT STRUCTURE:\n"
-        "1. TITLE: Use a global headline (e.g., 'Global Market Outlook: US Tech Resilience vs China Stimulus').\n"
-        "2. US MARKET: Analyze NASDAQ/S&P 500 and Fed Policy.\n"
-        "3. EUROPE/UK: Analyze FTSE 100 and inflation data.\n"
-        "4. ASIA: Analyze China's economy and Nifty (India) as a secondary correlation.\n"
-        "5. TABLES: Provide a 'Global Pivot Table' including NASDAQ, FTSE, and Nifty levels.\n"
-        "6. TONE: Institutional financial analyst. NO AI FLUFF.\n\n"
+        "Analyze NASDAQ, FTSE 100, and China markets. Provide a 'Global Pivot Table' for traders.\n\n"
         "END WITH THIS EXACT HTML FOOTER:\n"
         '<h3>📢 Share this Analysis</h3>\n'
         '<div class="share-bar">\n'
@@ -69,7 +64,7 @@ def generate_full_report():
         if not os.path.exists(POSTS_DIR): os.makedirs(POSTS_DIR)
         with open(file_path, "w", encoding="utf-8") as f:
             f.write(content)
-        print(f"✅ Success: Global Post Created.")
+        print(f"✅ Success: Global Performance-Optimized Post Created.")
     except Exception as e: 
         print(f"❌ Error: {e}")
 
