@@ -2,39 +2,163 @@
 layout: default
 ---
 
-<div class="about-container">
-  <div style="text-align: left; border-bottom: 1px solid #eee; margin-bottom: 30px; padding-bottom: 10px;">
-    <h1 style="font-size: 22px; color: #2c3e50; font-weight: 800;">PROFESSIONAL TRADING DASHBOARDS</h1>
-  </div>
-
-  <div class="dashboard-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 40px;">
-    <a href="/swing-dashboard/" style="text-decoration: none; color: inherit;">
-      <div style="border-top: 4px solid #2ecc71; padding: 20px; background: #fff; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
-        <h3 style="margin: 0; font-size: 16px;">🎯 SWING DASHBOARD</h3>
-        <p style="font-size: 14px; color: #666; margin-top: 10px;">Institutional trend tracking and breakouts.</p>
-      </div>
-    </a>
-
-    <a href="/intraday-live/" style="text-decoration: none; color: inherit;">
-      <div style="border-top: 4px solid #2ecc71; padding: 20px; background: #fff; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
-        <h3 style="margin: 0; font-size: 16px;">⚡ INTRADAY MONITOR</h3>
-        <p style="font-size: 14px; color: #666; margin-top: 10px;">Live momentum and session trading levels.</p>
-      </div>
-    </a>
-  </div>
-
-  <h2 style="font-size: 19px; font-weight: 800; margin-bottom: 20px;">LATEST MARKET INTELLIGENCE</h2>
+<div class="dashboard-wrapper">
+  <h1 class="main-dashboard-title">PROFESSIONAL TRADING DASHBOARDS</h1>
   
-  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
-    {% for post in site.posts limit:4 %}
-      <div style="padding: 20px; border-left: 4px solid #3498db; background: #fdfdfd; border-radius: 8px;">
-        <span style="font-size: 12px; color: #95a5a6;">{{ post.date | date: "%d %b %Y" }}</span>
-        <h4 style="margin: 8px 0; font-size: 16px;">
-          <a href="{{ post.url }}" style="text-decoration: none; color: #2c3e50; font-weight: 700;">{{ post.title }}</a>
-        </h4>
-        <p style="font-size: 14px; color: #64748b;">{{ post.excerpt | strip_html | truncate: 100 }}</p>
-      </div>
-    {% endfor %}
+  <div class="live-indicator">
+    <span class="dot"></span>
+    <span class="status-text">SYSTEMS LIVE: MARKET DATA SYNCED</span>
   </div>
 
+  <div class="dashboard-grid">
+    <a href="/swing-dashboard/" class="card-link">
+      <div class="dashboard-card swing">
+        <h3>🎯 SWING DASHBOARD</h3>
+        <p>Institutional trend tracking and high-probability volume breakouts.</p>
+        <span class="card-btn">Open Terminal</span>
+      </div>
+    </a>
+
+    <a href="/intraday-live/" class="card-link">
+      <div class="dashboard-card intraday">
+        <h3>⚡ INTRADAY MONITOR</h3>
+        <p>Real-time momentum alerts and daily supply/demand zone analysis.</p>
+        <span class="card-btn">View Live</span>
+      </div>
+    </a>
+
+    <a href="/positional-picks/" class="card-link">
+      <div class="dashboard-card positional">
+        <h3>📈 POSITIONAL PICKS</h3>
+        <p>Long-term wealth compounding setups based on structural shifts.</p>
+        <span class="card-btn">Access Logic</span>
+      </div>
+    </a>
+
+    <a href="/tutorial-videos/" class="card-link">
+      <div class="dashboard-card academy">
+        <h3>🎥 TRADING ACADEMY</h3>
+        <p>Master the price-action logic behind our algorithmic signals.</p>
+        <span class="card-btn">Learn More</span>
+      </div>
+    </a>
   </div>
+</div>
+
+<style>
+  /* DASHBOARD MASTER STYLES */
+  .dashboard-wrapper {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px 0;
+  }
+
+  .main-dashboard-title {
+    text-align: center;
+    font-size: 26px;
+    font-weight: 900;
+    color: #0f172a;
+    margin-bottom: 10px;
+    letter-spacing: -0.5px;
+  }
+
+  .live-indicator {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 40px;
+  }
+
+  .dot {
+    height: 10px;
+    width: 10px;
+    background-color: #2ecc71;
+    border-radius: 50%;
+    display: inline-block;
+    animation: pulse 2s infinite;
+  }
+
+  .status-text {
+    font-size: 12px;
+    font-weight: 800;
+    color: #64748b;
+    letter-spacing: 1px;
+  }
+
+  @keyframes pulse {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(46, 204, 113, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); }
+  }
+
+  /* GRID LOGIC */
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 25px;
+  }
+
+  .card-link {
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .dashboard-card {
+    background: #ffffff;
+    padding: 35px 25px;
+    border-radius: 16px;
+    text-align: center;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    transition: all 0.3s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .dashboard-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.08);
+  }
+
+  /* CARD COLORS */
+  .swing { border-top: 5px solid #2ecc71; }
+  .intraday { border-top: 5px solid #0062ff; }
+  .positional { border-top: 5px solid #f1c40f; }
+  .academy { border-top: 5px solid #e74c3c; }
+
+  .dashboard-card h3 {
+    font-size: 17px;
+    font-weight: 900;
+    color: #0f172a;
+    margin-bottom: 15px;
+  }
+
+  .dashboard-card p {
+    font-size: 14px;
+    color: #64748b;
+    line-height: 1.6;
+    margin-bottom: 20px;
+  }
+
+  .card-btn {
+    font-size: 12px;
+    font-weight: 800;
+    color: #0062ff;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  /* MOBILE RESPONSIVENESS */
+  @media (max-width: 768px) {
+    .dashboard-grid {
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+    .dashboard-card { padding: 20px 15px; }
+    .dashboard-card p { display: none; } /* Keeps it clean on mobile */
+    .main-dashboard-title { font-size: 20px; }
+  }
+</style>
