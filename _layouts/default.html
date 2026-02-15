@@ -14,10 +14,10 @@
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ site.adsense_publisher_id }}" crossorigin="anonymous"></script>
   
   <style>
-    /* BRAND IDENTITY CSS */
     :root { 
       --primary-green: #2ecc71; 
       --dark-text: #2c3e50; 
+      --footer-bg: #1a2a3a; /* Deep navy for contrast */
     }
 
     body { 
@@ -26,16 +26,12 @@
       color: var(--dark-text); 
       margin: 0; 
       background-color: #ffffff;
-      /* FONT SCALE: 1 size up for body text */
       font-size: 17px; 
     }
 
-    /* FONT SCALE: 2 sizes down for headings to balance layout */
     h1 { font-size: 20px !important; font-weight: 800; color: var(--dark-text); }
     h2 { font-size: 18px !important; font-weight: 700; color: var(--dark-text); margin-top: 1.5rem !important; }
-    h3 { font-size: 16px !important; font-weight: 700; }
 
-    /* HEADER BANNER SCALING */
     .site-header { 
       background: #fff; 
       border-bottom: 1px solid #f5f5f5; 
@@ -56,13 +52,9 @@
       width: 100%;
       max-width: 450px; 
       height: auto; 
-      transition: transform 0.3s ease;
       display: block;
     }
     
-    .header-banner-img:hover { transform: scale(1.01); }
-
-    /* NAVIGATION STYLING */
     nav { 
       display: flex; 
       gap: 25px; 
@@ -78,27 +70,17 @@
       font-size: 14px; 
       text-transform: uppercase; 
       letter-spacing: 1px;
-      transition: color 0.3s; 
     }
 
     .nav-link:hover { color: var(--primary-green); }
 
-    /* SOCIAL ICON SCALING */
     .social-links { 
       display: flex; 
       gap: 22px; 
-      padding-top: 10px;
-      margin-top: 5px;
+      margin-top: 10px;
     }
 
-    .social-links a { 
-      font-size: 20px; 
-      transition: 0.3s; 
-      text-decoration: none; 
-    }
-    
-    .social-links a:hover { transform: translateY(-3px); }
-    
+    .social-links a { font-size: 20px; text-decoration: none; }
     .fa-facebook { color: #1877F2; }
     .fa-x-twitter { color: #000000; }
     .fa-instagram { color: #E4405F; }
@@ -107,20 +89,14 @@
 
     .content { width: 100%; max-width: 1100px; margin: 0 auto; padding: 40px 15px; box-sizing: border-box; }
 
-    /* PERMANENT REMOVAL: Hiding the big telegram/subscription block everywhere */
-    .sub-box, .subscription-container, #sub-box {
-      display: none !important;
-      visibility: hidden !important;
-      height: 0 !important;
-      margin: 0 !important;
-      padding: 0 !important;
-    }
+    /* PERMANENT REMOVAL OF TELEGRAM BOX */
+    .sub-box { display: none !important; visibility: hidden !important; }
 
     @media (max-width: 768px) { 
       .header-banner-img { max-width: 280px; } 
       nav { gap: 12px; } 
       .nav-link { font-size: 12px; }
-      body { font-size: 16px; } /* Slightly adjusted for mobile screens */
+      body { font-size: 16px; } 
     }
   </style>
 </head>
@@ -131,7 +107,6 @@
       <a href="/">
         <img src="/public/image/header.webp" alt="AI360Trading" class="header-banner-img">
       </a>
-      
       <nav>
         <a href="/" class="nav-link">Home</a>
         <a href="/about/" class="nav-link">About</a>
@@ -139,7 +114,6 @@
         <a href="/disclaimer/" class="nav-link">Disclaimer</a>
         <a href="/policy/" class="nav-link">Policy</a>
       </nav>
-
       <div class="social-links">
         <a href="https://facebook.com/ai360trading" target="_blank"><i class="fa-brands fa-facebook"></i></a>
         <a href="https://x.com/ai360trading" target="_blank"><i class="fa-brands fa-x-twitter"></i></a>
@@ -154,10 +128,10 @@
     {{ content }}
   </main>
 
-  <footer style="background: var(--dark-text); color: #fff; padding: 50px 20px; text-align: center; margin-top: 60px;">
+  <footer style="background: var(--footer-bg); color: #ffffff; padding: 60px 20px; text-align: center; margin-top: 60px;">
     <div style="max-width: 1200px; margin: 0 auto;">
-      <p style="margin: 0; font-size: 16px; font-weight: bold;">&copy; {{ "now" | date: "%Y" }} AI360TRADING</p>
-      <p style="font-size: 13px; color: #95a5a6; margin-top: 10px;">
+      <p style="margin: 0; font-size: 18px; font-weight: bold; color: #ffffff;">&copy; 2026 AI360TRADING</p>
+      <p style="font-size: 14px; color: #bdc3c7; margin-top: 15px; line-height: 1.6;">
         Advanced Indian Market Intelligence.<br>
         Hand-crafted research verified through manual price-action logic.
       </p>
