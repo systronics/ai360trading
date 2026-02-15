@@ -1,10 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{{ page.title | default: site.title }} | AI360Trading</title>
-  
+  {% include head.html %}
   <style>
     /* 1. RESET & BASE */
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -32,7 +29,7 @@
 
     .header-banner-img {
       display: block;
-      margin: 0 auto; /* ABSOLUTE CENTER */
+      margin: 0 auto; 
       max-width: 450px;
       width: 90%;
       height: auto;
@@ -40,7 +37,7 @@
 
     .site-nav {
       display: flex;
-      justify-content: center; /* ALIGN LINKS CENTER */
+      justify-content: center; 
       gap: 25px;
       flex-wrap: wrap;
     }
@@ -91,7 +88,7 @@
       font-style: italic;
     }
 
-    /* 5. PERMANENT HIDE: TELEGRAM/SUBSCRIPTION BOXES */
+    /* 5. PERMANENT HIDE */
     .sub-box, #sub-box, .subscription-container, .subscription-box, a[href*="technical-picks"] { 
       display: none !important; 
       visibility: hidden !important;
@@ -110,7 +107,11 @@
 
   <header class="header-container">
     <a href="/" class="header-banner-link">
-      <img src="/public/image/header.webp" alt="AI360Trading Terminal" class="header-banner-img">
+      <img src="/public/image/header.webp" 
+           alt="AI360Trading Terminal" 
+           class="header-banner-img" 
+           fetchpriority="high" 
+           loading="eager">
     </a>
     <nav class="site-nav">
       <a href="/" class="nav-link">Home</a>
