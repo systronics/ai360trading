@@ -10,7 +10,7 @@ layout: default
   {% endif %}
     
     <header class="post-header" style="margin-bottom: 30px; text-align: center;">
-      <h1 class="post-title" style="color: #0088cc; font-weight: 800; margin-bottom: 10px;">
+      <h1 class="post-title" style="color: #0088cc; font-weight: 800; margin-bottom: 10px; font-size: 24px;">
         {{ page.title }}
       </h1>
       
@@ -28,18 +28,21 @@ layout: default
     </div>
 
     <footer style="margin-top: 50px; padding-top: 20px; border-top: 1px dashed #ddd; text-align: center;">
-      <p style="font-size: 16px; color: #666;">View more <a href="/tag/technical-picks" style="color: #0088cc; font-weight: bold;">Technical Picks</a></p>
+      <p style="font-size: 17px; color: #666;">View more <a href="/tag/technical-picks" style="color: #0088cc; font-weight: bold;">Technical Picks</a></p>
     </footer>
     
   </div>
 </article>
 
 <style>
-  /* KILL SWITCH: Removes the Big Telegram/Sub-box block from articles */
+  /* PERMANENT FIX: Removes any leftover Big Telegram/Sub-box from articles */
   .post-container .sub-box, 
   .post-content .sub-box,
-  .pro-post-card .sub-box {
+  .pro-post-card .sub-box,
+  .post-container #sub-box {
     display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
   }
 
   .pro-post-card {
@@ -51,14 +54,27 @@ layout: default
     margin-bottom: 30px;
   }
 
-  /* Ensures text is readable - Increased size by 1 as requested */
+  /* Body Text: 1 size up for readability */
   .post-content {
     line-height: 1.8;
     color: #1a1a1a;
     font-size: 17px;
   }
 
-  /* Specific fix for images in posts */
+  /* Headings: 2 sizes down for balance */
+  .post-content h2 {
+    font-size: 1.3rem !important;
+    margin-top: 1.8rem;
+    color: #0f172a;
+    font-weight: 700;
+  }
+
+  .post-content h3 {
+    font-size: 1.1rem !important;
+    margin-top: 1.5rem;
+    color: #334155;
+  }
+
   .post-content img {
     max-width: 100%;
     height: auto;
@@ -67,20 +83,13 @@ layout: default
     margin: 20px 0;
   }
 
-  /* Heading size reduction for balance */
-  .post-content h2 {
-    font-size: 1.3rem !important;
-    margin-top: 1.5rem;
-    color: #0f172a;
-  }
-
   /* Mobile Adjustments */
   @media (max-width: 600px) {
     .pro-post-card {
       padding: 20px;
       border-radius: 8px;
     }
-    .post-title { font-size: 22px; }
+    .post-title { font-size: 21px !important; }
     .post-content { font-size: 16px; }
   }
 </style>
