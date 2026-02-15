@@ -1,121 +1,58 @@
-/* AI360TRADING MASTER CSS - PROFESSIONAL TERMINAL STYLE */
-:root {
-    --brand-blue: #0062ff;
-    --brand-green: #2ecc71;
-    --dark-navy: #0f172a;
-    --text-slate: #475569;
-    --bg-light: #f8fafc;
-}
+/* POST & ARTICLE SPECIFIC STYLES */
+.post-container { max-width: 900px; margin: 0 auto; }
 
-* { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
-
-body { 
-    font-family: 'Inter', sans-serif; 
-    background: var(--bg-light); 
-    color: var(--dark-navy); 
-    margin: 0; 
-    line-height: 1.6;
-}
-
-/* --- HEADER & NAV CENTERING FIX --- */
-.header-container {
+.pro-post-card {
     background: #ffffff;
-    border-bottom: 1px solid #e2e8f0;
-    padding: 20px 0;
-    width: 100%;
+    padding: 40px;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+    margin-bottom: 30px;
 }
 
-.header-inner {
-    max-width: 1100px;
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 15px;
+.post-header { text-align: center; margin-bottom: 35px; }
+
+.post-main-title { 
+    color: var(--brand-blue) !important; 
+    font-weight: 900; 
+    margin-bottom: 12px; 
+    font-size: 28px !important; 
+    line-height: 1.2;
 }
 
-.header-banner-img { 
-    max-width: 420px; 
-    width: 90%; 
-    height: auto; 
-    display: block;
+.post-meta { font-size: 13px; color: #64748b; font-weight: 600; display: flex; justify-content: center; gap: 15px; }
+.meta-divider { color: #cbd5e1; }
+
+.post-content { 
+    line-height: 1.8; 
+    color: #1e293b; 
+    font-size: 18px; /* Slightly larger for readability */
 }
 
-.site-nav {
-    display: flex;
-    justify-content: center;
-    gap: 25px;
-    flex-wrap: wrap;
-}
-
-.nav-link {
-    text-decoration: none;
-    color: var(--dark-navy) !important;
+/* Header scaling as requested: 2 sizes down */
+.post-content h2 { 
+    font-size: 1.25rem !important; 
+    margin: 2rem 0 1rem 0; 
+    color: var(--dark-navy); 
     font-weight: 800;
-    font-size: 14px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    transition: 0.3s ease;
+    border-left: 4px solid var(--brand-green);
+    padding-left: 15px;
 }
 
-.nav-link:hover {
-    color: var(--brand-blue) !important;
+.post-content p { margin-bottom: 1.5rem; }
+
+.post-internal-footer { 
+    margin-top: 50px; 
+    padding-top: 20px; 
+    border-top: 1px dashed #e2e8f0; 
+    text-align: center; 
 }
 
-.header-socials {
-    display: flex;
-    gap: 15px;
-    font-size: 18px;
-    color: #94a3b8;
-}
+.post-internal-footer p { font-size: 13px; color: #94a3b8; font-style: italic; }
 
-/* --- CONTENT AREA --- */
-.content {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 40px 20px;
-    min-height: 60vh;
-}
-
-/* --- PROFESSIONAL SLIM FOOTER --- */
-.site-footer {
-    background: var(--dark-navy);
-    padding: 35px 20px;
-    text-align: center;
-    border-top: 4px solid var(--brand-green);
-    margin-top: 50px;
-}
-
-.footer-container {
-    max-width: 800px;
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.copyright-text {
-    color: #ffffff !important;
-    font-weight: 900;
-    font-size: 18px;
-    margin-bottom: 8px;
-    text-transform: uppercase;
-}
-
-.footer-desc {
-    color: #94a3b8 !important;
-    font-size: 14px;
-    margin: 0;
-    max-width: 500px;
-}
-
-/* --- MOBILE OPTIMIZATION --- */
+/* MOBILE POST OPTIMIZATION */
 @media (max-width: 768px) {
-    .site-nav { gap: 12px; }
-    .nav-link { font-size: 12px; }
-    .header-banner-img { max-width: 300px; }
-    .copyright-text { font-size: 16px; }
+    .pro-post-card { padding: 25px 20px; border-radius: 0; border-left: none; border-right: none; }
+    .post-main-title { font-size: 22px !important; }
+    .post-content { font-size: 17px; }
 }
-
-/* SEO: Hide unwanted elements while keeping code clean */
-.sub-box, #sub-box { display: none !important; visibility: hidden; }
