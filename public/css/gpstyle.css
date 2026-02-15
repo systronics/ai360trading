@@ -1,68 +1,100 @@
-/* GPSTYLE CSS - PERFECTED MASTER STYLESHEET */
-* { box-sizing: border-box; }
+/* MASTER STYLESHEET: Optimized for Speed & Visual Appeal */
+:root {
+    --primary: #2ecc71;
+    --secondary: #3498db;
+    --dark: #101c28;
+    --text: #1e293b;
+    --light-bg: #f8faff;
+    --white: #ffffff;
+}
+
+* { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
 
 body { 
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-family: 'Inter', -apple-system, system-ui, sans-serif;
     font-size: 17px; 
-    color: #1e293b; 
-    background: #ffffff; 
+    color: var(--text); 
+    background: var(--light-bg); 
     margin: 0; 
-    line-height: 1.7; 
+    line-height: 1.6; 
 }
 
-/* 1. HEADER & NAVIGATION */
-.header-container { max-width: 1200px; margin: 0 auto; padding: 15px; text-align: center; }
-.header-banner-img { max-width: 380px; width: 100%; height: auto; }
-.site-nav { margin: 10px 0; display: flex; justify-content: center; gap: 20px; }
-.nav-link { font-weight: 700; text-decoration: none; color: #2c3e50; font-size: 13px; text-transform: uppercase; }
-
-/* 2. CONTENT AREA */
-.content { max-width: 1100px; margin: 0 auto; padding: 20px; min-height: 60vh; }
-.section-divider { border: 0; border-top: 1px solid #eee; margin: 40px 0; }
-
-/* 3. DASHBOARD STYLES (Previously Inline) */
-.terminal-header { text-align: left; padding: 20px 0 10px 0; border-bottom: 1px solid #eee; margin-bottom: 20px; }
-.live-status { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
-.status-dot { height: 10px; width: 10px; background-color: #2ecc71; border-radius: 50%; display: inline-block; }
-.status-text { font-size: 13px; font-weight: bold; color: #34495e; text-transform: uppercase; letter-spacing: 1px; }
-
-.main-dashboard-title { font-size: 22px !important; color: #2c3e50; margin: 0; font-weight: 800; line-height: 1.2; text-align: left !important; }
-
-.dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 15px; margin-bottom: 40px; }
-.card-link { text-decoration: none; color: inherit; }
-.dashboard-card { padding: 20px; background: #fff; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: 0.3s; height: 100%; }
-.dashboard-card:hover { transform: translateY(-5px); box-shadow: 0 12px 25px rgba(0,0,0,0.1) !important; }
-.dashboard-card h3 { margin: 0; font-size: 16px; font-weight: 700; }
-.dashboard-card p { font-size: 14px; color: #666; margin-top: 10px; line-height: 1.5; }
-
-.border-green { border-top: 4px solid #2ecc71; }
-.border-red { border-top: 4px solid #ff4d4d; }
-
-/* 4. MARKET REPORTS (Intelligence Content) */
-.section-title { font-size: 20px !important; color: #1e293b; font-weight: 800; margin-bottom: 10px; }
-.intro-text { font-size: 17px; color: #475569; line-height: 1.7; margin-bottom: 25px; }
-.sub-section-title { font-size: 18px !important; color: #1e293b; margin-bottom: 20px; font-weight: 700; }
-
-.market-reports-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 20px; }
-.report-box { padding: 20px; border-left: 4px solid #3498db; background: #fdfdfd; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
-.report-date { font-size: 12px; color: #95a5a6; font-weight: bold; }
-.report-title a { text-decoration: none; color: #2c3e50; font-weight: 700; }
-.report-excerpt { font-size: 14px; color: #64748b; margin: 5px 0; line-height: 1.6; }
-
-/* 5. SLIM CENTERED FOOTER (Perfected) */
-.site-footer { background: #101c28; padding: 20px; text-align: center; margin-top: 40px; border-top: 3px solid #2ecc71; }
-.footer-container { max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-.copyright-text { font-size: 16px; font-weight: 800; color: #ffffff !important; margin: 0 0 5px 0; text-align: center; }
-.footer-desc { font-size: 13px; color: #cbd5e1 !important; margin: 0; text-align: center; }
-
-/* 6. PERMANENT KILL SWITCH */
-.sub-box, #sub-box, a[href*="technical-picks"], .subscription-container { display: none !important; visibility: hidden !important; height: 0 !important; }
-
-/* 7. MOBILE OPTIMIZATION */
-@media (max-width: 600px) {
-    .dashboard-grid { grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
-    .dashboard-card { padding: 15px !important; }
-    .dashboard-card h3 { font-size: 13px !important; }
-    .dashboard-card p { display: none; } 
-    .main-dashboard-title { font-size: 20px !important; }
+/* 1. SPEED OPTIMIZED HEADER */
+.header-container { 
+    max-width: 1200px; 
+    margin: 0 auto; 
+    padding: 20px; 
+    text-align: center; 
+    background: var(--white);
+    border-bottom: 1px solid rgba(0,0,0,0.05);
 }
+.header-banner-img { max-width: 380px; width: 100%; height: auto; display: inline-block; }
+.site-nav { margin-top: 15px; display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; }
+.nav-link { font-weight: 700; text-decoration: none; color: var(--text); font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; transition: color 0.2s; }
+.nav-link:hover { color: var(--primary); }
+
+/* 2. ATTRACTIVE CONTENT LAYOUT */
+.content { max-width: 1100px; margin: 0 auto; padding: 30px 20px; min-height: 70vh; }
+
+/* Dashboard Titles & Status */
+.terminal-header { text-align: left; margin-bottom: 30px; }
+.live-status { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+.status-dot { height: 8px; width: 8px; background-color: var(--primary); border-radius: 50%; animation: pulse 2s infinite; }
+.status-text { font-size: 12px; font-weight: 800; color: #64748b; text-transform: uppercase; }
+
+h1.main-dashboard-title { font-size: 22px !important; color: var(--dark); margin: 0; font-weight: 800; letter-spacing: -0.5px; }
+h2.section-title { font-size: 20px !important; color: var(--dark); font-weight: 800; margin: 40px 0 20px 0; border-left: 4px solid var(--secondary); padding-left: 15px; }
+
+/* 3. THE "ATTRACTIVE" GRID */
+.dashboard-grid { 
+    display: grid; 
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); 
+    gap: 20px; 
+}
+.dashboard-card { 
+    padding: 25px; 
+    background: var(--white); 
+    border-radius: 15px; 
+    box-shadow: 0 4px 6px rgba(0,0,0,0.02); 
+    border: 1px solid rgba(0,0,0,0.05);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    height: 100%;
+    border-top: 4px solid var(--primary);
+}
+.dashboard-card:hover { 
+    transform: translateY(-5px); 
+    box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); 
+    border-color: var(--secondary);
+}
+.dashboard-card h3 { margin: 0; font-size: 16px; color: var(--dark); font-weight: 700; }
+.dashboard-card p { font-size: 14px; color: #64748b; margin-top: 12px; }
+
+/* 4. SLIM CENTERED FOOTER (PREMIUM LOOK) */
+.site-footer { 
+    background: var(--dark); 
+    padding: 30px 20px; 
+    margin-top: 60px; 
+    text-align: center;
+}
+.footer-container { max-width: 800px; margin: 0 auto; }
+.copyright-text { font-size: 16px; font-weight: 800; color: var(--white) !important; margin: 0 0 8px 0; display: block; }
+.footer-desc { font-size: 13px; color: #94a3b8 !important; margin: 0; line-height: 1.5; }
+
+/* 5. ANIMATIONS & SPEED FIXES */
+@keyframes pulse {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(46, 204, 113, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); }
+}
+
+/* 6. MOBILE PERFORMANCE */
+@media (max-width: 768px) {
+    .dashboard-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+    .dashboard-card { padding: 15px; border-radius: 10px; }
+    .dashboard-card p { display: none; } /* Hide descriptions on mobile to save space */
+    .header-banner-img { max-width: 280px; }
+    .content { padding: 20px 15px; }
+}
+
+/* KILL SWITCH */
+.sub-box, #sub-box, a[href*="technical-picks"] { display: none !important; }
