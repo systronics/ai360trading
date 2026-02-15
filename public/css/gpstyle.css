@@ -1,10 +1,10 @@
 /* GPSTYLE CSS - ACCESSIBILITY & SPEED OPTIMIZED */
 * { box-sizing: border-box; }
 
-/* Fixed: Contrast Ratio for better legibility (SEO & Accessibility) */
+/* Fixed: Contrast Ratio for better legibility */
 body { 
     background-color: #f8faff; 
-    color: #1e293b; /* Darker gray for better contrast */
+    color: #1e293b; 
     margin: 0; 
     font-family: 'Inter', sans-serif; 
 }
@@ -18,7 +18,7 @@ body {
 
 .pro-card {
     background: #ffffff;
-    border: 1px solid #cbd5e1; /* Darker border for accessibility */
+    border: 1px solid #cbd5e1;
     border-radius: 16px;
     padding: 30px;
     box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
@@ -44,17 +44,16 @@ body {
     display: inline-flex;
     align-items: center;
     gap: 10px;
-    /* Fix: Performance - use transform instead of margin for hover */
     transition: transform 0.2s ease;
 }
 
 .share-btn:hover { transform: translateY(-3px); }
 
-.btn-whatsapp { background-color: #15803d; } /* Darker green for contrast */
+.btn-whatsapp { background-color: #15803d; }
 .btn-twitter { background-color: #000000; }
-.btn-telegram { background-color: #0369a1; } /* Darker blue for contrast */
+.btn-telegram { background-color: #0369a1; }
 
-/* Fixed: About Page Contrast */
+/* About Page Styles */
 .about-container { max-width: 900px; margin: 0 auto; }
 .hero-statement { background: #f1f5f9; border-left: 6px solid #2563eb; padding: 30px; color: #0f172a; }
 
@@ -75,12 +74,12 @@ body {
 }
 
 /* ========================================== */
-/* UPDATED: LEGAL & DISCLAIMER STYLES        */
+/* LEGAL & DISCLAIMER STYLES                  */
 /* ========================================== */
 .legal-container { 
     line-height: 1.7; 
     color: #34495e; 
-    font-size: 16px; /* INCREASED: from 15px for readability */
+    font-size: 16px; 
 }
 
 .legal-section { 
@@ -95,7 +94,7 @@ body {
 .legal-section h3 { 
     margin-top: 0; 
     color: #0f172a; 
-    font-size: 17px; /* BALANCED: slightly smaller to match 16px body */
+    font-size: 18px; 
     border-bottom: 2px solid #2563eb; 
     display: inline-block; 
     padding-bottom: 5px; 
@@ -127,4 +126,12 @@ body {
     font-style: italic; 
     color: #92400e; 
     margin-top: 10px; 
+}
+
+/* ========================================== */
+/* NEW FIX: REMOVE BIG TELEGRAM BOX FROM POSTS*/
+/* ========================================== */
+.post-content .sub-box,
+footer .sub-box {
+    display: none !important;
 }
