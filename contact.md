@@ -1,41 +1,42 @@
 ---
-layout: page
-title: "Contact Us"
-excerpt: "Get in touch with the AI360Trading intelligence team."
-permalink: /contact/
+layout: default
+title: "Contact AI360Trading | Institutional Support"
 ---
 
-<div class="about-container">
+<div class="contact-wrapper">
+  <div class="contact-header">
+    <h1 class="main-dashboard-title">GET IN TOUCH</h1>
+    <p class="contact-subtitle">Have questions about our Price-Action logic or Dashboards? Reach out to our team.</p>
+  </div>
 
-<div class="hero-statement">
-Have questions about our global market analysis or algorithmic signals? We are here to help.
+  <div class="contact-container">
+    <form action="https://formspree.io/f/your-id" method="POST" class="styled-form">
+      <div class="form-group">
+        <label for="name">Full Name</label>
+        <input type="text" id="name" name="name" placeholder="John Doe" required>
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" name="email" placeholder="john@example.com" required>
+      </div>
+
+      <div class="form-group">
+        <label for="message">Your Message</label>
+        <textarea id="message" name="message" rows="5" placeholder="How can we help you?" required></textarea>
+      </div>
+
+      <button type="submit" class="submit-btn">SEND MESSAGE</button>
+    </form>
+
+    <div class="social-connect">
+      <h3>Follow the Logic</h3>
+      <div class="social-icons">
+        <a href="#"><i class="fab fa-telegram"></i></a>
+        <a href="#"><i class="fab fa-twitter"></i></a>
+        <a href="#"><i class="fab fa-youtube"></i></a>
+        <a href="#"><i class="fab fa-instagram"></i></a>
+      </div>
+    </div>
+  </div>
 </div>
-
-## Global Intelligence Desk
-{: .section-title}
-
-For the fastest response, please reach out via email. Our team monitors global markets 24/7 across US, European, and Asian sessions.
-
-### General & Technical Support
-If you are experiencing issues with our dashboards or have questions about our research methodology:
-**📧 Email:** [admin@ai360trading.in](mailto:admin@ai360trading.in)
-
-### Media & Partnerships
-For data licensing, institutional inquiries, or collaboration requests:
-**📧 Email:** [admin@ai360trading.in](mailto:admin@ai360trading.in)
-
----
-
-### Connect With Us Globally
-Join our community for real-time updates and global macro discussions.
-
-<div class="share-bar">
-  <a href="https://t.me/{{ site.telegram_username }}" class="share-btn btn-telegram">Join Telegram</a>
-  <a href="https://twitter.com/{{ site.twitter_username }}" class="share-btn btn-twitter">Follow on X</a>
-</div>
-
-</div>
-
-<p style="font-size: 13px; color: #94a3b8; text-align: center; margin-top: 50px;">
-  Response Time: We typically respond within 24-48 business hours. 
-</p>
