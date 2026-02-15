@@ -1,16 +1,18 @@
-/* POOLE CSS - GLOBAL AUTHORITY VERSION */
+/* POOLE CSS - PERFORMANCE OPTIMIZED FEB 2026 */
 * { -webkit-box-sizing: border-box; -moz-box-sizing: border-box; box-sizing: border-box; }
 body, html { margin: 0; padding: 0; }
 
 html { 
     font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; 
-    font-size: 15px; /* Reduced from 20px to fix "Big Font" issue */
-    line-height: 1.6; 
+    font-size: 15px; 
+    line-height: 1.6;
+    /* FIX: Font Display - shows text before font loads */
+    font-display: swap; 
 }
 
 @media (min-width: 48rem) {
     html { font-size: 16px; }
-    .container { max-width: 55rem; } /* Wider layout for professional look */
+    .container { max-width: 55rem; } 
 }
 
 body { 
@@ -20,8 +22,9 @@ body {
     -ms-text-size-adjust: 100%; 
 }
 
-a { color: #2563eb; text-decoration: none; }
-a:hover { text-decoration: underline; }
+/* Fix: Contrast Ratio (Accessibility Audit) */
+a { color: #1d4ed8; text-decoration: none; font-weight: 600; }
+a:hover { text-decoration: underline; color: #1e40af; }
 
 h1, h2, h3 { 
     margin-bottom: 1.5rem; 
@@ -32,9 +35,8 @@ h1, h2, h3 {
 
 h1 { font-size: 2.5rem; letter-spacing: -0.03em; }
 h2 { font-size: 1.4rem; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; margin-top: 3rem; text-transform: uppercase; }
-h3 { font-size: 1.1rem; color: #334155; }
 
-p { margin-top: 0; margin-bottom: 1.5rem; color: #475569; text-align: justify; }
+p { margin-top: 0; margin-bottom: 1.5rem; color: #334155; text-align: justify; }
 
 .container {
     padding-left: 2rem;
@@ -45,4 +47,4 @@ p { margin-top: 0; margin-bottom: 1.5rem; color: #475569; text-align: justify; }
 
 .masthead { padding: 3rem 0; border-bottom: 1px solid #f1f5f9; margin-bottom: 3rem; }
 .post-title { color: #1e293b; font-size: 2.2rem; }
-.post-date { color: #94a3b8; font-size: 0.9rem; font-weight: 600; text-transform: uppercase; }
+.post-date { color: #64748b; font-size: 0.9rem; font-weight: 600; text-transform: uppercase; }
