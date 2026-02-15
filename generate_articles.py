@@ -1,6 +1,5 @@
 import os
 import pytz
-import re
 import requests
 import xml.etree.ElementTree as ET
 from datetime import datetime
@@ -49,9 +48,9 @@ def generate_full_report():
         "END WITH THIS EXACT HTML FOOTER:\n"
         '<h3>📢 Share this Analysis</h3>\n'
         '<div class="share-bar">\n'
-        '  <a href="https://wa.me/?text={{ page.title }} - {{ site.url }}{{ page.url }}" class="share-btn btn-whatsapp"><i class="fa fa-whatsapp"></i> WhatsApp</a>\n'
-        '  <a href="https://twitter.com/intent/tweet?text={{ page.title }}&url={{ site.url }}{{ page.url }}" class="share-btn btn-twitter"><i class="fa fa-twitter"></i> Twitter</a>\n'
-        '  <a href="https://t.me/share/url?url={{ site.url }}{{ page.url }}&text={{ page.title }}" class="share-btn btn-telegram"><i class="fa fa-telegram"></i> Telegram</a>\n'
+        '  <a href="https://wa.me/?text={{ page.title }} - {{ site.url }}{{ page.url }}" class="share-btn btn-whatsapp">WhatsApp</a>\n'
+        '  <a href="https://twitter.com/intent/tweet?text={{ page.title }}&url={{ site.url }}{{ page.url }}" class="share-btn btn-twitter">Twitter</a>\n'
+        '  <a href="https://t.me/share/url?url={{ site.url }}{{ page.url }}&text={{ page.title }}" class="share-btn btn-telegram">Telegram</a>\n'
         '</div>\n\n'
         '<div class="sub-box">\n'
         '  <h3>🚀 Global Trade Signals</h3>\n'
@@ -64,7 +63,7 @@ def generate_full_report():
         completion = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=[{"role": "user", "content": prompt}],
-            temperature=0.5, # Lower temperature for more factual financial reporting
+            temperature=0.5,
         )
         content = completion.choices[0].message.content
         if not os.path.exists(POSTS_DIR): os.makedirs(POSTS_DIR)
