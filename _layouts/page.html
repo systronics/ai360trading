@@ -3,14 +3,10 @@ layout: default
 ---
 
 <article class="page-container">
-  {% if page.lang %}
-  <div class="pro-page-card" lang="{{page.lang}}">
-  {% else %}
-  <div class="pro-page-card">
-  {% endif %}
+  <div class="pro-page-card" {% if page.lang %}lang="{{page.lang}}"{% endif %}>
     
     {% if page.title %}
-    <h1 class="page-title" style="color: #0088cc; border-bottom: 2px solid #f0f4f8; padding-bottom: 10px; margin-bottom: 25px; font-size: 22px; font-weight: 800;">
+    <h1 class="page-main-title">
       {{ page.title }}
     </h1>
     {% endif %}
@@ -21,48 +17,3 @@ layout: default
     
   </div>
 </article>
-
-<style>
-  /* PERMANENT KILL SWITCH: Removes Big Telegram Box and dead links */
-  .sub-box, #sub-box, .subscription-container, a[href*="technical-picks"] {
-    display: none !important;
-    visibility: hidden !important;
-  }
-
-  .pro-page-card {
-    background: #ffffff;
-    padding: 40px;
-    border-radius: 15px;
-    border: 1px solid #e1e8ed;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-    margin-bottom: 30px;
-  }
-
-  /* FONT SCALE: 1 size up for page text (17px) */
-  .page-content {
-    line-height: 1.8;
-    color: #1a1a1a;
-    font-size: 17px;
-  }
-
-  .page-content h2 {
-    font-size: 18px !important;
-    font-weight: 700;
-    margin-top: 1.5rem;
-    color: #0f172a;
-  }
-
-  /* Mobile Adjustments */
-  @media (max-width: 600px) {
-    .pro-page-card {
-      padding: 20px;
-      border-radius: 10px;
-    }
-    .page-title {
-      font-size: 20px !important;
-    }
-    .page-content {
-      font-size: 16px;
-    }
-  }
-</style>
