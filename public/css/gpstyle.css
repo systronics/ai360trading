@@ -1,57 +1,121 @@
-/* CONTACT PAGE SPECIFIC STYLES */
-.contact-wrapper { max-width: 800px; margin: 0 auto; padding: 20px; }
-.contact-header { text-align: center; margin-bottom: 40px; }
-.contact-subtitle { color: #64748b; font-size: 16px; margin-top: 10px; }
+/* AI360TRADING MASTER CSS - PROFESSIONAL TERMINAL STYLE */
+:root {
+    --brand-blue: #0062ff;
+    --brand-green: #2ecc71;
+    --dark-navy: #0f172a;
+    --text-slate: #475569;
+    --bg-light: #f8fafc;
+}
 
-.contact-container {
+* { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+
+body { 
+    font-family: 'Inter', sans-serif; 
+    background: var(--bg-light); 
+    color: var(--dark-navy); 
+    margin: 0; 
+    line-height: 1.6;
+}
+
+/* --- HEADER & NAV CENTERING FIX --- */
+.header-container {
     background: #ffffff;
-    padding: 40px;
-    border-radius: 20px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-    border: 1px solid #e2e8f0;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 20px 0;
+    width: 100%;
 }
 
-.styled-form { display: flex; flex-direction: column; gap: 20px; }
-
-.form-group { display: flex; flex-direction: column; gap: 8px; text-align: left; }
-.form-group label { font-weight: 800; font-size: 13px; text-transform: uppercase; color: #0f172a; }
-
-.form-group input, .form-group textarea {
-    padding: 12px 15px;
-    border: 1px solid #cbd5e1;
-    border-radius: 8px;
-    font-family: inherit;
-    font-size: 15px;
-    transition: 0.3s;
+.header-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
 }
 
-.form-group input:focus, .form-group textarea:focus {
-    outline: none;
-    border-color: #0062ff;
-    box-shadow: 0 0 0 3px rgba(0, 98, 255, 0.1);
+.header-banner-img { 
+    max-width: 420px; 
+    width: 90%; 
+    height: auto; 
+    display: block;
 }
 
-.submit-btn {
-    background: #0062ff;
-    color: white;
-    border: none;
-    padding: 15px;
-    border-radius: 8px;
+.site-nav {
+    display: flex;
+    justify-content: center;
+    gap: 25px;
+    flex-wrap: wrap;
+}
+
+.nav-link {
+    text-decoration: none;
+    color: var(--dark-navy) !important;
     font-weight: 800;
-    cursor: pointer;
-    transition: 0.3s;
-    letter-spacing: 1px;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: 0.3s ease;
 }
 
-.submit-btn:hover { background: #004dc7; transform: translateY(-2px); }
-
-.social-connect { margin-top: 40px; text-align: center; border-top: 1px solid #eee; padding-top: 30px; }
-.social-connect h3 { font-size: 14px; font-weight: 800; text-transform: uppercase; color: #64748b; margin-bottom: 15px; }
-.social-icons { display: flex; justify-content: center; gap: 20px; font-size: 24px; }
-.social-icons a { color: #0f172a; transition: 0.3s; }
-.social-icons a:hover { color: #0062ff; }
-
-/* Mobile Adjustment */
-@media (max-width: 600px) {
-    .contact-container { padding: 25px; }
+.nav-link:hover {
+    color: var(--brand-blue) !important;
 }
+
+.header-socials {
+    display: flex;
+    gap: 15px;
+    font-size: 18px;
+    color: #94a3b8;
+}
+
+/* --- CONTENT AREA --- */
+.content {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    min-height: 60vh;
+}
+
+/* --- PROFESSIONAL SLIM FOOTER --- */
+.site-footer {
+    background: var(--dark-navy);
+    padding: 35px 20px;
+    text-align: center;
+    border-top: 4px solid var(--brand-green);
+    margin-top: 50px;
+}
+
+.footer-container {
+    max-width: 800px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.copyright-text {
+    color: #ffffff !important;
+    font-weight: 900;
+    font-size: 18px;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+
+.footer-desc {
+    color: #94a3b8 !important;
+    font-size: 14px;
+    margin: 0;
+    max-width: 500px;
+}
+
+/* --- MOBILE OPTIMIZATION --- */
+@media (max-width: 768px) {
+    .site-nav { gap: 12px; }
+    .nav-link { font-size: 12px; }
+    .header-banner-img { max-width: 300px; }
+    .copyright-text { font-size: 16px; }
+}
+
+/* SEO: Hide unwanted elements while keeping code clean */
+.sub-box, #sub-box { display: none !important; visibility: hidden; }
