@@ -1,98 +1,118 @@
-/* GPSTYLE CSS - PREMIUM TRADING UI */
+/* AI360TRADING MASTER CSS - FEB 2026 */
 * { box-sizing: border-box; }
 
-/* Dashboard Cards - Fixing the gaps and alignment */
-.dashboard-grid {
+body { 
+    background-color: #f8faff; 
+    color: #2c3e50; 
+    margin: 0; 
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+}
+
+/* Dashboard & News Grids */
+.dashboard-grid, .ai-news-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: 30px;
-    margin: 40px 0;
+    gap: 25px;
+    margin: 30px 0;
 }
 
-.pro-card {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 16px;
+.pro-card, .ai-post-card {
+    background: #fff;
+    border: 1px solid #e1e8ed;
+    border-radius: 12px;
     padding: 30px;
-    transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
-.pro-card:hover { transform: translateY(-8px); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
+.ai-post-card { border-left: 6px solid #0088cc; }
+.ai-post-card:hover { 
+    transform: translateY(-5px); 
+    box-shadow: 0 12px 24px rgba(0,0,0,0.08); 
+}
 
-/* Premium Tables */
+/* Table Styling for Global Levels */
 .post table {
     width: 100%;
+    border-collapse: collapse;
     margin: 30px 0;
-    border-collapse: separate;
-    border-spacing: 0;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
+    background: #fff;
+    border-radius: 8px;
     overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
 
 .post th {
-    background: #0f172a;
-    color: #fff !important;
-    padding: 18px;
+    background-color: #0f172a;
+    color: #ffffff !important;
     text-align: left;
-    font-size: 0.85rem;
+    padding: 15px;
+    font-size: 0.9rem;
+    text-transform: uppercase;
 }
 
 .post td {
-    padding: 15px 18px;
-    border-bottom: 1px solid #f1f5f9;
-    color: #334155;
+    padding: 12px 15px;
+    border-bottom: 1px solid #eee;
+    font-size: 0.95rem;
 }
 
-/* Fix for Social Buttons Looking Like Text */
+/* Share Bar & Buttons */
 .share-bar {
     display: flex;
     flex-wrap: wrap;
     gap: 15px;
-    margin: 30px 0;
-    padding: 25px 0;
-    border-top: 1px solid #f1f5f9;
+    margin: 25px 0;
+    padding: 20px 0;
+    border-top: 2px solid #f0f0f0;
 }
 
 .share-btn {
-    padding: 12px 24px;
-    border-radius: 8px;
-    font-size: 0.9rem;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 0.85rem;
     font-weight: 700;
     color: white !important;
     text-decoration: none !important;
-    display: inline-flex;
+    display: flex;
     align-items: center;
     gap: 10px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
 
 .btn-whatsapp { background-color: #25D366; }
 .btn-twitter { background-color: #000000; }
 .btn-telegram { background-color: #0088cc; }
 
-/* Global Subscription Box */
+/* About Page Centralized Styles */
+.about-container { line-height: 1.7; color: #1e293b; max-width: 900px; margin: 0 auto; }
+.hero-statement { font-size: 1.15em; color: #0f172a; border-left: 5px solid #2563eb; padding: 30px; background: #f8fafc; margin-bottom: 50px; border-radius: 0 12px 12px 0; font-weight: 500; }
+.section-title { font-size: 1.8rem !important; color: #0f172a; margin-top: 60px; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; }
+.badge { background: #2563eb; color: white; padding: 5px 14px; border-radius: 6px; font-size: 11px; font-weight: 800; text-transform: uppercase; }
+.contact-footer { margin-top: 70px; padding: 40px; background: #0f172a; color: #ffffff !important; border-radius: 20px; text-align: center; }
+.contact-footer a { color: #38bdf8 !important; font-size: 1.2rem; text-decoration: none; font-weight: bold; }
+
+.vision-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 25px; margin: 40px 0; }
+.vision-card { padding: 30px; border: 1px solid #e2e8f0; border-radius: 16px; background: #fff; transition: all 0.3s ease; }
+
+/* Subscription Box */
 .sub-box {
     background: #0f172a;
-    color: #fff !important;
-    padding: 40px;
-    border-radius: 20px;
+    color: #ffffff !important;
+    padding: 30px;
+    border-radius: 12px;
     text-align: center;
-    margin: 50px 0;
+    margin: 40px 0;
 }
 
 .sub-box a {
     background: #2563eb;
-    color: white !important;
-    padding: 15px 40px;
-    border-radius: 10px;
-    font-weight: 800;
+    color: #fff !important;
+    padding: 10px 25px;
+    border-radius: 50px;
     display: inline-block;
-    margin-top: 20px;
+    margin-top: 15px;
+    font-weight: bold;
     text-decoration: none;
-}
-
-@media (max-width: 768px) {
-    .share-btn { width: 100%; justify-content: center; }
 }
