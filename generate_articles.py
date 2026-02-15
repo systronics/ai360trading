@@ -9,90 +9,94 @@ from groq import Groq
 # Initialize Groq Client
 client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
-# Timezone Setup
+# Timezone & Path Setup
 ist = pytz.timezone('Asia/Kolkata')
 now = datetime.now(ist)
 date_str = now.strftime("%Y-%m-%d")
+POSTS_DIR = os.path.join(os.getcwd(), '_posts')
+
+def keep_only_latest_10():
+    """Removes all but the 10 most recent posts to keep the site clean for AdSense."""
+    if not os.path.exists(POSTS_DIR):
+        return
+    
+    # Get all markdown files and sort them by name (which starts with date)
+    all_posts = sorted(
+        [f for f in os.listdir(POSTS_DIR) if f.endswith('.md')],
+        reverse=True
+    )
+    
+    # If more than 10, delete the oldest ones
+    if len(all_posts) > 10:
+        posts_to_delete = all_posts[10:]
+        for post in posts_to_delete:
+            os.remove(os.path.join(POSTS_DIR, post))
+            print(f"🗑️ Deleted old post: {post}")
 
 def get_latest_news():
-    """Fetches trending Indian & Global market news via Google News RSS for SEO freshness."""
+    """Fetches high-authority global news for worldwide reach."""
     news_items = []
-    # Targeted search for Indian Markets and Global Macro news
-    url = "https://news.google.com/rss/search?q=nifty+50+sensex+global+market+news&hl=en-IN&gl=IN&ceid=IN:en"
+    # Using a global finance query to attract US/UK visitors alongside Indian traders
+    url = "https://news.google.com/rss/search?q=nifty+50+us+market+nasdaq+fed+news&hl=en-IN&gl=IN&ceid=IN:en"
     try:
         response = requests.get(url, timeout=10)
         root = ET.fromstring(response.content)
-        # Pull top 10 headlines to feed the AI
         for item in root.findall('.//item')[:10]:
-            title = item.find('title').text
-            news_items.append(title)
+            news_items.append(item.find('title').text)
     except Exception as e:
         print(f"News Fetch Error: {e}")
-        return "Standard market update"
+        return "Global market trends"
     return "\n".join(news_items)
 
 def clean_markdown(text):
-    """Ensures Jekyll compatibility by removing AI code block wrappers."""
+    """Ensures Jekyll compatibility."""
     text = re.sub(r'^```[a-zA-Z]*\n', '', text, flags=re.MULTILINE)
     text = re.sub(r'\n```$', '', text, flags=re.MULTILINE)
     return text.strip()
 
 def generate_market_post():
     filename = f"{date_str}-market-intelligence.md"
-    posts_dir = os.path.join(os.getcwd(), '_posts')
-    file_path = os.path.join(posts_dir, filename)
+    file_path = os.path.join(POSTS_DIR, filename)
 
-    # 1. FETCH LIVE DATA FOR SEO RANKING
+    # 1. Housekeeping: Keep only 10 latest
+    keep_only_latest_10()
+
+    # 2. Fetch Live Global News
     market_news = get_latest_news()
     
-    print(f"Generating Fresh Intelligence Report for {date_str}...")
-    
-    # 2. DYNAMIC PROMPT INJECTING REAL-TIME HEADLINES
+    # 3. Enhanced Prompt for AdSense & Worldwide Reach
+    # We ask for 800+ words to meet AdSense "Sufficient Text" requirements
     prompt = (
-        f"Today is {date_str}. You are a Senior Market Strategist for AI360Trading.\n\n"
-        f"LATEST LIVE NEWS HEADLINES:\n{market_news}\n\n"
-        "TASK:\n"
-        "Write a high-authority Indian Market Intelligence report. "
-        "The content MUST be based on the news headlines provided above to ensure Google treats it as fresh news.\n\n"
-        "REQUIRED STRUCTURE:\n"
-        "1. FRONTMATTER:\n"
-        "---\n"
-        "layout: post\n"
-        f"title: 'Market Intelligence {date_str} | [Insert Main News Theme Here]'\n"
-        "categories: [Market-Update]\n"
-        "tags: [nifty50, stock-market-india, global-macro]\n"
-        "---\n\n"
-        "2. SECTIONS:\n"
-        "### ⚡ Market Pulse\n"
-        "Analyze the global sentiment based on the provided news (US Tech, Oil, or Currency).\n\n"
-        "### 📊 Trading Levels\n"
-        "Provide Support/Resistance levels for Nifty and BankNifty based on today's volatility.\n\n"
-        "### 🎯 Sector/Stock Spotlight\n"
-        "Pick 3 stocks or sectors mentioned in the news that show breakout potential.\n\n"
-        "### 🏷️ Trending Hashtags\n"
-        "#Nifty50 #BankNifty #StockMarketIndia #Investing #GlobalMacro #TradingStrategy #AI360Trading\n\n"
-        "---\n"
-        "**Pro Tip:** Check our [Live Dashboards](/#dashboards) for real-time signals."
+        f"Today is {date_str}. Act as a Global Market Analyst. "
+        f"Using these headlines, write a LONG (800+ words) professional report:\n\n{market_news}\n\n"
+        "GOAL: High-value content for AdSense approval and international readers.\n"
+        "STRUCTURE:\n"
+        "1. Frontmatter (layout: post, title: [News Driven Title], categories: [Market-Update])\n"
+        "2. Detailed Analysis of Global Sentiment (Focus on US Markets and Nifty).\n"
+        "3. Macroeconomic Outlook (Inflation, Fed/RBI, Brent Oil).\n"
+        "4. Technical Analysis with Pivot Tables for Nifty & BankNifty.\n"
+        "5. Conclusion for Global Investors.\n"
+        "Use professional English. NO AI fluff. Ensure high keyword density for SEO."
     )
 
     try:
         completion = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=[{"role": "user", "content": prompt}],
-            temperature=0.5, # Balance between factual data and engaging SEO tone
+            temperature=0.5,
         )
         
         content = clean_markdown(completion.choices[0].message.content)
         
-        if not os.path.exists(posts_dir):
-            os.makedirs(posts_dir)
+        if not os.path.exists(POSTS_DIR):
+            os.makedirs(POSTS_DIR)
             
         with open(file_path, "w", encoding="utf-8") as f:
             f.write(content)
-        print(f"✅ Full Report Created: {filename}")
+        print(f"✅ Success: 800+ word post created for {date_str}")
         
     except Exception as e:
-        print(f"❌ Error during generation: {e}")
+        print(f"❌ Error: {e}")
 
 if __name__ == "__main__":
     generate_market_post()
