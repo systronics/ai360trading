@@ -3,84 +3,64 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{{ page.title | default: site.title }}</title>
+  {% include head.html %}
+  {% seo %}
+  <link rel="stylesheet" href="{{ '/public/css/poole.css' | relative_url }}">
+  <link rel="stylesheet" href="{{ '/public/css/gpstyle.css' | relative_url }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   
   <style>
-    /* 1. BASE STYLES */
-    body { 
-      font-family: 'Inter', -apple-system, system-ui, sans-serif; 
-      margin: 0; 
-      background-color: #f8faff; 
-      color: #1e293b; 
-      line-height: 1.6;
-    }
+    body { font-size: 17px; color: #1e293b; background: #ffffff; margin: 0; line-height: 1.7; }
+    
+    /* Header & Nav Centering */
+    .header-container { max-width: 1200px; margin: 0 auto; padding: 15px; text-align: center; }
+    .header-banner-img { max-width: 380px; width: 100%; height: auto; }
+    nav { margin: 10px 0; display: flex; justify-content: center; gap: 20px; }
+    .nav-link { font-weight: 700; text-decoration: none; color: #2c3e50; font-size: 13px; text-transform: uppercase; }
 
-    /* 2. HEADER: FORCED CENTER ALIGNMENT */
-    .header-container {
+    .content { max-width: 1100px; margin: 0 auto; padding: 20px; min-height: 60vh; }
+
+    /* SLIM CENTERED FOOTER */
+    .site-footer {
+      background: #101c28;
+      padding: 25px 20px; /* Decreased padding to reduce block height */
       text-align: center;
-      background: #ffffff;
-      padding: 30px 20px;
-      border-bottom: 1px solid #e2e8f0;
-      width: 100%;
+      margin-top: 40px;
+      border-top: 3px solid #2ecc71;
     }
-
-    .header-banner-img {
-      display: block;
-      margin: 0 auto 15px auto; /* CENTERS IMAGE PERFECTLY */
-      max-width: 450px;
-      width: 90%;
-      height: auto;
-    }
-
-    .site-nav {
+    
+    .footer-container {
+      max-width: 800px;
+      margin: 0 auto;
       display: flex;
-      justify-content: center; /* CENTERS LINKS */
-      gap: 25px;
-      flex-wrap: wrap;
-      margin-top: 10px;
+      flex-direction: column;
+      align-items: center;
     }
 
-    .nav-link {
-      text-decoration: none;
-      color: #0062ff !important;
-      font-weight: 800;
-      font-size: 14px;
-      text-transform: uppercase;
+    .copyright-text { 
+      font-size: 16px; 
+      font-weight: 800; 
+      color: #ffffff !important; /* Light white color */
+      margin: 0 0 5px 0;
       letter-spacing: 0.5px;
     }
 
-    /* 3. MAIN CONTENT CONTAINER */
-    .content {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 40px 20px;
-      min-height: 60vh;
+    .footer-desc { 
+      font-size: 13px; 
+      color: #cbd5e1 !important; /* Light grey/white color */
+      margin: 0;
+      line-height: 1.4;
     }
 
-    /* 4. FOOTER: SLIM & CENTERED */
-    .site-footer {
-      background: #101c28;
-      color: white;
-      padding: 40px 20px;
-      text-align: center;
-      margin-top: 60px;
-      border-top: 4px solid #2ecc71;
-    }
-
-    .copyright-text { font-weight: 900; font-size: 18px; margin-bottom: 8px; }
-    .footer-desc { color: #94a3b8; font-size: 13px; margin: 0; }
-
-    /* 5. PERMANENT HIDE MESSY BOXES */
-    .sub-box, #sub-box, .subscription-container, .subscription-box { display: none !important; }
+    /* Kill switch for unwanted blocks */
+    .sub-box, #sub-box, a[href*="technical-picks"] { display: none !important; }
   </style>
 </head>
 <body>
 
   <header class="header-container">
-    <a href="/">
-      <img src="/public/image/header.webp" alt="AI360Trading" class="header-banner-img">
-    </a>
-    <nav class="site-nav">
+    <a href="/"><img src="/public/image/header.webp" alt="AI360Trading" class="header-banner-img"></a>
+    <nav>
       <a href="/" class="nav-link">Home</a>
       <a href="/about/" class="nav-link">About</a>
       <a href="/contact/" class="nav-link">Contact</a>
@@ -93,8 +73,12 @@
   </main>
 
   <footer class="site-footer">
-    <p class="copyright-text">© 2026 AI360TRADING</p>
-    <p class="footer-desc">Professional Grade Indian Market Intelligence.</p>
+    <div class="footer-container">
+      <p class="copyright-text">© 2026 AI360TRADING</p>
+      <p class="footer-desc">
+        Advanced Indian Market Intelligence. Verified through Price-Action Logic.
+      </p>
+    </div>
   </footer>
 
 </body>
