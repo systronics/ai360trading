@@ -3,6 +3,8 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+  <link rel="apple-touch-icon" href="{{ '/public/image/apple-touch-icon.png' | relative_url }}">
+
   <script async src="https://www.googletagmanager.com/gtag/js?id={{ site.google_analytics }}"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
@@ -22,25 +24,20 @@
   <link rel="shortcut icon" type="image/x-icon" href="{{ '/public/image/favicon.ico' | relative_url }}">
 
   <style>
-    /* Force Wide Layout - Hiding Sidebar for Professional News Look */
     .sidebar { display: none !important; }
-    
     .content, .container { 
       max-width: 1200px !important; 
       margin: 0 auto !important; 
       padding: 0 20px !important;
       display: block !important;
     }
-
     .site-header { 
-      background: #ffffff; 
+      background: #fff; 
       position: sticky; 
       top: 0; 
       z-index: 1000; 
       box-shadow: 0 2px 8px rgba(0,0,0,.05); 
     }
-
-    /* Accessibility: Ensure images don't overflow on mobile */
     img { max-width: 100%; height: auto; }
   </style>
 </head>
