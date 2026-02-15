@@ -14,29 +14,33 @@
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX"
      crossorigin="anonymous"></script>
 
+  {% seo %}
+
   <link rel="stylesheet" href="{{ '/public/css/poole.css' | relative_url }}">
   <link rel="stylesheet" href="{{ '/public/css/gpstyle.css' | relative_url }}">
   <link rel="stylesheet" href="{{ '/public/font-awesome/css/font-awesome.min.css' | relative_url }}">
   <link rel="shortcut icon" type="image/x-icon" href="{{ '/public/image/favicon.ico' | relative_url }}">
 
-  {% seo %}
-
   <style>
+    /* Force Wide Layout - Hiding Sidebar for Professional News Look */
     .sidebar { display: none !important; }
+    
     .content, .container { 
       max-width: 1200px !important; 
       margin: 0 auto !important; 
       padding: 0 20px !important;
       display: block !important;
     }
+
     .site-header { 
       background: #ffffff; 
       position: sticky; 
       top: 0; 
       z-index: 1000; 
-      box-shadow: 0 2px 10px rgba(0,0,0,0.05); 
+      box-shadow: 0 2px 8px rgba(0,0,0,.05); 
     }
-    /* Fixed: Ensure social icons render correctly */
-    .fa { font-family: FontAwesome !important; }
+
+    /* Accessibility: Ensure images don't overflow on mobile */
+    img { max-width: 100%; height: auto; }
   </style>
 </head>
