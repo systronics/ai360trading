@@ -17,7 +17,7 @@
     :root { 
       --primary-green: #2ecc71; 
       --dark-text: #2c3e50; 
-      --footer-bg: #101c28; /* Darker background for maximum contrast */
+      --footer-bg: #101c28; 
     }
 
     body { 
@@ -28,9 +28,14 @@
       font-size: 17px; 
     }
 
-    /* GLOBAL HIDE RULE: Catch-all for "View more" and Subscription blocks */
-    .sub-box, a[href*="technical-picks"], p:has(a[href*="technical-picks"]) {
+    /* THE TOTAL KILL SWITCH for the Big Telegram Block */
+    .sub-box, #sub-box, .subscription-container, .about-container .sub-box, a[href*="technical-picks"] {
       display: none !important;
+      visibility: hidden !important;
+      height: 0 !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      border: none !important;
     }
 
     .site-header { background: #fff; border-bottom: 1px solid #f5f5f5; padding: 15px 0; }
@@ -39,7 +44,6 @@
     
     nav { display: flex; gap: 25px; justify-content: center; margin-top: 5px; }
     .nav-link { font-weight: 700; color: var(--dark-text); text-decoration: none; font-size: 14px; text-transform: uppercase; }
-    .nav-link:hover { color: var(--primary-green); }
 
     .social-links { display: flex; gap: 22px; margin-top: 10px; }
     .social-links a { font-size: 20px; text-decoration: none; }
@@ -80,10 +84,12 @@
     {{ content }}
   </main>
 
-  <footer style="background: var(--footer-bg); color: #ffffff !important; padding: 60px 20px; text-align: center; margin-top: 60px; border-top: 3px solid var(--primary-green);">
-    <div style="max-width: 1200px; margin: 0 auto;">
-      <p style="margin: 0; font-size: 18px; font-weight: 800; color: #ffffff !important; letter-spacing: 1px;">&copy; 2026 AI360TRADING</p>
-      <p style="font-size: 14px; color: #e2e8f0 !important; margin-top: 15px; line-height: 1.6; max-width: 600px; margin-left: auto; margin-right: auto;">
+  <footer style="background: var(--footer-bg); color: #ffffff !important; padding: 50px 20px; text-align: center; margin-top: 60px; border-top: 4px solid var(--primary-green);">
+    <div style="max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+      <p style="margin: 0; font-size: 18px; font-weight: 800; color: #ffffff !important; width: 100%;">
+        &copy; 2026 AI360TRADING
+      </p>
+      <p style="font-size: 14px; color: #e2e8f0 !important; margin: 15px 0 0 0; line-height: 1.6; width: 100%;">
         Advanced Indian Market Intelligence.<br>
         Hand-crafted research verified through manual price-action logic.
       </p>
