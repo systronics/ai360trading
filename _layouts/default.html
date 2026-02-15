@@ -6,65 +6,72 @@
   <title>{{ page.title | default: site.title }}</title>
   
   <style>
-    /* RESTORING WORKING ALIGNMENT */
+    /* 1. BASE STYLES */
     body { 
-      font-family: 'Inter', -apple-system, sans-serif; 
+      font-family: 'Inter', -apple-system, system-ui, sans-serif; 
       margin: 0; 
       background-color: #f8faff; 
       color: #1e293b; 
+      line-height: 1.6;
     }
 
-    /* THE HEADER CENTER FIX */
+    /* 2. HEADER: FORCED CENTER ALIGNMENT */
     .header-container {
       text-align: center;
       background: #ffffff;
       padding: 30px 20px;
       border-bottom: 1px solid #e2e8f0;
+      width: 100%;
     }
 
     .header-banner-img {
       display: block;
-      margin: 0 auto 20px auto; /* FORCED CENTER */
+      margin: 0 auto 15px auto; /* CENTERS IMAGE PERFECTLY */
       max-width: 450px;
-      width: 100%;
+      width: 90%;
       height: auto;
     }
 
     .site-nav {
       display: flex;
-      justify-content: center;
-      gap: 20px;
+      justify-content: center; /* CENTERS LINKS */
+      gap: 25px;
       flex-wrap: wrap;
+      margin-top: 10px;
     }
 
     .nav-link {
       text-decoration: none;
-      color: #0062ff;
+      color: #0062ff !important;
       font-weight: 800;
       font-size: 14px;
       text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
 
+    /* 3. MAIN CONTENT CONTAINER */
     .content {
       max-width: 1100px;
       margin: 0 auto;
       padding: 40px 20px;
+      min-height: 60vh;
     }
 
-    /* FOOTER FIX */
+    /* 4. FOOTER: SLIM & CENTERED */
     .site-footer {
       background: #101c28;
       color: white;
       padding: 40px 20px;
       text-align: center;
-      margin-top: 50px;
+      margin-top: 60px;
+      border-top: 4px solid #2ecc71;
     }
 
-    .copyright-text { font-weight: 800; font-size: 18px; margin-bottom: 10px; }
-    .footer-desc { color: #94a3b8; font-size: 13px; }
+    .copyright-text { font-weight: 900; font-size: 18px; margin-bottom: 8px; }
+    .footer-desc { color: #94a3b8; font-size: 13px; margin: 0; }
 
-    /* HIDE MESSY BOXES */
-    .sub-box, #sub-box, .subscription-container { display: none !important; }
+    /* 5. PERMANENT HIDE MESSY BOXES */
+    .sub-box, #sub-box, .subscription-container, .subscription-box { display: none !important; }
   </style>
 </head>
 <body>
@@ -87,7 +94,7 @@
 
   <footer class="site-footer">
     <p class="copyright-text">© 2026 AI360TRADING</p>
-    <p class="footer-desc">Professional Indian Market Intelligence.</p>
+    <p class="footer-desc">Professional Grade Indian Market Intelligence.</p>
   </footer>
 
 </body>
