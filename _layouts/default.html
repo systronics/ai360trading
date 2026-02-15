@@ -3,64 +3,116 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  {% include head.html %}
-  {% seo %}
-  <link rel="stylesheet" href="{{ '/public/css/poole.css' | relative_url }}">
-  <link rel="stylesheet" href="{{ '/public/css/gpstyle.css' | relative_url }}">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <title>{{ page.title | default: site.title }} | AI360Trading</title>
   
   <style>
-    body { font-size: 17px; color: #1e293b; background: #ffffff; margin: 0; line-height: 1.7; }
+    /* 1. RESET & BASE */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     
-    /* Header & Nav Centering */
-    .header-container { max-width: 1200px; margin: 0 auto; padding: 15px; text-align: center; }
-    .header-banner-img { max-width: 380px; width: 100%; height: auto; }
-    nav { margin: 10px 0; display: flex; justify-content: center; gap: 20px; }
-    .nav-link { font-weight: 700; text-decoration: none; color: #2c3e50; font-size: 13px; text-transform: uppercase; }
+    body { 
+      font-family: 'Inter', -apple-system, system-ui, sans-serif; 
+      background-color: #f8faff; 
+      color: #1e293b; 
+      line-height: 1.6;
+    }
 
-    .content { max-width: 1100px; margin: 0 auto; padding: 20px; min-height: 60vh; }
+    /* 2. HEADER: FORCED CENTER LOGO & NAV */
+    .header-container {
+      text-align: center;
+      background: #ffffff;
+      padding: 30px 20px;
+      border-bottom: 1px solid #e2e8f0;
+      width: 100%;
+    }
 
-    /* SLIM CENTERED FOOTER */
+    .header-banner-link {
+      display: inline-block;
+      margin-bottom: 20px;
+    }
+
+    .header-banner-img {
+      display: block;
+      margin: 0 auto; /* ABSOLUTE CENTER */
+      max-width: 450px;
+      width: 90%;
+      height: auto;
+    }
+
+    .site-nav {
+      display: flex;
+      justify-content: center; /* ALIGN LINKS CENTER */
+      gap: 25px;
+      flex-wrap: wrap;
+    }
+
+    .nav-link {
+      text-decoration: none;
+      color: #0062ff !important;
+      font-weight: 800;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transition: color 0.2s;
+    }
+
+    .nav-link:hover {
+      color: #0f172a !important;
+    }
+
+    /* 3. MAIN CONTENT AREA */
+    .content-wrapper {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 40px 20px;
+      min-height: 70vh;
+    }
+
+    /* 4. FOOTER: DARK TERMINAL STYLE */
     .site-footer {
       background: #101c28;
-      padding: 25px 20px; /* Decreased padding to reduce block height */
+      color: #ffffff;
+      padding: 50px 20px;
       text-align: center;
-      margin-top: 40px;
-      border-top: 3px solid #2ecc71;
-    }
-    
-    .footer-container {
-      max-width: 800px;
-      margin: 0 auto;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      margin-top: 60px;
+      border-top: 4px solid #2ecc71;
     }
 
-    .copyright-text { 
-      font-size: 16px; 
-      font-weight: 800; 
-      color: #ffffff !important; /* Light white color */
-      margin: 0 0 5px 0;
-      letter-spacing: 0.5px;
+    .footer-brand {
+      font-weight: 900;
+      font-size: 20px;
+      margin-bottom: 10px;
+      letter-spacing: 1px;
     }
 
-    .footer-desc { 
-      font-size: 13px; 
-      color: #cbd5e1 !important; /* Light grey/white color */
+    .footer-desc {
+      color: #94a3b8;
+      font-size: 13px;
       margin: 0;
-      line-height: 1.4;
+      font-style: italic;
     }
 
-    /* Kill switch for unwanted blocks */
-    .sub-box, #sub-box, a[href*="technical-picks"] { display: none !important; }
+    /* 5. PERMANENT HIDE: TELEGRAM/SUBSCRIPTION BOXES */
+    .sub-box, #sub-box, .subscription-container, .subscription-box, a[href*="technical-picks"] { 
+      display: none !important; 
+      visibility: hidden !important;
+    }
+
+    /* MOBILE ADJUSTMENTS */
+    @media (max-width: 600px) {
+      .header-container { padding: 20px 15px; }
+      .site-nav { gap: 15px; }
+      .nav-link { font-size: 12px; }
+      .content-wrapper { padding: 25px 15px; }
+    }
   </style>
 </head>
 <body>
 
   <header class="header-container">
-    <a href="/"><img src="/public/image/header.webp" alt="AI360Trading" class="header-banner-img"></a>
-    <nav>
+    <a href="/" class="header-banner-link">
+      <img src="/public/image/header.webp" alt="AI360Trading Terminal" class="header-banner-img">
+    </a>
+    <nav class="site-nav">
       <a href="/" class="nav-link">Home</a>
       <a href="/about/" class="nav-link">About</a>
       <a href="/contact/" class="nav-link">Contact</a>
@@ -68,17 +120,13 @@
     </nav>
   </header>
 
-  <main class="content">
+  <main class="content-wrapper">
     {{ content }}
   </main>
 
   <footer class="site-footer">
-    <div class="footer-container">
-      <p class="copyright-text">© 2026 AI360TRADING</p>
-      <p class="footer-desc">
-        Advanced Indian Market Intelligence. Verified through Price-Action Logic.
-      </p>
-    </div>
+    <p class="footer-brand">© 2026 AI360TRADING</p>
+    <p class="footer-desc">Institutional Grade Price Action & Algorithmic Intelligence.</p>
   </footer>
 
 </body>
