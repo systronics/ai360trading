@@ -1,6 +1,8 @@
 import os
 import pytz
 import re
+import requests
+import xml.etree.ElementTree as ET
 from datetime import datetime
 from groq import Groq
 
@@ -11,6 +13,20 @@ client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 ist = pytz.timezone('Asia/Kolkata')
 now = datetime.now(ist)
 date_str = now.strftime("%Y-%m-%d")
+
+def get_latest_news():
+    """Fetches trending Indian & Global market news via Google News RSS."""
+    news_items = []
+    # Query for Indian Market and Global Macro news
+    url = "https://news.google.com/rss/search?q=nifty+50+sensex+global+market+news&hl=en-IN&gl=IN&ceid=IN:en"
+    try:
+        response = requests.get(url, timeout=10)
+        root = ET.fromstring(response.content)
+        for item in root.findall('.//item')[:8]: # Get top 8 news stories
+            news_items.append(item.find('title').text)
+    except Exception as e:
+        print(f"News Fetch Error: {e}")
+    return "\n".join(news_items)
 
 def clean_markdown(text):
     """Ensures Jekyll compatibility by removing AI wrappers."""
@@ -23,37 +39,31 @@ def generate_market_post():
     posts_dir = os.path.join(os.getcwd(), '_posts')
     file_path = os.path.join(posts_dir, filename)
 
-    print(f"Generating Premium Intelligence Report for {date_str}...")
+    # FETCH LIVE DATA
+    market_news = get_latest_news()
     
-    # ADVANCED PROMPT FOR HIGH-VALUE VISITORS
+    print(f"Generating Fresh Intelligence Report for {date_str}...")
+    
+    # DYNAMIC PROMPT USING REAL NEWS
     prompt = (
-        f"Act as a Senior Market Strategist. Write a crisp Indian Market Intelligence report for {date_str}. "
-        "Use this Frontmatter:\n"
-        "---\n"
-        "layout: post\n"
-        f"title: 'Market Intelligence {date_str} | Nifty & Global Macro Outlook'\n"
-        "categories: [Market-Update]\n"
-        "tags: [global-markets]\n"
-        "---\n\n"
-        "### ⚡ Market Pulse\n"
-        "Provide 3 bullet points on Global Sentiment (US Tech, Brent Oil, Dollar Index).\n\n"
-        "### 📊 Key Pivot Levels\n"
-        "Create a clean Markdown table with: Index, Support, Pivot, Resistance for NIFTY, BANKNIFTY, and FINNIFTY.\n\n"
-        "### 🎯 Top Trending Stocks & Sectors\n"
-        "List 3 stocks showing breakout potential and why.\n\n"
-        "### 🗓️ Major Global Events Today\n"
-        "List any RBI, Fed, or economic data releases.\n\n"
-        "### 🏷️ Trending Hashtags\n"
-        "#Nifty50 #BankNifty #StockMarketIndia #Investing #GlobalMacro #TradingStrategy #AI360Trading\n\n"
-        "--- \n"
-        "**Pro Tip:** Check our [Live Dashboards](/#dashboards) for real-time signals."
+        f"Today is {date_str}. Use these REAL headlines to write a SEO-optimized report:\n\n"
+        f"LATEST NEWS:\n{market_news}\n\n"
+        "INSTRUCTIONS:\n"
+        "1. Write as a Senior Market Strategist.\n"
+        "2. Include a 'Click-worthy' title with a specific news event in it.\n"
+        "3. Frontmatter: layout: post, categories: [Market-Update], tags: [nifty, global-markets].\n"
+        "4. Section: '⚡ Market Pulse' - Analyze the news above.\n"
+        "5. Section: '📊 Pivot Levels' - Estimated levels for Nifty, BankNifty.\n"
+        "6. Section: '🎯 Breakout Stocks' - Mention 3 stocks from the news headlines.\n"
+        "7. Include Trending Hashtags for 2026: #NiftyToday #StockMarketIndia #AI360Trading #MarketNews\n"
+        "8. Use Markdown. No intro/outro fluff."
     )
 
     try:
         completion = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=[{"role": "user", "content": prompt}],
-            temperature=0.3, # Lower temperature for more factual/professional data
+            temperature=0.6, # Slightly higher for more creative/trending titles
         )
         
         content = clean_markdown(completion.choices[0].message.content)
@@ -63,7 +73,7 @@ def generate_market_post():
             
         with open(file_path, "w", encoding="utf-8") as f:
             f.write(content)
-        print(f"✅ Premium Post Created: {filename}")
+        print(f"✅ Success: Post Created with live news context.")
         
     except Exception as e:
         print(f"❌ Error: {e}")
