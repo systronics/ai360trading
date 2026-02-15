@@ -13,7 +13,7 @@
     gtag('config', '{{ site.google_analytics }}', { 'anonymize_ip': true });
   </script>
 
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX"
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ site.adsense_publisher_id }}"
      crossorigin="anonymous"></script>
 
   {% seo %}
@@ -24,13 +24,26 @@
   <link rel="shortcut icon" type="image/x-icon" href="{{ '/public/image/favicon.ico' | relative_url }}">
 
   <style>
+    /* 1. PERMANENT FONT SIZE ADJUSTMENTS */
+    html { 
+      font-size: 17px !important; /* INCREASED: 1 size up for text readability */
+    }
+
+    /* 2. HEADER SIZE REDUCTION (2 sizes down for balance) */
+    h1 { font-size: 2rem !important; }
+    h2 { font-size: 1.4rem !important; margin-top: 1.5rem !important; }
+    h3 { font-size: 1.2rem !important; }
+
+    /* 3. LAYOUT & BRANDING FIXES */
     .sidebar { display: none !important; }
+    
     .content, .container { 
       max-width: 1200px !important; 
       margin: 0 auto !important; 
       padding: 0 20px !important;
       display: block !important;
     }
+
     .site-header { 
       background: #fff; 
       position: sticky; 
@@ -38,6 +51,20 @@
       z-index: 1000; 
       box-shadow: 0 2px 8px rgba(0,0,0,.05); 
     }
+
     img { max-width: 100%; height: auto; }
+
+    /* 4. PERMANENT FIX: HIDE BIG TELEGRAM BLOCK GLOBALLY */
+    .sub-box, 
+    #subscription-box, 
+    .big-telegram-btn { 
+      display: none !important; 
+      visibility: hidden !important;
+    }
+
+    /* 5. BRANDING OVERRIDE: Fixes the "ai360trading.in" text issue */
+    .post-title::after {
+      content: "" !important; /* Prevents auto-pulling domain in some themes */
+    }
   </style>
 </head>
