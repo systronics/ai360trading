@@ -1,70 +1,20 @@
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <link rel="apple-touch-icon" href="{{ '/public/image/apple-touch-icon.png' | relative_url }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com">
 
-  <script async src="https://www.googletagmanager.com/gtag/js?id={{ site.google_analytics }}"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', '{{ site.google_analytics }}', { 'anonymize_ip': true });
-  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" 
+        integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" 
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
 
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ site.adsense_publisher_id }}"
-     crossorigin="anonymous"></script>
-
+  <title>{% if page.title %}{{ page.title }}{% else %}{{ site.title }}{% endif %}</title>
+  <meta name="description" content="{{ page.excerpt | default: site.description | strip_html | normalize_whitespace | truncate: 160 }}">
+  
   {% seo %}
-
-  <link rel="stylesheet" href="{{ '/public/css/poole.css' | relative_url }}">
-  <link rel="stylesheet" href="{{ '/public/css/gpstyle.css' | relative_url }}">
-  <link rel="stylesheet" href="{{ '/public/font-awesome/css/font-awesome.min.css' | relative_url }}">
-  <link rel="shortcut icon" type="image/x-icon" href="{{ '/public/image/favicon.ico' | relative_url }}">
-
-  <style>
-    /* 1. PERMANENT FONT SIZE ADJUSTMENTS */
-    html { 
-      font-size: 17px !important; /* INCREASED: 1 size up for text readability */
-    }
-
-    /* 2. HEADER SIZE REDUCTION (2 sizes down for balance) */
-    h1 { font-size: 2rem !important; }
-    h2 { font-size: 1.4rem !important; margin-top: 1.5rem !important; }
-    h3 { font-size: 1.2rem !important; }
-
-    /* 3. LAYOUT & BRANDING FIXES */
-    .sidebar { display: none !important; }
-    
-    .content, .container { 
-      max-width: 1200px !important; 
-      margin: 0 auto !important; 
-      padding: 0 20px !important;
-      display: block !important;
-    }
-
-    .site-header { 
-      background: #fff; 
-      position: sticky; 
-      top: 0; 
-      z-index: 1000; 
-      box-shadow: 0 2px 8px rgba(0,0,0,.05); 
-    }
-
-    img { max-width: 100%; height: auto; }
-
-    /* 4. PERMANENT FIX: HIDE BIG TELEGRAM BLOCK GLOBALLY */
-    .sub-box, 
-    #subscription-box, 
-    .big-telegram-btn { 
-      display: none !important; 
-      visibility: hidden !important;
-    }
-
-    /* 5. BRANDING OVERRIDE: Fixes the "ai360trading.in" text issue */
-    .post-title::after {
-      content: "" !important; /* Prevents auto-pulling domain in some themes */
-    }
-  </style>
 </head>
