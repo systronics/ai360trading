@@ -1,13 +1,21 @@
 /* GPSTYLE CSS - ACCESSIBILITY & SPEED OPTIMIZED */
 * { box-sizing: border-box; }
 
-/* Fixed: Contrast Ratio for better legibility */
+/* Fixed: Contrast Ratio & Font Scaling */
 body { 
     background-color: #f8faff; 
     color: #1e293b; 
     margin: 0; 
     font-family: 'Inter', sans-serif; 
+    /* 1 size up for body text readability */
+    font-size: 17px; 
+    line-height: 1.7;
 }
+
+/* Header scaling: 2 sizes down for balance */
+h1 { font-size: 1.5rem !important; font-weight: 800; color: #0f172a; }
+h2 { font-size: 1.3rem !important; font-weight: 700; color: #0f172a; }
+h3 { font-size: 1.1rem !important; font-weight: 700; color: #0f172a; }
 
 .dashboard-grid {
     display: grid;
@@ -57,29 +65,13 @@ body {
 .about-container { max-width: 900px; margin: 0 auto; }
 .hero-statement { background: #f1f5f9; border-left: 6px solid #2563eb; padding: 30px; color: #0f172a; }
 
-.sub-box {
-    background: #0f172a;
-    color: #ffffff !important;
-    padding: 40px;
-    border-radius: 20px;
-    text-align: center;
-}
-
-.sub-box a {
-    background: #2563eb;
-    color: white !important;
-    padding: 15px 40px;
-    border-radius: 10px;
-    font-weight: 800;
-}
-
 /* ========================================== */
 /* LEGAL & DISCLAIMER STYLES                  */
 /* ========================================== */
 .legal-container { 
     line-height: 1.7; 
     color: #34495e; 
-    font-size: 16px; 
+    font-size: 17px; /* Matched body text increase */
 }
 
 .legal-section { 
@@ -94,7 +86,7 @@ body {
 .legal-section h3 { 
     margin-top: 0; 
     color: #0f172a; 
-    font-size: 18px; 
+    font-size: 16px; /* Scaled down */
     border-bottom: 2px solid #2563eb; 
     display: inline-block; 
     padding-bottom: 5px; 
@@ -129,9 +121,34 @@ body {
 }
 
 /* ========================================== */
-/* NEW FIX: REMOVE BIG TELEGRAM BOX FROM POSTS*/
+/* PERMANENT KILL SWITCH: REMOVING THE BLOCKS */
 /* ========================================== */
-.post-content .sub-box,
-footer .sub-box {
+
+/* Hides the Big Telegram Join Box (Sub-box) everywhere */
+.sub-box, 
+#subscription-box,
+.about-container .sub-box,
+.post-content .sub-box {
     display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Hides the "View more Technical Picks" links and empty sections */
+a[href*="technical-picks"], 
+p:has(a[href*="technical-picks"]),
+footer .technical-picks-link {
+    display: none !important;
+}
+
+/* FIXED FOOTER CONTRAST: Ensures (c) 2026 is pure white */
+footer p {
+    color: #ffffff !important;
+    opacity: 1 !important;
+}
+
+footer p span, footer .copyright {
+    color: #ffffff !important;
 }
