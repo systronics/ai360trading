@@ -3,22 +3,16 @@ layout: default
 ---
 
 <article class="post-container">
-  {% if page.lang %}
-  <div class="pro-post-card" lang="{{page.lang}}">
-  {% else %}
-  <div class="pro-post-card">
-  {% endif %}
+  <div class="pro-post-card" {% if page.lang %}lang="{{page.lang}}"{% endif %}>
     
-    <header class="post-header" style="margin-bottom: 30px; text-align: center;">
-      <h1 class="post-title" style="color: #0088cc; font-weight: 800; margin-bottom: 10px; font-size: 24px;">
-        {{ page.title }}
-      </h1>
+    <header class="post-header">
+      <h1 class="post-main-title">{{ page.title }}</h1>
       
-      <div class="post-meta" style="font-size: 13px; color: #888; font-weight: 600;">
-        <span class="post-date">📅 {{ page.date | date: "%b %-d, %Y" }}</span>
+      <div class="post-meta">
+        <span class="post-date"><i class="far fa-calendar-alt"></i> {{ page.date | date: "%b %-d, %Y" }}</span>
         {% if page.author %}
-          <span style="margin: 0 10px;">|</span>
-          <span class="post-author">👤 {{ page.author }}</span>
+          <span class="meta-divider">|</span>
+          <span class="post-author"><i class="far fa-user"></i> {{ page.author }}</span>
         {% endif %}
       </div>
     </header>
@@ -27,53 +21,9 @@ layout: default
       {{ content }}
     </div>
 
-    <footer style="margin-top: 50px; padding-top: 20px; border-top: 1px dashed #ddd; text-align: center;">
-      <p style="font-size: 14px; color: #95a5a6; font-style: italic;">Verified Price Action Research</p>
+    <footer class="post-internal-footer">
+      <p>Verified Price Action Research | AI360Trading Terminal</p>
     </footer>
     
   </div>
 </article>
-
-<style>
-  /* AGGRESSIVE HIDE: Targets the specific "View more" and Telegram box from your screenshot */
-  .sub-box, 
-  #sub-box, 
-  .subscription-box,
-  footer p:has(a[href*="technical-picks"]), 
-  .post-container footer a[href*="technical-picks"] {
-    display: none !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
-    height: 0 !important;
-    margin: 0 !important;
-    padding: 0 !important;
-  }
-
-  .pro-post-card {
-    background: #ffffff;
-    padding: 40px;
-    border-radius: 15px;
-    border: 1px solid #e1e8ed;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
-    margin-bottom: 30px;
-  }
-
-  .post-content {
-    line-height: 1.8;
-    color: #1a1a1a;
-    font-size: 17px; /* 1 size up as requested */
-  }
-
-  .post-content h2 {
-    font-size: 1.3rem !important; /* 2 sizes down as requested */
-    margin-top: 1.8rem;
-    color: #0f172a;
-    font-weight: 700;
-  }
-
-  @media (max-width: 600px) {
-    .pro-post-card { padding: 20px; border-radius: 8px; }
-    .post-title { font-size: 21px !important; }
-    .post-content { font-size: 16px; }
-  }
-</style>
