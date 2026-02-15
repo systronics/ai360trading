@@ -2,30 +2,51 @@
 layout: default
 ---
 
-<h1 style="text-align: center; font-size: 24px; font-weight: 900; margin-bottom: 40px;">PROFESSIONAL TRADING DASHBOARDS</h1>
+<h1 class="dashboard-main-title">PROFESSIONAL TRADING DASHBOARDS</h1>
 
 <div class="dashboard-grid">
-  <a href="/swing-dashboard/" style="text-decoration: none;">
+  <a href="/swing-dashboard/" class="card-link">
     <div class="dashboard-card">
-      <h3 style="color: #2c3e50; font-weight: 800;">🎯 SWING DASHBOARD</h3>
-      <p style="color: #64748b; font-size: 14px;">Institutional trend tracking and volume breakouts.</p>
+      <h3>🎯 SWING DASHBOARD</h3>
+      <p>Institutional trend tracking and breakouts.</p>
     </div>
   </a>
 
-  <a href="/intraday-live/" style="text-decoration: none;">
+  <a href="/intraday-live/" class="card-link">
     <div class="dashboard-card">
-      <h3 style="color: #2c3e50; font-weight: 800;">⚡ INTRADAY MONITOR</h3>
-      <p style="color: #64748b; font-size: 14px;">Live momentum alerts and daily supply/demand.</p>
+      <h3>⚡ INTRADAY MONITOR</h3>
+      <p>Live momentum alerts and daily levels.</p>
+    </div>
+  </a>
+
+  <a href="/positional-picks/" class="card-link">
+    <div class="dashboard-card">
+      <h3>📈 POSITIONAL PICKS</h3>
+      <p>Long-term wealth compounding setups.</p>
+    </div>
+  </a>
+
+  <a href="/tutorial-videos/" class="card-link">
+    <div class="dashboard-card" style="border-top-color: #ff4d4d;">
+      <h3>🎥 TRADING ACADEMY</h3>
+      <p>Master the logic behind the signals.</p>
     </div>
   </a>
 </div>
 
 <style>
-  .dashboard-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 20px;
+  .dashboard-main-title { 
+    text-align: center; 
+    font-weight: 900; 
+    font-size: 24px; 
+    margin-bottom: 40px; 
   }
+  .dashboard-grid { 
+    display: grid; 
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); 
+    gap: 20px; 
+  }
+  .card-link { text-decoration: none; }
   .dashboard-card {
     background: white;
     padding: 30px;
@@ -33,5 +54,9 @@ layout: default
     border-top: 4px solid #2ecc71;
     box-shadow: 0 4px 15px rgba(0,0,0,0.05);
     text-align: center;
+    transition: 0.3s;
   }
+  .dashboard-card:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
+  .dashboard-card h3 { color: #0f172a; margin: 0; font-size: 16px; }
+  .dashboard-card p { color: #64748b; font-size: 14px; margin-top: 10px; }
 </style>
