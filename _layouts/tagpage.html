@@ -2,19 +2,19 @@
 layout: default
 ---
 
-<div class="tag-page-header" style="text-align: center; margin-bottom: 30px;">
-  <h1 style="color: #0088cc; text-transform: capitalize; font-weight: 800;">
+<div class="tag-page-header">
+  <h1 class="tag-title">
     Category: {{ page.tag | replace: "-", " " }}
   </h1>
-  <p style="color: #666;">Explore our latest algo-signals and insights for {{ page.tag }}.</p>
+  <p class="tag-subtitle">Institutional-grade signals and manual price-action insights for {{ page.tag }}.</p>
 </div>
 
 <div class="tag-posts-container">
   {% for post in site.tags[page.tag] %}
     <article class="tag-post-card" {% if post.lang %}lang="{{post.lang}}"{% endif %}>
       <div class="tag-post-content">
-        <h2 class="tag-post-title">
-          <a href="{{ post.url }}">{{ post.title }}</a>
+        <h2 class="tag-post-card-title">
+          <a href="{{ post.url | relative_url }}">{{ post.title }}</a>
         </h2>
         
         {% if post.excerpt %}
@@ -24,80 +24,10 @@ layout: default
         {% endif %}
 
         <div class="tag-post-meta">
-          <span>📅 {{ post.date | date: "%b %-d, %Y" }}</span>
-          <a href="{{ post.url }}" class="read-more-btn">View Live Signals →</a>
+          <span class="meta-date"><i class="far fa-calendar"></i> {{ post.date | date: "%b %-d, %Y" }}</span>
+          <a href="{{ post.url | relative_url }}" class="read-more-btn">View Live Signals →</a>
         </div>
       </div>
     </article>
   {% endfor %}
 </div>
-
-<style>
-  .tag-posts-container {
-    max-width: 800px;
-    margin: 0 auto;
-  }
-
-  .tag-post-card {
-    background: #ffffff;
-    padding: 25px;
-    border-radius: 12px;
-    border: 1px solid #e1e8ed;
-    margin-bottom: 20px;
-    transition: 0.3s;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-  }
-
-  .tag-post-card:hover {
-    transform: translateX(5px);
-    border-color: #0088cc;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-  }
-
-  .tag-post-title a {
-    text-decoration: none;
-    color: #2c3e50;
-    font-size: 20px;
-    font-weight: 700;
-  }
-
-  .tag-post-excerpt {
-    color: #546e7a;
-    font-size: 14px;
-    margin: 10px 0;
-    line-height: 1.6;
-  }
-
-  .tag-post-meta {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 15px;
-    font-size: 12px;
-    font-weight: 600;
-    color: #90a4ae;
-  }
-
-  .read-more-btn {
-    background: #f0f7ff;
-    color: #0088cc !important;
-    padding: 6px 12px;
-    border-radius: 6px;
-    text-decoration: none !important;
-    transition: 0.2s;
-  }
-
-  .read-more-btn:hover {
-    background: #0088cc;
-    color: #ffffff !important;
-  }
-
-  /* Mobile Fix */
-  @media (max-width: 600px) {
-    .tag-post-meta {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 10px;
-    }
-  }
-</style>
