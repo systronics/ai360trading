@@ -3,9 +3,9 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   
-  <title>
-    {% if page.title %}{{ page.title }} | {% endif %}{{ site.title }}
-  </title>
+  <title>{% if page.title %}{{ page.title }}{% else %}AI360Trading | Indian Market Intelligence Terminal{% endif %}</title>
+
+  <meta name="description" content="AI360Trading provides institutional-grade price action logic, swing trading dashboards, and algorithmic market intelligence for the Indian stock market.">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,12 +14,13 @@
   <link rel="stylesheet" href="{{ '/public/css/poole.css' | relative_url }}">
   <link rel="stylesheet" href="{{ '/public/css/gpstyle.css' | relative_url }}">
 
-  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="{{ '/public/apple-touch-icon-precomposed.png' | relative_url }}">
+  <link rel="apple-touch-icon" sizes="144x144" href="{{ '/public/image/apple-touch-icon.png' | relative_url }}">
   <link rel="shortcut icon" href="{{ '/public/favicon.ico' | relative_url }}">
+
+  <link rel="preload" as="image" href="/public/image/header.webp" fetchpriority="high">
 
   <link rel="alternate" type="application/rss+xml" title="RSS" href="{{ '/atom.xml' | relative_url }}">
 
-  <meta name="description" content="{{ page.excerpt | default: site.description | strip_html | normalize_whitespace | truncate: 160 }}">
   {% if page.author %}
   <meta name="author" content="{{ page.author }}">
   {% endif %}
