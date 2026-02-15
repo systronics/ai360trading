@@ -2,28 +2,35 @@
 layout: default
 ---
 
-<article class="post-container">
-  <div class="pro-post-card" {% if page.lang %}lang="{{page.lang}}"{% endif %}>
-    
-    <header class="post-header">
-      <h1 class="post-main-title">{{ page.title }}</h1>
-      
-      <div class="post-meta">
-        <span class="post-date"><i class="far fa-calendar-alt"></i> {{ page.date | date: "%b %-d, %Y" }}</span>
-        {% if page.author %}
-          <span class="meta-divider">|</span>
-          <span class="post-author"><i class="far fa-user"></i> {{ page.author }}</span>
-        {% endif %}
+<article class="post-wrapper">
+  <div class="article-card">
+    <header style="text-align: center; margin-bottom: 30px;">
+      <h1 style="color: #0062ff; font-weight: 900; font-size: 26px; margin-bottom: 10px;">{{ page.title }}</h1>
+      <div style="font-size: 13px; color: #64748b; font-weight: 600;">
+        📅 {{ page.date | date: "%b %-d, %Y" }}
       </div>
     </header>
 
-    <div class="post-content">
+    <div class="post-body">
       {{ content }}
     </div>
-
-    <footer class="post-internal-footer">
-      <p>Verified Price Action Research | AI360Trading Terminal</p>
-    </footer>
-    
   </div>
 </article>
+
+<style>
+  .post-wrapper { max-width: 900px; margin: 0 auto; }
+  .article-card { 
+    background: white; 
+    padding: 40px; 
+    border-radius: 12px; 
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  }
+  .post-body { font-size: 17px; line-height: 1.8; color: #1e293b; }
+  .post-body h2 { font-size: 19px !important; color: #0f172a; margin-top: 30px; font-weight: 800; }
+  
+  @media (max-width: 600px) {
+    .article-card { padding: 20px; }
+    .post-body { font-size: 16px; }
+  }
+</style>
