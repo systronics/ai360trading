@@ -4,26 +4,26 @@ layout: null
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
-  {% comment %} --- HOME & CORE PAGES --- {% endcomment %}
+  {% comment %} --- CORE PAGES (About, Policy, Home) --- {% endcomment %}
   {% for page in site.pages %}
-    {% unless page.sitemap == false or page.url contains "assets" or page.url contains "css" %}
+    {% unless page.sitemap == false or page.url contains "assets" or page.url contains "css" or page.url contains "feed" or page.url contains "404" %}
     <url>
-      <loc>{{ site.url }}{{ page.url | remove: 'index.html' }}</loc>
+      <loc>{{ site.url }}{{ page.url | replace: 'index.html', '' | relative_url }}</loc>
       {% if page.last_modified_at %}
         <lastmod>{{ page.last_modified_at | date_to_xmlschema }}</lastmod>
       {% else %}
         <lastmod>{{ site.time | date_to_xmlschema }}</lastmod>
       {% endif %}
-      <changefreq>weekly</changefreq>
+      <changefreq>monthly</changefreq>
       <priority>0.7</priority>
     </url>
     {% endunless %}
   {% endfor %}
 
-  {% comment %} --- TRADING POSTS (High Priority) --- {% endcomment %}
+  {% comment %} --- GLOBAL MARKET POSTS (Highest Priority) --- {% endcomment %}
   {% for post in site.posts %}
     <url>
-      <loc>{{ site.url }}{{ post.url }}</loc>
+      <loc>{{ site.url }}{{ post.url | relative_url }}</loc>
       <lastmod>{{ post.date | date_to_xmlschema }}</lastmod>
       <changefreq>daily</changefreq>
       <priority>1.0</priority>
