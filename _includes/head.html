@@ -6,8 +6,9 @@
   <title>{% if page.title %}{{ page.title }}{% else %}AI360Trading | Indian Market Intelligence Terminal{% endif %}</title>
 
   <meta name="description" content="AI360Trading provides institutional-grade price action, swing trading dashboards, and algorithmic market intelligence for the Indian stock market.">
-
   <link rel="canonical" href="{{ page.url | replace:'index.html','' | absolute_url }}">
+
+  <link rel="stylesheet" href="{{ '/public/css/font-awesome.min.css' | relative_url }}">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,11 +19,8 @@
 
   <link rel="apple-touch-icon" sizes="144x144" href="{{ '/public/image/apple-touch-icon.png' | relative_url }}">
   <link rel="shortcut icon" href="{{ '/public/favicon.ico' | relative_url }}">
-
   <link rel="preload" as="image" href="/public/image/header.webp" fetchpriority="high">
 
   <link rel="alternate" type="application/rss+xml" title="RSS" href="{{ '/atom.xml' | relative_url }}">
-  {% if page.author %}
-  <meta name="author" content="{{ page.author }}">
-  {% endif %}
+  {% if page.author %}<meta name="author" content="{{ page.author }}">{% endif %}
 </head>
