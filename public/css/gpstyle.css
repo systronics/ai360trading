@@ -1,18 +1,18 @@
-/* AI360TRADING MASTER CSS - FINAL UPDATED FEB 2026 */
+/* AI360TRADING MASTER CSS - FEB 2026 */
 * { box-sizing: border-box; }
 
 body { 
     background-color: #f8faff; 
     color: #2c3e50; 
     margin: 0; 
-    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
 }
 
 /* Dashboard & News Grids */
 .dashboard-grid, .ai-news-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 25px;
     margin: 30px 0;
 }
 
@@ -20,83 +20,100 @@ body {
     background: #fff;
     border: 1px solid #e1e8ed;
     border-radius: 12px;
-    padding: 25px;
-    transition: 0.3s;
+    padding: 30px;
+    transition: all 0.3s ease;
     height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
-.ai-post-card { border-left: 5px solid #0088cc; }
+.ai-post-card { border-left: 6px solid #0088cc; }
 .ai-post-card:hover { 
     transform: translateY(-5px); 
-    box-shadow: 0 8px 20px rgba(0,0,0,0.05); 
+    box-shadow: 0 12px 24px rgba(0,0,0,0.08); 
 }
 
 .card-link { text-decoration: none; color: inherit; }
 
-/* Premium Article Elements (For AdSense Approval) */
+/* Table Styling for Nifty Levels */
 .post table {
     width: 100%;
     border-collapse: collapse;
-    margin: 25px 0;
-    background: #ffffff;
-    font-size: 0.95rem;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    margin: 30px 0;
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
 
 .post th {
-    background-color: #1b0c9e; 
+    background-color: #1b0c9e;
     color: #ffffff !important;
     text-align: left;
-    padding: 12px;
+    padding: 15px;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 .post td {
-    padding: 10px;
-    border: 1px solid #e5e5e5;
+    padding: 12px 15px;
+    border-bottom: 1px solid #eee;
+    font-size: 0.95rem;
 }
 
-.post tr:nth-child(even) { background-color: #f9f9f9; }
+.post tr:nth-child(even) { background-color: #fbfcfe; }
 
-/* Attractive Subscription Box */
+/* Premium Subscription Box */
 .sub-box {
-    background: linear-gradient(135deg, #1b0c9e 0%, #268bd2 100%);
+    background: linear-gradient(135deg, #1b0c9e 0%, #292c92 100%);
     color: #ffffff !important;
-    padding: 25px;
+    padding: 30px;
     border-radius: 12px;
     text-align: center;
     margin: 40px 0;
-    font-weight: bold;
+    box-shadow: 0 10px 20px rgba(27, 12, 158, 0.2);
 }
 
 .sub-box a {
-    color: #ffca28 !important; 
-    text-decoration: underline;
+    background: #fff;
+    color: #1b0c9e !important;
+    padding: 10px 25px;
+    border-radius: 50px;
+    display: inline-block;
+    margin-top: 15px;
+    font-weight: bold;
+    text-decoration: none;
+    transition: 0.3s;
 }
 
-/* CLEAN SOCIAL SHARING BAR */
+.sub-box a:hover { transform: scale(1.05); background: #ffca28; }
+
+/* Professional Social Sharing Bar */
 .share-bar {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
-    margin: 20px 0;
-    padding-top: 20px;
-    border-top: 1px solid #eee;
+    gap: 15px;
+    margin: 25px 0;
+    padding: 20px 0;
+    border-top: 2px solid #f0f0f0;
 }
 
 .share-btn {
-    padding: 8px 15px;
-    border-radius: 5px;
-    font-size: 0.9rem;
-    font-weight: bold;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 700;
     color: white !important;
     text-decoration: none !important;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
+    transition: 0.2s;
 }
 
 .btn-whatsapp { background-color: #25D366; }
-.btn-twitter { background-color: #1DA1F2; }
+.btn-twitter { background-color: #000000; }
 .btn-telegram { background-color: #0088cc; }
 
 .share-btn:hover { opacity: 0.9; transform: translateY(-2px); }
@@ -104,20 +121,22 @@ body {
 /* Broker Section */
 .broker-grid {
     display: grid; 
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); 
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); 
     gap: 15px;
 }
 
 .broker-link {
-    display: block;
-    padding: 12px;
+    padding: 15px;
     border: 2px solid #2ecc71;
     color: #27ae60 !important;
     text-align: center;
     font-weight: bold;
-    border-radius: 8px;
+    border-radius: 10px;
     text-decoration: none;
+    transition: 0.3s;
 }
+
+.broker-link:hover { background: #2ecc71; color: #fff !important; }
 
 @media (max-width: 768px) {
     .dashboard-grid, .ai-news-grid { grid-template-columns: 1fr; }
