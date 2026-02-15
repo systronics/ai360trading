@@ -1,8 +1,9 @@
 name: Weekly AI Market News
+
 on:
   workflow_dispatch:
   schedule:
-    - cron: '30 1 * * *' # Still runs daily at 7:00 AM IST for fresh data
+    - cron: '30 1 * * *' # Runs daily at 7:00 AM IST
 
 jobs:
   build:
@@ -21,7 +22,8 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install groq pytz
+        # Added requests to ensure the scraper works
+        run: pip install groq pytz requests
 
       - name: Run AI Script
         env:
