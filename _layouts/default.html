@@ -40,6 +40,7 @@
       justify-content: center; 
       gap: 25px;
       flex-wrap: wrap;
+      margin-bottom: 15px; /* Added space for social icons below */
     }
 
     .nav-link {
@@ -56,6 +57,26 @@
       color: #0f172a !important;
     }
 
+    /* SOCIAL ICONS ROW */
+    .social-links-header {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 10px;
+    }
+
+    .social-icon-link {
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 700;
+      color: #64748b;
+      transition: color 0.2s;
+    }
+
+    .social-icon-link:hover {
+      color: #0062ff;
+    }
+
     /* 3. MAIN CONTENT AREA */
     .content-wrapper {
       max-width: 1100px;
@@ -64,7 +85,7 @@
       min-height: 70vh;
     }
 
-    /* 4. FOOTER: DARK TERMINAL STYLE */
+    /* 4. FOOTER */
     .site-footer {
       background: #101c28;
       color: #ffffff;
@@ -74,21 +95,10 @@
       border-top: 4px solid #2ecc71;
     }
 
-    .footer-brand {
-      font-weight: 900;
-      font-size: 20px;
-      margin-bottom: 10px;
-      letter-spacing: 1px;
-    }
+    .footer-brand { font-weight: 900; font-size: 20px; margin-bottom: 10px; }
+    .footer-desc { color: #94a3b8; font-size: 13px; margin: 0; font-style: italic; }
 
-    .footer-desc {
-      color: #94a3b8;
-      font-size: 13px;
-      margin: 0;
-      font-style: italic;
-    }
-
-    /* 5. PERMANENT HIDE */
+    /* 5. PERMANENT HIDE: SUBSCRIPTION BOXES */
     .sub-box, #sub-box, .subscription-container, .subscription-box, a[href*="technical-picks"] { 
       display: none !important; 
       visibility: hidden !important;
@@ -99,7 +109,8 @@
       .header-container { padding: 20px 15px; }
       .site-nav { gap: 15px; }
       .nav-link { font-size: 12px; }
-      .content-wrapper { padding: 25px 15px; }
+      .social-links-header { gap: 12px; }
+      .social-icon-link { font-size: 11px; }
     }
   </style>
 </head>
@@ -113,12 +124,31 @@
            fetchpriority="high" 
            loading="eager">
     </a>
+
     <nav class="site-nav">
       <a href="/" class="nav-link">Home</a>
       <a href="/about/" class="nav-link">About</a>
       <a href="/contact/" class="nav-link">Contact</a>
       <a href="/disclaimer/" class="nav-link">Disclaimer</a>
     </nav>
+
+    <div class="social-links-header">
+      {% if site.telegram_username %}
+        <a href="https://t.me/{{ site.telegram_username }}" class="social-icon-link" target="_blank">Telegram</a>
+      {% endif %}
+      {% if site.twitter_username %}
+        <a href="https://twitter.com/{{ site.twitter_username }}" class="social-icon-link" target="_blank">X (Twitter)</a>
+      {% endif %}
+      {% if site.youtube_username %}
+        <a href="https://youtube.com/@{{ site.youtube_username }}" class="social-icon-link" target="_blank">YouTube</a>
+      {% endif %}
+      {% if site.instagram_username %}
+        <a href="https://instagram.com/{{ site.instagram_username }}" class="social-icon-link" target="_blank">Instagram</a>
+      {% endif %}
+      {% if site.facebook_username %}
+        <a href="https://facebook.com/{{ site.facebook_username }}" class="social-icon-link" target="_blank">Facebook</a>
+      {% endif %}
+    </div>
   </header>
 
   <main class="content-wrapper">
