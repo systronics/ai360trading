@@ -30,6 +30,9 @@ permalink: /:title/
 # SOCIAL MEDIA (Used by your Python script and Contact page)
 twitter_username: ai360trading
 telegram_username: ai360trading
+facebook_username: ai360trading
+youtube_username: ai360trading
+instagram_username: ai360trading
 
 # Plugins
 # Added jekyll-sitemap for automatic global indexing
