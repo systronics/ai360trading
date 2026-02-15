@@ -1,83 +1,65 @@
-/* --- TAG & CATEGORY PAGE STYLES --- */
-.tag-page-header { text-align: center; margin-bottom: 40px; }
+/* --- ARCHIVE & TAG CLOUD STYLES --- */
+.archive-section { margin: 50px 0; }
 
-.tag-title { 
-    color: var(--brand-blue) !important; 
-    text-transform: capitalize; 
-    font-weight: 900; 
-    font-size: 26px !important;
-    margin-bottom: 10px;
-}
-
-.tag-subtitle { color: var(--text-slate); font-size: 15px; }
-
-.tag-posts-container { max-width: 850px; margin: 0 auto; }
-
-.tag-post-card {
-    background: #ffffff;
-    padding: 30px;
-    border-radius: 12px;
-    border: 1px solid #e2e8f0;
-    margin-bottom: 25px;
-    transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 6px rgba(0,0,0,0.02);
-}
-
-.tag-post-card:hover {
-    transform: translateX(8px);
-    border-color: var(--brand-blue);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
-}
-
-.tag-post-card-title a {
-    text-decoration: none;
-    color: var(--dark-navy);
-    font-size: 20px;
+.archive-heading { 
+    text-align: left; 
+    border-bottom: 2px solid #e2e8f0; 
+    padding-bottom: 12px; 
+    font-size: 20px !important; 
     font-weight: 800;
-    line-height: 1.3;
+    color: var(--dark-navy);
 }
 
-.tag-post-card-title a:hover { color: var(--brand-blue); }
-
-.tag-post-excerpt {
-    color: var(--text-slate);
-    font-size: 15px;
-    margin: 15px 0;
-    line-height: 1.7;
+.tag-cloud { 
+    display: flex; 
+    flex-wrap: wrap; 
+    gap: 12px; 
+    margin-top: 25px; 
 }
 
-.tag-post-meta {
+.pro-tag-badge {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-top: 20px;
-    font-size: 13px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    text-decoration: none !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.tag-name {
+    padding: 10px 18px;
+    color: var(--dark-navy);
+    font-size: 14px;
     font-weight: 700;
 }
 
-.meta-date { color: #94a3b8; }
-
-.read-more-btn {
-    background: #eff6ff;
-    color: var(--brand-blue) !important;
-    padding: 8px 16px;
-    border-radius: 8px;
-    text-decoration: none !important;
-    transition: 0.2s;
+.tag-count {
+    background: #f1f5f9;
+    padding: 10px 14px;
+    color: var(--brand-blue);
     font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    font-weight: 900;
+    border-left: 1px solid #e2e8f0;
 }
 
-.read-more-btn:hover {
+.pro-tag-badge:hover {
+    transform: translateY(-4px);
+    border-color: var(--brand-blue);
+    box-shadow: 0 10px 20px rgba(0, 98, 255, 0.1);
+}
+
+.pro-tag-badge:hover .tag-name { color: var(--brand-blue); }
+
+.pro-tag-badge:hover .tag-count {
     background: var(--brand-blue);
-    color: #ffffff !important;
+    color: #ffffff;
 }
 
-/* MOBILE OPTIMIZATION */
-@media (max-width: 768px) {
-    .tag-post-card { padding: 20px; }
-    .tag-post-card-title a { font-size: 18px; }
-    .tag-post-meta { flex-direction: column; align-items: flex-start; gap: 12px; }
-    .read-more-btn { width: 100%; text-align: center; }
+/* Mobile Adjustment for Tag Cloud */
+@media (max-width: 600px) {
+    .tag-cloud { gap: 8px; }
+    .tag-name, .tag-count { padding: 8px 12px; font-size: 12px; }
 }
