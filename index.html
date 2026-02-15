@@ -2,52 +2,36 @@
 layout: default
 ---
 
-<div class="terminal-header">
-  <div class="live-status">
-    <span class="status-dot"></span>
-    <span class="status-text">Terminal Live: Market Hours Monitoring</span>
-  </div>
-  <h1 class="main-dashboard-title">PROFESSIONAL TRADING DASHBOARDS</h1>
-</div>
+<h1 style="text-align: center; font-size: 24px; font-weight: 900; margin-bottom: 40px;">PROFESSIONAL TRADING DASHBOARDS</h1>
 
 <div class="dashboard-grid">
   <a href="/swing-dashboard/" style="text-decoration: none;">
     <div class="dashboard-card">
-      <h3>🎯 SWING DASHBOARD</h3>
-      <p>Verified volume breakouts and institutional trend tracking.</p>
+      <h3 style="color: #2c3e50; font-weight: 800;">🎯 SWING DASHBOARD</h3>
+      <p style="color: #64748b; font-size: 14px;">Institutional trend tracking and volume breakouts.</p>
     </div>
   </a>
 
   <a href="/intraday-live/" style="text-decoration: none;">
     <div class="dashboard-card">
-      <h3>⚡ INTRADAY MONITOR</h3>
-      <p>Live momentum alerts and daily supply/demand levels.</p>
-    </div>
-  </a>
-
-  <a href="/positional-picks/" style="text-decoration: none;">
-    <div class="dashboard-card">
-      <h3>📈 POSITIONAL PICKS</h3>
-      <p>Long-term wealth compounding based on price action.</p>
-    </div>
-  </a>
-
-  <a href="/tutorial-videos/" style="text-decoration: none;">
-    <div class="dashboard-card" style="border-top-color: #ff4d4d;">
-      <h3>🎥 TRADING ACADEMY</h3>
-      <p>Video strategy guides for professional market logic.</p>
+      <h3 style="color: #2c3e50; font-weight: 800;">⚡ INTRADAY MONITOR</h3>
+      <p style="color: #64748b; font-size: 14px;">Live momentum alerts and daily supply/demand.</p>
     </div>
   </a>
 </div>
 
-<h2 class="section-title">GLOBAL MARKET INTELLIGENCE</h2>
-<div class="market-reports-grid">
-  {% for post in site.posts limit:4 %}
-    <div class="report-box">
-      <h4 class="report-title">
-        <a href="{{ post.url | relative_url }}">{{ post.title }}</a>
-      </h4>
-      <p style="font-size: 14px; color: #64748b; margin-top: 8px;">{{ post.excerpt | strip_html | truncate: 90 }}</p>
-    </div>
-  {% endfor %}
-</div>
+<style>
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+  }
+  .dashboard-card {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    border-top: 4px solid #2ecc71;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    text-align: center;
+  }
+</style>
