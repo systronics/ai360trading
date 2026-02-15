@@ -21,6 +21,14 @@ layout: default
       {{ content }}
     </div>
 
+    <div class="post-share-logic">
+      <p class="share-label">SHARE ANALYSIS:</p>
+      <div class="share-buttons-gap">
+        <a href="https://t.me/share/url?url={{ page.url | absolute_url }}&text={{ page.title }}" target="_blank" class="pc-share-btn tg">Telegram</a>
+        <a href="https://api.whatsapp.com/send?text={{ page.title }}: {{ page.url | absolute_url }}" target="_blank" class="pc-share-btn wa">WhatsApp</a>
+      </div>
+    </div>
+
     <footer class="post-terminal-footer">
       <p>Verified Price Action Research | AI360Trading Insights</p>
     </footer>
@@ -28,13 +36,14 @@ layout: default
   </div>
 </article>
 
-<style>
-  /* RESTORING PREVIOUS WORKING STATE */
-  .post-outer-container { 
-    max-width: 900px; 
-    margin: 0 auto; 
-  }
+<div class="mobile-social-bar">
+  <a href="https://t.me/share/url?url={{ page.url | absolute_url }}" class="share-icon telegram">Share Telegram</a>
+  <a href="https://api.whatsapp.com/send?text={{ page.title }}: {{ page.url | absolute_url }}" class="share-icon whatsapp">WhatsApp</a>
+</div>
 
+<style>
+  /* 1. LAYOUT & CARD STABILITY */
+  .post-outer-container { max-width: 900px; margin: 0 auto; }
   .post-article-card {
     background: #ffffff;
     padding: 45px;
@@ -44,69 +53,59 @@ layout: default
     margin-bottom: 40px;
   }
 
-  .post-header-section { 
-    text-align: center; 
-    margin-bottom: 40px; 
-    border-bottom: 1px solid #f1f5f9;
-    padding-bottom: 25px;
-  }
+  .post-header-section { text-align: center; margin-bottom: 40px; border-bottom: 1px solid #f1f5f9; padding-bottom: 25px; }
+  .post-title-main { color: #0062ff; font-weight: 900; font-size: 28px !important; line-height: 1.2; margin-bottom: 15px; }
+  .post-metadata-row { font-size: 13px; color: #64748b; font-weight: 700; display: flex; justify-content: center; gap: 15px; }
 
-  .post-title-main { 
-    color: #0062ff; 
-    font-weight: 900; 
-    font-size: 28px !important; 
-    line-height: 1.2;
-    margin-bottom: 15px;
-  }
-
-  .post-metadata-row { 
-    font-size: 13px; 
-    color: #64748b; 
-    font-weight: 700; 
-    display: flex; 
-    justify-content: center; 
-    gap: 15px; 
-  }
-
-  /* BODY TEXT: RESTORED TO 17px */
-  .post-body-content { 
-    line-height: 1.8; 
-    color: #1e293b; 
-    font-size: 17px; 
-  }
-
-  /* SUBHEADERS: SCALED DOWN & ACCENTED */
+  /* 2. TYPOGRAPHY (17px RESTORED) */
+  .post-body-content { line-height: 1.8; color: #1e293b; font-size: 17px; }
   .post-body-content h2 { 
-    font-size: 1.25rem !important; 
-    margin: 2rem 0 1rem 0; 
-    color: #0f172a; 
-    font-weight: 800;
-    border-left: 4px solid #2ecc71;
-    padding-left: 15px;
+    font-size: 1.25rem !important; margin: 2rem 0 1rem 0; color: #0f172a; 
+    font-weight: 800; border-left: 4px solid #2ecc71; padding-left: 15px; 
   }
-
   .post-body-content p { margin-bottom: 1.5rem; }
 
-  .post-terminal-footer { 
-    margin-top: 50px; 
-    padding-top: 20px; 
-    border-top: 1px dashed #e2e8f0; 
-    text-align: center; 
+  /* 3. SHARE SECTION (PC) */
+  .post-share-logic { margin-top: 40px; padding-top: 25px; border-top: 1px solid #f1f5f9; }
+  .share-label { font-weight: 800; font-size: 14px; color: #0f172a; margin-bottom: 15px; }
+  .share-buttons-gap { display: flex; gap: 10px; }
+  .pc-share-btn { 
+    color: white !important; padding: 10px 20px; border-radius: 6px; 
+    font-size: 13px; font-weight: 700; text-decoration: none; transition: 0.2s;
   }
+  .tg { background: #0088cc; }
+  .wa { background: #25d366; }
+  .pc-share-btn:hover { opacity: 0.9; transform: translateY(-2px); }
 
+  /* 4. FLOATING MOBILE BAR */
+  .mobile-social-bar {
+    display: none; position: fixed; bottom: 0; left: 0; width: 100%; 
+    background: #ffffff; box-shadow: 0 -2px 15px rgba(0,0,0,0.1); 
+    z-index: 9999; padding: 12px; justify-content: space-around;
+  }
+  .share-icon { 
+    flex: 1; text-align: center; padding: 14px; margin: 0 6px; 
+    border-radius: 10px; color: white !important; font-weight: 800; 
+    font-size: 14px; text-decoration: none; 
+  }
+  .telegram { background: #0088cc; }
+  .whatsapp { background: #25d366; }
+
+  .post-terminal-footer { margin-top: 50px; padding-top: 20px; border-top: 1px dashed #e2e8f0; text-align: center; }
   .post-terminal-footer p { font-size: 13px; color: #94a3b8; font-style: italic; }
 
-  /* AGGRESSIVE KILL SWITCH FOR SUBSCRIPTIONS/TELEGRAM BOXES */
+  /* 5. KILL SWITCH (NO SUBSCRIPTIONS) */
   .sub-box, #sub-box, .subscription-container, .subscription-box, a[href*="technical-picks"] {
-    display: none !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
+    display: none !important; visibility: hidden !important;
   }
 
-  /* MOBILE OPTIMIZATION */
+  /* 6. MOBILE OPTIMIZATION */
   @media (max-width: 768px) {
     .post-article-card { padding: 25px 20px; border-radius: 0; border: none; }
     .post-title-main { font-size: 22px !important; }
     .post-body-content { font-size: 16px; }
+    .mobile-social-bar { display: flex; }
+    .post-outer-container { padding-bottom: 80px; } /* Prevent footer overlap */
+    .post-share-logic { display: none; } /* Hide PC share on mobile */
   }
 </style>
