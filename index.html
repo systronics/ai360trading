@@ -38,6 +38,16 @@ layout: default
 
   <hr class="section-divider">
 
+  <section class="seo-text-block" style="margin-bottom: 40px;">
+    <h2 style="font-size: 20px; font-weight: 800; color: #0f172a; margin-bottom: 15px;">Market Intelligence & Institutional Logic</h2>
+    <p style="font-size: 15px; color: #475569; margin-bottom: 10px;">
+      Welcome to the <strong>AI360Trading Terminal</strong>. Our platform is engineered to bridge the gap between complex global data and actionable intelligence for the Indian stock market. We focus on <strong>Professional Trading Dashboards</strong> that utilize manual price-action logic combined with high-fidelity volume analysis.
+    </p>
+    <p style="font-size: 15px; color: #475569; margin-bottom: 10px;">
+      By monitoring institutional footprints and structural market shifts, our systems provide clear insights into <strong>Swing</strong> and <strong>Positional</strong> setups. Whether you are navigating the NSE or BSE, our objective is to filter market noise and highlight only the most significant trend confirmations. We leverage external data from authorities like <a href="https://www.tradingview.com" target="_blank" rel="noopener">TradingView</a> and global macro indices to ensure our community stays ahead of the curve.
+    </p>
+  </section>
+
   <h2 class="section-title">LATEST MARKET INTELLIGENCE</h2>
   <div class="posts-container">
     {% for post in site.posts limit:5 %}
@@ -67,25 +77,10 @@ layout: default
     100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); }
   }
 
-  /* GRID LOGIC - DESKTOP */
-  .dashboard-grid { 
-    display: grid; 
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
-    gap: 25px; 
-  }
+  .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; }
   .card-link { text-decoration: none; color: inherit; display: block; }
-  .dashboard-card { 
-    background: #ffffff; 
-    padding: 35px 25px; 
-    border-radius: 16px; 
-    text-align: center; 
-    border: 1px solid #e2e8f0; 
-    box-shadow: 0 4px 12px rgba(0,0,0,0.03); 
-    transition: all 0.3s ease;
-    height: 100%;
-  }
+  .dashboard-card { background: #ffffff; padding: 35px 25px; border-radius: 16px; text-align: center; border: 1px solid #e2e8f0; box-shadow: 0 4px 12px rgba(0,0,0,0.03); transition: all 0.3s ease; height: 100%; }
   .dashboard-card:hover { transform: translateY(-8px); box-shadow: 0 15px 30px rgba(0,0,0,0.08); }
-
   .swing { border-top: 5px solid #2ecc71; }
   .positional { border-top: 5px solid #0062ff; }
   .academy { border-top: 5px solid #e74c3c; }
@@ -94,7 +89,6 @@ layout: default
   .dashboard-card p { font-size: 14px; color: #64748b; line-height: 1.6; margin-bottom: 20px; }
   .card-btn { font-size: 12px; font-weight: 800; color: #0062ff; letter-spacing: 1px; }
 
-  /* POSTS SECTION */
   .section-divider { border: 0; height: 1px; background: #e2e8f0; margin: 60px 0; }
   .section-title { text-align: center; font-size: 22px; font-weight: 900; color: #0f172a; margin-bottom: 30px; }
   .posts-container { display: flex; flex-direction: column; gap: 20px; }
@@ -105,14 +99,9 @@ layout: default
   .post-excerpt { font-size: 15px; color: #475569; margin: 12px 0; line-height: 1.6; }
   .read-more { text-decoration: none; font-size: 13px; font-weight: 800; color: #0062ff; }
 
-  /* MOBILE FIX - FORCED SINGLE COLUMN STACK */
   @media (max-width: 768px) {
-    .dashboard-grid { 
-      grid-template-columns: 1fr !important; /* Forces one card per row */
-      gap: 20px;
-    }
+    .dashboard-grid { grid-template-columns: 1fr !important; gap: 20px; }
     .dashboard-card { padding: 30px 20px; }
-    .dashboard-card p { display: block; } /* Keeps descriptions visible but stacked */
     .main-dashboard-title { font-size: 22px; }
   }
 </style>
