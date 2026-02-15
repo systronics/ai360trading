@@ -1,50 +1,105 @@
-/* POOLE CSS - PERFORMANCE OPTIMIZED FEB 2026 */
-* { -webkit-box-sizing: border-box; -moz-box-sizing: border-box; box-sizing: border-box; }
-body, html { margin: 0; padding: 0; }
+/*
+ *
+ * Post-Recovery Poole.css
+ * Structural foundation for AI360Trading
+ *
+ */
 
-html { 
-    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; 
-    font-size: 16px; /* INCREASED: standard base size */
-    line-height: 1.6;
-    /* FIX: Font Display - shows text before font loads */
-    font-display: swap; 
+/* 1. RESET & BOX MODEL */
+html {
+  box-sizing: border-box;
+}
+*, *:before, *:after {
+  box-sizing: inherit;
 }
 
-@media (min-width: 48rem) {
-    html { font-size: 17px; } 
-    .container { max-width: 55rem; } 
+body {
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
 }
 
-body { 
-    color: #1e293b; 
-    background-color: #fcfdfe; 
-    -webkit-text-size-adjust: 100%; 
-    -ms-text-size-adjust: 100%; 
+/* 2. TYPOGRAPHY RESET */
+html, body {
+  margin: 0;
+  padding: 0;
 }
 
-/* Fix: Contrast Ratio (Accessibility Audit) */
-a { color: #1d4ed8; text-decoration: none; font-weight: 600; }
-a:hover { text-decoration: underline; color: #1e40af; }
-
-h1, h2, h3 { 
-    margin-bottom: 1.5rem; 
-    font-weight: 800; 
-    line-height: 1.2; 
-    color: #0f172a;
+/* 3. ACCESSIBILITY STYLES */
+.message {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  color: #717171;
+  background-color: #f9f9f9;
 }
 
-h1 { font-size: 2.2rem; letter-spacing: -0.03em; } 
-h2 { font-size: 1.2rem; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; margin-top: 2.5rem; text-transform: uppercase; } /* DECREASED: from 1.4rem */
+/* Hide elements for screen readers only */
+.screen-reader-text {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
 
-p { margin-top: 0; margin-bottom: 1.5rem; color: #334155; text-align: justify; }
-
+/* 4. CONTAINER DEFAULTS */
 .container {
-    padding-left: 2rem;
-    padding-right: 2rem;
-    margin-left: auto;
-    margin-right: auto;
+  max-width: 38rem;
+  padding-left:  1rem;
+  padding-right: 1rem;
+  margin-left:  auto;
+  margin-right: auto;
 }
 
-.masthead { padding: 3rem 0; border-bottom: 1px solid #f1f5f9; margin-bottom: 3rem; }
-.post-title { color: #1e293b; font-size: 2.2rem; }
-.post-date { color: #64748b; font-size: 0.9rem; font-weight: 600; text-transform: uppercase; }
+@media (min-width: 45rem) {
+  .container {
+    max-width: 42rem;
+  }
+}
+@media (min-width: 60rem) {
+  .container {
+    max-width: 48rem;
+  }
+}
+
+/* 5. GHOST BRACKET REMOVAL (Clean SEO) */
+.section-title, .pro-post-card, .pro-page-card {
+  display: block;
+}
+
+/* 6. IMAGE AND MEDIA RESET */
+img {
+  display: block;
+  max-width: 100%;
+  margin: 0 0 1rem;
+  border-radius: 4px;
+}
+
+/* 7. HYPERLINK DEFAULTS */
+a {
+  color: #0062ff;
+  text-decoration: none;
+}
+a:hover,
+a:focus {
+  text-decoration: underline;
+}
+
+/* 8. TABLE DEFAULTS (For Price Action Levels) */
+table {
+  margin-bottom: 1rem;
+  width: 100%;
+  border: 1px solid #e5e5e5;
+  border-collapse: collapse;
+}
+td,
+th {
+  padding: .25rem .5rem;
+  border: 1px solid #e5e5e5;
+}
+tbody tr:nth-child(odd) td,
+tbody tr:nth-child(odd) th {
+  background-color: #f9f9f9;
+}
