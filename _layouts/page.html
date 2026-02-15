@@ -2,33 +2,67 @@
 layout: default
 ---
 
-<div class="page-wrapper">
-  {% if page.title %}
-    <h1 class="page-title">{{ page.title }}</h1>
+<article class="page-container">
+  {% if page.lang %}
+  <div class="pro-page-card" lang="{{page.lang}}">
+  {% else %}
+  <div class="pro-page-card">
   {% endif %}
+    
+    {% if page.title %}
+    <h1 class="page-title" style="color: #0088cc; border-bottom: 2px solid #f0f4f8; padding-bottom: 10px; margin-bottom: 25px; font-size: 22px; font-weight: 800;">
+      {{ page.title }}
+    </h1>
+    {% endif %}
 
-  <div class="page-content">
-    {{ content }}
+    <div class="page-content">
+      {{ content }}
+    </div>
+    
   </div>
-</div>
+</article>
 
 <style>
-  .page-wrapper { 
-    background: white; 
-    padding: 40px; 
-    border-radius: 12px; 
-    border: 1px solid #e2e8f0;
+  /* PERMANENT KILL SWITCH: Removes Big Telegram Box and dead links */
+  .sub-box, #sub-box, .subscription-container, a[href*="technical-picks"] {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  .pro-page-card {
+    background: #ffffff;
+    padding: 40px;
+    border-radius: 15px;
+    border: 1px solid #e1e8ed;
     box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-    max-width: 900px;
-    margin: 0 auto;
+    margin-bottom: 30px;
   }
-  .page-title { 
-    color: #0062ff; 
-    border-bottom: 2px solid #f1f5f9; 
-    padding-bottom: 15px; 
-    font-size: 24px; 
-    font-weight: 900; 
+
+  /* FONT SCALE: 1 size up for page text (17px) */
+  .page-content {
+    line-height: 1.8;
+    color: #1a1a1a;
+    font-size: 17px;
   }
-  .page-content { font-size: 17px; line-height: 1.8; color: #1e293b; }
-  .page-content h2 { font-size: 19px !important; margin-top: 25px; color: #0f172a; font-weight: 800; }
+
+  .page-content h2 {
+    font-size: 18px !important;
+    font-weight: 700;
+    margin-top: 1.5rem;
+    color: #0f172a;
+  }
+
+  /* Mobile Adjustments */
+  @media (max-width: 600px) {
+    .pro-page-card {
+      padding: 20px;
+      border-radius: 10px;
+    }
+    .page-title {
+      font-size: 20px !important;
+    }
+    .page-content {
+      font-size: 16px;
+    }
+  }
 </style>
