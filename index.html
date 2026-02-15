@@ -1,66 +1,53 @@
 ---
 layout: default
-title: "AI360Trading | Global Market Intelligence & Expert Dashboards"
 ---
 
-<div class="about-container">
-  <div class="terminal-header">
-    <div class="live-status">
-      <span class="status-dot"></span>
-      <span class="status-text">Terminal Live: Market Hours Monitoring</span>
-    </div>
-    <h1 class="main-dashboard-title">PROFESSIONAL TRADING DASHBOARDS</h1>
+<div class="terminal-header">
+  <div class="live-status">
+    <span class="status-dot"></span>
+    <span class="status-text">Terminal Live: Market Hours Monitoring</span>
   </div>
+  <h1 class="main-dashboard-title">PROFESSIONAL TRADING DASHBOARDS</h1>
+</div>
 
-  <div class="dashboard-grid">
-    <a href="/swing-dashboard/" class="card-link">
-      <div class="dashboard-card border-green">
-        <h3>🎯 SWING DASHBOARD</h3>
-        <p>Verified volume breakouts and institutional trend tracking for Indian markets.</p>
-      </div>
-    </a>
-
-    <a href="/intraday-live/" class="card-link">
-      <div class="dashboard-card border-green">
-        <h3>⚡ INTRADAY MONITOR</h3>
-        <p>Live momentum alerts and daily supply/demand levels for active session trading.</p>
-      </div>
-    </a>
-
-    <a href="/positional-picks/" class="card-link">
-      <div class="dashboard-card border-green">
-        <h3>📈 POSITIONAL PICKS</h3>
-        <p>Long-term wealth compounding setups based on deep-value price action logic.</p>
-      </div>
-    </a>
-
-    <a href="/tutorial-videos/" class="card-link">
-      <div class="dashboard-card border-red">
-        <h3>🎥 TRADING ACADEMY</h3>
-        <p>Master the logic behind our signals with professional video strategy guides.</p>
-      </div>
-    </a>
-  </div>
-
-  <hr class="section-divider">
-
-  <section class="intelligence-content">
-    <h2 class="section-title">GLOBAL MARKET INTELLIGENCE</h2>
-    <p class="intro-text">
-      Welcome to <strong>AI360Trading</strong>. Our platform monitors <strong>NASDAQ</strong>, <strong>FTSE 100</strong>, and <strong>NIFTY 50</strong> to identify high-probability opportunities using <strong>Price Action Logic</strong> and Institutional Volume footprints.
-    </p>
-
-    <h3 class="sub-section-title">Latest Market Reports</h3>
-    <div class="market-reports-grid">
-      {% for post in site.posts limit:4 %}
-        <div class="report-box">
-          <span class="report-date">{{ post.date | date: "%d %b %Y" }}</span>
-          <h4 class="report-title">
-            <a href="{{ post.url | relative_url }}">{{ post.title }}</a>
-          </h4>
-          <p class="report-excerpt">{{ post.excerpt | strip_html | truncate: 110 }}</p>
-        </div>
-      {% endfor %}
+<div class="dashboard-grid">
+  <a href="/swing-dashboard/" style="text-decoration: none;">
+    <div class="dashboard-card">
+      <h3>🎯 SWING DASHBOARD</h3>
+      <p>Verified volume breakouts and institutional trend tracking.</p>
     </div>
-  </section>
+  </a>
+
+  <a href="/intraday-live/" style="text-decoration: none;">
+    <div class="dashboard-card">
+      <h3>⚡ INTRADAY MONITOR</h3>
+      <p>Live momentum alerts and daily supply/demand levels.</p>
+    </div>
+  </a>
+
+  <a href="/positional-picks/" style="text-decoration: none;">
+    <div class="dashboard-card">
+      <h3>📈 POSITIONAL PICKS</h3>
+      <p>Long-term wealth compounding based on price action.</p>
+    </div>
+  </a>
+
+  <a href="/tutorial-videos/" style="text-decoration: none;">
+    <div class="dashboard-card" style="border-top-color: #ff4d4d;">
+      <h3>🎥 TRADING ACADEMY</h3>
+      <p>Video strategy guides for professional market logic.</p>
+    </div>
+  </a>
+</div>
+
+<h2 class="section-title">GLOBAL MARKET INTELLIGENCE</h2>
+<div class="market-reports-grid">
+  {% for post in site.posts limit:4 %}
+    <div class="report-box">
+      <h4 class="report-title">
+        <a href="{{ post.url | relative_url }}">{{ post.title }}</a>
+      </h4>
+      <p style="font-size: 14px; color: #64748b; margin-top: 8px;">{{ post.excerpt | strip_html | truncate: 90 }}</p>
+    </div>
+  {% endfor %}
 </div>
