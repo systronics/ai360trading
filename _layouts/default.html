@@ -1,30 +1,84 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  {% include head.html %}
-  <link rel="stylesheet" href="{{ '/public/css/gpstyle.css' | relative_url }}">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ page.title | default: site.title }}</title>
+  
+  <style>
+    /* RESTORING WORKING ALIGNMENT */
+    body { 
+      font-family: 'Inter', -apple-system, sans-serif; 
+      margin: 0; 
+      background-color: #f8faff; 
+      color: #1e293b; 
+    }
+
+    /* THE HEADER CENTER FIX */
+    .header-container {
+      text-align: center;
+      background: #ffffff;
+      padding: 30px 20px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .header-banner-img {
+      display: block;
+      margin: 0 auto 20px auto; /* FORCED CENTER */
+      max-width: 450px;
+      width: 100%;
+      height: auto;
+    }
+
+    .site-nav {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .nav-link {
+      text-decoration: none;
+      color: #0062ff;
+      font-weight: 800;
+      font-size: 14px;
+      text-transform: uppercase;
+    }
+
+    .content {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+    /* FOOTER FIX */
+    .site-footer {
+      background: #101c28;
+      color: white;
+      padding: 40px 20px;
+      text-align: center;
+      margin-top: 50px;
+    }
+
+    .copyright-text { font-weight: 800; font-size: 18px; margin-bottom: 10px; }
+    .footer-desc { color: #94a3b8; font-size: 13px; }
+
+    /* HIDE MESSY BOXES */
+    .sub-box, #sub-box, .subscription-container { display: none !important; }
+  </style>
 </head>
 <body>
 
   <header class="header-container">
-    <div class="header-inner">
-      <a href="/" class="logo-link">
-        <img src="/public/image/header.webp" alt="AI360Trading - Market Intelligence" class="header-banner-img">
-      </a>
-      <nav class="site-nav">
-        <a href="/" class="nav-link">Home</a>
-        <a href="/about/" class="nav-link">About</a>
-        <a href="/contact/" class="nav-link">Contact</a>
-        <a href="/disclaimer/" class="nav-link">Disclaimer</a>
-        <a href="/policy/" class="nav-link">Policy</a>
-      </nav>
-      <div class="header-socials">
-        <a href="#"><i class="fab fa-x-twitter"></i></a>
-        <a href="#"><i class="fab fa-telegram"></i></a>
-        <a href="#"><i class="fab fa-youtube"></i></a>
-      </div>
-    </div>
+    <a href="/">
+      <img src="/public/image/header.webp" alt="AI360Trading" class="header-banner-img">
+    </a>
+    <nav class="site-nav">
+      <a href="/" class="nav-link">Home</a>
+      <a href="/about/" class="nav-link">About</a>
+      <a href="/contact/" class="nav-link">Contact</a>
+      <a href="/disclaimer/" class="nav-link">Disclaimer</a>
+    </nav>
   </header>
 
   <main class="content">
@@ -32,12 +86,8 @@
   </main>
 
   <footer class="site-footer">
-    <div class="footer-container">
-      <p class="copyright-text">© 2026 AI360TRADING</p>
-      <p class="footer-desc">
-        Professional Grade Market Analytics. Verified through Price-Action Logic for Global & Indian Markets.
-      </p>
-    </div>
+    <p class="copyright-text">© 2026 AI360TRADING</p>
+    <p class="footer-desc">Professional Indian Market Intelligence.</p>
   </footer>
 
 </body>
