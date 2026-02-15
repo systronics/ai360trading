@@ -1,4 +1,4 @@
-/* AI360TRADING MASTER CSS - UPDATED FEB 2026 */
+/* AI360TRADING MASTER CSS - FINAL UPDATED FEB 2026 */
 * { box-sizing: border-box; }
 
 body { 
@@ -44,7 +44,7 @@ body {
 }
 
 .post th {
-    background-color: #1b0c9e; /* Matches your post title color */
+    background-color: #1b0c9e; 
     color: #ffffff !important;
     text-align: left;
     padding: 12px;
@@ -69,9 +69,37 @@ body {
 }
 
 .sub-box a {
-    color: #ffca28 !important; /* Gold text for link to stand out */
+    color: #ffca28 !important; 
     text-decoration: underline;
 }
+
+/* CLEAN SOCIAL SHARING BAR */
+.share-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 20px 0;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+.share-btn {
+    padding: 8px 15px;
+    border-radius: 5px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: white !important;
+    text-decoration: none !important;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-whatsapp { background-color: #25D366; }
+.btn-twitter { background-color: #1DA1F2; }
+.btn-telegram { background-color: #0088cc; }
+
+.share-btn:hover { opacity: 0.9; transform: translateY(-2px); }
 
 /* Broker Section */
 .broker-grid {
@@ -93,4 +121,5 @@ body {
 
 @media (max-width: 768px) {
     .dashboard-grid, .ai-news-grid { grid-template-columns: 1fr; }
+    .share-btn { width: 100%; justify-content: center; }
 }
