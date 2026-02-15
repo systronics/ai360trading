@@ -4,14 +4,14 @@ body, html { margin: 0; padding: 0; }
 
 html { 
     font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; 
-    font-size: 16px; /* INCREASED: from 15px as the base standard */
+    font-size: 16px; /* INCREASED: standard base size */
     line-height: 1.6;
     /* FIX: Font Display - shows text before font loads */
     font-display: swap; 
 }
 
 @media (min-width: 48rem) {
-    html { font-size: 17px; } /* INCREASED: for desktop clarity */
+    html { font-size: 17px; } 
     .container { max-width: 55rem; } 
 }
 
@@ -33,7 +33,7 @@ h1, h2, h3 {
     color: #0f172a;
 }
 
-h1 { font-size: 2.2rem; letter-spacing: -0.03em; } /* Slightly reduced for mobile balance */
+h1 { font-size: 2.2rem; letter-spacing: -0.03em; } 
 h2 { font-size: 1.2rem; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; margin-top: 2.5rem; text-transform: uppercase; } /* DECREASED: from 1.4rem */
 
 p { margin-top: 0; margin-bottom: 1.5rem; color: #334155; text-align: justify; }
