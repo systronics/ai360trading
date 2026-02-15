@@ -1,126 +1,57 @@
-/* AI360TRADING - PREMIUM TERMINAL STYLESHEET */
-:root {
-    --brand-green: #2ecc71;
-    --brand-blue: #0062ff;
-    --dark-navy: #0f172a;
-    --glass-white: rgba(255, 255, 255, 0.95);
+/* CONTACT PAGE SPECIFIC STYLES */
+.contact-wrapper { max-width: 800px; margin: 0 auto; padding: 20px; }
+.contact-header { text-align: center; margin-bottom: 40px; }
+.contact-subtitle { color: #64748b; font-size: 16px; margin-top: 10px; }
+
+.contact-container {
+    background: #ffffff;
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    border: 1px solid #e2e8f0;
 }
 
-body { 
-    font-family: 'Inter', -apple-system, sans-serif; 
-    background: #f1f5f9; 
-    color: #1e293b; 
-    margin: 0; 
+.styled-form { display: flex; flex-direction: column; gap: 20px; }
+
+.form-group { display: flex; flex-direction: column; gap: 8px; text-align: left; }
+.form-group label { font-weight: 800; font-size: 13px; text-transform: uppercase; color: #0f172a; }
+
+.form-group input, .form-group textarea {
+    padding: 12px 15px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 15px;
+    transition: 0.3s;
 }
 
-/* --- PROFESSIONAL HEADER FIX --- */
-.header-container {
-    background: var(--glass-white);
-    padding: 30px 20px;
-    text-align: center;
-    border-bottom: 2px solid #e2e8f0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+.form-group input:focus, .form-group textarea:focus {
+    outline: none;
+    border-color: #0062ff;
+    box-shadow: 0 0 0 3px rgba(0, 98, 255, 0.1);
 }
 
-.header-banner-img { 
-    max-width: 480px; 
-    width: 100%; 
-    height: auto; 
-    margin-bottom: 20px;
-    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.05));
-}
-
-.site-nav {
-    display: flex;
-    gap: 30px;
-    margin: 10px 0;
-}
-
-.nav-link {
-    text-decoration: none;
-    color: var(--dark-navy) !important;
+.submit-btn {
+    background: #0062ff;
+    color: white;
+    border: none;
+    padding: 15px;
+    border-radius: 8px;
     font-weight: 800;
-    font-size: 14px;
-    text-transform: uppercase;
+    cursor: pointer;
+    transition: 0.3s;
     letter-spacing: 1px;
-    padding-bottom: 5px;
-    border-bottom: 2px solid transparent;
-    transition: 0.2s;
 }
 
-.nav-link:hover {
-    color: var(--brand-blue) !important;
-    border-bottom-color: var(--brand-blue);
-}
+.submit-btn:hover { background: #004dc7; transform: translateY(-2px); }
 
-/* --- SEO-FRIENDLY TYPOGRAPHY --- */
-.content { max-width: 1100px; margin: 0 auto; padding: 40px 20px; }
+.social-connect { margin-top: 40px; text-align: center; border-top: 1px solid #eee; padding-top: 30px; }
+.social-connect h3 { font-size: 14px; font-weight: 800; text-transform: uppercase; color: #64748b; margin-bottom: 15px; }
+.social-icons { display: flex; justify-content: center; gap: 20px; font-size: 24px; }
+.social-icons a { color: #0f172a; transition: 0.3s; }
+.social-icons a:hover { color: #0062ff; }
 
-h1.main-dashboard-title { 
-    font-size: 26px !important; 
-    color: var(--dark-navy); 
-    text-align: center !important; 
-    font-weight: 900;
-    margin-bottom: 40px;
-    text-transform: uppercase;
-}
-
-/* --- DASHBOARD GRID (IMAGE FIX) --- */
-.dashboard-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 20px;
-    margin-bottom: 60px;
-}
-
-.dashboard-card {
-    background: white;
-    padding: 30px;
-    border-radius: 16px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.04);
-    border-top: 5px solid var(--brand-green);
-    transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    text-align: center;
-}
-
-.dashboard-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
-}
-
-/* --- PREMIUM SLIM FOOTER --- */
-.site-footer {
-    background: var(--dark-navy);
-    padding: 40px 20px;
-    text-align: center;
-    border-top: 5px solid var(--brand-green);
-}
-
-.footer-container {
-    max-width: 800px;
-    margin: 0 auto;
-}
-
-.copyright-text {
-    color: #ffffff !important;
-    font-weight: 800;
-    font-size: 18px;
-    margin-bottom: 12px;
-    display: block;
-}
-
-.footer-desc {
-    color: #94a3b8 !important;
-    font-size: 14px;
-    line-height: 1.6;
-}
-
-/* MOBILE OPTIMIZATION */
-@media (max-width: 768px) {
-    .site-nav { gap: 15px; }
-    .nav-link { font-size: 11px; }
-    .dashboard-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
-    .dashboard-card { padding: 15px; }
+/* Mobile Adjustment */
+@media (max-width: 600px) {
+    .contact-container { padding: 25px; }
 }
