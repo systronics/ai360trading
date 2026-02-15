@@ -14,15 +14,23 @@ layout: default
     <a href="/swing-dashboard/" class="card-link">
       <div class="dashboard-card swing">
         <h3>🎯 SWING DASHBOARD</h3>
-        <p>Institutional trend tracking and high-probability volume breakouts.</p>
+        <p>Institutional trend tracking and breakouts.</p>
         <span class="card-btn">Open Terminal</span>
       </div>
     </a>
 
-   <a href="/positional-picks/" class="card-link">
+    <a href="/intraday-live/" class="card-link">
+      <div class="dashboard-card intraday">
+        <h3>⚡ INTRADAY MONITOR</h3>
+        <p>Live momentum alerts and daily levels.</p>
+        <span class="card-btn">View Live</span>
+      </div>
+    </a>
+
+    <a href="/positional-picks/" class="card-link">
       <div class="dashboard-card positional">
         <h3>📈 POSITIONAL PICKS</h3>
-        <p>Long-term wealth compounding setups based on structural shifts.</p>
+        <p>Long-term wealth compounding setups.</p>
         <span class="card-btn">Access Logic</span>
       </div>
     </a>
@@ -30,127 +38,66 @@ layout: default
     <a href="/tutorial-videos/" class="card-link">
       <div class="dashboard-card academy">
         <h3>🎥 TRADING ACADEMY</h3>
-        <p>Master the price-action logic behind our algorithmic signals.</p>
+        <p>Master the logic behind the signals.</p>
         <span class="card-btn">Learn More</span>
       </div>
     </a>
   </div>
+
+  <hr class="section-divider">
+
+  <h2 class="section-title">LATEST MARKET INTELLIGENCE</h2>
+  <div class="posts-container">
+    {% for post in site.posts limit:5 %}
+      <article class="home-post-card">
+        <div class="post-meta">📅 {{ post.date | date: "%b %-d, %Y" }}</div>
+        <h3 class="post-title">
+          <a href="{{ post.url | relative_url }}">{{ post.title }}</a>
+        </h3>
+        <p class="post-excerpt">{{ post.excerpt | strip_html | truncate: 140 }}</p>
+        <a href="{{ post.url | relative_url }}" class="read-more">Read Analysis →</a>
+      </article>
+    {% endfor %}
+  </div>
 </div>
 
 <style>
-  /* DASHBOARD MASTER STYLES */
-  .dashboard-wrapper {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 20px 0;
-  }
-
-  .main-dashboard-title {
-    text-align: center;
-    font-size: 26px;
-    font-weight: 900;
-    color: #0f172a;
-    margin-bottom: 10px;
-    letter-spacing: -0.5px;
-  }
-
-  .live-indicator {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 40px;
-  }
-
-  .dot {
-    height: 10px;
-    width: 10px;
-    background-color: #2ecc71;
-    border-radius: 50%;
-    display: inline-block;
-    animation: pulse 2s infinite;
-  }
-
-  .status-text {
-    font-size: 12px;
-    font-weight: 800;
-    color: #64748b;
-    letter-spacing: 1px;
-  }
-
+  /* DASHBOARD STYLES */
+  .dashboard-wrapper { max-width: 1100px; margin: 0 auto; padding: 20px 0; }
+  .main-dashboard-title { text-align: center; font-size: 26px; font-weight: 900; margin-bottom: 10px; }
+  .live-indicator { display: flex; justify-content: center; align-items: center; gap: 8px; margin-bottom: 40px; }
+  .dot { height: 10px; width: 10px; background-color: #2ecc71; border-radius: 50%; animation: pulse 2s infinite; }
+  .status-text { font-size: 12px; font-weight: 800; color: #64748b; letter-spacing: 1px; }
+  
   @keyframes pulse {
     0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7); }
     70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(46, 204, 113, 0); }
     100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); }
   }
 
-  /* GRID LOGIC */
-  .dashboard-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 25px;
-  }
+  .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; }
+  .card-link { text-decoration: none; color: inherit; }
+  .dashboard-card { background: #fff; padding: 30px 20px; border-radius: 12px; text-align: center; border: 1px solid #e2e8f0; border-top: 5px solid #0062ff; transition: 0.3s; }
+  .dashboard-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+  .dashboard-card h3 { font-size: 16px; margin-bottom: 10px; }
+  .dashboard-card p { font-size: 13px; color: #64748b; margin-bottom: 15px; }
+  .card-btn { font-size: 11px; font-weight: 800; color: #0062ff; text-transform: uppercase; }
 
-  .card-link {
-    text-decoration: none;
-    color: inherit;
-  }
+  /* POSTS SECTION STYLES */
+  .section-divider { border: 0; height: 1px; background: #e2e8f0; margin: 60px 0; }
+  .section-title { text-align: center; font-size: 22px; font-weight: 900; color: #0f172a; margin-bottom: 30px; }
+  
+  .posts-container { display: flex; flex-direction: column; gap: 20px; }
+  .home-post-card { background: #fff; padding: 25px; border-radius: 12px; border: 1px solid #e2e8f0; transition: 0.3s; }
+  .home-post-card:hover { border-color: #0062ff; transform: translateX(5px); }
+  
+  .post-meta { font-size: 12px; font-weight: 700; color: #94a3b8; margin-bottom: 8px; }
+  .post-title a { text-decoration: none; color: #0f172a; font-size: 19px; font-weight: 800; }
+  .post-excerpt { font-size: 15px; color: #475569; margin: 12px 0; line-height: 1.6; }
+  .read-more { text-decoration: none; font-size: 13px; font-weight: 800; color: #0062ff; }
 
-  .dashboard-card {
-    background: #ffffff;
-    padding: 35px 25px;
-    border-radius: 16px;
-    text-align: center;
-    border: 1px solid #e2e8f0;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-    transition: all 0.3s ease;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-  }
-
-  .dashboard-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 15px 30px rgba(0,0,0,0.08);
-  }
-
-  /* CARD COLORS */
-  .swing { border-top: 5px solid #2ecc71; }
-  .intraday { border-top: 5px solid #0062ff; }
-  .positional { border-top: 5px solid #f1c40f; }
-  .academy { border-top: 5px solid #e74c3c; }
-
-  .dashboard-card h3 {
-    font-size: 17px;
-    font-weight: 900;
-    color: #0f172a;
-    margin-bottom: 15px;
-  }
-
-  .dashboard-card p {
-    font-size: 14px;
-    color: #64748b;
-    line-height: 1.6;
-    margin-bottom: 20px;
-  }
-
-  .card-btn {
-    font-size: 12px;
-    font-weight: 800;
-    color: #0062ff;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }
-
-  /* MOBILE RESPONSIVENESS */
   @media (max-width: 768px) {
-    .dashboard-grid {
-      grid-template-columns: 1fr 1fr;
-      gap: 15px;
-    }
-    .dashboard-card { padding: 20px 15px; }
-    .dashboard-card p { display: none; } /* Keeps it clean on mobile */
-    .main-dashboard-title { font-size: 20px; }
+    .dashboard-grid { grid-template-columns: 1fr 1fr; }
+    .dashboard-card p { display: none; }
   }
 </style>
