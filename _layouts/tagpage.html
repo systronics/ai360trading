@@ -2,32 +2,129 @@
 layout: default
 ---
 
-<div class="tag-page-header">
-  <h1 class="tag-title">
-    Category: {{ page.tag | replace: "-", " " }}
-  </h1>
-  <p class="tag-subtitle">Institutional-grade signals and manual price-action insights for {{ page.tag }}.</p>
-</div>
+<div class="tag-wrapper">
+  <div class="tag-header">
+    <h1 class="tag-main-title">Category: {{ page.tag | replace: "-", " " }}</h1>
+    <p class="tag-subtitle">Institutional insights and manual price-action signals for <strong>{{ page.tag }}</strong>.</p>
+  </div>
 
-<div class="tag-posts-container">
-  {% for post in site.tags[page.tag] %}
-    <article class="tag-post-card" {% if post.lang %}lang="{{post.lang}}"{% endif %}>
-      <div class="tag-post-content">
-        <h2 class="tag-post-card-title">
-          <a href="{{ post.url | relative_url }}">{{ post.title }}</a>
-        </h2>
-        
-        {% if post.excerpt %}
-        <p class="tag-post-excerpt">
-          {{ post.excerpt | strip_html | truncate: 160 }}
-        </p>
-        {% endif %}
+  <div class="tag-posts-list">
+    {% for post in site.tags[page.tag] %}
+      <article class="tag-article-card" {% if post.lang %}lang="{{post.lang}}"{% endif %}>
+        <div class="tag-card-body">
+          <h2 class="tag-post-title">
+            <a href="{{ post.url | relative_url }}">{{ post.title }}</a>
+          </h2>
+          
+          {% if post.excerpt %}
+          <p class="tag-post-excerpt">
+            {{ post.excerpt | strip_html | truncate: 160 }}
+          </p>
+          {% endif %}
 
-        <div class="tag-post-meta">
-          <span class="meta-date"><i class="far fa-calendar"></i> {{ post.date | date: "%b %-d, %Y" }}</span>
-          <a href="{{ post.url | relative_url }}" class="read-more-btn">View Live Signals →</a>
+          <div class="tag-post-footer">
+            <span class="tag-date">📅 {{ post.date | date: "%b %-d, %Y" }}</span>
+            <a href="{{ post.url | relative_url }}" class="view-signal-btn">View Live Signals →</a>
+          </div>
         </div>
-      </div>
-    </article>
-  {% endfor %}
+      </article>
+    {% endfor %}
+  </div>
 </div>
+
+<style>
+  /* RESTORING WORKING TAG LAYOUT */
+  .tag-wrapper {
+    max-width: 850px;
+    margin: 0 auto;
+  }
+
+  .tag-header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  .tag-main-title {
+    color: #0062ff;
+    text-transform: capitalize;
+    font-weight: 900;
+    font-size: 26px;
+    margin-bottom: 10px;
+  }
+
+  .tag-subtitle {
+    color: #64748b;
+    font-size: 15px;
+  }
+
+  .tag-posts-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .tag-article-card {
+    background: #ffffff;
+    padding: 30px;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    transition: transform 0.3s ease;
+  }
+
+  .tag-article-card:hover {
+    transform: translateX(8px);
+    border-color: #0062ff;
+  }
+
+  .tag-post-title a {
+    text-decoration: none;
+    color: #0f172a;
+    font-size: 20px;
+    font-weight: 800;
+  }
+
+  .tag-post-excerpt {
+    color: #475569;
+    font-size: 15px;
+    margin: 15px 0;
+    line-height: 1.7;
+  }
+
+  .tag-post-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+    border-top: 1px solid #f1f5f9;
+    padding-top: 15px;
+  }
+
+  .tag-date {
+    font-size: 13px;
+    color: #94a3b8;
+    font-weight: 600;
+  }
+
+  .view-signal-btn {
+    background: #eff6ff;
+    color: #0062ff !important;
+    padding: 8px 16px;
+    border-radius: 6px;
+    text-decoration: none !important;
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+  }
+
+  .view-signal-btn:hover {
+    background: #0062ff;
+    color: #ffffff !important;
+  }
+
+  @media (max-width: 600px) {
+    .tag-article-card { padding: 20px; }
+    .tag-post-footer { flex-direction: column; align-items: flex-start; gap: 15px; }
+    .view-signal-btn { width: 100%; text-align: center; }
+  }
+</style>
