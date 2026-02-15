@@ -3,43 +3,48 @@
 <head>
   {% include head.html %}
   <style>
+    /* RESET & BASE */
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Inter', sans-serif; background-color: #f8faff; color: #1e293b; }
 
+    /* HEADER */
     .header-container { text-align: center; background: #ffffff; padding: 30px 20px; border-bottom: 1px solid #e2e8f0; width: 100%; }
     .header-banner-img { display: block; margin: 0 auto 20px; max-width: 450px; width: 90%; height: auto; }
 
-    .site-nav { display: flex; justify-content: center; gap: 25px; flex-wrap: wrap; margin-bottom: 20px; }
+    .site-nav { display: flex; justify-content: center; gap: 25px; flex-wrap: wrap; margin-bottom: 15px; }
     .nav-link { text-decoration: none; color: #0062ff !important; font-weight: 800; font-size: 14px; text-transform: uppercase; }
 
-    /* MODERN ICON BAR */
-    .social-links-header { display: flex; justify-content: center; gap: 15px; margin-top: 5px; }
+    /* SOCIAL ICON BUTTONS */
+    .social-links-header { display: flex; justify-content: center; gap: 12px; margin-top: 5px; }
     
     .social-icon-link {
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 36px;
-      height: 36px;
+      width: 40px;
+      height: 40px;
       background: #f1f5f9;
       color: #475569 !important;
-      border-radius: 8px;
+      border-radius: 50%; /* Circular for a cleaner look */
       text-decoration: none;
       font-size: 18px;
       transition: all 0.3s ease;
+      border: 1px solid #e2e8f0;
     }
 
     .social-icon-link:hover {
       background: #0062ff;
       color: #ffffff !important;
       transform: translateY(-3px);
+      box-shadow: 0 4px 10px rgba(0, 98, 255, 0.3);
     }
 
+    /* CONTENT & FOOTER */
     .content-wrapper { max-width: 1100px; margin: 0 auto; padding: 40px 20px; min-height: 70vh; }
-    .site-footer { background: #101c28; color: #ffffff; padding: 50px 20px; text-align: center; margin-top: 60px; border-top: 4px solid #2ecc71; }
+    .site-footer { background: #101c28; color: #ffffff; padding: 40px 20px; text-align: center; margin-top: 60px; }
     
-    /* KILL SWITCH FOR SUBSCRIPTIONS */
-    .sub-box, #sub-box, .subscription-container, .subscription-box { display: none !important; }
+    /* HIDE SUBSCRIPTIONS */
+    .sub-box, #sub-box, .subscription-container { display: none !important; }
 
     @media (max-width: 600px) {
       .header-container { padding: 20px 10px; }
@@ -51,7 +56,7 @@
 <body>
 
   <header class="header-container">
-    <a href="/" class="header-banner-link">
+    <a href="/">
       <img src="/public/image/header.webp" alt="AI360Trading" class="header-banner-img">
     </a>
 
@@ -64,27 +69,27 @@
 
     <div class="social-links-header">
       {% if site.telegram_username %}
-        <a href="https://t.me/{{ site.telegram_username }}" class="social-icon-link" target="_blank" title="Telegram">
+        <a href="https://t.me/{{ site.telegram_username }}" class="social-icon-link" target="_blank">
           <i class="fa fa-paper-plane"></i>
         </a>
       {% endif %}
       {% if site.twitter_username %}
-        <a href="https://twitter.com/{{ site.twitter_username }}" class="social-icon-link" target="_blank" title="Twitter">
+        <a href="https://twitter.com/{{ site.twitter_username }}" class="social-icon-link" target="_blank">
           <i class="fa fa-twitter"></i>
         </a>
       {% endif %}
       {% if site.youtube_username %}
-        <a href="https://youtube.com/@{{ site.youtube_username }}" class="social-icon-link" target="_blank" title="YouTube">
+        <a href="https://youtube.com/@{{ site.youtube_username }}" class="social-icon-link" target="_blank">
           <i class="fa fa-youtube-play"></i>
         </a>
       {% endif %}
       {% if site.instagram_username %}
-        <a href="https://instagram.com/{{ site.instagram_username }}" class="social-icon-link" target="_blank" title="Instagram">
+        <a href="https://instagram.com/{{ site.instagram_username }}" class="social-icon-link" target="_blank">
           <i class="fa fa-instagram"></i>
         </a>
       {% endif %}
       {% if site.facebook_username %}
-        <a href="https://facebook.com/{{ site.facebook_username }}" class="social-icon-link" target="_blank" title="Facebook">
+        <a href="https://facebook.com/{{ site.facebook_username }}" class="social-icon-link" target="_blank">
           <i class="fa fa-facebook"></i>
         </a>
       {% endif %}
@@ -96,7 +101,7 @@
   </main>
 
   <footer class="site-footer">
-    <p>© 2026 AI360TRADING</p>
+    <p>© 2026 AI360TRADING | Institutional Market Intelligence</p>
   </footer>
 
 </body>
