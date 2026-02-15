@@ -1,29 +1,47 @@
-# Site settings
+# ==========================================
+# Site Settings - AI360TRADING GLOBAL
+# ==========================================
 name: "AI360Trading"
+title: "AI360Trading | Global Market Intelligence & Algorithmic Insights"
+description: "Professional algorithmic trading signals and global macro analysis for NASDAQ, FTSE, and NIFTY markets. High-probability setups backed by price action logic."
 url: "https://ai360trading.in"
 baseurl: ""
 timezone: "Asia/Kolkata"
 future: true
+encoding: "utf-8"
 
-# SEO & Ownership (The ONLY place for these codes!)
-# REPLACE the line below with your real code from Search Console
+# SEO & Ownership
+# Note: Ensure you replace 'YOUR_REAL_NEW_CODE' with your Google Search Console token
 google_site_verification: YOUR_REAL_NEW_CODE
-google_analytics: G-YR9E0CYRCV
+google_analytics: "G-YR9E0CYRCV"
+social_image: "/public/image/swing.webp"
 
-# SEO & Permalinks
+# Author Information (Helps with AdSense Approval)
+author:
+  name: "AI360Trading Intelligence Team"
+  twitter: ai360trading
+  email: admin@ai360trading.in
+
+# Permalinks & Markdown
 markdown: kramdown
 highlighter: rouge
 permalink: /:title/
 
-# SOCIAL MEDIA
+# SOCIAL MEDIA (Used by your Python script and Contact page)
 twitter_username: ai360trading
 telegram_username: ai360trading
 
 # Plugins
+# Added jekyll-sitemap for automatic global indexing
 plugins:
   - jekyll-paginate
   - jekyll-seo-tag
   - jekyll-feed
+  - jekyll-sitemap
+
+# Pagination Settings
+paginate: 10
+paginate_path: "/page:num/"
 
 # Defaults
 defaults:
@@ -31,3 +49,8 @@ defaults:
       path: ""
     values:
       layout: "default"
+  - scope:
+      path: "_posts"
+    values:
+      layout: "post"
+      author: "AI360Trading"
