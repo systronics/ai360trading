@@ -3,28 +3,25 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-YR9E0CYRCV"></script>
+  <script async src="https://www.googletagmanager.com/gtag/js?id={{ site.google_analytics }}"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
-    gtag('config', 'G-YR9E0CYRCV', { 'anonymize_ip': true });
+    gtag('config', '{{ site.google_analytics }}', { 'anonymize_ip': true });
   </script>
 
-  <script defer src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX"
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX"
      crossorigin="anonymous"></script>
 
-  <meta property="og:title" content="{{ page.title | default: site.title }}">
-  <meta property="og:description" content="{{ page.excerpt | default: site.description | strip_html | truncate: 160 }}">
-  <meta property="og:image" content="https://ai360trading.in/public/image/swing.webp">
-  <meta property="og:type" content="website">
+  <link rel="stylesheet" href="{{ '/public/css/poole.css' | relative_url }}">
+  <link rel="stylesheet" href="{{ '/public/css/gpstyle.css' | relative_url }}">
+  <link rel="stylesheet" href="{{ '/public/font-awesome/css/font-awesome.min.css' | relative_url }}">
+  <link rel="shortcut icon" type="image/x-icon" href="{{ '/public/image/favicon.ico' | relative_url }}">
 
-  <link rel="stylesheet" href="/public/css/poole.css">
-  <link rel="stylesheet" href="/public/css/gpstyle.css">
-  <link rel="stylesheet" href="/public/font-awesome/css/font-awesome.min.css">
-  <link rel="shortcut icon" type="image/x-icon" href="/public/image/favicon.ico">
-  
-  {% seo %} <style>
+  {% seo %}
+
+  <style>
     .sidebar { display: none !important; }
     .content, .container { 
       max-width: 1200px !important; 
@@ -33,11 +30,13 @@
       display: block !important;
     }
     .site-header { 
-      background: #fff; 
+      background: #ffffff; 
       position: sticky; 
       top: 0; 
       z-index: 1000; 
-      box-shadow: 0 2px 8px rgba(0,0,0,.05); 
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05); 
     }
+    /* Fixed: Ensure social icons render correctly */
+    .fa { font-family: FontAwesome !important; }
   </style>
 </head>
