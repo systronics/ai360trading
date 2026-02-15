@@ -1,9 +1,49 @@
 ---
 layout: default
-title: "404: Page not found"
-permalink: 404.html
+title: "404: Signal Lost"
+permalink: /404.html
 ---
 
-<div class="page">  
-    <meta http-equiv = "refresh" content = "3; url = https://ai360trading.in/"/>
+<div class="about-container" style="text-align: center; padding: 100px 20px;">
+  
+  <meta http-equiv="refresh" content="5; url={{ site.url }}/" />
+
+  <div style="font-size: 80px; margin-bottom: 20px;">📡</div>
+  
+  <h1 style="font-size: 36px; color: #1e293b; margin-bottom: 10px;">404: Market Connection Lost</h1>
+  
+  <p style="font-size: 18px; color: #64748b; max-width: 600px; margin: 0 auto 30px auto; line-height: 1.6;">
+    The page you are looking for has been moved, deleted, or the trend has reversed. 
+    Our scanners couldn't find this specific intelligence report.
+  </p>
+
+  <div style="margin-top: 40px;">
+    <a href="{{ site.url }}/" class="badge" style="padding: 15px 40px; font-size: 16px; text-decoration: none; background-color: #2563eb; color: white; border-radius: 8px;">
+      Return to Live Dashboard
+    </a>
   </div>
+
+  <p style="font-size: 12px; color: #94a3b8; margin-top: 50px;">
+    Redirecting you to the home terminal in 5 seconds...
+  </p>
+
+</div>
+
+<style>
+  /* Ensuring the 404 page feels like a high-end terminal */
+  .about-container {
+    min-height: 70vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  h1 { font-weight: 800; letter-spacing: -1px; }
+  
+  .badge:hover {
+    background-color: #1e40af !important;
+    transform: translateY(-2px);
+    transition: all 0.2s ease;
+  }
+</style>
