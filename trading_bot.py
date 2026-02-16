@@ -22,27 +22,29 @@ def run_trading_cycle():
 
     # Morning Message (9 AM)
     mem = str(sheet.acell("O4").value or "")
-    if now.hour == 9 and now.minute < 5 and f"{today}_AM" not in mem:
-        send_tg(f"🌅 <b>GOOD MORNING - {today}</b>\n━━━━━━━━━━━━━━━━━━━━\n🛡️ <b>System:</b> Online\n🚀 <b>Focus:</b> Priority 20+ Stocks\n━━━━━━━━━━━━━━━━━━━━")
-        sheet.update_acell("O4", mem + f",{today}_AM")
+    if now.hour == 9 and now.minute < 10 and f"{today}_AM" not in mem:
+        send_tg(f"🌅 <b>GOOD MORNING - {today}</b>\n━━━━━━━━━━━━━━━━━━━━\n🛡️ <b>System:</b> Online\n📊 <b>Market:</b> Tracking Nifty200\n━━━━━━━━━━━━━━━━━━━━")
+        sheet.update_acell("O4", f"{today}_AM") # Reset memory to keep it short
 
+    # Market Close Summary (3:30 PM)
+    if now.hour == 15 and 30 <= now.minute < 40 and f"{today}_PM" not in mem:
+        send_tg(f"🏁 <b>MARKET CLOSE - {today}</b>\n━━━━━━━━━━━━━━━━━━━━\n✅ <b>Status:</b> Market Closed.\n📈 <b>P/L Summary:</b> Checking positions...\n━━━━━━━━━━━━━━━━━━━━")
+        sheet.update_acell("O4", mem + f",{today}_PM")
+
+    # SCAN ROWS 11 TO 30 (Where your data actually is)
     rows = sheet.get_all_values()
-    for i, r in enumerate(rows[1:10], start=2):
-        if "TRADED" in str(r[10]).upper():
-            sym, cp, sl, ent = r[1], to_f(r[2]), to_f(r[7]), to_f(r[11])
+    traded_rows = rows[10:30] # Row 11 to 30
+
+    for idx, r in enumerate(traded_rows, start=11):
+        status = str(r[10]).upper()
+        if "TRADED" in status:
+            sym, cp, sl, ent = r[1], to_f(r[2]), to_f(r[7]), to_f(r[2]) # Using Col C for entry if Col L empty
             
-            # --- ZERO SAFETY ---
-            if cp <= 0: continue 
+            if cp <= 0 or ent <= 0: continue 
             
             pnl = ((cp - ent) / ent) * 100
-            new_sl = round(cp * 0.965, 2)
-
-            # TSL Shift (>1% move)
-            if new_sl > (sl * 1.01):
-                sheet.update_cell(i, 8, new_sl)
-                send_tg(f"🛡️ <b>TRAILING SL UPDATE</b>\n━━━━━━━━━━━━━━━━━━━━\n📈 <b>Stock:</b> {sym}\n🆙 <b>New SL:</b> ₹{new_sl}\n💰 <b>P/L:</b> {pnl:+.2f}%\n━━━━━━━━━━━━━━━━━━━━")
-
-            # Exit Alert
+            
+            # Exit Alert (Price hits SL)
             if cp <= sl and sl > 0:
                 if f"{sym}_EX" not in mem:
                     send_tg(f"🚨 <b>TRADE EXIT ALERT</b>\n━━━━━━━━━━━━━━━━━━━━\n📉 <b>Stock:</b> {sym}\n💰 <b>Exit:</b> ₹{cp}\n📊 <b>P/L:</b> {pnl:+.2f}%\n━━━━━━━━━━━━━━━━━━━━")
