@@ -22,17 +22,19 @@ def run_trading_cycle():
     sheet = ss.worksheet("AlertLog")
     hist_sheet = ss.worksheet("History")
 
-    mem = str(sheet.acell("O4").value or "")
+    # Column O4 Memory
+    mem_cell = sheet.acell("O4")
+    mem = str(mem_cell.value or "")
     
-    # 1. MORNING GREETING
-    if now.hour == 9 and 0 <= now.minute <= 10 and f"{today}_AM" not in mem:
-        send_tg(f"🌅 <b>GOOD MORNING - {today}</b>\n━━━━━━━━━━━━━━━━━━━━\n🛡️ <b>System:</b> Online")
-        sheet.update_acell("O4", f"{today}_AM")
-        mem = f"{today}_AM"
+    # 1. MORNING GREETING (9:00 AM)
+    if now.hour == 9 and 0 <= now.minute <= 5 and f"{today}_AM" not in mem:
+        send_tg(f"🌅 <b>GOOD MORNING - {today}</b>\n━━━━━━━━━━━━━━━━━━━━\n🛡️ <b>System:</b> Online & Monitoring")
+        mem += f",{today}_AM"
+        sheet.update_acell("O4", mem)
 
-    # 2. SCANNING TRADE ZONE (Rows 2 to 31)
-    all_rows = sheet.get_all_values()
-    trade_zone = all_rows[1:31] 
+    # 2. CHECKING TRADED STOCKS (Rows 2-31)
+    all_data = sheet.get_all_values()
+    trade_zone = all_data[1:31] 
 
     for idx, r in enumerate(trade_zone, start=2):
         status = str(r[10]).upper()
@@ -41,29 +43,31 @@ def run_trading_cycle():
             if cp <= 0 or ent <= 0: continue 
             
             pnl = ((cp - ent) / ent) * 100
-            new_sl = round(cp * 0.965, 2)
             
-            # PULLBACK PROTECTION: 0.5% Buffer
+            # BULLISH PULLBACK PROTECTION
+            # If price is at SL but Gap is less than 0.5%, we wait (Bullish momentum check)
             is_pullback = abs(((cp - sl) / sl) * 100) < 0.5 if sl > 0 else False
 
-            # TRAILING STOP LOSS UPDATE
+            # TRAILING STOP LOSS (Locked at 3.5% below current price)
+            new_sl = round(cp * 0.965, 2)
             if new_sl > (sl * 1.01):
-                sheet.update_cell(idx, 8, new_sl) # Col H
+                sheet.update_cell(idx, 8, new_sl)
                 send_tg(f"🛡️ <b>TSL UPDATE</b>\n━━━━━━━━━━━━━━━━━━━━\n📈 <b>Stock:</b> {sym}\n🆙 <b>New SL:</b> ₹{new_sl}\n💰 <b>P/L:</b> {pnl:+.2f}%")
 
-            # EXIT LOGIC
+            # EXIT LOGIC (Handles tomorrow's negative gap immediately)
             if cp <= sl and sl > 0 and not is_pullback:
                 if f"{sym}_EX" not in mem:
-                    send_tg(f"🚨 <b>TRADE EXIT ALERT</b>\n━━━━━━━━━━━━━━━━━━━━\n📉 <b>Stock:</b> {sym}\n💰 <b>Exit:</b> ₹{cp}\n📊 <b>P/L:</b> {pnl:+.2f}%")
+                    send_tg(f"🚨 <b>TRADE EXIT ALERT</b>\n━━━━━━━━━━━━━━━━━━━━\n📉 <b>Stock:</b> {sym}\n💰 <b>Exit:</b> ₹{cp}\n📊 <b>Final P/L:</b> {pnl:+.2f}%")
                     hist_sheet.append_row([today, sym, ent, cp, f"{pnl:.2f}%", strat, "EXITED"])
-                    sheet.update_cell(idx, 11, "CLOSED/ARCHIVED") # Col K
+                    sheet.update_cell(idx, 11, "CLOSED/ARCHIVED") 
                     mem += f",{sym}_EX"
                     sheet.update_acell("O4", mem)
 
-    # 3. MARKET CLOSE SUMMARY
+    # 3. MARKET CLOSE SUMMARY (3:30 PM)
     if now.hour == 15 and 30 <= now.minute <= 40 and f"{today}_PM" not in mem:
         send_tg(f"🔔 <b>MARKET CLOSED - {today}</b>\n━━━━━━━━━━━━━━━━━━━━\n📊 System Sync Complete.")
-        sheet.update_acell("O4", mem + f",{today}_PM")
+        mem += f",{today}_PM"
+        sheet.update_acell("O4", mem)
 
 if __name__ == "__main__":
     run_trading_cycle()
