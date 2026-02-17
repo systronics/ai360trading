@@ -17,70 +17,52 @@ def to_f(val):
 def run_trading_cycle():
     now = datetime.now(IST)
     today = now.strftime('%Y-%m-%d')
-    
-    # Load Credentials
-    creds_dict = json.loads(os.environ.get('GCP_SERVICE_ACCOUNT_JSON'))
-    creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"])
+    creds = ServiceAccountCredentials.from_json_keyfile_dict(json.loads(os.environ.get('GCP_SERVICE_ACCOUNT_JSON')), ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"])
     ss = gspread.authorize(creds).open("Ai360tradingAlgo")
     sheet = ss.worksheet("AlertLog")
     hist_sheet = ss.worksheet("History")
 
-    # Memory for Daily Greeting & Exit Alerts
     mem = str(sheet.acell("O4").value or "")
     
-    # 1. MORNING GREETING (9:00 AM IST)
-    if now.hour == 9 and now.minute < 10 and f"{today}_AM" not in mem:
+    # 1. MORNING GREETING
+    if now.hour == 9 and 0 <= now.minute <= 10 and f"{today}_AM" not in mem:
         send_tg(f"🌅 <b>GOOD MORNING - {today}</b>\n━━━━━━━━━━━━━━━━━━━━\n🛡️ <b>System:</b> Online")
         sheet.update_acell("O4", f"{today}_AM")
         mem = f"{today}_AM"
 
     # 2. SCANNING TRADE ZONE (Rows 2 to 31)
-    all_data = sheet.get_all_values()
-    trade_zone = all_data[1:31] # Extracts Rows 2-31
+    all_rows = sheet.get_all_values()
+    trade_zone = all_rows[1:31] 
 
     for idx, r in enumerate(trade_zone, start=2):
         status = str(r[10]).upper()
-        
-        # Only process active TRADED stocks
         if "TRADED" in status:
-            sym = r[1]
-            cp = to_f(r[2])   # Live Price
-            sl = to_f(r[7])   # Stop Loss
-            ent = to_f(r[11]) # Entry Price
-            strat = r[5]      # Strategy Category
-            
+            sym, cp, sl, ent, strat = r[1], to_f(r[2]), to_f(r[7]), to_f(r[11]), r[5]
             if cp <= 0 or ent <= 0: continue 
             
             pnl = ((cp - ent) / ent) * 100
-            
-            # Trailing Stop Loss Logic (96.5% of current price)
             new_sl = round(cp * 0.965, 2)
             
-            # BULLISH PULLBACK PROTECTION
-            # If current price is within 0.5% of SL, check if it's just a dip
+            # PULLBACK PROTECTION: 0.5% Buffer
             is_pullback = abs(((cp - sl) / sl) * 100) < 0.5 if sl > 0 else False
 
-            # Update TSL if the new calculated SL is higher than current SL
+            # TRAILING STOP LOSS UPDATE
             if new_sl > (sl * 1.01):
-                sheet.update_cell(idx, 8, new_sl) # Updates Column H
+                sheet.update_cell(idx, 8, new_sl) # Col H
                 send_tg(f"🛡️ <b>TSL UPDATE</b>\n━━━━━━━━━━━━━━━━━━━━\n📈 <b>Stock:</b> {sym}\n🆙 <b>New SL:</b> ₹{new_sl}\n💰 <b>P/L:</b> {pnl:+.2f}%")
 
-            # EXIT LOGIC: Price hits SL and it's NOT a minor pullback
+            # EXIT LOGIC
             if cp <= sl and sl > 0 and not is_pullback:
                 if f"{sym}_EX" not in mem:
-                    send_tg(f"🚨 <b>TRADE EXIT ALERT</b>\n━━━━━━━━━━━━━━━━━━━━\n📉 <b>Stock:</b> {sym}\n💰 <b>Exit Price:</b> ₹{cp}\n📊 <b>Final P/L:</b> {pnl:+.2f}%")
-                    
-                    # Archive to History Sheet
+                    send_tg(f"🚨 <b>TRADE EXIT ALERT</b>\n━━━━━━━━━━━━━━━━━━━━\n📉 <b>Stock:</b> {sym}\n💰 <b>Exit:</b> ₹{cp}\n📊 <b>P/L:</b> {pnl:+.2f}%")
                     hist_sheet.append_row([today, sym, ent, cp, f"{pnl:.2f}%", strat, "EXITED"])
-                    
-                    # Mark as Closed and update memory
-                    sheet.update_cell(idx, 11, "CLOSED/ARCHIVED") 
+                    sheet.update_cell(idx, 11, "CLOSED/ARCHIVED") # Col K
                     mem += f",{sym}_EX"
                     sheet.update_acell("O4", mem)
 
-    # 3. MARKET CLOSE MESSAGE (3:30 PM IST)
-    if now.hour == 15 and now.minute >= 30 and now.minute < 40 and f"{today}_PM" not in mem:
-        send_tg(f"🔔 <b>MARKET CLOSED - {today}</b>\n━━━━━━━━━━━━━━━━━━━━\n📊 <b>Status:</b> All trades synced.")
+    # 3. MARKET CLOSE SUMMARY
+    if now.hour == 15 and 30 <= now.minute <= 40 and f"{today}_PM" not in mem:
+        send_tg(f"🔔 <b>MARKET CLOSED - {today}</b>\n━━━━━━━━━━━━━━━━━━━━\n📊 System Sync Complete.")
         sheet.update_acell("O4", mem + f",{today}_PM")
 
 if __name__ == "__main__":
