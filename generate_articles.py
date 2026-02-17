@@ -2,6 +2,7 @@ import os
 import pytz
 import requests
 import random
+import json
 import xml.etree.ElementTree as ET
 from datetime import datetime
 from groq import Groq
@@ -14,53 +15,65 @@ now = datetime.now(ist)
 date_str = now.strftime("%Y-%m-%d")
 POSTS_DIR = os.path.join(os.getcwd(), '_posts')
 
+def get_google_trends():
+    """Fetches the actual top 10 trending search terms globally."""
+    # Targeting US & Global trends for worldwide attraction
+    url = "https://trends.google.com/trends/api/dailytrends?hl=en-US&tz=-330&geo=US"
+    try:
+        r = requests.get(url, timeout=10)
+        # Google Trends API has a safety prefix: )]}',
+        clean_json = r.text.replace(")]}',\n", "")
+        data = json.loads(clean_json)
+        trends = []
+        for day in data['default']['trendingSearchesDays']:
+            for item in day['trendingSearches']:
+                trends.append(item['title']['query'])
+        return trends[:10]
+    except:
+        return ["Stock Market Pulse", "Fed Interest Rates", "Nvidia AI", "Global Macro"]
+
 def get_live_news():
-    """Scrapes dynamic news to ensure variety and global appeal."""
-    # List of different focus areas to prevent daily repetition
-    rotational_queries = [
-        "NASDAQ+tech+selloff+AI+bubble+Nvidia+earnings",
-        "US+Federal+Reserve+interest+rates+inflation+CPI",
-        "China+stimulus+Evergrande+property+market+Yuan",
-        "Gold+prices+Crude+Oil+geopolitical+risk+War",
-        "FTSE+100+UK+economy+Bank+of+England+recession",
-        "Bitcoin+ETF+Crypto+regulation+SEC+Blackrock"
+    """Scrapes diverse news topics to ensure the AI gets new context daily."""
+    queries = [
+        "NASDAQ+Nvidia+AI+tech+earnings",
+        "Fed+interest+rate+inflation+CPI",
+        "China+stimulus+market+economy+Yuan",
+        "Crude+Oil+Gold+geopolitical+risk",
+        "Crypto+Bitcoin+ETF+regulation"
     ]
-    
-    # Select a random query focus each day
-    query_focus = random.choice(rotational_queries)
+    query = random.choice(queries)
     headlines = []
-    url = f"https://news.google.com/rss/search?q={query_focus}&hl=en-US&gl=US&ceid=US:en"
-    
+    url = f"https://news.google.com/rss/search?q={query}&hl=en-US&gl=US&ceid=US:en"
     try:
         r = requests.get(url, timeout=10)
         root = ET.fromstring(r.content)
-        # Mix top news and some random news from the list
         items = root.findall('.//item')
-        random.shuffle(items) # Randomize headlines order
-        for item in items[:15]:
+        random.shuffle(items)
+        for item in items[:12]:
             headlines.append(item.find('title').text)
-    except Exception as e: 
-        return f"Trending Global Finance Incident: {date_str}"
-    
+    except: 
+        return "Global Market Macro Trends"
     return "\n".join(headlines)
 
 def generate_full_report():
     news = get_live_news()
-    # Create a more dynamic title for SEO
-    dynamic_title = f"{date_str}-global-market-shocker-news-analysis.md"
-    file_path = os.path.join(POSTS_DIR, dynamic_title)
+    trends = get_google_trends()
+    
+    # Randomize filename slightly to avoid SEO conflicts
+    slug = random.choice(["intelligence-report", "market-shocker", "macro-alert", "trading-insights"])
+    filename = f"{date_str}-{slug}.md"
+    file_path = os.path.join(POSTS_DIR, filename)
 
     prompt = (
-        f"Today's Date: {date_str}. Write a HIGH-ENERGY, viral Market Intelligence Report for ai360trading.in.\n"
-        f"IMPORTANT: Focus on a unique 'Incident of the Day' based on these news headlines:\n{news}\n\n"
-        "GOAL: Attract worldwide visitors with bold predictions and deep macro analysis.\n\n"
-        "STYLE RULES:\n"
-        "1. Start with a 'Breaking News' hook.\n"
-        "2. Include a section: '🌍 Worldwide Trending Hashtags' with 10 viral tags like #StockMarket #Nvidia etc.\n"
-        "3. Use H2/H3 tags. Break down NASDAQ, FTSE, and Asian Markets.\n"
-        "4. Include a 'Global Pivot Table' with Support/Resistance levels for top 5 assets.\n\n"
-        "IMAGES (Performance Optimized):\n"
-        "<img src='https://images.unsplash.com/photo-1611974714013-3c7456ca017a?auto=format&fit=crop&w=800&q=80' width='800' height='450' loading='lazy' alt='Global Market Chart'>\n\n"
+        f"Today is {date_str}. Write a 1,500-word VIRAL Market Report for ai360trading.in.\n"
+        f"TOP GOOGLE TRENDS TODAY: {', '.join(trends)}\n"
+        f"HEADLINE NEWS:\n{news}\n\n"
+        "INSTRUCTIONS:\n"
+        "1. Focus on the 'Incident of the Day'—why are these terms trending?\n"
+        "2. Analyze NASDAQ, FTSE 100, and China markets specifically.\n"
+        "3. Provide a 'Global Pivot Table' with Support/Resistance for traders.\n"
+        "4. Include a section: '🌍 TRENDING HASHTAGS' using the keywords above.\n"
+        "5. Use H2/H3 tags. Performance rule: <img src='https://images.unsplash.com/photo-1611974714013-3c7456ca017a?w=800' width='800' height='450' loading='lazy' alt='Market Analysis'>.\n\n"
         "END WITH THIS EXACT HTML FOOTER:\n"
         '<h3>📢 Share this Analysis</h3>\n'
         '<div class="share-bar">\n'
@@ -79,30 +92,20 @@ def generate_full_report():
         completion = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=[
-                {"role": "system", "content": "You are a world-class financial journalist. You write uniquely and never repeat yourself."},
+                {"role": "system", "content": "You are a world-class financial analyst. You write unique, high-impact news reports and NEVER repeat your style."},
                 {"role": "user", "content": prompt}
             ],
-            temperature=0.8, # Increased for more variety
+            temperature=0.8,
         )
         content = completion.choices[0].message.content
         
-        # Ensure directory exists
+        # Add Jekyll Front Matter so your website displays it as a post
+        header = f"---\nlayout: post\ntitle: \"Global Market Report: {date_str}\"\ndate: {date_str}\ncategories: [Market-Intelligence]\n---\n\n"
+        
         if not os.path.exists(POSTS_DIR): os.makedirs(POSTS_DIR)
-        
-        # Add Jekyll Front Matter (Crucial for Website formatting)
-        front_matter = (
-            "---\n"
-            f"layout: post\n"
-            f"title: \"Global Market Intelligence Report: {date_str}\"\n"
-            f"date: {date_str}\n"
-            "categories: [Market-Intelligence]\n"
-            "---\n\n"
-        )
-        
         with open(file_path, "w", encoding="utf-8") as f:
-            f.write(front_matter + content)
-            
-        print(f"✅ Success: New Unique Article Generated for {date_str}")
+            f.write(header + content)
+        print(f"✅ Success: Unique Global Report Created.")
     except Exception as e: 
         print(f"❌ Error: {e}")
 
