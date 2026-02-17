@@ -16,12 +16,10 @@ date_str = now.strftime("%Y-%m-%d")
 POSTS_DIR = os.path.join(os.getcwd(), '_posts')
 
 def get_google_trends():
-    """Fetches the actual top 10 trending search terms globally."""
-    # Targeting US & Global trends for worldwide attraction
+    """Fetches real-time trending search terms to ensure fresh SEO content."""
     url = "https://trends.google.com/trends/api/dailytrends?hl=en-US&tz=-330&geo=US"
     try:
         r = requests.get(url, timeout=10)
-        # Google Trends API has a safety prefix: )]}',
         clean_json = r.text.replace(")]}',\n", "")
         data = json.loads(clean_json)
         trends = []
@@ -33,7 +31,7 @@ def get_google_trends():
         return ["Stock Market Pulse", "Fed Interest Rates", "Nvidia AI", "Global Macro"]
 
 def get_live_news():
-    """Scrapes diverse news topics to ensure the AI gets new context daily."""
+    """Scrapes varying topics so the AI has new information to write about every morning."""
     queries = [
         "NASDAQ+Nvidia+AI+tech+earnings",
         "Fed+interest+rate+inflation+CPI",
@@ -59,21 +57,27 @@ def generate_full_report():
     news = get_live_news()
     trends = get_google_trends()
     
-    # Randomize filename slightly to avoid SEO conflicts
-    slug = random.choice(["intelligence-report", "market-shocker", "macro-alert", "trading-insights"])
-    filename = f"{date_str}-{slug}.md"
-    file_path = os.path.join(POSTS_DIR, filename)
+    # SEO SLUG: Creates a unique URL for every post
+    slug_options = ["market-intelligence", "global-macro-alert", "trading-shocker", "stock-market-update"]
+    chosen_slug = f"{date_str}-{random.choice(slug_options)}"
+    file_path = os.path.join(POSTS_DIR, f"{chosen_slug}.md")
+
+    # FIXED IMAGE: Direct Unsplash URL that renders correctly in Jekyll/Markdown
+    # Adding a random 'sig' number ensures the image is different every single day.
+    img_url = f"https://images.unsplash.com/photo-1611974714013-3c7456ca017a?auto=format&fit=crop&w=800&q=80&sig={random.randint(1,999)}"
+    img_tag = f"![Market Analysis]({img_url})"
 
     prompt = (
         f"Today is {date_str}. Write a 1,500-word VIRAL Market Report for ai360trading.in.\n"
         f"TOP GOOGLE TRENDS TODAY: {', '.join(trends)}\n"
         f"HEADLINE NEWS:\n{news}\n\n"
-        "INSTRUCTIONS:\n"
-        "1. Focus on the 'Incident of the Day'—why are these terms trending?\n"
-        "2. Analyze NASDAQ, FTSE 100, and China markets specifically.\n"
-        "3. Provide a 'Global Pivot Table' with Support/Resistance for traders.\n"
-        "4. Include a section: '🌍 TRENDING HASHTAGS' using the keywords above.\n"
-        "5. Use H2/H3 tags. Performance rule: <img src='https://images.unsplash.com/photo-1611974714013-3c7456ca017a?w=800' width='800' height='450' loading='lazy' alt='Market Analysis'>.\n\n"
+        "ARTICLE STRUCTURE:\n"
+        f"1. Start with this image: {img_tag}\n"
+        "2. Analyze why the Google Trends above are moving the markets.\n"
+        "3. Focus on 'Incident of the Day' for worldwide attraction.\n"
+        "4. Include a section: '🌍 TRENDING HASHTAGS' using #StockMarket and the trends found.\n"
+        "5. Analyze NASDAQ, FTSE 100, and Asian markets.\n"
+        "6. Provide a 'Global Pivot Table' with Support/Resistance levels.\n\n"
         "END WITH THIS EXACT HTML FOOTER:\n"
         '<h3>📢 Share this Analysis</h3>\n'
         '<div class="share-bar">\n'
@@ -95,17 +99,25 @@ def generate_full_report():
                 {"role": "system", "content": "You are a world-class financial analyst. You write unique, high-impact news reports and NEVER repeat your style."},
                 {"role": "user", "content": prompt}
             ],
-            temperature=0.8,
+            temperature=0.8, # Keeps the content creative and unique daily
         )
         content = completion.choices[0].message.content
         
-        # Add Jekyll Front Matter so your website displays it as a post
-        header = f"---\nlayout: post\ntitle: \"Global Market Report: {date_str}\"\ndate: {date_str}\ncategories: [Market-Intelligence]\n---\n\n"
+        # FRONT MATTER: This is where the magic happens for unique URLs and Formatting
+        header = (
+            "---\n"
+            "layout: post\n"
+            f"title: \"{date_str} | Global Market Intelligence Report\"\n"
+            f"date: {date_str}\n"
+            f"permalink: /analysis/{chosen_slug}/\n"
+            "categories: [Market-Intelligence]\n"
+            "---\n\n"
+        )
         
         if not os.path.exists(POSTS_DIR): os.makedirs(POSTS_DIR)
         with open(file_path, "w", encoding="utf-8") as f:
             f.write(header + content)
-        print(f"✅ Success: Unique Global Report Created.")
+        print(f"✅ Success: Unique Report Created at /analysis/{chosen_slug}/")
     except Exception as e: 
         print(f"❌ Error: {e}")
 
