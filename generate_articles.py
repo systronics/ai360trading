@@ -1,6 +1,7 @@
 import os
 import pytz
 import requests
+import random
 import xml.etree.ElementTree as ET
 from datetime import datetime
 from groq import Groq
@@ -14,32 +15,52 @@ date_str = now.strftime("%Y-%m-%d")
 POSTS_DIR = os.path.join(os.getcwd(), '_posts')
 
 def get_live_news():
-    """Scrapes Global Macro news for US, UK, and China attraction."""
+    """Scrapes dynamic news to ensure variety and global appeal."""
+    # List of different focus areas to prevent daily repetition
+    rotational_queries = [
+        "NASDAQ+tech+selloff+AI+bubble+Nvidia+earnings",
+        "US+Federal+Reserve+interest+rates+inflation+CPI",
+        "China+stimulus+Evergrande+property+market+Yuan",
+        "Gold+prices+Crude+Oil+geopolitical+risk+War",
+        "FTSE+100+UK+economy+Bank+of+England+recession",
+        "Bitcoin+ETF+Crypto+regulation+SEC+Blackrock"
+    ]
+    
+    # Select a random query focus each day
+    query_focus = random.choice(rotational_queries)
     headlines = []
-    query = "US+Fed+Rate+NASDAQ+analysis+FTSE+100+UK+economy+China+stimulus+market"
-    url = f"https://news.google.com/rss/search?q={query}&hl=en-US&gl=US&ceid=US:en"
+    url = f"https://news.google.com/rss/search?q={query_focus}&hl=en-US&gl=US&ceid=US:en"
+    
     try:
         r = requests.get(url, timeout=10)
         root = ET.fromstring(r.content)
-        for item in root.findall('.//item')[:12]:
+        # Mix top news and some random news from the list
+        items = root.findall('.//item')
+        random.shuffle(items) # Randomize headlines order
+        for item in items[:15]:
             headlines.append(item.find('title').text)
-    except: 
-        return "Global Market Macro Trends"
+    except Exception as e: 
+        return f"Trending Global Finance Incident: {date_str}"
+    
     return "\n".join(headlines)
 
 def generate_full_report():
     news = get_live_news()
-    filename = f"{date_str}-global-market-intelligence-report.md"
-    file_path = os.path.join(POSTS_DIR, filename)
+    # Create a more dynamic title for SEO
+    dynamic_title = f"{date_str}-global-market-shocker-news-analysis.md"
+    file_path = os.path.join(POSTS_DIR, dynamic_title)
 
     prompt = (
-        f"Today: {date_str}. Write a 1,500-word Market Intelligence Report for ai360trading.in.\n"
-        f"Context News:\n{news}\n\n"
-        "PERFORMANCE RULES (For Google PageSpeed):\n"
-        "1. If you include an image, use this HTML: <img src='URL' width='800' height='450' loading='lazy' alt='Description'>.\n"
-        "2. Use clean H2 and H3 tags. Avoid huge walls of text.\n\n"
-        "CONTENT STRUCTURE:\n"
-        "Analyze NASDAQ, FTSE 100, and China markets. Provide a 'Global Pivot Table' for traders.\n\n"
+        f"Today's Date: {date_str}. Write a HIGH-ENERGY, viral Market Intelligence Report for ai360trading.in.\n"
+        f"IMPORTANT: Focus on a unique 'Incident of the Day' based on these news headlines:\n{news}\n\n"
+        "GOAL: Attract worldwide visitors with bold predictions and deep macro analysis.\n\n"
+        "STYLE RULES:\n"
+        "1. Start with a 'Breaking News' hook.\n"
+        "2. Include a section: '🌍 Worldwide Trending Hashtags' with 10 viral tags like #StockMarket #Nvidia etc.\n"
+        "3. Use H2/H3 tags. Break down NASDAQ, FTSE, and Asian Markets.\n"
+        "4. Include a 'Global Pivot Table' with Support/Resistance levels for top 5 assets.\n\n"
+        "IMAGES (Performance Optimized):\n"
+        "<img src='https://images.unsplash.com/photo-1611974714013-3c7456ca017a?auto=format&fit=crop&w=800&q=80' width='800' height='450' loading='lazy' alt='Global Market Chart'>\n\n"
         "END WITH THIS EXACT HTML FOOTER:\n"
         '<h3>📢 Share this Analysis</h3>\n'
         '<div class="share-bar">\n'
@@ -57,14 +78,31 @@ def generate_full_report():
     try:
         completion = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.5,
+            messages=[
+                {"role": "system", "content": "You are a world-class financial journalist. You write uniquely and never repeat yourself."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.8, # Increased for more variety
         )
         content = completion.choices[0].message.content
+        
+        # Ensure directory exists
         if not os.path.exists(POSTS_DIR): os.makedirs(POSTS_DIR)
+        
+        # Add Jekyll Front Matter (Crucial for Website formatting)
+        front_matter = (
+            "---\n"
+            f"layout: post\n"
+            f"title: \"Global Market Intelligence Report: {date_str}\"\n"
+            f"date: {date_str}\n"
+            "categories: [Market-Intelligence]\n"
+            "---\n\n"
+        )
+        
         with open(file_path, "w", encoding="utf-8") as f:
-            f.write(content)
-        print(f"✅ Success: Global Performance-Optimized Post Created.")
+            f.write(front_matter + content)
+            
+        print(f"✅ Success: New Unique Article Generated for {date_str}")
     except Exception as e: 
         print(f"❌ Error: {e}")
 
