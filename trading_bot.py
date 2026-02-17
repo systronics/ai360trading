@@ -22,22 +22,17 @@ def run_trading_cycle():
     sheet = ss.worksheet("AlertLog")
     hist_sheet = ss.worksheet("History")
 
-    # --- 9 AM / 3:30 PM MESSAGES ---
+    # --- MEMORY & DAILY MESSAGES ---
     mem = str(sheet.acell("O4").value or "")
     if now.hour == 9 and now.minute < 10 and f"{today}_AM" not in mem:
-        send_tg(f"🌅 <b>GOOD MORNING - {today}</b>\n━━━━━━━━━━━━━━\n🛡️ System: ONLINE\n🚀 Focus: High Priority Refresh")
+        send_tg(f"🌅 <b>GOOD MORNING</b>\nSystem Online for {today}")
         sheet.update_acell("O4", f"{today}_AM")
-
-    if now.hour == 15 and 30 <= now.minute < 40 and f"{today}_PM" not in mem:
-        send_tg(f"🏁 <b>MARKET CLOSE - {today}</b>\n━━━━━━━━━━━━━━\n✅ Trades Synced to History.")
-        sheet.update_acell("O4", mem + f",{today}_PM")
 
     # --- SCANNING (Rows 2 to 31) ---
     all_data = sheet.get_all_values()
-    # Scans from Row 2 downwards
-    active_rows = all_data[1:31] 
+    trade_zone = all_data[1:31] 
 
-    for idx, r in enumerate(active_rows, start=2):
+    for idx, r in enumerate(trade_zone, start=2):
         status = str(r[10]).upper()
         if "TRADED" in status:
             sym, cp, sl, ent, strat = r[1], to_f(r[2]), to_f(r[7]), to_f(r[11]), r[5]
@@ -46,18 +41,18 @@ def run_trading_cycle():
             pnl = ((cp - ent) / ent) * 100
             new_sl = round(cp * 0.965, 2)
             
-            # Pullback Buffer: 0.5%
+            # BULLISH PULLBACK LOGIC: 0.5% buffer
             is_pullback = abs(((cp - sl) / sl) * 100) < 0.5 if sl > 0 else False
 
-            # Trailing SL Update
+            # TRAILING SL UPDATE (Only if price moved up > 1%)
             if new_sl > (sl * 1.01):
                 sheet.update_cell(idx, 8, new_sl)
-                send_tg(f"🛡️ <b>TSL UPDATE: {sym}</b>\n🆙 New SL: ₹{new_sl}\n💰 P/L: {pnl:+.2f}%")
+                send_tg(f"🛡️ <b>TSL UPDATE: {sym}</b>\nNew SL: ₹{new_sl}\nP/L: {pnl:+.2f}%")
 
-            # Exit & History Archive
+            # EXIT ALERT (If SL hit and NOT a pullback)
             if cp <= sl and sl > 0 and not is_pullback:
                 if f"{sym}_EX" not in mem:
-                    send_tg(f"🚨 <b>EXIT: {sym}</b>\n💰 Price: ₹{cp}\n📊 P/L: {pnl:+.2f}%")
+                    send_tg(f"🚨 <b>EXIT: {sym}</b>\nPrice: ₹{cp}\nP/L: {pnl:+.2f}%")
                     hist_sheet.append_row([today, sym, ent, cp, f"{pnl:.2f}%", strat, "EXITED"])
                     sheet.update_cell(idx, 11, "CLOSED/ARCHIVED") 
                     sheet.update_acell("O4", mem + f",{sym}_EX")
