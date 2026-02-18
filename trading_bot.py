@@ -43,16 +43,16 @@ def run_trading_cycle():
             
             pnl = ((cp - ent) / ent) * 100
             new_sl = round(cp * 0.965, 2)
-            # Pullback logic: Checks if close to SL but in a bullish trend
+            
+            # Pullback logic: Do not exit during a bullish moment
             is_pullback = abs(((cp - sl) / sl) * 100) < 0.5 if sl > 0 else False
 
-            # EXIT TRIGGER: Does not exit on bullish pullback
             if cp <= sl and sl > 0 and not is_pullback:
                 if f"{sym}_EX" not in mem:
                     send_tg(f"🚨 <b>TRADE EXIT ALERT</b>\n━━━━━━━━━━━━━━━━━━━━\n📉 <b>Stock:</b> {sym}\n💰 <b>Exit Price:</b> ₹{cp}\n📊 <b>Final P/L:</b> {pnl:+.2f}%")
                     
                     # MATCHED TO ROW 2 & 3: [Symbol, Date, EntryP, ExitP, P/L, Strategy, Result]
-                    # This ensures Symbol is always in Column A
+                    # This fixes the formatting in the History sheet
                     hist_sheet.append_row([r[1], today, ent, cp, f"{pnl:.2f}%", strat, "STF EXITED"])
                     
                     # Update status to trigger promotion in Apps Script
