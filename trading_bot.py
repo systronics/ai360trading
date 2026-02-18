@@ -25,7 +25,7 @@ def run_trading_cycle():
     mem_cell = sheet.acell("O4")
     mem = str(mem_cell.value or "")
     
-    # Morning Greeting at 9 AM
+    # 9 AM Morning Message
     if now.hour == 9 and 0 <= now.minute <= 5 and f"{today}_AM" not in mem:
         send_tg(f"🌅 <b>GOOD MORNING - {today}</b>\n━━━━━━━━━━━━━━━━━━━━\n🛡️ <b>System:</b> Online")
         mem += f",{today}_AM"
@@ -37,30 +37,27 @@ def run_trading_cycle():
     for idx, r in enumerate(trade_zone, start=2):
         status = str(r[10]).upper()
         if "TRADED" in status:
-            sym = r[1].replace("NSE:", "")
-            cp, sl, ent, strat = to_f(r[2]), to_f(r[7]), to_f(r[11]), r[5]
+            sym, cp, sl, ent, strat = r[1], to_f(r[2]), to_f(r[7]), to_f(r[11]), r[5]
             if cp <= 0 or ent <= 0: continue 
             
             pnl = ((cp - ent) / ent) * 100
-            new_sl = round(cp * 0.965, 2)
             
-            # Pullback logic: Do not exit during a bullish moment
+            # Updated pullback logic: Don't exit if close to SL but price is recovering
             is_pullback = abs(((cp - sl) / sl) * 100) < 0.5 if sl > 0 else False
 
             if cp <= sl and sl > 0 and not is_pullback:
                 if f"{sym}_EX" not in mem:
                     send_tg(f"🚨 <b>TRADE EXIT ALERT</b>\n━━━━━━━━━━━━━━━━━━━━\n📉 <b>Stock:</b> {sym}\n💰 <b>Exit Price:</b> ₹{cp}\n📊 <b>Final P/L:</b> {pnl:+.2f}%")
                     
-                    # MATCHED TO ROW 2 & 3: [Symbol, Date, EntryP, ExitP, P/L, Strategy, Result]
-                    # This fixes the formatting in the History sheet
-                    hist_sheet.append_row([r[1], today, ent, cp, f"{pnl:.2f}%", strat, "STF EXITED"])
+                    # MATCHED: Symbol in Column A
+                    hist_sheet.append_row([sym, today, ent, cp, f"{pnl:.2f}%", strat, "STF EXITED"])
                     
-                    # Update status to trigger promotion in Apps Script
+                    # Update status to trigger Apps Script removal
                     sheet.update_cell(idx, 11, "EXITED") 
                     mem += f",{sym}_EX"
                     sheet.update_acell("O4", mem)
 
-    # Market Close at 3:30 PM
+    # 3:30 PM Market Close Message
     if now.hour == 15 and 30 <= now.minute <= 40 and f"{today}_PM" not in mem:
         send_tg(f"🔔 <b>MARKET CLOSED - {today}</b>")
         mem += f",{today}_PM"
