@@ -1,66 +1,76 @@
 """
-AI360 TRADING BOT — v8.0
+AI360 TRADING BOT — FINAL
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-WHAT CHANGED FROM v7.0:
+FILE: trading_bot.py  (replace content, keep filename)
 
-1. TRAILING SL — Professional 3-step Chandelier method:
-   Step 1: Price gains +1% → SL moves to BREAKEVEN (entry price)
-           "You can never lose now"
-   Step 2: Price gains +2% → SL = Entry + 1% (small profit locked)
-           "You're in profit even if stopped"
-   Step 3: Price gains +3%+ → SL = Live Price - (1.5 × ATR)
-           "ATR-based trail, rides the trend properly"
-   SL NEVER moves down. Only moves up.
-   Why 1.5×ATR? Tested best for NSE swing trades — tight enough to
-   lock profit, loose enough to survive normal intraday noise.
+COMPLETE CHANGE LOG vs original v7:
 
-2. 3-DAY MINIMUM HOLD — Smart rule:
-   - If days_in_trade < 3 AND price is above entry → HOLD (no exit)
-   - If days_in_trade < 3 AND SL is hit hard (loss > 5%) → EXIT ANYWAY
-   Why? A 5% hard breach means thesis is broken regardless of days.
-   Small SL touches within 3 days = normal noise, so we hold.
+1. SYSTEM CONTROL: Q2/Q4 → T2/T4
+   AlertLog col T = SYSTEM CONTROL (T2=YES/NO switch, T4=memory)
+   Col Q is now ATH Warning (formula). Reading Q2 would read formula
+   result not YES/NO — automation would never turn on.
 
-3. Options Alert detection:
-   - When Trade Type = "📊 Options Alert" → Telegram includes
-     CE/PE option suggestion + strike hint based on ATR move size
-   - Stock trade still executes normally (options are advisory only)
+2. pad() SIZE: 17 → 20
+   AlertLog now has 20 columns A–T. Old pad(17) caused index errors
+   when Google Sheets returned fewer cols than expected.
 
-4. Entry Price written by Python when it marks TRADED:
-   - AppScript leaves L and M blank for WAITING rows
-   - Python reads CMP from col C, writes to L + M when marking TRADED
-   - This ensures Entry Price = actual traded price, not signal price
+3. RISK ₹ CALCULATION FIXED in entry alert:
+   Old: (cp - init_sl) × 1  = risk per 1 share only (wrong!)
+   New: (cp - init_sl) × round(10000/cp) = actual rupee risk on ₹10k
+   Entry alert now also shows quantity of shares.
 
-5. Max 5 trades hard cap enforced in Python too (double safety)
+4. TRAILING SL — Professional 3-step Chandelier:
+   +1% gain → SL to breakeven (can never lose)
+   +2% gain → SL locks 1% profit
+   +3%+ gain → SL = Price - 1.5×ATR (trend trail)
+   SL NEVER moves down.
 
-6. History sheet gets 9 new columns (J–R):
-   - Exit Reason, Trade Type, Initial SL, Max Price, ATR at Entry,
-     Days Held, Capital ₹, Profit/Loss ₹, Options Note
+5. 3-DAY MINIMUM HOLD:
+   Days < 3 AND loss < 5% → HOLD (normal noise, wait)
+   Days < 3 AND loss > 5% → EXIT (thesis broken)
+   Days ≥ 3 → normal TSL/target rules
 
-7. Trailing SL stored in col O (not col H — Initial SL is col H)
-   - Initial SL (H) is NEVER changed by Python
-   - Trailing SL (O) is UPDATED by Python as price rises
+6. ENTRY PRICE by Python, not AppScript:
+   AppScript leaves L and M blank for WAITING rows.
+   Python writes entry price when marking TRADED.
+   P/L% calculated from actual entry, not signal price.
 
-8. Memory keys cleaned up — no more col confusion
+7. MAX 5 TRADES hard cap enforced in Python too.
+
+8. HISTORY gets 9 new columns (I–R):
+   Exit Reason, Trade Type, Initial SL, TSL at Exit,
+   Max Price, ATR at Entry, Days Held, Capital ₹, P/L ₹, Options Note
+
+9. INITIAL SL (col H) never changed by Python.
+   TRAILING SL (col O) updated by Python as price rises.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ALERTLOG COLUMN MAP (0-based):
   A=0  Signal Time       B=1  Symbol
   C=2  Live Price        D=3  Priority Score
   E=4  Trade Type        F=5  Strategy
-  G=6  Breakout Stage    H=7  Initial SL  (AppScript, NEVER changed)
+  G=6  Breakout Stage    H=7  Initial SL  (AppScript writes ONCE)
   I=8  Target            J=9  RR Ratio
   K=10 Trade Status      L=11 Entry Price  (Python writes when TRADED)
-  M=12 Entry Time        N=13 Days in Trade (formula)
-  O=14 Trailing SL       P=15 P/L% (formula)
-  Q=16 SYSTEM CONTROL (Q2=switch, Q4=memory)
+  M=12 Entry Time        N=13 Days in Trade (formula, Python ignores)
+  O=14 Trailing SL       P=15 P/L% (formula, Python ignores)
+  Q=16 ATH Warning       R=17 Risk ₹
+  S=18 Position Size     T=19 SYSTEM CONTROL (T2=switch, T4=memory)
 
-HISTORY COLUMNS:
-  A  Symbol           B  Entry Date     C  Entry Price
-  D  Exit Date        E  Exit Price     F  P/L%
-  G  Result           H  Strategy       I  Exit Reason    [NEW]
-  J  Trade Type       K  Initial SL     L  Trailing SL at Exit
-  M  Max Price Seen   N  ATR at Entry   O  Days Held
-  P  Capital ₹        Q  Profit/Loss ₹  R  Options Note
+HISTORY COLUMNS (A–R):
+  A  Symbol        B  Entry Date    C  Entry Price   D  Exit Date
+  E  Exit Price    F  P/L%          G  Result         H  Strategy
+  I  Exit Reason   J  Trade Type    K  Initial SL     L  TSL at Exit
+  M  Max Price     N  ATR at Entry  O  Days Held      P  Capital ₹
+  Q  Profit/Loss ₹ R  Options Note
+
+APPSCRIPT HANDSHAKE:
+  AppScript → K="⏳ WAITING", H=InitialSL, I=Target, L="", M=""
+  Python    → reads C (live price), writes K="🟢 TRADED (PAPER)"
+              writes L=EntryPrice, M=timestamp, O=InitialSL
+  Python    → updates O (Trailing SL) as price rises
+  Python    → writes K="EXITED" on SL/target hit
+  AppScript → removes EXITED row, fills next best candidate
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 """
 
@@ -135,7 +145,8 @@ def sym_key(sym: str) -> str:
     return str(sym).replace(':', '_').replace(' ', '_').strip()
 
 
-def pad(r: list, n: int = 17) -> list:
+def pad(r: list, n: int = 20) -> list:
+    # AlertLog has 20 cols A-T. Python reads A-P (0-15), T4 read via acell()
     r = list(r)
     while len(r) < n:
         r.append("")
@@ -334,12 +345,12 @@ def run_trading_cycle():
 
     log_sheet, hist_sheet = get_sheets()
 
-    mem = clean_mem(str(log_sheet.acell("Q4").value or ""))
+    mem = clean_mem(str(log_sheet.acell("T4").value or ""))
 
-    # Automation switch Q2 (was O2 in v7 — updated to match new column layout)
-    if str(log_sheet.acell("Q2").value or "").strip().upper() != "YES":
-        print("[SKIP] Automation OFF (Q2 != YES)")
-        log_sheet.update_acell("Q4", mem)
+    # Automation switch T2 — must be YES to run
+    if str(log_sheet.acell("T2").value or "").strip().upper() != "YES":
+        print("[SKIP] Automation OFF (T2 != YES)")
+        log_sheet.update_acell("T4", mem)
         return
 
     all_data   = log_sheet.get_all_values()
@@ -461,16 +472,20 @@ def run_trading_cycle():
             entry_key = f"{key}_ENTRY"
             mem += f",{entry_key}"
 
+            # Position size and actual risk in rupees
+            pos_size   = round(CAPITAL_PER_TRADE / cp) if cp > 0 else 0
+            risk_rs    = round(max(0, cp - init_sl) * pos_size)
+            reward_rs  = round(max(0, target - cp) * pos_size)
+
             entry_alerts.append(
                 f"🚀 <b>TRADE ENTERED</b>\n\n"
                 f"<b>Stock:</b> {sym}\n"
                 f"<b>Type:</b> {ttype}\n"
                 f"<b>Entry Price:</b> ₹{cp:.2f}\n"
                 f"<b>Strategy:</b> {strat} | {stage}\n"
-                f"<b>Initial SL:</b> ₹{init_sl:.2f} "
-                f"(Risk: ₹{max(0,(cp-init_sl)*1):.0f} on {CAPITAL_PER_TRADE})\n"
-                f"<b>Target:</b> ₹{target:.2f} "
-                f"(Reward: ₹{max(0,(target-cp)):.0f})\n"
+                f"<b>Qty:</b> {pos_size} shares @ ₹{CAPITAL_PER_TRADE:,}\n"
+                f"<b>Initial SL:</b> ₹{init_sl:.2f} (Risk: ₹{risk_rs:,})\n"
+                f"<b>Target:</b> ₹{target:.2f} (Reward: ₹{reward_rs:,})\n"
                 f"<b>RR Ratio:</b> 1:{rr_num:.1f}\n"
                 f"<b>Priority:</b> {priority}/30"
                 f"{o_hint}"
@@ -705,7 +720,7 @@ def run_trading_cycle():
     # ─────────────────────────────────────────────────────────────────────────
     # 5. SAVE MEMORY — always last
     # ─────────────────────────────────────────────────────────────────────────
-    log_sheet.update_acell("Q4", mem)
+    log_sheet.update_acell("T4", mem)
     print(f"[DONE] {now.strftime('%H:%M:%S')} IST | mem={len(mem)} chars")
 
 
