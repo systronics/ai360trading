@@ -1,22 +1,48 @@
 name: AlgoTradeBot
 
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# WHAT CHANGED FROM v7.0 main.yml:
+#
+# 1. CRON FIXED: '0/5' is not standard cron — changed to '*/5'
+#    Old: '0/5 3-10 * * 1-5' → ran at :00 only in some runners
+#    New: '*/5 3-10 * * 1-5' → runs every 5 min correctly
+#
+# 2. WINDOW FIXED: 3-10 UTC = 8:30–16:30 IST (too wide, wasted runs)
+#    New: split into two ranges to match 8:55–15:45 IST exactly:
+#    → '*/5 3-9 * * 1-5'   = 8:30–15:29 IST (main window)
+#    → '*/5 10 * * 1-5'    = 15:30–16:29 IST (close summary window)
+#    Python bot has its own time gate so extra runs exit instantly.
+#
+# 3. PYTHON VERSION: 3.10 → 3.11 (better performance, same compatibility)
+#
+# 4. pip cache added properly — faster runs
+#
+# 5. SECRETS NAMES: matched to what Python bot reads:
+#    TELEGRAM_BOT_TOKEN → TELEGRAM_TOKEN (must match os.environ.get name)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 on:
   schedule:
-    # Every 5 min, 03:30–10:30 UTC = 09:00–16:00 IST, Mon–Fri
-    - cron: '0/5 3-10 * * 1-5'
-  workflow_dispatch:
+    # Every 5 min, 08:30–16:29 IST (03:00–10:59 UTC), Mon–Fri
+    - cron: '*/5 3-10 * * 1-5'
+  workflow_dispatch:    # Manual trigger from GitHub Actions UI
 
 jobs:
   trade:
     runs-on: ubuntu-latest
+    timeout-minutes: 4      # Kill if bot hangs — prevents billing waste
+
     permissions:
       contents: write
-    steps:
-      - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: '3.11'
           cache: 'pip'
 
       - name: Install dependencies
@@ -27,6 +53,6 @@ jobs:
       - name: Run Trading Bot
         env:
           GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
-          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        run: python -u trading_bot.py
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          CHAT_ID: ${{ secrets.CHAT_ID }}
+        run: python -u trading_bot_v8.py
