@@ -2,26 +2,63 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  
-  <title>{% if page.title %}{{ page.title }}{% else %}AI360Trading | Indian Market Intelligence Terminal{% endif %}</title>
 
-  <meta name="description" content="AI360Trading provides institutional-grade price action and algorithmic market intelligence.">
+  <!-- Primary Meta -->
+  <title>{% if page.title %}{{ page.title }}{% else %}AI360Trading | Indian Market Intelligence Terminal{% endif %}</title>
+  <meta name="description" content="{% if page.description %}{{ page.description }}{% else %}AI360Trading provides institutional-grade price action and algorithmic market intelligence.{% endif %}">
+  <meta name="keywords" content="{% if page.keywords %}{{ page.keywords }}{% else %}stock market, global market intelligence, NASDAQ, FTSE 100, trading signals, market analysis{% endif %}">
+  <meta name="author" content="AI360Trading">
   <link rel="canonical" href="{{ page.url | replace:'index.html','' | absolute_url }}">
 
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <!-- Open Graph (Facebook/WhatsApp/Telegram previews) -->
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="{% if page.title %}{{ page.title }}{% else %}AI360Trading | Market Intelligence{% endif %}">
+  <meta property="og:description" content="{% if page.description %}{{ page.description }}{% else %}Institutional-grade market intelligence and trading signals.{% endif %}">
+  <meta property="og:url" content="{{ page.url | absolute_url }}">
+  <meta property="og:site_name" content="AI360Trading">
+  <meta property="og:image" content="{% if page.image %}{{ page.image | absolute_url }}{% else %}{{ '/assets/icons/og-default.png' | absolute_url }}{% endif %}">
 
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{% if page.title %}{{ page.title }}{% else %}AI360Trading{% endif %}">
+  <meta name="twitter:description" content="{% if page.description %}{{ page.description }}{% else %}Institutional-grade market intelligence.{% endif %}">
+  <meta name="twitter:image" content="{% if page.image %}{{ page.image | absolute_url }}{% else %}{{ '/assets/icons/og-default.png' | absolute_url }}{% endif %}">
+
+  <!-- Favicon & Apple Touch Icons -->
+  <link rel="shortcut icon" href="{{ '/favicon.ico' | relative_url }}">
+  <link rel="apple-touch-icon" sizes="180x180" href="{{ '/apple-touch-icon.png' | relative_url }}">
+  <link rel="apple-touch-icon" sizes="152x152" href="{{ '/apple-touch-icon-152.png' | relative_url }}">
+  <link rel="apple-touch-icon" sizes="120x120" href="{{ '/apple-touch-icon-120.png' | relative_url }}">
+
+  <!-- Fonts & Styles -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-
   <link rel="stylesheet" href="{{ '/public/css/poole.css' | relative_url }}">
   <link rel="stylesheet" href="{{ '/public/css/gpstyle.css' | relative_url }}">
 
-  <link rel="shortcut icon" href="{{ '/favicon.ico' | relative_url }}">
-
-  <!-- Apple Touch Icons -->
-<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-<link rel="apple-touch-icon" sizes="152x152" href="/apple-touch-icon-152.png">
-<link rel="apple-touch-icon" sizes="120x120" href="/apple-touch-icon-120.png">
-  
+  <!-- JSON-LD Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "NewsArticle",
+    "headline": "{{ page.title }}",
+    "datePublished": "{{ page.date | date_to_xmlschema }}",
+    "author": {
+      "@type": "Organization",
+      "name": "AI360Trading"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "AI360Trading",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "{{ '/assets/icons/og-default.png' | absolute_url }}"
+      }
+    },
+    "description": "{% if page.description %}{{ page.description }}{% else %}Global Market Intelligence Report by AI360Trading{% endif %}",
+    "url": "{{ page.url | absolute_url }}"
+  }
+  </script>
 </head>
