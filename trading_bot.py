@@ -103,7 +103,8 @@ C_PNL         = 15  # Formula column — Python does not write here
 
 # Capital config
 CAPITAL_PER_TRADE = 10000
-MAX_TRADES        = 5
+MAX_TRADES        = 5    # Max active traded positions at once
+MAX_WAITING       = 10   # Always keep 10 waiting candidates ready
 
 # Trailing SL thresholds (% gain from entry)
 TSL_BREAKEVEN_AT  = 1.0   # +1% → move SL to breakeven
@@ -355,7 +356,7 @@ def run_trading_cycle():
 
     all_data   = log_sheet.get_all_values()
     # Rows 2–11 (10 rows = 5 max traded + 5 waiting)
-    trade_zone = [pad(list(r)) for r in all_data[1:11]]
+    trade_zone = [pad(list(r)) for r in all_data[1:16]]
 
     traded_rows = []
     for i, r in enumerate(trade_zone):
@@ -638,7 +639,7 @@ def run_trading_cycle():
     if now.hour == 12 and 28 <= now.minute <= 38 and f"{today}_NOON" not in mem:
         fresh      = log_sheet.get_all_values()
         live_rows  = [
-            pad(list(r)) for r in fresh[1:11]
+            pad(list(r)) for r in fresh[1:16]
             if "TRADED" in str(r[C_STATUS] if len(r) > C_STATUS else "").upper()
             and "EXITED" not in str(r[C_STATUS] if len(r) > C_STATUS else "").upper()
         ]
@@ -685,7 +686,7 @@ def run_trading_cycle():
 
         fresh3    = log_sheet.get_all_values()
         open_rows = [
-            pad(list(r)) for r in fresh3[1:11]
+            pad(list(r)) for r in fresh3[1:16]
             if "TRADED" in str(r[C_STATUS] if len(r) > C_STATUS else "").upper()
             and "EXITED" not in str(r[C_STATUS] if len(r) > C_STATUS else "").upper()
         ]
