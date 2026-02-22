@@ -725,5 +725,142 @@ def run_trading_cycle():
     print(f"[DONE] {now.strftime('%H:%M:%S')} IST | mem={len(mem)} chars")
 
 
+
+
+# ── TEST TELEGRAM ─────────────────────────────────────────────────────────────
+def run_test_telegram():
+    """
+    BOT_MODE=test_telegram
+    Sends a test message to verify Telegram token + chat ID are working.
+    Does NOT connect to Google Sheets. Safe to run anytime.
+    """
+    now = datetime.now(IST)
+    print("[TEST] Sending Telegram test message...")
+    ok = send_tg(
+        f"✅ <b>TELEGRAM TEST — OK</b>\n"
+        f"━━━━━━━━━━━━━━━━━━━━\n"
+        f"🤖 Bot: AI360 Trading\n"
+        f"🕐 Time: {now.strftime('%Y-%m-%d %H:%M:%S')} IST\n"
+        f"🔑 Token: Connected ✅\n"
+        f"💬 Chat: Connected ✅\n"
+        f"📊 Sheets: Not tested here\n\n"
+        f"<i>If you see this, Telegram is working correctly.\n"
+        f"Run mode 'trade' to test full system.</i>"
+    )
+    if ok:
+        print("[TEST] ✅ Telegram working — message sent successfully")
+    else:
+        print("[TEST] ❌ Telegram FAILED — check TELEGRAM_TOKEN and CHAT_ID secrets")
+
+
+# ── DAILY SUMMARY ─────────────────────────────────────────────────────────────
+def run_daily_summary():
+    """
+    BOT_MODE=daily_summary
+    Sends full portfolio summary to Telegram anytime on demand.
+    Shows all open trades with live P/L, TSL, target.
+    Shows today's exits from History sheet.
+    """
+    now   = datetime.now(IST)
+    today = now.strftime('%Y-%m-%d')
+    print("[SUMMARY] Fetching portfolio summary...")
+
+    log_sheet, hist_sheet = get_sheets()
+
+    # ── Open trades ──
+    all_data  = log_sheet.get_all_values()
+    open_rows = [
+        pad(list(r)) for r in all_data[1:16]
+        if "TRADED" in str(r[C_STATUS] if len(r) > C_STATUS else "").upper()
+        and "EXITED" not in str(r[C_STATUS] if len(r) > C_STATUS else "").upper()
+    ]
+    waiting_rows = [
+        pad(list(r)) for r in all_data[1:16]
+        if "WAITING" in str(r[C_STATUS] if len(r) > C_STATUS else "").upper()
+    ]
+
+    trade_lines = []
+    total_pnl_pct = 0.0
+    for r in open_rows:
+        sym   = r[C_SYMBOL]
+        cp    = to_f(r[C_LIVE_PRICE])
+        ent   = to_f(r[C_ENTRY_PRICE])
+        tsl   = to_f(r[C_TRAIL_SL]) or to_f(r[C_INITIAL_SL])
+        tgt   = to_f(r[C_TARGET])
+        ttype = str(r[C_TRADE_TYPE])
+        etime = str(r[C_ENTRY_TIME])
+        if not price_sanity(sym, cp, ent):
+            continue
+        pnl      = (cp - ent) / ent * 100
+        pl_rs    = round((cp - ent) / ent * CAPITAL_PER_TRADE)
+        days     = calc_hold_days(etime, now)
+        em       = "🟢" if pnl >= 0 else "🔴"
+        total_pnl_pct += pnl
+        trade_lines.append(
+            f"{em} <b>{sym}</b> [{ttype}]\n"
+            f"   Entry ₹{ent:.2f} → Now ₹{cp:.2f} | <b>{pnl:+.2f}%</b> = ₹{pl_rs:+,}\n"
+            f"   TSL ₹{tsl:.2f} | Target ₹{tgt:.2f} | Day {days}"
+        )
+
+    # ── Today's exits from History ──
+    hist_data   = hist_sheet.get_all_values()
+    today_exits = [r for r in hist_data[1:] if len(r) >= 7 and r[3] == today]
+    exit_lines  = []
+    total_exit_pl = 0.0
+    for r in today_exits:
+        em = "✅" if "WIN" in str(r[6]).upper() else "❌"
+        pl_r = to_f(r[16]) if len(r) > 16 else 0
+        total_exit_pl += pl_r
+        exit_lines.append(f"  {em} <b>{r[0]}</b>: {r[5]} = ₹{pl_r:+,.0f}")
+
+    # ── Waiting candidates ──
+    wait_lines = []
+    for r in waiting_rows[:5]:  # show top 5
+        sym  = r[C_SYMBOL]
+        pri  = r[C_PRIORITY]
+        tt   = r[C_TRADE_TYPE]
+        wait_lines.append(f"  ⏳ <b>{sym}</b> [{tt}] Priority:{pri}")
+
+    # ── Build message ──
+    msg = (
+        f"📊 <b>PORTFOLIO SUMMARY</b>\n"
+        f"━━━━━━━━━━━━━━━━━━━━\n"
+        f"🕐 {now.strftime('%Y-%m-%d %H:%M')} IST\n"
+        f"📈 Open: {len(open_rows)}/{MAX_TRADES} | "
+        f"⏳ Waiting: {len(waiting_rows)}/{MAX_WAITING}\n"
+        f"💰 Capital deployed: ₹{len(open_rows) * CAPITAL_PER_TRADE:,}\n"
+    )
+
+    if trade_lines:
+        msg += f"\n<b>── OPEN TRADES ──</b>\n" + "\n\n".join(trade_lines)
+    else:
+        msg += "\n📭 No open trades currently"
+
+    if exit_lines:
+        msg += f"\n\n<b>── TODAY'S EXITS ──</b>\n" + "\n".join(exit_lines)
+        msg += f"\n   <b>Today P/L: ₹{total_exit_pl:+,.0f}</b>"
+
+    if wait_lines:
+        msg += f"\n\n<b>── TOP WAITING ──</b>\n" + "\n".join(wait_lines)
+
+    msg += "\n\n<i>Sent on demand via daily_summary mode</i>"
+
+    ok = send_tg(msg)
+    if ok:
+        print(f"[SUMMARY] ✅ Summary sent | Open={len(open_rows)} | Waiting={len(waiting_rows)} | Exits today={len(today_exits)}")
+    else:
+        print("[SUMMARY] ❌ Failed to send — check Telegram secrets")
+
+
+# ── ENTRY POINT ───────────────────────────────────────────────────────────────
 if __name__ == "__main__":
-    run_trading_cycle()
+    mode = os.environ.get("BOT_MODE", "trade").strip().lower()
+    print(f"[MODE] {mode}")
+
+    if mode == "test_telegram":
+        run_test_telegram()
+    elif mode == "daily_summary":
+        run_daily_summary()
+    else:
+        # Default: normal trading cycle (cron schedule or manual 'trade' mode)
+        run_trading_cycle()
