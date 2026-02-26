@@ -106,6 +106,19 @@ CAPITAL_PER_TRADE = 10000
 MAX_TRADES        = 5    # Max active traded positions at once
 MAX_WAITING       = 10   # Always keep 10 waiting candidates ready
 
+# Dynamic position sizing by priority score
+# Higher conviction = more capital deployed
+# Priority 18-20 → ₹7,000 | 21-24 → ₹10,000 | 25-27 → ₹13,000 | 28-30 → ₹16,000
+def get_position_capital(priority_str: str) -> int:
+    try:
+        p = float(str(priority_str).strip())
+    except:
+        p = 20
+    if p >= 28: return 16000
+    if p >= 25: return 13000
+    if p >= 21: return 10000
+    return 7000
+
 # Trailing SL thresholds (% gain from entry)
 TSL_BREAKEVEN_AT  = 1.0   # +1% → move SL to breakeven
 TSL_LOCK1PCT_AT   = 2.0   # +2% → lock 1% profit
@@ -298,6 +311,59 @@ def save_atr_to_mem(mem: str, key: str, atr: float) -> str:
     return ','.join(parts)
 
 
+def get_last_price(mem: str, key: str) -> float:
+    """Get last seen price for stale detection."""
+    prefix = f"{key}_LP_"
+    for p in mem.split(','):
+        if p.startswith(prefix):
+            try:    return int(p[len(prefix):]) / 100.0
+            except: return 0.0
+    return 0.0
+
+
+def set_last_price(mem: str, key: str, price: float) -> str:
+    """Save last seen price for stale detection."""
+    prefix = f"{key}_LP_"
+    parts  = [p for p in mem.split(',') if p.strip() and not p.startswith(prefix)]
+    parts.append(f"{prefix}{int(round(price * 100))}")
+    return ','.join(parts)
+
+
+def get_exit_date(mem: str, key: str) -> str:
+    """Get exit date for re-entry cooldown."""
+    prefix = f"{key}_EXDT_"
+    for p in mem.split(','):
+        if p.startswith(prefix):
+            return p[len(prefix):]
+    return ""
+
+
+def set_exit_date(mem: str, key: str, date_str: str) -> str:
+    """Save exit date for re-entry cooldown."""
+    prefix = f"{key}_EXDT_"
+    parts  = [p for p in mem.split(',') if p.strip() and not p.startswith(prefix)]
+    parts.append(f"{prefix}{date_str}")
+    return ','.join(parts)
+
+
+def trading_days_since(date_str: str, now: datetime) -> int:
+    """Count trading days (Mon-Fri) between date_str and now."""
+    if not date_str:
+        return 999
+    try:
+        start = datetime.strptime(date_str, '%Y-%m-%d').date()
+        end   = now.date()
+        count = 0
+        cur   = start
+        while cur <= end:
+            if cur.weekday() < 5:
+                count += 1
+            cur += timedelta(days=1)
+        return max(0, count - 1)  # subtract 1 so same day = 0
+    except:
+        return 999
+
+
 def options_hint(sym: str, cp: float, atr: float, trade_type: str) -> str:
     """Generate options advisory note for Options Alert trade type."""
     if "Options Alert" not in str(trade_type):
@@ -448,14 +514,34 @@ def run_trading_cycle():
             if cp <= 0:
                 continue
 
+            key = sym_key(sym)
+
+            # ── Price freshness check — skip if price unchanged from last run ──
+            last_cp = get_last_price(mem, key)
+            mem     = set_last_price(mem, key, cp)
+            if last_cp > 0 and abs(cp - last_cp) < 0.01:
+                print(f"[STALE] {sym}: price ₹{cp} unchanged from last run — skipping entry")
+                continue
+
+            # ── Re-entry cooldown — block same stock for 5 trading days after exit ──
+            exit_date = get_exit_date(mem, key)
+            if exit_date:
+                days_since = trading_days_since(exit_date, now)
+                if days_since < 5:
+                    print(f"[COOLDOWN] {sym}: exited {days_since} trading days ago — waiting 5 days")
+                    continue
+
             # Skip if stock too expensive — min 2 shares needed at ₹10k capital
             # ₹5000 cap = round(10000/5000) = 2 shares minimum
             pos_size_check = round(CAPITAL_PER_TRADE / cp) if cp > 0 else 0
             if pos_size_check < 2:
                 print(f"[SKIP] {sym}: CMP ₹{cp:,.0f} > ₹5,000 cap — fewer than 2 shares, skipping")
                 continue
+
+            # ── Dynamic position sizing by priority ──
+            capital = get_position_capital(priority)
+
             etime     = now.strftime('%Y-%m-%d %H:%M:%S')
-            key       = sym_key(sym)
 
             # Write TRADED status + Entry Price + Entry Time + Initial TSL
             log_sheet.update_cell(sheet_row, C_STATUS + 1, "🟢 TRADED (PAPER)")
@@ -494,15 +580,15 @@ def run_trading_cycle():
             traded_rows.append((sheet_row, updated_r))
 
             # Get options hint if applicable
-            atr   = atr_est
+            atr    = atr_est
             o_hint = options_hint(sym, cp, atr, ttype)
             entry_key = f"{key}_ENTRY"
             mem += f",{entry_key}"
 
-            # Position size and actual risk in rupees
-            pos_size   = round(CAPITAL_PER_TRADE / cp) if cp > 0 else 0
-            risk_rs    = round(max(0, cp - init_sl) * pos_size)
-            reward_rs  = round(max(0, target - cp) * pos_size)
+            # Position size and actual risk/reward in rupees (uses dynamic capital)
+            pos_size  = round(capital / cp) if cp > 0 else 0
+            risk_rs   = round(max(0, cp - init_sl) * pos_size)
+            reward_rs = round(max(0, target - cp) * pos_size)
 
             entry_alerts.append(
                 f"🚀 <b>TRADE ENTERED</b>\n\n"
@@ -510,14 +596,14 @@ def run_trading_cycle():
                 f"<b>Type:</b> {ttype}\n"
                 f"<b>Entry Price:</b> ₹{cp:.2f}\n"
                 f"<b>Strategy:</b> {strat} | {stage}\n"
-                f"<b>Qty:</b> {pos_size} shares @ ₹{CAPITAL_PER_TRADE:,}\n"
+                f"<b>Qty:</b> {pos_size} shares @ ₹{capital:,} (Priority {priority})\n"
                 f"<b>Initial SL:</b> ₹{init_sl:.2f} (Risk: ₹{risk_rs:,})\n"
                 f"<b>Target:</b> ₹{target:.2f} (Reward: ₹{reward_rs:,})\n"
                 f"<b>RR Ratio:</b> 1:{rr_num:.1f}\n"
                 f"<b>Priority:</b> {priority}/30"
                 f"{o_hint}"
             )
-            print(f"[ENTRY] {sym} @ ₹{cp} | Type={ttype} | SL ₹{init_sl} | T ₹{target}")
+            print(f"[ENTRY] {sym} @ ₹{cp} | Capital ₹{capital:,} | {pos_size}sh | Type={ttype} | SL ₹{init_sl} | T ₹{target}")
 
         # ── Step B: Monitor active trades (TSL + Exit) ─────────────────────
         for sheet_row, r in traded_rows:
@@ -605,6 +691,7 @@ def run_trading_cycle():
                 ])
                 log_sheet.update_cell(sheet_row, C_STATUS + 1, "EXITED")
                 mem += f",{ex_flag}"
+                mem  = set_exit_date(mem, key, now.strftime('%Y-%m-%d'))
                 print(f"[HARD LOSS] {sym} | {pnl_pct:+.2f}% | ₹{pl_rupees:+.0f}")
                 continue  # skip normal TSL/target check below
 
@@ -657,6 +744,7 @@ def run_trading_cycle():
 
                 log_sheet.update_cell(sheet_row, C_STATUS + 1, "EXITED")
                 mem += f",{ex_flag}"
+                mem  = set_exit_date(mem, key, now.strftime('%Y-%m-%d'))
                 print(f"[EXIT] {sym} | {result_sym} | {pnl_pct:+.2f}% | ₹{pl_rupees:+.0f}")
 
             elif tsl_hit and skip_exit:
@@ -789,6 +877,60 @@ def run_trading_cycle():
     print(f"[DONE] {now.strftime('%H:%M:%S')} IST | mem={len(mem)} chars")
 
 
+
+
+# ── WEEKLY SUMMARY ────────────────────────────────────────────────────────────
+def run_weekly_summary():
+    """
+    BOT_MODE=weekly_summary
+    Reads History sheet for this week's trades and sends summary to Telegram.
+    Also callable manually from GitHub Actions dropdown.
+    """
+    now   = datetime.now(IST)
+    today = now.strftime('%Y-%m-%d')
+    print("[WEEKLY] Fetching weekly summary...")
+
+    log_sheet, hist_sheet = get_sheets()
+
+    # Monday of this week
+    days_since_mon = now.weekday()  # 0=Mon
+    mon = (now - timedelta(days=days_since_mon)).strftime('%Y-%m-%d')
+
+    hist_data  = hist_sheet.get_all_values()
+    week_rows  = [r for r in hist_data[1:] if len(r) >= 17 and r[3] >= mon and r[3] <= today]
+
+    wins   = [r for r in week_rows if "WIN"  in str(r[6]).upper()]
+    losses = [r for r in week_rows if "LOSS" in str(r[6]).upper()]
+    total_pl = sum(to_f(r[16]) for r in week_rows)
+    win_rate = round(len(wins) / len(week_rows) * 100) if week_rows else 0
+
+    best  = max(week_rows, key=lambda r: to_f(r[16]), default=None)
+    worst = min(week_rows, key=lambda r: to_f(r[16]), default=None)
+
+    # Open trades
+    all_data   = log_sheet.get_all_values()
+    open_count = sum(
+        1 for r in all_data[1:16]
+        if "TRADED" in str(r[C_STATUS] if len(r) > C_STATUS else "").upper()
+        and "EXITED" not in str(r[C_STATUS] if len(r) > C_STATUS else "").upper()
+    )
+
+    msg = (
+        f"📅 <b>WEEKLY REPORT — w/e {today}</b>\n"
+        f"━━━━━━━━━━━━━━━━━━━━\n"
+        f"📊 Trades: {len(week_rows)} | ✅ Wins: {len(wins)} | ❌ Losses: {len(losses)}\n"
+        f"🎯 Win Rate: {win_rate}%\n"
+        f"💰 Weekly P/L: <b>₹{total_pl:+,.0f}</b>\n"
+    )
+    if best:
+        msg += f"🏆 Best:  <b>{best[0]}</b> = ₹{to_f(best[16]):+,.0f}\n"
+    if worst and worst != best:
+        msg += f"💀 Worst: <b>{worst[0]}</b> = ₹{to_f(worst[16]):+,.0f}\n"
+
+    msg += f"\n📌 Open positions: {open_count}/{MAX_TRADES}"
+
+    ok = send_tg(msg)
+    print(f"[WEEKLY] {'✅ Sent' if ok else '❌ Failed'} | {len(week_rows)} trades this week")
 
 
 # ── TEST TELEGRAM ─────────────────────────────────────────────────────────────
@@ -925,6 +1067,8 @@ if __name__ == "__main__":
         run_test_telegram()
     elif mode == "daily_summary":
         run_daily_summary()
+    elif mode == "weekly_summary":
+        run_weekly_summary()
     else:
         # Default: normal trading cycle (cron schedule or manual 'trade' mode)
         run_trading_cycle()
