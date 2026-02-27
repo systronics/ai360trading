@@ -1,24 +1,29 @@
 name: AlgoTradeBot
 
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# CHANGELOG vs original:
+# 1. CRON FIXED: */5 (every 5 min) Mon–Fri 8:30–16:30 IST
+# 2. SECRETS: mapped to match Python os.environ.get() names
+# 3. BOT_MODE dropdown: trade / test_telegram / daily_summary / weekly_summary
+# 4. Filename fixed: trading_bot.py
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 on:
   schedule:
     # Every 5 min, 08:30–16:29 IST (03:00–10:59 UTC), Mon–Fri
     - cron: '*/5 3-10 * * 1-5'
-
   workflow_dispatch:
-    # ── Manual trigger with mode selector ──
-    # Go to GitHub → Actions → AlgoTradeBot → Run workflow
-    # Pick a mode from the dropdown and click Run
     inputs:
       mode:
-        description: 'Run mode'
-        required: true
+        description: 'Bot run mode'
+        required: false
         default: 'trade'
         type: choice
         options:
-          - trade          # Normal trading cycle (same as auto schedule)
-          - test_telegram  # Send test message — verify Telegram is working
-          - daily_summary  # Send full portfolio summary anytime on demand
+          - trade
+          - test_telegram
+          - daily_summary
+          - weekly_summary
 
 jobs:
   trade:
@@ -48,7 +53,8 @@ jobs:
           GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          # BOT_MODE from workflow_dispatch input.
-          # For scheduled cron runs BOT_MODE is empty → defaults to 'trade' in Python.
-          BOT_MODE: ${{ github.event.inputs.mode }}
-        run: python -u trading_bot.py
+          BOT_MODE: ${{ github.event.inputs.mode || 'trade' }}
+        run: |
+          export BOT_MODE="${BOT_MODE:-trade}"
+          echo "[MODE] $BOT_MODE"
+          python -u trading_bot.py
