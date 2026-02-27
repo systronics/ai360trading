@@ -56,4 +56,4 @@ defaults:
       path: "_posts"
     values:
       layout: "post"
-      author: "AI360Trading"
+      author: "ai360trading"
