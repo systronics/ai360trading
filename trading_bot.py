@@ -514,7 +514,8 @@ def run_trading_cycle():
             if cp <= 0:
                 continue
 
-            key = sym_key(sym)
+            key        = sym_key(sym)
+            sheet_row  = i + 2  # 1-based sheet row (row 1 = header, row 2 = first data)
 
             # ── Price freshness check — skip if price unchanged from last run ──
             last_cp = get_last_price(mem, key)
