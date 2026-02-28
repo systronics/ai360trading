@@ -2,11 +2,6 @@
 
 Official repository for [https://ai360trading.in](https://ai360trading.in)
 
-### Navigation & Categories
-* [Technical Picks](/tag/technical-picks)
-* [Fundamental Picks](/tag/fundamental-picks)
-* [Learn Stock Market](/tag/learn-stockmarket)
-
 ### Partner Referral Links
 * [Open account in Zerodha](https://bit.ly/2VK6k5F)
 * [Open account in Binance](https://bit.ly/3lTl4JZ)
