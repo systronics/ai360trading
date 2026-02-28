@@ -4,7 +4,6 @@ title: "Positional Trading - Long Term Value Picks"
 image: "https://ai360trading.in/public/image/swing.webp"
 excerpt: "Institutional grade long-term picks focusing on bottom-out setups and undervalued SIP opportunities."
 permalink: /positional-picks/
-tags: fundamental-picks
 ---
 
 <style>
