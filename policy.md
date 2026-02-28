@@ -2,7 +2,7 @@
 layout: page
 title: "Privacy Policy & Terms"
 excerpt: "Official privacy policy, terms of service, and financial disclaimers for AI360Trading."
-permalink: /privacy-policy/
+permalink: /policy/
 ---
 
 <div class="about-container">
