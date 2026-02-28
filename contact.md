@@ -7,44 +7,87 @@ title: "Contact AI360Trading | Support"
   <div class="contact-header">
     <h1 class="contact-title">Contact Us</h1>
     <p class="contact-subtitle">Institutional-grade support for our trading community.</p>
+    <div class="contact-info-bar">
+      <span>📧 admin@ai360trading.in</span>
+      <span>⏱️ Response within 24 hours</span>
+      <span>📅 Mon–Fri, Market Days</span>
+    </div>
   </div>
 
   <form action="https://formspree.io/f/your-id" method="POST" class="contact-form">
-    <div class="input-group">
-      <label>Full Name</label>
-      <input type="text" name="name" placeholder="Enter your name" required>
-    </div>
-
-    <div class="input-group">
-      <label>Email Address</label>
-      <input type="email" name="email" placeholder="email@example.com" required>
+    <div class="form-row">
+      <div class="input-group">
+        <label>Full Name</label>
+        <input type="text" name="name" placeholder="Enter your full name" required>
+      </div>
+      <div class="input-group">
+        <label>Email Address</label>
+        <input type="email" name="email" placeholder="email@example.com" required>
+      </div>
     </div>
 
     <div class="input-group">
       <label>Inquiry Type</label>
       <select name="type" required class="contact-select">
-        <option value="General">General Inquiry</option>
-        <option value="Dashboard">Dashboard Intelligence</option>
-        <option value="Technical">Technical Support</option>
+        <option value="" disabled selected>Select inquiry type...</option>
+        <option value="General">💬 General Inquiry</option>
+        <option value="Dashboard">📊 Dashboard Intelligence</option>
+        <option value="Technical">🔧 Technical Support</option>
+        <option value="Feedback">⭐ Feedback & Suggestions</option>
+        <option value="Partnership">🤝 Partnership & Collaboration</option>
       </select>
     </div>
 
     <div class="input-group">
-      <label>Your Message</label>
-      <textarea name="message" rows="5" placeholder="How can we assist you?" required></textarea>
+      <label>Subject</label>
+      <input type="text" name="subject" placeholder="Brief subject of your message" required>
     </div>
 
-    <button type="submit" class="send-btn">SEND MESSAGE</button>
+    <div class="input-group">
+      <label>Your Message</label>
+      <textarea name="message" rows="6" placeholder="Please describe your inquiry in detail. The more information you provide, the better we can assist you." required></textarea>
+    </div>
+
+    <div class="checkbox-group">
+      <input type="checkbox" id="agree" name="agree" required>
+      <label for="agree">I have read and agree to the <a href="/policy/">Privacy Policy & Terms</a></label>
+    </div>
+
+    <button type="submit" class="send-btn">
+      <span class="btn-text">SEND MESSAGE</span>
+      <span class="btn-icon">→</span>
+    </button>
   </form>
 
+  <div class="contact-channels">
+    <h3>Other Ways to Reach Us</h3>
+    <div class="channels-grid">
+      <div class="channel-item">
+        <span class="channel-icon">📧</span>
+        <span class="channel-label">Email</span>
+        <a href="mailto:admin@ai360trading.in">admin@ai360trading.in</a>
+      </div>
+      <div class="channel-item">
+        <span class="channel-icon">🌐</span>
+        <span class="channel-label">Website</span>
+        <a href="https://ai360trading.in">ai360trading.in</a>
+      </div>
+      <div class="channel-item">
+        <span class="channel-icon">📍</span>
+        <span class="channel-label">Location</span>
+        <span>Haridwar, Uttarakhand, India</span>
+      </div>
+    </div>
+  </div>
+
   <div class="contact-footer">
-    <p>Response time: Usually within 24 hours during market days.</p>
+    <p>⚠️ For financial advice, please consult a SEBI registered advisor. We provide educational content only.</p>
   </div>
 </div>
 
 <style>
   .contact-card {
-    max-width: 700px;
+    max-width: 750px;
     margin: 20px auto;
     background: #ffffff;
     padding: 40px;
@@ -70,12 +113,32 @@ title: "Contact AI360Trading | Support"
     color: #64748b;
     font-size: 16px;
     font-weight: 500;
+    margin-bottom: 20px;
+  }
+
+  .contact-info-bar {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    background: #f0f7ff;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #0062ff;
+    font-weight: 600;
   }
 
   .contact-form {
     display: flex;
     flex-direction: column;
     gap: 22px;
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
   }
 
   .input-group {
@@ -92,8 +155,8 @@ title: "Contact AI360Trading | Support"
     letter-spacing: 0.5px;
   }
 
-  .input-group input, 
-  .input-group textarea, 
+  .input-group input,
+  .input-group textarea,
   .contact-select {
     padding: 14px;
     border: 1px solid #cbd5e1;
@@ -102,6 +165,7 @@ title: "Contact AI360Trading | Support"
     font-size: 15px;
     background-color: #f8fafc;
     transition: all 0.2s ease;
+    color: #1e293b;
   }
 
   .contact-select {
@@ -113,13 +177,38 @@ title: "Contact AI360Trading | Support"
     background-size: 16px;
   }
 
-  .input-group input:focus, 
-  .input-group textarea:focus, 
+  .input-group input:focus,
+  .input-group textarea:focus,
   .contact-select:focus {
     outline: none;
     border-color: #0062ff;
     background-color: #ffffff;
     box-shadow: 0 0 0 4px rgba(0, 98, 255, 0.1);
+  }
+
+  .checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: #475569;
+  }
+
+  .checkbox-group input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: #0062ff;
+  }
+
+  .checkbox-group a {
+    color: #0062ff;
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .checkbox-group a:hover {
+    text-decoration: underline;
   }
 
   .send-btn {
@@ -135,16 +224,87 @@ title: "Contact AI360Trading | Support"
     text-transform: uppercase;
     letter-spacing: 1.5px;
     margin-top: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
   }
 
   .send-btn:hover {
     background: #004dc7;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 98, 255, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 98, 255, 0.3);
+  }
+
+  .btn-icon {
+    font-size: 18px;
+    transition: transform 0.2s ease;
+  }
+
+  .send-btn:hover .btn-icon {
+    transform: translateX(4px);
+  }
+
+  .contact-channels {
+    margin-top: 40px;
+    padding-top: 30px;
+    border-top: 1px solid #f1f5f9;
+  }
+
+  .contact-channels h3 {
+    font-size: 16px;
+    font-weight: 800;
+    color: #0f172a;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+
+  .channels-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+  }
+
+  .channel-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 20px 15px;
+    background: #f8fafc;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    gap: 6px;
+  }
+
+  .channel-icon {
+    font-size: 24px;
+  }
+
+  .channel-label {
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: #94a3b8;
+    letter-spacing: 0.5px;
+  }
+
+  .channel-item a, .channel-item span:last-child {
+    font-size: 13px;
+    color: #0062ff;
+    text-decoration: none;
+    font-weight: 600;
+    word-break: break-all;
+  }
+
+  .channel-item a:hover {
+    text-decoration: underline;
   }
 
   .contact-footer {
-    margin-top: 35px;
+    margin-top: 30px;
     text-align: center;
     font-size: 13px;
     color: #94a3b8;
@@ -154,12 +314,15 @@ title: "Contact AI360Trading | Support"
   }
 
   @media (max-width: 600px) {
-    .contact-card { 
-      padding: 30px 20px; 
+    .contact-card {
+      padding: 30px 20px;
       margin: 0;
-      border-radius: 0; 
-      border: none; 
+      border-radius: 0;
+      border: none;
     }
     .contact-title { font-size: 26px; }
+    .form-row { grid-template-columns: 1fr; }
+    .channels-grid { grid-template-columns: 1fr; }
+    .contact-info-bar { gap: 10px; font-size: 12px; }
   }
 </style>
