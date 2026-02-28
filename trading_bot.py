@@ -466,12 +466,13 @@ def run_trading_cycle():
                 f"Target ₹{tgt:.2f} ({to_tgt:.1f}% away)"
             )
         body = "\n\n".join(lines) if lines else "📭 No open trades"
+        deployed = len(lines) * CAPITAL_PER_TRADE  # approximate; dynamic sizing tracked per trade
         if send_tg(
             f"🌅 <b>GOOD MORNING — {today}</b>\n"
             f"━━━━━━━━━━━━━━━━━━━━\n"
             f"📈 Open: {len(lines)}/{MAX_TRADES} | "
             f"⏳ Waiting: {waiting_count}/{MAX_WAITING}\n"
-            f"💰 Deployed: ₹{len(lines) * CAPITAL_PER_TRADE:,}\n\n"
+            f"💰 Deployed: ~₹{deployed:,}\n\n"
             f"{body}"
         ):
             mem += f",{today}_AM"
