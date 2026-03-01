@@ -13,7 +13,7 @@ encoding: "utf-8"
 
 # SEO & Ownership
 # Note: Ensure you replace 'YOUR_REAL_NEW_CODE' with your Google Search Console token
-google_site_verification: YOUR_REAL_NEW_CODE
+google_site_verification: "2yLD14QlM9ElbyiFZO_pUf-hTO09aCQEinK5LqD8Bpk"
 google_analytics: "G-YR9E0CYRCV"
 social_image: "/public/image/swing.webp"
 
