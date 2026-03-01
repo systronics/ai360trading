@@ -452,7 +452,6 @@ End with EXACTLY: *Trade smart. Stay informed. — AI360Trading Intelligence Des
             f"stock market today, {', '.join(trends[:4]).lower()}, "
             f"indian market outlook, trading signals {date_str}\"\n"
             "categories: [Market-Intelligence]\n"
-            "tags: [NIFTY, NASDAQ, Gold, Bitcoin, GlobalMacro, IndianMarket, TechnicalAnalysis, TradingSignals]\n"
             f"nifty_level: \"{prices.get('NIFTY 50',{}).get('display','N/A')}\"\n"
             f"bitcoin_level: \"{prices.get('Bitcoin',{}).get('display','N/A')}\"\n"
             f"gold_level: \"{prices.get('Gold',{}).get('display','N/A')}\"\n"
