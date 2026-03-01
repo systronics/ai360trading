@@ -24,10 +24,7 @@ layout: null
     <id>{{ site.url }}{{ post.id }}</id>
     <summary type="html">{{ post.excerpt | strip_html | xml_escape }}</summary>
     <content type="html">{{ post.content | xml_escape }}</content>
-    {% for tag in post.tags %}
-    <category term="{{ tag | xml_escape }}" />
-    {% endfor %}
-  </entry>
+    </entry>
   {% endfor %}
 
 </feed>
