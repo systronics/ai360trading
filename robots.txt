@@ -7,21 +7,18 @@ User-agent: *
 Allow: /
 
 # 1. Block technical & internal folders (Better SEO focus)
-Disallow: /tag/
 Disallow: /assets/css/
 Disallow: /assets/js/
 Disallow: /cgi-bin/
 Disallow: /_site/
 
-# 2. Block Jekyll system files (Security & Cleanliness)
+# 2. Block Jekyll system files
 Disallow: /_drafts/
 Disallow: /_includes/
 Disallow: /_layouts/
 Disallow: /_posts/
 Disallow: /Gemfile
 Disallow: /Gemfile.lock
-Disallow: /generate_articles.py
-Disallow: /tag_generator.py
 
 # 3. Block private areas
 Disallow: /admin/
