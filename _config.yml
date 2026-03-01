@@ -39,8 +39,7 @@ plugins:
   - jekyll-paginate
   - jekyll-seo-tag
   - jekyll-feed
-  - jekyll-sitemap
-
+  
 # Pagination Settings
 paginate: 10
 paginate_path: "/page:num/"
