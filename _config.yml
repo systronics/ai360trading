@@ -5,6 +5,7 @@ name: "AI360Trading"
 title: "AI360Trading | Global Market Intelligence & Algorithmic Insights"
 description: "Professional algorithmic trading signals and global macro analysis for NASDAQ, FTSE, and NIFTY markets. High-probability setups backed by price action logic."
 url: "https://ai360trading.in"
+enforce_ssl: ai360trading.in
 baseurl: ""
 timezone: "Asia/Kolkata"
 future: true
