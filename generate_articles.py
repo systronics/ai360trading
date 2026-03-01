@@ -392,18 +392,6 @@ End with EXACTLY: *Trade smart. Stay informed. — AI360Trading Intelligence Des
 *Published: {date_display} | {now.strftime('%I:%M %p')} IST | AI360Trading Intelligence Desk*
 *Educational content only. Not SEBI registered financial advice. Read our [Legal Disclaimer](/disclaimer/) before trading.*
 
-<h3>Share this Analysis</h3>
-<div class="share-bar">
-  <a href="https://wa.me/?text={{{{ page.title }}}} - {{{{ site.url }}}}{{{{ page.url }}}}" class="share-btn btn-whatsapp">WhatsApp</a>
-  <a href="https://twitter.com/intent/tweet?text={{{{ page.title }}}}&url={{{{ site.url }}}}{{{{ page.url }}}}" class="share-btn btn-twitter">Twitter</a>
-  <a href="https://t.me/share/url?url={{{{ site.url }}}}{{{{ page.url }}}}&text={{{{ page.title }}}}" class="share-btn btn-telegram">Telegram</a>
-</div>
-
-<div class="sub-box">
-  <h3>Global Trade Signals</h3>
-  <p>Join our international community for real-time macro alerts.</p>
-  <a href="https://t.me/{{{{ site.telegram_username }}}}">Join Telegram Now</a>
-</div>
 """
 
     try:
