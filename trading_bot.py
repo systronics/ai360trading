@@ -433,9 +433,9 @@ def run_trading_cycle():
     print(f"[INFO] Active trades: {len(traded_rows)}/{MAX_TRADES}")
 
     # ─────────────────────────────────────────────────────────────────────────
-    # 1. GOOD MORNING  09:00–09:10 IST
+    # 1. GOOD MORNING  09:00–09:30 IST (widened — memory flag ensures fires once only)
     # ─────────────────────────────────────────────────────────────────────────
-    if now.hour == 9 and now.minute <= 10 and f"{today}_AM" not in mem:
+    if now.hour == 9 and now.minute <= 30 and f"{today}_AM" not in mem:
         waiting_count = sum(
             1 for r in [pad(list(x)) for x in all_data[1:16]]
             if "WAITING" in str(r[C_STATUS]).upper()
