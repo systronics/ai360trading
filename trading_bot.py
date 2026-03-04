@@ -778,7 +778,7 @@ def run_trading_cycle():
 
             elif tsl_hit and skip_exit:
                 # Min hold protection active — send advisory but don't exit
-                print(f"[HOLD] {sym}: SL touched but Day {days_held + 1} < {MIN_HOLD_DAYS} min hold. Watching.")
+                print(f"[HOLD] {sym}: SL touched but Day {days_held + 1} < {min_hold} min hold. Watching.")
                 if f"{key}_HOLD_WARN" not in mem:
                     send_tg(
                         f"⚠️ <b>MIN HOLD ACTIVE</b>\n"
