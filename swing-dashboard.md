@@ -1,7 +1,6 @@
 ---
 layout: page
 title: "Live Swing Trading Dashboard | Institutional Buy Signals"
-image: "https://ai360trading.in/public/image/swing.webp"
 excerpt: "Track real-time institutional buy signals with automated target and stop-loss tracking for NSE Nifty 200 stocks."
 permalink: /swing-dashboard/
 ---
@@ -243,8 +242,7 @@ permalink: /swing-dashboard/
   <div class="internal-nav-links">
     <a href="/analysis/" class="nav-link">📊 Market Analysis</a>
     <a href="/positional-picks/" class="nav-link">🎯 Positional Picks</a>
-    <a href="/earn-money/" class="nav-link">💰 Earn Money</a>
-    <a href="/about/" class="nav-link">ℹ️ About</a>
+        <a href="/about/" class="nav-link">ℹ️ About</a>
     <a href="/disclaimer/" class="nav-link">📋 Disclaimer</a>
     <a href="/policy/" class="nav-link">🔒 Privacy Policy</a>
   </div>
