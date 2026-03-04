@@ -1,6 +1,7 @@
 ---
 layout: default
 title: "About AI360Trading | Institutional Market Intelligence"
+permalink: /about/
 ---
 
 <div class="about-container">
@@ -8,6 +9,12 @@ title: "About AI360Trading | Institutional Market Intelligence"
     <div class="about-badge">🤖 AI-Powered Market Intelligence</div>
     <h1 class="about-main-title">About AI360Trading</h1>
     <p class="about-tagline">"Bridging the gap between global data and actionable Indian market intelligence."</p>
+
+    <!-- FOUNDER SECTION -->
+    <div class="about-founder">
+      <p><strong>Founded by Amit Kumar</strong>, an independent trader and algorithmic systems developer based in Haridwar, Uttarakhand, India. AI360Trading was built to democratize institutional-grade market intelligence for retail traders across India and globally.</p>
+    </div>
+
     <div class="about-stats">
       <div class="stat-item">
         <span class="stat-number">360°</span>
@@ -151,7 +158,23 @@ title: "About AI360Trading | Institutional Market Intelligence"
     color: #64748b;
     font-size: 16px;
     font-weight: 500;
-    margin-bottom: 25px;
+    margin-bottom: 20px;
+  }
+
+  .about-founder {
+    background: #f0f7ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 10px;
+    padding: 18px 24px;
+    margin: 15px 0 25px 0;
+    font-size: 15px;
+    color: #1e40af;
+    line-height: 1.7;
+    text-align: left;
+  }
+
+  .about-founder strong {
+    color: #0062ff;
   }
 
   .about-stats {
@@ -226,9 +249,7 @@ title: "About AI360Trading | Institutional Market Intelligence"
     color: #334155;
   }
 
-  .tech-icon {
-    font-size: 20px;
-  }
+  .tech-icon { font-size: 20px; }
 
   .coverage-grid {
     display: grid;
@@ -304,9 +325,7 @@ title: "About AI360Trading | Institutional Market Intelligence"
     text-decoration: none;
   }
 
-  .disclaimer-note a:hover {
-    text-decoration: underline;
-  }
+  .disclaimer-note a:hover { text-decoration: underline; }
 
   .about-footer {
     margin-top: 40px;
@@ -323,9 +342,7 @@ title: "About AI360Trading | Institutional Market Intelligence"
     text-decoration: none;
   }
 
-  .about-footer a:hover {
-    text-decoration: underline;
-  }
+  .about-footer a:hover { text-decoration: underline; }
 
   @media (max-width: 600px) {
     .about-container {
