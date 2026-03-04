@@ -119,15 +119,21 @@ def get_position_capital(priority_str: str) -> int:
     if p >= 21: return 10000
     return 7000
 
-# Trailing SL thresholds (% gain from entry)
-TSL_BREAKEVEN_AT  = 1.0   # +1% → move SL to breakeven
-TSL_LOCK1PCT_AT   = 2.0   # +2% → lock 1% profit
-TSL_ATR_TRAIL_AT  = 3.0   # +3%+ → trail at Price - 1.5×ATR
-TSL_ATR_MULT      = 1.5   # multiplier for ATR-based trail
+# Trailing SL thresholds — tuned for Swing/Positional Nifty200
+# Goal: ride the full move, don't exit on normal pullbacks
+TSL_BREAKEVEN_AT  = 2.0   # +2% → move SL to breakeven (was 1%)
+TSL_LOCK1PCT_AT   = 4.0   # +4% → lock 2% profit (was 2%)
+TSL_ATR_TRAIL_AT  = 6.0   # +6%+ → ATR trail begins (was 3%)
+TSL_ATR_MULT      = 1.5   # ATR multiplier for trail
 
-# Min hold before exit (days) — unless hard loss > this %
-MIN_HOLD_DAYS     = 3
-HARD_LOSS_PCT     = 5.0   # override min hold if loss exceeds this %
+# Gap-up protection: if +8%+ gain in a session, lock 50% of gain immediately
+TSL_GAP_UP_PCT    = 8.0
+TSL_GAP_LOCK_FRAC = 0.5   # lock half the gain as floor
+
+# Type-aware min hold: Swing=2 days, Positional=3 days
+MIN_HOLD_SWING    = 2
+MIN_HOLD_POS      = 3
+HARD_LOSS_PCT     = 5.0   # hard loss — always exit regardless of days
 
 
 # ── HELPERS ──────────────────────────────────────────────────────────────────
@@ -253,30 +259,38 @@ def set_max_price(mem: str, key: str, price: float) -> str:
     return ','.join(parts)
 
 
-def calc_new_tsl(cp: float, ent: float, init_sl: float, atr: float) -> float:
+def calc_new_tsl(cp: float, ent: float, init_sl: float, atr: float, ttype: str = "") -> float:
     """
-    Professional 3-step Chandelier trailing SL for NSE swing trades.
-    Returns the new TSL price. Caller ensures it only moves UP.
+    Swing/Positional Chandelier TSL — tuned for Nifty200 swing trades.
+    Goal: ride the full move, survive normal pullbacks, lock big gap-ups.
 
-    Step 1: Gain < +1%  → no trail yet (too early, avoid noise stop-out)
-    Step 2: Gain +1–2%  → move SL to breakeven (entry price)
-    Step 3: Gain +2–3%  → lock 1% profit above entry
-    Step 4: Gain > +3%  → trail at Price - (1.5 × ATR)
+    Step 1: Gain < +2%  → hold initial SL (noise zone for swing/pos)
+    Step 2: Gain +2–4%  → move to breakeven (thesis confirmed)
+    Step 3: Gain +4–6%  → lock 2% profit (momentum phase)
+    Step 4: Gain > +6%  → ATR trail (full trend ride)
+    Step 5: Gain > +8%  → gap-up lock: floor = entry + 50% of gain
+                          (prevents giving back big gap-up overnight)
     """
     if ent <= 0:
         return init_sl
     gain_pct = ((cp - ent) / ent) * 100
 
+    # Step 5: Gap-up protection — lock half the gain immediately
+    if gain_pct >= TSL_GAP_UP_PCT:
+        gap_lock = round(ent + (cp - ent) * TSL_GAP_LOCK_FRAC, 2)
+        atr_trail = round(cp - (TSL_ATR_MULT * atr), 2)
+        # Take the higher of gap-lock floor or ATR trail
+        return max(gap_lock, atr_trail, round(ent * 1.02, 2))
+
     if gain_pct < TSL_BREAKEVEN_AT:
-        return init_sl                                     # Step 1: hold initial SL
+        return init_sl                                     # Step 1: hold SL
     elif gain_pct < TSL_LOCK1PCT_AT:
         return round(ent, 2)                               # Step 2: breakeven
     elif gain_pct < TSL_ATR_TRAIL_AT:
-        return round(ent * 1.01, 2)                        # Step 3: lock 1%
+        return round(ent * 1.02, 2)                        # Step 3: lock 2%
     else:
         atr_trail = round(cp - (TSL_ATR_MULT * atr), 2)   # Step 4: ATR trail
-        # Never go below entry (never back to a loss after +3%)
-        return max(atr_trail, round(ent * 1.01, 2))
+        return max(atr_trail, round(ent * 1.02, 2))
 
 
 def price_sanity(sym, cp, ent) -> bool:
@@ -449,22 +463,32 @@ def run_trading_cycle():
             tgt   = to_f(r[C_TARGET])
             ttype = str(r[C_TRADE_TYPE])
             etime = str(r[C_ENTRY_TIME])
-            if not price_sanity(sym, cp, ent):
-                continue
-            pnl     = (cp - ent) / ent * 100
-            pl_rs   = round((cp - ent) / ent * CAPITAL_PER_TRADE)
-            days    = calc_hold_days(etime, now)
-            to_tgt  = ((tgt - cp) / cp * 100) if cp > 0 else 0
-            to_sl   = ((cp - sl) / cp * 100) if cp > 0 else 0
-            em      = "🟢" if pnl >= 0 else "🔴"
+            days  = calc_hold_days(etime, now)
+            # Good morning: show all holdings even if price is stale at open
+            # price_sanity() skipped here — GOOGLEFINANCE delays 15min at 9am
+            if not ent or ent <= 0:
+                continue  # only skip if entry price genuinely missing
             sl_label = "TSL" if sl > to_f(r[C_INITIAL_SL]) else "SL"
-            lines.append(
-                f"{em} <b>{sym}</b> [{ttype}] Day {days + 1}\n"
-                f"   Entry ₹{ent:.2f} → Now ₹{cp:.2f}\n"
-                f"   P/L: <b>{pnl:+.2f}%</b> = <b>₹{pl_rs:+,}</b>\n"
-                f"   {sl_label} ₹{sl:.2f} ({to_sl:.1f}% away) | "
-                f"Target ₹{tgt:.2f} ({to_tgt:.1f}% away)"
-            )
+            if cp > 0 and ent > 0:
+                pnl   = (cp - ent) / ent * 100
+                pl_rs = round((cp - ent) / ent * CAPITAL_PER_TRADE)
+                to_tgt = ((tgt - cp) / cp * 100) if cp > 0 else 0
+                to_sl  = ((cp - sl) / cp * 100) if cp > 0 else 0
+                em     = "🟢" if pnl >= 0 else "🔴"
+                lines.append(
+                    f"{em} <b>{sym}</b> [{ttype}] Day {days + 1}\n"
+                    f"   Entry ₹{ent:.2f} → Now ₹{cp:.2f}\n"
+                    f"   P/L: <b>{pnl:+.2f}%</b> = <b>₹{pl_rs:+,}</b>\n"
+                    f"   {sl_label} ₹{sl:.2f} ({to_sl:.1f}% away) | "
+                    f"Target ₹{tgt:.2f} ({to_tgt:.1f}% away)"
+                )
+            else:
+                # Price not loaded yet — show holding without live P/L
+                lines.append(
+                    f"⏰ <b>{sym}</b> [{ttype}] Day {days + 1}\n"
+                    f"   Entry ₹{ent:.2f} | {sl_label} ₹{sl:.2f} | Target ₹{tgt:.2f}\n"
+                    f"   (Live price loading...)"
+                )
         body = "\n\n".join(lines) if lines else "📭 No open trades"
         deployed = len(lines) * CAPITAL_PER_TRADE  # approximate; dynamic sizing tracked per trade
         if send_tg(
@@ -641,7 +665,7 @@ def run_trading_cycle():
             days_held = calc_hold_days(etime, now)
 
             # ── Trailing SL update ─────────────────────────────────────────
-            new_tsl = calc_new_tsl(cp, ent, init_sl, atr)
+            new_tsl = calc_new_tsl(cp, ent, init_sl, atr, ttype)
             # TSL never goes down
             new_tsl = max(new_tsl, get_tsl(mem, key), cur_tsl)
 
@@ -698,9 +722,12 @@ def run_trading_cycle():
                 continue  # skip normal TSL/target check below
 
             # ── Normal exit logic ──────────────────────────────────────────
-            # 3-day minimum hold rule:
-            # Skip TSL exit if < 3 days AND no hard loss AND no target hit
-            skip_exit = (days_held < MIN_HOLD_DAYS and not target_hit and not hard_loss)
+            # Type-aware minimum hold:
+            # Swing = 2 days, Positional = 3 days
+            # Prevents noise stop-outs but exits faster if thesis fails
+            is_pos    = "Positional" in ttype or "positional" in ttype.lower()
+            min_hold  = MIN_HOLD_POS if is_pos else MIN_HOLD_SWING
+            skip_exit = (days_held < min_hold and not target_hit and not hard_loss)
 
             if (tsl_hit or target_hit) and ex_flag not in mem and not skip_exit:
                 exit_reason = "🎯 TARGET HIT"   if target_hit else \
@@ -755,8 +782,8 @@ def run_trading_cycle():
                 if f"{key}_HOLD_WARN" not in mem:
                     send_tg(
                         f"⚠️ <b>MIN HOLD ACTIVE</b>\n"
-                        f"<b>{sym}</b> touched SL ₹{new_tsl:.2f} but only Day {days_held + 1} of {MIN_HOLD_DAYS}.\n"
-                        f"Holding until day {MIN_HOLD_DAYS} unless loss exceeds {HARD_LOSS_PCT}%.\n"
+                        f"<b>{sym}</b> [{ttype}] touched SL ₹{new_tsl:.2f} but only Day {days_held + 1} of {min_hold}.\n"
+                        f"Holding until Day {min_hold} unless loss exceeds {HARD_LOSS_PCT}%.\n"
                         f"Current P/L: {pnl_pct:+.2f}%"
                     )
                     mem += f",{key}_HOLD_WARN"
