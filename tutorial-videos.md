@@ -1,7 +1,6 @@
 ---
 layout: page
 title: "AI360 Masterclass: Video Tutorials"
-image: "https://ai360trading.in/public/image/youtube.webp"
 permalink: /tutorial-videos/
 ---
 
