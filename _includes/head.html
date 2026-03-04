@@ -16,20 +16,18 @@
   <meta property="og:description" content="{% if page.description %}{{ page.description }}{% else %}Institutional-grade market intelligence and trading signals.{% endif %}">
   <meta property="og:url" content="{{ page.url | absolute_url }}">
   <meta property="og:site_name" content="AI360Trading">
-  <meta property="og:image" content="{% if page.image %}{{ page.image | absolute_url }}{% else %}{{ '/assets/icons/og-default.png' | absolute_url }}{% endif %}">
+  <meta property="og:image" content="{% if page.image %}{{ page.image | absolute_url }}{% else %}{{ '/public/image/header.webp' | absolute_url }}{% endif %}">
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="{% if page.title %}{{ page.title }}{% else %}AI360Trading{% endif %}">
   <meta name="twitter:description" content="{% if page.description %}{{ page.description }}{% else %}Institutional-grade market intelligence.{% endif %}">
-  <meta name="twitter:image" content="{% if page.image %}{{ page.image | absolute_url }}{% else %}{{ '/assets/icons/og-default.png' | absolute_url }}{% endif %}">
+  <meta name="twitter:image" content="{% if page.image %}{{ page.image | absolute_url }}{% else %}{{ '/public/image/header.webp' | absolute_url }}{% endif %}">
 
   <!-- Favicon & Apple Touch Icons -->
   <link rel="shortcut icon" href="{{ '/favicon.ico' | relative_url }}">
   <link rel="apple-touch-icon" sizes="180x180" href="{{ '/apple-touch-icon.png' | relative_url }}">
-  <link rel="apple-touch-icon" sizes="152x152" href="{{ '/apple-touch-icon-152.png' | relative_url }}">
-  <link rel="apple-touch-icon" sizes="120x120" href="{{ '/apple-touch-icon-120.png' | relative_url }}">
-
+  
   <!-- Fonts & Styles -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -54,7 +52,7 @@
       "name": "AI360Trading",
       "logo": {
         "@type": "ImageObject",
-        "url": "{{ '/assets/icons/og-default.png' | absolute_url }}"
+        "url": "{{ '/public/image/header.webp' | absolute_url }}"
       }
     },
     "description": "{% if page.description %}{{ page.description }}{% else %}Global Market Intelligence Report by AI360Trading{% endif %}",
