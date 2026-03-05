@@ -1,1103 +1,712 @@
-"""
-AI360 TRADING BOT — FINAL
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-FILE: trading_bot.py  (replace content, keep filename)
-
-COMPLETE CHANGE LOG vs original v7:
-
-1. SYSTEM CONTROL: Q2/Q4 → T2/T4
-   AlertLog col T = SYSTEM CONTROL (T2=YES/NO switch, T4=memory)
-   Col Q is now ATH Warning (formula). Reading Q2 would read formula
-   result not YES/NO — automation would never turn on.
-
-2. pad() SIZE: 17 → 20
-   AlertLog now has 20 columns A–T. Old pad(17) caused index errors
-   when Google Sheets returned fewer cols than expected.
-
-3. RISK ₹ CALCULATION FIXED in entry alert:
-   Old: (cp - init_sl) × 1  = risk per 1 share only (wrong!)
-   New: (cp - init_sl) × round(10000/cp) = actual rupee risk on ₹10k
-   Entry alert now also shows quantity of shares.
-
-4. TRAILING SL — Professional 3-step Chandelier:
-   +1% gain → SL to breakeven (can never lose)
-   +2% gain → SL locks 1% profit
-   +3%+ gain → SL = Price - 1.5×ATR (trend trail)
-   SL NEVER moves down.
-
-5. 3-DAY MINIMUM HOLD:
-   Days < 3 AND loss < 5% → HOLD (normal noise, wait)
-   Days < 3 AND loss > 5% → EXIT (thesis broken)
-   Days ≥ 3 → normal TSL/target rules
-
-6. ENTRY PRICE by Python, not AppScript:
-   AppScript leaves L and M blank for WAITING rows.
-   Python writes entry price when marking TRADED.
-   P/L% calculated from actual entry, not signal price.
-
-7. MAX 5 TRADES hard cap enforced in Python too.
-
-8. HISTORY gets 9 new columns (I–R):
-   Exit Reason, Trade Type, Initial SL, TSL at Exit,
-   Max Price, ATR at Entry, Days Held, Capital ₹, P/L ₹, Options Note
-
-9. INITIAL SL (col H) never changed by Python.
-   TRAILING SL (col O) updated by Python as price rises.
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-ALERTLOG COLUMN MAP (0-based):
-  A=0  Signal Time       B=1  Symbol
-  C=2  Live Price        D=3  Priority Score
-  E=4  Trade Type        F=5  Strategy
-  G=6  Breakout Stage    H=7  Initial SL  (AppScript writes ONCE)
-  I=8  Target            J=9  RR Ratio
-  K=10 Trade Status      L=11 Entry Price  (Python writes when TRADED)
-  M=12 Entry Time        N=13 Days in Trade (formula, Python ignores)
-  O=14 Trailing SL       P=15 P/L% (formula, Python ignores)
-  Q=16 ATH Warning       R=17 Risk ₹
-  S=18 Position Size     T=19 SYSTEM CONTROL (T2=switch, T4=memory)
-
-HISTORY COLUMNS (A–R):
-  A  Symbol        B  Entry Date    C  Entry Price   D  Exit Date
-  E  Exit Price    F  P/L%          G  Result         H  Strategy
-  I  Exit Reason   J  Trade Type    K  Initial SL     L  TSL at Exit
-  M  Max Price     N  ATR at Entry  O  Days Held      P  Capital ₹
-  Q  Profit/Loss ₹ R  Options Note
-
-APPSCRIPT HANDSHAKE:
-  AppScript → K="⏳ WAITING", H=InitialSL, I=Target, L="", M=""
-  Python    → reads C (live price), writes K="🟢 TRADED (PAPER)"
-              writes L=EntryPrice, M=timestamp, O=InitialSL
-  Python    → updates O (Trailing SL) as price rises
-  Python    → writes K="EXITED" on SL/target hit
-  AppScript → removes EXITED row, fills next best candidate
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-"""
-
-import os, json, pytz, requests, gspread
-from datetime import datetime, timedelta
-from oauth2client.service_account import ServiceAccountCredentials
-
-IST         = pytz.timezone('Asia/Kolkata')
-TG_TOKEN    = os.environ.get('TELEGRAM_TOKEN')
-TG_CHAT     = os.environ.get('CHAT_ID')
-SHEET_NAME  = "Ai360tradingAlgo"
-
-# ── AlertLog column indices (0-based) ────────────────────────────────────────
-C_SIGNAL_TIME = 0
-C_SYMBOL      = 1
-C_LIVE_PRICE  = 2
-C_PRIORITY    = 3
-C_TRADE_TYPE  = 4
-C_STRATEGY    = 5
-C_STAGE       = 6
-C_INITIAL_SL  = 7   # AppScript writes this ONCE — Python NEVER changes it
-C_TARGET      = 8
-C_RR          = 9
-C_STATUS      = 10
-C_ENTRY_PRICE = 11  # Python writes CMP here when marking TRADED
-C_ENTRY_TIME  = 12  # Python writes timestamp here when marking TRADED
-C_DAYS        = 13  # Formula column — Python does not write here
-C_TRAIL_SL    = 14  # Python updates this as price rises
-C_PNL         = 15  # Formula column — Python does not write here
-
-# Capital config
-CAPITAL_PER_TRADE = 10000
-MAX_TRADES        = 5    # Max active traded positions at once
-MAX_WAITING       = 10   # Always keep 10 waiting candidates ready
-
-# Dynamic position sizing by priority score
-# Higher conviction = more capital deployed
-# Priority 18-20 → ₹7,000 | 21-24 → ₹10,000 | 25-27 → ₹13,000 | 28-30 → ₹16,000
-def get_position_capital(priority_str: str) -> int:
-    try:
-        p = float(str(priority_str).strip())
-    except:
-        p = 20
-    if p >= 28: return 16000
-    if p >= 25: return 13000
-    if p >= 21: return 10000
-    return 7000
-
-# Trailing SL thresholds — tuned for Swing/Positional Nifty200
-# Goal: ride the full move, don't exit on normal pullbacks
-TSL_BREAKEVEN_AT  = 2.0   # +2% → move SL to breakeven (was 1%)
-TSL_LOCK1PCT_AT   = 4.0   # +4% → lock 2% profit (was 2%)
-TSL_ATR_TRAIL_AT  = 6.0   # +6%+ → ATR trail begins (was 3%)
-TSL_ATR_MULT      = 1.5   # ATR multiplier for trail
-
-# Gap-up protection: if +8%+ gain in a session, lock 50% of gain immediately
-TSL_GAP_UP_PCT    = 8.0
-TSL_GAP_LOCK_FRAC = 0.5   # lock half the gain as floor
-
-# Type-aware min hold: Swing=2 days, Positional=3 days
-MIN_HOLD_SWING    = 2
-MIN_HOLD_POS      = 3
-HARD_LOSS_PCT     = 5.0   # hard loss — always exit regardless of days
-
-
-# ── HELPERS ──────────────────────────────────────────────────────────────────
-
-def send_tg(msg: str) -> bool:
-    try:
-        r = requests.post(
-            f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage",
-            json={"chat_id": TG_CHAT, "text": msg, "parse_mode": "HTML"},
-            timeout=15
-        )
-        if r.status_code != 200:
-            print(f"[TG FAIL] {r.status_code}: {r.text[:150]}")
-            return False
-        return True
-    except Exception as e:
-        print(f"[TG ERROR] {e}")
-        return False
-
-
-def to_f(val) -> float:
-    try:
-        return float(str(val).replace(',', '').replace('₹', '').replace('%', '').strip())
-    except:
-        return 0.0
-
-
-def sym_key(sym: str) -> str:
-    return str(sym).replace(':', '_').replace(' ', '_').strip()
-
-
-def pad(r: list, n: int = 20) -> list:
-    # AlertLog has 20 cols A-T. Python reads A-P (0-15), T4 read via acell()
-    r = list(r)
-    while len(r) < n:
-        r.append("")
-    return r
-
-
-def calc_hold_days(entry_str: str, exit_dt: datetime) -> int:
-    try:
-        entry_dt = IST.localize(datetime.strptime(str(entry_str)[:19], '%Y-%m-%d %H:%M:%S'))
-        return max(0, (exit_dt - entry_dt).days)
-    except:
-        return 0
-
-
-def calc_hold_str(entry_str: str, exit_dt: datetime) -> str:
-    try:
-        entry_dt = IST.localize(datetime.strptime(str(entry_str)[:19], '%Y-%m-%d %H:%M:%S'))
-        delta    = exit_dt - entry_dt
-        d = delta.days
-        h = delta.seconds // 3600
-        m = (delta.seconds % 3600) // 60
-        return f"{d}d {h}h" if d > 0 else f"{h}h {m}m"
-    except:
-        return "—"
-
-
-def clean_mem(mem: str) -> str:
-    cutoff = (datetime.now(IST) - timedelta(days=30)).strftime('%Y-%m-%d')
-    kept = []
-    for p in mem.split(','):
-        p = p.strip()
-        if not p:
-            continue
-        # Date flags (YYYY-MM-DD_XXX) — keep only last 30 days
-        if len(p) > 10 and p[4] == '-' and p[7] == '-':
-            if p[:10] >= cutoff:
-                kept.append(p)
-        else:
-            kept.append(p)  # _EX, _ENTRY, _TSL_*, _TRADED kept always
-    return ','.join(kept)
-
-
-def is_market_hours(now: datetime) -> bool:
-    if now.weekday() >= 5:
-        return False
-    mins = now.hour * 60 + now.minute
-    return (9 * 60 + 15) <= mins <= (15 * 60 + 30)
-
-
-def get_tsl(mem: str, key: str) -> float:
-    """Get last saved Trailing SL value for a symbol from memory."""
-    prefix = f"{key}_TSL_"
-    for p in mem.split(','):
-        if p.startswith(prefix):
-            try:
-                return int(p[len(prefix):]) / 100.0
-            except:
-                return 0.0
-    return 0.0
-
-
-def set_tsl(mem: str, key: str, price: float) -> str:
-    """Save Trailing SL value for a symbol into memory."""
-    prefix = f"{key}_TSL_"
-    parts  = [p for p in mem.split(',') if p.strip() and not p.startswith(prefix)]
-    parts.append(f"{prefix}{int(round(price * 100))}")
-    return ','.join(parts)
-
-
-def get_max_price(mem: str, key: str) -> float:
-    """Get highest seen price for a symbol (for History max_price column)."""
-    prefix = f"{key}_MAX_"
-    for p in mem.split(','):
-        if p.startswith(prefix):
-            try:
-                return int(p[len(prefix):]) / 100.0
-            except:
-                return 0.0
-    return 0.0
-
-
-def set_max_price(mem: str, key: str, price: float) -> str:
-    """Update highest seen price for a symbol in memory."""
-    prefix   = f"{key}_MAX_"
-    cur_max  = get_max_price(mem, key)
-    if price <= cur_max:
-        return mem  # no update needed
-    parts = [p for p in mem.split(',') if p.strip() and not p.startswith(prefix)]
-    parts.append(f"{prefix}{int(round(price * 100))}")
-    return ','.join(parts)
-
-
-def calc_new_tsl(cp: float, ent: float, init_sl: float, atr: float, ttype: str = "") -> float:
-    """
-    Swing/Positional Chandelier TSL — tuned for Nifty200 swing trades.
-    Goal: ride the full move, survive normal pullbacks, lock big gap-ups.
-
-    Step 1: Gain < +2%  → hold initial SL (noise zone for swing/pos)
-    Step 2: Gain +2–4%  → move to breakeven (thesis confirmed)
-    Step 3: Gain +4–6%  → lock 2% profit (momentum phase)
-    Step 4: Gain > +6%  → ATR trail (full trend ride)
-    Step 5: Gain > +8%  → gap-up lock: floor = entry + 50% of gain
-                          (prevents giving back big gap-up overnight)
-    """
-    if ent <= 0:
-        return init_sl
-    gain_pct = ((cp - ent) / ent) * 100
-
-    # Step 5: Gap-up protection — lock half the gain immediately
-    if gain_pct >= TSL_GAP_UP_PCT:
-        gap_lock = round(ent + (cp - ent) * TSL_GAP_LOCK_FRAC, 2)
-        atr_trail = round(cp - (TSL_ATR_MULT * atr), 2)
-        # Take the higher of gap-lock floor or ATR trail
-        return max(gap_lock, atr_trail, round(ent * 1.02, 2))
-
-    if gain_pct < TSL_BREAKEVEN_AT:
-        return init_sl                                     # Step 1: hold SL
-    elif gain_pct < TSL_LOCK1PCT_AT:
-        return round(ent, 2)                               # Step 2: breakeven
-    elif gain_pct < TSL_ATR_TRAIL_AT:
-        return round(ent * 1.02, 2)                        # Step 3: lock 2%
-    else:
-        atr_trail = round(cp - (TSL_ATR_MULT * atr), 2)   # Step 4: ATR trail
-        return max(atr_trail, round(ent * 1.02, 2))
-
-
-def price_sanity(sym, cp, ent) -> bool:
-    if cp <= 0 or ent <= 0:
-        print(f"[WARN] {sym}: zero price cp={cp} ent={ent}")
-        return False
-    if cp > ent * 4:
-        print(f"[WARN] {sym}: LTP ₹{cp} > 4× entry ₹{ent} — bad VLOOKUP")
-        return False
-    if cp < ent * 0.1:
-        print(f"[WARN] {sym}: LTP ₹{cp} < 10% of entry ₹{ent} — bad VLOOKUP")
-        return False
-    return True
-
-
-def get_atr_from_mem(mem: str, key: str) -> float:
-    """Retrieve ATR saved at entry time."""
-    prefix = f"{key}_ATR_"
-    for p in mem.split(','):
-        if p.startswith(prefix):
-            try:
-                return int(p[len(prefix):]) / 100.0
-            except:
-                return 0.0
-    return 0.0
-
-
-def save_atr_to_mem(mem: str, key: str, atr: float) -> str:
-    prefix = f"{key}_ATR_"
-    parts  = [p for p in mem.split(',') if p.strip() and not p.startswith(prefix)]
-    parts.append(f"{prefix}{int(round(atr * 100))}")
-    return ','.join(parts)
-
-
-def get_last_price(mem: str, key: str) -> float:
-    """Get last seen price for stale detection."""
-    prefix = f"{key}_LP_"
-    for p in mem.split(','):
-        if p.startswith(prefix):
-            try:    return int(p[len(prefix):]) / 100.0
-            except: return 0.0
-    return 0.0
-
-
-def set_last_price(mem: str, key: str, price: float) -> str:
-    """Save last seen price for stale detection."""
-    prefix = f"{key}_LP_"
-    parts  = [p for p in mem.split(',') if p.strip() and not p.startswith(prefix)]
-    parts.append(f"{prefix}{int(round(price * 100))}")
-    return ','.join(parts)
-
-
-def get_exit_date(mem: str, key: str) -> str:
-    """Get exit date for re-entry cooldown."""
-    prefix = f"{key}_EXDT_"
-    for p in mem.split(','):
-        if p.startswith(prefix):
-            return p[len(prefix):]
-    return ""
-
-
-def set_exit_date(mem: str, key: str, date_str: str) -> str:
-    """Save exit date for re-entry cooldown."""
-    prefix = f"{key}_EXDT_"
-    parts  = [p for p in mem.split(',') if p.strip() and not p.startswith(prefix)]
-    parts.append(f"{prefix}{date_str}")
-    return ','.join(parts)
-
-
-def trading_days_since(date_str: str, now: datetime) -> int:
-    """Count trading days (Mon-Fri) between date_str and now."""
-    if not date_str:
-        return 999
-    try:
-        start = datetime.strptime(date_str, '%Y-%m-%d').date()
-        end   = now.date()
-        count = 0
-        cur   = start
-        while cur <= end:
-            if cur.weekday() < 5:
-                count += 1
-            cur += timedelta(days=1)
-        return max(0, count - 1)  # subtract 1 so same day = 0
-    except:
-        return 999
-
-
-def options_hint(sym: str, cp: float, atr: float, trade_type: str) -> str:
-    """Generate options advisory note for Options Alert trade type."""
-    if "Options Alert" not in str(trade_type):
-        return ""
-    # Estimate expected move = 1.5×ATR (conservative)
-    expected_move = round(atr * 1.5, 0)
-    strike_ce     = round((cp + atr) / 50) * 50  # nearest 50-strike above
-    return (
-        f"\n\n📊 <b>OPTIONS ADVISORY</b> (informational only)\n"
-        f"   Stock: {sym} @ ₹{cp:.0f}\n"
-        f"   Expected move: ~₹{expected_move:.0f} ({(expected_move/cp*100):.1f}%)\n"
-        f"   CE strike hint: {int(strike_ce)} CE (buy on breakout confirm)\n"
-        f"   ⚠️ Options are leveraged — size carefully"
-    )
-
-
-def get_sheets():
-    scope = [
-        "https://spreadsheets.google.com/feeds",
-        "https://www.googleapis.com/auth/drive"
-    ]
-    creds = ServiceAccountCredentials.from_json_keyfile_dict(
-        json.loads(os.environ.get('GCP_SERVICE_ACCOUNT_JSON')), scope
-    )
-    ss = gspread.authorize(creds).open(SHEET_NAME)
-    return ss.worksheet("AlertLog"), ss.worksheet("History")
-
-
-# ── MAIN ─────────────────────────────────────────────────────────────────────
-
-def run_trading_cycle():
-    now   = datetime.now(IST)
-    today = now.strftime('%Y-%m-%d')
-    mins  = now.hour * 60 + now.minute
-
-    if now.weekday() >= 5:
-        print(f"[SKIP] Weekend ({now.strftime('%A')})")
-        return
-
-    # Window: 08:55–15:45 IST
-    if not ((8 * 60 + 55) <= mins <= (15 * 60 + 45)):
-        print(f"[SKIP] Outside window: {now.strftime('%H:%M')} IST")
-        return
-
-    print(f"[START] {now.strftime('%Y-%m-%d %H:%M:%S')} IST")
-
-    log_sheet, hist_sheet = get_sheets()
-
-    mem = clean_mem(str(log_sheet.acell("T4").value or ""))
-
-    # Automation switch T2 — must be YES to run
-    if str(log_sheet.acell("T2").value or "").strip().upper() != "YES":
-        print("[SKIP] Automation OFF (T2 != YES)")
-        log_sheet.update_acell("T4", mem)
-        return
-
-    all_data   = log_sheet.get_all_values()
-    # Rows 2–11 (10 rows = 5 max traded + 5 waiting)
-    trade_zone = [pad(list(r)) for r in all_data[1:16]]
-
-    traded_rows = []
-    for i, r in enumerate(trade_zone):
-        status = str(r[C_STATUS]).upper()
-        if "TRADED" in status and "EXITED" not in status:
-            traded_rows.append((i + 2, r))  # (sheet_row_1based, data)
-
-    print(f"[INFO] Active trades: {len(traded_rows)}/{MAX_TRADES}")
-
-    # ─────────────────────────────────────────────────────────────────────────
-    # 1. GOOD MORNING  09:00–09:30 IST (widened — memory flag ensures fires once only)
-    # ─────────────────────────────────────────────────────────────────────────
-    if now.hour == 9 and now.minute <= 30 and f"{today}_AM" not in mem:
-        waiting_count = sum(
-            1 for r in [pad(list(x)) for x in all_data[1:16]]
-            if "WAITING" in str(r[C_STATUS]).upper()
-        )
-        lines = []
-        for _, r in traded_rows:
-            sym   = r[C_SYMBOL]
-            cp    = to_f(r[C_LIVE_PRICE])
-            ent   = to_f(r[C_ENTRY_PRICE])
-            sl    = to_f(r[C_TRAIL_SL]) or to_f(r[C_INITIAL_SL])
-            tgt   = to_f(r[C_TARGET])
-            ttype = str(r[C_TRADE_TYPE])
-            etime = str(r[C_ENTRY_TIME])
-            days  = calc_hold_days(etime, now)
-            # Good morning: show all holdings even if price is stale at open
-            # price_sanity() skipped here — GOOGLEFINANCE delays 15min at 9am
-            if not ent or ent <= 0:
-                continue  # only skip if entry price genuinely missing
-            sl_label = "TSL" if sl > to_f(r[C_INITIAL_SL]) else "SL"
-            if cp > 0 and ent > 0:
-                pnl   = (cp - ent) / ent * 100
-                pl_rs = round((cp - ent) / ent * CAPITAL_PER_TRADE)
-                to_tgt = ((tgt - cp) / cp * 100) if cp > 0 else 0
-                to_sl  = ((cp - sl) / cp * 100) if cp > 0 else 0
-                em     = "🟢" if pnl >= 0 else "🔴"
-                lines.append(
-                    f"{em} <b>{sym}</b> [{ttype}] Day {days + 1}\n"
-                    f"   Entry ₹{ent:.2f} → Now ₹{cp:.2f}\n"
-                    f"   P/L: <b>{pnl:+.2f}%</b> = <b>₹{pl_rs:+,}</b>\n"
-                    f"   {sl_label} ₹{sl:.2f} ({to_sl:.1f}% away) | "
-                    f"Target ₹{tgt:.2f} ({to_tgt:.1f}% away)"
-                )
-            else:
-                # Price not loaded yet — show holding without live P/L
-                lines.append(
-                    f"⏰ <b>{sym}</b> [{ttype}] Day {days + 1}\n"
-                    f"   Entry ₹{ent:.2f} | {sl_label} ₹{sl:.2f} | Target ₹{tgt:.2f}\n"
-                    f"   (Live price loading...)"
-                )
-        body = "\n\n".join(lines) if lines else "📭 No open trades"
-        deployed = len(lines) * CAPITAL_PER_TRADE  # approximate; dynamic sizing tracked per trade
-        if send_tg(
-            f"🌅 <b>GOOD MORNING — {today}</b>\n"
-            f"━━━━━━━━━━━━━━━━━━━━\n"
-            f"📈 Open: {len(lines)}/{MAX_TRADES} | "
-            f"⏳ Waiting: {waiting_count}/{MAX_WAITING}\n"
-            f"💰 Deployed: ~₹{deployed:,}\n\n"
-            f"{body}"
-        ):
-            mem += f",{today}_AM"
-
-    # ─────────────────────────────────────────────────────────────────────────
-    # 2. MARKET HOURS — Core Trading Logic
-    # ─────────────────────────────────────────────────────────────────────────
-    if is_market_hours(now):
-        exit_alerts      = []
-        trail_alerts     = []
-        entry_alerts     = []
-        tsl_cell_updates = []   # (sheet_row, new_tsl)
-        entry_writes     = []   # (sheet_row, entry_price, entry_time)
-
-        # ── Step A: Mark WAITING→TRADED if conditions met ──────────────────
-        # Python is the one that "executes" the trade by writing Entry Price
-        for i, r in enumerate(trade_zone):
-            status = str(r[C_STATUS]).upper()
-            sym    = str(r[C_SYMBOL]).strip()
-            if "WAITING" not in status or not sym:
-                continue
-
-            # Count currently active trades
-            active_count = sum(
-                1 for _, ar in traded_rows
-                if "TRADED" in str(ar[C_STATUS]).upper()
-                and "EXITED" not in str(ar[C_STATUS]).upper()
-            )
-            if active_count >= MAX_TRADES:
-                break  # Hard cap — no more entries
-
-            cp       = to_f(r[C_LIVE_PRICE])
-            init_sl  = to_f(r[C_INITIAL_SL])
-            target   = to_f(r[C_TARGET])
-            priority = str(r[C_PRIORITY])
-            stage    = str(r[C_STAGE])
-            strat    = str(r[C_STRATEGY])
-            ttype    = str(r[C_TRADE_TYPE])
-
-            if cp <= 0:
-                continue
-
-            key        = sym_key(sym)
-            sheet_row  = i + 2  # 1-based sheet row (row 1 = header, row 2 = first data)
-
-            # ── Price freshness check — skip if price unchanged from last run ──
-            last_cp = get_last_price(mem, key)
-            mem     = set_last_price(mem, key, cp)
-            if last_cp > 0 and abs(cp - last_cp) < 0.01:
-                print(f"[STALE] {sym}: price ₹{cp} unchanged from last run — skipping entry")
-                continue
-
-            # ── Re-entry cooldown — block same stock for 5 trading days after exit ──
-            exit_date = get_exit_date(mem, key)
-            if exit_date:
-                days_since = trading_days_since(exit_date, now)
-                if days_since < 5:
-                    print(f"[COOLDOWN] {sym}: exited {days_since} trading days ago — waiting 5 days")
-                    continue
-
-            # Skip if stock too expensive — min 2 shares needed at ₹10k capital
-            # ₹5000 cap = round(10000/5000) = 2 shares minimum
-            pos_size_check = round(CAPITAL_PER_TRADE / cp) if cp > 0 else 0
-            if pos_size_check < 2:
-                print(f"[SKIP] {sym}: CMP ₹{cp:,.0f} > ₹5,000 cap — fewer than 2 shares, skipping")
-                continue
-
-            # ── Dynamic position sizing by priority ──
-            capital = get_position_capital(priority)
-
-            etime     = now.strftime('%Y-%m-%d %H:%M:%S')
-
-            # Write TRADED status + Entry Price + Entry Time + Initial TSL
-            log_sheet.update_cell(sheet_row, C_STATUS + 1, "🟢 TRADED (PAPER)")
-            log_sheet.update_cell(sheet_row, C_ENTRY_PRICE + 1, cp)
-            log_sheet.update_cell(sheet_row, C_ENTRY_TIME + 1, etime)
-            log_sheet.update_cell(sheet_row, C_TRAIL_SL + 1, init_sl)  # TSL starts at Initial SL
-
-            # Recalculate RR from actual entry price
-            risk   = cp - init_sl
-            reward = target - cp
-            rr_num = (reward / risk) if risk > 0 else 0
-            log_sheet.update_cell(sheet_row, C_RR + 1, f"1:{rr_num:.1f}")
-
-            # Save ATR in memory (needed for TSL calculation later)
-            # Reverse-engineer ATR from target based on trade type:
-            # Intraday: target = CMP + ATR×2  → ATR = (target-cp)/2
-            # Swing:    target = CMP + ATR×3  → ATR = (target-cp)/3
-            # Positional: target = CMP + ATR×4 → ATR = (target-cp)/4
-            if "Intraday" in ttype or "INTRADAY" in ttype:
-                atr_tgt_mult = 2
-            elif "Positional" in ttype or "POSITIONAL" in ttype:
-                atr_tgt_mult = 4
-            else:
-                atr_tgt_mult = 3  # Swing default
-            atr_est = (target - cp) / atr_tgt_mult if target > cp else 0
-            mem = save_atr_to_mem(mem, key, atr_est)
-            mem = set_tsl(mem, key, init_sl)
-            mem = set_max_price(mem, key, cp)
-
-            # Add to traded_rows for this cycle's TSL monitoring
-            updated_r    = list(r)
-            updated_r[C_STATUS]      = "🟢 TRADED (PAPER)"
-            updated_r[C_ENTRY_PRICE] = cp
-            updated_r[C_ENTRY_TIME]  = etime
-            updated_r[C_TRAIL_SL]    = init_sl
-            traded_rows.append((sheet_row, updated_r))
-
-            # Get options hint if applicable
-            atr    = atr_est
-            o_hint = options_hint(sym, cp, atr, ttype)
-            entry_key = f"{key}_ENTRY"
-            mem += f",{entry_key}"
-
-            # Position size and actual risk/reward in rupees (uses dynamic capital)
-            pos_size  = round(capital / cp) if cp > 0 else 0
-            risk_rs   = round(max(0, cp - init_sl) * pos_size)
-            reward_rs = round(max(0, target - cp) * pos_size)
-
-            entry_alerts.append(
-                f"🚀 <b>TRADE ENTERED</b>\n\n"
-                f"<b>Stock:</b> {sym}\n"
-                f"<b>Type:</b> {ttype}\n"
-                f"<b>Entry Price:</b> ₹{cp:.2f}\n"
-                f"<b>Strategy:</b> {strat} | {stage}\n"
-                f"<b>Qty:</b> {pos_size} shares @ ₹{capital:,} (Priority {priority})\n"
-                f"<b>Initial SL:</b> ₹{init_sl:.2f} (Risk: ₹{risk_rs:,})\n"
-                f"<b>Target:</b> ₹{target:.2f} (Reward: ₹{reward_rs:,})\n"
-                f"<b>RR Ratio:</b> 1:{rr_num:.1f}\n"
-                f"<b>Priority:</b> {priority}/30"
-                f"{o_hint}"
-            )
-            print(f"[ENTRY] {sym} @ ₹{cp} | Capital ₹{capital:,} | {pos_size}sh | Type={ttype} | SL ₹{init_sl} | T ₹{target}")
-
-        # ── Step B: Monitor active trades (TSL + Exit) ─────────────────────
-        for sheet_row, r in traded_rows:
-            sym       = str(r[C_SYMBOL]).strip()
-            if not sym:
-                continue
-
-            key       = sym_key(sym)
-            cp        = to_f(r[C_LIVE_PRICE])
-            init_sl   = to_f(r[C_INITIAL_SL])
-            cur_tsl   = to_f(r[C_TRAIL_SL]) or init_sl
-            ent       = to_f(r[C_ENTRY_PRICE])
-            tgt       = to_f(r[C_TARGET])
-            strat     = str(r[C_STRATEGY])
-            stage     = str(r[C_STAGE])
-            etime     = str(r[C_ENTRY_TIME])
-            ttype     = str(r[C_TRADE_TYPE])
-            priority  = str(r[C_PRIORITY])
-
-            if not price_sanity(sym, cp, ent):
-                continue
-
-            # Update max price seen
-            mem = set_max_price(mem, key, cp)
-
-            pnl_pct = (cp - ent) / ent * 100
-            atr     = get_atr_from_mem(mem, key)
-            if atr <= 0:
-                # Fallback: reverse-engineer from target
-                _tgt_mult = 4 if "Positional" in ttype else 2 if "Intraday" in ttype else 3
-                atr = (tgt - ent) / _tgt_mult if tgt > ent else ent * 0.02
-
-            days_held = calc_hold_days(etime, now)
-
-            # ── Trailing SL update ─────────────────────────────────────────
-            new_tsl = calc_new_tsl(cp, ent, init_sl, atr, ttype)
-            # TSL never goes down
-            new_tsl = max(new_tsl, get_tsl(mem, key), cur_tsl)
-
-            if new_tsl > cur_tsl:
-                tsl_cell_updates.append((sheet_row, new_tsl))
-                trail_alerts.append(
-                    f"🔒 <b>{sym}</b> | LTP ₹{cp:.2f} ({pnl_pct:+.2f}%)\n"
-                    f"   Trail SL: ₹{cur_tsl:.2f} → <b>₹{new_tsl:.2f}</b> "
-                    f"({'Breakeven' if abs(new_tsl-ent)<0.5 else '+1% locked' if abs(new_tsl-ent*1.01)<0.5 else 'ATR trail'})"
-                )
-                mem = set_tsl(mem, key, new_tsl)
-                print(f"[TSL] {sym}: ₹{cur_tsl:.2f}→₹{new_tsl:.2f} | LTP ₹{cp:.2f}")
-
-            # ── Exit Logic ─────────────────────────────────────────────────
-            ex_flag    = f"{key}_EX"
-            tsl_hit    = (new_tsl > 0 and cp <= new_tsl)
-            target_hit = (tgt > 0 and cp >= tgt)
-
-            # ── Hard loss standalone check ─────────────────────────────────
-            # Fires even if TSL not technically hit — protects against:
-            # - VLOOKUP stale price showing large loss
-            # - Gap down opens where price is far below SL
-            # - Any scenario where loss > HARD_LOSS_PCT regardless of days
-            hard_loss = pnl_pct < -HARD_LOSS_PCT
-
-            if hard_loss and ex_flag not in mem:
-                pl_rupees  = round((cp - ent) / ent * CAPITAL_PER_TRADE, 2)
-                hold_str   = calc_hold_str(etime, now)
-                max_price  = get_max_price(mem, key)
-                exit_reason = "🚨 HARD LOSS EXIT"
-                result_sym  = "LOSS 🔴"
-                exit_alerts.append(
-                    f"🚨 <b>HARD LOSS EXIT</b>\n"
-                    f"━━━━━━━━━━━━━━━━━━━━\n"
-                    f"📌 <b>{sym}</b> [{ttype}]\n"
-                    f"   Entry ₹{ent:.2f} → Exit ₹{cp:.2f}\n"
-                    f"   P/L: <b>{pnl_pct:+.2f}%</b> = <b>₹{pl_rupees:+.0f}</b>\n"
-                    f"   Loss exceeded {HARD_LOSS_PCT}% — thesis broken\n"
-                    f"   Hold: {hold_str} | Day {days_held + 1}"
-                )
-                hist_sheet.append_row([
-                    sym, etime[:10], ent,
-                    now.strftime('%Y-%m-%d'), cp,
-                    f"{pnl_pct:.2f}%", result_sym, strat,
-                    exit_reason, ttype, init_sl, new_tsl,
-                    max_price if max_price > 0 else cp,
-                    round(atr, 2), days_held,
-                    CAPITAL_PER_TRADE, pl_rupees, "—",
-                ])
-                log_sheet.update_cell(sheet_row, C_STATUS + 1, "EXITED")
-                mem += f",{ex_flag}"
-                mem  = set_exit_date(mem, key, now.strftime('%Y-%m-%d'))
-                print(f"[HARD LOSS] {sym} | {pnl_pct:+.2f}% | ₹{pl_rupees:+.0f}")
-                continue  # skip normal TSL/target check below
-
-            # ── Normal exit logic ──────────────────────────────────────────
-            # Type-aware minimum hold:
-            # Swing = 2 days, Positional = 3 days
-            # Prevents noise stop-outs but exits faster if thesis fails
-            is_pos    = "Positional" in ttype or "positional" in ttype.lower()
-            min_hold  = MIN_HOLD_POS if is_pos else MIN_HOLD_SWING
-            skip_exit = (days_held < min_hold and not target_hit and not hard_loss)
-
-            if (tsl_hit or target_hit) and ex_flag not in mem and not skip_exit:
-                exit_reason = "🎯 TARGET HIT"   if target_hit else \
-                              "🔒 TRAILING SL"   if new_tsl > init_sl else \
-                              "🚨 INITIAL SL HIT"
-                result_sym  = "WIN ✅" if (target_hit or pnl_pct > 0) else "LOSS 🔴"
-                hold_str    = calc_hold_str(etime, now)
-                max_price   = get_max_price(mem, key)
-                pl_rupees   = round((cp - ent) / ent * CAPITAL_PER_TRADE, 2)
-                o_note      = options_hint(sym, ent, atr, ttype).replace('\n\n📊 <b>OPTIONS ADVISORY</b>', '').strip() if atr > 0 else ""
-
-                exit_alerts.append(
-                    f"{'🎯' if target_hit else '⚡'} <b>{exit_reason}</b>\n"
-                    f"━━━━━━━━━━━━━━━━━━━━\n"
-                    f"📌 <b>{sym}</b> [{ttype}]\n"
-                    f"   Entry ₹{ent:.2f} → Exit ₹{cp:.2f}\n"
-                    f"   P/L: <b>{pnl_pct:+.2f}%</b> = <b>₹{pl_rupees:+.0f}</b>\n"
-                    f"   Hold: {hold_str} | Max seen: ₹{max_price:.2f}\n"
-                    f"   Strategy: {strat}"
-                )
-
-                # Write full History row (18 columns A–R)
-                hist_sheet.append_row([
-                    sym,                              # A Symbol
-                    etime[:10],                       # B Entry Date
-                    ent,                              # C Entry Price
-                    now.strftime('%Y-%m-%d'),         # D Exit Date
-                    cp,                               # E Exit Price
-                    f"{pnl_pct:.2f}%",               # F P/L%
-                    result_sym,                       # G Result
-                    strat,                            # H Strategy
-                    exit_reason,                      # I Exit Reason    [NEW]
-                    ttype,                            # J Trade Type     [NEW]
-                    init_sl,                          # K Initial SL     [NEW]
-                    new_tsl,                          # L TSL at Exit    [NEW]
-                    max_price if max_price > 0 else cp, # M Max Price   [NEW]
-                    round(atr, 2),                    # N ATR at Entry   [NEW]
-                    days_held,                        # O Days Held      [NEW]
-                    CAPITAL_PER_TRADE,                # P Capital ₹      [NEW]
-                    pl_rupees,                        # Q Profit/Loss ₹  [NEW]
-                    o_note[:100] if o_note else "—",  # R Options Note   [NEW]
-                ])
-
-                log_sheet.update_cell(sheet_row, C_STATUS + 1, "EXITED")
-                mem += f",{ex_flag}"
-                mem  = set_exit_date(mem, key, now.strftime('%Y-%m-%d'))
-                print(f"[EXIT] {sym} | {result_sym} | {pnl_pct:+.2f}% | ₹{pl_rupees:+.0f}")
-
-            elif tsl_hit and skip_exit:
-                # Min hold protection active — send advisory but don't exit
-                print(f"[HOLD] {sym}: SL touched but Day {days_held + 1} < {min_hold} min hold. Watching.")
-                if f"{key}_HOLD_WARN" not in mem:
-                    send_tg(
-                        f"⚠️ <b>MIN HOLD ACTIVE</b>\n"
-                        f"<b>{sym}</b> [{ttype}] touched SL ₹{new_tsl:.2f} but only Day {days_held + 1} of {min_hold}.\n"
-                        f"Holding until Day {min_hold} unless loss exceeds {HARD_LOSS_PCT}%.\n"
-                        f"Current P/L: {pnl_pct:+.2f}%"
-                    )
-                    mem += f",{key}_HOLD_WARN"
-
-        # Batch write TSL updates
-        if tsl_cell_updates:
-            cells = []
-            for (sr, new_tsl) in tsl_cell_updates:
-                c       = log_sheet.cell(sr, C_TRAIL_SL + 1)  # col O
-                c.value = new_tsl
-                cells.append(c)
-            log_sheet.update_cells(cells)
-            print(f"[TSL WRITE] {len(cells)} updates")
-
-        # Send Telegram alerts
-        if exit_alerts:
-            send_tg(
-                f"⚡ <b>EXIT REPORT — {now.strftime('%H:%M IST')}</b>\n"
-                f"━━━━━━━━━━━━━━━━━━━━\n\n"
-                + "\n\n".join(exit_alerts)
-            )
-        if trail_alerts:
-            send_tg(
-                f"🔒 <b>TRAIL SL UPDATE — {now.strftime('%H:%M IST')}</b>\n"
-                f"━━━━━━━━━━━━━━━━━━━━\n\n"
-                + "\n\n".join(trail_alerts)
-            )
-        for alert in entry_alerts:
-            send_tg(alert)
-
-    # ─────────────────────────────────────────────────────────────────────────
-    # 3. MID-DAY PULSE  12:28–12:38 IST
-    # ─────────────────────────────────────────────────────────────────────────
-    if now.hour == 12 and 28 <= now.minute <= 38 and f"{today}_NOON" not in mem:
-        fresh      = log_sheet.get_all_values()
-        live_rows  = [
-            pad(list(r)) for r in fresh[1:16]
-            if "TRADED" in str(r[C_STATUS] if len(r) > C_STATUS else "").upper()
-            and "EXITED" not in str(r[C_STATUS] if len(r) > C_STATUS else "").upper()
-        ]
-        wins = losses = 0
-        lines = []
-        for r in live_rows:
-            sym  = r[C_SYMBOL]
-            cp   = to_f(r[C_LIVE_PRICE])
-            ent  = to_f(r[C_ENTRY_PRICE])
-            tsl  = to_f(r[C_TRAIL_SL]) or to_f(r[C_INITIAL_SL])
-            ttype = str(r[C_TRADE_TYPE])
-            if not price_sanity(sym, cp, ent):
-                continue
-            pnl = (cp - ent) / ent * 100
-            em  = "🟢" if pnl >= 0 else "🔴"
-            if pnl >= 0: wins += 1
-            else:        losses += 1
-            lines.append(f"{em} <b>{sym}</b> [{ttype}]: {pnl:+.2f}% | TSL ₹{tsl:.2f}")
-
-        if send_tg(
-            f"☀️ <b>MID-DAY PULSE — {today}</b>\n"
-            f"━━━━━━━━━━━━━━━━━━━━\n"
-            f"📊 Open: {len(lines)} | 🟢 {wins} | 🔴 {losses}\n\n"
-            + ("\n".join(lines) if lines else "📭 No open trades")
-        ):
-            mem += f",{today}_NOON"
-
-    # ─────────────────────────────────────────────────────────────────────────
-    # 4. MARKET CLOSE SUMMARY  15:30–15:45 IST
-    # ─────────────────────────────────────────────────────────────────────────
-    if now.hour == 15 and 30 <= now.minute <= 45 and f"{today}_PM" not in mem:
-        hist_data   = hist_sheet.get_all_values()
-        today_exits = [r for r in hist_data[1:] if len(r) >= 7 and r[3] == today]
-        wins_today  = [r for r in today_exits if "WIN"  in str(r[6]).upper()]
-        loss_today  = [r for r in today_exits if "LOSS" in str(r[6]).upper()]
-
-        total_pl = sum(to_f(r[16]) for r in today_exits if len(r) > 16)
-
-        exit_lines = []
-        for r in today_exits:
-            em = "✅" if "WIN" in str(r[6]).upper() else "❌"
-            pl_r = f"₹{to_f(r[16]):+.0f}" if len(r) > 16 else ""
-            exit_lines.append(f"  {em} <b>{r[0]}</b>: {r[5]} {pl_r} (hold {r[14] if len(r)>14 else '?'}d)")
-
-        fresh3    = log_sheet.get_all_values()
-        open_rows = [
-            pad(list(r)) for r in fresh3[1:16]
-            if "TRADED" in str(r[C_STATUS] if len(r) > C_STATUS else "").upper()
-            and "EXITED" not in str(r[C_STATUS] if len(r) > C_STATUS else "").upper()
-        ]
-        open_lines = []
-        for r in open_rows:
-            sym  = r[C_SYMBOL]
-            cp   = to_f(r[C_LIVE_PRICE])
-            ent  = to_f(r[C_ENTRY_PRICE])
-            tsl  = to_f(r[C_TRAIL_SL]) or to_f(r[C_INITIAL_SL])
-            if not price_sanity(sym, cp, ent):
-                continue
-            pnl = (cp - ent) / ent * 100
-            em  = "🟢" if pnl >= 0 else "🔴"
-            open_lines.append(f"  {em} <b>{sym}</b>: {pnl:+.2f}% | TSL ₹{tsl:.2f}")
-
-        msg = (
-            f"🔔 <b>MARKET CLOSED — {today}</b>\n"
-            f"━━━━━━━━━━━━━━━━━━━━\n"
-            f"🏆 Wins: {len(wins_today)} | 💀 Losses: {len(loss_today)} | "
-            f"📂 Open: {len(open_rows)}\n"
-            f"💰 Today's P/L: <b>₹{total_pl:+.0f}</b>\n"
-        )
-        if exit_lines:
-            msg += "\n📋 <b>Exited Today:</b>\n" + "\n".join(exit_lines)
-        if open_lines:
-            msg += "\n\n📌 <b>Holding Overnight:</b>\n" + "\n".join(open_lines)
-        msg += "\n\n✅ <i>Overnight holds monitored via TSL</i>"
-
-        if send_tg(msg):
-            mem += f",{today}_PM"
-
-    # ─────────────────────────────────────────────────────────────────────────
-    # 5. SAVE MEMORY — always last
-    # ─────────────────────────────────────────────────────────────────────────
-    log_sheet.update_acell("T4", mem)
-    print(f"[DONE] {now.strftime('%H:%M:%S')} IST | mem={len(mem)} chars")
-
-
-
-
-# ── WEEKLY SUMMARY ────────────────────────────────────────────────────────────
-def run_weekly_summary():
-    """
-    BOT_MODE=weekly_summary
-    Reads History sheet for this week's trades and sends summary to Telegram.
-    Also callable manually from GitHub Actions dropdown.
-    """
-    now   = datetime.now(IST)
-    today = now.strftime('%Y-%m-%d')
-    print("[WEEKLY] Fetching weekly summary...")
-
-    log_sheet, hist_sheet = get_sheets()
-
-    # Monday of this week
-    days_since_mon = now.weekday()  # 0=Mon
-    mon = (now - timedelta(days=days_since_mon)).strftime('%Y-%m-%d')
-
-    hist_data  = hist_sheet.get_all_values()
-    week_rows  = [r for r in hist_data[1:] if len(r) >= 17 and r[3] >= mon and r[3] <= today]
-
-    wins   = [r for r in week_rows if "WIN"  in str(r[6]).upper()]
-    losses = [r for r in week_rows if "LOSS" in str(r[6]).upper()]
-    total_pl = sum(to_f(r[16]) for r in week_rows)
-    win_rate = round(len(wins) / len(week_rows) * 100) if week_rows else 0
-
-    best  = max(week_rows, key=lambda r: to_f(r[16]), default=None)
-    worst = min(week_rows, key=lambda r: to_f(r[16]), default=None)
-
-    # Open trades
-    all_data   = log_sheet.get_all_values()
-    open_count = sum(
-        1 for r in all_data[1:16]
-        if "TRADED" in str(r[C_STATUS] if len(r) > C_STATUS else "").upper()
-        and "EXITED" not in str(r[C_STATUS] if len(r) > C_STATUS else "").upper()
-    )
-
-    msg = (
-        f"📅 <b>WEEKLY REPORT — w/e {today}</b>\n"
-        f"━━━━━━━━━━━━━━━━━━━━\n"
-        f"📊 Trades: {len(week_rows)} | ✅ Wins: {len(wins)} | ❌ Losses: {len(losses)}\n"
-        f"🎯 Win Rate: {win_rate}%\n"
-        f"💰 Weekly P/L: <b>₹{total_pl:+,.0f}</b>\n"
-    )
-    if best:
-        msg += f"🏆 Best:  <b>{best[0]}</b> = ₹{to_f(best[16]):+,.0f}\n"
-    if worst and worst != best:
-        msg += f"💀 Worst: <b>{worst[0]}</b> = ₹{to_f(worst[16]):+,.0f}\n"
-
-    msg += f"\n📌 Open positions: {open_count}/{MAX_TRADES}"
-
-    ok = send_tg(msg)
-    print(f"[WEEKLY] {'✅ Sent' if ok else '❌ Failed'} | {len(week_rows)} trades this week")
-
-
-# ── TEST TELEGRAM ─────────────────────────────────────────────────────────────
-def run_test_telegram():
-    """
-    BOT_MODE=test_telegram
-    Sends a test message to verify Telegram token + chat ID are working.
-    Does NOT connect to Google Sheets. Safe to run anytime.
-    """
-    now = datetime.now(IST)
-    print("[TEST] Sending Telegram test message...")
-    ok = send_tg(
-        f"✅ <b>TELEGRAM TEST — OK</b>\n"
-        f"━━━━━━━━━━━━━━━━━━━━\n"
-        f"🤖 Bot: AI360 Trading\n"
-        f"🕐 Time: {now.strftime('%Y-%m-%d %H:%M:%S')} IST\n"
-        f"🔑 Token: Connected ✅\n"
-        f"💬 Chat: Connected ✅\n"
-        f"📊 Sheets: Not tested here\n\n"
-        f"<i>If you see this, Telegram is working correctly.\n"
-        f"Run mode 'trade' to test full system.</i>"
-    )
-    if ok:
-        print("[TEST] ✅ Telegram working — message sent successfully")
-    else:
-        print("[TEST] ❌ Telegram FAILED — check TELEGRAM_TOKEN and CHAT_ID secrets")
-
-
-# ── DAILY SUMMARY ─────────────────────────────────────────────────────────────
-def run_daily_summary():
-    """
-    BOT_MODE=daily_summary
-    Sends full portfolio summary to Telegram anytime on demand.
-    Shows all open trades with live P/L, TSL, target.
-    Shows today's exits from History sheet.
-    """
-    now   = datetime.now(IST)
-    today = now.strftime('%Y-%m-%d')
-    print("[SUMMARY] Fetching portfolio summary...")
-
-    log_sheet, hist_sheet = get_sheets()
-
-    # ── Open trades ──
-    all_data  = log_sheet.get_all_values()
-    open_rows = [
-        pad(list(r)) for r in all_data[1:16]
-        if "TRADED" in str(r[C_STATUS] if len(r) > C_STATUS else "").upper()
-        and "EXITED" not in str(r[C_STATUS] if len(r) > C_STATUS else "").upper()
-    ]
-    waiting_rows = [
-        pad(list(r)) for r in all_data[1:16]
-        if "WAITING" in str(r[C_STATUS] if len(r) > C_STATUS else "").upper()
-    ]
-
-    trade_lines = []
-    total_pnl_pct = 0.0
-    for r in open_rows:
-        sym   = r[C_SYMBOL]
-        cp    = to_f(r[C_LIVE_PRICE])
-        ent   = to_f(r[C_ENTRY_PRICE])
-        tsl   = to_f(r[C_TRAIL_SL]) or to_f(r[C_INITIAL_SL])
-        tgt   = to_f(r[C_TARGET])
-        ttype = str(r[C_TRADE_TYPE])
-        etime = str(r[C_ENTRY_TIME])
-        if not price_sanity(sym, cp, ent):
-            continue
-        pnl      = (cp - ent) / ent * 100
-        pl_rs    = round((cp - ent) / ent * CAPITAL_PER_TRADE)
-        days     = calc_hold_days(etime, now)
-        em       = "🟢" if pnl >= 0 else "🔴"
-        total_pnl_pct += pnl
-        trade_lines.append(
-            f"{em} <b>{sym}</b> [{ttype}]\n"
-            f"   Entry ₹{ent:.2f} → Now ₹{cp:.2f} | <b>{pnl:+.2f}%</b> = ₹{pl_rs:+,}\n"
-            f"   TSL ₹{tsl:.2f} | Target ₹{tgt:.2f} | Day {days}"
-        )
-
-    # ── Today's exits from History ──
-    hist_data   = hist_sheet.get_all_values()
-    today_exits = [r for r in hist_data[1:] if len(r) >= 7 and r[3] == today]
-    exit_lines  = []
-    total_exit_pl = 0.0
-    for r in today_exits:
-        em = "✅" if "WIN" in str(r[6]).upper() else "❌"
-        pl_r = to_f(r[16]) if len(r) > 16 else 0
-        total_exit_pl += pl_r
-        exit_lines.append(f"  {em} <b>{r[0]}</b>: {r[5]} = ₹{pl_r:+,.0f}")
-
-    # ── Waiting candidates ──
-    wait_lines = []
-    for r in waiting_rows[:5]:  # show top 5
-        sym  = r[C_SYMBOL]
-        pri  = r[C_PRIORITY]
-        tt   = r[C_TRADE_TYPE]
-        wait_lines.append(f"  ⏳ <b>{sym}</b> [{tt}] Priority:{pri}")
-
-    # ── Build message ──
-    msg = (
-        f"📊 <b>PORTFOLIO SUMMARY</b>\n"
-        f"━━━━━━━━━━━━━━━━━━━━\n"
-        f"🕐 {now.strftime('%Y-%m-%d %H:%M')} IST\n"
-        f"📈 Open: {len(open_rows)}/{MAX_TRADES} | "
-        f"⏳ Waiting: {len(waiting_rows)}/{MAX_WAITING}\n"
-        f"💰 Capital deployed: ₹{len(open_rows) * CAPITAL_PER_TRADE:,}\n"
-    )
-
-    if trade_lines:
-        msg += f"\n<b>── OPEN TRADES ──</b>\n" + "\n\n".join(trade_lines)
-    else:
-        msg += "\n📭 No open trades currently"
-
-    if exit_lines:
-        msg += f"\n\n<b>── TODAY'S EXITS ──</b>\n" + "\n".join(exit_lines)
-        msg += f"\n   <b>Today P/L: ₹{total_exit_pl:+,.0f}</b>"
-
-    if wait_lines:
-        msg += f"\n\n<b>── TOP WAITING ──</b>\n" + "\n".join(wait_lines)
-
-    msg += "\n\n<i>Sent on demand via daily_summary mode</i>"
-
-    ok = send_tg(msg)
-    if ok:
-        print(f"[SUMMARY] ✅ Summary sent | Open={len(open_rows)} | Waiting={len(waiting_rows)} | Exits today={len(today_exits)}")
-    else:
-        print("[SUMMARY] ❌ Failed to send — check Telegram secrets")
-
-
-# ── ENTRY POINT ───────────────────────────────────────────────────────────────
-if __name__ == "__main__":
-    mode = os.environ.get("BOT_MODE", "trade").strip().lower()
-    print(f"[MODE] {mode}")
-
-    if mode == "test_telegram":
-        run_test_telegram()
-    elif mode == "daily_summary":
-        run_daily_summary()
-    elif mode == "weekly_summary":
-        run_weekly_summary()
-    else:
-        # Default: normal trading cycle (cron schedule or manual 'trade' mode)
-        run_trading_cycle()
+/**
+ * AI360 TRADING — APPSCRIPT v12.0 FINAL
+ * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ *
+ * COMPLETE CHANGELOG:
+ *   v9  — Fixed 4 bugs: wrong SL (AA→ATR), duplicate col Y logic, VALUE BUY signal, AVOID filter
+ *   v10 — Fixed Q2/Q4→T2/T4, pad(17→20), Risk ₹ calc, 3 workflow modes, 5+10 slots
+ *   v11 — MIN_PRIORITY 20→18, HOLD signal added, CMP cap ₹10k→₹5k, MIN_RR 2.0→1.3,
+ *          type-specific ATR targets (Intraday×2, Swing×3, Positional×4)
+ *   v12 — Market regime filter, volume confirmation (1.2×avg), sector exposure cap (max 2),
+ *          stale waiting refresh, weekly P&L summary (Friday auto), Google error suppressor
+ *
+ * ALERTLOG COLUMN MAP (1-based sheet col):
+ *   A=1   Signal Time (IST)
+ *   B=2   Symbol
+ *   C=3   Live Price          ← VLOOKUP formula (auto)
+ *   D=4   Priority Score      ← from Nifty200
+ *   E=5   Trade Type          ← Intraday / Swing / Positional / Options Alert
+ *   F=6   Strategy            ← FINAL_ACTION from Nifty200
+ *   G=7   Breakout Stage      ← from Nifty200 col W
+ *   H=8   Initial SL          ← ATR-based, AppScript writes ONCE
+ *   I=9   Target              ← type-specific ATR multiplier
+ *   J=10  RR Ratio            ← calculated
+ *   K=11  Trade Status        ← Python writes TRADED / EXITED
+ *   L=12  Entry Price         ← Python writes when TRADED (blank for WAITING)
+ *   M=13  Entry Time          ← Python writes when TRADED (blank for WAITING)
+ *   N=14  Days in Trade       ← Formula (auto)
+ *   O=15  Trailing SL         ← Python updates live (AppScript NEVER touches)
+ *   P=16  P/L %               ← Formula (auto)
+ *   Q=17  ATH Warning         ← Formula (auto)
+ *   R=18  Risk ₹              ← Formula (auto)
+ *   S=19  Position Size       ← Formula (auto)
+ *   T=20  SYSTEM CONTROL      ← T2=YES/NO automation switch, T4=memory string
+ *
+ * NIFTY200 COLUMN MAP (0-based array index):
+ *   r[0]  A   NSE_SYMBOL         r[1]  B   SECTOR
+ *   r[2]  C   CMP                r[3]  D   %Change
+ *   r[4]  E   20_DMA             r[5]  F   50_DMA
+ *   r[6]  G   200_DMA            r[7]  H   SMA_Structure
+ *   r[8]  I   52_Weeks_Low       r[9]  J   52_Weeks_High
+ *   r[10] K   %up_from_52W_Low   r[11] L   %down_from_52W_High
+ *   r[12] M   %Dist_from_20DMA   r[13] N   Avg_Volume(20D)
+ *   r[14] O   Volume_vs_Avg%  ← volume confirmation filter
+ *   r[15] P   FII_Buy_Zone       r[16] Q   FII_Rating
+ *   r[17] R   Leader_Type        r[18] S   Signal_Score
+ *   r[19] T   FINAL_ACTION    ← strategy signal
+ *   r[20] U   RS                 r[21] V   Sector_Trend
+ *   r[22] W   Breakout_Stage     r[23] X   Retest%
+ *   r[24] Y   Trade_Type      ← read directly
+ *   r[25] Z   Priority_Score  ← filter >= 18
+ *   r[26] AA  Pivot_Support      r[27] AB  VCP_Status
+ *   r[28] AC  ATR(14)         ← SL + Target calc
+ *   r[29] AD  Days_Since_Low
+ *
+ * SL + TARGET (ATR-based, type-specific):
+ *   Intraday   → SL = CMP - ATR×1.5 | Target = CMP + ATR×2  | RR ≈ 1.33
+ *   Swing      → SL = CMP - ATR×2.0 | Target = CMP + ATR×3  | RR ≈ 1.50
+ *   Positional → SL = MAX(CMP-ATR×2.5, 20DMA) | Target = CMP+ATR×4 | RR ≈ 1.60
+ *   Value Buy  → SL = MAX(CMP-ATR×2.5, 50DMA) | Target = CMP+ATR×4
+ *
+ * FILTERS (in order):
+ *   1. FINAL_ACTION must be valid signal (col T)
+ *   2. Priority >= 18 (col Z)
+ *   3. Stale refresh log if waiting > 3 days
+ *   4. CMP > 0 and ATR > 0
+ *   5. Volume >= 1.2× average (col O)
+ *   6. CMP <= ₹5,000 (min 2 shares)
+ *   7. ATH buffer >= 3% (col J)
+ *   8. Trade_Type != AVOID / NO TRADE (col Y)
+ *   9. Sector exposure < 2 per sector
+ *   10. RR >= 1.3
+ *
+ * MARKET REGIME:
+ *   Nifty50 row in Nifty200 (row 2) — if CMP < 20DMA → no new entries
+ *   Existing TRADED rows always monitored regardless of regime
+ *
+ * PYTHON HANDSHAKE:
+ *   AppScript → K="⏳ WAITING", H=InitialSL, I=Target, L="", M=""
+ *   Python    → reads C (live price), writes K="🟢 TRADED (PAPER)", L=CMP, M=timestamp, O=InitialSL
+ *   Python    → updates O (Trailing SL) as price rises — AppScript NEVER overwrites O
+ *   Python    → writes K="EXITED" on SL/target/hard-loss hit
+ *   AppScript → sees EXITED on next scan, removes row, fills next best candidate
+ *
+ * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ */
+
+const CONFIG = {
+  TELEGRAM_TOKEN : "hidden",          // Replace with your token
+  CHAT_ID        : "hidden",          // Replace with your chat ID
+  SHEET_NAME     : "Nifty200",        // Master screener sheet name
+  LOG_SHEET      : "AlertLog",        // Trade entry/monitoring sheet
+  HISTORY_SHEET  : "History",         // Closed trades history sheet
+  IST_ZONE       : "GMT+5:30",
+
+  MAX_TRADES     : 5,                 // Max active traded positions
+  MAX_WAITING    : 10,                // Always keep 10 waiting candidates
+  MIN_PRIORITY   : 18,                // Min priority (18+ for more candidates)
+  MIN_RR         : 1.3,               // Min RR — 1.3 allows all trade types to qualify
+  ATH_BUFFER_PCT : 3.0,               // Skip if within 3% of 52W High
+  CAPITAL        : 10000,             // ₹ per trade
+  MAX_CMP        : 5000,              // Skip stocks above ₹5000 (min 2 shares at ₹10k)
+
+  // Type-specific ATR multipliers — longer hold = bigger target
+  // Intraday:   SL=ATR×1.5  Target=ATR×2   RR=1.33
+  // Swing:      SL=ATR×2.0  Target=ATR×3   RR=1.50
+  // Positional: SL=ATR×2.5  Target=ATR×4   RR=1.60
+  ATR_SL_INTRADAY   : 1.5,
+  ATR_SL_SWING      : 2.0,
+  ATR_SL_POSITIONAL : 2.5,
+  ATR_TGT_INTRADAY  : 2,
+  ATR_TGT_SWING     : 3,
+  ATR_TGT_POSITIONAL: 4,
+
+  TOTAL_COLS     : 19,                // A–S data grid (T = system control)
+  LOG_ROWS       : 15,                // Rows 2–16 (5 traded + 10 waiting)
+};
+
+// ── MENU ─────────────────────────────────────────────────────────────────────
+function onOpen() {
+  SpreadsheetApp.getUi()
+    .createMenu('🚀 AI360 TRADING')
+    .addItem('🔄 MANUAL SYNC',       'unifiedManager')
+    .addItem('📊 DAILY SUMMARY',     'sendDailySummary')
+    .addItem('📅 WEEKLY SUMMARY',    'sendWeeklySummary')
+    .addSeparator()
+    .addItem('🧹 FRESH CLEAN START', 'freshCleanStart')
+    .addToUi();
+}
+
+// ── DAILY SUMMARY ─────────────────────────────────────────────────────────────
+function sendDailySummary() {
+  const logSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.LOG_SHEET);
+  const data     = logSheet.getRange(2, 1, CONFIG.LOG_ROWS, CONFIG.TOTAL_COLS).getValues();
+  const traded   = data.filter(r => _isTraded(r[10])).length;
+  const waiting  = data.filter(r => _isWaiting(r[10])).length;
+  _sendTelegram(
+    `📊 <b>MARKET SUMMARY</b>\n━━━━━━━━━━━━━━━━━━━━\n` +
+    `🔹 <b>Active Trades:</b> ${traded}/${CONFIG.MAX_TRADES}\n` +
+    `🔸 <b>Waiting Slots:</b> ${waiting}\n` +
+    `💰 <b>Capital Deployed:</b> ₹${traded * CONFIG.CAPITAL}\n` +
+    `✅ <i>System: Online</i>`
+  );
+}
+
+// ── MAIN CONTROLLER ───────────────────────────────────────────────────────────
+function unifiedManager() {
+  try {
+    _runUnifiedManager();
+  } catch(e) {
+    // Catch Google server errors (INTERNAL, storage blips) silently
+    // These are Google infrastructure failures, not code bugs
+    // Script will retry automatically on next 5-min trigger
+    const msg = e.toString();
+    if (msg.includes("INTERNAL") || msg.includes("storage") || msg.includes("server error")) {
+      Logger.log("[GOOGLE ERROR] Transient server error — will retry next trigger: " + msg);
+      return; // Silent exit — no email notification
+    }
+    // Real errors still throw so you get notified
+    throw e;
+  }
+}
+
+function _runUnifiedManager() {
+  const now      = new Date();
+  const timeStr  = Utilities.formatDate(now, CONFIG.IST_ZONE, "HH:mm");
+  const today    = Utilities.formatDate(now, CONFIG.IST_ZONE, "yyyy-MM-dd");
+  const dow      = now.getDay(); // 0=Sun, 5=Fri
+  const logSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.LOG_SHEET);
+
+  // Morning cleanup 9:05–9:15 IST, once per day
+  if (timeStr >= "09:05" && timeStr <= "09:15") {
+    const mem = (logSheet.getRange("T4").getValue() || "").toString();
+    if (!mem.includes(today + "_CLEANED")) {
+      clearWaitingRowsOnly();
+      logSheet.getRange("T4").setValue(mem + "," + today + "_CLEANED");
+    }
+  }
+
+  // Friday 15:30–15:45 IST: send weekly summary
+  if (dow === 5 && timeStr >= "15:30" && timeStr <= "15:45") {
+    const mem = (logSheet.getRange("T4").getValue() || "").toString();
+    if (!mem.includes(today + "_WEEKLY")) {
+      sendWeeklySummary();
+      logSheet.getRange("T4").setValue(mem + "," + today + "_WEEKLY");
+    }
+  }
+
+  runPriorityScanner();
+} // end _runUnifiedManager
+
+// ── PRIORITY SCANNER ──────────────────────────────────────────────────────────
+function runPriorityScanner() {
+  const ss          = SpreadsheetApp.getActiveSpreadsheet();
+  const logSheet    = ss.getSheetByName(CONFIG.LOG_SHEET);
+  const inputSheet  = ss.getSheetByName(CONFIG.SHEET_NAME);
+
+  // ── Automation gate: T2 must be YES ──
+  const switchVal = (logSheet.getRange("T2").getValue() || "").toString().toUpperCase();
+  if (switchVal !== "YES") {
+    Logger.log("[SKIP] Automation OFF — set T2=YES to enable");
+    return;
+  }
+
+  const inputData  = inputSheet.getDataRange().getValues();
+  // Read 19 cols A–S. Col T (system control) is never touched by the grid read/write.
+  const currentLog = logSheet.getRange(2, 1, CONFIG.LOG_ROWS, CONFIG.TOTAL_COLS).getValues();
+  const nowTime    = Utilities.formatDate(new Date(), CONFIG.IST_ZONE, "yyyy-MM-dd HH:mm:ss");
+
+  const alreadyTraded = new Set();
+  const sectorCount   = {};   // track sector exposure in active trades
+
+  // ── Step 1: Keep only active TRADED rows (drop EXITED, drop WAITING) ──
+  const finalTraded = currentLog.filter(r => {
+    const sym    = (r[1] || "").toString().trim();
+    const status = (r[10] || "").toString().toUpperCase();
+    if (sym && _isTraded(status)) {
+      alreadyTraded.add(sym);
+      // Track sector of active trades for exposure cap
+      // Sector is not stored in AlertLog — look it up from Nifty200
+      const nRow = inputData.find(nr => nr[0] === sym);
+      if (nRow) {
+        const sec = (nRow[1] || "UNKNOWN").toString().trim();
+        sectorCount[sec] = (sectorCount[sec] || 0) + 1;
+      }
+      return true;
+    }
+    return false;
+  });
+
+  // Hard cap check — if already at MAX_TRADES, still fill WAITING slots (10 backup candidates)
+  // Only skip the entire scan if we somehow exceed MAX_TRADES (safety)
+  if (finalTraded.length > CONFIG.MAX_TRADES) {
+    Logger.log(`[WARN] Traded rows ${finalTraded.length} exceeds MAX_TRADES ${CONFIG.MAX_TRADES}`);
+    _restoreFormulas(logSheet);
+    return;
+  }
+
+  // ── Market Regime Filter: Nifty50 must be above its 20-DMA ──────────────
+  // If Nifty50 < 20-DMA → bearish market → stop ALL new WAITING entries
+  // Existing TRADED rows are kept and monitored normally
+  // Source: row 1 of Nifty200 sheet must be "NIFTY50" with CMP in col C and 20_DMA in col E
+  let marketBullish = true;
+  try {
+    const niftyRow = inputData[1]; // row index 1 = sheet row 2 = Nifty50 index row
+    if (niftyRow && niftyRow[0] && niftyRow[0].toString().includes("NIFTY")) {
+      const niftyCmp  = parseFloat(niftyRow[2]) || 0;   // col C = CMP
+      const nifty20d  = parseFloat(niftyRow[4]) || 0;   // col E = 20_DMA
+      if (niftyCmp > 0 && nifty20d > 0) {
+        marketBullish = niftyCmp >= nifty20d;
+        Logger.log(`[REGIME] Nifty50 CMP=${niftyCmp} | 20DMA=${nifty20d} | Bullish=${marketBullish}`);
+      }
+    }
+  } catch(e) {
+    Logger.log("[REGIME] Could not read Nifty50 row — defaulting to bullish: " + e);
+  }
+
+  if (!marketBullish) {
+    Logger.log("[REGIME] BEARISH — skipping new candidate scan. Existing trades monitored.");
+    _restoreFormulas(logSheet);
+    // Still write back existing traded rows so formulas stay fresh
+    let bearGrid = finalTraded.concat([]);
+    while (bearGrid.length < CONFIG.LOG_ROWS) bearGrid.push(new Array(CONFIG.TOTAL_COLS).fill(""));
+    logSheet.getRange(2, 1, CONFIG.LOG_ROWS, CONFIG.TOTAL_COLS).clearContent();
+    logSheet.getRange(2, 1, CONFIG.LOG_ROWS, CONFIG.TOTAL_COLS).setValues(bearGrid);
+    _restoreFormulas(logSheet);
+    // Send bearish alert only ONCE per day — memory flag in T4
+    const bearMem = (logSheet.getRange("T4").getValue() || "").toString();
+    const bearFlag = today + "_BEARISH";
+    if (!bearMem.includes(bearFlag)) {
+      _sendTelegram(`⚠️ <b>MARKET REGIME: BEARISH</b>\nNifty50 ₹${niftyCmp.toFixed(0)} below 20-DMA ₹${nifty20d.toFixed(0)}\nNo new entries today. Existing trades monitored normally.`);
+      logSheet.getRange("T4").setValue(bearMem + "," + bearFlag);
+    }
+    return;
+  }
+
+  // ── Step 2: Scan Nifty200 for new WAITING candidates ──
+  // Valid FINAL_ACTION signals — what qualifies for AlertLog
+  // HOLD added: stocks in uptrend but consolidating = valid swing candidates
+  // RISKY excluded: weak structure, skip
+  const validSignals = [
+    "🎯 RETEST BUY",      // Price retesting 30d high — highest conviction
+    "🟢 STRONG BUY",      // Sector Leader + Strong Bull + Tailwind
+    "💎 BASE PREPARED",   // VCP compression + days since low — breakout imminent
+    "💰 VALUE BUY",       // Strong Bull + >10% below 52W high — deep discount
+    "➖ HOLD",            // Uptrend but consolidating — valid if priority qualifies
+  ];
+  const candidates   = [];
+
+  for (let i = 1; i < inputData.length; i++) {
+    const r = inputData[i];
+    if (!r[0] || alreadyTraded.has(r[0])) continue;
+
+    const signal   = (r[19] || "").toString().trim();
+    const priority = parseFloat(r[25]) || 0;
+
+    if (!validSignals.includes(signal) || priority < CONFIG.MIN_PRIORITY) continue;
+
+    // ── Stale waiting check: if stock already in WAITING >3 days, refresh it ──
+    // AppScript re-scans and recalculates fresh SL/target from current price.
+    // The old row gets replaced automatically in Step 4 write.
+    // Just log for visibility — no skip needed (fresh calc happens below).
+    const existingWait = currentLog.find(lr =>
+      (lr[1] || "").toString().trim() === r[0].toString().trim() &&
+      _isWaiting((lr[10] || "").toString().toUpperCase())
+    );
+    if (existingWait && existingWait[0]) {
+      try {
+        const ageDays = (new Date() - new Date(existingWait[0])) / 86400000;
+        if (ageDays > 3) Logger.log(`[STALE REFRESH] ${r[0]}: was waiting ${ageDays.toFixed(1)} days — recalculating`);
+      } catch(e) {}
+    }
+
+    const cmp    = parseFloat(r[2])  || 0;   // C  CMP
+    const atr    = parseFloat(r[28]) || 0;   // AC ATR(14)
+    const high52 = parseFloat(r[9])  || 0;   // J  52_Weeks_High
+    const dma20  = parseFloat(r[4])  || 0;   // E  20_DMA
+    const dma50  = parseFloat(r[5])  || 0;   // F  50_DMA
+
+    if (cmp <= 0 || atr <= 0) continue;
+
+    // ── Volume check: skip if volume < 1.2× average ──
+    // r[14] = col O = Volume_vs_Avg% (e.g. 150 means 150% = 1.5× average)
+    const volVsAvg = parseFloat(r[14]) || 0;
+    if (volVsAvg > 0 && volVsAvg < 120) {
+      Logger.log(`[VOL SKIP] ${r[0]}: Volume ${volVsAvg.toFixed(0)}% of avg — below 120% threshold`);
+      continue;
+    }
+
+    // ── Price cap: skip if CMP > ₹5000 (min 2 shares needed at ₹10k capital) ──
+    if (cmp > CONFIG.MAX_CMP) {
+      Logger.log(`[PRICE SKIP] ${r[0]}: CMP ₹${cmp} > ₹${CONFIG.MAX_CMP} cap — fewer than 2 shares`);
+      continue;
+    }
+
+    // ── ATH Check: skip if within 3% of 52W High ──
+    if (high52 > 0) {
+      const pctFromATH = ((high52 - cmp) / high52) * 100;
+      if (pctFromATH < CONFIG.ATH_BUFFER_PCT) {
+        Logger.log(`[ATH SKIP] ${r[0]}: ${pctFromATH.toFixed(1)}% below 52W High — too close`);
+        continue;
+      }
+    }
+
+    // ── Trade Type: READ directly from col Y (r[24]) — already calculated in Nifty200 ──
+    // Values: "⚡ INTRADAY" / "🎯 SWING (Breakout)" / "📊 SWING (Trend)" /
+    //         "💰 POSITIONAL (Value)" / "📈 POSITIONAL (Growth)" / "🚫 AVOID" / "⏸️ NO TRADE"
+    const niftyTradeType = (r[24] || "").toString().trim();
+
+    // Skip AVOID and NO TRADE from Nifty200's own classification
+    if (niftyTradeType.includes("AVOID") || niftyTradeType.includes("NO TRADE")) {
+      Logger.log(`[SKIP] ${r[0]}: Nifty200 Trade_Type = ${niftyTradeType}`);
+      continue;
+    }
+
+    // Map Nifty200 trade type to our display labels + ATR multiplier for SL
+    const { ttype } = _mapTradeType(niftyTradeType, priority, atr, cmp);
+
+    // ── Initial SL + Target — type-specific ATR multipliers ──────────────────
+    // Intraday:   SL=ATR×1.5  Target=ATR×2   RR≈1.33
+    // Swing:      SL=ATR×2.0  Target=ATR×3   RR≈1.50
+    // Positional: SL=ATR×2.5  Target=ATR×4   RR≈1.60
+    // DMA floor for Positional only (support-based tighter SL = better RR)
+    let sl, target;
+    if (niftyTradeType.includes("POSITIONAL (Value)")) {
+      // Value buy: 50_DMA as floor
+      const rawSl = cmp - atr * CONFIG.ATR_SL_POSITIONAL;
+      sl     = (dma50 > 0 && dma50 < cmp) ? parseFloat(Math.max(rawSl, dma50).toFixed(2)) : parseFloat(rawSl.toFixed(2));
+      target = parseFloat((cmp + atr * CONFIG.ATR_TGT_POSITIONAL).toFixed(2));
+    } else if (niftyTradeType.includes("POSITIONAL")) {
+      // Positional: 20_DMA as floor
+      const rawSl = cmp - atr * CONFIG.ATR_SL_POSITIONAL;
+      sl     = (dma20 > 0 && dma20 < cmp) ? parseFloat(Math.max(rawSl, dma20).toFixed(2)) : parseFloat(rawSl.toFixed(2));
+      target = parseFloat((cmp + atr * CONFIG.ATR_TGT_POSITIONAL).toFixed(2));
+    } else if (niftyTradeType.includes("SWING")) {
+      sl     = parseFloat((cmp - atr * CONFIG.ATR_SL_SWING).toFixed(2));
+      target = parseFloat((cmp + atr * CONFIG.ATR_TGT_SWING).toFixed(2));
+    } else {
+      // Intraday
+      sl     = parseFloat((cmp - atr * CONFIG.ATR_SL_INTRADAY).toFixed(2));
+      target = parseFloat((cmp + atr * CONFIG.ATR_TGT_INTRADAY).toFixed(2));
+    }
+
+    // Safety: SL must be below CMP
+    if (sl >= cmp) sl = parseFloat((cmp * 0.97).toFixed(2));
+
+    // ── Sector exposure cap: max 2 stocks per sector across traded + waiting ──
+    const sector = (r[1] || "UNKNOWN").toString().trim();
+    if ((sectorCount[sector] || 0) >= 2) {
+      Logger.log(`[SECTOR SKIP] ${r[0]}: Sector "${sector}" already has ${sectorCount[sector]} positions`);
+      continue;
+    }
+
+    // ── RR check: enforce minimum 1.3 ──
+    const risk   = cmp - sl;
+    const reward = target - cmp;
+    const rrNum  = (risk > 0) ? (reward / risk) : 0;
+    if (rrNum < CONFIG.MIN_RR) {
+      Logger.log(`[RR SKIP] ${r[0]}: RR 1:${rrNum.toFixed(1)} < minimum 1:${CONFIG.MIN_RR} | SL ₹${sl} CMP ₹${cmp}`);
+      continue;
+    }
+    const rrStr = "1:" + rrNum.toFixed(1);
+
+    candidates.push({
+      priority,
+      sector,
+      row: [
+        nowTime,             // A  Signal Time
+        r[0],                // B  Symbol
+        "",                  // C  Live Price — VLOOKUP restored
+        priority,            // D  Priority Score
+        ttype,               // E  Trade Type — from Nifty200 col Y (r[24]) ✅
+        signal,              // F  Strategy (FINAL_ACTION)
+        r[22] || "",         // G  Breakout Stage
+        sl,                  // H  Initial SL — ATR-based ✅
+        target,              // I  Target (CMP + ATR×3)
+        rrStr,               // J  RR Ratio
+        "⏳ WAITING",        // K  Trade Status
+        "",                  // L  Entry Price — Python fills when TRADED
+        "",                  // M  Entry Time  — Python fills when TRADED
+        "",                  // N  Days in Trade — formula
+        "",                  // O  Trailing SL  — Python owns
+        "",                  // P  P/L%         — formula
+        "",                  // Q  ATH Warning  — formula
+        "",                  // R  Risk ₹       — formula
+        "",                  // S  Position Size — formula
+      ]
+    });
+  }
+
+  // ── Step 3: Sort by priority, fill MAX_WAITING (10) waiting slots ──
+  // Sector cap enforced: max 2 total (traded + waiting) per sector
+  candidates.sort((a, b) => b.priority - a.priority);
+  const waitingSectorCount = Object.assign({}, sectorCount); // copy traded sector counts
+  const finalWaiting = [];
+  for (const c of candidates) {
+    if (finalWaiting.length >= CONFIG.MAX_WAITING) break;
+    const sec = c.sector || "UNKNOWN";
+    if ((waitingSectorCount[sec] || 0) >= 2) continue;  // sector full
+    waitingSectorCount[sec] = (waitingSectorCount[sec] || 0) + 1;
+    finalWaiting.push(c.row);
+  }
+  let   finalGrid    = finalTraded.concat(finalWaiting);
+
+  // Pad to LOG_ROWS rows × TOTAL_COLS cols
+  while (finalGrid.length < CONFIG.LOG_ROWS) {
+    finalGrid.push(new Array(CONFIG.TOTAL_COLS).fill(""));
+  }
+
+  // ── Step 4: Write cols A–S (19 cols). Col T is NEVER touched. ──
+  logSheet.getRange(2, 1, CONFIG.LOG_ROWS, CONFIG.TOTAL_COLS).clearContent();
+  logSheet.getRange(2, 1, CONFIG.LOG_ROWS, CONFIG.TOTAL_COLS).setValues(finalGrid);
+
+  // ── Step 5: Restore all formulas ──
+  _restoreFormulas(logSheet);
+
+  Logger.log(`[DONE] Traded=${finalTraded.length} | New waiting=${finalWaiting.length}`);
+}
+
+// ── FORMULA RESTORE ───────────────────────────────────────────────────────────
+// Called after every write. Restores all formula columns.
+// Never touches col O (Trailing SL) or col T (System Control).
+function _restoreFormulas(logSheet) {
+  const endRow = CONFIG.LOG_ROWS + 1; // rows 2 to 16 (LOG_ROWS=15 → endRow=16)
+
+  for (let i = 2; i <= endRow; i++) {
+    const sym    = (logSheet.getRange(i, 2).getValue() || "").toString().trim();
+    const status = (logSheet.getRange(i, 11).getValue() || "").toString().toUpperCase();
+    const traded = _isTraded(status);
+
+    // ── Col C: Live Price VLOOKUP — always restore ──
+    if (sym) {
+      logSheet.getRange(i, 3).setFormula(
+        `=IFERROR(VLOOKUP(B${i},'${CONFIG.SHEET_NAME}'!A:C,3,FALSE),"")`
+      );
+    } else {
+      logSheet.getRange(i, 3).setValue("");
+    }
+
+    // ── Col N: Days in Trade ──
+    // Only meaningful when Entry Time (col M) is filled = TRADED rows
+    // Formula: integer days since entry. Shows "—" for WAITING.
+    if (traded && sym) {
+      logSheet.getRange(i, 14).setFormula(
+        `=IF(M${i}<>"",MAX(0,INT(NOW()-DATEVALUE(TEXT(M${i},"yyyy-mm-dd")))),"—")`
+      );
+    } else {
+      logSheet.getRange(i, 14).setValue("—");
+    }
+
+    // ── Col P: P/L % ──
+    // Formula: ((LivePrice - EntryPrice) / EntryPrice) × 100
+    // Blank for WAITING to avoid #DIV/0 from empty col L
+    if (traded && sym) {
+      logSheet.getRange(i, 16).setFormula(
+        `=IF(AND(L${i}<>"",C${i}<>"",L${i}<>0),ROUND(((C${i}-L${i})/L${i})*100,2),"")`
+      );
+    } else {
+      logSheet.getRange(i, 16).setValue("");
+    }
+
+    // ── Col Q: ATH Warning ──
+    // 52W_High is column J in Nifty200 = 10th column → VLOOKUP col 10
+    // Shows for both WAITING and TRADED rows
+    if (sym) {
+      logSheet.getRange(i, 17).setFormula(
+        `=IF(B${i}="","",IFERROR(` +
+        `IF(((VLOOKUP(B${i},'${CONFIG.SHEET_NAME}'!A:J,10,FALSE)-C${i})/` +
+        `VLOOKUP(B${i},'${CONFIG.SHEET_NAME}'!A:J,10,FALSE))*100<3,` +
+        `"⚠️ NEAR ATH","✅ OK"),"—"))`
+      );
+    } else {
+      logSheet.getRange(i, 17).setValue("");
+    }
+
+    // ── Col R: Risk ₹ ──
+    // Actual rupees at risk = (Entry - InitialSL) × position size
+    // Uses Entry Price (L) if TRADED, CMP (C) if WAITING
+    if (sym) {
+      logSheet.getRange(i, 18).setFormula(
+        `=IF(AND(H${i}<>"",H${i}<>0),` +
+        `IF(L${i}<>"",` +
+        `ROUND((L${i}-H${i})*ROUND(${CONFIG.CAPITAL}/L${i},0),0),` +
+        `IF(C${i}<>"",ROUND((C${i}-H${i})*ROUND(${CONFIG.CAPITAL}/C${i},0),0),"—")),` +
+        `"—")`
+      );
+    } else {
+      logSheet.getRange(i, 18).setValue("");
+    }
+
+    // ── Col S: Position Size ──
+    // Shares to buy = ₹10,000 / Entry Price
+    // Uses Entry Price (L) if TRADED, CMP (C) if WAITING
+    if (sym) {
+      logSheet.getRange(i, 19).setFormula(
+        `=IF(L${i}<>"",ROUND(${CONFIG.CAPITAL}/L${i},0),` +
+        `IF(C${i}<>"",ROUND(${CONFIG.CAPITAL}/C${i},0),"—"))`
+      );
+    } else {
+      logSheet.getRange(i, 19).setValue("");
+    }
+  }
+}
+
+// ── TRADE TYPE MAPPER ─────────────────────────────────────────────────────────
+// Reads Trade_Type already calculated in Nifty200 col Y (r[24]).
+// Maps to display label for AlertLog col E.
+// Also returns ATR SL multiplier for each type.
+//
+// Nifty200 col Y values → AlertLog display:
+//   "⚡ INTRADAY"            → "⚡ Intraday"      SL: ATR×1.5
+//   "🎯 SWING (Breakout)"    → "🔄 Swing"         SL: ATR×2.0
+//   "📊 SWING (Trend)"       → "🔄 Swing"         SL: ATR×2.0
+//   "💰 POSITIONAL (Value)"  → "📈 Positional"    SL: ATR×2.0 or 50DMA
+//   "📈 POSITIONAL (Growth)" → "📈 Positional"    SL: ATR×2.5 or 20DMA
+//   High priority + high ATR → "📊 Options Alert" SL: ATR×2.0
+function _mapTradeType(niftyType, priority, atr, cmp) {
+  const atrPct = (atr / cmp) * 100;
+  if (priority >= 28 && atrPct > 2.0) return { ttype: "📊 Options Alert" };
+  if (niftyType.includes("INTRADAY"))  return { ttype: "⚡ Intraday"   };
+  if (niftyType.includes("SWING"))     return { ttype: "🔄 Swing"      };
+  if (niftyType.includes("POSITIONAL"))return { ttype: "📈 Positional" };
+  if (priority >= 26) return { ttype: "📈 Positional" };
+  if (priority >= 22) return { ttype: "🔄 Swing"      };
+  return               { ttype: "⚡ Intraday"          };
+}
+
+// ── MORNING CLEANUP ───────────────────────────────────────────────────────────
+// Clears WAITING rows. Keeps TRADED rows with all their data intact.
+// Preserves Entry Price (L), Entry Time (M), Trailing SL (O) for active trades.
+function clearWaitingRowsOnly() {
+  const logSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.LOG_SHEET);
+  const data     = logSheet.getRange(2, 1, CONFIG.LOG_ROWS, CONFIG.TOTAL_COLS).getValues();
+
+  // Keep only rows where status = TRADED (not EXITED, not WAITING, not blank)
+  const traded = data.filter(r =>
+    _isTraded((r[10] || "").toString().toUpperCase())
+  );
+
+  logSheet.getRange(2, 1, CONFIG.LOG_ROWS, CONFIG.TOTAL_COLS).clearContent();
+
+  if (traded.length > 0) {
+    logSheet.getRange(2, 1, traded.length, CONFIG.TOTAL_COLS).setValues(traded);
+  }
+
+  // Restore formulas for remaining rows
+  _restoreFormulas(logSheet);
+  Logger.log(`[MORNING CLEANUP] Kept ${traded.length} active trades. WAITING rows cleared.`);
+}
+
+// ── FRESH CLEAN START ─────────────────────────────────────────────────────────
+// Use only for full reset. Clears everything including active trades.
+function freshCleanStart() {
+  const ui       = SpreadsheetApp.getUi();
+  const logSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.LOG_SHEET);
+
+  const confirm = ui.alert(
+    '🧹 FRESH CLEAN START',
+    'This will clear ALL rows 2–11 including active TRADED rows.\n\n' +
+    '✅ Clears all data (A–S)\n' +
+    '✅ Restores all VLOOKUP formulas (col C)\n' +
+    '✅ Clears T4 memory string\n' +
+    '🔒 T2 automation switch — NOT touched\n\n' +
+    'WARNING: Any active trades will be lost from AlertLog.\n' +
+    'Make sure History sheet is up to date first.\n\n' +
+    'Are you sure?',
+    ui.ButtonSet.YES_NO
+  );
+  if (confirm !== ui.Button.YES) {
+    ui.alert('❌ Cancelled. No changes made.');
+    return;
+  }
+
+  // Clear all 19 cols × 10 rows
+  logSheet.getRange(2, 1, CONFIG.LOG_ROWS, CONFIG.TOTAL_COLS).clearContent();
+
+  // Restore formulas (VLOOKUP + formula cols)
+  _restoreFormulas(logSheet);
+
+  // Clear memory in T4 — resets all Python flags
+  // T2 (automation switch YES/NO) is NOT touched
+  logSheet.getRange("T4").clearContent();
+
+  ui.alert(
+    '✅ FRESH CLEAN COMPLETE\n\n' +
+    '• All rows cleared ✅\n' +
+    '• Formulas restored ✅\n' +
+    '• T4 memory cleared ✅\n' +
+    '• T2 switch: untouched ✅\n\n' +
+    'Click 🔄 MANUAL SYNC to fill fresh candidates.'
+  );
+}
+
+// ── WEEKLY SUMMARY ─────────────────────────────────────────────────────────
+// Fires every Friday 15:30–15:45 IST automatically.
+// Reads History sheet for the week's closed trades.
+function sendWeeklySummary() {
+  const ss        = SpreadsheetApp.getActiveSpreadsheet();
+  const hist      = ss.getSheetByName(CONFIG.HISTORY_SHEET);
+  const logSheet  = ss.getSheetByName(CONFIG.LOG_SHEET);
+  const now       = new Date();
+  const today     = Utilities.formatDate(now, CONFIG.IST_ZONE, "yyyy-MM-dd");
+
+  // Get Mon of this week
+  const day  = now.getDay(); // 5=Fri
+  const diff = day - 1;      // days since Monday
+  const mon  = new Date(now); mon.setDate(now.getDate() - diff);
+  const monStr = Utilities.formatDate(mon, CONFIG.IST_ZONE, "yyyy-MM-dd");
+
+  const allHist = hist ? hist.getDataRange().getValues() : [];
+  const weekRows = allHist.slice(1).filter(r => r[3] >= monStr && r[3] <= today);
+
+  const wins   = weekRows.filter(r => (r[6] || "").toString().toUpperCase().includes("WIN"));
+  const losses = weekRows.filter(r => (r[6] || "").toString().toUpperCase().includes("LOSS"));
+  const totalPL = weekRows.reduce((s, r) => s + (parseFloat(r[16]) || 0), 0);
+  const winRate = weekRows.length > 0 ? Math.round((wins.length / weekRows.length) * 100) : 0;
+
+  // Best and worst trade
+  let best = null, worst = null;
+  for (const r of weekRows) {
+    const pl = parseFloat(r[16]) || 0;
+    if (!best  || pl > (parseFloat(best[16])  || 0)) best  = r;
+    if (!worst || pl < (parseFloat(worst[16]) || 0)) worst = r;
+  }
+
+  // Open trades P/L
+  const logData = logSheet.getRange(2, 1, CONFIG.LOG_ROWS, CONFIG.TOTAL_COLS).getValues();
+  const openTrades = logData.filter(r => _isTraded((r[10] || "").toString().toUpperCase()));
+
+  let msg = `📅 <b>WEEKLY REPORT — w/e ${today}</b>\n` +
+            `━━━━━━━━━━━━━━━━━━━━\n` +
+            `📊 Trades: ${weekRows.length} | ✅ Wins: ${wins.length} | ❌ Losses: ${losses.length}\n` +
+            `🎯 Win Rate: ${winRate}%\n` +
+            `💰 Weekly P/L: <b>₹${totalPL >= 0 ? '+' : ''}${Math.round(totalPL).toLocaleString()}</b>\n`;
+
+  if (best)  msg += `🏆 Best:  <b>${best[0]}</b> ${best[5]} = ₹${Math.round(parseFloat(best[16]) || 0)}\n`;
+  if (worst) msg += `💀 Worst: <b>${worst[0]}</b> ${worst[5]} = ₹${Math.round(parseFloat(worst[16]) || 0)}\n`;
+
+  msg += `\n📌 Open positions: ${openTrades.length}/${CONFIG.MAX_TRADES}`;
+
+  _sendTelegram(msg);
+  Logger.log(`[WEEKLY] Sent weekly summary — ${weekRows.length} trades this week`);
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function _isTraded(status) {
+  const s = status.toString().toUpperCase();
+  return s.includes("TRADED") && !s.includes("EXITED");
+}
+
+function _isWaiting(status) {
+  return status.toString().toUpperCase().includes("WAITING");
+}
+
+// ── TELEGRAM ─────────────────────────────────────────────────────────────────
+function _sendTelegram(msg) {
+  try {
+    UrlFetchApp.fetch(
+      `https://api.telegram.org/bot${CONFIG.TELEGRAM_TOKEN}/sendMessage`,
+      {
+        method      : "post",
+        contentType : "application/json",
+        payload     : JSON.stringify({
+          chat_id    : CONFIG.CHAT_ID,
+          text       : msg,
+          parse_mode : "HTML"
+        })
+      }
+    );
+  } catch (e) {
+    Logger.log("Telegram error: " + e.toString());
+  }
+}
