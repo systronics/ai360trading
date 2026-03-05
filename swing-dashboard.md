@@ -6,14 +6,11 @@ permalink: /swing-dashboard/
 ---
 
 <style>
-  /* 1. Global Page Width Fix */
   .post-content, .wrapper {
     max-width: 1200px !important;
     margin: 0 auto !important;
     padding: 0 15px !important;
   }
-
-  /* 2. Professional Button UI */
   .action-buttons {
     display: flex;
     justify-content: center;
@@ -31,8 +28,6 @@ permalink: /swing-dashboard/
     box-shadow: 0 4px 15px rgba(0,136,204,0.3);
     transition: 0.3s;
   }
-
-  /* 3. Live Blinking Indicator */
   .live-status {
     display: flex;
     align-items: center;
@@ -55,8 +50,6 @@ permalink: /swing-dashboard/
     50% { opacity: 0.4; transform: scale(0.8); }
     100% { opacity: 1; transform: scale(1); }
   }
-
-  /* 4. TERMINAL CONTAINER FIX */
   .terminal-wrapper {
     position: relative;
     width: 100%;
@@ -82,8 +75,6 @@ permalink: /swing-dashboard/
     border: none;
     display: block;
   }
-
-  /* 5. Mobile Swipe Hint */
   .scroll-hint {
     display: none;
     text-align: center;
@@ -95,8 +86,6 @@ permalink: /swing-dashboard/
     border: 1px dashed #cbd5e0;
     border-radius: 6px;
   }
-
-  /* 6. SEO Content Section */
   .dashboard-intro {
     background: #f8fafc;
     border-left: 4px solid #0062ff;
@@ -107,7 +96,6 @@ permalink: /swing-dashboard/
     color: #1e293b;
     line-height: 1.8;
   }
-
   .dashboard-features {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -133,43 +121,67 @@ permalink: /swing-dashboard/
     margin: 0;
     line-height: 1.6;
   }
-
-  /* 7. Internal Links */
-  .internal-nav {
-    margin: 30px 0;
-    padding: 20px;
-    background: #f0f4f8;
-    border-radius: 10px;
+  .broker-section {
+    margin: 35px 0;
+    padding: 25px;
+    background: #f0f7ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 12px;
   }
-  .internal-nav p {
-    font-weight: 800;
-    font-size: 14px;
+  .broker-section h3 {
+    font-size: 18px;
+    font-weight: 900;
     color: #0f172a;
-    margin: 0 0 12px 0;
+    margin: 0 0 8px 0;
   }
-  .internal-nav-links {
+  .broker-section p {
+    font-size: 14px;
+    color: #64748b;
+    margin: 0 0 20px 0;
+  }
+  .broker-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 15px;
+  }
+  .broker-card {
     display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-  }
-  .nav-link {
+    flex-direction: column;
+    gap: 8px;
     background: #ffffff;
-    padding: 8px 16px;
-    border-radius: 6px;
-    font-size: 13px;
-    font-weight: 700;
-    color: #0062ff !important;
-    text-decoration: none;
     border: 1px solid #e2e8f0;
-    transition: 0.2s;
+    border-radius: 10px;
+    padding: 20px;
+    text-decoration: none !important;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
   }
-  .nav-link:hover {
-    background: #0062ff;
-    color: white !important;
+  .broker-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0,98,255,0.12);
     border-color: #0062ff;
   }
-
-  /* 8. Disclaimer */
+  .broker-name {
+    font-size: 16px;
+    font-weight: 900;
+    color: #0f172a;
+  }
+  .broker-desc {
+    font-size: 13px;
+    color: #64748b;
+    line-height: 1.5;
+  }
+  .broker-btn {
+    display: inline-block;
+    margin-top: 5px;
+    background: #0062ff;
+    color: white !important;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 800;
+    text-align: center;
+  }
   .dashboard-disclaimer {
     margin-top: 30px;
     padding: 15px 20px;
@@ -180,24 +192,21 @@ permalink: /swing-dashboard/
     color: #744210;
     line-height: 1.7;
   }
-
   @media (max-width: 768px) {
     .scroll-hint { display: block; }
     iframe { height: 700px; }
     .dashboard-features { grid-template-columns: 1fr; }
+    .broker-grid { grid-template-columns: 1fr; }
   }
 </style>
 
-<!-- INTRO TEXT: Matches H1 for SEO -->
 <div class="dashboard-intro">
   <strong>Live Swing Trading Dashboard</strong> tracks institutional buy signals across NSE Nifty 200 stocks in real time. Our algo system identifies high-probability swing trading setups using price action logic, volume analysis, and institutional order flow. Each signal comes with a defined entry zone, target price, and stop-loss level — so you always know your risk before entering a trade.
 </div>
 
 <div class="action-buttons">
-  <a href="https://t.me/{{ site.telegram_username }}" 
-     target="_blank" 
-     class="btn-tg">
-     📣 JOIN TELEGRAM FOR ALERTS
+  <a href="https://t.me/{{ site.telegram_username }}" target="_blank" class="btn-tg">
+    📣 JOIN TELEGRAM FOR ALERTS
   </a>
 </div>
 
@@ -216,7 +225,6 @@ permalink: /swing-dashboard/
   </div>
 </div>
 
-<!-- FEATURE CARDS: Adds word count + matches H1 keywords -->
 <div class="dashboard-features">
   <div class="feature-card">
     <h3>📊 Institutional Buy Signals</h3>
@@ -236,19 +244,28 @@ permalink: /swing-dashboard/
   </div>
 </div>
 
-<!-- INTERNAL LINKS -->
-<div class="internal-nav">
-  <p>EXPLORE MORE:</p>
-  <div class="internal-nav-links">
-    <a href="/analysis/" class="nav-link">📊 Market Analysis</a>
-    <a href="/positional-picks/" class="nav-link">🎯 Positional Picks</a>
-        <a href="/about/" class="nav-link">ℹ️ About</a>
-    <a href="/disclaimer/" class="nav-link">📋 Disclaimer</a>
-    <a href="/policy/" class="nav-link">🔒 Privacy Policy</a>
+<div class="broker-section">
+  <h3>🏦 Start Trading with Trusted Brokers</h3>
+  <p>Open a free trading account with India's most trusted brokers and start acting on these signals today.</p>
+  <div class="broker-grid">
+    <a href="https://bit.ly/2VK6k5F" target="_blank" rel="noopener" class="broker-card">
+      <span class="broker-name">📊 Zerodha</span>
+      <span class="broker-desc">India's #1 discount broker. Zero brokerage on equity delivery. Trusted by 1 crore+ traders.</span>
+      <span class="broker-btn">Open Free Account →</span>
+    </a>
+    <a href="https://invite.dhan.co/?invite=MSIVC45309" target="_blank" rel="noopener" class="broker-card">
+      <span class="broker-name">⚡ Dhan</span>
+      <span class="broker-desc">Fast order execution and clean UI. Perfect for swing traders who need speed and simplicity.</span>
+      <span class="broker-btn">Open Free Account →</span>
+    </a>
+    <a href="https://bit.ly/3lTl4JZ" target="_blank" rel="noopener" class="broker-card">
+      <span class="broker-name">₿ Binance</span>
+      <span class="broker-desc">World's largest crypto exchange. Trade Bitcoin, Ethereum and 350+ coins with low fees.</span>
+      <span class="broker-btn">Open Free Account →</span>
+    </a>
   </div>
 </div>
 
-<!-- DISCLAIMER -->
 <div class="dashboard-disclaimer">
   ⚠️ <strong>Risk Disclaimer:</strong> Swing trading signals on this dashboard are for educational and informational purposes only. They do not constitute financial advice. Markets are inherently unpredictable — always use proper position sizing and never risk more than you can afford to lose. Read our full <a href="/disclaimer/">Legal Disclaimer</a> before acting on any signal.
 </div>
@@ -257,9 +274,9 @@ permalink: /swing-dashboard/
   window.onload = function() {
     var iframe = document.getElementById('live-terminal');
     if (iframe) {
-        var currentSrc = iframe.src;
-        var timestamp = new Date().getTime();
-        iframe.src = currentSrc + (currentSrc.indexOf('?') > -1 ? "&" : "?") + "cb=" + timestamp;
+      var currentSrc = iframe.src;
+      var timestamp = new Date().getTime();
+      iframe.src = currentSrc + (currentSrc.indexOf('?') > -1 ? "&" : "?") + "cb=" + timestamp;
     }
   };
 </script>
