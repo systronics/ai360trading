@@ -535,14 +535,47 @@ End with EXACTLY: *Trade smart. Stay informed. — Amit Kumar, AI360Trading*)
                 cleaned_lines.append(line)
         content = "\n".join(cleaned_lines).lstrip("\n")
 
+        # ─── Dynamic Title Generator ─────────────────────────────────────────
+        top_trend    = trends[0] if trends else "Global Markets"
+        top_trend_2  = trends[1] if len(trends) > 1 else "Stock Market"
+
+        # Direction words based on market move
+        if nifty_pct > 1.0 or sp500_pct > 1.0:
+            direction = random.choice(["Surges", "Rallies", "Breaks Out", "Climbs Higher"])
+        elif nifty_pct < -1.0 or sp500_pct < -1.0:
+            direction = random.choice(["Drops", "Falls", "Slides", "Sells Off", "Tumbles"])
+        else:
+            direction = random.choice(["Mixed", "At Crossroads", "In Focus", "Holds Key Levels"])
+
+        # Title templates — rotates daily for variety
+        title_templates = [
+            f"{top_trend} — {date_display} Market Analysis & Trading Signals",
+            f"{top_trend}: What It Means for NIFTY, S&P 500 & Gold Today",
+            f"Stock Market {direction} on {top_trend} — {date_display} Intelligence Report",
+            f"{top_trend} & {top_trend_2} — Global Market Outlook {date_display}",
+            f"NIFTY & S&P 500 {direction} | {top_trend} — {date_display} Analysis",
+            f"{top_trend} Impact on Indian & US Markets — {date_display} Report",
+            f"Global Markets {direction} | {top_trend} Drives Trading — {date_display}",
+            f"{top_trend}: NIFTY {nifty_price}, S&P 500 {sp500_price} — {date_display} View",
+        ]
+        article_title = title_templates[now.day % len(title_templates)]
+
+        # Clean excerpt using live data
+        article_excerpt = (
+            f"{top_trend} drives global markets on {date_display}. "
+            f"NIFTY at {nifty_price}, S&P 500 at {sp500_price}, "
+            f"Gold at {gold_price}. Live analysis with support & resistance levels."
+        )[:200]
+
         # Front matter
         header = (
             "---\n"
             "layout: post\n"
-            f"title: \"{date_display} | Global Market Intelligence Report\"\n"
+            f"title: \"{article_title}\"\n"
             f"date: {date_str}\n"
             "author: \"Amit Kumar\"\n"
             f"permalink: /analysis/{chosen_slug}/\n"
+            f"excerpt: \"{article_excerpt}\"\n"
             f"description: \"{meta_description}\"\n"
             f"keywords: \"global market intelligence report, nifty analysis {date_str}, "
             f"stock market today, S&P 500 outlook, IBOVESPA today, "
@@ -566,6 +599,7 @@ End with EXACTLY: *Trade smart. Stay informed. — Amit Kumar, AI360Trading*)
             f.write(header + content)
 
         print(f"\n✅ Published  : /analysis/{chosen_slug}/")
+        print(f"   Title     : {article_title}")
         print(f"   Persona   : {persona['name']}")
         print(f"   Structure : {structure}")
         print(f"   Trending  : {trends[0] if trends else 'N/A'}")
