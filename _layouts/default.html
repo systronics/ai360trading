@@ -28,8 +28,8 @@
       justify-content: center;
       width: 42px;
       height: 42px;
-      background: #f1f5f9; /* Default light grey background */
-      color: #64748b !important; /* Default icon color */
+      background: #f1f5f9;
+      color: #64748b !important;
       border-radius: 50%;
       text-decoration: none;
       font-size: 18px;
@@ -38,15 +38,10 @@
     }
 
     /* BRAND SPECIFIC HOVER COLORS */
-    /* Telegram */
     .social-icon-link.tg:hover { background: #0088cc; color: #ffffff !important; border-color: #0088cc; }
-    /* Twitter/X */
     .social-icon-link.tw:hover { background: #1da1f2; color: #ffffff !important; border-color: #1da1f2; }
-    /* YouTube */
     .social-icon-link.yt:hover { background: #ff0000; color: #ffffff !important; border-color: #ff0000; }
-    /* Instagram */
     .social-icon-link.ig:hover { background: #e4405f; color: #ffffff !important; border-color: #e4405f; }
-    /* Facebook */
     .social-icon-link.fb:hover { background: #1877f2; color: #ffffff !important; border-color: #1877f2; }
 
     .social-icon-link:hover {
@@ -63,11 +58,47 @@
     /* HIDE OLD SUBSCRIPTION ELEMENTS */
     .sub-box, #sub-box, .subscription-container { display: none !important; }
 
+    /* COOKIE BANNER */
+    #cookie-banner {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: #0f172a;
+      color: #ffffff;
+      padding: 15px 25px;
+      z-index: 9999;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+      line-height: 1.6;
+      box-shadow: 0 -4px 12px rgba(0,0,0,0.2);
+    }
+    #cookie-banner p { margin: 0; color: #cbd5e1; flex: 1; min-width: 200px; }
+    #cookie-banner a { color: #60a5fa; text-decoration: underline; }
+    #cookie-accept-btn {
+      background: #0062ff;
+      color: white;
+      border: none;
+      padding: 10px 24px;
+      border-radius: 6px;
+      font-weight: 800;
+      font-size: 13px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.2s;
+    }
+    #cookie-accept-btn:hover { background: #004dc7; }
+
     @media (max-width: 600px) {
       .header-container { padding: 20px 10px; }
       .site-nav { gap: 15px; }
       .nav-link { font-size: 12px; }
       .social-icon-link { width: 38px; height: 38px; font-size: 16px; }
+      #cookie-banner { padding: 15px; }
     }
   </style>
 </head>
@@ -126,6 +157,26 @@
   <footer class="site-footer">
     <p>© 2026 AI360TRADING | Institutional Grade Market Intelligence</p>
   </footer>
+
+  <!-- COOKIE CONSENT BANNER -->
+  <div id="cookie-banner">
+    <p>We use cookies for analytics and personalized advertising. By continuing to use this site, you agree to our <a href="/policy/">Privacy Policy</a> and use of cookies.</p>
+    <button id="cookie-accept-btn" onclick="acceptCookies()">Accept & Continue</button>
+  </div>
+
+  <script>
+    function acceptCookies() {
+      document.getElementById('cookie-banner').style.display = 'none';
+      try { localStorage.setItem('cookie_accepted', 'true'); } catch(e) {}
+    }
+    try {
+      if (localStorage.getItem('cookie_accepted') !== 'true') {
+        document.getElementById('cookie-banner').style.display = 'flex';
+      }
+    } catch(e) {
+      document.getElementById('cookie-banner').style.display = 'flex';
+    }
+  </script>
 
 </body>
 </html>
