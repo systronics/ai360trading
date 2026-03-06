@@ -1,1 +1,2 @@
-curl -L https://srv.adstxtmanager.com/19390/[YOUR_DOMAIN].com > ads.txt
+google.com, pub-xxxxxxxxxxxx, DIRECT, f08c47fec0942fa0
+ezoic.com, 12345, DIRECT, f08c47fec0942fa0
