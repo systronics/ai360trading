@@ -1,4 +1,16 @@
 <head>
+  <!-- ═══ EZOIC PRIVACY SCRIPTS — Must load first ═══ -->
+  <script data-cfasync="false" src="https://cmp.gatekeeperconsent.com/min.js"></script>
+  <script data-cfasync="false" src="https://the.gatekeeperconsent.com/cmp.min.js"></script>
+
+  <!-- ═══ EZOIC HEADER SCRIPT ═══ -->
+  <script async src="//www.ezojs.com/ezoic/sa.min.js"></script>
+  <script>
+    window.ezstandalone = window.ezstandalone || {};
+    ezstandalone.cmd = ezstandalone.cmd || [];
+  </script>
+  <script src="//ezoicanalytics.com/analytics.js"></script>
+
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -7,10 +19,10 @@
   <title>{% if page.title %}{{ page.title }}{% else %}AI360Trading | Indian Market Intelligence Terminal{% endif %}</title>
   <meta name="description" content="{% if page.description %}{{ page.description }}{% else %}AI360Trading provides institutional-grade price action and algorithmic market intelligence.{% endif %}">
   <meta name="keywords" content="{% if page.keywords %}{{ page.keywords }}{% else %}stock market, global market intelligence, NASDAQ, FTSE 100, trading signals, market analysis{% endif %}">
-  <meta name="author" content="AI360Trading">
+  <meta name="author" content="Amit Kumar">
   <link rel="canonical" href="{{ page.url | replace:'index.html','' | absolute_url }}">
 
-  <!-- Open Graph (Facebook/WhatsApp/Telegram previews) -->
+  <!-- Open Graph -->
   <meta property="og:type" content="article">
   <meta property="og:title" content="{% if page.title %}{{ page.title }}{% else %}AI360Trading | Market Intelligence{% endif %}">
   <meta property="og:description" content="{% if page.description %}{{ page.description }}{% else %}Institutional-grade market intelligence and trading signals.{% endif %}">
@@ -24,10 +36,10 @@
   <meta name="twitter:description" content="{% if page.description %}{{ page.description }}{% else %}Institutional-grade market intelligence.{% endif %}">
   <meta name="twitter:image" content="{% if page.image %}{{ page.image | absolute_url }}{% else %}{{ '/public/image/header.webp' | absolute_url }}{% endif %}">
 
-  <!-- Favicon & Apple Touch Icons -->
+  <!-- Favicon -->
   <link rel="shortcut icon" href="{{ '/favicon.ico' | relative_url }}">
   <link rel="apple-touch-icon" sizes="180x180" href="{{ '/apple-touch-icon.png' | relative_url }}">
-  
+
   <!-- Fonts & Styles -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -44,8 +56,8 @@
     "headline": "{{ page.title }}",
     "datePublished": "{{ page.date | date_to_xmlschema }}",
     "author": {
-      "@type": "Organization",
-      "name": "AI360Trading"
+      "@type": "Person",
+      "name": "Amit Kumar"
     },
     "publisher": {
       "@type": "Organization",
