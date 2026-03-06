@@ -1,1 +1,1 @@
-google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0
+curl -L https://srv.adstxtmanager.com/19390/[YOUR_DOMAIN].com > ads.txt
