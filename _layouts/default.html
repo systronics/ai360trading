@@ -14,16 +14,92 @@
     .site-nav { display: flex; justify-content: center; gap: 25px; flex-wrap: wrap; margin-bottom: 20px; }
     .nav-link { text-decoration: none; color: #0062ff !important; font-weight: 800; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; }
 
+    /* SOCIAL ICONS WRAPPER */
+    .social-links-header { 
+      display: flex; 
+      justify-content: center; 
+      gap: 15px; 
+      margin-top: 10px; 
+    }
+    
+    .social-icon-link {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 42px;
+      height: 42px;
+      background: #f1f5f9;
+      color: #64748b !important;
+      border-radius: 50%;
+      text-decoration: none;
+      font-size: 18px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      border: 1px solid #e2e8f0;
+    }
+
+    /* BRAND SPECIFIC HOVER COLORS */
+    .social-icon-link.tg:hover { background: #0088cc; color: #ffffff !important; border-color: #0088cc; }
+    .social-icon-link.tw:hover { background: #1da1f2; color: #ffffff !important; border-color: #1da1f2; }
+    .social-icon-link.yt:hover { background: #ff0000; color: #ffffff !important; border-color: #ff0000; }
+    .social-icon-link.ig:hover { background: #e4405f; color: #ffffff !important; border-color: #e4405f; }
+    .social-icon-link.fb:hover { background: #1877f2; color: #ffffff !important; border-color: #1877f2; }
+
+    .social-icon-link:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
     /* CONTENT AREA */
     .content-wrapper { max-width: 1100px; margin: 0 auto; padding: 40px 20px; min-height: 70vh; }
-
+    
     /* FOOTER */
     .site-footer { background: #101c28; color: #ffffff; padding: 40px 20px; text-align: center; margin-top: 60px; }
+    
+    /* HIDE OLD SUBSCRIPTION ELEMENTS */
+    .sub-box, #sub-box, .subscription-container { display: none !important; }
 
     /* COOKIE BANNER */
-    #cookie-banner { display: none; position: fixed; bottom: 0; left: 0; width: 100%; background: #0f172a; color: #ffffff; padding: 15px 25px; z-index: 9999; display: flex; justify-content: space-between; align-items: center; }
+    #cookie-banner {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: #0f172a;
+      color: #ffffff;
+      padding: 15px 25px;
+      z-index: 9999;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+      line-height: 1.6;
+      box-shadow: 0 -4px 12px rgba(0,0,0,0.2);
+    }
+    #cookie-banner p { margin: 0; color: #cbd5e1; flex: 1; min-width: 200px; }
     #cookie-banner a { color: #60a5fa; text-decoration: underline; }
-    #cookie-accept-btn { background: #0062ff; color: white; border: none; padding: 10px 24px; border-radius: 6px; cursor: pointer; }
+    #cookie-accept-btn {
+      background: #0062ff;
+      color: white;
+      border: none;
+      padding: 10px 24px;
+      border-radius: 6px;
+      font-weight: 800;
+      font-size: 13px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.2s;
+    }
+    #cookie-accept-btn:hover { background: #004dc7; }
+
+    @media (max-width: 600px) {
+      .header-container { padding: 20px 10px; }
+      .site-nav { gap: 15px; }
+      .nav-link { font-size: 12px; }
+      .social-icon-link { width: 38px; height: 38px; font-size: 16px; }
+      #cookie-banner { padding: 15px; }
+    }
   </style>
 </head>
 <body>
@@ -40,51 +116,77 @@
       <a href="/disclaimer/" class="nav-link">Disclaimer</a>
       <a href="/policy/" class="nav-link">Policy</a>
     </nav>
+
+    <div class="social-links-header">
+      {% if site.telegram_username %}
+        <a href="https://t.me/{{ site.telegram_username }}" class="social-icon-link tg" target="_blank" title="Telegram">
+          <i class="fa fa-paper-plane"></i>
+        </a>
+      {% endif %}
+      
+      {% if site.twitter_username %}
+        <a href="https://twitter.com/{{ site.twitter_username }}" class="social-icon-link tw" target="_blank" title="Twitter">
+          <i class="fa fa-twitter"></i>
+        </a>
+      {% endif %}
+
+      {% if site.youtube_username %}
+        <a href="https://youtube.com/@{{ site.youtube_username }}" class="social-icon-link yt" target="_blank" title="YouTube">
+          <i class="fa fa-youtube-play"></i>
+        </a>
+      {% endif %}
+
+      {% if site.instagram_username %}
+        <a href="https://instagram.com/{{ site.instagram_username }}" class="social-icon-link ig" target="_blank" title="Instagram">
+          <i class="fa fa-instagram"></i>
+        </a>
+      {% endif %}
+
+      {% if site.facebook_username %}
+        <a href="https://facebook.com/{{ site.facebook_username }}" class="social-icon-link fb" target="_blank" title="Facebook">
+          <i class="fa fa-facebook"></i>
+        </a>
+      {% endif %}
+    </div>
   </header>
 
   <main class="content-wrapper">
 
-    <!-- EZOIC TOP AD (COMMENTED OUT UNTIL APPROVAL) -->
-    <!--
+    <!-- EZOIC TOP AD -->
     <div id="ezoic-pub-ad-placeholder-101"></div>
     <script>
         ezstandalone.cmd.push(function () {
             ezstandalone.showAds(101);
         });
     </script>
-    -->
 
     {{ content }}
 
-    <!-- EZOIC BOTTOM AD (COMMENTED OUT) -->
-    <!--
+    <!-- EZOIC BOTTOM ARTICLE AD -->
     <div id="ezoic-pub-ad-placeholder-102"></div>
     <script>
         ezstandalone.cmd.push(function () {
             ezstandalone.showAds(102);
         });
     </script>
-    -->
 
   </main>
 
-  <!-- EZOIC FOOTER AD (COMMENTED OUT) -->
-  <!--
+  <!-- EZOIC BEFORE FOOTER AD -->
   <div id="ezoic-pub-ad-placeholder-103"></div>
   <script>
       ezstandalone.cmd.push(function () {
           ezstandalone.showAds(103);
       });
   </script>
-  -->
-
+  
   <footer class="site-footer">
     <p>© 2026 AI360TRADING | Institutional Grade Market Intelligence</p>
   </footer>
 
   <!-- COOKIE CONSENT BANNER -->
   <div id="cookie-banner">
-    <p>We use cookies for analytics and personalized advertising. By continuing to use this site, you agree to our <a href="/policy/">Privacy Policy</a>.</p>
+    <p>We use cookies for analytics and personalized advertising. By continuing to use this site, you agree to our <a href="/policy/">Privacy Policy</a> and use of cookies.</p>
     <button id="cookie-accept-btn" onclick="acceptCookies()">Accept & Continue</button>
   </div>
 
