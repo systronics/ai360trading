@@ -12,6 +12,8 @@ on:
   schedule:
     # Every 5 min, 08:30–16:29 IST (03:00–10:59 UTC), Mon–Fri
     - cron: '*/5 3-10 * * 1-5'
+  push:
+    branches: [ master ]   # also triggers on every code push — keeps repo "active"
   workflow_dispatch:
     inputs:
       mode:
