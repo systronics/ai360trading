@@ -26,8 +26,8 @@ jobs:
 
       - name: Install Python dependencies
         run: |
-          pip install groq pytz requests gtts moviepy matplotlib numpy pillow
-          pip install google-api-python-client google-auth google-auth-oauthlib
+          pip install groq pytz requests gtts "moviepy==1.0.3" matplotlib numpy pillow
+          pip install google-api-python-client google-auth google-auth-oauthlib imageio imageio-ffmpeg
 
       - name: Generate and Upload Video
         env:
