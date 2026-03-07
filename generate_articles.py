@@ -50,6 +50,8 @@ PILLARS = [
             "{trend} Drives Global Stocks — {date} Market Report",
             "Wall Street to Dalal Street: {trend} — {date} Analysis",
             "Global Stock Market Outlook | {trend} — {date}",
+"NIFTY Support & Resistance Today — {date} | {trend}",
+"NIFTY Levels Today: Support, Resistance & S&P 500 — {date}",
         ],
         "article_focus": """Write a comprehensive stock market analysis covering:
 - S&P 500 and NASDAQ deep technical and fundamental analysis
