@@ -10,40 +10,36 @@ baseurl: ""
 timezone: "Asia/Kolkata"
 future: true
 encoding: "utf-8"
-
 # SEO & Ownership
 google_site_verification: "2yLD14QlM9ElbyiFZO_pUf-hTO09aCQEinK5LqD8Bpk"
 google_analytics: "G-YR9E0CYRCV"
 social_image: "/public/image/swing.webp"
-
 # Author Information
 author:
   name: "Amit Kumar"
   twitter: ai360trading
   email: admin@ai360trading.in
-
 # Permalinks & Markdown
 markdown: kramdown
 highlighter: rouge
 permalink: /:title/
-
 # SOCIAL MEDIA
 twitter_username: ai360trading
 telegram_username: ai360trading
 facebook_username: ai360trading
 youtube_username: ai360trading
 instagram_username: ai360trading
-
 # Plugins
 plugins:
   - jekyll-paginate
   - jekyll-seo-tag
   - jekyll-feed
-  
 # Pagination Settings
 paginate: 10
 paginate_path: "/page:num/"
-
+# Include custom pages directory
+include:
+  - _pages
 # Exclude from Jekyll build
 exclude:
   - generate_articles.py
@@ -51,7 +47,6 @@ exclude:
   - requirements.txt
   - README.md
   - LICENSE.md
-
 # Defaults
 defaults:
   - scope:
