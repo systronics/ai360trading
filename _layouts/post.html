@@ -43,7 +43,7 @@ layout: default
       <div class="share-buttons-gap">
         <a href="https://t.me/share/url?url={{ page.url | absolute_url }}&text={{ page.title }}" target="_blank" class="pc-share-btn tg">📣 Telegram</a>
         <a href="https://api.whatsapp.com/send?text={{ page.title }}: {{ page.url | absolute_url }}" target="_blank" class="pc-share-btn wa">💬 WhatsApp</a>
-        <a href="https://twitter.com/intent/tweet?url={{ page.url | absolute_url }}&text={{ page.title }}" target="_blank" class="pc-share-btn tw">𝕏 Twitter</a>
+        <a href="https://twitter.com/intent/tweet?url={{ page.url | absolute_url | url_encode }}&text={{ page.title | url_encode }}" target="_blank" class="pc-share-btn tw">𝕏 Twitter</a>
         <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ page.url | absolute_url }}" target="_blank" class="pc-share-btn li">🔗 LinkedIn</a>
       </div>
     </div>
@@ -59,7 +59,7 @@ layout: default
 <div class="mobile-social-bar">
   <a href="https://t.me/share/url?url={{ page.url | absolute_url }}" class="share-icon telegram">📣 Telegram</a>
   <a href="https://api.whatsapp.com/send?text={{ page.title }}: {{ page.url | absolute_url }}" class="share-icon whatsapp">💬 WhatsApp</a>
-  <a href="https://twitter.com/intent/tweet?url={{ page.url | absolute_url }}&text={{ page.title }}" target="_blank" class="share-icon twitter">𝕏 Twitter</a>
+  <a href="https://twitter.com/intent/tweet?url={{ page.url | absolute_url | url_encode }}&text={{ page.title | url_encode }}" target="_blank" class="share-icon twitter">𝕏 Twitter</a>
   <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ page.url | absolute_url }}" target="_blank" class="share-icon linkedin">🔗 LinkedIn</a>
 </div>
 
