@@ -1,18 +1,20 @@
 ---
 layout: default
 ---
-
 <article class="post-outer-container">
   <div class="post-article-card" {% if page.lang %}lang="{{page.lang}}"{% endif %}>
     
     <header class="post-header-section">
       <h1 class="post-title-main">{{ page.title }}</h1>
-      
       <div class="post-metadata-row">
         <span class="meta-item">📅 {{ page.date | date: "%b %-d, %Y" }}</span>
         {% if page.author %}
           <span class="meta-divider">|</span>
           <span class="meta-item">👤 {{ page.author }}</span>
+        {% endif %}
+        {% if page.pillar %}
+          <span class="meta-divider">|</span>
+          <span class="meta-item pillar-badge">{{ page.pillar | replace: "-", " " | upcase }}</span>
         {% endif %}
       </div>
     </header>
@@ -25,10 +27,11 @@ layout: default
     <div class="related-posts-section">
       <p class="share-label">EXPLORE MORE:</p>
       <div class="related-links">
-        <a href="/analysis/" class="rel-link">📊 All Analysis</a>
+        <a href="/topics/stock-market/" class="rel-link">📊 Stock Market</a>
+        <a href="/topics/bitcoin/" class="rel-link">₿ Bitcoin & Crypto</a>
+        <a href="/topics/personal-finance/" class="rel-link">💰 Personal Finance</a>
+        <a href="/topics/ai-trading/" class="rel-link">🤖 AI Trading</a>
         <a href="/swing-dashboard/" class="rel-link">📈 Swing Dashboard</a>
-        <a href="/positional-picks/" class="rel-link">🎯 Positional Picks</a>
-        <a href="/earn-money/" class="rel-link">💰 Earn Money</a>
         <a href="/about/" class="rel-link">ℹ️ About</a>
         <a href="/disclaimer/" class="rel-link">📋 Disclaimer</a>
       </div>
@@ -61,158 +64,36 @@ layout: default
 </div>
 
 <style>
-  /* 1. LAYOUT & CARD STABILITY */
   .post-outer-container { max-width: 900px; margin: 0 auto; }
-  .post-article-card {
-    background: #ffffff;
-    padding: 45px;
-    border-radius: 16px;
-    border: 1px solid #e2e8f0;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.04);
-    margin-bottom: 40px;
-  }
-
-  .post-header-section { 
-    text-align: center; 
-    margin-bottom: 40px; 
-    border-bottom: 1px solid #f1f5f9; 
-    padding-bottom: 25px; 
-  }
-  .post-title-main { 
-    color: #0062ff; 
-    font-weight: 900; 
-    font-size: 28px !important; 
-    line-height: 1.2; 
-    margin-bottom: 15px; 
-  }
-  .post-metadata-row { 
-    font-size: 13px; 
-    color: #64748b; 
-    font-weight: 700; 
-    display: flex; 
-    justify-content: center; 
-    gap: 15px; 
-  }
-
-  /* 2. TYPOGRAPHY */
+  .post-article-card { background: #ffffff; padding: 45px; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 4px 20px rgba(0,0,0,0.04); margin-bottom: 40px; }
+  .post-header-section { text-align: center; margin-bottom: 40px; border-bottom: 1px solid #f1f5f9; padding-bottom: 25px; }
+  .post-title-main { color: #0062ff; font-weight: 900; font-size: 28px !important; line-height: 1.2; margin-bottom: 15px; }
+  .post-metadata-row { font-size: 13px; color: #64748b; font-weight: 700; display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; }
+  .pillar-badge { background: #eff6ff; color: #0062ff; padding: 2px 8px; border-radius: 4px; font-size: 11px; }
   .post-body-content { line-height: 1.8; color: #1e293b; font-size: 17px; }
-  .post-body-content h2 { 
-    font-size: 1.25rem !important; 
-    margin: 2rem 0 1rem 0; 
-    color: #0f172a; 
-    font-weight: 800; 
-    border-left: 4px solid #2ecc71; 
-    padding-left: 15px; 
-  }
+  .post-body-content h2 { font-size: 1.25rem !important; margin: 2rem 0 1rem 0; color: #0f172a; font-weight: 800; border-left: 4px solid #2ecc71; padding-left: 15px; }
+  .post-body-content h3 { font-size: 1.1rem !important; margin: 1.5rem 0 0.8rem 0; color: #0f172a; font-weight: 700; }
   .post-body-content p { margin-bottom: 1.5rem; }
-
-  /* 3. INTERNAL LINKS SECTION */
-  .related-posts-section { 
-    margin-top: 35px; 
-    padding-top: 25px; 
-    border-top: 1px solid #f1f5f9; 
-  }
-  .related-links { 
-    display: flex; 
-    flex-wrap: wrap; 
-    gap: 10px; 
-    margin-top: 12px; 
-  }
-  .rel-link { 
-    background: #f0f4f8; 
-    padding: 9px 18px; 
-    border-radius: 6px; 
-    font-size: 13px; 
-    font-weight: 700; 
-    color: #0062ff !important; 
-    text-decoration: none; 
-    border: 1px solid #e2e8f0;
-    transition: 0.2s;
-  }
-  .rel-link:hover { 
-    background: #0062ff; 
-    color: white !important; 
-    border-color: #0062ff;
-  }
-
-  /* 4. SHARE SECTION (PC) */
-  .post-share-logic { 
-    margin-top: 30px; 
-    padding-top: 25px; 
-    border-top: 1px solid #f1f5f9; 
-  }
-  .share-label { 
-    font-weight: 800; 
-    font-size: 14px; 
-    color: #0f172a; 
-    margin-bottom: 15px; 
-  }
+  .post-body-content table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px; }
+  .post-body-content th { background: #0062ff; color: white; padding: 10px; text-align: left; }
+  .post-body-content td { padding: 8px 10px; border-bottom: 1px solid #e2e8f0; }
+  .post-body-content tr:nth-child(even) { background: #f8faff; }
+  .related-posts-section { margin-top: 35px; padding-top: 25px; border-top: 1px solid #f1f5f9; }
+  .related-links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+  .rel-link { background: #f0f4f8; padding: 9px 18px; border-radius: 6px; font-size: 13px; font-weight: 700; color: #0062ff !important; text-decoration: none; border: 1px solid #e2e8f0; transition: 0.2s; }
+  .rel-link:hover { background: #0062ff; color: white !important; border-color: #0062ff; }
+  .post-share-logic { margin-top: 30px; padding-top: 25px; border-top: 1px solid #f1f5f9; }
+  .share-label { font-weight: 800; font-size: 14px; color: #0f172a; margin-bottom: 15px; }
   .share-buttons-gap { display: flex; gap: 10px; flex-wrap: wrap; }
-  .pc-share-btn { 
-    color: white !important; 
-    padding: 10px 20px; 
-    border-radius: 6px; 
-    font-size: 13px; 
-    font-weight: 700; 
-    text-decoration: none; 
-    transition: 0.2s;
-  }
+  .pc-share-btn { color: white !important; padding: 10px 20px; border-radius: 6px; font-size: 13px; font-weight: 700; text-decoration: none; transition: 0.2s; }
   .pc-share-btn:hover { opacity: 0.9; transform: translateY(-2px); }
-  .tg { background: #0088cc; }
-  .wa { background: #25d366; }
-  .tw { background: #000000; }
-  .li { background: #0077b5; }
-
-  /* 5. FLOATING MOBILE BAR */
-  .mobile-social-bar {
-    display: none; 
-    position: fixed; 
-    bottom: 0; 
-    left: 0; 
-    width: 100%; 
-    background: #ffffff; 
-    box-shadow: 0 -2px 15px rgba(0,0,0,0.1); 
-    z-index: 9999; 
-    padding: 10px 12px; 
-    justify-content: space-around;
-    box-sizing: border-box;
-  }
-  .share-icon { 
-    flex: 1; 
-    text-align: center; 
-    padding: 12px 6px; 
-    margin: 0 4px; 
-    border-radius: 8px; 
-    color: white !important; 
-    font-weight: 800; 
-    font-size: 12px; 
-    text-decoration: none; 
-  }
-  .telegram  { background: #0088cc; }
-  .whatsapp  { background: #25d366; }
-  .twitter   { background: #000000; }
-  .linkedin  { background: #0077b5; }
-
-  /* 6. FOOTER */
-  .post-terminal-footer { 
-    margin-top: 50px; 
-    padding-top: 20px; 
-    border-top: 1px dashed #e2e8f0; 
-    text-align: center; 
-  }
-  .post-terminal-footer p { 
-    font-size: 13px; 
-    color: #94a3b8; 
-    font-style: italic; 
-  }
-
-  /* 7. KILL SWITCH (NO SUBSCRIPTIONS) */
-  .sub-box, #sub-box, .subscription-container, .subscription-box, a[href*="technical-picks"] {
-    display: none !important; 
-    visibility: hidden !important;
-  }
-
-  /* 8. MOBILE OPTIMIZATION */
+  .tg { background: #0088cc; } .wa { background: #25d366; } .tw { background: #000000; } .li { background: #0077b5; }
+  .mobile-social-bar { display: none; position: fixed; bottom: 0; left: 0; width: 100%; background: #ffffff; box-shadow: 0 -2px 15px rgba(0,0,0,0.1); z-index: 9999; padding: 10px 12px; justify-content: space-around; box-sizing: border-box; }
+  .share-icon { flex: 1; text-align: center; padding: 12px 6px; margin: 0 4px; border-radius: 8px; color: white !important; font-weight: 800; font-size: 12px; text-decoration: none; }
+  .telegram { background: #0088cc; } .whatsapp { background: #25d366; } .twitter { background: #000000; } .linkedin { background: #0077b5; }
+  .post-terminal-footer { margin-top: 50px; padding-top: 20px; border-top: 1px dashed #e2e8f0; text-align: center; }
+  .post-terminal-footer p { font-size: 13px; color: #94a3b8; font-style: italic; }
+  .sub-box, #sub-box, .subscription-container, .subscription-box { display: none !important; visibility: hidden !important; }
   @media (max-width: 768px) {
     .post-article-card { padding: 25px 20px; border-radius: 0; border: none; }
     .post-title-main { font-size: 22px !important; }
@@ -220,7 +101,6 @@ layout: default
     .mobile-social-bar { display: flex; }
     .post-outer-container { padding-bottom: 80px; }
     .post-share-logic { display: none; }
-    .related-posts-section { padding-bottom: 10px; }
     .rel-link { font-size: 12px; padding: 8px 12px; }
   }
 </style>
