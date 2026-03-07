@@ -1,7 +1,6 @@
 ---
 layout: default
 ---
-
 <article class="standard-page-container">
   <div class="pro-page-card" {% if page.lang %}lang="{{page.lang}}"{% endif %}>
     
@@ -19,104 +18,31 @@ layout: default
     <div class="page-internal-nav">
       <p class="page-nav-label">EXPLORE MORE:</p>
       <div class="page-nav-links">
-        <a href="/analysis/" class="page-nav-link">📊 Market Analysis</a>
+        <a href="/topics/stock-market/" class="page-nav-link">📊 Stock Market</a>
+        <a href="/topics/bitcoin/" class="page-nav-link">₿ Bitcoin & Crypto</a>
+        <a href="/topics/personal-finance/" class="page-nav-link">💰 Personal Finance</a>
+        <a href="/topics/ai-trading/" class="page-nav-link">🤖 AI Trading</a>
         <a href="/swing-dashboard/" class="page-nav-link">📈 Swing Dashboard</a>
-        <a href="/positional-picks/" class="page-nav-link">🎯 Positional Picks</a>
         <a href="/about/" class="page-nav-link">ℹ️ About</a>
         <a href="/disclaimer/" class="page-nav-link">📋 Disclaimer</a>
       </div>
     </div>
-
   </div>
 </article>
 
 <style>
-  /* 1. LAYOUT & CARD */
-  .standard-page-container {
-    max-width: 900px;
-    margin: 0 auto;
-  }
-  .pro-page-card {
-    background: #ffffff;
-    padding: 45px;
-    border-radius: 16px;
-    border: 1px solid #e2e8f0;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
-    margin-bottom: 40px;
-  }
-
-  /* 2. TITLE AREA */
-  .page-title-area {
-    border-bottom: 2px solid #f1f5f9;
-    padding-bottom: 15px;
-    margin-bottom: 30px;
-  }
-  .page-main-heading {
-    color: #0062ff;
-    font-size: 24px !important;
-    font-weight: 900;
-    margin: 0;
-    text-align: left;
-  }
-
-  /* 3. BODY TEXT */
-  .page-body-content {
-    line-height: 1.8;
-    color: #1e293b;
-    font-size: 17px;
-  }
-  .page-body-content h2 {
-    font-size: 19px !important;
-    font-weight: 800;
-    margin-top: 2rem;
-    color: #0f172a;
-    letter-spacing: -0.3px;
-  }
-  .page-body-content blockquote {
-    border-left: 4px solid #2ecc71;
-    background: #f8fafc;
-    padding: 20px;
-    margin: 25px 0;
-    font-style: italic;
-    border-radius: 0 8px 8px 0;
-  }
-
-  /* 4. INTERNAL LINKS */
-  .page-internal-nav {
-    margin-top: 35px;
-    padding: 20px;
-    background: #f0f4f8;
-    border-radius: 10px;
-  }
-  .page-nav-label {
-    font-weight: 800;
-    font-size: 14px;
-    color: #0f172a;
-    margin: 0 0 12px 0;
-  }
-  .page-nav-links {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-  }
-  .page-nav-link {
-    background: #ffffff;
-    padding: 9px 18px;
-    border-radius: 6px;
-    font-size: 13px;
-    font-weight: 700;
-    color: #0062ff !important;
-    text-decoration: none;
-    border: 1px solid #e2e8f0;
-    transition: 0.2s;
-  }
-  .page-nav-link:hover {
-    background: #0062ff;
-    color: white !important;
-    border-color: #0062ff;
-  }
-
-  /* 5. MOBILE */
+  .standard-page-container { max-width: 900px; margin: 0 auto; }
+  .pro-page-card { background: #ffffff; padding: 45px; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 4px 15px rgba(0,0,0,0.03); margin-bottom: 40px; }
+  .page-title-area { border-bottom: 2px solid #f1f5f9; padding-bottom: 15px; margin-bottom: 30px; }
+  .page-main-heading { color: #0062ff; font-size: 24px !important; font-weight: 900; margin: 0; text-align: left; }
+  .page-body-content { line-height: 1.8; color: #1e293b; font-size: 17px; }
+  .page-body-content h2 { font-size: 19px !important; font-weight: 800; margin-top: 2rem; color: #0f172a; letter-spacing: -0.3px; }
+  .page-body-content blockquote { border-left: 4px solid #2ecc71; background: #f8fafc; padding: 20px; margin: 25px 0; font-style: italic; border-radius: 0 8px 8px 0; }
+  .page-internal-nav { margin-top: 35px; padding: 20px; background: #f0f4f8; border-radius: 10px; }
+  .page-nav-label { font-weight: 800; font-size: 14px; color: #0f172a; margin: 0 0 12px 0; }
+  .page-nav-links { display: flex; flex-wrap: wrap; gap: 10px; }
+  .page-nav-link { background: #ffffff; padding: 9px 18px; border-radius: 6px; font-size: 13px; font-weight: 700; color: #0062ff !important; text-decoration: none; border: 1px solid #e2e8f0; transition: 0.2s; }
+  .page-nav-link:hover { background: #0062ff; color: white !important; border-color: #0062ff; }
   @media (max-width: 768px) {
     .pro-page-card { padding: 25px 20px; border-radius: 0; border: none; }
     .page-main-heading { font-size: 20px !important; }
