@@ -14,7 +14,7 @@ layout: default
         {% endif %}
         {% if page.pillar %}
           <span class="meta-divider">|</span>
-          <span class="meta-item pillar-badge">{{ page.pillar | replace: "-", " " | upcase }}</span>
+          <a href="/topics/{{ page.pillar }}/" class="meta-item pillar-badge pillar-badge-{{ page.pillar }}">{{ page.pillar | replace: "-", " " | upcase }}</a>
         {% endif %}
       </div>
     </header>
@@ -69,7 +69,12 @@ layout: default
   .post-header-section { text-align: center; margin-bottom: 40px; border-bottom: 1px solid #f1f5f9; padding-bottom: 25px; }
   .post-title-main { color: #0062ff; font-weight: 900; font-size: 28px !important; line-height: 1.2; margin-bottom: 15px; }
   .post-metadata-row { font-size: 13px; color: #64748b; font-weight: 700; display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; }
-  .pillar-badge { background: #eff6ff; color: #0062ff; padding: 2px 8px; border-radius: 4px; font-size: 11px; }
+  .pillar-badge { padding: 3px 10px; border-radius: 4px; font-size: 11px; font-weight: 800; text-decoration: none; display: inline-block; transition: 0.2s; }
+  .pillar-badge-stock-market   { background: #eff6ff; color: #0062ff; border: 1px solid #0062ff; }
+  .pillar-badge-bitcoin        { background: #fff7ed; color: #f7931a; border: 1px solid #f7931a; }
+  .pillar-badge-personal-finance { background: #f0fdf4; color: #10b981; border: 1px solid #10b981; }
+  .pillar-badge-ai-trading     { background: #faf5ff; color: #8b5cf6; border: 1px solid #8b5cf6; }
+  .pillar-badge:hover { opacity: 0.75; }
   .post-body-content { line-height: 1.8; color: #1e293b; font-size: 17px; }
   .post-body-content h2 { font-size: 1.25rem !important; margin: 2rem 0 1rem 0; color: #0f172a; font-weight: 800; border-left: 4px solid #2ecc71; padding-left: 15px; }
   .post-body-content h3 { font-size: 1.1rem !important; margin: 1.5rem 0 0.8rem 0; color: #0f172a; font-weight: 700; }
