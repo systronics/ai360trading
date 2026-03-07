@@ -99,7 +99,7 @@ layout: default
       <article class="home-post-card">
         <div class="post-meta">
           📅 {{ post.date | date: "%b %-d, %Y" }}
-          {% if post.pillar %}<span class="home-pillar-tag">{{ post.pillar | replace: "-", " " | upcase }}</span>{% endif %}
+          {% if post.pillar %}<a href="/topics/{{ post.pillar }}/" class="home-pillar-tag">{{ post.pillar | replace: "-", " " | upcase }}</a>{% endif %}
         </div>
         <h3 class="post-title">
           <a href="{{ post.url | relative_url }}">{{ post.title }}</a>
@@ -173,7 +173,8 @@ layout: default
   .seo-text-block p { font-size: 15px; color: #475569; margin-bottom: 12px; line-height: 1.8; }
   .home-post-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 20px 25px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
   .post-meta { font-size: 12px; color: #94a3b8; font-weight: 700; margin-bottom: 8px; }
-  .home-pillar-tag { background: #eff6ff; color: #0062ff; padding: 2px 8px; border-radius: 4px; font-size: 10px; margin-left: 8px; font-weight: 800; }
+  .home-pillar-tag { background: #eff6ff; color: #0062ff; padding: 2px 8px; border-radius: 4px; font-size: 10px; margin-left: 8px; font-weight: 800; text-decoration: none; display: inline-block; }
+  .home-pillar-tag:hover { background: #0062ff; color: white; }
   .post-title { font-size: 16px; font-weight: 800; margin: 0 0 8px 0; }
   .post-title a { color: #0f172a; text-decoration: none; }
   .post-title a:hover { color: #0062ff; }
