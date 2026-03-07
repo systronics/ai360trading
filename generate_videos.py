@@ -40,18 +40,18 @@ try:
     from gtts import gTTS
     from moviepy.editor import (
         ImageClip, AudioFileClip, concatenate_videoclips,
-        CompositeVideoClip, TextClip, ColorClip
+        CompositeVideoClip, ColorClip
     )
     import matplotlib
     matplotlib.use('Agg')
     import matplotlib.pyplot as plt
     import matplotlib.patches as mpatches
     import numpy as np
-    from PIL import Image, ImageDraw, ImageFont
+    from PIL import Image, ImageDraw
     LIBS_OK = True
 except ImportError as e:
     print(f"Missing library: {e}")
-    print("Run: pip install gtts moviepy matplotlib numpy pillow")
+    print("Run: pip install gtts moviepy==1.0.3 matplotlib numpy pillow")
     LIBS_OK = False
 
 # ── Try importing YouTube upload library ─────────────────────────────────────
