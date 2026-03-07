@@ -1,0 +1,36 @@
+name: Daily YouTube Video Generator
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 2 * * *' # 7:30 AM IST daily (30 min after articles)
+jobs:
+  generate-video:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout master
+        uses: actions/checkout@v4
+        with:
+          ref: master
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install system dependencies (for moviepy/audio)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg fonts-liberation fonts-dejavu
+
+      - name: Install Python dependencies
+        run: |
+          pip install groq pytz requests gtts moviepy matplotlib numpy pillow
+          pip install google-api-python-client google-auth google-auth-oauthlib
+
+      - name: Generate and Upload Video
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          YOUTUBE_CREDENTIALS: ${{ secrets.YOUTUBE_CREDENTIALS }}
+        run: python generate_videos.py
