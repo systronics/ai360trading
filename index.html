@@ -69,26 +69,12 @@ layout: default
 
   <section class="seo-text-block">
     <h2>Market Intelligence & Institutional Logic</h2>
-    <p>Welcome to the <strong>AI360Trading Terminal</strong>. Our platform bridges the gap between complex global data and actionable intelligence for traders worldwide. We focus on <strong>Professional Trading Dashboards</strong> utilizing manual price-action logic combined with high-fidelity volume analysis.</p>
-    <p>By monitoring institutional footprints and structural market shifts, our systems provide clear insights into <strong>Swing</strong> and <strong>Positional</strong> setups. We leverage external data from authorities like <a href="https://www.tradingview.com" target="_blank" rel="noopener">TradingView</a> to ensure our community stays ahead of the curve.</p>
+    <p>AI360Trading bridges global market data with actionable intelligence — covering <strong>S&P 500, NIFTY, Bitcoin, FTSE 100</strong> and personal finance daily. Every report is backed by live data, price-action logic, and institutional flow analysis. <a href="https://www.tradingview.com" target="_blank" rel="noopener">Verified via TradingView.</a></p>
   </section>
 
   <section class="seo-text-block">
-    <h2>How Our Algo Trading System Works</h2>
-    <p>AI360Trading uses a rules-based algorithmic approach to identify high-probability setups in Nifty 200 stocks. Our system scans for institutional accumulation patterns, volume breakouts, and price structure confirmations before generating a signal. Every setup is verified manually before being published.</p>
-    <p>We do not rely on lagging indicators or generic moving average crossovers. Our methodology is built on reading raw price action — understanding where large operators are placing orders, and aligning retail trade entries with those institutional footprints.</p>
-  </section>
-
-  <section class="seo-text-block">
-    <h2>Swing Trading vs Positional Trading</h2>
-    <p>Our platform covers two distinct trading styles. <strong>Swing trading</strong> setups are designed for 3 to 15 day holding periods, targeting momentum moves driven by volume and short-term institutional activity.</p>
-    <p><strong>Positional picks</strong> focus on structural shifts in a stock's long-term trend — suited for investors with a 1 to 6 month time horizon. Both dashboards include defined entry zones, profit targets, and stop-loss levels.</p>
-  </section>
-
-  <section class="seo-text-block">
-    <h2>Why AI360Trading</h2>
-    <p>Every signal we publish is backed by a clear rationale — you can see exactly why a setup was selected, what the risk-reward ratio is, and how to manage the trade if it moves against you. Our goal is to give you a structured, repeatable framework for making better trading decisions.</p>
-    <p>Join our <a href="https://t.me/{{ site.telegram_username }}" target="_blank" rel="noopener">Telegram channel</a> to receive signals and analysis directly.</p>
+    <h2>Swing vs Positional — Two Styles, One Platform</h2>
+    <p><strong>Swing setups</strong> target 3–15 day momentum moves. <strong>Positional picks</strong> focus on 1–6 month structural trends. Both come with defined entry zones, profit targets, and stop-loss levels — no guesswork. Join our <a href="https://t.me/{{ site.telegram_username }}" target="_blank" rel="noopener">Telegram</a> for live signals.</p>
   </section>
 
   <hr class="section-divider">
@@ -135,7 +121,7 @@ layout: default
 <div class="mobile-social-bar">
   <a href="https://t.me/share/url?url={{ site.url | absolute_url }}&text=Check out AI360Trading Terminal" class="share-icon telegram">📣 Telegram</a>
   <a href="https://api.whatsapp.com/send?text=Check out AI360Trading Terminal: {{ site.url | absolute_url }}" class="share-icon whatsapp">💬 WhatsApp</a>
-  <a href="https://twitter.com/intent/tweet?url={{ site.url | url_encode }}&text=Check+out+AI360Trading+Terminal" target="_blank" class="share-icon twitter">𝕏 Twitter</a>
+  <a href="https://twitter.com/intent/tweet?url={{ site.url | absolute_url }}&text=Check out AI360Trading Terminal" target="_blank" class="share-icon twitter">𝕏 Twitter</a>
   <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ site.url | absolute_url }}" target="_blank" class="share-icon linkedin">🔗 LinkedIn</a>
 </div>
 
@@ -197,5 +183,9 @@ layout: default
     .mobile-social-bar { display: flex; }
     .dashboard-wrapper { padding-bottom: 80px; }
     .nav-link { font-size: 12px; padding: 8px 12px; }
+    .seo-text-block { margin-bottom: 15px; }
+    .seo-text-block h2 { font-size: 16px; margin-bottom: 8px; }
+    .seo-text-block p { font-size: 14px; line-height: 1.6; }
+    .section-divider { margin: 20px 0; }
   }
 </style>
