@@ -30,7 +30,7 @@ PILLARS = [
         "us_keywords": ["stock market today", "S&P 500 forecast", "best stocks to buy today", "NASDAQ outlook"],
         "uk_keywords": ["FTSE 100 today", "UK stock market", "London stock exchange today"],
         "brazil_keywords": ["IBOVESPA hoje", "bolsa de valores hoje", "mercado financeiro"],
-        "india_keywords": ["nifty analysis today", "trading signals India", "nifty support resistance"],
+        "india_keywords": ["nifty support resistance today", "nifty levels today", "nifty prediction today", "bank nifty levels today", "nifty analysis today"],
         "news_queries": [
             "S%26P+500+stock+market+today",
             "NASDAQ+outlook+today",
