@@ -407,7 +407,7 @@ def fetch_person_photo(is_crash):
     """Download person photo from GitHub repo"""
     base = "https://raw.githubusercontent.com/systronics/ai360trading/master/public/image/"
     options = ["person_crash_1.jpg","person_crash_2.jpg"] if is_crash else ["person_green_1.jpg","person_green_2.jpg"]
-    choice = options[ist_now.timetuple().tm_yday % len(options)]
+    choice = options[datetime.now().timetuple().tm_yday % len(options)]
     try:
         resp = requests.get(base + choice, timeout=10)
         if resp.status_code == 200:
