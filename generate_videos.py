@@ -221,21 +221,22 @@ YOUR VOICE IS:
 - Direct and confident — you have strong opinions and you share them
 - Human and conversational — like talking to a fellow trader, not reading a report
 - Emotionally engaging — you create tension, curiosity, risk awareness
-- Never robotic — vary your sentence length, mix short punchy lines with deeper explanations
+- Never robotic — vary sentence length, mix short punchy lines with deeper explanations
 
-BANNED PHRASES (never use these):
+BANNED PHRASES (never use):
 "Here is the chart", "Now let us dive into", "Moving on to", "As we can see",
 "In conclusion", "It is important to note", "This highlights", "Let us explore",
 "Welcome to AI360Trading. Today's report", "Subscribe to our channel for daily market analysis"
 
 SCRIPT FORMAT RULES:
-- Write NARRATOR: before each spoken line
-- Write SLIDE: before each visual instruction
+- Write NARRATOR: before each spoken line (English with Indian accent)
+- Write SLIDE: before each visual description (in English)
+- Write HINDI_SUB: after each SLIDE — 3-6 Hindi words summarizing the slide (shown as subtitle on screen)
+  Examples: "HINDI_SUB: आज का सबसे जरूरी Level" or "HINDI_SUB: क्या यह Crash है?" or "HINDI_SUB: Support टूटा तो गिरावट तय"
 - Hook must create CURIOSITY or TENSION in first 10 seconds
-- Place SOFT CTA naturally around 60-90 seconds into video
-- Use specific numbers with context — not just raw figures
-- End with a STRONG closing that makes viewer want tomorrow's video
-- Vary sentence length — short punchy sentences mixed with longer analysis
+- Place SOFT CTA naturally around 60-90 seconds
+- End with STRONG close that makes viewer want tomorrow's video
+- Vary sentence length — short punchy lines mixed with deeper analysis
 - Total spoken words: stated below per video type"""
 
     if topic_type == "nifty_analysis":
@@ -508,37 +509,101 @@ Total spoken words: 460-500 words.
 
 # ─── 3. Parse Script into Slides ─────────────────────────────────────────────
 def parse_script(script_text):
-    """Parse NARRATOR/SLIDE pairs from script"""
+    """Parse script into slides — handles NARRATOR/SLIDE tags and plain paragraphs"""
     slides = []
     current_narrator = ""
     current_slide = ""
 
-    for line in script_text.split("\n"):
-        line = line.strip()
-        if line.startswith("NARRATOR:"):
-            if current_narrator and current_slide:
-                slides.append({
-                    "narrator": current_narrator.strip(),
-                    "slide": current_slide.strip()
-                })
-            current_narrator = line.replace("NARRATOR:", "").strip()
-            current_slide = ""
-        elif line.startswith("SLIDE:"):
-            current_slide = line.replace("SLIDE:", "").strip()
-        elif line and current_narrator:
-            current_narrator += " " + line
+    # ── Method 1: try NARRATOR/SLIDE tag parsing ─────────────────────────────
+    has_tags = "NARRATOR:" in script_text
 
-    if current_narrator:
-        slides.append({
-            "narrator": current_narrator.strip(),
-            "slide": current_slide.strip() if current_slide else "AI360Trading Analysis"
-        })
+    if has_tags:
+        current_hindi = ""
+        for line in script_text.split("\n"):
+            line = line.strip()
+            if line.startswith("NARRATOR:"):
+                if current_narrator:
+                    slides.append({
+                        "narrator": current_narrator.strip(),
+                        "slide": current_slide.strip() if current_slide else _extract_slide_title(current_narrator),
+                        "hindi_sub": current_hindi.strip()
+                    })
+                current_narrator = line.replace("NARRATOR:", "").strip()
+                current_slide = ""
+                current_hindi = ""
+            elif line.startswith("SLIDE:"):
+                current_slide = line.replace("SLIDE:", "").strip()
+            elif line.startswith("HINDI_SUB:"):
+                current_hindi = line.replace("HINDI_SUB:", "").strip()
+            elif line and not line.startswith("#") and not line.startswith("---"):
+                if current_narrator:
+                    current_narrator += " " + line
 
-    # Ensure minimum slides
+        if current_narrator:
+            slides.append({
+                "narrator": current_narrator.strip(),
+                "slide": current_slide.strip() if current_slide else _extract_slide_title(current_narrator),
+                "hindi_sub": current_hindi.strip()
+            })
+
+    # ── Method 2: paragraph-based fallback ───────────────────────────────────
     if len(slides) < 3:
-        slides = [{"narrator": script_text[:500], "slide": "AI360Trading Market Analysis"}]
+        slides = []
+        # Split by double newline or section headers
+        paragraphs = [p.strip() for p in script_text.split("\n\n") if p.strip()]
+        # Also split on lines starting with ** or ## (section headers)
+        all_chunks = []
+        for para in paragraphs:
+            lines = para.split("\n")
+            chunk = ""
+            for line in lines:
+                line = line.strip()
+                if not line:
+                    continue
+                # New section header = new slide
+                if (line.startswith("**") and line.endswith("**")) or line.startswith("##"):
+                    if chunk:
+                        all_chunks.append(chunk.strip())
+                    chunk = line.lstrip("#").strip("*").strip() + ": "
+                else:
+                    chunk += " " + line
+            if chunk.strip():
+                all_chunks.append(chunk.strip())
 
-    return slides
+        for chunk in all_chunks:
+            if len(chunk) > 30:  # skip very short lines
+                slides.append({
+                    "narrator": chunk,
+                    "slide": _extract_slide_title(chunk),
+                    "hindi_sub": ""
+                })
+
+    # ── Final fallback: split into ~100 word chunks ───────────────────────────
+    if len(slides) < 3:
+        words = script_text.split()
+        chunk_size = 80
+        for i in range(0, len(words), chunk_size):
+            chunk = " ".join(words[i:i+chunk_size])
+            if chunk:
+                slides.append({
+                    "narrator": chunk,
+                    "slide": _extract_slide_title(chunk),
+                    "hindi_sub": ""
+                })
+
+    return slides[:12]  # max 12 slides
+
+
+def _extract_slide_title(text):
+    """Extract a short title from narrator text for the slide header"""
+    # Take first sentence or first 8 words
+    sentences = text.replace("?", ".").replace("!", ".").split(".")
+    first = sentences[0].strip() if sentences else text
+    words = first.split()
+    title = " ".join(words[:8])
+    # Clean markdown
+    title = title.replace("**", "").replace("##", "").strip()
+    return title if title else "AI360Trading Analysis"
 
 # ─── 4. Generate Slide Images ─────────────────────────────────────────────────
 def hex_to_rgb(hex_color):
@@ -896,8 +961,8 @@ def create_fear_greed_slide(fg_val, fg_label, prices, color, output_path):
     plt.tight_layout(rect=[0, 0, 1, 0.95])
     save_fig(fig, output_path)
 
-def create_content_slide(slide_text, narrator_text, color, slide_num, total, output_path):
-    """Content slide — cleaner layout with visual accent blocks"""
+def create_content_slide(slide_text, narrator_text, color, slide_num, total, output_path, hindi_sub=""):
+    """Content slide — English heading + Hindi subtitle"""
     fig, ax = plt.subplots(figsize=(12.8, 7.2), dpi=100)
     fig.patch.set_facecolor(hex_to_rgb(BRAND_DARK))
     ax.set_facecolor(hex_to_rgb(BRAND_DARK))
@@ -919,36 +984,50 @@ def create_content_slide(slide_text, narrator_text, color, slide_num, total, out
     ax.text(0.96, 0.96, f'{slide_num} / {total}', transform=ax.transAxes,
             fontsize=11, color='#475569', ha='right', va='center')
 
-    # Main text — split into heading + body
+    # Main text — heading + body
     lines = slide_text.strip().split('\n')
     heading = lines[0] if lines else slide_text
     body    = '\n'.join(lines[1:]) if len(lines) > 1 else ''
 
     # Heading box
     ax.add_patch(mpatches.FancyBboxPatch(
-        (0.04, 0.68), 0.92, 0.20,
+        (0.04, 0.62), 0.92, 0.26,
         boxstyle="round,pad=0.02", color='#1e293b',
         transform=ax.transAxes, zorder=1))
-    ax.text(0.5, 0.78, textwrap.fill(heading, 50),
+    ax.text(0.5, 0.75, textwrap.fill(heading, 50),
             transform=ax.transAxes, fontsize=24, fontweight='bold',
             color='white', ha='center', va='center', linespacing=1.2)
 
     # Body text
     if body:
         wrapped_body = textwrap.fill(body, 70)
-        ax.text(0.08, 0.60, wrapped_body, transform=ax.transAxes,
-                fontsize=16, color='#cbd5e1', ha='left', va='top',
+        ax.text(0.08, 0.58, wrapped_body, transform=ax.transAxes,
+                fontsize=15, color='#cbd5e1', ha='left', va='top',
                 linespacing=1.5)
 
-    # Narrator quote at bottom
-    quote = narrator_text[:120] + '...' if len(narrator_text) > 120 else narrator_text
+    # Hindi subtitle bar — orange accent, Hindi/Hinglish text
+    if hindi_sub:
+        ax.add_patch(mpatches.FancyBboxPatch(
+            (0.0, 0.16), 1.0, 0.10,
+            boxstyle="round,pad=0", color='#1a0a00',
+            transform=ax.transAxes, zorder=1))
+        ax.add_patch(mpatches.FancyBboxPatch(
+            (0.0, 0.16), 0.004, 0.10,
+            boxstyle="round,pad=0", color='#f97316',
+            transform=ax.transAxes, zorder=2))
+        ax.text(0.5, 0.21, hindi_sub, transform=ax.transAxes,
+                fontsize=18, fontweight='bold',
+                color='#fed7aa', ha='center', va='center')
+
+    # Narrator quote bottom
+    quote = narrator_text[:100] + '...' if len(narrator_text) > 100 else narrator_text
     ax.add_patch(mpatches.FancyBboxPatch(
-        (0.04, 0.04), 0.92, 0.16,
+        (0.04, 0.03), 0.92, 0.12,
         boxstyle="round,pad=0.02", color='#0f1c2e',
         transform=ax.transAxes, zorder=1))
-    ax.text(0.5, 0.12, f'"{quote}"', transform=ax.transAxes,
-            fontsize=12, color='#64748b', ha='center', va='center',
-            style='italic', wrap=True)
+    ax.text(0.5, 0.09, f'"{quote}"', transform=ax.transAxes,
+            fontsize=11, color='#64748b', ha='center', va='center',
+            style='italic')
 
     ax.set_xlim(0, 1); ax.set_ylim(0, 1)
     ax.axis('off')
@@ -1066,12 +1145,12 @@ def create_outro_slide(color, output_path):
 def text_to_speech(text, output_path, lang='en', tld='co.in'):
     """Convert text to MP3 using gTTS — Indian English accent"""
     try:
-        # Clean text for TTS
         clean = text.replace("₹", "rupees ").replace("$", "dollars ")
         clean = clean.replace("%", " percent").replace("&", " and ")
         clean = clean.replace("|", ". ").replace("→", " ")
         clean = clean.replace("▲", "up ").replace("▼", "down ")
-
+        clean = clean.replace("—", ", ").replace("...", ". ")
+        clean = clean.replace("**", "").replace("##", "").replace("*", "")
         tts = gTTS(text=clean, lang=lang, tld=tld, slow=False)
         tts.save(output_path)
         return True
@@ -1297,7 +1376,8 @@ def generate_video():
         create_content_slide(
             slide.get("slide", slide.get("narrator","")[:80]),
             slide.get("narrator", ""),
-            color, i, len(script_slides), img_path
+            color, i, len(script_slides), img_path,
+            hindi_sub=slide.get("hindi_sub", "")
         )
         slide_image_paths.append(img_path)
 
