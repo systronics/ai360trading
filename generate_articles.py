@@ -30,7 +30,7 @@ PILLARS = [
         "us_keywords": ["stock market today", "S&P 500 forecast", "best stocks to buy today", "NASDAQ outlook"],
         "uk_keywords": ["FTSE 100 today", "UK stock market", "London stock exchange today"],
         "brazil_keywords": ["IBOVESPA hoje", "bolsa de valores hoje", "mercado financeiro"],
-        "india_keywords": ["nifty support resistance today", "nifty levels today", "nifty prediction today", "bank nifty levels today", "nifty analysis today"],
+        "india_keywords": ["nifty analysis today", "trading signals India", "nifty support resistance"],
         "news_queries": [
             "S%26P+500+stock+market+today",
             "NASDAQ+outlook+today",
@@ -50,8 +50,6 @@ PILLARS = [
             "{trend} Drives Global Stocks — {date} Market Report",
             "Wall Street to Dalal Street: {trend} — {date} Analysis",
             "Global Stock Market Outlook | {trend} — {date}",
-"NIFTY Support & Resistance Today — {date} | {trend}",
-"NIFTY Levels Today: Support, Resistance & S&P 500 — {date}",
         ],
         "article_focus": """Write a comprehensive stock market analysis covering:
 - S&P 500 and NASDAQ deep technical and fundamental analysis
@@ -541,90 +539,131 @@ def generate_article(pillar, prices, trends, fear_greed, persona, article_index)
     r1_btc   = round(btc_price * 1.05, 0)
     r2_btc   = round(btc_price * 1.10, 0)
 
-    prompt = f"""You are Amit Kumar, founder of AI360Trading — an independent market analyst based in India.
+    # Rotating article formats — never same structure twice
+    FORMAT_TYPES = [
+        "story_led",        # starts with a real market moment/observation
+        "contrarian",       # leads with unpopular view backed by data
+        "trader_notebook",  # written like a trader's daily notes
+        "macro_driver",     # starts with the big macro force driving everything
+        "chart_story",      # chart pattern first, then what it means
+        "question_led",     # starts with the question everyone is asking
+    ]
+    _pillar_idx = ["stock-market","bitcoin","personal-finance","ai-trading"].index(pillar["id"]) if pillar["id"] in ["stock-market","bitcoin","personal-finance","ai-trading"] else 0
+    fmt = FORMAT_TYPES[(now.day + article_index + _pillar_idx) % len(FORMAT_TYPES)]
 
-Writing persona: {persona['name']} | Tone: {persona['tone']}
-Style: {persona['style']}
-Opening approach: {persona['opening_hook']}
-Core lens: {persona['signature_phrase']}
+    # Format-specific opening instructions
+    FORMAT_INSTRUCTIONS = {
+        "story_led": "Start with a specific market observation — a price level, a candle pattern, or an unusual move you noticed today. Make it feel like you are talking to a friend trader.",
+        "contrarian": "Open with the view most people have wrong right now. State it bluntly. Then prove it with data.",
+        "trader_notebook": "Write like a trading diary entry. Use 'I'm watching...', 'The level that matters to me today is...', 'What worries me is...'. Raw and real.",
+        "macro_driver": "Identify the single biggest macro force driving markets today — Fed, dollar, oil, war, earnings — and build the whole article around how it ripples into each market.",
+        "chart_story": "Describe what the chart is telling you in plain language. What pattern, what level, what the last 5 candles mean. Then connect to fundamentals.",
+        "question_led": "Open with the exact question traders are googling right now. Answer it directly in para 1. Then go deeper.",
+    }
 
-Today: {day_name}, {date_display}
+    # Varied section structures — never use the same one
+    SECTION_STRUCTURES = {
+        "story_led":      ["The Setup", "What the Data Actually Says", "How Each Market Is Playing It", "Key Levels I'm Watching", "The Risk Nobody's Talking About", "My Take", "Quick Answers"],
+        "contrarian":     ["The Consensus View (And Why It's Wrong)", "What the Data Shows Instead", "Market By Market Breakdown", "The Levels That Actually Matter", "What Smart Money Is Doing", "Bottom Line", "Reader Questions"],
+        "trader_notebook":["Morning Observations", "NIFTY & India — What I See", "US Markets — Reading the Tape", "Bitcoin — Where I Stand", "Levels I'm Using Today", "What Could Go Wrong", "Common Questions Today"],
+        "macro_driver":   ["The Macro Driver Today", "How It's Moving Each Market", "India's Position", "US & Global Impact", "Technical Levels to Watch", "Scenario Analysis", "Key Questions Answered"],
+        "chart_story":    ["What the Chart Is Saying", "Confirming Signals", "Country By Country View", "The Numbers That Matter", "Bull vs Bear Case", "My Positioning View", "Trader FAQs"],
+        "question_led":   ["The Direct Answer", "The Deeper Context", "India View", "US & Crypto View", "Support & Resistance Map", "What Happens Next", "More Questions"],
+    }
 
-ARTICLE TOPIC: {pillar['name']}
+    sections = SECTION_STRUCTURES[fmt]
+    opening_instruction = FORMAT_INSTRUCTIONS[fmt]
+
+    prompt = f"""You are Amit Kumar, founder of AI360Trading — independent market analyst from Haridwar, India.
+
+PERSONA TODAY: {persona['name']} | {persona['tone']}
+WRITING STYLE: {persona['style']}
+
+Today is {day_name}, {date_display}.
+ARTICLE FORMAT TYPE: {fmt}
+OPENING INSTRUCTION: {opening_instruction}
+
+TOPIC: {pillar['name']}
 {pillar['article_focus']}
 
-TARGET READERS:
-- US: {', '.join(pillar['us_keywords'][:2])}
-- UK: {', '.join(pillar['uk_keywords'][:2])}
-- Brazil: {', '.join(pillar['brazil_keywords'][:2])}
-- India: {', '.join(pillar['india_keywords'][:2])}
-
-TRENDING SEARCHES TODAY: {', '.join(trends[:8])}
-
-LIVE MARKET DATA:
+LIVE MARKET DATA RIGHT NOW:
 {price_lines}
-Crypto Fear & Greed: {fear_greed} | India VIX: {vix_display}
-S&P 500: {sp500_price} ({sp500_pct:+}%) | NIFTY: {nifty_price} ({nifty_pct:+}%)
-Bitcoin: ${btc_price} ({btc_pct:+}%) | Gold: ${gold_price} | ETH: ${eth_price}
+Fear & Greed: {fear_greed} | India VIX: {vix_display}
+NIFTY: {nifty_price} ({nifty_pct:+.2f}%) | S&P 500: {sp500_price} ({sp500_pct:+.2f}%)
+Bitcoin: ${btc_price} ({btc_pct:+.2f}%) | Gold: ${gold_price} | ETH: ${eth_price}
 IBOVESPA: {ibov_display} | DXY: {dxy_price}
 
-KEY LEVELS:
-NIFTY — S2:{s2_nifty} S1:{s1_nifty} R1:{r1_nifty} R2:{r2_nifty}
-S&P 500 — S2:{s2_sp500} S1:{s1_sp500} R1:{r1_sp500} R2:{r2_sp500}
-Bitcoin — S2:{s2_btc} S1:{s1_btc} R1:{r1_btc} R2:{r2_btc}
+CALCULATED KEY LEVELS:
+NIFTY — S2:{s2_nifty} S1:{s1_nifty} [NOW:{nifty_price}] R1:{r1_nifty} R2:{r2_nifty}
+S&P 500 — S2:{s2_sp500} S1:{s1_sp500} [NOW:{sp500_price}] R1:{r1_sp500} R2:{r2_sp500}
+Bitcoin — S2:{s2_btc} S1:{s1_btc} [NOW:{btc_price}] R1:{r1_btc} R2:{r2_btc}
 
-NEWS CONTEXT (background only — write YOUR OWN original analysis):
+NEWS TODAY (use as context only — write YOUR OWN analysis):
 {news}
+
+TRENDING SEARCHES: {', '.join(trends[:8])}
 {internal_links_text}
 
-MANDATORY RULES:
-1. HUMAN VOICE — vary sentence length, occasional first-person, one genuine moment of uncertainty
-2. BANNED PHRASES: "In conclusion", "Furthermore", "Moreover", "This underscores",
-   "This highlights", "Navigating", "Landscape", "Delve into", "Robust growth",
-   "Game-changer", "Paradigm shift", "Deep dive", "Shed light", "Bustling"
-3. MANDATORY: one historical parallel with exact month/year, specific S/R levels,
-   one contrarian view backed by data, reference specific times
-4. Include a FAQ section with 3 questions exactly as people search on Google
-5. Include 2-3 natural internal links if provided above
-6. LENGTH: exactly 2,000-2,200 words
+=== HUMAN WRITING RULES (CRITICAL) ===
 
-OUTPUT FORMAT:
-First line: META_DESCRIPTION: <150-160 chars with specific data point and date>
+1. VARY SENTENCE LENGTH aggressively. Mix short punchy sentences with longer analytical ones.
+   Example: "The S&P is sitting at 6,740. That number matters more than people think right now."
 
-## [Opening headline with specific data point]
-[Opening paragraph — {persona['opening_hook']}]
+2. EXPRESS GENUINE OPINIONS with reasoning:
+   BAD: "Bitcoin may reach $70,000."
+   GOOD: "Personally I think the $70K breakout fails the first attempt. Too many leveraged longs stacked just below that level — the market will hunt those stops first."
 
-## [Core analysis section]
-### [H3 as exact Google search question]
-[Deep analysis with data, historical parallel, exact levels]
+3. SHOW UNCERTAINTY where real:
+   BAD: "The market will find support at 23,500."
+   GOOD: "23,500 looks like support — but I'd be lying if I said I was confident here given the global backdrop."
 
-## [Country analysis section]
-### What This Means for US Investors Today
-### What Indian Traders Need to Know Right Now
-### Brazil Market Impact — IBOVESPA and EM Outlook
+4. USE TRADER LANGUAGE naturally:
+   - "the tape is telling me..."
+   - "what I'm watching for..."
+   - "the level that matters today..."
+   - "options flow shows..."
+   - "smart money positioning suggests..."
 
-## Key Levels to Watch — {date_display}
+5. ADD ONE REAL HISTORICAL PARALLEL with exact month/year:
+   Example: "This setup reminds me of August 2023 when NIFTY bounced hard from exactly the same zone."
+
+6. BREAK PARAGRAPH SYMMETRY — no two consecutive paragraphs same length.
+
+7. BANNED WORDS & PHRASES (never use):
+   "In conclusion", "Furthermore", "Moreover", "This underscores", "This highlights",
+   "Navigating", "Landscape", "Delve into", "Robust", "Game-changer", "Paradigm shift",
+   "Deep dive", "Shed light", "Bustling", "It's worth noting", "It is important to note",
+   "As I analyze", "Core Analysis", "Country Analysis", "Brand View"
+
+8. NEVER use these AI structure headers: "Core Analysis", "Country Analysis", "Brand View",
+   "AI360Trading View" — use the section names from SECTIONS list below instead.
+
+9. NUMBERS must connect to decisions:
+   BAD: "RSI is at 64.21"
+   GOOD: "RSI just hit 64 — entering overbought territory. Historically at this level NIFTY either consolidates 3-5 days or shakes out weak hands with a quick 1.5% dip first."
+
+10. DELETE fake authority lines like "As I spoke with a Wall Street trader" — unless you have a specific name/firm.
+
+=== ARTICLE STRUCTURE ===
+
+Use EXACTLY these section names in this order:
+{chr(10).join(f"## {s}" for s in sections)}
+
+Also include ONE key levels table:
 | Instrument | Price | S2 | S1 | R1 | R2 |
 |---|---|---|---|---|---|
-[Fill with calculated levels above]
 
-## Frequently Asked Questions
-### [Exact question people Google — question 1]
-[Specific 2-3 sentence answer]
-### [Exact question people Google — question 2]
-[Specific 2-3 sentence answer]
-### [Exact question people Google — question 3]
-[Specific 2-3 sentence answer]
+And ONE FAQ block with 3 questions that people actually search on Google (use exact search phrasing).
+Include 2-3 internal links naturally in body text if provided above.
 
-## AI360Trading View — {date_display}
-[2-paragraph directional view with specific levels and what to watch next 24-48 hours]
+=== FORMAT ===
+First line: META_DESCRIPTION: <150-160 chars with specific price data and date>
+Then the article starting with ## {sections[0]}
 
-[More {pillar['name']} Analysis](/topics/{pillar['tag']}/) | [Live Trading Signals](/swing-dashboard/)
-
-*Trade smart. Stay informed. — Amit Kumar, AI360Trading*
-*{date_display} | Educational content only. Not SEBI registered advice. [Legal Disclaimer](/disclaimer/)*
+Target length: 2000-2200 words.
+End with:
+*{date_display} | Educational content only. Not SEBI registered investment advice.*
 """
-
     try:
         completion = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
