@@ -1226,9 +1226,13 @@ def generate_video():
     print(f"  F&G    : {fg_val} — {fg_label}")
 
     # Build title and description
+    nifty_pct_abs = abs(prices.get("NIFTY 50", {}).get("pct", 0))
+    btc_price_fmt = f"{int(prices.get('Bitcoin', {}).get('price', 65000)):,}"
     title = topic["title_template"].format(
         date=date_display,
-        year=now.year
+        year=now.year,
+        pct=f"{nifty_pct_abs:.1f}",
+        btc=btc_price_fmt,
     )
     description = topic["description_template"].format(
         date=date_display,
