@@ -636,7 +636,7 @@ def create_sr_levels_slide(prices, color, output_path):
                 ha='left', va='center')
 
     # Divider
-    ax.axhline(y=0.71, xmin=0.04, xmax=0.96,
+    ax.plot([0.04, 0.96], [0.71, 0.71],
                color='#334155', linewidth=1, transform=ax.transAxes)
 
     # Data rows
