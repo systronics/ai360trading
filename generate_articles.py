@@ -125,12 +125,14 @@ PILLARS = [
         "title_templates": [
             "Best Term Life Insurance 2026 — US, UK & India Complete Guide",
             "{trend}: Personal Finance Guide for {date}",
-            "How to Save Tax & Grow Wealth in 2026 — Complete Guide",
-            "Best Investment Plans {date} — US, India & UK Compared",
-            "{trend} — Personal Finance Strategies for {date}",
-            "Insurance, SIP & 401k: Complete Wealth Building Guide {date}",
-            "How to Build Wealth in 2026 | {trend} — Finance Guide",
-            "Term Insurance vs Mutual Funds — Complete 2026 Comparison",
+            "I Ran the Numbers on SIP vs Lump Sum — The Answer Surprised Me",
+            "Why Most Indians Are Getting Their Term Insurance Wrong in 2026",
+            "{trend}: What This Means for Your SIP and Savings Right Now",
+            "The Rs.10,000/Month Investment Plan That Actually Works in 2026",
+            "Stop Waiting for the Perfect Time — Here Is What the Data Says",
+            "Your Emergency Fund Is Probably Wrong — Here Is the Right Size",
+            "How to Protect Your Money When Markets Are Crashing Like Today",
+            "401k vs NPS vs ISA — Which Retirement Plan Wins in 2026?",
         ],
         "article_focus": """Write a comprehensive personal finance guide covering:
 - Term life insurance comparison across US, UK, India, Brazil with actual rates
