@@ -8,6 +8,10 @@ layout: default
       <h1 class="post-title-main">{{ page.title }}</h1>
       <div class="post-metadata-row">
         <span class="meta-item">📅 {{ page.date | date: "%b %-d, %Y" }}</span>
+        <span class="meta-divider">|</span>
+        <span class="meta-item">⏱ {% assign words = content | number_of_words %}{% assign mins = words | divided_by: 200 %}{% if mins < 1 %}1{% else %}{{ mins }}{% endif %} min read</span>
+        <span class="meta-divider">|</span>
+        <span class="meta-item">🔄 Updated {{ page.date | date: "%b %-d, %Y" }}</span>
         {% if page.author %}
           <span class="meta-divider">|</span>
           <span class="meta-item">👤 {{ page.author }}</span>
@@ -21,6 +25,18 @@ layout: default
 
     <div class="post-body-content">
       {{ content }}
+    </div>
+
+    <!-- AUTHOR BIO BOX -->
+    <div class="author-bio-box">
+      <div class="author-bio-inner">
+        <img src="/public/image/person_crash_1.jpg" alt="Amit Kumar AI360Trading" class="author-avatar" width="72" height="72" loading="lazy">
+        <div class="author-bio-text">
+          <strong class="author-name">Amit Kumar</strong>
+          <span class="author-title">Founder, AI360Trading | Independent Market Analyst | Haridwar, India</span>
+          <p class="author-desc">Tracking markets daily across India, US, and Crypto. Not SEBI registered. All analysis is educational — trade at your own risk.</p>
+        </div>
+      </div>
     </div>
 
     <!-- INTERNAL LINKS SECTION -->
@@ -41,10 +57,10 @@ layout: default
     <div class="post-share-logic">
       <p class="share-label">SHARE ANALYSIS:</p>
       <div class="share-buttons-gap">
-        <a href="https://t.me/share/url?url={{ page.url | absolute_url }}&text={{ page.title }}" target="_blank" class="pc-share-btn tg">📣 Telegram</a>
-        <a href="https://api.whatsapp.com/send?text={{ page.title }}: {{ page.url | absolute_url }}" target="_blank" class="pc-share-btn wa">💬 WhatsApp</a>
-        <a href="https://twitter.com/intent/tweet?url={{ page.url | absolute_url | url_encode }}&text={{ page.title | url_encode }}" target="_blank" class="pc-share-btn tw">𝕏 Twitter</a>
-        <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ page.url | absolute_url }}" target="_blank" class="pc-share-btn li">🔗 LinkedIn</a>
+        <a href="https://t.me/share/url?url={{ page.url | absolute_url | uri_escape }}&text={{ page.title | uri_escape }}" target="_blank" class="pc-share-btn tg">📣 Telegram</a>
+        <a href="https://api.whatsapp.com/send?text={{ page.title | uri_escape }}%20{{ page.url | absolute_url | uri_escape }}" target="_blank" class="pc-share-btn wa">💬 WhatsApp</a>
+        <a href="https://twitter.com/intent/tweet?url={{ page.url | absolute_url | uri_escape }}&text={{ page.title | uri_escape }}" target="_blank" class="pc-share-btn tw">𝕏 Twitter</a>
+        <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ page.url | absolute_url | uri_escape }}" target="_blank" class="pc-share-btn li">🔗 LinkedIn</a>
       </div>
     </div>
 
@@ -57,10 +73,10 @@ layout: default
 
 <!-- FLOATING MOBILE BAR -->
 <div class="mobile-social-bar">
-  <a href="https://t.me/share/url?url={{ page.url | absolute_url }}" class="share-icon telegram">📣 Telegram</a>
-  <a href="https://api.whatsapp.com/send?text={{ page.title }}: {{ page.url | absolute_url }}" class="share-icon whatsapp">💬 WhatsApp</a>
-  <a href="https://twitter.com/intent/tweet?url={{ page.url | absolute_url | url_encode }}&text={{ page.title | url_encode }}" target="_blank" class="share-icon twitter">𝕏 Twitter</a>
-  <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ page.url | absolute_url }}" target="_blank" class="share-icon linkedin">🔗 LinkedIn</a>
+  <a href="https://t.me/share/url?url={{ page.url | absolute_url | uri_escape }}&text={{ page.title | uri_escape }}" class="share-icon telegram">📣 Telegram</a>
+  <a href="https://api.whatsapp.com/send?text={{ page.title | uri_escape }}%20{{ page.url | absolute_url | uri_escape }}" class="share-icon whatsapp">💬 WhatsApp</a>
+  <a href="https://twitter.com/intent/tweet?url={{ page.url | absolute_url | uri_escape }}&text={{ page.title | uri_escape }}" target="_blank" class="share-icon twitter">𝕏 Twitter</a>
+  <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ page.url | absolute_url | uri_escape }}" target="_blank" class="share-icon linkedin">🔗 LinkedIn</a>
 </div>
 
 <style>
@@ -99,6 +115,15 @@ layout: default
   .post-terminal-footer { margin-top: 50px; padding-top: 20px; border-top: 1px dashed #e2e8f0; text-align: center; }
   .post-terminal-footer p { font-size: 13px; color: #94a3b8; font-style: italic; }
   .sub-box, #sub-box, .subscription-container, .subscription-box { display: none !important; visibility: hidden !important; }
+  /* Author bio box */
+  .author-bio-box { margin: 35px 0; padding: 24px; background: #f8faff; border-radius: 12px; border: 1px solid #e2e8f0; border-left: 4px solid #0062ff; }
+  .author-bio-inner { display: flex; gap: 18px; align-items: flex-start; }
+  .author-avatar { width: 72px; height: 72px; border-radius: 50%; object-fit: cover; border: 3px solid #0062ff; flex-shrink: 0; }
+  .author-bio-text { flex: 1; }
+  .author-name { display: block; font-size: 16px; font-weight: 800; color: #0f172a; margin-bottom: 3px; }
+  .author-title { display: block; font-size: 12px; color: #0062ff; font-weight: 700; margin-bottom: 8px; }
+  .author-desc { font-size: 13px; color: #64748b; line-height: 1.6; margin: 0; }
+  @media (max-width: 480px) { .author-bio-inner { flex-direction: column; align-items: center; text-align: center; } .author-avatar { width: 60px; height: 60px; } }
   @media (max-width: 768px) {
     .post-article-card { padding: 25px 20px; border-radius: 0; border: none; }
     .post-title-main { font-size: 22px !important; }
