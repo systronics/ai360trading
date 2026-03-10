@@ -16,7 +16,7 @@ Day 0 (Sun) — Top 5 Stocks of the Week
 
 STACK (all free):
 - groq          → generate script from live data
-- gTTS          → text to speech (Google, free, natural voice)
+- edge-tts      → Microsoft Edge TTS — en-IN-PrabhatNeural Indian male voice (free, no limit)
 - matplotlib    → generate charts and graphs
 - moviepy       → combine frames + audio into MP4
 - google-api-python-client → upload to YouTube
@@ -36,8 +36,9 @@ from datetime import datetime, timedelta
 from groq import Groq
 
 # ── Try importing video/audio libraries ──────────────────────────────────────
+import asyncio
 try:
-    from gtts import gTTS
+    import edge_tts
     from moviepy.editor import (
         ImageClip, AudioFileClip, concatenate_videoclips,
         CompositeVideoClip, ColorClip
@@ -136,7 +137,7 @@ VIDEO_TOPICS = {
     0: {  # Monday
         "type": "nifty_analysis",
         "title_template": "NIFTY Just Dropped {pct}% — Is This a Crash or a Buying Opportunity? | {date}",
-        "duration_target": 180,  # 3 minutes
+        "duration_target": 420,  # 7 minutes
         "color": BRAND_BLUE,
         "tags": ["nifty today", "nifty support resistance", "nifty analysis", "stock market India", "trading levels today"],
         "description_template": "NIFTY 50 support and resistance levels for {date}. Key price levels, trend direction, and what to watch today. Daily market analysis by AI360Trading.\n\n🔔 Subscribe for daily NIFTY analysis\n📊 Full reports: https://ai360trading.in/topics/stock-market/\n📣 Telegram: https://t.me/ai360trading\n\n#NIFTY #StockMarket #TradingToday #NiftyLevels #AI360Trading"
@@ -144,7 +145,7 @@ VIDEO_TOPICS = {
     1: {  # Tuesday
         "type": "bitcoin_analysis",
         "title_template": "Bitcoin Price Analysis {date} — BTC Levels, Trend & What's Next",
-        "duration_target": 180,
+        "duration_target": 420,
         "color": BRAND_ORANGE,
         "tags": ["bitcoin today", "bitcoin price analysis", "BTC price", "crypto today", "bitcoin 2026"],
         "description_template": "Bitcoin price analysis for {date}. Key BTC support/resistance, Fear & Greed index reading, and what to expect next. Daily crypto analysis by AI360Trading.\n\n🔔 Subscribe for daily crypto analysis\n₿ Full reports: https://ai360trading.in/topics/bitcoin/\n📣 Telegram: https://t.me/ai360trading\n\n#Bitcoin #BTC #CryptoToday #BitcoinPrice #AI360Trading"
@@ -152,7 +153,7 @@ VIDEO_TOPICS = {
     2: {  # Wednesday
         "type": "education_candlestick",
         "title_template": "Candlestick Patterns Every Trader Must Know — Stock Market Education",
-        "duration_target": 300,  # 5 minutes
+        "duration_target": 540,  # 9 minutes
         "color": BRAND_GREEN,
         "tags": ["candlestick patterns", "stock market education", "trading basics", "technical analysis", "how to trade"],
         "description_template": "Learn the most important candlestick patterns used by professional traders. Visual explanation with real examples from NIFTY and S&P 500 charts.\n\n🔔 Subscribe for daily trading education\n📚 More guides: https://ai360trading.in/topics/ai-trading/\n📣 Telegram: https://t.me/ai360trading\n\n#CandlestickPatterns #TechnicalAnalysis #StockMarket #TradingEducation #AI360Trading"
@@ -160,7 +161,7 @@ VIDEO_TOPICS = {
     3: {  # Thursday
         "type": "personal_finance",
         "title_template": "SIP vs Lump Sum — Which Is Better in {year}? Personal Finance Guide",
-        "duration_target": 240,
+        "duration_target": 480,
         "color": BRAND_GREEN,
         "tags": ["SIP investment", "mutual funds India", "personal finance", "SIP vs lump sum", "invest in India"],
         "description_template": "SIP vs Lump Sum investment — which gives better returns in {year}? Complete guide for Indian investors with real numbers and examples.\n\n🔔 Subscribe for personal finance tips\n💰 More guides: https://ai360trading.in/topics/personal-finance/\n📣 Telegram: https://t.me/ai360trading\n\n#SIP #MutualFunds #PersonalFinance #Investment #AI360Trading"
@@ -168,7 +169,7 @@ VIDEO_TOPICS = {
     4: {  # Friday
         "type": "weekly_outlook",
         "title_template": "What Will Markets Do Next Week? NIFTY & Global Outlook | {date}",
-        "duration_target": 240,
+        "duration_target": 480,
         "color": BRAND_BLUE,
         "tags": ["weekly market outlook", "nifty next week", "stock market this week", "market prediction", "trading week ahead"],
         "description_template": "Weekly market outlook for the week of {date}. NIFTY, S&P 500, Bitcoin — key levels and what to watch this week.\n\n🔔 Subscribe for weekly market analysis\n📊 Full reports: https://ai360trading.in\n📣 Telegram: https://t.me/ai360trading\n\n#WeeklyOutlook #StockMarket #NIFTY #Trading #AI360Trading"
@@ -176,7 +177,7 @@ VIDEO_TOPICS = {
     5: {  # Saturday
         "type": "education_patterns",
         "title_template": "The Support Level NIFTY Hit Today — And What Happens Next",
-        "duration_target": 300,
+        "duration_target": 540,
         "color": BRAND_PURPLE,
         "tags": ["support resistance", "technical analysis", "trading education", "price action", "how to trade stocks"],
         "description_template": "Support and resistance levels explained simply. How professional traders identify and trade these key price levels on NIFTY, S&P 500 and stocks.\n\n🔔 Subscribe for trading education\n🤖 More: https://ai360trading.in/topics/ai-trading/\n📣 Telegram: https://t.me/ai360trading\n\n#SupportResistance #TechnicalAnalysis #TradingEducation #PriceAction #AI360Trading"
@@ -184,7 +185,7 @@ VIDEO_TOPICS = {
     6: {  # Sunday
         "type": "top5_stocks",
         "title_template": "5 Stocks I Am Watching This Week — {date} | NIFTY Market Picks",
-        "duration_target": 240,
+        "duration_target": 480,
         "color": BRAND_BLUE,
         "tags": ["stocks to buy", "top stocks this week", "nifty stocks", "best stocks India", "stock picks 2026"],
         "description_template": "Top 5 stocks to watch this week — {date}. Institutional setups, volume breakouts, and key levels to monitor.\n\n🔔 Subscribe for weekly stock picks\n📊 Full analysis: https://ai360trading.in/topics/stock-market/\n📣 Telegram: https://t.me/ai360trading\n\n#StockPicks #TopStocks #NIFTY #StockMarket #AI360Trading"
@@ -213,281 +214,384 @@ def generate_video_script(topic, prices, fg_val, fg_label):
     crash_word = "biggest drop in months" if nifty_pct < -3 else f"{abs(nifty_pct):.1f}% drop today" if nifty_pct < 0 else f"{nifty_pct:.1f}% gain today"
     fear_context = "Everyone is panicking right now." if fg_val < 25 else "Fear is rising fast." if fg_val < 40 else "Markets are uncertain." if fg_val < 55 else "Greed is back in the market."
 
-    SYSTEM_PROMPT = """You are Amit Kumar — founder of AI360Trading, independent market analyst from Haridwar, India.
-You have been tracking Indian and global markets for years.
-Your YouTube channel speaks directly to Indian retail traders and investors.
+    SYSTEM_PROMPT = """You are Amit Kumar — independent market analyst from Haridwar, India, founder of AI360Trading.
+You are recording a YouTube video. You speak naturally, like a real person talking directly to camera.
+Your audience: Indian retail traders and investors aged 25-45, mix of beginners and intermediate.
 
-YOUR VOICE IS:
-- Direct and confident — you have strong opinions and you share them
-- Human and conversational — like talking to a fellow trader, not reading a report
-- Emotionally engaging — you create tension, curiosity, risk awareness
-- Never robotic — vary sentence length, mix short punchy lines with deeper explanations
+═══════════════════════════════════════════════════
+YOUR AUTHENTIC VOICE — FOLLOW EVERY RULE BELOW
+═══════════════════════════════════════════════════
 
-BANNED PHRASES (never use):
+SENTENCE VARIETY (critical — vary every paragraph):
+- Short punchy: "NIFTY is at a dangerous level right now."
+- Medium: "When I look at the chart this morning, the pattern is telling me something very clear."
+- Long with reasoning: "The reason I am watching 23,500 specifically is because that level was a major resistance in November 2024, it became support in January 2025, and right now price is sitting exactly on it — which means the next candle matters a lot."
+- Never write 3 sentences of same length in a row.
+
+GENUINE OPINIONS (not neutral analysis):
+- "Personally, I think this is a trap rally. I would not buy here."
+- "I know many analysts are bullish right now. I disagree, and here is why."
+- "This setup makes me nervous. And when I am nervous, I reduce position size."
+- Always explain WHY you hold the opinion.
+
+UNCERTAINTY WHERE REAL:
+- "I do not know for sure what happens at this level. Nobody does."
+- "The chart says one thing, the macro says another. That is a dangerous combination."
+- "I have been wrong about this before — in March 2023 I thought support would hold. It did not."
+
+EMOTIONAL TENSION (keep viewer engaged):
+- Create scenario: "If this breaks — things get very ugly very fast."
+- Create hope: "But if buyers show up here, the bounce could be sharp."
+- Create urgency: "This is the most important level of the week. Watch what happens today."
+
+NATURAL SPEECH PATTERNS:
+- Occasional self-correction: "The level is... actually let me be more precise. It is 23,480, not 23,500."
+- Thinking out loud: "So what does this mean for you as a trader? Let me think about this carefully."
+- Direct address: "If you are holding positions overnight, this is what you need to know."
+- Specific time references: "Yesterday's close at 4pm was significant because..."
+
+BANNED FOREVER (instant AI detection):
 "Here is the chart", "Now let us dive into", "Moving on to", "As we can see",
-"In conclusion", "It is important to note", "This highlights", "Let us explore",
-"Welcome to AI360Trading. Today's report", "Subscribe to our channel for daily market analysis"
+"In conclusion", "Furthermore", "Moreover", "It is important to note",
+"This highlights", "In today's video", "Today we will cover",
+"Welcome to AI360Trading", "Do not forget to subscribe",
+"Without further ado", "Let us get started", "Stay tuned"
 
-SCRIPT FORMAT RULES:
-- Write NARRATOR: before each spoken line (English with Indian accent)
-- Write SLIDE: before each visual description (in English)
-- Write HINDI_SUB: after each SLIDE — 3-6 Hindi words summarizing the slide (shown as subtitle on screen)
-  Examples: "HINDI_SUB: आज का सबसे जरूरी Level" or "HINDI_SUB: क्या यह Crash है?" or "HINDI_SUB: Support टूटा तो गिरावट तय"
-- Hook must create CURIOSITY or TENSION in first 10 seconds
-- Place SOFT CTA naturally around 60-90 seconds
-- End with STRONG close that makes viewer want tomorrow's video
-- Vary sentence length — short punchy lines mixed with deeper analysis
-- Total spoken words: stated below per video type"""
+═══════════════════════════════════════════════════
+SCRIPT FORMAT — FOLLOW EXACTLY
+═══════════════════════════════════════════════════
+- NARRATOR: [spoken text — this is what Edge TTS will read aloud]
+- SLIDE: [visual description — NOT spoken, shown on screen]
+- HINDI_SUB: [3-5 Hindi words shown as subtitle on slide]
+
+Each NARRATOR block = one slide. Write 10-14 NARRATOR blocks for long videos.
+After every 3-4 NARRATOR blocks, insert one SLIDE + HINDI_SUB.
+
+HINDI_SUB examples that work:
+- "आज का सबसे जरूरी Level"
+- "क्या यह Crash है?"  
+- "Support टूटा तो गिरावट तय"
+- "Smart Money क्या कर रहा है"
+- "यह Level बहुत Important है"
+
+Total spoken words: stated per video type below."""
 
     if topic_type == "nifty_analysis":
+        s2_nifty = int(nifty_p * 0.972)
+        r2_nifty = int(nifty_p * 1.028)
+        bnifty_p = bnifty.get("price", 50000)
+        s1_bank  = int(bnifty_p * 0.986)
         focus = f"""
-LIVE DATA RIGHT NOW:
-- NIFTY 50: {nifty.get('display','N/A')} ({nifty_pct:+.2f}%)
-- Bank Nifty: {bnifty.get('display','N/A')}
-- S&P 500: {sp500.get('display','N/A')}
-- Fear & Greed Index: {fg_val} — {fg_label}
-- NIFTY S1: {s1_nifty} | R1: {r1_nifty}
+LIVE MARKET DATA — use these exact numbers:
+- NIFTY 50: {nifty.get("display","N/A")} | S1={s1_nifty} | S2={s2_nifty} | R1={r1_nifty} | R2={r2_nifty}
+- Bank Nifty: {bnifty.get("display","N/A")} | Key level={s1_bank}
+- S&P 500: {sp500.get("display","N/A")} (global signal for NIFTY direction)
+- Gold: {gold.get("display","N/A")}
+- Fear & Greed: {fg_val} — {fg_label}
 
-Create a 3-minute NIFTY analysis video script.
+Write a 7-minute NIFTY analysis video script. Target: 800-900 spoken words across 12-14 NARRATOR blocks.
 
-STRUCTURE (follow this emotional arc):
+EMOTIONAL ARC TO FOLLOW:
+1. HOOK — open with what happened today, create immediate tension or curiosity
+2. GLOBAL PICTURE — why global markets matter for NIFTY today specifically
+3. THE CHART STORY — what price action is telling you, not just numbers
+4. NIFTY KEY LEVELS — S1, S2, R1, R2 with deep reasoning for each
+5. BANK NIFTY — why it confirms or contradicts NIFTY signal
+6. FEAR & GREED CONTEXT — what {fg_val} means historically
+7. SOFT CTA — natural, one sentence, not salesy
+8. BULL SCENARIO — specific price targets if bulls win
+9. BEAR SCENARIO — specific price targets if bears win  
+10. WHAT I AM PERSONALLY DOING — share your actual view, be honest
+11. RISK MANAGEMENT — position sizing advice for this specific market
+12. TOMORROW PREVIEW — what to watch for overnight/tomorrow
+13. STRONG CLOSE — one memorable line that makes them come back
 
-HOOK (first 15 seconds) — START with the market reality, create tension:
-Example style: "NIFTY just had its {crash_word}. And right now the index is sitting on a level that could decide whether this becomes a full crash — or a sharp recovery. Let me show you exactly what I am watching."
+WRITING RULES FOR THIS SCRIPT:
+- Reference today's specific Fear & Greed reading of {fg_val} — what happened historically at this reading
+- Mention one real historical NIFTY moment (pick from: March 2020 crash, Oct 2021 peak, June 2022 fall, Dec 2023 rally)
+- Use exact levels — not "around 23,500" but "23,480"
+- At least 3 sentences must express genuine personal opinion
+- At least 2 sentences must acknowledge uncertainty
+- Vary sentence length every paragraph — short, medium, long, short pattern
 
-CONTEXT (30 seconds) — Why is this happening:
-- Connect S&P 500 move to NIFTY
-- One sentence on global trigger (Fed, dollar, oil — whatever fits)
-- {fear_context}
-
-SOFT CTA (natural, 1 sentence) — insert here:
-Example: "If you trade NIFTY regularly, we post these levels every morning before market opens — subscribe and hit the bell so you never miss them."
-
-KEY LEVELS — The most important part:
-- NIFTY support at {s1_nifty} — explain WHY this level matters (previous high, round number, etc.)
-- NIFTY resistance at {r1_nifty} — what happens if this breaks up
-- The RISK: what happens if {s1_nifty} breaks down — be specific and create tension
-- Bank Nifty key level — one sentence, sharp
-
-TRADE SCENARIO (create narrative tension):
-- Bull case: "If buyers defend {s1_nifty}, we could see a quick bounce to..."
-- Bear case: "But if {s1_nifty} breaks on volume, the next stop is..."
-
-STRONG CLOSE — Make them want tomorrow's video:
-Example style: "Tomorrow morning I will update these levels based on US market close tonight. Watch what happens at {s1_nifty} today — that level tells us everything."
-
-Total spoken words: 380-420 words.
+Total spoken words: 820-900 words.
 """
 
     elif topic_type == "bitcoin_analysis":
+        s2_btc   = int(btc_p * 0.90)
+        r2_btc   = int(btc_p * 1.10)
+        btc_pct  = btc.get("pct", 0)
         focus = f"""
-LIVE DATA:
-- Bitcoin: {btc.get('display','N/A')} ({btc.get('pct',0):+.2f}%)
+LIVE BITCOIN DATA — use these exact numbers:
+- Bitcoin: {btc.get("display","N/A")} | S1=${s1_btc:,} | S2=${s2_btc:,} | R1=${r1_btc:,} | R2=${r2_btc:,}
+- S&P 500: {sp500.get("display","N/A")} — risk-on or risk-off signal
 - Fear & Greed: {fg_val} — {fg_label}
-- S&P 500: {sp500.get('display','N/A')} (risk signal)
-- BTC S1: ${s1_btc:,} | R1: ${r1_btc:,}
+- NIFTY: {nifty.get("display","N/A")} — Indian market context
 
-Create a 3-minute Bitcoin analysis video script.
+Write a 7-minute Bitcoin analysis video script. Target: 800-900 spoken words across 12-14 NARRATOR blocks.
 
-STRUCTURE:
+EMOTIONAL ARC:
+1. HOOK — Bitcoin price right now, why today is significant
+2. RISK ENVIRONMENT — is global market risk-on or risk-off? How does S&P move affect BTC?
+3. FEAR & GREED DEEP DIVE — {fg_val} reading, what happened last 3 times we saw this level
+4. THE CHART — price action story, not just levels
+5. KEY SUPPORT LEVELS — S1 at ${s1_btc:,} and S2 at ${s2_btc:,} with reasoning
+6. KEY RESISTANCE — R1 at ${r1_btc:,}, what a break above means
+7. SOFT CTA — natural one sentence
+8. ON-CHAIN SIGNAL — mention whale activity, exchange flows, long/short ratio (estimate from context)
+9. ALTCOIN SIGNAL — is money moving from BTC to alts or opposite?
+10. THE REAL QUESTION — buying opportunity or falling knife? Give your honest view
+11. WHAT I AM PERSONALLY DOING — your actual view, be honest, include uncertainty
+12. RISK MANAGEMENT — how much to risk at these levels, stop placement
+13. STRONG CLOSE — one memorable line, create anticipation for tomorrow
 
-HOOK — Bitcoin reality check, create curiosity:
-Example style: "Bitcoin is at ${btc_p:,.0f} right now. And the Fear and Greed index just hit {fg_val} — {fg_label}. The last time we saw readings this extreme was just before a major move. Here is what the chart is telling me."
+WRITING RULES:
+- Reference one specific historical Bitcoin moment (pick from: March 2020 drop to $4k, Nov 2021 peak $69k, Nov 2022 FTX crash $16k, Jan 2024 ETF approval rally)
+- Fear & Greed at {fg_val} — find historical parallel
+- Express at least one contrarian opinion with reasoning
+- Use "I" statements — "I am watching", "I think", "I would wait"
+- Acknowledge at least twice that you could be wrong
 
-CONTEXT:
-- Is S&P falling too? Risk-off environment — explain in simple terms
-- On-chain signal or options sentiment in one sentence
-- {fear_context}
-
-SOFT CTA (natural): "We track Bitcoin levels daily at ai360trading.in — link in description. Subscribe if you want these updates before the market moves."
-
-KEY LEVELS with narrative:
-- Support at ${s1_btc:,} — what happens here matters (explain psychologically)
-- Resistance at ${r1_btc:,} — the breakout level everyone is watching
-- The real question: is this a buying opportunity or a falling knife?
-
-CONTRARIAN VIEW — say something unexpected:
-- Example: "Everyone is saying buy the dip. But I want to see confirmation before I trust this level."
-
-STRONG CLOSE — leave them thinking:
-Example: "Bitcoin at these levels is either a gift or a trap. Tomorrow we will know which one it was."
-
-Total spoken words: 380-420 words.
+Total spoken words: 820-900 words.
 """
 
     elif topic_type == "education_candlestick":
         focus = f"""
-Create a 5-minute educational video script about candlestick patterns.
-Current market context: NIFTY {nifty.get('display','N/A')}, {mood} today.
+Market context: NIFTY is {mood} at {nifty.get("display","N/A")} today. Use today's market as live example throughout.
+
+Write a 9-minute educational video script on candlestick patterns. Target: 1000-1100 spoken words across 14-16 NARRATOR blocks.
+
+TEACHING PHILOSOPHY:
+- Teach like a senior trader explaining to a junior — not a textbook
+- Every pattern connects to emotion: fear, greed, hope, panic
+- Every pattern has a real NIFTY or Sensex historical example
+- Every pattern ends with: "how do I actually trade this"
+- Acknowledge common beginner mistakes for each pattern
 
 STRUCTURE:
 
-HOOK — connect to TODAY's market:
-Example: "NIFTY just formed a specific candlestick pattern on the daily chart today. And if you know what this pattern means — you already know what might happen tomorrow. Let me teach you the 5 patterns every trader must know."
+HOOK — connect to today's market immediately:
+"NIFTY is {mood} right now. And today's candle is forming a pattern that many traders will miss completely. By the end of this video, you will know exactly what it means — and what usually happens next."
 
-PATTERN 1 — DOJI (tension and uncertainty):
-Explain it feels like the market is holding its breath. Real NIFTY example.
+PART 1 — WHY CANDLESTICKS WORK (2 minutes):
+Explain the psychology — every candle is a war between buyers and sellers. The candle body shows who won. The wick shows who tried. This is not technical analysis — this is reading human emotion.
 
-SOFT CTA here: "If you want daily candlestick breakdowns before market opens, subscribe — we post every morning."
+PATTERN 1 — DOJI (2 minutes):
+Definition, psychology, real NIFTY example with date, how to trade it, the mistake beginners make (acting on doji alone without context).
 
-PATTERN 2 — HAMMER (hope after a fall):
-Explain the psychology — sellers tried to push down but buyers fought back. Real example.
+SOFT CTA — natural, mid-video.
 
-PATTERN 3 — ENGULFING (the power shift):
-Explain this is when one side completely takes over. Most reliable pattern.
+PATTERN 2 — HAMMER AND HANGING MAN (2 minutes):
+Same structure. Explain why same shape means opposite things depending on where it appears. Connect to March 2020 NIFTY bottom.
 
-PATTERN 4 — MORNING/EVENING STAR (the 3-candle warning):
-Explain why 3 candles together tell a complete story. Very visual.
+PATTERN 3 — ENGULFING (1.5 minutes):
+The most reliable pattern. Why it works — complete sentiment reversal. Real example.
 
-PATTERN 5 — SHOOTING STAR (the rejection):
-The pattern that says "this level was tested and rejected." Common on NIFTY tops.
+PATTERN 4 — MORNING STAR (1 minute):
+3-candle story — doubt, decision, confirmation. Very visual, connect to chart.
 
-STRONG CLOSE — practical homework:
-"Open your NIFTY chart right now and see if you can spot any of these 5 patterns from this week. Tell me in the comments what you found."
+PATTERN 5 — SHOOTING STAR (0.5 minutes):
+Quick but powerful. How to spot fake shooting stars.
 
-Total spoken words: 560-600 words.
+STRONG CLOSE — give homework:
+"Open your NIFTY chart on any timeframe right now. Find one pattern from today's video. Screenshot it. Come back tomorrow and tell me in the comments whether the prediction came true."
+
+Total spoken words: 1000-1100 words.
 """
 
     elif topic_type == "personal_finance":
         focus = f"""
-Create a 4-minute personal finance video — SIP vs Lump Sum.
-Market context: NIFTY is {mood} today, Fear & Greed at {fg_val}.
+Market today: NIFTY {mood} at {nifty.get("display","N/A")}, Fear & Greed = {fg_val}.
+
+Write an 8-minute personal finance video — SIP vs Lump Sum. Target: 900-1000 spoken words across 13-15 NARRATOR blocks.
+
+TONE: Warm, honest, like a trusted CA friend explaining over chai — not a sales pitch, not a lecture.
 
 STRUCTURE:
 
-HOOK — connect to TODAY's market crash/rally:
-Example if market falling: "Markets are down today. And if you have money sitting in your bank account right now — this video will help you decide what to do with it."
-Example if market rising: "If you missed today's market rally — this video explains how SIP investors are actually benefiting from missing moves like this."
+HOOK — connect to today's market reality:
+If market falling: "Markets are red today. Your SIP just bought units at a lower price. Your friend who put in lump sum last month is panicking. This video explains which of you made the smarter decision — and why the answer might surprise you."
+If market rising: "If you are watching markets go up today and thinking you missed the rally — this video will show you why SIP investors are actually in a better position than you think."
 
-RELATABLE STORY — open with a real scenario:
-"Imagine you have ₹6 lakhs saved up. Your friend says put it all in now. Your father says start SIP. Who is right? Let me show you what the numbers actually say."
+PART 1 — THE REAL QUESTION (2 min):
+Most people ask "which gives better returns?" That is the wrong question. The right question is: "which strategy will I actually stick with when markets crash 40%?"
+Tell a realistic story of two people — Rahul (lump sum ₹6L in Jan 2022) and Priya (SIP ₹5000/month from Jan 2022). What happened to each by Dec 2022?
 
-SOFT CTA: "We cover personal finance every week at AI360Trading — subscribe for free guides that actually help you build wealth."
+SOFT CTA — natural.
 
-THE NUMBERS (make them feel real):
-- SIP ₹5,000/month × 10 years at 12% CAGR = ₹23.2 lakhs
-- Lump Sum ₹6 lakhs × 10 years at 12% CAGR = ₹18.6 lakhs
-- BUT — show when lump sum wins (crash bottom)
-- AND — show when SIP wins (volatile market like today)
+PART 2 — THE NUMBERS (2 min):
+SIP ₹5000/month × 10 years at 12% CAGR = ₹23.2 lakhs from ₹6L invested
+Lump Sum ₹6L × 10 years at 12% CAGR = ₹18.6 lakhs
+BUT: Lump sum at the bottom (March 2020) × 10 years = ₹40+ lakhs
+HONEST TRUTH: Nobody times the bottom. That is the entire argument.
 
-THE HONEST TRUTH — add your opinion:
-"Personally, for most salaried Indians, SIP wins. Not because returns are better — but because most people cannot handle seeing a lump sum drop 30% and staying invested."
+PART 3 — WHEN EACH WINS (2 min):
+SIP wins when: you have salary income, market is volatile, you are emotional about money
+Lump sum wins when: market has crashed 40%+, you are disciplined, you have emergency fund intact
+Right now with Fear & Greed at {fg_val} — which camp are we in? Share your opinion.
 
-STRONG CLOSE:
-"The best investment is the one you actually stick with. That is SIP for most people. Start with whatever amount you can — even ₹500 matters more than waiting for the perfect time."
+PART 4 — PRACTICAL ADVICE (1.5 min):
+How to start a SIP today — specific steps
+How much is enough — the 15-15-15 rule (₹15k/month, 15% return, 15 years = ₹1 crore)
+Common mistakes — stopping SIP during market crash (the worst mistake)
 
-Total spoken words: 460-500 words.
+STRONG CLOSE — emotional and memorable:
+"The best time to start was 10 years ago. The second best time is today. Not next month when markets recover. Not after you save more. Today."
+
+Total spoken words: 920-1000 words.
 """
 
     elif topic_type == "weekly_outlook":
+        s2_nifty = int(nifty_p * 0.972)
+        r2_nifty = int(nifty_p * 1.028)
         focus = f"""
-LIVE DATA:
-- NIFTY: {nifty.get('display','N/A')} | S&P 500: {sp500.get('display','N/A')}
-- Bitcoin: {btc.get('display','N/A')} | Fear & Greed: {fg_val} — {fg_label}
-- NIFTY levels: S1={s1_nifty}, R1={r1_nifty}
+LIVE DATA FOR THIS WEEK:
+- NIFTY: {nifty.get("display","N/A")} | S1={s1_nifty} | S2={s2_nifty} | R1={r1_nifty} | R2={r2_nifty}
+- S&P 500: {sp500.get("display","N/A")}
+- Bitcoin: {btc.get("display","N/A")} | S1=${s1_btc:,} | R1=${r1_btc:,}
+- Gold: {gold.get("display","N/A")}
+- Fear & Greed: {fg_val} — {fg_label}
 
-Create a 4-minute weekly market outlook script for {date_display}.
+Write an 8-minute weekly market outlook script for {date_display}. Target: 900-1000 spoken words across 13-15 NARRATOR blocks.
 
 STRUCTURE:
 
-HOOK — what defined this week:
-Example: "This was one of the most volatile weeks of 2026 so far. NIFTY dropped sharply. Bitcoin got hit. And one number — the Fear and Greed index at {fg_val} — is telling us something important about what happens next week."
+HOOK — this week's defining moment:
+"This week in markets told us something important. Not just about prices — about where we are in the bigger cycle. Let me walk you through what I saw this week, and what I think it means for the week ahead."
 
-WEEK RECAP (what actually happened — based on live prices):
-- NIFTY reality: current level, what drove the move
-- Global picture: S&P 500, Dollar, what macro event mattered most
-- One surprising thing from this week
+PART 1 — WEEK RECAP (2 min):
+What actually happened to NIFTY this week based on current price vs week start estimate.
+What happened globally — S&P 500, Dollar, major news.
+One thing that surprised you this week. One thing that confirmed your view.
 
-SOFT CTA: "Every Sunday we post this weekly outlook before markets open Monday — subscribe so you are prepared, not reactive."
+SOFT CTA — natural, weekend energy.
 
-NEXT WEEK SETUP:
-- Key events to watch: RBI meeting / Fed / earnings / global data
-- NIFTY levels that matter for the week ahead
-- Bitcoin weekly outlook — is the trend changing?
+PART 2 — WHAT FEAR & GREED TELLS US (1 min):
+Current reading {fg_val} — {fg_label}. Historical context.
+Last 3 times we saw this reading on a Friday — what happened Monday?
+Your interpretation — cautious or optimistic?
 
-THE BIG QUESTION for next week — create suspense:
-Example: "The one thing I will be watching next week is {s1_nifty} on NIFTY. If that level holds on Monday open — bulls are back in control. If it breaks — things could get much worse before they get better."
+PART 3 — NIFTY NEXT WEEK SETUP (2 min):
+The range: {s2_nifty} to {r2_nifty}
+Key level to watch Monday open: {s1_nifty}
+Bull scenario: if {s1_nifty} holds, target {r1_nifty} then {r2_nifty}
+Bear scenario: if {s2_nifty} breaks, next support and what that means
+Key events: RBI, Fed, quarterly results, global data — pick what fits current month
 
-STRONG CLOSE:
-"See you Monday morning with the daily levels. Have a good weekend — and keep your stops in place."
+PART 4 — BITCOIN AND GLOBAL (1 min):
+BTC weekly setup — support ${s1_btc:,}, resistance ${r1_btc:,}
+Is crypto leading or lagging equities this week?
 
-Total spoken words: 460-500 words.
+PART 5 — YOUR PERSONAL PLAN FOR NEXT WEEK (1.5 min):
+What YOU are personally watching, what positions you would consider
+Risk management for the week — position sizing in this environment
+One trade idea with full entry/stop/target
+
+STRONG CLOSE — weekend send-off:
+"That is my view for next week. I could be wrong — markets have surprised me before. But these are the levels I am working with. See you Monday morning with the daily analysis. Enjoy the weekend."
+
+Total spoken words: 920-1000 words.
 """
 
     elif topic_type == "education_patterns":
+        s2_nifty = int(nifty_p * 0.972)
+        r2_nifty = int(nifty_p * 1.028)
         focus = f"""
-Create a 5-minute educational video about Support and Resistance levels.
-Market context today: NIFTY {nifty.get('display','N/A')}, {mood}.
+Market context: NIFTY {mood} at {nifty.get("display","N/A")} today. S1={s1_nifty}, R1={r1_nifty}.
+
+Write a 9-minute support and resistance education video. Target: 1000-1100 spoken words across 14-16 NARRATOR blocks.
+
+TEACHING PHILOSOPHY:
+Teach this like you are explaining to someone who has never traded before, but make it interesting for intermediate traders too. Use today's NIFTY chart as the live example throughout.
 
 STRUCTURE:
 
-HOOK — use today's market to make it real:
-Example: "NIFTY hit a major support level today. And what happened there — either a bounce or a break — is exactly what support and resistance is about. Let me explain this concept using today's chart as the example."
+HOOK — real market, today:
+"NIFTY is sitting at {nifty_p:,.0f} right now. And right below the current price, there is a level at {s1_nifty} that every serious trader is watching. If you do not know what support and resistance is — or if you know the theory but struggle to trade it — this video is for you."
 
-WHAT IS SUPPORT — keep it real, not textbook:
-"Support is not a magic number. It is a price where enough buyers showed up before to stop the fall. Think of it like a floor — it can hold, or it can break."
-Use {s1_nifty} as live example from today.
+PART 1 — WHAT THESE LEVELS REALLY ARE (2 min):
+Not textbook definition — explain it as human psychology.
+"Support is simply a price where more buyers than sellers showed up before. That is it. Nothing magical."
+"Resistance is where sellers overwhelmed buyers before. A ceiling made of memory."
+Why do the same levels work again and again? Because traders remember. Because institutions have orders sitting there.
 
-SOFT CTA: "We mark these levels every morning for NIFTY and Bitcoin — subscribe and you will have them before market opens."
+SOFT CTA — natural.
 
-WHAT IS RESISTANCE — the mirror:
-"Resistance is where sellers showed up before and stopped the rally. It is a ceiling. And ceilings can either reject price — or break and become new floors."
-Use {r1_nifty} as live example.
+PART 2 — HOW TO IDENTIFY LEVELS (2.5 min):
+Method 1: Previous swing highs and lows — the most reliable
+Show on today's NIFTY chart — {s2_nifty} was previous swing low
+Method 2: Round numbers — 24000, 23500, 23000 — psychological magnets
+Why round numbers work — human brain anchors to them, institutions place orders there
+Method 3: High volume zones — where price spent the most time
+Common mistake: drawing too many levels. You need 2-3 key levels, not 20.
 
-3 WAYS TO IDENTIFY LEVELS:
-1. Previous highs and lows — most reliable
-2. Round numbers — psychological magnets (24000, 25000)
-3. Volume nodes — where most trading happened
+PART 3 — HOW TO TRADE THEM (2.5 min):
+The bounce trade: price approaches {s1_nifty}, you do NOT buy immediately
+Wait for confirmation — a green candle closing above the level after testing it
+Entry: above confirmation candle high. Stop: below the wick of test candle. Target: {r1_nifty}
+The breakout trade: price closes BELOW {s1_nifty} on volume
+Wait for retest of broken support as new resistance
+The fake breakout trap — the most common way beginners lose money
 
-THE PSYCHOLOGY — why they work:
-"These levels work because thousands of traders are watching the same chart. When price hits a known level, everyone reacts — and that reaction creates the bounce or the break."
+PART 4 — TODAY'S LIVE EXAMPLE (1.5 min):
+Walk through today's NIFTY chart using {s1_nifty} and {r1_nifty}
+What has happened at these levels recently
+What you personally think will happen next
 
-TRADING THE LEVELS — practical:
-- Bounce trade: wait for confirmation candle at support, stop just below
-- Breakout trade: wait for candle CLOSE above resistance, not just a wick
+STRONG CLOSE — homework that creates engagement:
+"Here is your homework. Open NIFTY chart on any app — Zerodha Kite, Groww, TradingView — any works. Draw a horizontal line at {s1_nifty} and another at {r1_nifty}. Watch these levels for the next 3 trading days. Come back and tell me in the comments what you observed. I read every comment."
 
-COMMON MISTAKE:
-"The biggest mistake is buying exactly at support. Wait. Let the market show you it is holding first."
-
-STRONG CLOSE:
-"Look at today's NIFTY chart right now. Find {s1_nifty}. That is a live support level. Watch what price does there — and you will understand support and resistance better than any textbook can teach you."
-
-Total spoken words: 560-600 words.
+Total spoken words: 1000-1100 words.
 """
 
     else:  # top5_stocks
         focus = f"""
 LIVE DATA:
-- NIFTY: {nifty.get('display','N/A')} ({nifty_pct:+.2f}%)
-- S&P 500: {sp500.get('display','N/A')}
+- NIFTY: {nifty.get("display","N/A")} ({nifty_pct:+.2f}%)
+- S&P 500: {sp500.get("display","N/A")}
 - Fear & Greed: {fg_val} — {fg_label}
+- Gold: {gold.get("display","N/A")}
 
-Create a 4-minute Top 5 Stocks to Watch video script for {date_display}.
+Write an 8-minute Top 5 Stocks to Watch video for {date_display}. Target: 900-1000 spoken words across 13-15 NARRATOR blocks.
+
+STOCK SELECTION RULES:
+Pick 5 real stocks from NIFTY 200. In a {mood} market, focus on:
+- 2 defensive stocks (FMCG, pharma, IT with strong cash flows)
+- 2 momentum stocks (showing relative strength vs NIFTY)
+- 1 contrarian pick (beaten down but with strong fundamental reason to recover)
+
+For each stock, give:
+Name, sector, current rough price range, why it is interesting THIS SPECIFIC WEEK,
+exact level to watch (support or breakout point), bull case, bear case, your personal view.
 
 STRUCTURE:
 
-HOOK — create urgency:
-Example: "NIFTY is {mood} right now. In a market like this, most stocks are getting hit. But 5 specific stocks are showing setups that serious traders should not ignore this week. Here they are."
+HOOK — market reality + week setup:
+"NIFTY is {mood} this week. In a market like this, most retail traders are either frozen or panicking. But there are always pockets of strength — and weakness — if you know where to look. Here are the 5 stocks I am watching closely this week, and exactly why."
 
-MARKET CONTEXT (brief — 20 seconds):
-One line on why market is doing what it is doing today.
-One line on what kind of stocks do well in this environment.
+MARKET CONTEXT (1 min):
+Current NIFTY level and what it means for individual stocks.
+Which sectors are showing strength vs weakness in this environment.
+One macro factor affecting stock selection this week.
 
-SOFT CTA: "Every Sunday we post the top stocks for the week — subscribe so you get them before Monday open."
+SOFT CTA — natural, early.
 
-STOCK 1 — build narrative tension:
-Format: "Stock name, sector. Here is why it is interesting — [specific reason: breakout, volume, sector rotation]. The level I am watching is [specific price]. If it holds/breaks — [what happens]."
-Do NOT say "Stock 1 is X". Say "First up —" or "The one that caught my eye this week —"
+STOCKS 1-5 (5-6 min total, ~1 min each):
+Use varied openers — never "Stock number one". Use:
+"The first one that caught my eye—", "Now this next one is interesting—",
+"Here is my contrarian pick—", "This one is high risk but the setup is clean—",
+"And finally, one that most people are ignoring right now—"
 
-STOCKS 2-5 — same narrative format, vary the opening phrase each time.
-Use these openers: "Next —", "This one surprised me —", "Contrarian pick —", "High risk high reward —"
+For each stock:
+- Open with what is happening to it right now
+- Give the specific level (entry trigger, stop loss, target)
+- Share a genuine opinion — including doubts
+- Add one risk factor traders should know
 
-Add one genuine opinion per stock — "Personally I think..." or "I would wait for..." or "This one worries me because..."
+STRONG CLOSE — create community:
+"Those are my five for this week. I want to know which one you are most interested in — drop it in the comments. And if you paper trade any of these, come back next Sunday and let me know how it went. See you tomorrow morning with the NIFTY levels."
 
-STRONG CLOSE — weekly challenge:
-"Pick one of these five stocks and paper trade it this week. Come back next Sunday and tell me in the comments how it went. See you tomorrow morning with the daily NIFTY levels."
-
-Total spoken words: 460-500 words.
+Total spoken words: 920-1000 words.
 """
 
     try:
@@ -1142,21 +1246,66 @@ def create_outro_slide(color, output_path):
     save_fig(fig, output_path)
 
 # ─── 5. Text to Speech ────────────────────────────────────────────────────────
-def text_to_speech(text, output_path, lang='en', tld='co.in'):
-    """Convert text to MP3 using gTTS — Indian English accent"""
+# Edge TTS voice — Indian male, natural accent
+EDGE_VOICE       = "en-IN-PrabhatNeural"   # Indian male — deep, professional
+EDGE_VOICE_ALT   = "en-IN-NeerjaNeural"    # Indian female — fallback
+EDGE_RATE        = "+0%"    # normal speed
+EDGE_PITCH       = "+0Hz"   # natural pitch
+EDGE_VOLUME      = "+10%"   # slightly louder
+
+
+def clean_for_tts(text):
+    """Clean text so TTS sounds natural"""
+    import re
+    text = text.replace("₹", " rupees ").replace("$", " dollars ")
+    text = text.replace("%", " percent").replace("&", " and ")
+    text = text.replace("|", ". ").replace("→", " to ")
+    text = text.replace("▲", " up ").replace("▼", " down ")
+    text = text.replace("—", ", ").replace("–", ", ")
+    text = text.replace("...", ". ").replace("…", ". ")
+    text = text.replace("**", "").replace("##", "").replace("*", "")
+    text = text.replace("NIFTY", "Nifty").replace("BTC", "Bitcoin")
+    text = text.replace("S&P", "S and P").replace("F&O", "F and O")
+    # Add natural pause after key phrases
+    text = re.sub(r"(\d+),(\d+)", r"", text)  # remove commas in numbers for TTS
+    # Remove any remaining tags
+    text = re.sub(r"(SLIDE|HINDI_SUB|NARRATOR):[^\n]*", "", text)
+    text = re.sub(r"\s+", " ", text).strip()
+    return text
+
+
+async def _edge_tts_async(text, output_path, voice):
+    """Async Edge TTS call"""
+    communicate = edge_tts.Communicate(
+        text=text,
+        voice=voice,
+        rate=EDGE_RATE,
+        pitch=EDGE_PITCH,
+        volume=EDGE_VOLUME,
+    )
+    await communicate.save(output_path)
+
+
+def text_to_speech(text, output_path, lang=None, tld=None):
+    """Convert text to MP3 using Edge TTS — en-IN-PrabhatNeural Indian male voice"""
     try:
-        clean = text.replace("₹", "rupees ").replace("$", "dollars ")
-        clean = clean.replace("%", " percent").replace("&", " and ")
-        clean = clean.replace("|", ". ").replace("→", " ")
-        clean = clean.replace("▲", "up ").replace("▼", "down ")
-        clean = clean.replace("—", ", ").replace("...", ". ")
-        clean = clean.replace("**", "").replace("##", "").replace("*", "")
-        tts = gTTS(text=clean, lang=lang, tld=tld, slow=False)
-        tts.save(output_path)
-        return True
+        clean = clean_for_tts(text)
+        if not clean or len(clean) < 5:
+            return False
+        # Run async edge TTS in sync context
+        asyncio.run(_edge_tts_async(clean, output_path, EDGE_VOICE))
+        if os.path.exists(output_path) and os.path.getsize(output_path) > 1000:
+            return True
+        raise Exception("Output file empty")
     except Exception as e:
-        print(f"TTS failed: {e}")
-        return False
+        print(f"  Edge TTS failed ({e}), trying fallback voice...")
+        try:
+            clean = clean_for_tts(text)
+            asyncio.run(_edge_tts_async(clean, output_path, EDGE_VOICE_ALT))
+            return os.path.exists(output_path) and os.path.getsize(output_path) > 1000
+        except Exception as e2:
+            print(f"  TTS fallback also failed: {e2}")
+            return False
 
 # ─── 6. Assemble Video ────────────────────────────────────────────────────────
 def assemble_video(slides_data, script_slides, prices, topic, output_path):
@@ -1165,6 +1314,18 @@ def assemble_video(slides_data, script_slides, prices, topic, output_path):
 
     for i, (img_path, slide) in enumerate(zip(slides_data, script_slides)):
         narrator_text = slide.get("narrator", "")
+        if not narrator_text:
+            continue
+
+        # Strip SLIDE/HINDI_SUB lines accidentally mixed into narrator
+        clean_lines = []
+        for ln in narrator_text.replace("\n", ". ").split(". "):
+            ln = ln.strip()
+            skip = any(ln.startswith(tag) for tag in
+                       ["SLIDE:", "HINDI_SUB:", "NARRATOR:", "**", "##", "---"])
+            if not skip and len(ln) > 5:
+                clean_lines.append(ln)
+        narrator_text = ". ".join(clean_lines).strip()
         if not narrator_text:
             continue
 
@@ -1339,7 +1500,8 @@ def generate_video():
     title_path = os.path.join(OUTPUT_DIR, "slide_00_title.png")
     create_title_slide(title, f"{topic['type'].replace('_',' ').title()} | AI360Trading", color, title_path)
     slide_image_paths.append(title_path)
-    script_slides.insert(0, {"narrator": f"Welcome to AI360Trading. Today's report — {title}", "slide": "Title"})
+    # Hook intro — use first line of actual script as opener, not robotic welcome
+    script_slides.insert(0, {"narrator": f"Today on AI360Trading — {title}. Stay with me for the key levels.", "slide": "Title"})
 
     # Slide 1 — Fear & Greed + live snapshot (all topics)
     fg_slide_path = os.path.join(OUTPUT_DIR, "slide_01_fg.png")
@@ -1386,14 +1548,21 @@ def generate_video():
     create_outro_slide(color, outro_path)
     slide_image_paths.append(outro_path)
     script_slides.append({
-        "narrator": "That is all for today's analysis from AI360Trading. If you found this helpful please subscribe and hit the bell icon for daily market intelligence. Visit ai360trading.in for full written reports and join our Telegram at t.me/ai360trading. See you tomorrow.",
+        "narrator": "Those are the levels I am watching today. If this was useful — subscribe, and I will see you tomorrow morning before the market opens.",
         "slide": "Outro"
     })
 
-    # Generate thumbnail — separate high-quality image
-    nifty_pct    = prices.get('NIFTY 50', {}).get('pct', 0)
-    thumb_path   = os.path.join(OUTPUT_DIR, "thumbnail.png")
-    create_thumbnail(title, prices, nifty_pct, color, thumb_path)
+    # Generate thumbnail — use relevant asset pct for this video type
+    topic_type = topic["type"]
+    if topic_type == "bitcoin_analysis":
+        thumb_pct = prices.get("Bitcoin", {}).get("pct", 0)
+    elif topic_type in ("personal_finance", "education_candlestick", "education_patterns"):
+        # neutral topics — use NIFTY but treat as green/neutral
+        thumb_pct = abs(prices.get("NIFTY 50", {}).get("pct", 0))  # always green
+    else:
+        thumb_pct = prices.get("NIFTY 50", {}).get("pct", 0)
+    thumb_path = os.path.join(OUTPUT_DIR, "thumbnail.png")
+    create_thumbnail(title, prices, thumb_pct, color, thumb_path)
     print(f"  ✅ Thumbnail created")
 
     # Assemble video
