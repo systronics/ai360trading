@@ -22,11 +22,11 @@ jobs:
       - name: Install system dependencies (for moviepy/audio)
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y ffmpeg fonts-liberation fonts-dejavu
+          sudo apt-get install -y ffmpeg fonts-liberation fonts-dejavu fonts-noto fonts-noto-cjk
 
       - name: Install Python dependencies
         run: |
-          pip install groq pytz requests gtts "moviepy==1.0.3" matplotlib numpy pillow
+          pip install groq pytz requests edge-tts "moviepy==1.0.3" matplotlib numpy pillow
           pip install google-api-python-client google-auth google-auth-oauthlib imageio imageio-ffmpeg
 
       - name: Generate and Upload Video
