@@ -3,12 +3,12 @@ layout: null
 ---
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-
   {% comment %} --- CORE PAGES (About, Policy, Home) --- {% endcomment %}
   {% for page in site.pages %}
     {% unless page.sitemap == false or page.url contains "assets" or page.url contains "css" or page.url contains "feed" or page.url contains "404" %}
+    {% unless page.url contains "sitemap" %}
     <url>
-      <loc>{{ site.url }}{{ page.url | replace: 'index.html', '' | relative_url }}</loc>
+      <loc>{{ site.url }}{{ page.url | replace: 'index.html', '' }}</loc>
       {% if page.last_modified_at %}
         <lastmod>{{ page.last_modified_at | date_to_xmlschema }}</lastmod>
       {% else %}
@@ -18,16 +18,17 @@ layout: null
       <priority>0.7</priority>
     </url>
     {% endunless %}
+    {% endunless %}
   {% endfor %}
-
   {% comment %} --- GLOBAL MARKET POSTS (Highest Priority) --- {% endcomment %}
   {% for post in site.posts %}
+    {% unless post.sitemap == false %}
     <url>
-      <loc>{{ site.url }}{{ post.url | relative_url }}</loc>
+      <loc>{{ site.url }}{{ post.url }}</loc>
       <lastmod>{{ post.date | date_to_xmlschema }}</lastmod>
       <changefreq>daily</changefreq>
       <priority>1.0</priority>
     </url>
+    {% endunless %}
   {% endfor %}
-
 </urlset>
