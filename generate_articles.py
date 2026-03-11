@@ -708,16 +708,38 @@ End with:
 
         schema_json = generate_schema(article_title, meta_description, pillar, chosen_slug)
 
+        # Sanitize title — remove chars that break YAML/XML sitemap
+        safe_title = (article_title
+            .replace('"', "'")
+            .replace('&', 'and')
+            .replace('<', '')
+            .replace('>', '')
+            .replace('₹', 'Rs.')
+            .replace('\n', ' ')
+            .strip())
+        safe_excerpt = (article_excerpt
+            .replace('"', "'")
+            .replace('&', 'and')
+            .replace('<', '')
+            .replace('>', '')
+            .strip())
+        safe_desc = (meta_description
+            .replace('"', "'")
+            .replace('&', 'and')
+            .replace('<', '')
+            .replace('>', '')
+            .strip())
+
         header = (
             "---\n"
             "layout: post\n"
-            f"title: \"{article_title}\"\n"
+            f"title: \"{safe_title}\"\n"
             f"date: {date_str}\n"
             "author: \"Amit Kumar\"\n"
             f"pillar: \"{pillar['id']}\"\n"
             f"permalink: /{pillar['permalink_base']}/{chosen_slug}/\n"
-            f"excerpt: \"{article_excerpt}\"\n"
-            f"description: \"{meta_description}\"\n"
+            f"excerpt: \"{safe_excerpt}\"\n"
+            f"description: \"{safe_desc}\"\n"
             f"keywords: \"{', '.join(pillar['primary_keywords'])}, {', '.join(pillar['us_keywords'][:2])}, {', '.join(pillar['india_keywords'][:2])}\"\n"
             f"categories: [{pillar['category']}]\n"
             f"tags: [{pillar['tag']}]\n"
