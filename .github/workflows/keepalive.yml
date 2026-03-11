@@ -1,10 +1,10 @@
 name: KeepAlive
 # Prevents GitHub from disabling cron on inactive repos
-# Runs once daily and makes a tiny commit to keep the repo active
+# Runs at midnight IST (18:30 UTC previous day) so repo is active before market opens
 
 on:
   schedule:
-    - cron: '0 2 * * 1-5'   # 7:30 AM IST (2:00 UTC) Mon-Fri, before trading starts
+    - cron: '30 18 * * 0-4'  # 11:59 PM IST Sun-Thu (18:30 UTC) = before each trading day
   workflow_dispatch:
 
 jobs:
@@ -23,4 +23,4 @@ jobs:
           echo "$(date -u '+%Y-%m-%d %H:%M:%S UTC')" > .keepalive
           git add .keepalive
           git commit -m "chore: keepalive $(date -u '+%Y-%m-%d')" || echo "Nothing to commit"
-          git push || echo "Push failed — no changes"
+          git push || echo "Push failed"
