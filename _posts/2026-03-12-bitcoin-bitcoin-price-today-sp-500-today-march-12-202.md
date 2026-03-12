@@ -5,7 +5,7 @@ date: 2026-03-12
 author: "Amit Kumar"
 pillar: "bitcoin"
 permalink: /bitcoin/2026-03-12-bitcoin-bitcoin-price-today-sp-500-today-march-12-202/
-excerpt: "SandP 500 Today — Bitcoin and Crypto analysis for March 12, 2026. Live data, key levels, actionable insights for US, UK, India and Brazil."
+excerpt: "S&P 500 Today — Bitcoin and Crypto analysis for March 12, 2026. Live data, key levels, actionable insights for US, UK, India and Brazil."
 description: "Bitcoin holds $70K as crude oil surges 10.89% on March 12, 2026, with BTC at $70,415.88 and Ethereum at $2,077.02."
 keywords: "Bitcoin, Ethereum, crypto market today, BTC price, cryptocurrency, bitcoin price today, crypto market today, bitcoin price INR today, crypto India today"
 categories: [Bitcoin-Crypto]
