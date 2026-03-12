@@ -1,0 +1,32 @@
+name: Fix sandp slugs
+
+on:
+  workflow_dispatch:  # run manually once
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Rename sandp-500-today to sp-500-today
+        run: |
+          cd _posts
+          for f in *sandp-500-today.md; do
+            [ -f "$f" ] || continue
+            newname="${f//sandp-500-today/sp-500-today}"
+            mv "$f" "$newname"
+            echo "Renamed: $f → $newname"
+            # Fix permalink inside file too
+            sed -i 's|sandp-500-today|sp-500-today|g' "$newname"
+          done
+
+      - name: Commit renamed files
+        run: |
+          git config user.email "admin@ai360trading.in"
+          git config user.name "AI360Trading Bot"
+          git add -A
+          git diff --staged --quiet || git commit -m "Fix: rename sandp-500 slugs to sp-500"
+          git push
