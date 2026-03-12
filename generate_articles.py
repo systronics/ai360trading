@@ -88,7 +88,7 @@ PILLARS = [
             "BTC at ${btc} — What Smart Money Is Doing Now | {date}",
             "{trend} Drives Crypto Markets — Bitcoin Analysis {date}",
             "Fear & Greed {fg}: Bitcoin {direction} — {date} Crypto Signals",
-            "Bitcoin Price Today: {trend} — {date} US, India & Brazil",
+            "Bitcoin Price Today: {btc} — {date} Analysis for US, India and Brazil",
             "Crypto Market {direction} | Bitcoin ${btc} — {date} Intelligence",
         ],
         "article_focus": """Write a comprehensive crypto market analysis covering:
@@ -700,7 +700,7 @@ End with:
         content = completion.choices[0].message.content
 
         # Extract META_DESCRIPTION
-        meta_description = f"{date_display} {pillar['name']} analysis — {top_trend}. Live S&P 500, NIFTY, Bitcoin data. AI360Trading."[:155]
+        meta_description = f"{article_title} | {pillar['name']} — {date_display}. Live prices, key levels and insights for US, UK, India and Brazil."[:155]
         cleaned_lines = []
         for line in content.split("\n"):
             if line.strip().startswith("META_DESCRIPTION:"):
@@ -712,9 +712,9 @@ End with:
         content = "\n".join(cleaned_lines).lstrip("\n")
 
         article_excerpt = (
-            f"{top_trend} — {pillar['name']} analysis for {date_display}. "
-            f"Live data, key levels, actionable insights for US, UK, India & Brazil."
-        )[:200]
+    f"{article_title} — {pillar['name']} analysis for {date_display}. "
+    f"Live data, key levels, actionable insights for US, UK, India and Brazil."
+)[:200]
 
         schema_json = generate_schema(article_title, meta_description, pillar, chosen_slug)
 
