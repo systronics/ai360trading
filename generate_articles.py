@@ -516,14 +516,18 @@ def generate_article(pillar, prices, trends, fear_greed, persona, article_index)
     article_title, direction, top_trend = build_title(pillar, trends, prices, fear_greed)
 
     import re as _re
-    _trend_clean = top_trend.lower()
-    _trend_clean = _trend_clean.replace('&', '-and-').replace('s-and-p', 'sp')
-    _trend_clean = _trend_clean.replace('$', '').replace('/', '-').replace(' ', '-')
-    _trend_clean = _re.sub(r'[^a-z0-9\-]', '', _trend_clean)
-    _trend_clean = _re.sub(r'-+', '-', _trend_clean).strip('-')
-    trend_slug  = _trend_clean[:25]
-    chosen_slug = f"{date_str}-{pillar['id']}-{trend_slug}"
-    file_path   = os.path.join(POSTS_DIR, f"{chosen_slug}.md")
+    # Use article title for slug — unique every day, good for SEO
+    _title_clean = article_title.lower()
+    _title_clean = _title_clean.replace('&', '-and-').replace('s&p', 'sp').replace('s-and-p', 'sp')
+    _title_clean = _title_clean.replace('$', '').replace('/', '-').replace(' ', '-')
+    _title_clean = _title_clean.replace('|', '-').replace(':', '-').replace('?', '').replace('!', '')
+    _title_clean = _title_clean.replace("'", '').replace('"', '').replace(',', '')
+    _title_clean = _title_clean.replace('₹', 'rs').replace('%', 'pct')
+    _title_clean = _re.sub(r'[^a-z0-9\-]', '', _title_clean)
+    _title_clean = _re.sub(r'-+', '-', _title_clean).strip('-')
+    title_slug   = _title_clean[:45]  # longer slug = more descriptive URL
+    chosen_slug  = f"{date_str}-{pillar['id']}-{title_slug}"
+    file_path    = os.path.join(POSTS_DIR, f"{chosen_slug}.md")
 
     # Internal links
     recent_posts = get_recent_posts(pillar['id'])
