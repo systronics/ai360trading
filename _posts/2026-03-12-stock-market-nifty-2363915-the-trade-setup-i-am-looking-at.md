@@ -5,7 +5,7 @@ date: 2026-03-12
 author: "Amit Kumar"
 pillar: "stock-market"
 permalink: /stock-market/2026-03-12-stock-market-nifty-2363915-the-trade-setup-i-am-looking-at/
-excerpt: "SandP 500 Today — Stock Market analysis for March 12, 2026. Live data, key levels, actionable insights for US, UK, India and Brazil."
+excerpt: "S&P 500 Today — Stock Market analysis for March 12, 2026. Live data, key levels, actionable insights for US, UK, India and Brazil."
 description: "S&P 500 at 6,708.39, NIFTY 50 at 23,639.15 on March 12, 2026, as global markets tumble amid rising oil prices and escalating Middle East conflict."
 keywords: "S&P 500, NIFTY, NASDAQ, SENSEX, IBOVESPA, stock market today, stock market today, S&P 500 forecast, nifty analysis today, trading signals India"
 categories: [Stock-Market]
