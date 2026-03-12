@@ -4,7 +4,7 @@ title: "Fear & Greed Extreme Fear: Bitcoin Holds Key Levels — March 11, 2026 C
 date: 2026-03-11
 author: "Amit Kumar"
 pillar: "bitcoin"
-permalink: /bitcoin/2026-03-11-bitcoin-sandp-500-today/
+permalink: /bitcoin/2026-03-11-bitcoin-sp-500-today/
 excerpt: "S&P 500 Today — Bitcoin & Crypto analysis for March 11, 2026. Live data, key levels, actionable insights for US, UK, India & Brazil."
 description: "March 11, 2026 Bitcoin & Crypto analysis — S&P 500 Today. Live S&P 500, NIFTY, Bitcoin data. AI360Trading."
 keywords: "Bitcoin, Ethereum, crypto market today, BTC price, cryptocurrency, bitcoin price today, crypto market today, bitcoin price INR today, crypto India today"
@@ -42,7 +42,7 @@ trending: "S&P 500 Today, Bitcoin Price Today, Best Term Insurance 2026, AI Trad
           "url": "https://ai360trading.in/public/image/header.webp"
         }
       },
-      "mainEntityOfPage": "https://ai360trading.in/bitcoin/2026-03-11-bitcoin-sandp-500-today/",
+      "mainEntityOfPage": "https://ai360trading.in/bitcoin/2026-03-11-bitcoin-sp-500-today/",
       "keywords": "Bitcoin, Ethereum, crypto market today, BTC price, cryptocurrency",
       "articleSection": "Bitcoin & Crypto",
       "inLanguage": "en-US"
@@ -66,7 +66,7 @@ trending: "S&P 500 Today, Bitcoin Price Today, Best Term Insurance 2026, AI Trad
           "@type": "ListItem",
           "position": 3,
           "name": "Fear & Greed Extreme Fear: Bitcoin Holds Key Levels \u2014 March 11, 2026 Crypto Signals",
-          "item": "https://ai360trading.in/bitcoin/2026-03-11-bitcoin-sandp-500-today/"
+          "item": "https://ai360trading.in/bitcoin/2026-03-11-bitcoin-sp-500-today/"
         }
       ]
     }
@@ -110,8 +110,8 @@ I'm also concerned about the regulatory news impact for the US, India, and Brazi
 Q: What is the current price of Bitcoin?
 A: The current price of Bitcoin is $69,612.74.
 Q: What is the S&P 500 Today?
-A: The S&P 500 is up 0.62% at 6,781.48. For more information, check out our article [S&P 500 Today Drives Crypto Markets — Bitcoin Analysis March 10, 2026](/bitcoin/2026-03-10-bitcoin-sandp-500-today/).
+A: The S&P 500 is up 0.62% at 6,781.48. For more information, check out our article [S&P 500 Today Drives Crypto Markets — Bitcoin Analysis March 10, 2026](/bitcoin/2026-03-10-bitcoin-sp-500-today/).
 Q: What is the NIFTY Analysis Today?
-A: The NIFTY 50 is up 0.85% at 24,231.85. For more information, check out our article [BTC at $67,444 — What Smart Money Is Doing Now | March 09, 2026](/bitcoin/2026-03-09-bitcoin-sandp-500-today/).
+A: The NIFTY 50 is up 0.85% at 24,231.85. For more information, check out our article [BTC at $67,444 — What Smart Money Is Doing Now | March 09, 2026](/bitcoin/2026-03-09-bitcoin-sp-500-today/).
 
 *March 11, 2026 | Educational content only. Not SEBI registered investment advice.*

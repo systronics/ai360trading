@@ -4,7 +4,7 @@ title: "Best Investment Plans March 07, 2026 — US, India & UK Compared"
 date: 2026-03-07
 author: "Amit Kumar"
 pillar: "personal-finance"
-permalink: /personal-finance/2026-03-07-personal-finance-sandp-500-today/
+permalink: /personal-finance/2026-03-07-personal-finance-sp-500-today/
 excerpt: "S&P 500 Today — Personal Finance analysis for March 07, 2026. Live data, key levels, actionable insights for US, UK, India & Brazil."
 description: "S&P 500 plummets 1.88% on March 07, 2026, as global markets reel - what this means for your personal finance."
 keywords: "term life insurance, best investment 2026, retirement planning, tax saving, personal finance, best term life insurance USA 2026, 401k investing 2026, best term insurance India 2026, SIP investment returns"
@@ -42,7 +42,7 @@ trending: "S&P 500 Today, Bitcoin Price Today, Best Term Insurance 2026, AI Trad
           "url": "https://ai360trading.in/public/image/header.webp"
         }
       },
-      "mainEntityOfPage": "https://ai360trading.in/personal-finance/2026-03-07-personal-finance-sandp-500-today/",
+      "mainEntityOfPage": "https://ai360trading.in/personal-finance/2026-03-07-personal-finance-sp-500-today/",
       "keywords": "term life insurance, best investment 2026, retirement planning, tax saving, personal finance",
       "articleSection": "Personal Finance",
       "inLanguage": "en-US"
@@ -66,7 +66,7 @@ trending: "S&P 500 Today, Bitcoin Price Today, Best Term Insurance 2026, AI Trad
           "@type": "ListItem",
           "position": 3,
           "name": "Best Investment Plans March 07, 2026 \u2014 US, India & UK Compared",
-          "item": "https://ai360trading.in/personal-finance/2026-03-07-personal-finance-sandp-500-today/"
+          "item": "https://ai360trading.in/personal-finance/2026-03-07-personal-finance-sp-500-today/"
         }
       ]
     }

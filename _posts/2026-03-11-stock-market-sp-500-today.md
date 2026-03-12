@@ -4,7 +4,7 @@ title: "I Was Wrong About S&P 500 Today — Here Is What the Chart Actually Show
 date: 2026-03-11
 author: "Amit Kumar"
 pillar: "stock-market"
-permalink: /stock-market/2026-03-11-stock-market-sandp-500-today/
+permalink: /stock-market/2026-03-11-stock-market-sp-500-today/
 excerpt: "S&P 500 Today — Stock Market analysis for March 11, 2026. Live data, key levels, actionable insights for US, UK, India & Brazil."
 description: "S&P 500 at 6,781.48, NIFTY 50 at 24,231.85 on March 11, 2026, as global markets weigh Iran war signals and oil price volatility."
 keywords: "S&P 500, NIFTY, NASDAQ, SENSEX, IBOVESPA, stock market today, stock market today, S&P 500 forecast, nifty analysis today, trading signals India"
@@ -42,7 +42,7 @@ trending: "S&P 500 Today, Bitcoin Price Today, Best Term Insurance 2026, AI Trad
           "url": "https://ai360trading.in/public/image/header.webp"
         }
       },
-      "mainEntityOfPage": "https://ai360trading.in/stock-market/2026-03-11-stock-market-sandp-500-today/",
+      "mainEntityOfPage": "https://ai360trading.in/stock-market/2026-03-11-stock-market-sp-500-today/",
       "keywords": "S&P 500, NIFTY, NASDAQ, SENSEX, IBOVESPA, stock market today",
       "articleSection": "Stock Market",
       "inLanguage": "en-US"
@@ -66,7 +66,7 @@ trending: "S&P 500 Today, Bitcoin Price Today, Best Term Insurance 2026, AI Trad
           "@type": "ListItem",
           "position": 3,
           "name": "I Was Wrong About S&P 500 Today \u2014 Here Is What the Chart Actually Shows",
-          "item": "https://ai360trading.in/stock-market/2026-03-11-stock-market-sandp-500-today/"
+          "item": "https://ai360trading.in/stock-market/2026-03-11-stock-market-sp-500-today/"
         }
       ]
     }
@@ -108,13 +108,13 @@ The other risk is the US-Iran war tensions. A war could lead to a sharp decline 
 ## My Take
 Personally, I think the $70K breakout in Bitcoin fails the first attempt. Too many leveraged longs are stacked just below that level - the market will hunt those stops first. The S&P 500 is sitting at a key level, and a break above 6,787 could lead to a quick rally to 6,826. However, the fear and greed index is still at 15, indicating extreme fear.
 
-The NIFTY 50 is trading at a key level, and a break below 24,100 could lead to a sharp decline to 23,800. The Bank Nifty is up 1.38%, which is a strong rally, but the India VIX is down 19.05% to 18.91, indicating a decrease in volatility. For more analysis, check out [S&P 500 Today: Why This Move Is Different From What Media Is Saying](/stock-market/2026-03-10-stock-market-sandp-500-today/) and [S&P 500 & NIFTY Today: The Level Nobody Is Watching (March 09, 2026)](/stock-market/2026-03-09-stock-market-sandp-500-today/).
+The NIFTY 50 is trading at a key level, and a break below 24,100 could lead to a sharp decline to 23,800. The Bank Nifty is up 1.38%, which is a strong rally, but the India VIX is down 19.05% to 18.91, indicating a decrease in volatility. For more analysis, check out [S&P 500 Today: Why This Move Is Different From What Media Is Saying](/stock-market/2026-03-10-stock-market-sp-500-today/) and [S&P 500 & NIFTY Today: The Level Nobody Is Watching (March 09, 2026)](/stock-market/2026-03-09-stock-market-sp-500-today/).
 
 ## Quick Answers
 Q: What is the S&P 500 Today?
 A: The S&P 500 is at 6,781.48, up 0.62% today.
 Q: What is the NIFTY Support & Resistance Today?
-A: The NIFTY 50 has key levels at 24,100 and 24,400. Check out [NIFTY Support & Resistance Today — March 08, 2026 | S&P 500 Today](/stock-market/2026-03-08-stock-market-sandp-500-today/) for more analysis.
+A: The NIFTY 50 has key levels at 24,100 and 24,400. Check out [NIFTY Support & Resistance Today — March 08, 2026 | S&P 500 Today](/stock-market/2026-03-08-stock-market-sp-500-today/) for more analysis.
 Q: What is the Bitcoin Price Today?
 A: The Bitcoin price is at $69,612.74, down 0.49% today.
 

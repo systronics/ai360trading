@@ -4,7 +4,7 @@ title: "Global Stock Market Outlook | S&P 500 Today — March 07, 2026"
 date: 2026-03-07
 author: "Amit Kumar"
 pillar: "stock-market"
-permalink: /stock-market/2026-03-07-stock-market-sandp-500-today/
+permalink: /stock-market/2026-03-07-stock-market-sp-500-today/
 excerpt: "S&P 500 Today — Stock Market analysis for March 07, 2026. Live data, key levels, actionable insights for US, UK, India & Brazil."
 description: "NIFTY 50 at 24,450.45, S&P 500 at 6,740.02, and IBOVESPA at 179,364.81 on March 07, 2026, as global markets react to Iran war and oil surge."
 keywords: "S&P 500, NIFTY, NASDAQ, SENSEX, IBOVESPA, stock market today, stock market today, S&P 500 forecast, nifty analysis today, trading signals India"
@@ -42,7 +42,7 @@ trending: "S&P 500 Today, Bitcoin Price Today, Best Term Insurance 2026, AI Trad
           "url": "https://ai360trading.in/public/image/header.webp"
         }
       },
-      "mainEntityOfPage": "https://ai360trading.in/stock-market/2026-03-07-stock-market-sandp-500-today/",
+      "mainEntityOfPage": "https://ai360trading.in/stock-market/2026-03-07-stock-market-sp-500-today/",
       "keywords": "S&P 500, NIFTY, NASDAQ, SENSEX, IBOVESPA, stock market today",
       "articleSection": "Stock Market",
       "inLanguage": "en-US"
@@ -66,7 +66,7 @@ trending: "S&P 500 Today, Bitcoin Price Today, Best Term Insurance 2026, AI Trad
           "@type": "ListItem",
           "position": 3,
           "name": "Global Stock Market Outlook | S&P 500 Today \u2014 March 07, 2026",
-          "item": "https://ai360trading.in/stock-market/2026-03-07-stock-market-sandp-500-today/"
+          "item": "https://ai360trading.in/stock-market/2026-03-07-stock-market-sp-500-today/"
         }
       ]
     }

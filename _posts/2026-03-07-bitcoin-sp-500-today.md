@@ -4,7 +4,7 @@ title: "S&P 500 Today: Is Bitcoin Going Up or Down Today? March 07, 2026 Analysi
 date: 2026-03-07
 author: "Amit Kumar"
 pillar: "bitcoin"
-permalink: /bitcoin/2026-03-07-bitcoin-sandp-500-today/
+permalink: /bitcoin/2026-03-07-bitcoin-sp-500-today/
 excerpt: "S&P 500 Today — Bitcoin & Crypto analysis for March 07, 2026. Live data, key levels, actionable insights for US, UK, India & Brazil."
 description: "March 07, 2026 Bitcoin & Crypto analysis — S&P 500 Today. Live S&P 500, NIFTY, Bitcoin data. AI360Trading."
 keywords: "Bitcoin, Ethereum, crypto market today, BTC price, cryptocurrency, bitcoin price today, crypto market today, bitcoin price INR today, crypto India today"
@@ -42,7 +42,7 @@ trending: "S&P 500 Today, Bitcoin Price Today, Best Term Insurance 2026, AI Trad
           "url": "https://ai360trading.in/public/image/header.webp"
         }
       },
-      "mainEntityOfPage": "https://ai360trading.in/bitcoin/2026-03-07-bitcoin-sandp-500-today/",
+      "mainEntityOfPage": "https://ai360trading.in/bitcoin/2026-03-07-bitcoin-sp-500-today/",
       "keywords": "Bitcoin, Ethereum, crypto market today, BTC price, cryptocurrency",
       "articleSection": "Bitcoin & Crypto",
       "inLanguage": "en-US"
@@ -66,7 +66,7 @@ trending: "S&P 500 Today, Bitcoin Price Today, Best Term Insurance 2026, AI Trad
           "@type": "ListItem",
           "position": 3,
           "name": "S&P 500 Today: Is Bitcoin Going Up or Down Today? March 07, 2026 Analysis",
-          "item": "https://ai360trading.in/bitcoin/2026-03-07-bitcoin-sandp-500-today/"
+          "item": "https://ai360trading.in/bitcoin/2026-03-07-bitcoin-sp-500-today/"
         }
       ]
     }
