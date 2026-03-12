@@ -515,7 +515,13 @@ def generate_article(pillar, prices, trends, fear_greed, persona, article_index)
 
     article_title, direction, top_trend = build_title(pillar, trends, prices, fear_greed)
 
-    trend_slug  = top_trend.lower().replace(' ', '-').replace('/', '-').replace('&', 'and').replace('$','')[:25]
+    import re as _re
+    _trend_clean = top_trend.lower()
+    _trend_clean = _trend_clean.replace('&', '-and-').replace('s-and-p', 'sp')
+    _trend_clean = _trend_clean.replace('$', '').replace('/', '-').replace(' ', '-')
+    _trend_clean = _re.sub(r'[^a-z0-9\-]', '', _trend_clean)
+    _trend_clean = _re.sub(r'-+', '-', _trend_clean).strip('-')
+    trend_slug  = _trend_clean[:25]
     chosen_slug = f"{date_str}-{pillar['id']}-{trend_slug}"
     file_path   = os.path.join(POSTS_DIR, f"{chosen_slug}.md")
 
