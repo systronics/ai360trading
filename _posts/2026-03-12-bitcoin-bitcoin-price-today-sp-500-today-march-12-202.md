@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Bitcoin Price Today: SandP 500 Today — March 12, 2026 US, India and Brazil"
+title: "Bitcoin Price Today: S&P 500 Today — March 12, 2026 US, India and Brazil"
 date: 2026-03-12
 author: "Amit Kumar"
 pillar: "bitcoin"
