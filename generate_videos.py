@@ -260,19 +260,12 @@ BANNED FOREVER (instant AI detection):
 ═══════════════════════════════════════════════════
 SCRIPT FORMAT — FOLLOW EXACTLY
 ═══════════════════════════════════════════════════
-- NARRATOR: [spoken text — this is what Edge TTS will read aloud]
-- SLIDE: [visual description — NOT spoken, shown on screen]
-- HINDI_SUB: [3-5 Hindi words shown as subtitle on slide]
+- NARRATOR: [spoken Hinglish text — this is what Edge TTS reads aloud]
+- SLIDE: [English only visual description — shown on screen, NO Hindi characters]
 
 Each NARRATOR block = one slide. Write 10-14 NARRATOR blocks for long videos.
-After every 3-4 NARRATOR blocks, insert one SLIDE + HINDI_SUB.
-
-HINDI_SUB examples that work:
-- "आज का सबसे जरूरी Level"
-- "क्या यह Crash है?"  
-- "Support टूटा तो गिरावट तय"
-- "Smart Money क्या कर रहा है"
-- "यह Level बहुत Important है"
+After every 3-4 NARRATOR blocks, insert one SLIDE.
+All slide text must be in English only — no Hindi, no Devanagari script.
 
 Total spoken words: stated per video type below."""
 
@@ -808,21 +801,24 @@ def create_thumbnail(title, prices, pct_change, color, output_path):
         except: return ImageFont.load_default()
     def sh_text(d,xy,txt,f,fill):
         d.text((xy[0]+5,xy[1]+5),txt,font=f,fill=(0,0,0,190)); d.text(xy,txt,font=f,fill=fill)
-    headline2="CRASH !" if is_crash else "SURGING !"
-    arrow_txt="▼" if is_crash else "▲"
-    badge_col=(200,0,0) if is_crash else (0,150,20)
-    txt_col2=(255,215,0) if is_crash else (120,255,100)
-    sh_text(draw,(38,25),"NIFTY",pfont(105),(255,255,255))
-    sh_text(draw,(38,128),headline2,pfont(122),txt_col2)
-    draw.rounded_rectangle([38,272,435,340],radius=10,fill=badge_col)
-    draw.text((55,280),f"{arrow_txt} {abs(pct_change):.2f}%  TODAY",font=pfont(37),fill=(255,255,255))
+    # Hinglish thumbnail text — mix of Hindi+English like top Indian channels
+    headline1 = "NIFTY" if "nifty" in title.lower() or "stock" in title.lower() else "BITCOIN" if "bitcoin" in title.lower() or "btc" in title.lower() else "MARKET"
+    headline2 = "गिरा !" if is_crash else "उठा !"           # Gira = Fell | Utha = Rose
+    badge_txt = f"{'▼' if is_crash else '▲'} {abs(pct_change):.2f}% TODAY"
+    badge_col = (200,0,0) if is_crash else (0,150,20)
+    txt_col2  = (255,215,0) if is_crash else (120,255,100)
+    topic     = "देखो Level तोड़ा ?" if is_crash else "Buy करें या Wait ?"
+
+    sh_text(draw,(38,25), headline1, pfont(105),(255,255,255))
+    sh_text(draw,(38,128),headline2, pfont(122),txt_col2)
+    draw.rounded_rectangle([38,272,450,340],radius=10,fill=badge_col)
+    draw.text((55,280),badge_txt,font=pfont(37),fill=(255,255,255))
     draw.text((38,358),date_display,font=pfont(34,bold=False),fill=(210,210,210))
-    topic="SUPPORT & RESISTANCE" if is_crash else "BUY OPPORTUNITY"
-    draw.rounded_rectangle([38,408,38+len(topic)*17+30,474],radius=10,fill=(200,85,0))
-    draw.text((55,416),topic,font=pfont(33),fill=(255,255,255))
+    draw.rounded_rectangle([38,408,38+len(topic)*20+20,474],radius=10,fill=(200,85,0))
+    draw.text((55,416),topic,font=pfont(30),fill=(255,255,255))
     draw.text((38,490),"ai360trading.in",font=pfont(28,bold=False),fill=(120,180,255))
     draw.rectangle([0,666,W,H],fill=(0,0,0))
-    draw.text((22,675),"AI360TRADING  |  Daily NIFTY & Market Analysis  |  @ai360trading",font=pfont(25),fill=(80,160,255))
+    draw.text((22,675),"AI360TRADING  |  Daily Market Analysis  |  @ai360trading",font=pfont(25),fill=(80,160,255))
     canvas.save(output_path,quality=96)
     print(f"  Thumbnail saved: {output_path}")
 
@@ -1109,19 +1105,8 @@ def create_content_slide(slide_text, narrator_text, color, slide_num, total, out
                 fontsize=15, color='#cbd5e1', ha='left', va='top',
                 linespacing=1.5)
 
-    # Hindi subtitle bar — orange accent, Hindi/Hinglish text
-    if hindi_sub:
-        ax.add_patch(mpatches.FancyBboxPatch(
-            (0.0, 0.16), 1.0, 0.10,
-            boxstyle="round,pad=0", color='#1a0a00',
-            transform=ax.transAxes, zorder=1))
-        ax.add_patch(mpatches.FancyBboxPatch(
-            (0.0, 0.16), 0.004, 0.10,
-            boxstyle="round,pad=0", color='#f97316',
-            transform=ax.transAxes, zorder=2))
-        ax.text(0.5, 0.21, hindi_sub, transform=ax.transAxes,
-                fontsize=18, fontweight='bold',
-                color='#fed7aa', ha='center', va='center')
+    # Hindi subtitle bar removed — slides English only
+    # YouTube auto-captions handle multilingual subtitles for viewers
 
     # Narrator quote bottom
     quote = narrator_text[:100] + '...' if len(narrator_text) > 100 else narrator_text
@@ -1264,10 +1249,11 @@ def clean_for_tts(text):
     text = text.replace("—", ", ").replace("–", ", ")
     text = text.replace("...", ". ").replace("…", ". ")
     text = text.replace("**", "").replace("##", "").replace("*", "")
-    text = text.replace("NIFTY", "Nifty").replace("BTC", "Bitcoin")
+    text = text.replace("NIFTY", "Nifty")
+    text = re.sub(r"\bBTC\b", "Bitcoin", text)  # only standalone BTC
     text = text.replace("S&P", "S and P").replace("F&O", "F and O")
     # Add natural pause after key phrases
-    text = re.sub(r"(\d+),(\d+)", r"", text)  # remove commas in numbers for TTS
+    text = re.sub(r"(\d+),(\d+)", lambda m: m.group(1)+m.group(2), text)  # 24,500 -> 24500 for TTS
     # Remove any remaining tags
     text = re.sub(r"(SLIDE|HINDI_SUB|NARRATOR):[^\n]*", "", text)
     text = re.sub(r"\s+", " ", text).strip()
@@ -1517,8 +1503,13 @@ def generate_video():
         chart_path = os.path.join(OUTPUT_DIR, "slide_02_chart.png")
         create_candlestick_chart_slide(prices, f"NIFTY 50 — {date_display}", color, chart_path)
         slide_image_paths.append(chart_path)
+        nifty_p   = prices.get('NIFTY 50',{}).get('price', 24000)
+        nifty_pct = prices.get('NIFTY 50',{}).get('pct', 0)
+        mood_word = "under pressure" if nifty_pct < -1 else "selling off hard" if nifty_pct < -2 else "trying to recover" if nifty_pct > 0 else "flat"
+        s1 = int(nifty_p * 0.986)
+        r1 = int(nifty_p * 1.014)
         script_slides.insert(2, {
-            "narrator": f"Here is the NIFTY 50 candlestick chart. Current price is {prices.get('NIFTY 50',{}).get('display','N/A')}. The green dashed line is support and the red dashed line is resistance. Watch these levels closely today.",
+            "narrator": f"NIFTY is currently at {prices.get('NIFTY 50',{}).get('display','N/A')} — {mood_word}. The level I want you to focus on is {s1:,} below and {r1:,} above. What happens at these two levels in the next few sessions will tell us a lot about where this market is heading.",
             "slide": "NIFTY Chart"
         })
 
@@ -1527,8 +1518,11 @@ def generate_video():
         sr_path = os.path.join(OUTPUT_DIR, "slide_03_sr.png")
         create_sr_levels_slide(prices, color, sr_path)
         slide_image_paths.append(sr_path)
+        nifty_now = prices.get('NIFTY 50',{}).get('price', 24000)
+        btc_now   = prices.get('Bitcoin',{}).get('price', 65000)
+        sp_now    = prices.get('S&P 500',{}).get('price', 5500)
         script_slides.insert(3, {
-            "narrator": f"Here are the exact key levels for today. NIFTY support at {prices.get('NIFTY 50',{}).get('price',24000)*0.986:,.0f} and resistance at {prices.get('NIFTY 50',{}).get('price',24000)*1.014:,.0f}. Bitcoin support at {prices.get('Bitcoin',{}).get('price',65000)*0.95:,.0f} and resistance at {prices.get('Bitcoin',{}).get('price',65000)*1.05:,.0f}.",
+            "narrator": f"These are the levels I am personally watching today. For NIFTY — {int(nifty_now*0.986):,} is the key support. If that breaks on volume, the next stop is {int(nifty_now*0.972):,}. Resistance sits at {int(nifty_now*1.014):,}. For Bitcoin — {int(btc_now*0.95):,} is where buyers need to show up. S&P 500 is at {sp_now:,.0f} — and what happens there overnight will set the tone for NIFTY tomorrow morning.",
             "slide": "Key Levels"
         })
 
@@ -1538,8 +1532,7 @@ def generate_video():
         create_content_slide(
             slide.get("slide", slide.get("narrator","")[:80]),
             slide.get("narrator", ""),
-            color, i, len(script_slides), img_path,
-            hindi_sub=slide.get("hindi_sub", "")
+            color, i, len(script_slides), img_path
         )
         slide_image_paths.append(img_path)
 
