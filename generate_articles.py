@@ -43,13 +43,13 @@ PILLARS = [
         ],
         "title_templates": [
             "NIFTY {direction} — Here Is What I Think Happens Next",
-            "S&P 500 & NIFTY Today: The Level Nobody Is Watching ({date})",
+            "S&P 500 and NIFTY Today: The Level Nobody Is Watching ({date})",
             "{trend}: Why This Move Is Different From What Media Is Saying",
             "I Was Wrong About {trend} — Here Is What the Chart Actually Shows",
             "NIFTY {nifty} | The Trade Setup I Am Looking at Right Now",
             "Why Smart Money Is {direction} While Retail Panics — {date}",
-            "The One Chart That Explains Today's Market Crash — {date}",
-            "NIFTY Support & Resistance Today: Exact Levels for {date}",
+            "The One Chart That Explains Today's Market Move — {date}",
+            "NIFTY Support and Resistance Today: Exact Levels for {date}",
         ],
         "article_focus": """Write a comprehensive stock market analysis covering:
 - S&P 500 and NASDAQ deep technical and fundamental analysis
@@ -62,7 +62,7 @@ PILLARS = [
     },
     {
         "id": "bitcoin",
-        "name": "Bitcoin & Crypto",
+        "name": "Bitcoin and Crypto",
         "permalink_base": "bitcoin",
         "category": "Bitcoin-Crypto",
         "tag": "bitcoin",
@@ -83,18 +83,18 @@ PILLARS = [
         ],
         "title_templates": [
             "Bitcoin ${btc} — Crypto Market Analysis {date}",
-            "{trend}: Is Bitcoin Going Up or Down Today? {date} Analysis",
-            "Bitcoin & Crypto {direction} | {trend} — {date} Report",
+            "Is Bitcoin Going Up or Down Today? {date} Analysis",
+            "Bitcoin and Crypto {direction} — {date} Report",
             "BTC at ${btc} — What Smart Money Is Doing Now | {date}",
-            "{trend} Drives Crypto Markets — Bitcoin Analysis {date}",
-            "Fear & Greed {fg}: Bitcoin {direction} — {date} Crypto Signals",
-            "Bitcoin Price Today: {btc} — {date} Analysis for US, India and Brazil",
+            "What Is Driving Crypto Markets Today — Bitcoin Analysis {date}",
+            "Fear and Greed {fg}: Bitcoin {direction} — {date} Crypto Signals",
+            "Bitcoin Price Today: ${btc} — {date} US, India and Brazil",
             "Crypto Market {direction} | Bitcoin ${btc} — {date} Intelligence",
         ],
         "article_focus": """Write a comprehensive crypto market analysis covering:
 - Bitcoin price action, technical levels, support/resistance with exact numbers
 - Ethereum and major altcoin analysis
-- Crypto Fear & Greed Index interpretation and what it signals
+- Crypto Fear and Greed Index interpretation and what it signals
 - Institutional vs retail sentiment analysis
 - Bitcoin correlation with S&P 500 and risk assets
 - Regulatory news impact for US, India, and Brazil crypto markets
@@ -123,11 +123,11 @@ PILLARS = [
             "health+insurance+comparison+2026",
         ],
         "title_templates": [
-            "Best Term Life Insurance 2026 — US, UK & India Complete Guide",
-            "{trend}: Personal Finance Guide for {date}",
+            "Best Term Life Insurance 2026 — US, UK and India Complete Guide",
+            "Personal Finance Guide for {date}: What the Data Says Right Now",
             "I Ran the Numbers on SIP vs Lump Sum — The Answer Surprised Me",
             "Why Most Indians Are Getting Their Term Insurance Wrong in 2026",
-            "{trend}: What This Means for Your SIP and Savings Right Now",
+            "What {trend} Means for Your SIP and Savings Right Now",
             "The Rs.10,000/Month Investment Plan That Actually Works in 2026",
             "Stop Waiting for the Perfect Time — Here Is What the Data Says",
             "Your Emergency Fund Is Probably Wrong — Here Is the Right Size",
@@ -146,7 +146,7 @@ PILLARS = [
     },
     {
         "id": "ai-trading",
-        "name": "AI & Trading Technology",
+        "name": "AI and Trading Technology",
         "permalink_base": "ai-trading",
         "category": "AI-Trading",
         "tag": "ai-trading",
@@ -167,12 +167,12 @@ PILLARS = [
         ],
         "title_templates": [
             "The AI Signal on NIFTY That I Almost Missed Today ({date})",
-            "{trend}: What My Algorithm Is Showing vs What I Actually Think",
+            "What My Algorithm Is Showing vs What I Actually Think — {date}",
             "I Backtested This Strategy 5 Years — Here Are the Real Results",
             "Free AI Tools That Are Actually Useful for Trading in 2026",
-            "Why AI Got {trend} Wrong — And What It Means for Your Trades",
+            "Why AI Got the {direction} Call Wrong — And What It Means for Your Trades",
             "The Algorithm Spotted This Pattern Before the Move — Here Is How",
-            "AI vs Human Trader: Who Called {trend} Better? ({date})",
+            "AI vs Human Trader: Who Called It Better This Week? ({date})",
             "How I Use AI to Filter 90% of Bad Trades Before They Happen",
         ],
         "article_focus": """Write a comprehensive AI and algorithmic trading analysis covering:
@@ -457,7 +457,19 @@ def generate_schema(title, description, pillar, url_slug):
 
 # ─── 8. Build Dynamic Title ───────────────────────────────────────────────────
 def build_title(pillar, trends, prices, fear_greed):
-    top_trend   = trends[0] if trends else pillar['primary_keywords'][0]
+    # FIX: Use pillar-specific trend — pick first trend relevant to pillar, not just trends[0]
+    pillar_trend_keywords = {
+        "stock-market":     ['stock', 'nifty', 'sensex', 'nasdaq', 's&p', 'market', 'dow', 'ftse', 'ibovespa'],
+        "bitcoin":          ['bitcoin', 'crypto', 'btc', 'ethereum', 'defi', 'altcoin', 'blockchain'],
+        "personal-finance": ['insurance', 'loan', 'mortgage', 'retirement', 'savings', 'pension', 'invest', 'finance'],
+        "ai-trading":       ['ai', 'algo', 'fintech', 'nvidia', 'tech', 'algorithm', 'machine learning'],
+    }
+    relevant_keywords = pillar_trend_keywords.get(pillar['id'], [])
+    top_trend = next(
+        (t for t in trends if any(kw in t.lower() for kw in relevant_keywords)),
+        pillar['primary_keywords'][0]  # fallback to pillar's own keyword — never bleeds cross-pillar
+    )
+
     nifty_price = prices.get("NIFTY 50", {}).get("price", 24000)
     sp500_price = prices.get("S&P 500",  {}).get("price", 5500)
     btc_price   = prices.get("Bitcoin",  {}).get("price", 65000)
@@ -477,7 +489,6 @@ def build_title(pillar, trends, prices, fear_greed):
     else:
         direction = random.choice(["Mixed", "At Crossroads", "In Focus", "Holds Key Levels"])
 
-    # Offset by pillar index position to guarantee different template per pillar each day
     pillar_offset = ["stock-market","bitcoin","personal-finance","ai-trading"].index(pillar['id']) if pillar['id'] in ["stock-market","bitcoin","personal-finance","ai-trading"] else 0
     template = pillar['title_templates'][(now.day + pillar_offset * 2) % len(pillar['title_templates'])]
     fg_short  = fear_greed.split(' — ')[1] if ' — ' in fear_greed else fear_greed
@@ -525,7 +536,7 @@ def generate_article(pillar, prices, trends, fear_greed, persona, article_index)
     _title_clean = _title_clean.replace('₹', 'rs').replace('%', 'pct')
     _title_clean = _re.sub(r'[^a-z0-9\-]', '', _title_clean)
     _title_clean = _re.sub(r'-+', '-', _title_clean).strip('-')
-    title_slug   = _title_clean[:45]  # longer slug = more descriptive URL
+    title_slug   = _title_clean[:45]
     chosen_slug  = f"{date_str}-{pillar['id']}-{title_slug}"
     file_path    = os.path.join(POSTS_DIR, f"{chosen_slug}.md")
 
@@ -553,17 +564,16 @@ def generate_article(pillar, prices, trends, fear_greed, persona, article_index)
 
     # Rotating article formats — never same structure twice
     FORMAT_TYPES = [
-        "story_led",        # starts with a real market moment/observation
-        "contrarian",       # leads with unpopular view backed by data
-        "trader_notebook",  # written like a trader's daily notes
-        "macro_driver",     # starts with the big macro force driving everything
-        "chart_story",      # chart pattern first, then what it means
-        "question_led",     # starts with the question everyone is asking
+        "story_led",
+        "contrarian",
+        "trader_notebook",
+        "macro_driver",
+        "chart_story",
+        "question_led",
     ]
     _pillar_idx = ["stock-market","bitcoin","personal-finance","ai-trading"].index(pillar["id"]) if pillar["id"] in ["stock-market","bitcoin","personal-finance","ai-trading"] else 0
     fmt = FORMAT_TYPES[(now.day + article_index + _pillar_idx) % len(FORMAT_TYPES)]
 
-    # Format-specific opening instructions
     FORMAT_INSTRUCTIONS = {
         "story_led": "Start with a specific market observation — a price level, a candle pattern, or an unusual move you noticed today. Make it feel like you are talking to a friend trader.",
         "contrarian": "Open with the view most people have wrong right now. State it bluntly. Then prove it with data.",
@@ -573,14 +583,13 @@ def generate_article(pillar, prices, trends, fear_greed, persona, article_index)
         "question_led": "Open with the exact question traders are googling right now. Answer it directly in para 1. Then go deeper.",
     }
 
-    # Varied section structures — never use the same one
     SECTION_STRUCTURES = {
         "story_led":      ["The Setup", "What the Data Actually Says", "How Each Market Is Playing It", "Key Levels I'm Watching", "The Risk Nobody's Talking About", "My Take", "Quick Answers"],
         "contrarian":     ["The Consensus View (And Why It's Wrong)", "What the Data Shows Instead", "Market By Market Breakdown", "The Levels That Actually Matter", "What Smart Money Is Doing", "Bottom Line", "Reader Questions"],
-        "trader_notebook":["Morning Observations", "NIFTY & India — What I See", "US Markets — Reading the Tape", "Bitcoin — Where I Stand", "Levels I'm Using Today", "What Could Go Wrong", "Common Questions Today"],
-        "macro_driver":   ["The Macro Driver Today", "How It's Moving Each Market", "India's Position", "US & Global Impact", "Technical Levels to Watch", "Scenario Analysis", "Key Questions Answered"],
+        "trader_notebook":["Morning Observations", "NIFTY and India — What I See", "US Markets — Reading the Tape", "Bitcoin — Where I Stand", "Levels I'm Using Today", "What Could Go Wrong", "Common Questions Today"],
+        "macro_driver":   ["The Macro Driver Today", "How It's Moving Each Market", "India's Position", "US and Global Impact", "Technical Levels to Watch", "Scenario Analysis", "Key Questions Answered"],
         "chart_story":    ["What the Chart Is Saying", "Confirming Signals", "Country By Country View", "The Numbers That Matter", "Bull vs Bear Case", "My Positioning View", "Trader FAQs"],
-        "question_led":   ["The Direct Answer", "The Deeper Context", "India View", "US & Crypto View", "Support & Resistance Map", "What Happens Next", "More Questions"],
+        "question_led":   ["The Direct Answer", "The Deeper Context", "India View", "US and Crypto View", "Support and Resistance Map", "What Happens Next", "More Questions"],
     }
 
     sections = SECTION_STRUCTURES[fmt]
@@ -600,7 +609,7 @@ TOPIC: {pillar['name']}
 
 LIVE MARKET DATA RIGHT NOW:
 {price_lines}
-Fear & Greed: {fear_greed} | India VIX: {vix_display}
+Fear and Greed: {fear_greed} | India VIX: {vix_display}
 NIFTY: {nifty_price} ({nifty_pct:+.2f}%) | S&P 500: {sp500_price} ({sp500_pct:+.2f}%)
 Bitcoin: ${btc_price} ({btc_pct:+.2f}%) | Gold: ${gold_price} | ETH: ${eth_price}
 IBOVESPA: {ibov_display} | DXY: {dxy_price}
@@ -641,7 +650,7 @@ TRENDING SEARCHES: {', '.join(trends[:8])}
 
 6. BREAK PARAGRAPH SYMMETRY — no two consecutive paragraphs same length.
 
-7. BANNED WORDS & PHRASES (never use):
+7. BANNED WORDS AND PHRASES (never use):
    "In conclusion", "Furthermore", "Moreover", "This underscores", "This highlights",
    "Navigating", "Landscape", "Delve into", "Robust", "Game-changer", "Paradigm shift",
    "Deep dive", "Shed light", "Bustling", "It's worth noting", "It is important to note",
@@ -699,7 +708,7 @@ End with:
         )
         content = completion.choices[0].message.content
 
-        # Extract META_DESCRIPTION
+        # ── FIX 1: meta_description fallback uses article_title, not top_trend ──
         meta_description = f"{article_title} | {pillar['name']} — {date_display}. Live prices, key levels and insights for US, UK, India and Brazil."[:155]
         cleaned_lines = []
         for line in content.split("\n"):
@@ -711,10 +720,11 @@ End with:
                 cleaned_lines.append(line)
         content = "\n".join(cleaned_lines).lstrip("\n")
 
+        # ── FIX 2: article_excerpt uses article_title, not top_trend ──
         article_excerpt = (
-    f"{article_title} — {pillar['name']} analysis for {date_display}. "
-    f"Live data, key levels, actionable insights for US, UK, India and Brazil."
-)[:200]
+            f"{article_title} — {pillar['name']} analysis for {date_display}. "
+            f"Live data, key levels, actionable insights for US, UK, India and Brazil."
+        )[:200]
 
         schema_json = generate_schema(article_title, meta_description, pillar, chosen_slug)
 
@@ -798,7 +808,6 @@ def generate_all_articles():
 
     results = []
     for i, pillar in enumerate(PILLARS):
-        # Use pillar-specific persona map for human-sounding topic-appropriate writing
         persona_pool = PILLAR_PERSONA_MAP.get(pillar['id'], [0,1,2,3,4,5])
         persona_idx  = persona_pool[now.weekday() % len(persona_pool)]
         persona      = PERSONAS[persona_idx]
