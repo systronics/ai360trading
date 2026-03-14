@@ -1,8 +1,6 @@
 # ============================================================
-# WEBSITE (Jekyll) - Your Original Rules
+# WEBSITE (Jekyll) - Build & Cache
 # ============================================================
-
-# Jekyll & Build Files
 _gh_pages
 _site
 .jekyll-cache/
@@ -17,9 +15,8 @@ vendor/
 Gemfile.lock
 
 # ============================================================
-# TRADING BOT (Python) - New Rules
+# TRADING BOT (Python)
 # ============================================================
-
 # Python Cache & Bytecode
 __pycache__/
 *.py[cod]
@@ -70,36 +67,43 @@ coverage.xml
 .pytest_cache/
 
 # ============================================================
-# SENSITIVE FILES - NEVER COMMIT THESE!
+# SENSITIVE FILES — NEVER COMMIT THESE
 # ============================================================
-
-# Credentials & API Keys
 .env
 .env.local
 .env.*.local
 credentials.json
 service_account.json
-config.py
+
+# FIX: was "config.py" — too broad, blocks legitimate configs.
+# Only block clearly secrets-named files.
+config_secrets.py
 secrets.py
+local_settings.py
 *_secrets.json
 *.key
 *.pem
+.config
 
-# Trading Bot Local Testing
+# ============================================================
+# TRADING BOT — LOCAL TESTING ONLY
+# ============================================================
 trading_bot_test.py
 test_*.py
 debug.log
 *.log
 
-# Local Configuration
-local_settings.py
-.config
+# ADDED: block locally generated sitemap test files
+sitemap_local.xml
+sitemap_test.xml
+
+# ADDED: block any local article output drafts outside _posts
+_drafts_local/
+articles_output/
 
 # ============================================================
-# GENERAL (Common to Both)
+# GENERAL
 # ============================================================
-
-# Numerous always-ignore extensions
 *.diff
 *.err
 *.orig
@@ -112,7 +116,7 @@ local_settings.py
 *.bak
 *.tmp
 
-# OS or Editor folders
+# OS or Editor
 .DS_Store
 ._*
 Thumbs.db
@@ -130,24 +134,29 @@ nbproject
 *.komodoproject
 .komodotools
 
-# grunt-html-validation
+# Validation
 validation-status.json
 validation-report.json
 
-# Development Folders
+# Dev
 node_modules/
 
-# Database files
+# Database
 *.db
 *.sqlite
 *.sqlite3
 
-# Backup files
+# Backups
 *backup*
 *.backup
 
 # ============================================================
-# ALLOWED FILES (Explicitly Track)
+# EXPLICITLY TRACKED — DO NOT IGNORE
 # ============================================================
-# If you accidentally ignored something important, you can force-add it:
-# !important_file.py
+# These are critical for the site and bot — never block them:
+!_posts/
+!generate_articles.py
+!generate_videos.py
+!requirements.txt
+!_config.yml
+!robots.txt
