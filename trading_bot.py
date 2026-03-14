@@ -325,6 +325,24 @@ def save_atr_to_mem(mem: str, key: str, atr: float) -> str:
     return ','.join(parts)
 
 
+def get_capital_from_mem(mem: str, key: str) -> int:
+    """Retrieve actual capital used at entry — for accurate P/L calculation."""
+    prefix = f"{key}_CAP_"
+    for p in mem.split(','):
+        if p.startswith(prefix):
+            try:    return int(p[len(prefix):])
+            except: return CAPITAL_PER_TRADE
+    return CAPITAL_PER_TRADE  # fallback to default
+
+
+def save_capital_to_mem(mem: str, key: str, capital: int) -> str:
+    """Save actual capital used at entry."""
+    prefix = f"{key}_CAP_"
+    parts  = [p for p in mem.split(',') if p.strip() and not p.startswith(prefix)]
+    parts.append(f"{prefix}{capital}")
+    return ','.join(parts)
+
+
 def get_last_price(mem: str, key: str) -> float:
     """Get last seen price for stale detection."""
     prefix = f"{key}_LP_"
@@ -403,7 +421,31 @@ def get_sheets():
         json.loads(os.environ.get('GCP_SERVICE_ACCOUNT_JSON')), scope
     )
     ss = gspread.authorize(creds).open(SHEET_NAME)
-    return ss.worksheet("AlertLog"), ss.worksheet("History")
+    return ss.worksheet("AlertLog"), ss.worksheet("History"), ss.worksheet("Nifty200")
+
+
+def get_market_regime(nifty_sheet) -> bool:
+    """
+    Read Nifty50 row (row 2) from Nifty200 sheet.
+    Returns True if bullish (CMP >= 20DMA), False if bearish.
+    Defaults to True (bullish) if data unavailable — safer to not block.
+    """
+    try:
+        row = nifty_sheet.row_values(2)  # row 2 = NIFTY50
+        if not row or "NIFTY" not in str(row[0]).upper():
+            print("[REGIME] NIFTY50 row not found — defaulting to bullish")
+            return True
+        cmp_nifty  = to_f(row[2])   # col C = CMP
+        dma20      = to_f(row[4])   # col E = 20DMA
+        if cmp_nifty <= 0 or dma20 <= 0:
+            print("[REGIME] Invalid Nifty data — defaulting to bullish")
+            return True
+        bullish = cmp_nifty >= dma20
+        print(f"[REGIME] Nifty CMP ₹{cmp_nifty:.0f} vs 20DMA ₹{dma20:.0f} → {'BULLISH' if bullish else 'BEARISH'}")
+        return bullish
+    except Exception as e:
+        print(f"[REGIME] Error reading regime: {e} — defaulting to bullish")
+        return True
 
 
 # ── MAIN ─────────────────────────────────────────────────────────────────────
@@ -424,9 +466,12 @@ def run_trading_cycle():
 
     print(f"[START] {now.strftime('%Y-%m-%d %H:%M:%S')} IST")
 
-    log_sheet, hist_sheet = get_sheets()
+    log_sheet, hist_sheet, nifty_sheet = get_sheets()
 
     mem = clean_mem(str(log_sheet.acell("T4").value or ""))
+
+    # Read market regime once per cycle — used for smart min-hold decisions
+    is_bullish = get_market_regime(nifty_sheet)
 
     # Automation switch T2 — must be YES to run
     if str(log_sheet.acell("T2").value or "").strip().upper() != "YES":
@@ -490,7 +535,8 @@ def run_trading_cycle():
                     f"   (Live price loading...)"
                 )
         body = "\n\n".join(lines) if lines else "📭 No open trades"
-        deployed = len(lines) * CAPITAL_PER_TRADE  # approximate; dynamic sizing tracked per trade
+        # Use actual deployed capital from memory (dynamic sizing)
+        deployed = sum(get_capital_from_mem(mem, sym_key(r[C_SYMBOL])) for _, r in traded_rows if r[C_SYMBOL])
         if send_tg(
             f"🌅 <b>GOOD MORNING — {today}</b>\n"
             f"━━━━━━━━━━━━━━━━━━━━\n"
@@ -595,6 +641,7 @@ def run_trading_cycle():
                 atr_tgt_mult = 3  # Swing default
             atr_est = (target - cp) / atr_tgt_mult if target > cp else 0
             mem = save_atr_to_mem(mem, key, atr_est)
+            mem = save_capital_to_mem(mem, key, capital)  # save actual capital for P/L
             mem = set_tsl(mem, key, init_sl)
             mem = set_max_price(mem, key, cp)
 
@@ -693,7 +740,8 @@ def run_trading_cycle():
             hard_loss = pnl_pct < -HARD_LOSS_PCT
 
             if hard_loss and ex_flag not in mem:
-                pl_rupees  = round((cp - ent) / ent * CAPITAL_PER_TRADE, 2)
+                trade_capital = get_capital_from_mem(mem, key)
+                pl_rupees  = round((cp - ent) / ent * trade_capital, 2)
                 hold_str   = calc_hold_str(etime, now)
                 max_price  = get_max_price(mem, key)
                 exit_reason = "🚨 HARD LOSS EXIT"
@@ -728,7 +776,17 @@ def run_trading_cycle():
             # Prevents noise stop-outs but exits faster if thesis fails
             is_pos    = "Positional" in ttype or "positional" in ttype.lower()
             min_hold  = MIN_HOLD_POS if is_pos else MIN_HOLD_SWING
-            skip_exit = (days_held < min_hold and not target_hit and not hard_loss)
+
+            # Smart min-hold: if bearish market AND loss > 4% → exit immediately
+            # No point holding for recovery when market direction is down
+            # In bullish market → always apply min-hold (recovery is possible)
+            near_hard_loss = pnl_pct < -4.0
+            skip_exit = (
+                days_held < min_hold
+                and not target_hit
+                and not hard_loss
+                and not (near_hard_loss and not is_bullish)  # bearish + near hard loss = exit
+            )
 
             if (tsl_hit or target_hit) and ex_flag not in mem and not skip_exit:
                 exit_reason = "🎯 TARGET HIT"   if target_hit else \
@@ -737,7 +795,8 @@ def run_trading_cycle():
                 result_sym  = "WIN ✅" if (target_hit or pnl_pct > 0) else "LOSS 🔴"
                 hold_str    = calc_hold_str(etime, now)
                 max_price   = get_max_price(mem, key)
-                pl_rupees   = round((cp - ent) / ent * CAPITAL_PER_TRADE, 2)
+                trade_capital = get_capital_from_mem(mem, key)
+                pl_rupees   = round((cp - ent) / ent * trade_capital, 2)
                 o_note      = options_hint(sym, ent, atr, ttype).replace('\n\n📊 <b>OPTIONS ADVISORY</b>', '').strip() if atr > 0 else ""
 
                 exit_alerts.append(
@@ -781,11 +840,13 @@ def run_trading_cycle():
                 # Min hold protection active — send advisory but don't exit
                 print(f"[HOLD] {sym}: SL touched but Day {days_held + 1} < {min_hold} min hold. Watching.")
                 if f"{key}_HOLD_WARN" not in mem:
+                    regime_note = "🐂 Bullish market — recovery possible" if is_bullish else "🐻 Bearish market — watching closely"
                     send_tg(
                         f"⚠️ <b>MIN HOLD ACTIVE</b>\n"
                         f"<b>{sym}</b> [{ttype}] touched SL ₹{new_tsl:.2f} but only Day {days_held + 1} of {min_hold}.\n"
                         f"Holding until Day {min_hold} unless loss exceeds {HARD_LOSS_PCT}%.\n"
-                        f"Current P/L: {pnl_pct:+.2f}%"
+                        f"Current P/L: {pnl_pct:+.2f}%\n"
+                        f"{regime_note}"
                     )
                     mem += f",{key}_HOLD_WARN"
 
