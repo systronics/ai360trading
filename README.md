@@ -4,7 +4,6 @@ Official repository for [https://ai360trading.in](https://ai360trading.in)
 
 ### Partner Referral Links
 * [Open account in Zerodha](https://bit.ly/2VK6k5F)
-* [Open account in Binance](https://bit.ly/3lTl4JZ)
 * [Open account in Dhan](https://invite.dhan.co/?invite=MSIVC45309)
 
 ### Social Media & Community
