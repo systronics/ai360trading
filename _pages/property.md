@@ -225,7 +225,7 @@ description: "Plot for sale in Saroj Enclave, Jamalpur Kalan, Jwalapur Haridwar.
         <!-- REPLACE YOUR_YOUTUBE_VIDEO_ID with actual ID after uploading -->
         <iframe class="video-embed" id="videoEmbed"
           src=""
-          data-src="https://www.youtube.com/embed/YOUR_YOUTUBE_VIDEO_ID?autoplay=1"
+          data-src="https://www.youtube.com/embed/ATh-X3um6hY?autoplay=1"
           allowfullscreen allow="autoplay">
         </iframe>
       </div>
