@@ -1,8 +1,8 @@
 ---
 layout: default
-title: "Plot for Sale — Saroj Enclave, Jamalpur Kalan, Jwalapur Haridwar | 1000 Sq Ft | ₹22 Lakh"
+title: "Plot for Sale — Saroj Enclave, Jamalpur Kalan, Haridwar | 1000 Sq Ft | ₹22 Lakh"
 permalink: /plot-for-sale/
-description: "Plot for sale in Saroj Enclave, Jamalpur Kalan, Jwalapur Haridwar. 1000 sq ft, North facing, Registry done. Market rate ₹2500/sqft — Our price ₹2200/sqft negotiable. 3km from Haridwar-Laksar Highway."
+description: "Plot for sale in Saroj Enclave, Jamalpur Kalan, Haridwar. 1000 sq ft, North facing, Market rate ₹2500/sqft — Our price ₹2200/sqft negotiable. 3km from Haridwar-Laksar Highway."
 ---
 
 <style>
@@ -170,7 +170,7 @@ description: "Plot for sale in Saroj Enclave, Jamalpur Kalan, Jwalapur Haridwar.
   <!-- HERO -->
   <div class="pp-hero">
     <div class="pp-badge">✅ Registry Done — Ready to Build</div>
-    <h1>Plot for Sale<br><span>Saroj Enclave, Jwalapur Haridwar</span></h1>
+    <h1>Plot for Sale<br><span>Saroj Enclave, Jamalpur, Haridwar</span></h1>
     <div class="pp-hero-meta">
       <div class="pp-meta-item">📐 <strong>1000 Sq. Ft.</strong></div>
       <div class="pp-meta-item">🧭 <strong>North Facing</strong></div>
@@ -187,9 +187,9 @@ description: "Plot for sale in Saroj Enclave, Jamalpur Kalan, Jwalapur Haridwar.
       <span class="price-tag good">✅ Registry Done</span>
       <span class="price-tag good">🧭 North Facing</span>
       <span class="price-tag">🛣️ 30 Ft Road</span>
-      <span class="price-tag">💧 Near Canal</span>
+      <span class="price-tag">💧 Near Chhoti nahar</span>
       <span class="price-tag">🏗️ Developing Area</span>
-      <span class="price-tag">🛣️ 2nd Road Coming</span>
+      <span class="price-tag">🛣️ Both side Road on Chhoti nahar</span>
     </div>
   </div>
 
