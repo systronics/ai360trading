@@ -1,8 +1,8 @@
 ---
 layout: default
-title: "Shop — Amit's Store"
+title: "AI360 Store — Shop"
 permalink: /shop/
-description: "Buy unique items from Amit Kumar, Haridwar. Order via WhatsApp or Email. Pay via UPI. Traditional art, collectibles and more."
+description: "AI360 Store — Curated items by Amit Kumar from Haridwar. Order via WhatsApp. Pay via UPI. Traditional art, collectibles and more."
 ---
 
 <style>
@@ -145,8 +145,8 @@ body { padding-top: 0 !important; margin-top: 0 !important; }
   </div>
 
   <div class="shop-hero">
-    <h1>Amit's <span>Shop</span></h1>
-    <p>Unique items from Haridwar — direct from seller, no middlemen</p>
+    <h1>AI360 <span>Store</span></h1>
+    <p>Curated items by Amit Kumar — direct from Haridwar, no middlemen</p>
     <div class="shop-badges">
       <span class="shop-badge">✅ 100% Genuine</span>
       <span class="shop-badge">📦 Ships from Haridwar</span>
