@@ -2,11 +2,10 @@
 # robots.txt for ai360trading.in
 # Optimized for Global Market Intelligence (US, UK, China)
 # ==========================================
-
 User-agent: *
 Allow: /
 
-# 1. Block technical & internal folders (Better SEO focus)
+# 1. Block technical & internal folders
 Disallow: /assets/css/
 Disallow: /assets/js/
 Disallow: /cgi-bin/
@@ -25,12 +24,25 @@ Disallow: /admin/
 Disallow: /private/
 Disallow: /temp/
 
-# 4. Global Bot Optimization
+# 4. Block tag and category pages — no unique content
+Disallow: /tag/
+Disallow: /tags/
+Disallow: /categories/
+Disallow: /category/
+
+# 5. Block feed files — not for indexing
+Disallow: /feed.xml
+Disallow: /atom.xml
+
+# 6. Block pagination — duplicate content
+Disallow: /page/
+
+# 7. Global Bot Optimization
 # Allow Baiduspider for China reach
 User-agent: Baiduspider
 Allow: /
 
-# Throttle heavy SEO scrapers to prevent server lag
+# Throttle heavy SEO scrapers
 User-agent: dotbot
 Crawl-delay: 20
 Disallow: /
@@ -42,5 +54,5 @@ Disallow: /
 User-agent: MJ12bot
 Disallow: /
 
-# 5. Direct path to Sitemap
+# 8. Sitemap
 Sitemap: https://ai360trading.in/sitemap.xml
