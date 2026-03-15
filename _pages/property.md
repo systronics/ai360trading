@@ -200,16 +200,16 @@ description: "Plot for sale in Saroj Enclave, Jamalpur Kalan, Jwalapur Haridwar.
       <!-- PHOTO GALLERY -->
       <div class="gallery-wrap">
         <div class="gallery-main">
-          <img id="mainPhoto" src="/public/image/property1.jpg" alt="Plot view — 30ft road in front" onerror="this.style.background='#1a1a2e';this.style.minHeight='200px'">
+          <img id="mainPhoto" src="/public/image/property1.png" alt="Plot view — 30ft road in front" onerror="this.style.background='#1a1a2e';this.style.minHeight='200px'">
           <button class="gallery-nav gallery-prev" onclick="changePhoto(-1)">&#8249;</button>
           <button class="gallery-nav gallery-next" onclick="changePhoto(1)">&#8250;</button>
           <div class="gallery-counter" id="photoCounter">1 / 4</div>
         </div>
         <div class="gallery-thumbs">
-          <div class="gallery-thumb active" onclick="setPhoto(0)"><img src="/public/image/property1.jpg" alt="Front road view" onerror="this.parentElement.style.background='#f1ede4'"></div>
-          <div class="gallery-thumb" onclick="setPhoto(1)"><img src="/public/image/property2.jpg" alt="Colony view" onerror="this.parentElement.style.background='#f1ede4'"></div>
-          <div class="gallery-thumb" onclick="setPhoto(2)"><img src="/public/image/property3.jpg" alt="Canal nearby" onerror="this.parentElement.style.background='#f1ede4'"></div>
-          <div class="gallery-thumb" onclick="setPhoto(3)"><img src="/public/image/property4.jpg" alt="Jamalpur Road" onerror="this.parentElement.style.background='#f1ede4'"></div>
+          <div class="gallery-thumb active" onclick="setPhoto(0)"><img src="/public/image/property1.png" alt="Front road view" onerror="this.parentElement.style.background='#f1ede4'"></div>
+          <div class="gallery-thumb" onclick="setPhoto(1)"><img src="/public/image/property2.png" alt="Colony view" onerror="this.parentElement.style.background='#f1ede4'"></div>
+          <div class="gallery-thumb" onclick="setPhoto(2)"><img src="/public/image/property3.png" alt="Canal nearby" onerror="this.parentElement.style.background='#f1ede4'"></div>
+          <div class="gallery-thumb" onclick="setPhoto(3)"><img src="/public/image/property4.png" alt="Jamalpur Road" onerror="this.parentElement.style.background='#f1ede4'"></div>
         </div>
       </div>
 
@@ -366,10 +366,10 @@ const EMAIL    = "admin@ai360trading.in";
 
 // Photo gallery
 const photos = [
-  { src: "/public/image/property1.jpg", alt: "30 ft road in front of plot" },
-  { src: "/public/image/property2.jpg", alt: "Colony view — active construction nearby" },
-  { src: "/public/image/property3.jpg", alt: "Chhoti Nahar — canal nearby" },
-  { src: "/public/image/property4.jpg", alt: "Jamalpur Road — highway connectivity" },
+  { src: "/public/image/property1.png", alt: "30 ft road in front of plot" },
+  { src: "/public/image/property2.png", alt: "Colony view — active construction nearby" },
+  { src: "/public/image/property3.png", alt: "Chhoti Nahar — canal nearby" },
+  { src: "/public/image/property4.png", alt: "Jamalpur Road — highway connectivity" },
 ];
 let currentPhoto = 0;
 
