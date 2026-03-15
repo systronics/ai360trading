@@ -200,35 +200,47 @@ body { padding-top: 0 !important; margin-top: 0 !important; }
         <div class="form-group"><label class="form-label">Landmark</label><input class="form-input" id="order-landmark" placeholder="Near school, temple..."></div>
       </div>
       <div class="form-group"><label class="form-label">Message / Questions</label><textarea class="form-textarea" id="order-message" placeholder="Any questions about this item?"></textarea></div>
-      <div class="payment-section">
-        <div class="payment-title">💳 Pay via UPI — Opens GPay / PhonePe / Paytm</div>
+      <div style="background:var(--soft);border-radius:14px;padding:18px;margin:16px 0">
+        <!-- Step indicator -->
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+          <div style="background:var(--ink);color:#fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:700;flex-shrink:0">2</div>
+          <div style="font-size:0.85rem;font-weight:700;color:var(--ink)">Pay via UPI</div>
+        </div>
 
-        <!-- UPI PAY NOW BUTTON — opens buyer's UPI app directly with amount filled -->
-        <a id="upiPayBtn" href="#" style="display:flex;align-items:center;justify-content:center;gap:10px;background:linear-gradient(135deg,#6c2eb9,#a855f7);color:#fff;border-radius:14px;padding:16px;text-decoration:none;font-size:1.05rem;font-weight:700;margin-bottom:14px;letter-spacing:0.01em;box-shadow:0 4px 16px rgba(108,46,185,0.35);transition:opacity 0.2s" onclick="return triggerUpiPay(event)">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-          Pay Now — Opens GPay / PhonePe / Paytm
-        </a>
-        <div style="font-size:0.75rem;color:var(--muted);text-align:center;margin-bottom:14px">Amount will be pre-filled automatically in your UPI app</div>
+        <!-- UPI App buttons -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">
+          <a href="#" onclick="return triggerUpiPay(event,'gpay')" style="display:flex;flex-direction:column;align-items:center;gap:4px;background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:10px 6px;text-decoration:none;transition:all 0.2s" onmouseover="this.style.borderColor='var(--ink)'" onmouseout="this.style.borderColor='var(--border)'">
+            <span style="font-size:1.4rem">🟢</span>
+            <span style="font-size:0.72rem;font-weight:700;color:var(--ink)">GPay</span>
+          </a>
+          <a href="#" onclick="return triggerUpiPay(event,'phonepe')" style="display:flex;flex-direction:column;align-items:center;gap:4px;background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:10px 6px;text-decoration:none;transition:all 0.2s" onmouseover="this.style.borderColor='var(--ink)'" onmouseout="this.style.borderColor='var(--border)'">
+            <span style="font-size:1.4rem">🟣</span>
+            <span style="font-size:0.72rem;font-weight:700;color:var(--ink)">PhonePe</span>
+          </a>
+          <a href="#" onclick="return triggerUpiPay(event,'paytm')" style="display:flex;flex-direction:column;align-items:center;gap:4px;background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:10px 6px;text-decoration:none;transition:all 0.2s" onmouseover="this.style.borderColor='var(--ink)'" onmouseout="this.style.borderColor='var(--border)'">
+            <span style="font-size:1.4rem">🔵</span>
+            <span style="font-size:0.72rem;font-weight:700;color:var(--ink)">Paytm</span>
+          </a>
+        </div>
+
+        <!-- Amount display -->
+        <div id="payAmountBox" style="background:#fff;border-radius:10px;padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;border:1.5px solid var(--border)">
+          <span style="font-size:0.82rem;color:var(--muted)">Amount to pay</span>
+          <span id="payAmountDisplay" style="font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:900;color:var(--ink)">Rs.20</span>
+        </div>
 
         <!-- UPI ID copy -->
-        <div class="upi-box" style="margin-bottom:12px">
-          <div style="font-size:0.78rem;color:var(--muted);margin-bottom:6px">Or pay manually to UPI ID</div>
-          <div style="display:flex;align-items:center;justify-content:center;gap:8px">
-            <div class="upi-id" id="modalUpiId" style="font-size:1.1rem">9634759528@upi</div>
-            <button onclick="copyUpi()" style="background:var(--soft);border:1.5px solid var(--border);border-radius:8px;padding:4px 10px;font-size:0.75rem;cursor:pointer;color:var(--ink)">Copy</button>
+        <div style="background:#fff;border-radius:10px;padding:10px 14px;border:1.5px solid var(--border)">
+          <div style="font-size:0.72rem;color:var(--muted);margin-bottom:4px">UPI ID (to pay manually)</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+            <div id="modalUpiId" style="font-size:0.95rem;font-weight:700;color:var(--ink);letter-spacing:0.02em">9634759528@upi</div>
+            <button onclick="copyUpi()" style="background:var(--soft);border:1.5px solid var(--border);border-radius:8px;padding:5px 12px;font-size:0.78rem;font-weight:600;cursor:pointer;color:var(--ink);white-space:nowrap;flex-shrink:0">📋 Copy</button>
           </div>
-          <div class="upi-note" style="margin-top:6px">After paying — send screenshot on WhatsApp for fast confirmation</div>
         </div>
 
-        <div class="divider-or">or Bank Transfer</div>
-        <div class="bank-box">
-          <div class="bank-row"><span class="bank-label">Account Name</span><span class="bank-value">Amit Kumar</span></div>
-          <div class="bank-row"><span class="bank-label">Bank Name</span><span class="bank-value">State Bank of India</span></div>
-          <div class="bank-row"><span class="bank-label">Account No</span><span class="bank-value">20231037959</span></div>
-          <div class="bank-row"><span class="bank-label">IFSC Code</span><span class="bank-value">SBIN0011415</span></div>
-          <div class="bank-row"><span class="bank-label">Account Type</span><span class="bank-value">Savings</span></div>
+        <div style="font-size:0.72rem;color:var(--muted);margin-top:10px;text-align:center;line-height:1.5">
+          After paying — send payment screenshot on WhatsApp to confirm your order
         </div>
-        <div style="font-size:0.75rem;color:var(--muted);margin-top:10px;text-align:center">After payment — share screenshot on WhatsApp for fast confirmation</div>
       </div>
 
       <button class="btn-submit-order" onclick="submitOrder('email')">📧 Send Order via Email</button>
@@ -251,12 +263,12 @@ const CONFIG = {
 };
 
 // UPI DEEP LINK — opens GPay/PhonePe/Paytm with amount pre-filled
-function triggerUpiPay(e) {
+function triggerUpiPay(e, app) {
   e.preventDefault();
   if (!currentProduct) return false;
-  const upiUrl = `upi://pay?pa=${CONFIG.upiId}&pn=${encodeURIComponent(CONFIG.sellerName)}&am=${currentProduct.price}&cu=INR&tn=${encodeURIComponent("Order: " + currentProduct.name)}`;
+  const upiUrl = "upi://pay?pa="+CONFIG.upiId+"&pn="+encodeURIComponent(CONFIG.sellerName)+"&am="+currentProduct.price+"&cu=INR&tn="+encodeURIComponent("Order: "+currentProduct.name);
   window.location.href = upiUrl;
-  setTimeout(() => { showToast("If app did not open — copy UPI ID and pay manually"); }, 2000);
+  setTimeout(()=>{ showToast("If app did not open — copy UPI ID: "+CONFIG.upiId); }, 2000);
   return false;
 }
 function copyUpi() {
@@ -371,6 +383,8 @@ function openOrder(productId){
   if(!currentProduct||currentProduct.stock<1){showToast("Sorry, this item is sold out!");return;}
   document.getElementById("modalProductName").textContent=currentProduct.name;
   document.getElementById("modalProductPrice").textContent="Rs."+currentProduct.price.toLocaleString("en-IN")+" — Fill details then pay";
+  const amtEl=document.getElementById("payAmountDisplay");
+  if(amtEl) amtEl.textContent="Rs."+currentProduct.price.toLocaleString("en-IN");
   document.getElementById("modalUpiId").textContent=CONFIG.upiId;
   ["order-name","order-phone","order-email","order-street","order-city","order-pin","order-state","order-landmark","order-message"].forEach(id=>{const el=document.getElementById(id);if(el)el.value="";});
   document.getElementById("orderModal").classList.add("open");
@@ -392,7 +406,7 @@ function submitOrder(method){
   soldItems[pid]=(soldItems[pid]||0)+1;
   localStorage.setItem("shop_sold",JSON.stringify(soldItems));
   allProducts=allProducts.map(p=>{if(p.id===currentProduct.id)return{...p,stock:Math.max(0,(p.stock||1)-1)};return p;});
-  const msg="New Order - Amit Shop\n\nItem: "+currentProduct.name+"\nPrice: Rs."+currentProduct.price.toLocaleString("en-IN")+"\nName: "+name+"\nPhone: "+phone+"\nEmail: "+(document.getElementById("order-email").value||"Not provided")+"\nAddress: "+document.getElementById("order-street").value+", "+document.getElementById("order-city").value+", "+document.getElementById("order-state").value+" - "+document.getElementById("order-pin").value+(document.getElementById("order-landmark").value?" (Near: "+document.getElementById("order-landmark").value+")":"")+"\nNotes: "+(document.getElementById("order-message").value||"None")+"\n\nUPI: "+CONFIG.upiId+" | SBI Ac 20231037959 IFSC SBIN0011415\nWill send payment screenshot.";
+  const msg="New Order - Amit Shop\n\nItem: "+currentProduct.name+"\nPrice: Rs."+currentProduct.price.toLocaleString("en-IN")+"\nName: "+name+"\nPhone: "+phone+"\nEmail: "+(document.getElementById("order-email").value||"Not provided")+"\nAddress: "+document.getElementById("order-street").value+", "+document.getElementById("order-city").value+", "+document.getElementById("order-state").value+" - "+document.getElementById("order-pin").value+(document.getElementById("order-landmark").value?" (Near: "+document.getElementById("order-landmark").value+")":"")+"\nNotes: "+(document.getElementById("order-message").value||"None")+"\n\nPayment: UPI "+CONFIG.upiId+"\nWill send payment screenshot after paying.";
   if(method==="whatsapp"){window.open("https://wa.me/"+CONFIG.whatsapp+"?text="+encodeURIComponent(msg),"_blank");showToast("Order sent! Complete UPI payment to confirm.");}
   else{window.location.href="mailto:"+CONFIG.email+"?subject="+encodeURIComponent("Order: "+currentProduct.name)+"&body="+encodeURIComponent(msg);showToast("Opening email...");}
   closeModal();
