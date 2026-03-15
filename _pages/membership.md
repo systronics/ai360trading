@@ -37,20 +37,20 @@ description: "Join AI360Trading Membership — Telegram signals, YouTube private
 @media(max-width:480px) { .mp-nav-links { display: none; } }
 
 /* ── HERO ── */
-.mp-hero { padding: 64px 24px 48px; text-align: center; position: relative; overflow: hidden; }
+.mp-hero { padding: 32px 24px 28px; text-align: center; position: relative; overflow: hidden; }
 .mp-hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 60% 40% at 50% 0%, rgba(251,191,36,0.07) 0%, transparent 70%); pointer-events: none; }
 .mp-hero::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--border), transparent); }
 
-.mp-eyebrow { display: inline-flex; align-items: center; gap: 8px; background: rgba(251,191,36,0.08); border: 1px solid rgba(251,191,36,0.2); color: var(--gold); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; padding: 7px 16px; border-radius: 100px; margin-bottom: 24px; }
+.mp-eyebrow { display: inline-flex; align-items: center; gap: 8px; background: rgba(251,191,36,0.08); border: 1px solid rgba(251,191,36,0.2); color: var(--gold); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; padding: 6px 14px; border-radius: 100px; margin-bottom: 14px; }
 .live-dot { width: 7px; height: 7px; background: var(--green); border-radius: 50%; animation: blink 1.4s infinite; }
 @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
-.mp-hero h1 { font-family: 'Syne', sans-serif; font-size: clamp(2.4rem, 7vw, 5rem); line-height: 1; color: #fff; letter-spacing: -0.02em; margin-bottom: 16px; }
+.mp-hero h1 { font-family: 'Syne', sans-serif; font-size: clamp(1.8rem, 5vw, 3.2rem); line-height: 1.05; color: #fff; letter-spacing: -0.02em; margin-bottom: 12px; word-break: break-word; overflow-wrap: break-word; }
 .mp-hero h1 em { font-style: normal; color: var(--gold); }
-.mp-hero p { font-size: clamp(0.9rem, 2vw, 1.05rem); color: var(--muted); max-width: 500px; margin: 0 auto 32px; line-height: 1.7; }
+.mp-hero p { font-size: clamp(0.82rem, 2vw, 0.95rem); color: var(--muted); max-width: 500px; margin: 0 auto 20px; line-height: 1.6; }
 
 /* Billing toggle */
-.billing-toggle { display: inline-flex; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 4px; gap: 4px; margin-bottom: 48px; }
+.billing-toggle { display: inline-flex; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 4px; gap: 4px; margin-bottom: 24px; }
 .billing-btn { padding: 8px 20px; border-radius: 9px; border: none; font-family: 'Mulish', sans-serif; font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: all 0.2s; color: var(--muted); background: transparent; }
 .billing-btn.active { background: var(--gold); color: #000; }
 .billing-save { font-size: 0.65rem; background: var(--green); color: #fff; padding: 2px 6px; border-radius: 100px; margin-left: 4px; }
@@ -168,6 +168,11 @@ description: "Join AI360Trading Membership — Telegram signals, YouTube private
 /* ── TOAST ── */
 .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--gold); color: #000; padding: 10px 22px; border-radius: 100px; font-size: 0.82rem; font-weight: 800; z-index: 9999; transition: transform 0.3s; white-space: nowrap; }
 .toast.show { transform: translateX(-50%) translateY(0); }
+
+/* Hide site header on membership page */
+.header-container { display: none !important; }
+.content-wrapper { padding-top: 0 !important; margin-top: 0 !important; }
+body { padding-top: 0 !important; margin-top: 0 !important; }
 </style>
 
 <div class="mp">
@@ -566,4 +571,12 @@ function showToast(msg) {
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 3000);
 }
+
+// Hide site header
+(function(){
+  const h = document.querySelector('.header-container');
+  if(h) h.style.display = 'none';
+  const w = document.querySelector('.content-wrapper');
+  if(w){ w.style.paddingTop = '0'; w.style.marginTop = '0'; }
+})();
 </script>
