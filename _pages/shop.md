@@ -109,6 +109,12 @@ description: "Buy unique items from Amit Kumar, Haridwar. Order via WhatsApp or 
 .admin-note{background:rgba(244,162,97,0.12);border-left:3px solid var(--gold);border-radius:0 8px 8px 0;padding:10px 14px;font-size:0.82rem;color:var(--ink);margin-top:12px;line-height:1.5}
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--ink);color:#fff;padding:12px 24px;border-radius:100px;font-size:0.88rem;font-weight:500;z-index:9999;transition:transform 0.3s;white-space:nowrap}
 .toast.show{transform:translateX(-50%) translateY(0)}
+/* Hide site main header on shop page only — exact class from default.html */
+.header-container { display: none !important; }
+/* Remove content-wrapper padding that would create gap above shop hero */
+.content-wrapper { padding-top: 0 !important; margin-top: 0 !important; }
+body { padding-top: 0 !important; margin-top: 0 !important; }
+.shop-hero { margin-top: 0; }
 @media(max-width:600px){.products-grid{grid-template-columns:1fr 1fr;gap:14px;padding:8px 12px 40px}.filter-bar{padding:16px 12px}.admin-section{padding:0 12px 40px}.form-grid{grid-template-columns:1fr}}
 @media(max-width:400px){.products-grid{grid-template-columns:1fr}}
 </style>
@@ -134,12 +140,7 @@ description: "Buy unique items from Amit Kumar, Haridwar. Order via WhatsApp or 
     <button class="filter-btn" onclick="filterProducts('other',this)">Other</button>
   </div>
   <div class="products-grid" id="productsGrid"></div>
-  <div style="max-width:1100px;margin:0 auto;padding:0 24px 40px;text-align:center">
-    <div style="background:#fff;border-radius:12px;padding:20px 24px;border:1.5px dashed var(--border);display:inline-block;font-size:0.85rem;color:var(--muted);line-height:1.7">
-      ✏️ <strong style="color:var(--ink)">To add / edit / delete products:</strong><br>
-      Go to your GitHub repo → <code style="background:var(--soft);padding:2px 6px;border-radius:4px">_pages/shop.html</code> → click pencil icon → find <code style="background:var(--soft);padding:2px 6px;border-radius:4px">const PRODUCTS = [</code> → edit → Commit
-    </div>
-  </div>
+
 </div>
 
 <div class="modal-overlay" id="orderModal">
@@ -247,8 +248,8 @@ const PRODUCTS = [
     name: "Traditional Indian Beaded Art — Lady with Golden Deer",
     category: "art",
     condition: "used",
-    price: 1500,
-    original: 3000,
+    price: 20,
+    original: 100,
     stock: 1,
     desc: "Rare vintage Indian folk art. Hand-embroidered with golden zari thread, studded with decorative beads and stones. Lady with golden deer motif in classic red and gold on dark background. Approx 24x36 inch. Perfect for home, office or gifting. Ships from Haridwar.",
     imgs: ["/public/image/painting1.jpg","/public/image/painting2.jpg","/public/image/painting3.jpg"],
@@ -377,4 +378,13 @@ function toggleAdmin(){document.getElementById("adminForm").classList.toggle("op
 function addProduct(){const name=document.getElementById("ap-name").value.trim();const price=parseInt(document.getElementById("ap-price").value);const desc=document.getElementById("ap-desc").value.trim();const img=document.getElementById("ap-img").value.trim();if(!name||!price||!desc||!img){showToast("Fill all required fields");return;}const p={id:Date.now(),name,category:document.getElementById("ap-category").value,condition:document.getElementById("ap-condition").value,price,original:parseInt(document.getElementById("ap-original").value)||0,stock:parseInt(document.getElementById("ap-stock").value)||1,desc,imgs:[img],ratings:[],comments:[]};const saved=JSON.parse(localStorage.getItem("shop_products")||"[]");saved.push(p);localStorage.setItem("shop_products",JSON.stringify(saved));localProducts=saved;allProducts=[...PRODUCTS,...localProducts];console.log("Copy this into PRODUCTS array:\n",JSON.stringify(p,null,2));showToast(`${name} added! Press F12 to copy permanent code.`);renderProducts();document.getElementById("adminForm").classList.remove("open");}
 function showToast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),3000);}
 renderProducts();
+
+// Hide exact site header — .header-container from default.html
+(function(){
+  const h = document.querySelector('.header-container');
+  if(h) h.style.display = 'none';
+  // Also remove top margin/padding from content-wrapper
+  const w = document.querySelector('.content-wrapper');
+  if(w){ w.style.paddingTop = '0'; w.style.marginTop = '0'; }
+})();
 </script>
