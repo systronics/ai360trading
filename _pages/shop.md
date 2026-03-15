@@ -176,9 +176,9 @@ description: "Buy unique items from Amit Kumar, Haridwar. Order via WhatsApp or 
         <div class="divider-or">or Bank Transfer</div>
         <div class="bank-box">
           <div class="bank-row"><span class="bank-label">Account Name</span><span class="bank-value">Amit Kumar</span></div>
-          <div class="bank-row"><span class="bank-label">Bank Name</span><span class="bank-value">YOUR BANK</span></div>
-          <div class="bank-row"><span class="bank-label">Account No</span><span class="bank-value">XXXXXXXXXXXX</span></div>
-          <div class="bank-row"><span class="bank-label">IFSC Code</span><span class="bank-value">XXXXXX0XXXXX</span></div>
+          <div class="bank-row"><span class="bank-label">Bank Name</span><span class="bank-value">State Bank Of India</span></div>
+          <div class="bank-row"><span class="bank-label">Account No</span><span class="bank-value">20231037959</span></div>
+          <div class="bank-row"><span class="bank-label">IFSC Code</span><span class="bank-value">SBIN0011415</span></div>
           <div class="bank-row"><span class="bank-label">Account Type</span><span class="bank-value">Savings</span></div>
         </div>
         <div style="font-size:0.75rem;color:var(--muted);margin-top:10px;text-align:center">After payment — share screenshot on WhatsApp for fast confirmation</div>
@@ -207,8 +207,8 @@ const PRODUCTS = [
     name: "Traditional Indian Beaded Art — Lady with Golden Deer",
     category: "art",
     condition: "used",
-    price: 1500,
-    original: 3000,
+    price: 10,
+    original: 150,
     stock: 1,
     desc: "Rare vintage Indian folk art. Hand-embroidered with golden zari thread, studded with decorative beads and stones. Lady with golden deer motif in classic red and gold on dark background. Approx 24x36 inch. Perfect for home, office or gifting. Ships from Haridwar.",
     imgs: ["/public/image/painting1.jpg","/public/image/painting2.jpg","/public/image/painting3.jpg"],
