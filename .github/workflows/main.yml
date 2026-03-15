@@ -55,6 +55,9 @@ jobs:
           GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          CHAT_ID_BASIC:   ${{ secrets.CHAT_ID_BASIC }}
+          CHAT_ID_ADVANCE: ${{ secrets.CHAT_ID_ADVANCE }}
+          CHAT_ID_PREMIUM: ${{ secrets.CHAT_ID_PREMIUM }}
           BOT_MODE: ${{ github.event.inputs.mode || 'trade' }}
         run: |
           export BOT_MODE="${BOT_MODE:-trade}"
