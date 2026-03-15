@@ -1,8 +1,8 @@
 ---
 layout: default
-title: "Plot for Sale — Jamalpur, Haridwar | 1000 Sq Ft | ₹22 Lakh"
+title: "Plot for Sale — Saroj Enclave, Jamalpur Kalan, Jwalapur Haridwar | 1000 Sq Ft | ₹22 Lakh"
 permalink: /plot-for-sale/
-description: "Residential plot for sale in Jamalpur, Haridwar. 1000 sq ft, North facing, 30ft road, registry done. Price ₹22,00,000. Contact Amit Kumar."
+description: "Plot for sale in Saroj Enclave, Jamalpur Kalan, Jwalapur Haridwar. 1000 sq ft, North facing, Registry done. Market rate ₹2500/sqft — Our price ₹2200/sqft negotiable. 3km from Haridwar-Laksar Highway."
 ---
 
 <style>
@@ -170,11 +170,11 @@ description: "Residential plot for sale in Jamalpur, Haridwar. 1000 sq ft, North
   <!-- HERO -->
   <div class="pp-hero">
     <div class="pp-badge">✅ Registry Done — Ready to Build</div>
-    <h1>Residential Plot for Sale<br><span>Jamalpur, Haridwar</span></h1>
+    <h1>Plot for Sale<br><span>Saroj Enclave, Jwalapur Haridwar</span></h1>
     <div class="pp-hero-meta">
       <div class="pp-meta-item">📐 <strong>1000 Sq. Ft.</strong></div>
       <div class="pp-meta-item">🧭 <strong>North Facing</strong></div>
-      <div class="pp-meta-item">🛣️ <strong>30 Ft. Front Road</strong></div>
+      <div class="pp-meta-item">🛣️ <strong>25 Ft Front / 40 Ft Back</strong></div>
       <div class="pp-meta-item">📍 <strong>Jamalpur, Haridwar</strong></div>
     </div>
   </div>
@@ -182,7 +182,7 @@ description: "Residential plot for sale in Jamalpur, Haridwar. 1000 sq ft, North
   <!-- PRICE BANNER -->
   <div class="price-banner">
     <div class="price-main">₹22,00,000</div>
-    <div class="price-sub">₹2,200 per sq. ft. &nbsp;|&nbsp; 1000 sq. ft. plot &nbsp;|&nbsp; Negotiable</div>
+    <div class="price-sub">Our Price ₹2,200/sq.ft. &nbsp;|&nbsp; Market Rate ₹2,500/sq.ft. &nbsp;|&nbsp; Save ₹3,00,000 &nbsp;|&nbsp; Negotiable</div>
     <div class="price-tags">
       <span class="price-tag good">✅ Registry Done</span>
       <span class="price-tag good">🧭 North Facing</span>
@@ -236,16 +236,16 @@ description: "Residential plot for sale in Jamalpur, Haridwar. 1000 sq ft, North
         <div class="details-grid">
           <div class="detail-item"><div class="detail-label">Plot Size</div><div class="detail-value">1000 Sq. Ft.</div></div>
           <div class="detail-item"><div class="detail-label">Price</div><div class="detail-value">₹22,00,000</div></div>
-          <div class="detail-item"><div class="detail-label">Rate per Sq. Ft.</div><div class="detail-value">₹2,200</div></div>
+          <div class="detail-item"><div class="detail-label">Our Price/Sq.Ft.</div><div class="detail-value">₹2,200 (Neg.)</div></div>
           <div class="detail-item"><div class="detail-label">Facing</div><div class="detail-value good">North ✅</div></div>
-          <div class="detail-item"><div class="detail-label">Front Road</div><div class="detail-value">30 Feet (Paved)</div></div>
-          <div class="detail-item"><div class="detail-label">2nd Road</div><div class="detail-value highlight">18-20 Ft (Upcoming)</div></div>
+          <div class="detail-item"><div class="detail-label">Front Road</div><div class="detail-value">25 Feet (Paved)</div></div>
+          <div class="detail-item"><div class="detail-label">Back Road</div><div class="detail-value good">40 Feet ✅</div></div>
           <div class="detail-item"><div class="detail-label">Registry</div><div class="detail-value good">Done ✅</div></div>
           <div class="detail-item"><div class="detail-label">Property Type</div><div class="detail-value">Residential Plot</div></div>
-          <div class="detail-item"><div class="detail-label">Location</div><div class="detail-value">Jamalpur, Haridwar</div></div>
-          <div class="detail-item"><div class="detail-label">Nearby</div><div class="detail-value">Chhoti Nahar</div></div>
-          <div class="detail-item"><div class="detail-label">Main Road</div><div class="detail-value">Jamalpur Road</div></div>
-          <div class="detail-item"><div class="detail-label">Ownership</div><div class="detail-value good">Freehold ✅</div></div>
+          <div class="detail-item"><div class="detail-label">Colony</div><div class="detail-value">Saroj Enclave</div></div>
+          <div class="detail-item"><div class="detail-label">Area</div><div class="detail-value">Jamalpur Kalan, Jwalapur</div></div>
+          <div class="detail-item"><div class="detail-label">Highway</div><div class="detail-value">3 km from Haridwar-Laksar</div></div>
+          <div class="detail-item"><div class="detail-label">Market Rate</div><div class="detail-value" style="text-decoration:line-through;color:var(--muted)">₹2,500/sq.ft.</div></div></div><div class="details-grid" style="margin-top:10px"><div class="detail-item"><div class="detail-label">Ownership</div><div class="detail-value good">Freehold ✅</div></div>
         </div>
       </div>
 
@@ -254,21 +254,21 @@ description: "Residential plot for sale in Jamalpur, Haridwar. 1000 sq ft, North
         <div class="details-title">⭐ Key Features</div>
         <div class="features-grid">
           <div class="feature-item"><span class="feature-icon">🧭</span>North facing — most preferred for Vastu and resale value</div>
-          <div class="feature-item"><span class="feature-icon">🛣️</span>30 ft wide paved road in front — easy access for construction</div>
+          <div class="feature-item"><span class="feature-icon">🛣️</span>25 ft front road + 40 ft back road — excellent access from both sides</div>
           <div class="feature-item"><span class="feature-icon">✅</span>Registry done — zero legal risk, immediate construction possible</div>
           <div class="feature-item"><span class="feature-icon">💧</span>Near Chhoti Nahar — natural water source, green surroundings</div>
           <div class="feature-item"><span class="feature-icon">🏗️</span>Active development nearby — houses already built around plot</div>
-          <div class="feature-item"><span class="feature-icon">🛣️</span>Second 18-20 ft road coming — plot will be corner accessible</div>
-          <div class="feature-item"><span class="feature-icon">📍</span>Jamalpur area — fast growing locality in Haridwar</div>
+          <div class="feature-item"><span class="feature-icon">💰</span>Market rate ₹2,500/sqft — our price ₹2,200/sqft — save ₹3 lakh</div>
+          <div class="feature-item"><span class="feature-icon">📍</span>Saroj Enclave, Jamalpur Kalan — peaceful residential colony</div>
           <div class="feature-item"><span class="feature-icon">🚗</span>Jamalpur Road connectivity — easy highway access both sides</div>
         </div>
       </div>
 
       <!-- LOCATION MAP -->
       <div class="location-section">
-        <div class="location-head">📍 Location — Jamalpur, Haridwar</div>
+        <div class="location-head">📍 Saroj Enclave, Jamalpur Kalan, Jwalapur, Haridwar</div>
         <iframe class="map-embed"
-          src="https://maps.google.com/maps?q=Jamalpur+Haridwar+Uttarakhand&output=embed&z=15"
+          src="https://maps.google.com/maps?q=29.903418,78.112413&output=embed&z=17"
           allowfullscreen loading="lazy">
         </iframe>
         <div style="padding:14px 20px;font-size:0.78rem;color:var(--muted);border-top:1px solid var(--border)">
@@ -284,7 +284,7 @@ description: "Residential plot for sale in Jamalpur, Haridwar. 1000 sq ft, North
           <div class="nearby-item">🏫 Divine Public School (visible from road)<span class="nearby-dist">Very close</span></div>
           <div class="nearby-item">🏪 Local market and shops<span class="nearby-dist">On main road</span></div>
           <div class="nearby-item">💧 Chhoti Nahar — developed colony on other side<span class="nearby-dist">Adjacent</span></div>
-          <div class="nearby-item">🏙️ Haridwar City Centre<span class="nearby-dist">~5 km</span></div>
+          <div class="nearby-item">🏙️ Jwalapur Market<span class="nearby-dist">~1 km</span></div>
           <div class="nearby-item">🚂 Haridwar Railway Station<span class="nearby-dist">~7 km</span></div>
           <div class="nearby-item">⛩️ Har Ki Pauri<span class="nearby-dist">~8 km</span></div>
         </div>
@@ -306,8 +306,8 @@ description: "Residential plot for sale in Jamalpur, Haridwar. 1000 sq ft, North
         <div class="seller-info">
           <div class="seller-avatar">A</div>
           <div>
-            <div class="seller-name">Amit Kumar</div>
-            <div class="seller-tag">Direct Owner — No Broker</div>
+            <div class="seller-name">Dhyan Singh</div>
+            <div class="seller-tag">Direct Owner — No Broker Fee</div>
           </div>
         </div>
 
@@ -411,7 +411,7 @@ function sendInquiry(method) {
 
   const text =
     "Property Inquiry — Jamalpur Plot\n\n" +
-    "Property: 1000 Sq Ft Residential Plot, Jamalpur, Haridwar\n" +
+    "Property: 1000 Sq Ft Plot, Saroj Enclave, Jamalpur Kalan, Jwalapur, Haridwar\n" +
     "Price: Rs.22,00,000\n\n" +
     "Buyer Name: " + name + "\n" +
     "Phone: " + phone + "\n" +
