@@ -10,13 +10,13 @@ description: "Buy unique items from Amit Kumar, Haridwar. Order via WhatsApp or 
 :root{--ink:#1a1a2e;--paper:#faf8f3;--accent:#e63946;--gold:#f4a261;--soft:#f1ede4;--border:#e0d9cc;--muted:#7a7065;--green:#2a9d5c;--shadow:0 4px 24px rgba(26,26,46,0.10);--shadow-lg:0 12px 48px rgba(26,26,46,0.16)}
 *{box-sizing:border-box;margin:0;padding:0}
 .shop-wrap{background:var(--paper);font-family:'DM Sans',sans-serif;color:var(--ink);min-height:100vh}
-.shop-hero{background:var(--ink);padding:56px 24px 40px;text-align:center;position:relative;overflow:hidden}
+.shop-hero{background:var(--ink);padding:32px 20px 28px;text-align:center;position:relative;overflow:hidden}
 .shop-hero::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(45deg,transparent,transparent 40px,rgba(244,162,97,0.04) 40px,rgba(244,162,97,0.04) 80px)}
 .shop-hero h1{font-family:'Playfair Display',serif;font-size:clamp(2rem,5vw,3.5rem);color:#fff;position:relative;line-height:1.1}
 .shop-hero h1 span{color:var(--gold)}
 .shop-hero p{color:rgba(255,255,255,0.65);margin-top:12px;font-size:1rem;position:relative}
-.shop-badges{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:20px;position:relative}
-.shop-badge{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.85);padding:6px 14px;border-radius:100px;font-size:0.78rem;font-weight:500}
+.shop-badges{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:14px;position:relative}
+.shop-badge{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.85);padding:5px 11px;border-radius:100px;font-size:0.72rem;font-weight:500}
 .filter-bar{display:flex;gap:8px;padding:20px 24px;flex-wrap:wrap;max-width:1100px;margin:0 auto}
 .filter-btn{padding:8px 18px;border-radius:100px;border:1.5px solid var(--border);background:#fff;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:500;cursor:pointer;transition:all 0.2s}
 .filter-btn:hover,.filter-btn.active{background:var(--ink);color:#fff;border-color:var(--ink)}
@@ -115,11 +115,35 @@ description: "Buy unique items from Amit Kumar, Haridwar. Order via WhatsApp or 
 .content-wrapper { padding-top: 0 !important; margin-top: 0 !important; }
 body { padding-top: 0 !important; margin-top: 0 !important; }
 .shop-hero { margin-top: 0; }
+.shop-topnav{background:#fff;border-bottom:1px solid var(--border);padding:9px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(26,26,46,0.06)}
+.shop-topnav-left{display:flex;align-items:center;gap:6px}
+.btn-home{display:flex;align-items:center;gap:5px;text-decoration:none;color:var(--ink);font-size:0.82rem;font-weight:700;padding:6px 12px;border-radius:8px;background:var(--soft);border:1.5px solid var(--border);transition:all 0.2s;white-space:nowrap}
+.btn-home:hover{background:var(--ink);color:#fff;border-color:var(--ink)}
+.topnav-links{display:flex;align-items:center;gap:2px}
+.topnav-link{text-decoration:none;color:var(--muted);font-size:0.75rem;font-weight:600;padding:5px 8px;border-radius:6px;transition:all 0.2s;text-transform:uppercase;letter-spacing:0.03em;white-space:nowrap}
+.topnav-link:hover{color:var(--ink);background:var(--soft)}
+.topnav-brand{font-family:"Playfair Display",serif;font-size:0.88rem;font-weight:700;color:var(--muted)}
+@media(max-width:480px){.topnav-links{display:none}.shop-topnav{padding:8px 14px}}
 @media(max-width:600px){.products-grid{grid-template-columns:1fr 1fr;gap:14px;padding:8px 12px 40px}.filter-bar{padding:16px 12px}.admin-section{padding:0 12px 40px}.form-grid{grid-template-columns:1fr}}
 @media(max-width:400px){.products-grid{grid-template-columns:1fr}}
 </style>
 
 <div class="shop-wrap">
+
+  <!-- BACK NAV — sticky top bar with home + links -->
+  <div class="shop-topnav">
+    <div class="shop-topnav-left">
+      <a href="/" class="btn-home">&#8592; Home</a>
+      <span class="topnav-brand" style="margin-left:8px">AI360Trading</span>
+    </div>
+    <div class="topnav-links">
+      <a href="/about/" class="topnav-link">About</a>
+      <a href="/contact/" class="topnav-link">Contact</a>
+      <a href="/disclaimer/" class="topnav-link">Disclaimer</a>
+      <a href="/policy/" class="topnav-link">Policy</a>
+    </div>
+  </div>
+
   <div class="shop-hero">
     <h1>Amit's <span>Shop</span></h1>
     <p>Unique items from Haridwar — direct from seller, no middlemen</p>
