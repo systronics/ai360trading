@@ -201,46 +201,41 @@ body { padding-top: 0 !important; margin-top: 0 !important; }
       </div>
       <div class="form-group"><label class="form-label">Message / Questions</label><textarea class="form-textarea" id="order-message" placeholder="Any questions about this item?"></textarea></div>
       <div style="background:var(--soft);border-radius:14px;padding:18px;margin:16px 0">
-        <!-- Step indicator -->
+
+        <!-- Step label -->
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
           <div style="background:var(--ink);color:#fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:700;flex-shrink:0">2</div>
           <div style="font-size:0.85rem;font-weight:700;color:var(--ink)">Pay via UPI</div>
         </div>
 
-        <!-- UPI App buttons -->
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">
-          <a href="#" onclick="return triggerUpiPay(event,'gpay')" style="display:flex;flex-direction:column;align-items:center;gap:4px;background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:10px 6px;text-decoration:none;transition:all 0.2s" onmouseover="this.style.borderColor='var(--ink)'" onmouseout="this.style.borderColor='var(--border)'">
-            <span style="font-size:1.4rem">🟢</span>
-            <span style="font-size:0.72rem;font-weight:700;color:var(--ink)">GPay</span>
-          </a>
-          <a href="#" onclick="return triggerUpiPay(event,'phonepe')" style="display:flex;flex-direction:column;align-items:center;gap:4px;background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:10px 6px;text-decoration:none;transition:all 0.2s" onmouseover="this.style.borderColor='var(--ink)'" onmouseout="this.style.borderColor='var(--border)'">
-            <span style="font-size:1.4rem">🟣</span>
-            <span style="font-size:0.72rem;font-weight:700;color:var(--ink)">PhonePe</span>
-          </a>
-          <a href="#" onclick="return triggerUpiPay(event,'paytm')" style="display:flex;flex-direction:column;align-items:center;gap:4px;background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:10px 6px;text-decoration:none;transition:all 0.2s" onmouseover="this.style.borderColor='var(--ink)'" onmouseout="this.style.borderColor='var(--border)'">
-            <span style="font-size:1.4rem">🔵</span>
-            <span style="font-size:0.72rem;font-weight:700;color:var(--ink)">Paytm</span>
-          </a>
-        </div>
-
-        <!-- Amount display -->
-        <div id="payAmountBox" style="background:#fff;border-radius:10px;padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;border:1.5px solid var(--border)">
-          <span style="font-size:0.82rem;color:var(--muted)">Amount to pay</span>
-          <span id="payAmountDisplay" style="font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:900;color:var(--ink)">Rs.20</span>
+        <!-- Amount -->
+        <div style="background:linear-gradient(135deg,#1a1a2e,#2d2d4e);border-radius:12px;padding:14px 16px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:0.82rem;color:rgba(255,255,255,0.7)">Amount to pay</span>
+          <span id="payAmountDisplay" style="font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:900;color:#f4a261">Rs.20</span>
         </div>
 
         <!-- UPI ID copy -->
-        <div style="background:#fff;border-radius:10px;padding:10px 14px;border:1.5px solid var(--border)">
-          <div style="font-size:0.72rem;color:var(--muted);margin-bottom:4px">UPI ID (to pay manually)</div>
+        <div style="background:#fff;border-radius:12px;padding:14px 16px;border:2px solid var(--border);margin-bottom:10px">
+          <div style="font-size:0.72rem;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em">Pay to UPI ID</div>
           <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
-            <div id="modalUpiId" style="font-size:0.95rem;font-weight:700;color:var(--ink);letter-spacing:0.02em">9634759528@upi</div>
-            <button onclick="copyUpi()" style="background:var(--soft);border:1.5px solid var(--border);border-radius:8px;padding:5px 12px;font-size:0.78rem;font-weight:600;cursor:pointer;color:var(--ink);white-space:nowrap;flex-shrink:0">📋 Copy</button>
+            <div id="modalUpiId" style="font-size:1.05rem;font-weight:800;color:var(--ink)">9634759528@upi</div>
+            <button onclick="copyUpi()" style="background:var(--ink);color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:0.78rem;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0">Copy</button>
           </div>
         </div>
 
-        <div style="font-size:0.72rem;color:var(--muted);margin-top:10px;text-align:center;line-height:1.5">
-          After paying — send payment screenshot on WhatsApp to confirm your order
+        <!-- Simple steps -->
+        <div style="background:#fff;border-radius:12px;padding:12px 16px;border:1.5px solid var(--border);margin-bottom:10px">
+          <div style="font-size:0.72rem;font-weight:700;color:var(--ink);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em">How to pay</div>
+          <div style="display:flex;flex-direction:column;gap:7px">
+            <div style="display:flex;align-items:center;gap:8px;font-size:0.8rem;color:var(--muted)"><span style="background:var(--soft);border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;color:var(--ink);flex-shrink:0">1</span>Copy UPI ID above</div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:0.8rem;color:var(--muted)"><span style="background:var(--soft);border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;color:var(--ink);flex-shrink:0">2</span>Open GPay / PhonePe / Paytm / BHIM</div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:0.8rem;color:var(--muted)"><span style="background:var(--soft);border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;color:var(--ink);flex-shrink:0">3</span>Send to UPI ID — enter amount <strong style="color:var(--ink)" id="payAmountInSteps">Rs.20</strong></div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:0.8rem;color:var(--muted)"><span style="background:var(--soft);border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;color:var(--ink);flex-shrink:0">4</span>Take screenshot of payment confirmation</div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:0.8rem;color:var(--muted)"><span style="background:var(--soft);border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;color:var(--ink);flex-shrink:0">5</span>Click "Confirm Order via WhatsApp" and send screenshot</div>
+          </div>
         </div>
+
+        <div style="font-size:0.72rem;color:var(--muted);text-align:center;line-height:1.5">Order confirmed only after payment screenshot received</div>
       </div>
 
       <button class="btn-submit-order" onclick="submitOrder('email')">📧 Send Order via Email</button>
@@ -251,6 +246,55 @@ body { padding-top: 0 !important; margin-top: 0 !important; }
     </div>
   </div>
 </div>
+<!-- SHIPPING POLICY -->
+<div style="max-width:1100px;margin:0 auto;padding:0 24px 48px">
+  <div style="background:#fff;border-radius:16px;padding:24px 28px;border:1.5px solid var(--border)">
+    <div style="font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;color:var(--ink);margin-bottom:16px">
+      📦 Shipping &amp; Delivery Policy
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px">
+
+      <div style="background:var(--soft);border-radius:12px;padding:14px">
+        <div style="font-size:0.82rem;font-weight:800;color:var(--ink);margin-bottom:6px">🚚 Shipping Cost</div>
+        <div style="font-size:0.78rem;color:var(--muted);line-height:1.6">
+          Shipping is <strong style="color:var(--ink)">already included</strong> in the product price for most of India.<br><br>
+          <strong style="color:var(--accent)">Extra charge may apply</strong> for remote areas — Northeast India, Andaman &amp; Nicobar, Jammu, Ladakh, Lakshadweep. Will be confirmed on WhatsApp before dispatch.
+        </div>
+      </div>
+
+      <div style="background:var(--soft);border-radius:12px;padding:14px">
+        <div style="font-size:0.82rem;font-weight:800;color:var(--ink);margin-bottom:6px">📅 Dispatch Time</div>
+        <div style="font-size:0.78rem;color:var(--muted);line-height:1.6">
+          Dispatched within <strong style="color:var(--ink)">1-2 working days</strong> after payment confirmation.<br><br>
+          Shipped via <strong style="color:var(--ink)">India Post Speed Post</strong>. Tracking number shared on WhatsApp after dispatch. Estimated delivery 3-7 days.
+        </div>
+      </div>
+
+      <div style="background:var(--soft);border-radius:12px;padding:14px">
+        <div style="font-size:0.82rem;font-weight:800;color:var(--ink);margin-bottom:6px">🚫 Return Policy</div>
+        <div style="font-size:0.78rem;color:var(--muted);line-height:1.6">
+          <strong style="color:var(--accent)">All sales are final — no returns accepted.</strong><br><br>
+          Please read the description carefully and ask any questions on WhatsApp <strong>before</strong> ordering. We are happy to share more photos or details.
+        </div>
+      </div>
+
+      <div style="background:var(--soft);border-radius:12px;padding:14px">
+        <div style="font-size:0.82rem;font-weight:800;color:var(--ink);margin-bottom:6px">📦 Damage in Transit</div>
+        <div style="font-size:0.78rem;color:var(--muted);line-height:1.6">
+          All items are carefully packed before dispatch. Any damage during transit is the <strong style="color:var(--ink)">responsibility of the courier</strong>, not the seller.<br><br>
+          Insurance available on request for high value items.
+        </div>
+      </div>
+
+    </div>
+    <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);font-size:0.75rem;color:var(--muted);line-height:1.7">
+      📍 Ships from <strong style="color:var(--ink)">Haridwar, Uttarakhand</strong> &nbsp;|&nbsp;
+      💬 Questions? WhatsApp <strong style="color:var(--ink)">+91 9634759528</strong> &nbsp;|&nbsp;
+      ✉️ <strong style="color:var(--ink)">admin@ai360trading.in</strong>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -263,13 +307,12 @@ const CONFIG = {
 };
 
 // UPI DEEP LINK — opens GPay/PhonePe/Paytm with amount pre-filled
-function triggerUpiPay(e, app) {
-  e.preventDefault();
-  if (!currentProduct) return false;
-  const upiUrl = "upi://pay?pa="+CONFIG.upiId+"&pn="+encodeURIComponent(CONFIG.sellerName)+"&am="+currentProduct.price+"&cu=INR&tn="+encodeURIComponent("Order: "+currentProduct.name);
-  window.location.href = upiUrl;
-  setTimeout(()=>{ showToast("If app did not open — copy UPI ID: "+CONFIG.upiId); }, 2000);
-  return false;
+function highlightField(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.style.borderColor = "var(--accent)";
+  el.focus();
+  setTimeout(()=>{ el.style.borderColor = ""; }, 3000);
 }
 function copyUpi() {
   navigator.clipboard.writeText(CONFIG.upiId)
@@ -385,6 +428,8 @@ function openOrder(productId){
   document.getElementById("modalProductPrice").textContent="Rs."+currentProduct.price.toLocaleString("en-IN")+" — Fill details then pay";
   const amtEl=document.getElementById("payAmountDisplay");
   if(amtEl) amtEl.textContent="Rs."+currentProduct.price.toLocaleString("en-IN");
+  const amtSteps=document.getElementById("payAmountInSteps");
+  if(amtSteps) amtSteps.textContent="Rs."+currentProduct.price.toLocaleString("en-IN");
   document.getElementById("modalUpiId").textContent=CONFIG.upiId;
   ["order-name","order-phone","order-email","order-street","order-city","order-pin","order-state","order-landmark","order-message"].forEach(id=>{const el=document.getElementById(id);if(el)el.value="";});
   document.getElementById("orderModal").classList.add("open");
