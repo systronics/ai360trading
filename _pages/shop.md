@@ -372,7 +372,7 @@ function openOrder(productId){
   document.getElementById("modalProductName").textContent=currentProduct.name;
   document.getElementById("modalProductPrice").textContent="Rs."+currentProduct.price.toLocaleString("en-IN")+" — Fill details then pay";
   document.getElementById("modalUpiId").textContent=CONFIG.upiId;
-  ["order-name","order-phone","order-email","order-address","order-message"].forEach(id=>{document.getElementById(id).value="";});
+  ["order-name","order-phone","order-email","order-street","order-city","order-pin","order-state","order-landmark","order-message"].forEach(id=>{const el=document.getElementById(id);if(el)el.value="";});
   document.getElementById("orderModal").classList.add("open");
   document.body.style.overflow="hidden";
 }
