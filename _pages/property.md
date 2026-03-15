@@ -1,7 +1,7 @@
 ---
 layout: default
 title: "Plot for Sale — Jamalpur, Haridwar | 1000 Sq Ft | ₹22 Lakh"
-permalink: /property/
+permalink: /plot-for-sale/
 description: "Residential plot for sale in Jamalpur, Haridwar. 1000 sq ft, North facing, 30ft road, registry done. Price ₹22,00,000. Contact Amit Kumar."
 ---
 
