@@ -134,22 +134,10 @@ description: "Buy unique items from Amit Kumar, Haridwar. Order via WhatsApp or 
     <button class="filter-btn" onclick="filterProducts('other',this)">Other</button>
   </div>
   <div class="products-grid" id="productsGrid"></div>
-  <div class="admin-section">
-    <button class="admin-toggle" onclick="toggleAdmin()">＋ Add New Product (Admin Only)</button>
-    <div class="admin-form" id="adminForm">
-      <h3>Add New Product</h3>
-      <div class="form-grid">
-        <div class="form-group"><label class="form-label">Product Name *</label><input class="form-input" id="ap-name" placeholder="e.g. Vintage Painting"></div>
-        <div class="form-group"><label class="form-label">Category *</label><select class="form-select" id="ap-category"><option value="art">Art &amp; Collectibles</option><option value="electronics">Electronics</option><option value="books">Books</option><option value="home">Home &amp; Decor</option><option value="other">Other</option></select></div>
-        <div class="form-group"><label class="form-label">Selling Price (Rs.) *</label><input class="form-input" id="ap-price" type="number" placeholder="e.g. 2500"></div>
-        <div class="form-group"><label class="form-label">Original Price (Rs.)</label><input class="form-input" id="ap-original" type="number" placeholder="e.g. 5000"></div>
-        <div class="form-group full"><label class="form-label">Description *</label><textarea class="form-textarea" id="ap-desc" placeholder="Describe the item — size, condition, material..."></textarea></div>
-        <div class="form-group full"><label class="form-label">Image Path * (upload to /public/image/ in repo first)</label><input class="form-input" id="ap-img" placeholder="/public/image/your-product.jpg"></div>
-        <div class="form-group"><label class="form-label">Condition</label><select class="form-select" id="ap-condition"><option value="used">Used / Vintage</option><option value="new">New / Resale</option><option value="refurbished">Refurbished</option></select></div>
-        <div class="form-group"><label class="form-label">Stock</label><input class="form-input" id="ap-stock" type="number" value="1"></div>
-      </div>
-      <div class="admin-note">After adding, press F12, go to Console tab — copy the JSON shown there and paste into the PRODUCTS array in this file for permanent save.</div>
-      <button class="btn-submit-order" style="margin-top:16px" onclick="addProduct()">Add Product</button>
+  <div style="max-width:1100px;margin:0 auto;padding:0 24px 40px;text-align:center">
+    <div style="background:#fff;border-radius:12px;padding:20px 24px;border:1.5px dashed var(--border);display:inline-block;font-size:0.85rem;color:var(--muted);line-height:1.7">
+      ✏️ <strong style="color:var(--ink)">To add / edit / delete products:</strong><br>
+      Go to your GitHub repo → <code style="background:var(--soft);padding:2px 6px;border-radius:4px">_pages/shop.html</code> → click pencil icon → find <code style="background:var(--soft);padding:2px 6px;border-radius:4px">const PRODUCTS = [</code> → edit → Commit
     </div>
   </div>
 </div>
@@ -164,34 +152,71 @@ description: "Buy unique items from Amit Kumar, Haridwar. Order via WhatsApp or 
       <div class="form-group"><label class="form-label">Your Name *</label><input class="form-input" id="order-name" placeholder="Full name"></div>
       <div class="form-group"><label class="form-label">Phone / WhatsApp *</label><input class="form-input" id="order-phone" placeholder="+91 XXXXXXXXXX" type="tel"></div>
       <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="order-email" placeholder="you@email.com" type="email"></div>
-      <div class="form-group"><label class="form-label">Delivery Address *</label><textarea class="form-textarea" id="order-address" placeholder="Full address with PIN code"></textarea></div>
+      <div class="form-group"><label class="form-label">Street Address *</label><input class="form-input" id="order-street" placeholder="House No, Street, Area / Colony"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="form-group"><label class="form-label">City *</label><input class="form-input" id="order-city" placeholder="e.g. Haridwar"></div>
+        <div class="form-group"><label class="form-label">PIN Code *</label><input class="form-input" id="order-pin" placeholder="e.g. 249401" type="number" maxlength="6"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="form-group"><label class="form-label">State *</label><select class="form-select" id="order-state">
+          <option value="">Select State</option>
+          <option>Andhra Pradesh</option><option>Arunachal Pradesh</option><option>Assam</option>
+          <option>Bihar</option><option>Chhattisgarh</option><option>Goa</option><option>Gujarat</option>
+          <option>Haryana</option><option>Himachal Pradesh</option><option>Jharkhand</option>
+          <option>Karnataka</option><option>Kerala</option><option>Madhya Pradesh</option>
+          <option>Maharashtra</option><option>Manipur</option><option>Meghalaya</option>
+          <option>Mizoram</option><option>Nagaland</option><option>Odisha</option><option>Punjab</option>
+          <option>Rajasthan</option><option>Sikkim</option><option>Tamil Nadu</option>
+          <option>Telangana</option><option>Tripura</option><option selected>Uttarakhand</option>
+          <option>Uttar Pradesh</option><option>West Bengal</option>
+          <option>Delhi</option><option>Jammu and Kashmir</option><option>Ladakh</option>
+          <option>Chandigarh</option><option>Puducherry</option>
+        </select></div>
+        <div class="form-group"><label class="form-label">Landmark</label><input class="form-input" id="order-landmark" placeholder="Near school, temple..."></div>
+      </div>
       <div class="form-group"><label class="form-label">Message / Questions</label><textarea class="form-textarea" id="order-message" placeholder="Any questions about this item?"></textarea></div>
       <div class="payment-section">
-        <div class="payment-title">Pay via UPI or Bank Transfer</div>
-        <div class="upi-box">
-          <div style="width:130px;height:130px;margin:0 auto 10px;background:var(--ink);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:0.7rem;text-align:center;padding:10px;line-height:1.6">Upload your UPI QR image to /public/image/upi-qr.png and replace this block with an img tag</div>
-          <div class="upi-id" id="modalUpiId">UPI: yourname@upi</div>
-          <div class="upi-note">Scan and pay, then send payment screenshot on WhatsApp</div>
+        <div class="payment-title">💳 Pay via UPI — Opens GPay / PhonePe / Paytm</div>
+
+        <!-- UPI PAY NOW BUTTON — opens buyer's UPI app directly with amount filled -->
+        <a id="upiPayBtn" href="#" style="display:flex;align-items:center;justify-content:center;gap:10px;background:linear-gradient(135deg,#6c2eb9,#a855f7);color:#fff;border-radius:14px;padding:16px;text-decoration:none;font-size:1.05rem;font-weight:700;margin-bottom:14px;letter-spacing:0.01em;box-shadow:0 4px 16px rgba(108,46,185,0.35);transition:opacity 0.2s" onclick="return triggerUpiPay(event)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          Pay Now — Opens GPay / PhonePe / Paytm
+        </a>
+        <div style="font-size:0.75rem;color:var(--muted);text-align:center;margin-bottom:14px">Amount will be pre-filled automatically in your UPI app</div>
+
+        <!-- UPI ID copy -->
+        <div class="upi-box" style="margin-bottom:12px">
+          <div style="font-size:0.78rem;color:var(--muted);margin-bottom:6px">Or pay manually to UPI ID</div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:8px">
+            <div class="upi-id" id="modalUpiId" style="font-size:1.1rem">9634759528@upi</div>
+            <button onclick="copyUpi()" style="background:var(--soft);border:1.5px solid var(--border);border-radius:8px;padding:4px 10px;font-size:0.75rem;cursor:pointer;color:var(--ink)">Copy</button>
+          </div>
+          <div class="upi-note" style="margin-top:6px">After paying — send screenshot on WhatsApp for fast confirmation</div>
         </div>
+
         <div class="divider-or">or Bank Transfer</div>
         <div class="bank-box">
           <div class="bank-row"><span class="bank-label">Account Name</span><span class="bank-value">Amit Kumar</span></div>
-          <div class="bank-row"><span class="bank-label">Bank Name</span><span class="bank-value">State Bank Of India</span></div>
+          <div class="bank-row"><span class="bank-label">Bank Name</span><span class="bank-value">State Bank of India</span></div>
           <div class="bank-row"><span class="bank-label">Account No</span><span class="bank-value">20231037959</span></div>
           <div class="bank-row"><span class="bank-label">IFSC Code</span><span class="bank-value">SBIN0011415</span></div>
           <div class="bank-row"><span class="bank-label">Account Type</span><span class="bank-value">Savings</span></div>
         </div>
         <div style="font-size:0.75rem;color:var(--muted);margin-top:10px;text-align:center">After payment — share screenshot on WhatsApp for fast confirmation</div>
       </div>
-      <button class="btn-submit-order" onclick="submitOrder('email')">Send Order via Email</button>
-      <a class="btn-submit-wa" id="waOrderBtn" href="#" onclick="submitOrder('whatsapp')" target="_blank">Order via WhatsApp</a>
+
+      <button class="btn-submit-order" onclick="submitOrder('email')">📧 Send Order via Email</button>
+      <a class="btn-submit-wa" id="waOrderBtn" href="#" onclick="submitOrder('whatsapp')" target="_blank">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        Confirm Order via WhatsApp
+      </a>
     </div>
   </div>
 </div>
 <div class="toast" id="toast"></div>
 
 <script>
-// UPDATE THESE WITH YOUR REAL DETAILS
 const CONFIG = {
   whatsapp:   "919634759528",
   email:      "admin@ai360trading.in",
@@ -200,6 +225,21 @@ const CONFIG = {
   city:       "Haridwar, Uttarakhand"
 };
 
+// UPI DEEP LINK — opens GPay/PhonePe/Paytm with amount pre-filled
+function triggerUpiPay(e) {
+  e.preventDefault();
+  if (!currentProduct) return false;
+  const upiUrl = `upi://pay?pa=${CONFIG.upiId}&pn=${encodeURIComponent(CONFIG.sellerName)}&am=${currentProduct.price}&cu=INR&tn=${encodeURIComponent("Order: " + currentProduct.name)}`;
+  window.location.href = upiUrl;
+  setTimeout(() => { showToast("If app did not open — copy UPI ID and pay manually"); }, 2000);
+  return false;
+}
+function copyUpi() {
+  navigator.clipboard.writeText(CONFIG.upiId)
+    .then(() => showToast("UPI ID copied: " + CONFIG.upiId))
+    .catch(() => showToast("UPI ID: " + CONFIG.upiId));
+}
+
 // YOUR PRODUCTS — painting1.jpg, painting2.jpg, painting3.jpg go in /public/image/
 const PRODUCTS = [
   {
@@ -207,8 +247,8 @@ const PRODUCTS = [
     name: "Traditional Indian Beaded Art — Lady with Golden Deer",
     category: "art",
     condition: "used",
-    price: 10,
-    original: 150,
+    price: 1500,
+    original: 3000,
     stock: 1,
     desc: "Rare vintage Indian folk art. Hand-embroidered with golden zari thread, studded with decorative beads and stones. Lady with golden deer motif in classic red and gold on dark background. Approx 24x36 inch. Perfect for home, office or gifting. Ships from Haridwar.",
     imgs: ["/public/image/painting1.jpg","/public/image/painting2.jpg","/public/image/painting3.jpg"],
@@ -224,7 +264,15 @@ let localComments=JSON.parse(localStorage.getItem("shop_comments")||"{}");
 let localRatings=JSON.parse(localStorage.getItem("shop_ratings")||"{}");
 let imgIndexes={};
 
-function getAllProducts(){return allProducts.map(p=>({...p,comments:[...(p.comments||[]),...(localComments[String(p.id)]||[])],ratings:[...(p.ratings||[]),...(localRatings[String(p.id)]||[])]}));}
+function getAllProducts(){
+  const soldItems=JSON.parse(localStorage.getItem("shop_sold")||"{}");
+  return allProducts.map(p=>({
+    ...p,
+    stock:Math.max(0,(p.stock||1)-(soldItems[String(p.id)]||0)),
+    comments:[...(p.comments||[]),...(localComments[String(p.id)]||[])],
+    ratings:[...(p.ratings||[]),...(localRatings[String(p.id)]||[])],
+  }));
+}
 function avgRating(r){return r.length?r.reduce((a,b)=>a+b,0)/r.length:0;}
 function starsHTML(avg){return[1,2,3,4,5].map(i=>`<span style="color:${i<=Math.round(avg)?"var(--gold)":"var(--border)"}">★</span>`).join("");}
 
@@ -293,10 +341,38 @@ function toggleRating(id){document.getElementById(`rate-${id}`).classList.toggle
 function submitRating(productId,stars){const r=JSON.parse(localStorage.getItem("shop_ratings")||"{}");const id=String(productId);if(!r[id])r[id]=[];r[id].push(stars);localStorage.setItem("shop_ratings",JSON.stringify(r));localRatings=r;showToast(`Thanks for your ${stars} star rating!`);renderProducts();}
 function addComment(productId){const name=document.getElementById(`ci-name-${productId}`).value.trim();const text=document.getElementById(`ci-text-${productId}`).value.trim();if(!name||!text){showToast("Please enter name and comment");return;}const c=JSON.parse(localStorage.getItem("shop_comments")||"{}");const id=String(productId);if(!c[id])c[id]=[];c[id].push({author:name,text});localStorage.setItem("shop_comments",JSON.stringify(c));localComments=c;document.getElementById(`ci-name-${productId}`).value="";document.getElementById(`ci-text-${productId}`).value="";showToast("Comment posted!");renderProducts();setTimeout(()=>{const el=document.getElementById(`comments-${productId}`);if(el)el.classList.add("open");},100);}
 function shareProduct(productId,e){if(e)e.stopPropagation();const p=getAllProducts().find(x=>x.id===productId);const url=`${window.location.origin}/shop/`;const txt=`Check this out: ${p.name} for Rs.${p.price.toLocaleString("en-IN")} — ${CONFIG.city}. ${url}`;if(navigator.share){navigator.share({title:p.name,text:txt,url});}else{navigator.clipboard.writeText(txt).then(()=>showToast("Link copied!"));}}
-function openOrder(productId){currentProduct=getAllProducts().find(p=>p.id===productId);document.getElementById("modalProductName").textContent=currentProduct.name;document.getElementById("modalProductPrice").textContent=`Rs.${currentProduct.price.toLocaleString("en-IN")} — Pay via UPI or Bank`;document.getElementById("modalUpiId").textContent=`UPI: ${CONFIG.upiId}`;document.getElementById("orderModal").classList.add("open");document.body.style.overflow="hidden";}
+function openOrder(productId){
+  currentProduct=getAllProducts().find(p=>p.id===productId);
+  if(!currentProduct||currentProduct.stock<1){showToast("Sorry, this item is sold out!");return;}
+  document.getElementById("modalProductName").textContent=currentProduct.name;
+  document.getElementById("modalProductPrice").textContent="Rs."+currentProduct.price.toLocaleString("en-IN")+" — Fill details then pay";
+  document.getElementById("modalUpiId").textContent=CONFIG.upiId;
+  ["order-name","order-phone","order-email","order-address","order-message"].forEach(id=>{document.getElementById(id).value="";});
+  document.getElementById("orderModal").classList.add("open");
+  document.body.style.overflow="hidden";
+}
 function closeModal(){document.getElementById("orderModal").classList.remove("open");document.body.style.overflow="";}
 document.getElementById("orderModal").addEventListener("click",function(e){if(e.target===this)closeModal();});
-function submitOrder(method){const name=document.getElementById("order-name").value.trim();const phone=document.getElementById("order-phone").value.trim();const address=document.getElementById("order-address").value.trim();if(!name||!phone||!address){showToast("Please fill Name, Phone and Address");return;}const msg=`New Order - Amit's Shop\n\nItem: ${currentProduct.name}\nPrice: Rs.${currentProduct.price.toLocaleString("en-IN")}\nName: ${name}\nPhone: ${phone}\nEmail: ${document.getElementById("order-email").value||"Not provided"}\nAddress: ${address}\nNotes: ${document.getElementById("order-message").value||"None"}\n\nPayment via UPI (${CONFIG.upiId}) or Bank Transfer. Will send screenshot.`;if(method==="whatsapp"){window.open(`https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(msg)}`,"_blank");showToast("Opening WhatsApp...");}else{window.location.href=`mailto:${CONFIG.email}?subject=${encodeURIComponent("Order: "+currentProduct.name)}&body=${encodeURIComponent(msg)}`;showToast("Opening email...");}closeModal();}
+function submitOrder(method){
+  const name=document.getElementById("order-name").value.trim();
+  const phone=document.getElementById("order-phone").value.trim();
+  const street=document.getElementById("order-street").value.trim();
+  const city=document.getElementById("order-city").value.trim();
+  const pin=document.getElementById("order-pin").value.trim();
+  const state=document.getElementById("order-state").value;
+  if(!name||!phone||!street||!city||!pin||!state){showToast("Please fill Name, Phone and Address");return;}
+  // AUTO REDUCE STOCK
+  const soldItems=JSON.parse(localStorage.getItem("shop_sold")||"{}");
+  const pid=String(currentProduct.id);
+  soldItems[pid]=(soldItems[pid]||0)+1;
+  localStorage.setItem("shop_sold",JSON.stringify(soldItems));
+  allProducts=allProducts.map(p=>{if(p.id===currentProduct.id)return{...p,stock:Math.max(0,(p.stock||1)-1)};return p;});
+  const msg="New Order - Amit Shop\n\nItem: "+currentProduct.name+"\nPrice: Rs."+currentProduct.price.toLocaleString("en-IN")+"\nName: "+name+"\nPhone: "+phone+"\nEmail: "+(document.getElementById("order-email").value||"Not provided")+"\nAddress: "+document.getElementById("order-street").value+", "+document.getElementById("order-city").value+", "+document.getElementById("order-state").value+" - "+document.getElementById("order-pin").value+(document.getElementById("order-landmark").value?" (Near: "+document.getElementById("order-landmark").value+")":"")+"\nNotes: "+(document.getElementById("order-message").value||"None")+"\n\nUPI: "+CONFIG.upiId+" | SBI Ac 20231037959 IFSC SBIN0011415\nWill send payment screenshot.";
+  if(method==="whatsapp"){window.open("https://wa.me/"+CONFIG.whatsapp+"?text="+encodeURIComponent(msg),"_blank");showToast("Order sent! Complete UPI payment to confirm.");}
+  else{window.location.href="mailto:"+CONFIG.email+"?subject="+encodeURIComponent("Order: "+currentProduct.name)+"&body="+encodeURIComponent(msg);showToast("Opening email...");}
+  closeModal();
+  renderProducts();
+}
 function toggleAdmin(){document.getElementById("adminForm").classList.toggle("open");}
 function addProduct(){const name=document.getElementById("ap-name").value.trim();const price=parseInt(document.getElementById("ap-price").value);const desc=document.getElementById("ap-desc").value.trim();const img=document.getElementById("ap-img").value.trim();if(!name||!price||!desc||!img){showToast("Fill all required fields");return;}const p={id:Date.now(),name,category:document.getElementById("ap-category").value,condition:document.getElementById("ap-condition").value,price,original:parseInt(document.getElementById("ap-original").value)||0,stock:parseInt(document.getElementById("ap-stock").value)||1,desc,imgs:[img],ratings:[],comments:[]};const saved=JSON.parse(localStorage.getItem("shop_products")||"[]");saved.push(p);localStorage.setItem("shop_products",JSON.stringify(saved));localProducts=saved;allProducts=[...PRODUCTS,...localProducts];console.log("Copy this into PRODUCTS array:\n",JSON.stringify(p,null,2));showToast(`${name} added! Press F12 to copy permanent code.`);renderProducts();document.getElementById("adminForm").classList.remove("open");}
 function showToast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),3000);}
