@@ -258,11 +258,7 @@ permalink: /swing-dashboard/
       <span class="broker-desc">Fast order execution and clean UI. Perfect for swing traders who need speed and simplicity.</span>
       <span class="broker-btn">Open Free Account →</span>
     </a>
-    <a href="https://bit.ly/3lTl4JZ" target="_blank" rel="noopener" class="broker-card">
-      <span class="broker-name">₿ Binance</span>
-      <span class="broker-desc">World's largest crypto exchange. Trade Bitcoin, Ethereum and 350+ coins with low fees.</span>
-      <span class="broker-btn">Open Free Account →</span>
-    </a>
+   
   </div>
 </div>
 
