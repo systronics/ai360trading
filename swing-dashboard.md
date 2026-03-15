@@ -206,7 +206,7 @@ permalink: /swing-dashboard/
 
 <div class="action-buttons">
   <a href="https://t.me/{{ site.telegram_username }}" target="_blank" class="btn-tg">
-    📣 JOIN TELEGRAM FOR ALERTS
+    📣 Free Telegram Alerts
   </a>
 </div>
 
