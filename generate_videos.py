@@ -13,7 +13,7 @@ IMPROVEMENTS in v2:
 - Script prompt completely rewritten to avoid robotic language
 """
 
-import os, sys, json, time, math, random, textwrap, requests, asyncio, pytz, re
+import os, sys, json, time, math, random, textwrap, requests, asyncio, pytz, re, base64
 from datetime import datetime
 from io import BytesIO
 from groq import Groq
@@ -38,6 +38,7 @@ try:
     from googleapiclient.discovery import build
     from googleapiclient.http import MediaFileUpload
     from google.oauth2.credentials import Credentials
+    from google.auth.transport.requests import Request
     YOUTUBE_OK = True
 except ImportError:
     YOUTUBE_OK = False
@@ -435,7 +436,6 @@ def new_canvas(bg=None):
     return img, ImageDraw.Draw(img)
 
 def gradient_bg(img, c1, c2, vertical=True):
-    """Smooth gradient background"""
     draw = ImageDraw.Draw(img)
     steps = H if vertical else W
     for i in range(steps):
@@ -449,7 +449,6 @@ def gradient_bg(img, c1, c2, vertical=True):
             draw.line([(i,0),(i,H)], fill=(r,g,b))
 
 def add_grid_lines(img, color=(255,255,255), alpha=8):
-    """Subtle dot grid pattern"""
     overlay = Image.new("RGBA",(W,H),(0,0,0,0))
     d = ImageDraw.Draw(overlay)
     for x in range(0,W,40):
@@ -458,7 +457,6 @@ def add_grid_lines(img, color=(255,255,255), alpha=8):
     return Image.alpha_composite(img.convert("RGBA"), overlay).convert("RGB")
 
 def add_diagonal_lines(img, color, alpha=12, gap=60):
-    """Diagonal line texture — modern design look"""
     overlay = Image.new("RGBA",(W,H),(0,0,0,0))
     d = ImageDraw.Draw(overlay)
     for i in range(-H, W+H, gap):
@@ -466,7 +464,6 @@ def add_diagonal_lines(img, color, alpha=12, gap=60):
     return Image.alpha_composite(img.convert("RGBA"), overlay).convert("RGB")
 
 def add_glow_circle(img, cx, cy, radius, color, alpha=30):
-    """Radial glow effect"""
     overlay = Image.new("RGBA",(W,H),(0,0,0,0))
     d = ImageDraw.Draw(overlay)
     for r in range(radius, 0, -10):
@@ -475,7 +472,6 @@ def add_glow_circle(img, cx, cy, radius, color, alpha=30):
     return Image.alpha_composite(img.convert("RGBA"), overlay).convert("RGB")
 
 def add_top_bar(draw, brand_color, right_text=""):
-    """Top bar with brand name"""
     draw.rectangle([0,0,W,56], fill=(*C["dark2"],))
     draw.rectangle([0,52,W,56], fill=brand_color)
     draw.text((24,14), "AI360TRADING", fill=brand_color,
@@ -506,7 +502,6 @@ def get_font(size, bold=False):
     return ImageFont.load_default()
 
 def draw_text_wrapped(draw, text, x, y, max_width, font, fill, spacing=8):
-    """Word-wrap text and draw it"""
     words = text.split()
     lines = []
     line = ""
@@ -531,25 +526,16 @@ def slide_title(title, subtitle, brand_color, path):
     img = add_diagonal_lines(img, brand_color, alpha=15, gap=55)
     img = add_glow_circle(img, W//2, H//2, 400, brand_color, alpha=18)
     draw = ImageDraw.Draw(img)
-
-    # Top bar
     add_top_bar(draw, brand_color)
-
-    # Big brand logo area — left accent stripe
     draw.rectangle([0,56,6,H-44], fill=brand_color)
-
-    # Title — large centered
     lines = textwrap.wrap(title, 32)
     y = 130
     for ln in lines:
         bbox = draw.textbbox((0,0), ln, font=get_font(52, bold=True))
         tw = bbox[2]-bbox[0]
-        # Shadow
         draw.text((W//2-tw//2+3, y+3), ln, fill=(0,0,0), font=get_font(52,bold=True))
         draw.text((W//2-tw//2, y), ln, fill=C["white"], font=get_font(52,bold=True))
         y += 68
-
-    # Subtitle pill
     if subtitle:
         sbbox = draw.textbbox((0,0), subtitle, font=get_font(20))
         sw = sbbox[2]-sbbox[0]+40
@@ -558,8 +544,6 @@ def slide_title(title, subtitle, brand_color, path):
         draw.text((W//2, y+34), subtitle, fill=brand_color,
                   font=get_font(20,bold=True), anchor="mm")
         y += 70
-
-    # Date badge
     date_text = f"  {date_display}  "
     dbbox = draw.textbbox((0,0), date_text, font=get_font(18))
     dw = dbbox[2]-dbbox[0]+20
@@ -567,7 +551,6 @@ def slide_title(title, subtitle, brand_color, path):
                  fill=(*C["dark2"],200), outline=brand_color, width=1)
     draw.text((W//2, y+30), date_text, fill=brand_color,
               font=get_font(18,bold=True), anchor="mm")
-
     add_bottom_bar(draw)
     img.save(path, quality=96)
 
@@ -578,8 +561,6 @@ def slide_fear_greed(fg_val, fg_label, prices, brand_color, path):
     img = add_grid_lines(img, C["blue"])
     draw = ImageDraw.Draw(img)
     add_top_bar(draw, brand_color, date_display)
-
-    # Left panel — Fear & Greed gauge (matplotlib)
     fig, ax = plt.subplots(figsize=(5.5,4.5), dpi=100)
     fig.patch.set_facecolor((10/255,14/255,28/255))
     ax.set_facecolor((10/255,14/255,28/255))
@@ -587,12 +568,10 @@ def slide_fear_greed(fg_val, fg_label, prices, brand_color, path):
     for lo,hi,zc in zones:
         th = np.linspace(np.pi*(1-lo/100), np.pi*(1-hi/100), 50)
         ax.plot(np.cos(th), np.sin(th), color=zc, linewidth=22, alpha=0.9, solid_capstyle='round')
-    # Needle
     angle = np.pi*(1-fg_val/100)
     ax.annotate('', xy=(0.68*np.cos(angle),0.68*np.sin(angle)), xytext=(0,0),
                 arrowprops=dict(arrowstyle='->', color='white', lw=3))
     ax.add_patch(plt.Circle((0,0),0.06,color='white'))
-    # Value
     nc = '#e74c3c' if fg_val<35 else '#f1c40f' if fg_val<55 else '#2ecc71'
     ax.text(0,-0.22,str(fg_val),fontsize=52,fontweight='black',color=nc,ha='center',va='center')
     ax.text(0,-0.48,fg_label.upper(),fontsize=15,fontweight='bold',color=nc,ha='center',va='center')
@@ -604,8 +583,6 @@ def slide_fear_greed(fg_val, fg_label, prices, brand_color, path):
     buf.seek(0)
     gauge_img = Image.open(buf).convert("RGB").resize((550,390))
     img.paste(gauge_img,(30,80))
-
-    # Right panel — live prices cards
     items = [
         ("NIFTY 50",   prices.get("NIFTY 50",{}).get("display","N/A"),  prices.get("NIFTY 50",{}).get("pct",0)),
         ("S&P 500",    prices.get("S&P 500",{}).get("display","N/A"),   prices.get("S&P 500",{}).get("pct",0)),
@@ -626,7 +603,6 @@ def slide_fear_greed(fg_val, fg_label, prices, brand_color, path):
         draw.text((rx+22, ry+50), disp, fill=C["white"], font=get_font(24,bold=True))
         draw.text((rx+22, ry+86), f"{arrow} {abs(pct):.2f}% today",
                   fill=clr, font=get_font(18,bold=True))
-
     add_bottom_bar(draw)
     img.save(path, quality=96)
 
@@ -636,7 +612,6 @@ def slide_candlestick_chart(prices, title_label, brand_color, path):
                              gridspec_kw={'height_ratios':[3,1],'hspace':0.04})
     fig.patch.set_facecolor(rgb2f(C["dark"]))
     ax, vax = axes
-
     base  = prices.get('NIFTY 50',{}).get('price',24000)
     pct   = prices.get('NIFTY 50',{}).get('pct',0)
     np.random.seed(int(base)%999)
@@ -651,11 +626,8 @@ def slide_candlestick_chart(prices, title_label, brand_color, path):
         opens.append(o);closes.append(c);highs.append(h);lows.append(l);vols.append(v)
         p=c
     closes[-1]=base; highs[-1]=max(opens[-1],base)*1.003; lows[-1]=min(opens[-1],base)*0.997
-
     ax.set_facecolor(rgb2f(C["dark2"]))
     vax.set_facecolor(rgb2f(C["dark2"]))
-
-    # Draw candles
     for i in range(n):
         bull=closes[i]>=opens[i]
         clr='#2ecc71' if bull else '#e74c3c'
@@ -665,8 +637,6 @@ def slide_candlestick_chart(prices, title_label, brand_color, path):
                                   color=clr,alpha=0.9,zorder=3)
         ax.add_patch(rect)
         vax.bar(i,vols[i],color=clr,alpha=0.6,width=0.7)
-
-    # Levels
     s1=base*0.986; s2=base*0.972; r1=base*1.014; r2=base*1.028
     for level,color_,label_ in [(s2,'#f59e0b',f'S2  {s2:,.0f}'),
                                    (s1,'#2ecc71',f'S1  {s1:,.0f}'),
@@ -677,11 +647,8 @@ def slide_candlestick_chart(prices, title_label, brand_color, path):
         ax.axhline(level,color=color_,lw=1.8,linestyle=ls,alpha=0.85,zorder=4)
         ax.text(n+0.4, level, label_, color=color_, fontsize=10,
                 fontweight='bold', va='center')
-
-    # Shaded SR zone
     ax.axhspan(s1*0.998,s1*1.002,alpha=0.07,color='#2ecc71')
     ax.axhspan(r1*0.998,r1*1.002,alpha=0.07,color='#e74c3c')
-
     ax.set_xlim(-1,n+5); ax.set_ylim(min(lows)*0.997,max(highs)*1.007)
     vax.set_xlim(-1,n+5)
     for spine in ax.spines.values(): spine.set_color(rgb2f(C["accent"]))
@@ -691,7 +658,6 @@ def slide_candlestick_chart(prices, title_label, brand_color, path):
     ax.yaxis.set_major_formatter(mticker.FuncFormatter(lambda x,_:f'{x:,.0f}'))
     vax.yaxis.set_major_formatter(mticker.FuncFormatter(lambda x,_:f'{x//1000:.0f}K'))
     vax.set_ylabel('Volume',color=rgb2f(C["muted"]),fontsize=9)
-
     pc = rgb2f(C["green"] if pct>=0 else C["red"])
     arrow = '▲' if pct>=0 else '▼'
     fig.text(0.03,0.97,'AI360TRADING',fontsize=12,fontweight='bold',
@@ -713,10 +679,8 @@ def slide_sr_table(prices, brand_color, path):
     img = add_grid_lines(img, brand_color, alpha=6)
     draw = ImageDraw.Draw(img)
     add_top_bar(draw, brand_color, date_display)
-
     draw.text((W//2, 80), "KEY LEVELS TO WATCH", fill=C["white"],
               font=get_font(32,bold=True), anchor="mm")
-
     rows = [
         ("NIFTY 50",   prices.get("NIFTY 50",{}).get("price",24000),   prices.get("NIFTY 50",{}).get("pct",0),   ""),
         ("S&P 500",    prices.get("S&P 500",{}).get("price",5500),     prices.get("S&P 500",{}).get("pct",0),    ""),
@@ -728,28 +692,22 @@ def slide_sr_table(prices, brand_color, path):
     for h,x in zip(headers,col_x):
         draw.text((x,hy), h, fill=C["muted"], font=get_font(15,bold=True))
     draw.line([(40,148),(W-40,148)], fill=C["accent"], width=1)
-
     for i,(name,price,pct,prefix) in enumerate(rows):
         ry = 170 + i*148
         clr = C["green"] if pct>=0 else C["red"]
         arrow = "▲" if pct>=0 else "▼"
-
-        # Row card
         rounded_rect(draw, 40, ry, W-40, ry+128, 12, fill=C["card"])
         draw.rectangle([40,ry,48,ry+128], fill=clr)
-
         s1 = price*0.986; s2 = price*0.972
         r1 = price*1.014
         p_fmt = f"{prefix}{price:,.0f}"
         s1_fmt = f"{prefix}{s1:,.0f}"
         r1_fmt = f"{prefix}{r1:,.0f}"
-
         draw.text((col_x[0]+8, ry+44), name,   fill=C["white"],  font=get_font(20,bold=True))
         draw.text((col_x[1],   ry+44), p_fmt,  fill=C["white"],  font=get_font(20,bold=True))
         draw.text((col_x[2],   ry+44), s1_fmt, fill=C["green"],  font=get_font(20,bold=True))
         draw.text((col_x[3],   ry+44), r1_fmt, fill=C["red"],    font=get_font(20,bold=True))
         draw.text((col_x[4],   ry+44), f"{arrow} {abs(pct):.2f}%", fill=clr, font=get_font(20,bold=True))
-
     draw.text((W//2, H-70),
               "🟢 Support = Buying zone    🔴 Resistance = Watch for rejection",
               fill=C["muted"], font=get_font(15), anchor="mm")
@@ -758,65 +716,44 @@ def slide_sr_table(prices, brand_color, path):
 
 
 def slide_content(slide_text, narrator_text, brand_color, num, total, path):
-    """Modern content slide — no boxy feel, layered design"""
     img, draw = new_canvas()
     gradient_bg(img, C["dark"], (8,14,32), vertical=True)
     img = add_diagonal_lines(img, brand_color, alpha=10, gap=70)
-
-    # Left glow
     img = add_glow_circle(img, 80, H//2, 320, brand_color, alpha=20)
     draw = ImageDraw.Draw(img)
     add_top_bar(draw, brand_color, f"{num} / {total}")
-
-    # Left accent bar
     draw.rectangle([0,56,5,H-44], fill=brand_color)
-
-    # Progress bar
     prog_w = int((num/total)*(W-80))
     draw.rectangle([40,H-52,40+prog_w,H-48], fill=brand_color)
-
-    # Slide heading — large, modern
     heading = slide_text.strip().split('\n')[0] if slide_text else narrator_text[:60]
     heading = re.sub(r'[*#]','',heading).strip()[:60]
-
-    # Heading block with left border
-    draw.rectangle([6,74,40,74+56], fill=brand_color)   # left colored strip
+    draw.rectangle([6,74,40,74+56], fill=brand_color)   # left colored strip (FIXED)
     y = draw_text_wrapped(draw, heading, 50, 82,
                           W-80, get_font(36, bold=True), C["white"], spacing=10)
     y += 20
-
-    # Divider line
     draw.line([(50,y),(W-50,y)], fill=(*brand_color, 80), width=1)
     y += 24
-
-    # Body — narrator text excerpt (first 180 chars)
     body = narrator_text[:220] + ("..." if len(narrator_text)>220 else "")
     body = re.sub(r'(SLIDE|NARRATOR|HINDI_SUB):[^\n]*','',body).strip()
     draw_text_wrapped(draw, body, 50, y, W-80, get_font(22), C["white"], spacing=12)
-
-    # Bottom quote strip
     quote = narrator_text[:90].strip()
     quote = re.sub(r'\s+',' ',quote)
     rounded_rect(draw, 40, H-110, W-40, H-52, 8, fill=(*C["dark2"],180))
     draw.text((W//2, H-81), f'"{quote}..."', fill=(*C["muted"],),
               font=get_font(14), anchor="mm")
-
     add_bottom_bar(draw)
     img.save(path, quality=96)
 
 
 def slide_education_icon(topic_title, points, brand_color, path):
-    """Education slide with emoji icon cards — attractive, non-boxy"""
     img, draw = new_canvas()
     gradient_bg(img, (8,20,18) if brand_color==C["green"] else C["dark"], C["dark"])
     img = add_grid_lines(img, brand_color, alpha=8)
     img = add_glow_circle(img, W//2, 120, 300, brand_color, alpha=15)
     draw = ImageDraw.Draw(img)
     add_top_bar(draw, brand_color)
-
     draw.text((W//2, 84), topic_title, fill=C["white"],
               font=get_font(28,bold=True), anchor="mm")
-
     if len(points) <= 4:
         cols = 2
     else:
@@ -825,7 +762,6 @@ def slide_education_icon(topic_title, points, brand_color, path):
     card_w = (W - 80 - (cols-1)*16) // cols
     card_h = min(160, (H - 160 - (rows-1)*14) // rows)
     icons = ["📊","📈","📉","💡","⚡","🎯","🔑","💰","📌","✅","⚠️","🔄"]
-
     for i, pt in enumerate(points[:cols*rows]):
         col = i % cols; row = i // cols
         x1 = 40 + col*(card_w+16)
@@ -838,19 +774,15 @@ def slide_education_icon(topic_title, points, brand_color, path):
                   font=get_font(26))
         draw_text_wrapped(draw, pt, x1+60, y1+16, card_w-70,
                          get_font(16,bold=True), C["white"], spacing=6)
-
     add_bottom_bar(draw)
     img.save(path, quality=96)
 
 
 def slide_finance_chart(data_type, prices, brand_color, path):
-    """Personal finance visual — SIP chart or comparison bar chart"""
     fig, ax = plt.subplots(figsize=(12.8,7.2), dpi=100)
     fig.patch.set_facecolor(rgb2f(C["dark"]))
     ax.set_facecolor(rgb2f(C["dark2"]))
-
     if data_type == "sip_growth":
-        # SIP vs Lump Sum growth over 10 years
         years = list(range(0,11))
         sip_monthly = 5000
         lump = 600000
@@ -861,13 +793,10 @@ def slide_finance_chart(data_type, prices, brand_color, path):
             if y > 0: sip_total = sip_total*(1+rate/12)**12 + sip_monthly*12
             sip_vals.append(sip_total)
         lump_vals = [lump*(1+rate)**y for y in years]
-
         ax.fill_between(years, sip_vals, alpha=0.25, color='#2ecc71')
         ax.fill_between(years, lump_vals, alpha=0.20, color='#0062ff')
         ax.plot(years, sip_vals, color='#2ecc71', lw=3, label=f'SIP ₹5k/month', marker='o', markersize=6)
         ax.plot(years, lump_vals, color='#0062ff', lw=3, label=f'Lump Sum ₹6L', marker='s', markersize=6)
-
-        # Labels on last point
         ax.annotate(f'₹{sip_vals[-1]/100000:.1f}L', xy=(10,sip_vals[-1]),
                     xytext=(9.2,sip_vals[-1]*1.06),
                     color='#2ecc71', fontsize=12, fontweight='bold',
@@ -876,7 +805,6 @@ def slide_finance_chart(data_type, prices, brand_color, path):
                     xytext=(9.0,lump_vals[-1]*0.92),
                     color='#0062ff', fontsize=12, fontweight='bold',
                     arrowprops=dict(arrowstyle='-',color='#0062ff',lw=1.5))
-
         ax.set_xlabel('Years', color=rgb2f(C["muted"]), fontsize=11)
         ax.set_ylabel('Portfolio Value (₹)', color=rgb2f(C["muted"]), fontsize=11)
         ax.yaxis.set_major_formatter(mticker.FuncFormatter(lambda x,_:f'₹{x/100000:.0f}L'))
@@ -884,9 +812,7 @@ def slide_finance_chart(data_type, prices, brand_color, path):
                   labelcolor='white', fontsize=12, framealpha=0.9)
         fig.text(0.5,0.97,'SIP vs Lump Sum — 10 Year Growth at 12% CAGR',
                  fontsize=16,fontweight='bold',color='white',ha='center',va='top')
-
     else:
-        # 15-15-15 rule bar chart
         labels = ['Year 5','Year 10','Year 15']
         monthly_15k = [15000*12*5*1.15, 15000*12*10*1.25, 10000000]
         colors_ = ['#378ADD','#2ecc71','#f59e0b']
@@ -900,7 +826,6 @@ def slide_finance_chart(data_type, prices, brand_color, path):
         ax.set_ylabel('Value (₹ Lakh)', color=rgb2f(C["muted"]), fontsize=11)
         fig.text(0.5,0.97,'15-15-15 Rule — ₹15k/Month SIP @ 15% Return',
                  fontsize=16,fontweight='bold',color='white',ha='center',va='top')
-
     for spine in ax.spines.values(): spine.set_color(rgb2f(C["accent"]))
     ax.tick_params(colors=rgb2f(C["muted"]), labelsize=10)
     fig.text(0.5,0.01,'ai360trading.in  |  Not financial advice — educational only',
@@ -916,19 +841,14 @@ def slide_outro(brand_color, path):
     img = add_glow_circle(img, W//2, H//2-60, 380, brand_color, alpha=22)
     img = add_diagonal_lines(img, brand_color, alpha=8)
     draw = ImageDraw.Draw(img)
-
-    # Brand circle
     draw.ellipse([W//2-90, 60, W//2+90, 240], fill=(*brand_color, 25),
                  outline=brand_color, width=2)
     draw.text((W//2, 150), "AI360", fill=brand_color,
               font=get_font(44,bold=True), anchor="mm")
-
     draw.text((W//2, 268), "TRADING", fill=C["muted"],
               font=get_font(20,bold=True), anchor="mm")
     draw.text((W//2, 316), "Subscribe for Daily Market Intelligence",
               fill=C["white"], font=get_font(26,bold=True), anchor="mm")
-
-    # 4 pillar cards
     pillars = [("📊","Stock Market"),("₿","Bitcoin"),("💰","Personal Finance"),("🤖","AI Trading")]
     pw = 240; gap = 20; sx = (W - 4*pw - 3*gap) // 2
     for i,(ic,lb) in enumerate(pillars):
@@ -938,7 +858,6 @@ def slide_outro(brand_color, path):
                   font=get_font(28), anchor="mm")
         draw.text((px+pw//2, 440), lb, fill=C["white"],
                   font=get_font(16,bold=True), anchor="mm")
-
     draw.text((W//2, 508), "📣  t.me/ai360trading",
               fill=C["green"], font=get_font(20,bold=True), anchor="mm")
     draw.text((W//2, 548), "🌐  ai360trading.in",
@@ -946,24 +865,18 @@ def slide_outro(brand_color, path):
     draw.text((W//2, 590),
               "⚠️  Educational content only — not SEBI registered investment advice",
               fill=C["muted"], font=get_font(13), anchor="mm")
-
     add_bottom_bar(draw)
     img.save(path, quality=96)
 
 
 def create_thumbnail(title, prices, pct_change, brand_color, path):
-    """YouTube thumbnail — person photo + bold Hinglish headline"""
     is_crash = pct_change < -0.5
     img, draw = new_canvas()
-
-    # Dramatic gradient
     c1 = (140,0,0) if is_crash else (0,100,15)
     c2 = (8,0,0) if is_crash else (0,10,3)
     gradient_bg(img, c1, c2, vertical=False)
     img = add_diagonal_lines(img, C["white"], alpha=6)
     draw = ImageDraw.Draw(img)
-
-    # Candle watermark (background)
     np.random.seed(42)
     overlay = Image.new("RGBA",(W,H),(0,0,0,0))
     od = ImageDraw.Draw(overlay)
@@ -991,21 +904,22 @@ def create_thumbnail(title, prices, pct_change, brand_color, path):
             p_h = int(H*0.98); p_w = int(pw*(p_h/ph))
             person_img = person_img.resize((p_w,p_h),Image.LANCZOS)
             px_ = W-p_w-8; py_ = H-p_h
-            # Left fade on person
+            # Left fade
             fa = np.ones((p_h,p_w),dtype=np.float32)*255
             for x in range(min(80,p_w)): fa[:,x] *= x/80
             person_img.putalpha(Image.fromarray(fa.astype(np.uint8)))
             # Shadow
             shadow = Image.new("RGBA",(W,H),(0,0,0,0))
-            shadow.paste(Image.new("RGBA",(p_w+30,p_h),(0,0,0,120)),
-                        (px_+15,py_+20),
-                        person_img.getchannel("A").filter(ImageFilter.GaussianBlur(20)))
-            img = Image.alpha_composite(img.convert("RGBA"),shadow).convert("RGB")
-            img.paste(person_img,(px_,py_),person_img)
+            alpha_blur = person_img.getchannel("A").filter(ImageFilter.GaussianBlur(20))
+            shadow.paste(Image.new("RGBA",(p_w+30,p_h),(0,0,0,120)),(px_+15,py_+20),alpha_blur)
+            img = Image.alpha_composite(img.convert("RGBA"), shadow).convert("RGB")
+            # Paste person — convert to RGBA first
+            img_rgba = img.convert("RGBA")
+            img_rgba.paste(person_img, (px_, py_), person_img)
+            img = img_rgba.convert("RGB")
     except Exception as e:
         print(f"Photo fetch: {e}")
 
-    # Left text overlay gradient
     lo = Image.new("RGBA",(W,H),(0,0,0,0))
     ld = ImageDraw.Draw(lo)
     for x in range(700):
@@ -1013,41 +927,31 @@ def create_thumbnail(title, prices, pct_change, brand_color, path):
         ld.line([(x,0),(x,H)],fill=(0,0,0,a))
     img = Image.alpha_composite(img.convert("RGBA"),lo).convert("RGB")
     draw = ImageDraw.Draw(img)
-
-    # Headline text — Hinglish style
     h1 = "NIFTY" if "nifty" in title.lower() or "stock" in title.lower() else "BITCOIN" if "bitcoin" in title.lower() else "MARKET"
     h2 = "गिरा !" if is_crash else "उठा !"
     badge = f"{'▼' if is_crash else '▲'} {abs(pct_change):.2f}% TODAY"
     badge_c = (200,0,0) if is_crash else (0,150,20)
     txt_c2 = (255,215,0) if is_crash else (100,255,100)
     subtitle = "देखो Level तोड़ा ?" if is_crash else "Buy करें या Wait ?"
-
-    # Shadow text
     def sh(d,xy,t,f,fill):
         d.text((xy[0]+4,xy[1]+4),t,font=f,fill=(0,0,0,180))
         d.text(xy,t,font=f,fill=fill)
-
     sh(draw,(36,22),h1,get_font(108,bold=True),C["white"])
     sh(draw,(36,126),h2,get_font(118,bold=True),txt_c2)
-    # Badge pill
     bb = draw.textbbox((0,0),badge,font=get_font(36,bold=True))
     bw = bb[2]-bb[0]+32
     draw.rounded_rectangle([36,270,36+bw,318],radius=12,fill=badge_c)
     draw.text((52,284),badge,fill=C["white"],font=get_font(36,bold=True))
     draw.text((36,330),date_display,fill=(200,200,200),font=get_font(32,bold=False))
-    # Subtitle pill
     sb = draw.textbbox((0,0),subtitle,font=get_font(30,bold=True))
     sw2 = sb[2]-sb[0]+32
     draw.rounded_rectangle([36,376,36+sw2,418],radius=10,fill=(200,80,0))
     draw.text((52,388),subtitle,fill=C["white"],font=get_font(30,bold=True))
     draw.text((36,432),"ai360trading.in",fill=(120,180,255),font=get_font(26,bold=False))
-
-    # Bottom bar
     draw.rectangle([0,668,W,H],fill=(0,0,0))
     draw.text((W//2,684),
               "AI360TRADING  |  Daily Market Analysis  |  @ai360trading",
               fill=(80,160,255),font=get_font(24,bold=True),anchor="mm")
-
     img.save(path, quality=96)
 
 
@@ -1106,6 +1010,46 @@ def assemble(slide_paths, narrators, out_path):
                         remove_temp=True, logger=None)
     return True
 
+
+# ── GitHub Secret updater ─────────────────────────────────────────────────────
+def _save_token_to_github(cd):
+    """Auto-saves refreshed YOUTUBE_CREDENTIALS back to GitHub Secrets"""
+    try:
+        gh_token = os.environ.get("GH_TOKEN")
+        repo     = os.environ.get("GITHUB_REPOSITORY")
+        if not gh_token or not repo:
+            print("  ⚠️  GH_TOKEN not set — token not saved back to secrets")
+            return
+        import nacl.encoding, nacl.public
+        headers = {
+            "Authorization": f"token {gh_token}",
+            "Accept": "application/vnd.github+json"
+        }
+        # Get repo public key
+        key_resp = requests.get(
+            f"https://api.github.com/repos/{repo}/actions/secrets/public-key",
+            headers=headers, timeout=10).json()
+        pub_key_b64 = key_resp["key"]
+        key_id      = key_resp["key_id"]
+        # Encrypt new value
+        public_key  = nacl.public.PublicKey(pub_key_b64, nacl.encoding.Base64Encoder)
+        sealed_box  = nacl.public.SealedBox(public_key)
+        encrypted   = sealed_box.encrypt(json.dumps(cd).encode())
+        encrypted_b64 = base64.b64encode(encrypted).decode()
+        # Push to GitHub
+        r = requests.put(
+            f"https://api.github.com/repos/{repo}/actions/secrets/YOUTUBE_CREDENTIALS",
+            headers=headers,
+            json={"encrypted_value": encrypted_b64, "key_id": key_id},
+            timeout=10)
+        if r.status_code in (201, 204):
+            print("  ✅ YouTube token refreshed and saved to GitHub Secrets automatically")
+        else:
+            print(f"  ⚠️  Secret update failed: {r.status_code}")
+    except Exception as e:
+        print(f"  ⚠️  Could not save token to GitHub: {e}")
+
+
 # ── YouTube upload ────────────────────────────────────────────────────────────
 def upload_yt(video_path, title, description, tags, thumb_path=None):
     if not YOUTUBE_OK: return None
@@ -1113,28 +1057,57 @@ def upload_yt(video_path, title, description, tags, thumb_path=None):
         cj = os.environ.get("YOUTUBE_CREDENTIALS")
         if not cj: return None
         cd = json.loads(cj)
-        creds = Credentials(token=cd.get("token"),refresh_token=cd.get("refresh_token"),
-                            token_uri="https://oauth2.googleapis.com/token",
-                            client_id=cd.get("client_id"),client_secret=cd.get("client_secret"))
-        yt = build('youtube','v3',credentials=creds)
-        body = {'snippet':{'title':title[:100],'description':description,
-                           'tags':tags,'categoryId':'27','defaultLanguage':'en'},
-                'status':{'privacyStatus':'public','selfDeclaredMadeForKids':False}}
-        req = yt.videos().insert(part=','.join(body.keys()), body=body,
-                                  media_body=MediaFileUpload(video_path,chunksize=-1,
-                                                             resumable=True,mimetype='video/mp4'))
+
+        creds = Credentials(
+            token=cd.get("token"),
+            refresh_token=cd.get("refresh_token"),
+            token_uri="https://oauth2.googleapis.com/token",
+            client_id=cd.get("client_id"),
+            client_secret=cd.get("client_secret")
+        )
+
+        # ── Auto-refresh if token expired ─────────────────────────
+        if not creds.valid:
+            print("  Refreshing YouTube token...")
+            creds.refresh(Request())
+            cd["token"] = creds.token
+            _save_token_to_github(cd)
+        # ──────────────────────────────────────────────────────────
+
+        yt = build('youtube', 'v3', credentials=creds)
+        body = {
+            'snippet': {
+                'title': title[:100],
+                'description': description,
+                'tags': tags,
+                'categoryId': '27',
+                'defaultLanguage': 'en'
+            },
+            'status': {
+                'privacyStatus': 'public',
+                'selfDeclaredMadeForKids': False
+            }
+        }
+        req = yt.videos().insert(
+            part=','.join(body.keys()), body=body,
+            media_body=MediaFileUpload(video_path, chunksize=-1,
+                                       resumable=True, mimetype='video/mp4'))
         resp = None
         while resp is None:
             status, resp = req.next_chunk()
             if status: print(f"  Upload: {int(status.progress()*100)}%")
+
         vid_id = resp['id']
         if thumb_path and os.path.exists(thumb_path):
-            yt.thumbnails().set(videoId=vid_id,
-                                media_body=MediaFileUpload(thumb_path)).execute()
+            yt.thumbnails().set(
+                videoId=vid_id,
+                media_body=MediaFileUpload(thumb_path)).execute()
         return vid_id
+
     except Exception as e:
         print(f"Upload failed: {e}")
         return None
+
 
 # ── Main ─────────────────────────────────────────────────────────────────────
 def main():
@@ -1160,7 +1133,6 @@ def main():
     print(f"  BTC    : {prices.get('Bitcoin',{}).get('display','N/A')}")
     print(f"  F&G    : {fg_val} — {fg_label}")
 
-    # Build title
     direction = ("Market Crash" if npct<-2 else "Big Fall" if npct<-1 else
                  "Recovery" if npct>1 else "Big Rally" if npct>2 else "At Key Levels")
     title = topic["title"].format(
@@ -1169,14 +1141,12 @@ def main():
         direction=direction)
     desc = topic["desc"].format(date=date_display, year=now.year)
 
-    # Generate script
     print("\n  Generating script...")
     script = generate_script(topic, prices, fg_val, fg_label)
     if not script: sys.exit(1)
     script_slides = parse_script(script)
     print(f"  Script: {len(script)} chars | {len(script_slides)} slides")
 
-    # Build all slides
     print("\n  Building slides...")
     img_paths = []; narrators = []
 
@@ -1196,7 +1166,7 @@ def main():
         f"S&P 500 {prices.get('S&P 500',{}).get('display','N/A')}, "
         f"aur Bitcoin {prices.get('Bitcoin',{}).get('display','N/A')} pe chal raha hai.")
 
-    # 2. Chart (market videos)
+    # 2. Chart
     if tt in ["nifty","weekly","stocks"]:
         p = os.path.join(OUTPUT_DIR,"s02_chart.png")
         slide_candlestick_chart(prices, f"NIFTY 50 — {date_display}", bc, p)
@@ -1208,7 +1178,7 @@ def main():
             f"Jo level main dekhna chahta hoon neeche {s1n:,} hai, aur upar {r1n:,} hai. "
             f"In dono ke beech jo hoga woh batayega market kis direction mein ja rahi hai.")
 
-    # 3. SR Table (market + bitcoin)
+    # 3. SR Table
     if tt in ["nifty","bitcoin","weekly"]:
         p = os.path.join(OUTPUT_DIR,"s03_sr.png")
         slide_sr_table(prices, bc, p)
@@ -1219,7 +1189,7 @@ def main():
             f"S&P 500 {prices.get('S&P 500',{}).get('display','N/A')} pe hai — "
             f"yeh raat ko kahan band hota hai kal ke NIFTY ka tone set karega.")
 
-    # 4. Education-specific slides
+    # 4. Topic-specific slides
     if tt == "education":
         p = os.path.join(OUTPUT_DIR,"s04_edu.png")
         slide_education_icon("5 Must-Know Candlestick Patterns",
@@ -1254,7 +1224,7 @@ def main():
             f"Ye levels hain jo main aaj use kar raha hoon. {int(np_*0.986):,} support, "
             f"{int(np_*1.014):,} resistance. Inhe mark kar lo apne chart pe.")
 
-    # 5-N. Script content slides
+    # Script content slides
     for i, sl in enumerate(script_slides[:8], start=len(img_paths)):
         p = os.path.join(OUTPUT_DIR,f"s{i:02d}_content.png")
         slide_content(sl.get("slide",""),sl.get("narrator",""),
