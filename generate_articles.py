@@ -681,9 +681,19 @@ Include 2-3 internal links naturally in body text if provided above.
 First line: META_DESCRIPTION: <150-160 chars with specific price data and date>
 Then the article starting with ## {sections[0]}
 
-Target length: 2000-2200 words.
+CRITICAL SEO RULE — Title Integration:
+The article title is: "{article_title}"
+You MUST use the exact key words from this title in:
+1. The very first sentence of ## {sections[0]}
+2. At least 2 more times naturally throughout the article body
+3. The FAQ questions must reference the title topic directly
+This is mandatory for SEO — Google checks that H1 matches body content.
+
+Target length: 2000-2200 words. Minimum 1800 words — never less.
 End with:
 *{date_display} | Educational content only. Not SEBI registered investment advice.*
+
+WORD COUNT CHECK: Count your words before finishing. If under 1800 words — expand the analysis sections with more specific price levels, historical context, and actionable trader notes. Google penalizes thin content.
 """
     try:
         completion = client.chat.completions.create(
@@ -714,16 +724,23 @@ End with:
         for line in content.split("\n"):
             if line.strip().startswith("META_DESCRIPTION:"):
                 extracted = line.replace("META_DESCRIPTION:", "").strip().strip('"')
-                if 100 < len(extracted) <= 160:
+                # FIX: enforce 130-160 char range — short descriptions hurt SEO
+                if 130 <= len(extracted) <= 160:
                     meta_description = extracted
+                elif 100 < len(extracted) < 130:
+                    # pad with pillar + date context
+                    meta_description = (extracted + f" | {pillar['name']} analysis {date_display}.")[:160]
             else:
                 cleaned_lines.append(line)
         content = "\n".join(cleaned_lines).lstrip("\n")
 
         # ── FIX 2: article_excerpt uses article_title, not top_trend ──
+        # FIX: excerpt uses article title + pillar keywords for SEO match
+        _primary_kw = pillar['primary_keywords'][0]
         article_excerpt = (
             f"{article_title} — {pillar['name']} analysis for {date_display}. "
-            f"Live data, key levels, actionable insights for US, UK, India and Brazil."
+            f"Live {_primary_kw} data, key support resistance levels, "
+            f"actionable insights for US, UK, India and Brazil traders."
         )[:200]
 
         schema_json = generate_schema(article_title, meta_description, pillar, chosen_slug)
