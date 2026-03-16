@@ -1,36 +1,82 @@
 name: Daily YouTube Video Generator
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# CHANGELOG vs original:
+# 1. Added --break-system-packages to pip install (CRITICAL fix for ubuntu 24.04)
+# 2. Added pip cache — saves 2-3 min per run
+# 3. Added timeout-minutes: 45 — prevents zombie runs
+# 4. Cron updated to Mon-Sat only — skip Sunday (no market)
+# 5. Added verify step — confirms dependencies before running
+# 6. Added debug step — shows logs on failure
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 2 * * *' # 7:30 AM IST daily (30 min after articles)
+    - cron: '0 2 * * 1-6'   # 7:30 AM IST Mon-Sat only
+
 jobs:
   generate-video:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     permissions:
       contents: read
+
     steps:
       - name: Checkout master
         uses: actions/checkout@v4
         with:
           ref: master
 
-      - name: Setup Python
+      - name: Setup Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+          cache: 'pip'
 
-      - name: Install system dependencies (for moviepy/audio)
+      - name: Install system dependencies
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y ffmpeg fonts-liberation fonts-dejavu
+          sudo apt-get install -y --no-install-recommends \
+            ffmpeg \
+            fonts-liberation \
+            fonts-dejavu \
+            fonts-freefont-ttf
 
       - name: Install Python dependencies
         run: |
-          pip install groq pytz requests edge-tts "moviepy==1.0.3" matplotlib numpy pillow
-          pip install google-api-python-client google-auth google-auth-oauthlib imageio imageio-ffmpeg
+          python -m pip install --upgrade pip --break-system-packages
+          pip install --break-system-packages \
+            groq \
+            pytz \
+            requests \
+            edge-tts \
+            "moviepy==1.0.3" \
+            matplotlib \
+            numpy \
+            pillow \
+            imageio \
+            imageio-ffmpeg \
+            google-api-python-client \
+            google-auth \
+            google-auth-oauthlib
+
+      - name: Verify dependencies
+        run: |
+          python -c "import groq, edge_tts, moviepy, matplotlib, numpy, PIL; print('All OK')"
+          ffmpeg -version | head -1
+          python -c "from PIL import ImageFont; ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf',24); print('Fonts OK')"
 
       - name: Generate and Upload Video
         env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           YOUTUBE_CREDENTIALS: ${{ secrets.YOUTUBE_CREDENTIALS }}
         run: python generate_videos.py
+
+      - name: Show logs on failure
+        if: failure()
+        run: |
+          python --version
+          pip list | grep -E "groq|moviepy|edge|pillow|matplotlib"
+          ffmpeg -version | head -3
+          df -h /tmp
