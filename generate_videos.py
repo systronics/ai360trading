@@ -1,62 +1,39 @@
 """
-AI360Trading — YouTube Video Automation Bot
-============================================
-Runs daily via GitHub Actions at 7:30 AM IST (30 min after articles)
-Generates educational stock market videos and uploads to YouTube
-automatically — zero manual work.
-
-VIDEO TYPES (rotates daily):
-Day 1 — NIFTY Support & Resistance Chart Video
-Day 2 — Bitcoin Price Analysis Chart Video
-Day 3 — Stock Market Education (Candlestick patterns)
-Day 4 — Personal Finance Tips (SIP/401k)
-Day 5 — AI Trading Signals Overview
-Day 6 — Weekly Market Outlook
-Day 0 (Sun) — Top 5 Stocks of the Week
-
-STACK (all free):
-- groq          → generate script from live data
-- edge-tts      → Microsoft Edge TTS — en-IN-PrabhatNeural Indian male voice (free, no limit)
-- matplotlib    → generate charts and graphs
-- moviepy       → combine frames + audio into MP4
-- google-api-python-client → upload to YouTube
-- requests      → fetch live prices
+AI360Trading — YouTube Video Automation Bot v2.0
+=================================================
+IMPROVEMENTS in v2:
+- No box-style text — all slides use modern card/layer design
+- Gradient backgrounds with depth — no flat dark rectangles
+- Animated-feel static frames with diagonal lines, dots, circles
+- Chart slides use real matplotlib candlestick + volume bars
+- Education slides use large emoji-backed icon cards
+- Personal finance slides use visual bar/pie charts with real numbers
+- Thumbnail: person photo + bold Hinglish headline + dramatic colors
+- TTS script cleaned — no AI phrases, natural Hinglish tone
+- Script prompt completely rewritten to avoid robotic language
 """
 
-import os
-import sys
-import json
-import time
-import math
-import random
-import textwrap
-import requests
-import pytz
-from datetime import datetime, timedelta
+import os, sys, json, time, math, random, textwrap, requests, asyncio, pytz, re
+from datetime import datetime
+from io import BytesIO
 from groq import Groq
 
-# ── Try importing video/audio libraries ──────────────────────────────────────
 import asyncio
 try:
     import edge_tts
-    from moviepy.editor import (
-        ImageClip, AudioFileClip, concatenate_videoclips,
-        CompositeVideoClip, ColorClip
-    )
+    from moviepy.editor import ImageClip, AudioFileClip, concatenate_videoclips
     import matplotlib
     matplotlib.use('Agg')
     import matplotlib.pyplot as plt
     import matplotlib.patches as mpatches
-    import matplotlib.ticker
+    import matplotlib.ticker as mticker
     import numpy as np
-    from PIL import Image, ImageDraw, ImageFilter, ImageEnhance, ImageFont
+    from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageEnhance
     LIBS_OK = True
 except ImportError as e:
-    print(f"Missing library: {e}")
-    print("Run: pip install gtts moviepy==1.0.3 matplotlib numpy pillow")
+    print(f"Missing: {e}")
     LIBS_OK = False
 
-# ── Try importing YouTube upload library ─────────────────────────────────────
 try:
     from googleapiclient.discovery import build
     from googleapiclient.http import MediaFileUpload
@@ -64,1531 +41,1256 @@ try:
     YOUTUBE_OK = True
 except ImportError:
     YOUTUBE_OK = False
-    print("YouTube upload disabled. Run: pip install google-api-python-client")
 
-# ─── Configuration ────────────────────────────────────────────────────────────
+# ── Config ────────────────────────────────────────────────────────────────────
 ist          = pytz.timezone('Asia/Kolkata')
 now          = datetime.now(ist)
 date_str     = now.strftime("%Y-%m-%d")
 date_display = now.strftime("%B %d, %Y")
 day_name     = now.strftime("%A")
-weekday      = now.weekday()  # 0=Mon, 6=Sun
-
+weekday      = now.weekday()
 client       = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 OUTPUT_DIR   = "/tmp/ai360_video"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
+W, H         = 1280, 720
 
-# Video dimensions — YouTube standard
-W, H = 1280, 720
+# ── Brand palette ─────────────────────────────────────────────────────────────
+C = {
+    "dark":    (10, 14, 28),
+    "dark2":   (15, 22, 45),
+    "blue":    (0, 98, 255),
+    "green":   (46, 204, 113),
+    "red":     (231, 76, 60),
+    "orange":  (247, 147, 26),
+    "purple":  (139, 92, 246),
+    "gold":    (251, 191, 36),
+    "white":   (255, 255, 255),
+    "muted":   (100, 116, 139),
+    "card":    (20, 30, 55),
+    "accent":  (30, 45, 80),
+}
 
-# Brand colors
-BRAND_BLUE   = "#0062ff"
-BRAND_GREEN  = "#2ecc71"
-BRAND_DARK   = "#0f172a"
-BRAND_LIGHT  = "#f8fafc"
-BRAND_ORANGE = "#f7931a"
-BRAND_PURPLE = "#8b5cf6"
+def hex2rgb(h):
+    h = h.lstrip('#')
+    return tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
 
-# ─── 1. Fetch Live Market Data ────────────────────────────────────────────────
-def get_live_prices():
-    instruments = {
-        "NIFTY 50":  "^NSEI",
-        "S&P 500":   "^GSPC",
-        "Bitcoin":   "BTC-USD",
-        "Gold":      "GC=F",
-        "NASDAQ":    "^IXIC",
-        "Ethereum":  "ETH-USD",
-        "Bank Nifty":"^NSEBANK",
-    }
-    prices = {}
-    headers = {"User-Agent": "Mozilla/5.0"}
-    for name, sym in instruments.items():
+def rgb2f(t): return tuple(x/255 for x in t)
+
+# ── Live data ─────────────────────────────────────────────────────────────────
+def get_prices():
+    syms = {"NIFTY 50":"^NSEI","S&P 500":"^GSPC","Bitcoin":"BTC-USD",
+            "Gold":"GC=F","NASDAQ":"^IXIC","Ethereum":"ETH-USD","Bank Nifty":"^NSEBANK"}
+    out = {}
+    for name, sym in syms.items():
         try:
-            url = f"https://query1.finance.yahoo.com/v8/finance/chart/{sym}?interval=1d&range=5d"
-            r = requests.get(url, headers=headers, timeout=10)
-            d = r.json()
-            meta  = d["chart"]["result"][0]["meta"]
-            price = meta.get("regularMarketPrice", 0)
-            prev  = meta.get("chartPreviousClose", price)
-            pct   = ((price - prev) / prev * 100) if prev else 0
-            prices[name] = {
-                "price":   price,
-                "prev":    prev,
-                "pct":     round(pct, 2),
-                "display": f"{price:,.2f} ({'+' if pct>=0 else ''}{pct:.2f}%)"
-            }
+            r = requests.get(
+                f"https://query1.finance.yahoo.com/v8/finance/chart/{sym}?interval=1d&range=5d",
+                headers={"User-Agent":"Mozilla/5.0"}, timeout=10)
+            m = r.json()["chart"]["result"][0]["meta"]
+            p = m.get("regularMarketPrice", 0)
+            prev = m.get("chartPreviousClose", p)
+            pct = ((p-prev)/prev*100) if prev else 0
+            out[name] = {"price":p,"prev":prev,"pct":round(pct,2),
+                         "display":f"{p:,.2f} ({'+'if pct>=0 else ''}{pct:.2f}%)"}
         except:
-            prices[name] = {"price": 0, "prev": 0, "pct": 0, "display": "N/A"}
-        time.sleep(0.3)
-    return prices
+            out[name] = {"price":0,"prev":0,"pct":0,"display":"N/A"}
+        time.sleep(0.2)
+    return out
 
-def get_fear_greed():
+def get_fg():
     try:
-        r = requests.get("https://api.alternative.me/fng/?limit=1", timeout=8)
-        d = r.json()
-        val   = int(d["data"][0]["value"])
-        label = d["data"][0]["value_classification"]
-        return val, label
+        d = requests.get("https://api.alternative.me/fng/?limit=1",timeout=8).json()
+        v = int(d["data"][0]["value"])
+        return v, d["data"][0]["value_classification"]
     except:
         return 50, "Neutral"
 
-# ─── 2. Generate Script via GROQ ─────────────────────────────────────────────
-VIDEO_TOPICS = {
-    0: {  # Monday
-        "type": "nifty_analysis",
-        "title_template": "NIFTY Just Dropped {pct}% — Is This a Crash or a Buying Opportunity? | {date}",
-        "duration_target": 420,  # 7 minutes
-        "color": BRAND_BLUE,
-        "tags": ["nifty today", "nifty support resistance", "nifty analysis", "stock market India", "trading levels today"],
-        "description_template": "NIFTY 50 support and resistance levels for {date}. Key price levels, trend direction, and what to watch today. Daily market analysis by AI360Trading.\n\n🔔 Subscribe for daily NIFTY analysis\n📊 Full reports: https://ai360trading.in/topics/stock-market/\n📣 Telegram: https://t.me/ai360trading\n\n#NIFTY #StockMarket #TradingToday #NiftyLevels #AI360Trading"
-    },
-    1: {  # Tuesday
-        "type": "bitcoin_analysis",
-        "title_template": "Bitcoin Price Analysis {date} — BTC Levels, Trend & What's Next",
-        "duration_target": 420,
-        "color": BRAND_ORANGE,
-        "tags": ["bitcoin today", "bitcoin price analysis", "BTC price", "crypto today", "bitcoin 2026"],
-        "description_template": "Bitcoin price analysis for {date}. Key BTC support/resistance, Fear & Greed index reading, and what to expect next. Daily crypto analysis by AI360Trading.\n\n🔔 Subscribe for daily crypto analysis\n₿ Full reports: https://ai360trading.in/topics/bitcoin/\n📣 Telegram: https://t.me/ai360trading\n\n#Bitcoin #BTC #CryptoToday #BitcoinPrice #AI360Trading"
-    },
-    2: {  # Wednesday
-        "type": "education_candlestick",
-        "title_template": "Candlestick Patterns Every Trader Must Know — Stock Market Education",
-        "duration_target": 540,  # 9 minutes
-        "color": BRAND_GREEN,
-        "tags": ["candlestick patterns", "stock market education", "trading basics", "technical analysis", "how to trade"],
-        "description_template": "Learn the most important candlestick patterns used by professional traders. Visual explanation with real examples from NIFTY and S&P 500 charts.\n\n🔔 Subscribe for daily trading education\n📚 More guides: https://ai360trading.in/topics/ai-trading/\n📣 Telegram: https://t.me/ai360trading\n\n#CandlestickPatterns #TechnicalAnalysis #StockMarket #TradingEducation #AI360Trading"
-    },
-    3: {  # Thursday
-        "type": "personal_finance",
-        "title_template": "SIP vs Lump Sum — Which Is Better in {year}? Personal Finance Guide",
-        "duration_target": 480,
-        "color": BRAND_GREEN,
-        "tags": ["SIP investment", "mutual funds India", "personal finance", "SIP vs lump sum", "invest in India"],
-        "description_template": "SIP vs Lump Sum investment — which gives better returns in {year}? Complete guide for Indian investors with real numbers and examples.\n\n🔔 Subscribe for personal finance tips\n💰 More guides: https://ai360trading.in/topics/personal-finance/\n📣 Telegram: https://t.me/ai360trading\n\n#SIP #MutualFunds #PersonalFinance #Investment #AI360Trading"
-    },
-    4: {  # Friday
-        "type": "weekly_outlook",
-        "title_template": "What Will Markets Do Next Week? NIFTY & Global Outlook | {date}",
-        "duration_target": 480,
-        "color": BRAND_BLUE,
-        "tags": ["weekly market outlook", "nifty next week", "stock market this week", "market prediction", "trading week ahead"],
-        "description_template": "Weekly market outlook for the week of {date}. NIFTY, S&P 500, Bitcoin — key levels and what to watch this week.\n\n🔔 Subscribe for weekly market analysis\n📊 Full reports: https://ai360trading.in\n📣 Telegram: https://t.me/ai360trading\n\n#WeeklyOutlook #StockMarket #NIFTY #Trading #AI360Trading"
-    },
-    5: {  # Saturday
-        "type": "education_patterns",
-        "title_template": "The Support Level NIFTY Hit Today — And What Happens Next",
-        "duration_target": 540,
-        "color": BRAND_PURPLE,
-        "tags": ["support resistance", "technical analysis", "trading education", "price action", "how to trade stocks"],
-        "description_template": "Support and resistance levels explained simply. How professional traders identify and trade these key price levels on NIFTY, S&P 500 and stocks.\n\n🔔 Subscribe for trading education\n🤖 More: https://ai360trading.in/topics/ai-trading/\n📣 Telegram: https://t.me/ai360trading\n\n#SupportResistance #TechnicalAnalysis #TradingEducation #PriceAction #AI360Trading"
-    },
-    6: {  # Sunday
-        "type": "top5_stocks",
-        "title_template": "5 Stocks I Am Watching This Week — {date} | NIFTY Market Picks",
-        "duration_target": 480,
-        "color": BRAND_BLUE,
-        "tags": ["stocks to buy", "top stocks this week", "nifty stocks", "best stocks India", "stock picks 2026"],
-        "description_template": "Top 5 stocks to watch this week — {date}. Institutional setups, volume breakouts, and key levels to monitor.\n\n🔔 Subscribe for weekly stock picks\n📊 Full analysis: https://ai360trading.in/topics/stock-market/\n📣 Telegram: https://t.me/ai360trading\n\n#StockPicks #TopStocks #NIFTY #StockMarket #AI360Trading"
-    },
+# ── Video topics ──────────────────────────────────────────────────────────────
+TOPICS = {
+    0: {"type":"nifty","color":C["blue"],"tags":["nifty today","nifty levels","stock market India","trading today","nifty analysis"],
+        "title":"{direction} — NIFTY {nifty} का अगला कदम क्या? | {date}",
+        "desc":"NIFTY 50 analysis {date} — key support, resistance, and today's trading levels.\n\n📊 Reports: https://ai360trading.in/topics/stock-market/\n📣 Telegram: https://t.me/ai360trading\n\n#NIFTY #StockMarket #AI360Trading"},
+    1: {"type":"bitcoin","color":C["orange"],"tags":["bitcoin today","BTC price","crypto analysis","bitcoin 2026","crypto today"],
+        "title":"Bitcoin ${btc} — {direction} | Crypto Analysis {date}",
+        "desc":"Bitcoin price analysis {date}.\n\n₿ Reports: https://ai360trading.in/topics/bitcoin/\n📣 Telegram: https://t.me/ai360trading\n\n#Bitcoin #BTC #CryptoToday #AI360Trading"},
+    2: {"type":"education","color":C["green"],"tags":["candlestick patterns","technical analysis","trading education","stock market basics","how to trade"],
+        "title":"Candlestick Patterns — Every Trader Must Know These | Trading Education",
+        "desc":"Master candlestick patterns with real NIFTY examples.\n\n📚 More: https://ai360trading.in/topics/ai-trading/\n📣 Telegram: https://t.me/ai360trading\n\n#CandlestickPatterns #TechnicalAnalysis #TradingEducation #AI360Trading"},
+    3: {"type":"finance","color":C["green"],"tags":["SIP investment","mutual funds India","personal finance 2026","SIP vs lump sum","invest India"],
+        "title":"SIP vs Lump Sum — सही जवाब कौन सा? | Personal Finance {year}",
+        "desc":"SIP vs Lump Sum — which wins in {year}? Real numbers, real examples.\n\n💰 More: https://ai360trading.in/topics/personal-finance/\n📣 Telegram: https://t.me/ai360trading\n\n#SIP #MutualFunds #PersonalFinance #AI360Trading"},
+    4: {"type":"weekly","color":C["blue"],"tags":["weekly market outlook","nifty next week","market this week","trading week ahead","weekly analysis"],
+        "title":"Next Week Markets — क्या होगा? | NIFTY Outlook {date}",
+        "desc":"Weekly market outlook {date}.\n\n📊 Full: https://ai360trading.in\n📣 Telegram: https://t.me/ai360trading\n\n#WeeklyOutlook #NIFTY #AI360Trading"},
+    5: {"type":"support","color":C["purple"],"tags":["support resistance trading","price action","technical analysis India","how to trade levels","trading strategy"],
+        "title":"Support-Resistance — Professional Traders का Secret | {date}",
+        "desc":"Support and resistance levels explained simply.\n\n🤖 More: https://ai360trading.in/topics/ai-trading/\n📣 Telegram: https://t.me/ai360trading\n\n#SupportResistance #PriceAction #AI360Trading"},
+    6: {"type":"stocks","color":C["blue"],"tags":["stocks to watch","top stocks this week","nifty stocks 2026","stock picks India","best stocks today"],
+        "title":"5 Stocks I'm Watching This Week | {date} | NIFTY Picks",
+        "desc":"Top 5 stocks to watch this week — {date}.\n\n📊 Analysis: https://ai360trading.in/topics/stock-market/\n📣 Telegram: https://t.me/ai360trading\n\n#StockPicks #TopStocks #NIFTY #AI360Trading"},
 }
 
-def generate_video_script(topic, prices, fg_val, fg_label):
-    nifty   = prices.get("NIFTY 50", {})
-    sp500   = prices.get("S&P 500", {})
-    btc     = prices.get("Bitcoin", {})
-    bnifty  = prices.get("Bank Nifty", {})
-    gold    = prices.get("Gold", {})
-
-    topic_type = topic["type"]
-    nifty_p    = nifty.get("price", 24000)
-    nifty_pct  = nifty.get("pct", 0)
-    sp500_p    = sp500.get("price", 5500)
-    btc_p      = btc.get("price", 65000)
-    s1_nifty   = int(nifty_p * 0.986)
-    r1_nifty   = int(nifty_p * 1.014)
-    s1_btc     = int(btc_p * 0.95)
-    r1_btc     = int(btc_p * 1.05)
-
-    # Mood words based on market
-    mood       = "crashing" if nifty_pct < -2 else "falling" if nifty_pct < 0 else "recovering" if nifty_pct < 1 else "surging"
-    crash_word = "biggest drop in months" if nifty_pct < -3 else f"{abs(nifty_pct):.1f}% drop today" if nifty_pct < 0 else f"{nifty_pct:.1f}% gain today"
-    fear_context = "Everyone is panicking right now." if fg_val < 25 else "Fear is rising fast." if fg_val < 40 else "Markets are uncertain." if fg_val < 55 else "Greed is back in the market."
-
-    SYSTEM_PROMPT = """You are Amit Kumar — independent market analyst from Haridwar, India, founder of AI360Trading.
-You are recording a YouTube video. You speak naturally, like a real person talking directly to camera.
-Your audience: Indian retail traders and investors aged 25-45, mix of beginners and intermediate.
-
-═══════════════════════════════════════════════════
-YOUR AUTHENTIC VOICE — FOLLOW EVERY RULE BELOW
-═══════════════════════════════════════════════════
-
-SENTENCE VARIETY (critical — vary every paragraph):
-- Short punchy: "NIFTY is at a dangerous level right now."
-- Medium: "When I look at the chart this morning, the pattern is telling me something very clear."
-- Long with reasoning: "The reason I am watching 23,500 specifically is because that level was a major resistance in November 2024, it became support in January 2025, and right now price is sitting exactly on it — which means the next candle matters a lot."
-- Never write 3 sentences of same length in a row.
-
-GENUINE OPINIONS (not neutral analysis):
-- "Personally, I think this is a trap rally. I would not buy here."
-- "I know many analysts are bullish right now. I disagree, and here is why."
-- "This setup makes me nervous. And when I am nervous, I reduce position size."
-- Always explain WHY you hold the opinion.
-
-UNCERTAINTY WHERE REAL:
-- "I do not know for sure what happens at this level. Nobody does."
-- "The chart says one thing, the macro says another. That is a dangerous combination."
-- "I have been wrong about this before — in March 2023 I thought support would hold. It did not."
-
-EMOTIONAL TENSION (keep viewer engaged):
-- Create scenario: "If this breaks — things get very ugly very fast."
-- Create hope: "But if buyers show up here, the bounce could be sharp."
-- Create urgency: "This is the most important level of the week. Watch what happens today."
-
-NATURAL SPEECH PATTERNS:
-- Occasional self-correction: "The level is... actually let me be more precise. It is 23,480, not 23,500."
-- Thinking out loud: "So what does this mean for you as a trader? Let me think about this carefully."
-- Direct address: "If you are holding positions overnight, this is what you need to know."
-- Specific time references: "Yesterday's close at 4pm was significant because..."
-
-BANNED FOREVER (instant AI detection):
-"Here is the chart", "Now let us dive into", "Moving on to", "As we can see",
-"In conclusion", "Furthermore", "Moreover", "It is important to note",
-"This highlights", "In today's video", "Today we will cover",
-"Welcome to AI360Trading", "Do not forget to subscribe",
-"Without further ado", "Let us get started", "Stay tuned"
-
-═══════════════════════════════════════════════════
-SCRIPT FORMAT — FOLLOW EXACTLY
-═══════════════════════════════════════════════════
-- NARRATOR: [spoken Hinglish text — this is what Edge TTS reads aloud]
-- SLIDE: [English only visual description — shown on screen, NO Hindi characters]
-
-Each NARRATOR block = one slide. Write 10-14 NARRATOR blocks for long videos.
-After every 3-4 NARRATOR blocks, insert one SLIDE.
-All slide text must be in English only — no Hindi, no Devanagari script.
-
-Total spoken words: stated per video type below."""
-
-    if topic_type == "nifty_analysis":
-        s2_nifty = int(nifty_p * 0.972)
-        r2_nifty = int(nifty_p * 1.028)
-        bnifty_p = bnifty.get("price", 50000)
-        s1_bank  = int(bnifty_p * 0.986)
-        focus = f"""
-LIVE MARKET DATA — use these exact numbers:
-- NIFTY 50: {nifty.get("display","N/A")} | S1={s1_nifty} | S2={s2_nifty} | R1={r1_nifty} | R2={r2_nifty}
-- Bank Nifty: {bnifty.get("display","N/A")} | Key level={s1_bank}
-- S&P 500: {sp500.get("display","N/A")} (global signal for NIFTY direction)
-- Gold: {gold.get("display","N/A")}
-- Fear & Greed: {fg_val} — {fg_label}
-
-Write a 7-minute NIFTY analysis video script. Target: 800-900 spoken words across 12-14 NARRATOR blocks.
-
-EMOTIONAL ARC TO FOLLOW:
-1. HOOK — open with what happened today, create immediate tension or curiosity
-2. GLOBAL PICTURE — why global markets matter for NIFTY today specifically
-3. THE CHART STORY — what price action is telling you, not just numbers
-4. NIFTY KEY LEVELS — S1, S2, R1, R2 with deep reasoning for each
-5. BANK NIFTY — why it confirms or contradicts NIFTY signal
-6. FEAR & GREED CONTEXT — what {fg_val} means historically
-7. SOFT CTA — natural, one sentence, not salesy
-8. BULL SCENARIO — specific price targets if bulls win
-9. BEAR SCENARIO — specific price targets if bears win  
-10. WHAT I AM PERSONALLY DOING — share your actual view, be honest
-11. RISK MANAGEMENT — position sizing advice for this specific market
-12. TOMORROW PREVIEW — what to watch for overnight/tomorrow
-13. STRONG CLOSE — one memorable line that makes them come back
-
-WRITING RULES FOR THIS SCRIPT:
-- Reference today's specific Fear & Greed reading of {fg_val} — what happened historically at this reading
-- Mention one real historical NIFTY moment (pick from: March 2020 crash, Oct 2021 peak, June 2022 fall, Dec 2023 rally)
-- Use exact levels — not "around 23,500" but "23,480"
-- At least 3 sentences must express genuine personal opinion
-- At least 2 sentences must acknowledge uncertainty
-- Vary sentence length every paragraph — short, medium, long, short pattern
-
-Total spoken words: 820-900 words.
-"""
-
-    elif topic_type == "bitcoin_analysis":
-        s2_btc   = int(btc_p * 0.90)
-        r2_btc   = int(btc_p * 1.10)
-        btc_pct  = btc.get("pct", 0)
-        focus = f"""
-LIVE BITCOIN DATA — use these exact numbers:
-- Bitcoin: {btc.get("display","N/A")} | S1=${s1_btc:,} | S2=${s2_btc:,} | R1=${r1_btc:,} | R2=${r2_btc:,}
-- S&P 500: {sp500.get("display","N/A")} — risk-on or risk-off signal
-- Fear & Greed: {fg_val} — {fg_label}
-- NIFTY: {nifty.get("display","N/A")} — Indian market context
-
-Write a 7-minute Bitcoin analysis video script. Target: 800-900 spoken words across 12-14 NARRATOR blocks.
-
-EMOTIONAL ARC:
-1. HOOK — Bitcoin price right now, why today is significant
-2. RISK ENVIRONMENT — is global market risk-on or risk-off? How does S&P move affect BTC?
-3. FEAR & GREED DEEP DIVE — {fg_val} reading, what happened last 3 times we saw this level
-4. THE CHART — price action story, not just levels
-5. KEY SUPPORT LEVELS — S1 at ${s1_btc:,} and S2 at ${s2_btc:,} with reasoning
-6. KEY RESISTANCE — R1 at ${r1_btc:,}, what a break above means
-7. SOFT CTA — natural one sentence
-8. ON-CHAIN SIGNAL — mention whale activity, exchange flows, long/short ratio (estimate from context)
-9. ALTCOIN SIGNAL — is money moving from BTC to alts or opposite?
-10. THE REAL QUESTION — buying opportunity or falling knife? Give your honest view
-11. WHAT I AM PERSONALLY DOING — your actual view, be honest, include uncertainty
-12. RISK MANAGEMENT — how much to risk at these levels, stop placement
-13. STRONG CLOSE — one memorable line, create anticipation for tomorrow
-
-WRITING RULES:
-- Reference one specific historical Bitcoin moment (pick from: March 2020 drop to $4k, Nov 2021 peak $69k, Nov 2022 FTX crash $16k, Jan 2024 ETF approval rally)
-- Fear & Greed at {fg_val} — find historical parallel
-- Express at least one contrarian opinion with reasoning
-- Use "I" statements — "I am watching", "I think", "I would wait"
-- Acknowledge at least twice that you could be wrong
-
-Total spoken words: 820-900 words.
-"""
-
-    elif topic_type == "education_candlestick":
-        focus = f"""
-Market context: NIFTY is {mood} at {nifty.get("display","N/A")} today. Use today's market as live example throughout.
-
-Write a 9-minute educational video script on candlestick patterns. Target: 1000-1100 spoken words across 14-16 NARRATOR blocks.
-
-TEACHING PHILOSOPHY:
-- Teach like a senior trader explaining to a junior — not a textbook
-- Every pattern connects to emotion: fear, greed, hope, panic
-- Every pattern has a real NIFTY or Sensex historical example
-- Every pattern ends with: "how do I actually trade this"
-- Acknowledge common beginner mistakes for each pattern
-
-STRUCTURE:
-
-HOOK — connect to today's market immediately:
-"NIFTY is {mood} right now. And today's candle is forming a pattern that many traders will miss completely. By the end of this video, you will know exactly what it means — and what usually happens next."
-
-PART 1 — WHY CANDLESTICKS WORK (2 minutes):
-Explain the psychology — every candle is a war between buyers and sellers. The candle body shows who won. The wick shows who tried. This is not technical analysis — this is reading human emotion.
-
-PATTERN 1 — DOJI (2 minutes):
-Definition, psychology, real NIFTY example with date, how to trade it, the mistake beginners make (acting on doji alone without context).
-
-SOFT CTA — natural, mid-video.
-
-PATTERN 2 — HAMMER AND HANGING MAN (2 minutes):
-Same structure. Explain why same shape means opposite things depending on where it appears. Connect to March 2020 NIFTY bottom.
-
-PATTERN 3 — ENGULFING (1.5 minutes):
-The most reliable pattern. Why it works — complete sentiment reversal. Real example.
-
-PATTERN 4 — MORNING STAR (1 minute):
-3-candle story — doubt, decision, confirmation. Very visual, connect to chart.
-
-PATTERN 5 — SHOOTING STAR (0.5 minutes):
-Quick but powerful. How to spot fake shooting stars.
-
-STRONG CLOSE — give homework:
-"Open your NIFTY chart on any timeframe right now. Find one pattern from today's video. Screenshot it. Come back tomorrow and tell me in the comments whether the prediction came true."
-
-Total spoken words: 1000-1100 words.
-"""
-
-    elif topic_type == "personal_finance":
-        focus = f"""
-Market today: NIFTY {mood} at {nifty.get("display","N/A")}, Fear & Greed = {fg_val}.
-
-Write an 8-minute personal finance video — SIP vs Lump Sum. Target: 900-1000 spoken words across 13-15 NARRATOR blocks.
-
-TONE: Warm, honest, like a trusted CA friend explaining over chai — not a sales pitch, not a lecture.
-
-STRUCTURE:
-
-HOOK — connect to today's market reality:
-If market falling: "Markets are red today. Your SIP just bought units at a lower price. Your friend who put in lump sum last month is panicking. This video explains which of you made the smarter decision — and why the answer might surprise you."
-If market rising: "If you are watching markets go up today and thinking you missed the rally — this video will show you why SIP investors are actually in a better position than you think."
-
-PART 1 — THE REAL QUESTION (2 min):
-Most people ask "which gives better returns?" That is the wrong question. The right question is: "which strategy will I actually stick with when markets crash 40%?"
-Tell a realistic story of two people — Rahul (lump sum ₹6L in Jan 2022) and Priya (SIP ₹5000/month from Jan 2022). What happened to each by Dec 2022?
-
-SOFT CTA — natural.
-
-PART 2 — THE NUMBERS (2 min):
-SIP ₹5000/month × 10 years at 12% CAGR = ₹23.2 lakhs from ₹6L invested
-Lump Sum ₹6L × 10 years at 12% CAGR = ₹18.6 lakhs
-BUT: Lump sum at the bottom (March 2020) × 10 years = ₹40+ lakhs
-HONEST TRUTH: Nobody times the bottom. That is the entire argument.
-
-PART 3 — WHEN EACH WINS (2 min):
-SIP wins when: you have salary income, market is volatile, you are emotional about money
-Lump sum wins when: market has crashed 40%+, you are disciplined, you have emergency fund intact
-Right now with Fear & Greed at {fg_val} — which camp are we in? Share your opinion.
-
-PART 4 — PRACTICAL ADVICE (1.5 min):
-How to start a SIP today — specific steps
-How much is enough — the 15-15-15 rule (₹15k/month, 15% return, 15 years = ₹1 crore)
-Common mistakes — stopping SIP during market crash (the worst mistake)
-
-STRONG CLOSE — emotional and memorable:
-"The best time to start was 10 years ago. The second best time is today. Not next month when markets recover. Not after you save more. Today."
-
-Total spoken words: 920-1000 words.
-"""
-
-    elif topic_type == "weekly_outlook":
-        s2_nifty = int(nifty_p * 0.972)
-        r2_nifty = int(nifty_p * 1.028)
-        focus = f"""
-LIVE DATA FOR THIS WEEK:
-- NIFTY: {nifty.get("display","N/A")} | S1={s1_nifty} | S2={s2_nifty} | R1={r1_nifty} | R2={r2_nifty}
-- S&P 500: {sp500.get("display","N/A")}
-- Bitcoin: {btc.get("display","N/A")} | S1=${s1_btc:,} | R1=${r1_btc:,}
-- Gold: {gold.get("display","N/A")}
-- Fear & Greed: {fg_val} — {fg_label}
-
-Write an 8-minute weekly market outlook script for {date_display}. Target: 900-1000 spoken words across 13-15 NARRATOR blocks.
-
-STRUCTURE:
-
-HOOK — this week's defining moment:
-"This week in markets told us something important. Not just about prices — about where we are in the bigger cycle. Let me walk you through what I saw this week, and what I think it means for the week ahead."
-
-PART 1 — WEEK RECAP (2 min):
-What actually happened to NIFTY this week based on current price vs week start estimate.
-What happened globally — S&P 500, Dollar, major news.
-One thing that surprised you this week. One thing that confirmed your view.
-
-SOFT CTA — natural, weekend energy.
-
-PART 2 — WHAT FEAR & GREED TELLS US (1 min):
-Current reading {fg_val} — {fg_label}. Historical context.
-Last 3 times we saw this reading on a Friday — what happened Monday?
-Your interpretation — cautious or optimistic?
-
-PART 3 — NIFTY NEXT WEEK SETUP (2 min):
-The range: {s2_nifty} to {r2_nifty}
-Key level to watch Monday open: {s1_nifty}
-Bull scenario: if {s1_nifty} holds, target {r1_nifty} then {r2_nifty}
-Bear scenario: if {s2_nifty} breaks, next support and what that means
-Key events: RBI, Fed, quarterly results, global data — pick what fits current month
-
-PART 4 — BITCOIN AND GLOBAL (1 min):
-BTC weekly setup — support ${s1_btc:,}, resistance ${r1_btc:,}
-Is crypto leading or lagging equities this week?
-
-PART 5 — YOUR PERSONAL PLAN FOR NEXT WEEK (1.5 min):
-What YOU are personally watching, what positions you would consider
-Risk management for the week — position sizing in this environment
-One trade idea with full entry/stop/target
-
-STRONG CLOSE — weekend send-off:
-"That is my view for next week. I could be wrong — markets have surprised me before. But these are the levels I am working with. See you Monday morning with the daily analysis. Enjoy the weekend."
-
-Total spoken words: 920-1000 words.
-"""
-
-    elif topic_type == "education_patterns":
-        s2_nifty = int(nifty_p * 0.972)
-        r2_nifty = int(nifty_p * 1.028)
-        focus = f"""
-Market context: NIFTY {mood} at {nifty.get("display","N/A")} today. S1={s1_nifty}, R1={r1_nifty}.
-
-Write a 9-minute support and resistance education video. Target: 1000-1100 spoken words across 14-16 NARRATOR blocks.
-
-TEACHING PHILOSOPHY:
-Teach this like you are explaining to someone who has never traded before, but make it interesting for intermediate traders too. Use today's NIFTY chart as the live example throughout.
-
-STRUCTURE:
-
-HOOK — real market, today:
-"NIFTY is sitting at {nifty_p:,.0f} right now. And right below the current price, there is a level at {s1_nifty} that every serious trader is watching. If you do not know what support and resistance is — or if you know the theory but struggle to trade it — this video is for you."
-
-PART 1 — WHAT THESE LEVELS REALLY ARE (2 min):
-Not textbook definition — explain it as human psychology.
-"Support is simply a price where more buyers than sellers showed up before. That is it. Nothing magical."
-"Resistance is where sellers overwhelmed buyers before. A ceiling made of memory."
-Why do the same levels work again and again? Because traders remember. Because institutions have orders sitting there.
-
-SOFT CTA — natural.
-
-PART 2 — HOW TO IDENTIFY LEVELS (2.5 min):
-Method 1: Previous swing highs and lows — the most reliable
-Show on today's NIFTY chart — {s2_nifty} was previous swing low
-Method 2: Round numbers — 24000, 23500, 23000 — psychological magnets
-Why round numbers work — human brain anchors to them, institutions place orders there
-Method 3: High volume zones — where price spent the most time
-Common mistake: drawing too many levels. You need 2-3 key levels, not 20.
-
-PART 3 — HOW TO TRADE THEM (2.5 min):
-The bounce trade: price approaches {s1_nifty}, you do NOT buy immediately
-Wait for confirmation — a green candle closing above the level after testing it
-Entry: above confirmation candle high. Stop: below the wick of test candle. Target: {r1_nifty}
-The breakout trade: price closes BELOW {s1_nifty} on volume
-Wait for retest of broken support as new resistance
-The fake breakout trap — the most common way beginners lose money
-
-PART 4 — TODAY'S LIVE EXAMPLE (1.5 min):
-Walk through today's NIFTY chart using {s1_nifty} and {r1_nifty}
-What has happened at these levels recently
-What you personally think will happen next
-
-STRONG CLOSE — homework that creates engagement:
-"Here is your homework. Open NIFTY chart on any app — Zerodha Kite, Groww, TradingView — any works. Draw a horizontal line at {s1_nifty} and another at {r1_nifty}. Watch these levels for the next 3 trading days. Come back and tell me in the comments what you observed. I read every comment."
-
-Total spoken words: 1000-1100 words.
-"""
-
-    else:  # top5_stocks
-        focus = f"""
-LIVE DATA:
-- NIFTY: {nifty.get("display","N/A")} ({nifty_pct:+.2f}%)
-- S&P 500: {sp500.get("display","N/A")}
-- Fear & Greed: {fg_val} — {fg_label}
-- Gold: {gold.get("display","N/A")}
-
-Write an 8-minute Top 5 Stocks to Watch video for {date_display}. Target: 900-1000 spoken words across 13-15 NARRATOR blocks.
-
-STOCK SELECTION RULES:
-Pick 5 real stocks from NIFTY 200. In a {mood} market, focus on:
-- 2 defensive stocks (FMCG, pharma, IT with strong cash flows)
-- 2 momentum stocks (showing relative strength vs NIFTY)
-- 1 contrarian pick (beaten down but with strong fundamental reason to recover)
-
-For each stock, give:
-Name, sector, current rough price range, why it is interesting THIS SPECIFIC WEEK,
-exact level to watch (support or breakout point), bull case, bear case, your personal view.
-
-STRUCTURE:
-
-HOOK — market reality + week setup:
-"NIFTY is {mood} this week. In a market like this, most retail traders are either frozen or panicking. But there are always pockets of strength — and weakness — if you know where to look. Here are the 5 stocks I am watching closely this week, and exactly why."
-
-MARKET CONTEXT (1 min):
-Current NIFTY level and what it means for individual stocks.
-Which sectors are showing strength vs weakness in this environment.
-One macro factor affecting stock selection this week.
-
-SOFT CTA — natural, early.
-
-STOCKS 1-5 (5-6 min total, ~1 min each):
-Use varied openers — never "Stock number one". Use:
-"The first one that caught my eye—", "Now this next one is interesting—",
-"Here is my contrarian pick—", "This one is high risk but the setup is clean—",
-"And finally, one that most people are ignoring right now—"
-
-For each stock:
-- Open with what is happening to it right now
-- Give the specific level (entry trigger, stop loss, target)
-- Share a genuine opinion — including doubts
-- Add one risk factor traders should know
-
-STRONG CLOSE — create community:
-"Those are my five for this week. I want to know which one you are most interested in — drop it in the comments. And if you paper trade any of these, come back next Sunday and let me know how it went. See you tomorrow morning with the NIFTY levels."
-
-Total spoken words: 920-1000 words.
-"""
+# ── Script generation ─────────────────────────────────────────────────────────
+def generate_script(topic, prices, fg_val, fg_label):
+    nifty = prices.get("NIFTY 50",{})
+    sp500 = prices.get("S&P 500",{})
+    btc   = prices.get("Bitcoin",{})
+    gold  = prices.get("Gold",{})
+    bnk   = prices.get("Bank Nifty",{})
+    np_   = nifty.get("price",24000)
+    npct  = nifty.get("pct",0)
+    bp_   = btc.get("price",65000)
+    s1n   = int(np_*0.986); r1n = int(np_*1.014)
+    s2n   = int(np_*0.972); r2n = int(np_*1.028)
+    s1b   = int(bp_*0.95);  r1b = int(bp_*1.05)
+    mood  = "gir raha hai" if npct<-1 else "daba hua hai" if npct<0 else "upar ja raha hai" if npct>1 else "flat hai"
+    t     = topic["type"]
+
+    SYSTEM = """Tu Amit Kumar hai — AI360Trading founder, Haridwar, India.
+Tu YouTube par ek real trader ki tarah bolta hai — camera ke saamne, seedha.
+Audience: Indian traders 25-45 saal ke, beginners aur intermediate mix.
+
+TU KAISE BOLTA HAI:
+- Hinglish natural — "NIFTY ka jo level hai" "main kya soch raha hoon" "ye trap hai bhai"
+- Short punchy sentences mix with longer analytical ones
+- Express real opinions: "Main personally nahi kharidta yahaan" "Mujhe ye setup pasand hai"
+- Admit uncertainty: "Honestly, main 100% sure nahi hoon" "Market ne surprise diya tha"
+- Trader language: "tape ye bol raha hai" "smart money yahaan hai" "retail phans jayega"
+
+BANNED PHRASES — kabhi mat bol:
+"In conclusion", "Furthermore", "Moving on", "As we can see", "Welcome to",
+"Today we will cover", "Without further ado", "In today's video",
+"This highlights", "It is important to note", "Let us dive into"
+
+SCRIPT FORMAT:
+NARRATOR: [jo TTS bolega — natural Hinglish]
+SLIDE: [English only — visual ke liye, no Hindi characters]
+
+Har NARRATOR block = ek slide. 10-14 blocks likho."""
+
+    if t == "nifty":
+        focus = f"""LIVE DATA:
+NIFTY {nifty.get('display','N/A')} | S1={s1n} S2={s2n} R1={r1n} R2={r2n}
+Bank Nifty {bnk.get('display','N/A')}
+S&P 500 {sp500.get('display','N/A')}
+Fear & Greed: {fg_val} — {fg_label}
+Gold: {gold.get('display','N/A')}
+
+7 minute NIFTY analysis video likho. 820-900 spoken words, 12-13 NARRATOR blocks.
+
+ARC:
+1. HOOK — aaj kya hua, tension create karo (e.g. "NIFTY {mood} — aur main ek cheez dekh raha hoon jo zyaadatar log miss kar rahe hain")
+2. GLOBAL PICTURE — S&P ka aaj kya matlab hai NIFTY ke liye
+3. CHART STORY — price action kya bol raha hai, sirf numbers nahi
+4. KEY LEVELS — {s1n} aur {r1n} ke peeche logic deep dive
+5. BANK NIFTY — confirm karta hai ya contradict
+6. FEAR & GREED — {fg_val} historically kya matlab rakhta hai
+7. PERSONAL VIEW — tera actual view, honest reh, uncertainty include kar
+8. BULL SCENARIO — target levels agar {r1n} toot gaya
+9. BEAR SCENARIO — kya hoga agar {s1n} toot gaya
+10. RISK MANAGEMENT — aaj ke market mein position size advice
+11. TOMORROW — kal kya dekhna hai
+12. CLOSE — ek memorable line jo unhe kal wapas laaye
+
+Ek historical parallel zaroor add kar (March 2020/Oct 2021/June 2022/Dec 2023 mein se ek).
+Total: 820-900 words spoken."""
+
+    elif t == "bitcoin":
+        focus = f"""LIVE DATA:
+Bitcoin {btc.get('display','N/A')} | S1=${s1b:,} S2=${int(bp_*0.90):,} R1=${r1b:,} R2=${int(bp_*1.10):,}
+Fear & Greed: {fg_val} — {fg_label}
+S&P 500 {sp500.get('display','N/A')}
+
+7 minute Bitcoin analysis video. 820-900 words, 12-13 NARRATOR blocks.
+
+ARC:
+1. HOOK — aaj BTC kahan hai, ye kyun important hai
+2. RISK ENVIRONMENT — S&P {sp500.get('pct',0):+.1f}% — risk-on ya risk-off
+3. FEAR & GREED {fg_val} — last 3 baar jab ye level tha kya hua
+4. CHART STORY — price action ka emotional meaning
+5. SUPPORT LEVELS — ${s1b:,} pe buyers aane chahiye, agar nahi aaye?
+6. RESISTANCE — ${r1b:,} toot gaya toh kya hoga
+7. HONEST VIEW — tera actual position/view, uncertainty ke saath
+8. ON-CHAIN — whale movement, exchange flows estimate karo
+9. ALTCOIN SIGNAL — BTC dominance upar ya neeche
+10. BULL CASE — target with reasoning
+11. BEAR CASE — where things break
+12. RISK MANAGEMENT — stop placement aaj ke levels pe
+13. CLOSE — memorable line
+
+Historical reference zaroor (March 2020 $4k/Nov 2021 $69k/Nov 2022 FTX/Jan 2024 ETF).
+Total: 820-900 words."""
+
+    elif t == "education":
+        focus = f"""Market context: NIFTY {mood} at {np_:,.0f} aaj.
+
+9 minute candlestick education video. 1000-1100 words, 14-16 NARRATOR blocks.
+
+HOOK (aaj ke market se connect karo):
+"NIFTY aaj ek interesting candle bana raha hai. Agar tum ye pattern samajhte ho — toh tum exactly jaante ho ke iska matlab kya hai. Agar nahi samajhte — ye video tumhare liye hai."
+
+PART 1 — WHY CANDLESTICKS WORK (2 min):
+Har candle = buyers vs sellers ki ladaai. Body batata hai kaun jeeta. Wick batata hai kisne koshish ki. Ye sirf technical analysis nahi — ye human emotion padhna hai.
+
+PATTERN 1 — DOJI:
+Definition, psychology, real NIFTY example with date, trade karo kaise, beginners ki galti.
+
+[SOFT CTA mid-video — natural, 1 sentence]
+
+PATTERN 2 — HAMMER AND HANGING MAN:
+Ek hi shape — opposite meaning depending on where it is. March 2020 NIFTY bottom example.
+
+PATTERN 3 — ENGULFING:
+Sabse reliable pattern. Sentiment complete reversal. Real example.
+
+PATTERN 4 — MORNING STAR:
+3 candle story — doubt, decision, confirmation.
+
+PATTERN 5 — SHOOTING STAR:
+Quick but powerful. Fake shooting stars se bachao.
+
+CLOSE — homework:
+"Aaj apna NIFTY chart kholo. Aaj ke video se ek pattern dhundho. Screenshot lo. Kal wapas aao aur comments mein batao — prediction sahi nikli ya nahi."
+
+Total: 1000-1100 words."""
+
+    elif t == "finance":
+        focus = f"""Market today: NIFTY {mood}, Fear & Greed = {fg_val}.
+
+8 minute SIP vs Lump Sum video. 900-1000 words, 13-15 NARRATOR blocks.
+
+TONE: Warm, honest, CA dost jaise chai pe explain kar raha ho. No sales pitch.
+
+HOOK:
+Agar market gir raha hai: "Markets red hain aaj. Tumhara SIP humse lower price pe units khareed raha hai. Tumhara dost jo last month lump sum de gaya tha — woh abhi panic mein hai. Ye video batayega — dono mein se kaun smart tha."
+Agar upar: "Market green hai aaj. Aur tum soch rahe ho 'main miss ho gaya'. Ye video batayega kyun SIP waale actually better position mein hain."
+
+PART 1 — SAHI SAWAAL (2 min):
+Zyaadatar log poochte hain "kaun zyaada return deta hai?" — yeh galat sawaal hai.
+Sahi sawaal: "Kaun si strategy pe main tika rahunga jab market 40% giregi?"
+Real story: Rahul (lump sum Rs 6L Jan 2022) vs Priya (SIP Rs 5000/month Jan 2022). Dec 2022 mein kya hua dono ke saath?
+
+[SOFT CTA]
+
+PART 2 — NUMBERS (2 min):
+SIP Rs 5000/month x 10 years at 12% CAGR = Rs 23.2 lakh (Rs 6L invest kiya)
+Lump Sum Rs 6L x 10 years at 12% CAGR = Rs 18.6 lakh
+HONEST TRUTH: Lump sum March 2020 bottom pe dia hota toh Rs 40+ lakh hota. Par koi bottom time nahi kar paata. Yahi poora argument hai.
+
+PART 3 — KAB KAUN JEETTA (2 min):
+SIP jeetta jab: salary income hai, market volatile hai, tum emotional ho apne paiso ke baare mein
+Lump sum jeetta jab: market 40%+ gir chuka ho, tum disciplined ho, emergency fund intact ho
+Abhi Fear & Greed {fg_val} pe — kaun sa camp hai? Share your opinion.
+
+PART 4 — PRACTICAL (1.5 min):
+Aaj SIP start karo — specific steps
+Kitna enough hai — 15-15-15 rule (Rs 15k/month, 15% return, 15 years = Rs 1 crore)
+Common mistakes — market crash mein SIP band karna (sabse badi galti)
+
+CLOSE:
+"Shuru karne ka best time 10 saal pehle tha. Doosra best time aaj hai. Next month nahi jab market recover ho. Aur zyaada save karne ke baad nahi. Aaj."
+
+Total: 920-1000 words."""
+
+    elif t == "weekly":
+        focus = f"""LIVE DATA:
+NIFTY {nifty.get('display','N/A')} | S1={s1n} S2={s2n} R1={r1n} R2={r2n}
+S&P 500 {sp500.get('display','N/A')}
+Bitcoin {btc.get('display','N/A')} | S1=${s1b:,} R1=${r1b:,}
+Fear & Greed: {fg_val} — {fg_label}
+
+8 minute weekly outlook. 900-1000 words, 13-15 NARRATOR blocks.
+
+HOOK: "Is hafte markets ne kuch important bataya. Sirf price ke baare mein nahi — ye bigger cycle ke baare mein tha. Main tumhe walk through karta hoon kya dekha maine, aur next week ke liye kya soch raha hoon."
+
+PART 1 — WEEK RECAP (2 min): Kya hua NIFTY ke saath. Global mein kya hua. Ek cheez jo surprise kiya. Ek cheez jo view confirm hua.
+
+[SOFT CTA]
+
+PART 2 — FEAR & GREED {fg_val} (1 min): Ye reading kya bol rahi hai. Last 3 baar ye level Friday pe tha — Monday kya hua.
+
+PART 3 — NIFTY NEXT WEEK (2 min): Range {s2n} to {r2n}. Monday ke liye key level {s1n}. Bull/bear scenarios. Key events this week.
+
+PART 4 — BTC & GLOBAL (1 min): BTC {btc.get('display','N/A')} — leading ya lagging equities.
+
+PART 5 — PERSONAL PLAN (1.5 min): Kya dekh raha hoon. Risk management. One trade idea with entry/stop/target.
+
+CLOSE: "Ye mera view hai next week ke liye. Main galat bhi ho sakta hoon — market ne surprise diya hai mujhe pehle bhi. Par ye levels hain jinke saath main kaam kar raha hoon. Monday morning mil te hain daily analysis ke saath. Weekend enjoy karo."
+
+Total: 920-1000 words."""
+
+    elif t == "support":
+        focus = f"""Market today: NIFTY {mood} at {np_:,.0f}. S1={s1n}, R1={r1n}.
+
+9 minute support-resistance education. 1000-1100 words, 14-16 NARRATOR blocks.
+
+HOOK: "NIFTY abhi {np_:,.0f} pe hai. Aur just neeche ek level hai {s1n} pe jo har serious trader dekh raha hai. Agar tum support-resistance nahi jaante — ya theory jaante ho par trade nahi kar paate — ye video tumhare liye hai."
+
+PART 1 — YE LEVELS KYA HAIN ACTUALLY (2 min):
+Support = ek price jahan pehle buyers ne sellers ko haraaya tha. Bas itna. Koi magic nahi.
+Resistance = jahan sellers ne buyers ko roka tha. Memory se bana ceiling.
+Same levels kaam kyun karte hain baar baar? Kyunki traders yaad rakhte hain. Institutions ke orders wahaan hain.
+
+[SOFT CTA]
+
+PART 2 — LEVELS KAISE IDENTIFY KARO (2.5 min):
+Method 1: Previous swing highs/lows — sabse reliable. Today's NIFTY pe: {s2n} tha previous swing low.
+Method 2: Round numbers — 24000, 23500, 23000 — psychological magnets. Round numbers pe institutional orders hote hain.
+Method 3: High volume zones — jahan price sabse zyaada time spend kiya.
+Common mistake: bahut saare levels kheechna. 2-3 key levels chahiye, 20 nahi.
+
+PART 3 — TRADE KARO KAISE (2.5 min):
+Bounce trade: price {s1n} ke paas aaye — turant mat kharido.
+Wait karo confirmation ke liye — green candle level ke upar close ho level test ke baad.
+Entry: confirmation candle high ke upar. Stop: test candle ke wick ke neeche. Target: {r1n}.
+Breakout trade: price {s1n} ke neeche close ho volume pe.
+Fake breakout trap — yahi se beginners paisa zyaada gawate hain.
+
+PART 4 — AAJ KA LIVE EXAMPLE (1.5 min):
+Today's NIFTY chart walkthrough {s1n} aur {r1n} use karke. Tera personal view kya hai.
+
+CLOSE — homework: "Apna NIFTY chart kholo — Zerodha Kite, Groww, TradingView — koi bhi. {s1n} pe ek horizontal line kheeecho. {r1n} pe dusri. 3 trading days dekhna in levels ko. Comments mein aao batao kya dekha. Main har comment padhta hoon."
+
+Total: 1000-1100 words."""
+
+    else:  # stocks
+        focus = f"""LIVE DATA:
+NIFTY {nifty.get('display','N/A')} | Fear & Greed {fg_val} — {fg_label}
+
+8 minute top 5 stocks video. 900-1000 words, 13-15 NARRATOR blocks.
+
+STOCK SELECTION in {mood} market:
+2 defensive stocks (FMCG, pharma, IT)
+2 momentum/relative strength stocks
+1 contrarian (beaten down but fundamental reason to recover)
+Pick 5 real stocks from NIFTY 200 — real names.
+
+HOOK: "NIFTY {mood} is hafte. Zyaadatar retail traders ya frozen hain ya panic mein. Par markets mein hamesha strength aur weakness ke pockets hote hain. Ye hain 5 stocks jo main closely dekh raha hoon is hafte, aur exactly kyun."
+
+CONTEXT (1 min): Current NIFTY level. Kaun sa sector strong vs weak. Ek macro factor this week.
+
+[SOFT CTA]
+
+STOCKS 1-5 (5-6 min total):
+Varied openers: "Pehla jo mujhe interesting laga—", "Ab ye wala interesting hai—",
+"Ye mera contrarian pick hai—", "Ye high risk hai par setup clean hai—",
+"Aur yeh ek jo zyaadatar ignore kar rahe hain—"
+
+Har stock ke liye: kya ho raha hai abhi, specific level (entry trigger, SL, target), genuine opinion with doubts, ek risk factor.
+
+CLOSE: "Ye hain mere paanch is hafte ke liye. Mujhe batao comments mein — kaun sa tumhe sabse interesting lagta hai. Aur agar tum koi paper trade karo — agli Sunday wapas aao batao kya hua. Kal morning milte hain NIFTY levels ke saath."
+
+Total: 920-1000 words."""
 
     try:
-        completion = client.chat.completions.create(
+        r = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
-            messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": focus}
-            ],
-            temperature=0.92,
-            max_tokens=2200,
-            frequency_penalty=0.45,
-            presence_penalty=0.35,
-        )
-        return completion.choices[0].message.content
+            messages=[{"role":"system","content":SYSTEM},{"role":"user","content":focus}],
+            temperature=0.92, max_tokens=2500,
+            frequency_penalty=0.45, presence_penalty=0.35)
+        return r.choices[0].message.content
     except Exception as e:
-        print(f"Script generation failed: {e}")
+        print(f"Script failed: {e}")
         return None
 
-# ─── 3. Parse Script into Slides ─────────────────────────────────────────────
-def parse_script(script_text):
-    """Parse script into slides — handles NARRATOR/SLIDE tags and plain paragraphs"""
+# ── Script parser ─────────────────────────────────────────────────────────────
+def parse_script(text):
     slides = []
-    current_narrator = ""
-    current_slide = ""
-
-    # ── Method 1: try NARRATOR/SLIDE tag parsing ─────────────────────────────
-    has_tags = "NARRATOR:" in script_text
-
-    if has_tags:
-        current_hindi = ""
-        for line in script_text.split("\n"):
+    if "NARRATOR:" in text:
+        cur_n, cur_s = "", ""
+        for line in text.split("\n"):
             line = line.strip()
             if line.startswith("NARRATOR:"):
-                if current_narrator:
-                    slides.append({
-                        "narrator": current_narrator.strip(),
-                        "slide": current_slide.strip() if current_slide else _extract_slide_title(current_narrator),
-                        "hindi_sub": current_hindi.strip()
-                    })
-                current_narrator = line.replace("NARRATOR:", "").strip()
-                current_slide = ""
-                current_hindi = ""
+                if cur_n:
+                    slides.append({"narrator":cur_n.strip(),"slide":cur_s.strip() or _title(cur_n)})
+                cur_n = line[9:].strip(); cur_s = ""
             elif line.startswith("SLIDE:"):
-                current_slide = line.replace("SLIDE:", "").strip()
-            elif line.startswith("HINDI_SUB:"):
-                current_hindi = line.replace("HINDI_SUB:", "").strip()
-            elif line and not line.startswith("#") and not line.startswith("---"):
-                if current_narrator:
-                    current_narrator += " " + line
-
-        if current_narrator:
-            slides.append({
-                "narrator": current_narrator.strip(),
-                "slide": current_slide.strip() if current_slide else _extract_slide_title(current_narrator),
-                "hindi_sub": current_hindi.strip()
-            })
-
-    # ── Method 2: paragraph-based fallback ───────────────────────────────────
+                cur_s = line[6:].strip()
+            elif line and cur_n and not line.startswith("HINDI_SUB:"):
+                cur_n += " " + line
+        if cur_n:
+            slides.append({"narrator":cur_n.strip(),"slide":cur_s.strip() or _title(cur_n)})
     if len(slides) < 3:
         slides = []
-        # Split by double newline or section headers
-        paragraphs = [p.strip() for p in script_text.split("\n\n") if p.strip()]
-        # Also split on lines starting with ** or ## (section headers)
-        all_chunks = []
-        for para in paragraphs:
-            lines = para.split("\n")
-            chunk = ""
-            for line in lines:
-                line = line.strip()
-                if not line:
-                    continue
-                # New section header = new slide
-                if (line.startswith("**") and line.endswith("**")) or line.startswith("##"):
-                    if chunk:
-                        all_chunks.append(chunk.strip())
-                    chunk = line.lstrip("#").strip("*").strip() + ": "
-                else:
-                    chunk += " " + line
-            if chunk.strip():
-                all_chunks.append(chunk.strip())
-
-        for chunk in all_chunks:
-            if len(chunk) > 30:  # skip very short lines
-                slides.append({
-                    "narrator": chunk,
-                    "slide": _extract_slide_title(chunk),
-                    "hindi_sub": ""
-                })
-
-    # ── Final fallback: split into ~100 word chunks ───────────────────────────
+        for para in text.split("\n\n"):
+            para = para.strip()
+            if len(para) > 40:
+                slides.append({"narrator":para,"slide":_title(para)})
     if len(slides) < 3:
-        words = script_text.split()
-        chunk_size = 80
-        for i in range(0, len(words), chunk_size):
-            chunk = " ".join(words[i:i+chunk_size])
+        words = text.split()
+        for i in range(0, len(words), 80):
+            chunk = " ".join(words[i:i+80])
             if chunk:
-                slides.append({
-                    "narrator": chunk,
-                    "slide": _extract_slide_title(chunk),
-                    "hindi_sub": ""
-                })
+                slides.append({"narrator":chunk,"slide":_title(chunk)})
+    return slides[:12]
 
-    return slides[:12]  # max 12 slides
+def _title(t):
+    t = re.sub(r'[*#\-]','',t)
+    words = t.strip().split()[:7]
+    return " ".join(words) if words else "AI360Trading"
 
+# ── Drawing helpers ───────────────────────────────────────────────────────────
+def new_canvas(bg=None):
+    img = Image.new("RGB",(W,H), bg or C["dark"])
+    return img, ImageDraw.Draw(img)
 
-def _extract_slide_title(text):
-    """Extract a short title from narrator text for the slide header"""
-    # Take first sentence or first 8 words
-    sentences = text.replace("?", ".").replace("!", ".").split(".")
-    first = sentences[0].strip() if sentences else text
-    words = first.split()
-    title = " ".join(words[:8])
-    # Clean markdown
-    title = title.replace("**", "").replace("##", "").strip()
-    return title if title else "AI360Trading Analysis"
+def gradient_bg(img, c1, c2, vertical=True):
+    """Smooth gradient background"""
+    draw = ImageDraw.Draw(img)
+    steps = H if vertical else W
+    for i in range(steps):
+        t = i/steps
+        r = int(c1[0]*(1-t)+c2[0]*t)
+        g = int(c1[1]*(1-t)+c2[1]*t)
+        b = int(c1[2]*(1-t)+c2[2]*t)
+        if vertical:
+            draw.line([(0,i),(W,i)], fill=(r,g,b))
+        else:
+            draw.line([(i,0),(i,H)], fill=(r,g,b))
 
-# ─── 4. Generate Slide Images ─────────────────────────────────────────────────
-def hex_to_rgb(hex_color):
-    hex_color = hex_color.lstrip('#')
-    return tuple(int(hex_color[i:i+2], 16)/255 for i in (0, 2, 4))
+def add_grid_lines(img, color=(255,255,255), alpha=8):
+    """Subtle dot grid pattern"""
+    overlay = Image.new("RGBA",(W,H),(0,0,0,0))
+    d = ImageDraw.Draw(overlay)
+    for x in range(0,W,40):
+        for y in range(0,H,40):
+            d.ellipse([x-1,y-1,x+1,y+1], fill=(*color, alpha))
+    return Image.alpha_composite(img.convert("RGBA"), overlay).convert("RGB")
 
-def save_fig(fig, path):
-    fig.savefig(path, dpi=100, bbox_inches='tight',
-                facecolor=fig.get_facecolor())
-    plt.close(fig)
+def add_diagonal_lines(img, color, alpha=12, gap=60):
+    """Diagonal line texture — modern design look"""
+    overlay = Image.new("RGBA",(W,H),(0,0,0,0))
+    d = ImageDraw.Draw(overlay)
+    for i in range(-H, W+H, gap):
+        d.line([(i,0),(i+H,H)], fill=(*color, alpha), width=1)
+    return Image.alpha_composite(img.convert("RGBA"), overlay).convert("RGB")
 
-def fetch_person_photo(is_crash):
-    """Download person photo from GitHub repo"""
-    base = "https://raw.githubusercontent.com/systronics/ai360trading/master/public/image/"
-    options = ["person_crash_1.jpg","person_crash_2.jpg","person_crash_3.jpg","person_crash_4.jpg"] if is_crash else ["person_green_1.jpg","person_green_2.jpg","person_green_3.jpg"]
-    choice = options[datetime.now().timetuple().tm_yday % len(options)]
-    try:
-        resp = requests.get(base + choice, timeout=10)
-        if resp.status_code == 200:
-            from io import BytesIO
-            from PIL import Image as PILImg
-            return PILImg.open(BytesIO(resp.content)).convert("RGBA")
-    except Exception as e:
-        print(f"Photo fetch failed: {e}")
-    return None
+def add_glow_circle(img, cx, cy, radius, color, alpha=30):
+    """Radial glow effect"""
+    overlay = Image.new("RGBA",(W,H),(0,0,0,0))
+    d = ImageDraw.Draw(overlay)
+    for r in range(radius, 0, -10):
+        a = int(alpha * (1-r/radius))
+        d.ellipse([cx-r,cy-r,cx+r,cy+r], fill=(*color, a))
+    return Image.alpha_composite(img.convert("RGBA"), overlay).convert("RGB")
 
-def process_person_photo(photo_img, is_crash=True):
-    """Blur+tint background, keep face sharp"""
-    from PIL import ImageEnhance as IE
-    arr = np.array(photo_img).astype(np.float32)
-    h, w = arr.shape[:2]
-    cx, cy = w*0.50, h*0.44
-    rx, ry = w*0.35, h*0.48
-    Y, X = np.ogrid[:h, :w]
-    dist = np.sqrt(((X-cx)/rx)**2 + ((Y-cy)/ry)**2)
-    person_mask = np.clip(1-(dist-0.75)/0.40, 0, 1)
-    photo_rgb = photo_img.convert("RGB")
-    blurred   = photo_rgb.filter(ImageFilter.GaussianBlur(radius=22))
-    tint      = Image.new("RGB",(w,h),(180,20,20) if is_crash else (10,120,30))
-    bg_tinted = Image.blend(blurred, tint, alpha=0.55)
-    pm        = Image.fromarray((person_mask*255).astype(np.uint8),"L")
-    pm        = pm.filter(ImageFilter.GaussianBlur(radius=18))
-    result    = Image.composite(photo_rgb, bg_tinted, pm)
-    result    = IE.Brightness(result).enhance(1.15)
-    result    = IE.Contrast(result).enhance(1.10)
-    result_rgba = result.convert("RGBA")
-    fa = np.ones((h,w),dtype=np.float32)*255
-    for x in range(min(60,w)):  fa[:,x] *= x/60
-    for x in range(max(0,w-40),w): fa[:,x] *= (w-x)/40
-    result_rgba.putalpha(Image.fromarray(fa.astype(np.uint8)))
-    return result_rgba
+def add_top_bar(draw, brand_color, right_text=""):
+    """Top bar with brand name"""
+    draw.rectangle([0,0,W,56], fill=(*C["dark2"],))
+    draw.rectangle([0,52,W,56], fill=brand_color)
+    draw.text((24,14), "AI360TRADING", fill=brand_color,
+              font=get_font(22, bold=True))
+    if right_text:
+        draw.text((W-24,14), right_text, fill=C["muted"],
+                  font=get_font(16), anchor="ra")
 
-def create_thumbnail(title, prices, pct_change, color, output_path):
-    """Create eye-catching YouTube thumbnail with person photo"""
-    from PIL import Image, ImageDraw as PILDraw, ImageFont, ImageFilter
-    is_crash = pct_change < 0
-    W, H = 1280, 720
-    bg1 = (155,0,0) if is_crash else (0,120,20)
-    bg2 = (8,0,0)   if is_crash else (0,12,3)
-    canvas = Image.new("RGB",(W,H))
-    d = PILDraw.Draw(canvas)
-    for x in range(W):
-        t=x/W; col=tuple(int(bg1[i]*(1-t)+bg2[i]*t) for i in range(3))
-        d.line([(x,0),(x,H)],fill=col)
-    # Candle watermark
-    cl = Image.new("RGBA",(W,H),(0,0,0,0)); dc=PILDraw.Draw(cl); p=24500
-    for i in range(18):
-        o=p; c=o+random.uniform(-200,200)
-        hh=max(o,c)+random.uniform(40,130); ll=min(o,c)-random.uniform(40,130)
-        x=500+i*44; bull=c>=o; col=(80,220,80,45) if bull else (220,80,80,45)
-        yo=int(560-(o-24100)*0.016); yc=int(560-(c-24100)*0.016)
-        yh=int(560-(hh-24100)*0.016); yl=int(560-(ll-24100)*0.016)
-        dc.line([(x,yh),(x,yl)],fill=col,width=2)
-        dc.rectangle([x-9,min(yo,yc),x+9,max(yo,yc)+1],fill=col); p=c
-    canvas = Image.alpha_composite(canvas.convert("RGBA"),cl).convert("RGB")
-    # Person
-    photo_img = fetch_person_photo(is_crash)
-    if photo_img:
-        person=process_person_photo(photo_img,is_crash)
-        pw,ph=person.size; p_h=int(H*0.98); p_w=int(pw*(p_h/ph))
-        person=person.resize((p_w,p_h),Image.LANCZOS)
-        px_=W-p_w-5; py_=H-p_h
-        sa=person.getchannel("A"); dark=Image.new("RGBA",(p_w,p_h),(0,0,0,160))
-        dark.putalpha(sa); dark_b=dark.filter(ImageFilter.GaussianBlur(radius=20))
-        sh=Image.new("RGBA",(W,H),(0,0,0,0)); sh.paste(dark_b,(px_+20,py_+20),dark_b)
-        ca=canvas.convert("RGBA"); ca=Image.alpha_composite(ca,sh)
-        ca.paste(person,(px_,py_),person); canvas=ca.convert("RGB")
-    # Left overlay
-    lo=Image.new("RGBA",(W,H),(0,0,0,0)); ld=PILDraw.Draw(lo)
-    for x in range(650): a=int(100*(1-x/650)); ld.line([(x,0),(x,H)],fill=(0,0,0,a))
-    canvas=Image.alpha_composite(canvas.convert("RGBA"),lo).convert("RGB")
-    # Text
-    draw=PILDraw.Draw(canvas)
-    def pfont(size,bold=True):
-        try:
-            p="/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf" if bold else "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
-            return ImageFont.truetype(p,size)
-        except: return ImageFont.load_default()
-    def sh_text(d,xy,txt,f,fill):
-        d.text((xy[0]+5,xy[1]+5),txt,font=f,fill=(0,0,0,190)); d.text(xy,txt,font=f,fill=fill)
-    # Hinglish thumbnail text — mix of Hindi+English like top Indian channels
-    headline1 = "NIFTY" if "nifty" in title.lower() or "stock" in title.lower() else "BITCOIN" if "bitcoin" in title.lower() or "btc" in title.lower() else "MARKET"
-    headline2 = "गिरा !" if is_crash else "उठा !"           # Gira = Fell | Utha = Rose
-    badge_txt = f"{'▼' if is_crash else '▲'} {abs(pct_change):.2f}% TODAY"
-    badge_col = (200,0,0) if is_crash else (0,150,20)
-    txt_col2  = (255,215,0) if is_crash else (120,255,100)
-    topic     = "देखो Level तोड़ा ?" if is_crash else "Buy करें या Wait ?"
+def add_bottom_bar(draw):
+    draw.rectangle([0,H-44,W,H], fill=(*C["dark2"],))
+    draw.text((W//2, H-22), "ai360trading.in  |  t.me/ai360trading  |  @ai360trading",
+              fill=C["muted"], font=get_font(14), anchor="mm")
 
-    sh_text(draw,(38,25), headline1, pfont(105),(255,255,255))
-    sh_text(draw,(38,128),headline2, pfont(122),txt_col2)
-    draw.rounded_rectangle([38,272,450,340],radius=10,fill=badge_col)
-    draw.text((55,280),badge_txt,font=pfont(37),fill=(255,255,255))
-    draw.text((38,358),date_display,font=pfont(34,bold=False),fill=(210,210,210))
-    draw.rounded_rectangle([38,408,38+len(topic)*20+20,474],radius=10,fill=(200,85,0))
-    draw.text((55,416),topic,font=pfont(30),fill=(255,255,255))
-    draw.text((38,490),"ai360trading.in",font=pfont(28,bold=False),fill=(120,180,255))
-    draw.rectangle([0,666,W,H],fill=(0,0,0))
-    draw.text((22,675),"AI360TRADING  |  Daily Market Analysis  |  @ai360trading",font=pfont(25),fill=(80,160,255))
-    canvas.save(output_path,quality=96)
-    print(f"  Thumbnail saved: {output_path}")
+def rounded_rect(draw, x1, y1, x2, y2, r, fill, outline=None, width=1):
+    draw.rounded_rectangle([x1,y1,x2,y2], radius=r, fill=fill,
+                            outline=outline, width=width)
 
-def create_candlestick_chart_slide(prices, title_label, color, output_path):
-    """Create a real-looking candlestick chart with SR levels drawn"""
-    price_data = prices.get('NIFTY 50', {})
-    base  = price_data.get('price', 24000)
-    pct   = price_data.get('pct', 0)
-
-    # Generate 20 realistic OHLC candles
-    np.random.seed(int(base) % 1000)
-    opens, highs, lows, closes = [], [], [], []
-    p = base * (1 - pct/100 * 3)
-    for i in range(20):
-        o = p
-        c = o + np.random.normal(0, base * 0.004)
-        h = max(o, c) + abs(np.random.normal(0, base * 0.002))
-        l = min(o, c) - abs(np.random.normal(0, base * 0.002))
-        opens.append(o); closes.append(c)
-        highs.append(h); lows.append(l)
-        p = c
-
-    # Force last close to match live price
-    closes[-1] = base
-    highs[-1]  = max(opens[-1], base) * 1.003
-    lows[-1]   = min(opens[-1], base) * 0.997
-
-    fig, ax = plt.subplots(figsize=(12.8, 7.2), dpi=100)
-    fig.patch.set_facecolor(hex_to_rgb(BRAND_DARK))
-    ax.set_facecolor('#1e293b')
-
-    # Draw candles
-    for i in range(20):
-        bull = closes[i] >= opens[i]
-        clr  = '#2ecc71' if bull else '#e74c3c'
-        # Wick
-        ax.plot([i, i], [lows[i], highs[i]], color=clr, linewidth=1.5, zorder=2)
-        # Body
-        body_h = abs(closes[i] - opens[i])
-        body_y = min(opens[i], closes[i])
-        rect = mpatches.Rectangle((i - 0.35, body_y), 0.7, max(body_h, base*0.001),
-                                   color=clr, alpha=0.9, zorder=3)
-        ax.add_patch(rect)
-
-    # Support level
-    s1 = base * 0.986
-    ax.axhline(s1, color='#2ecc71', linewidth=2, linestyle='--', alpha=0.8, zorder=4)
-    ax.text(20.2, s1, f'S1  {s1:,.0f}', color='#2ecc71',
-            fontsize=11, fontweight='bold', va='center')
-
-    # Resistance level
-    r1 = base * 1.014
-    ax.axhline(r1, color='#e74c3c', linewidth=2, linestyle='--', alpha=0.8, zorder=4)
-    ax.text(20.2, r1, f'R1  {r1:,.0f}', color='#e74c3c',
-            fontsize=11, fontweight='bold', va='center')
-
-    # Current price line
-    ax.axhline(base, color='white', linewidth=1.5, linestyle=':', alpha=0.6, zorder=4)
-    ax.text(20.2, base, f'NOW {base:,.0f}', color='white',
-            fontsize=11, fontweight='bold', va='center')
-
-    # Shaded support zone
-    ax.axhspan(s1 * 0.997, s1 * 1.003, alpha=0.08, color='#2ecc71')
-
-    ax.set_xlim(-1, 23)
-    ax.set_ylim(min(lows) * 0.997, max(highs) * 1.005)
-    ax.spines['bottom'].set_color('#334155')
-    ax.spines['left'].set_color('#334155')
-    ax.spines['top'].set_visible(False)
-    ax.spines['right'].set_visible(False)
-    ax.tick_params(colors='#64748b', labelsize=9)
-    ax.set_xticks([])
-    ax.yaxis.set_major_formatter(
-        matplotlib.ticker.FuncFormatter(lambda x, _: f'{x:,.0f}'))
-
-    # Header
-    pct_color = '#2ecc71' if pct >= 0 else '#e74c3c'
-    arrow = '▲' if pct >= 0 else '▼'
-    fig.text(0.04, 0.95, 'AI360TRADING', fontsize=12,
-             fontweight='bold', color=hex_to_rgb(color), va='top')
-    fig.text(0.5, 0.96, title_label, fontsize=16,
-             fontweight='bold', color='white', ha='center', va='top')
-    fig.text(0.96, 0.95, f'NIFTY  {arrow} {abs(pct):.2f}%',
-             fontsize=14, fontweight='bold', color=pct_color,
-             ha='right', va='top')
-    fig.text(0.5, 0.02,
-             'ai360trading.in  |  Subscribe for daily NIFTY analysis',
-             fontsize=10, color='#475569', ha='center', va='bottom')
-
-    plt.tight_layout(rect=[0, 0.04, 1, 0.93])
-    save_fig(fig, output_path)
-
-def create_sr_levels_slide(prices, color, output_path):
-    """Create a clean support/resistance levels card — easy to read"""
-    nifty = prices.get('NIFTY 50', {})
-    btc   = prices.get('Bitcoin', {})
-    sp500 = prices.get('S&P 500', {})
-    base  = nifty.get('price', 24000)
-
-    fig, ax = plt.subplots(figsize=(12.8, 7.2), dpi=100)
-    fig.patch.set_facecolor(hex_to_rgb(BRAND_DARK))
-    ax.set_facecolor(hex_to_rgb(BRAND_DARK))
-
-    # Title
-    ax.text(0.5, 0.93, 'KEY LEVELS TO WATCH TODAY',
-            transform=ax.transAxes, fontsize=20, fontweight='bold',
-            color='white', ha='center', va='top')
-    ax.text(0.03, 0.93, 'AI360TRADING', transform=ax.transAxes,
-            fontsize=11, fontweight='bold',
-            color=hex_to_rgb(color), ha='left', va='top')
-
-    # NIFTY levels table
-    levels = [
-        ('NIFTY 50',  f"{base:,.0f}",     f"{base*0.986:,.0f}", f"{base*1.014:,.0f}", nifty.get('pct',0)),
-        ('S&P 500',   f"{sp500.get('price',5500):,.0f}", f"{sp500.get('price',5500)*0.986:,.0f}", f"{sp500.get('price',5500)*1.014:,.0f}", sp500.get('pct',0)),
-        ('Bitcoin',   f"${btc.get('price',65000):,.0f}", f"${btc.get('price',65000)*0.95:,.0f}",  f"${btc.get('price',65000)*1.05:,.0f}",  btc.get('pct',0)),
+def get_font(size, bold=False):
+    paths = [
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf" if bold else "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf" if bold else "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+        "/usr/share/fonts/truetype/freefont/FreeSansBold.ttf" if bold else "/usr/share/fonts/truetype/freefont/FreeSans.ttf",
     ]
+    for p in paths:
+        if os.path.exists(p):
+            try: return ImageFont.truetype(p, size)
+            except: pass
+    return ImageFont.load_default()
 
-    headers = ['INSTRUMENT', 'PRICE', 'SUPPORT', 'RESISTANCE', 'CHANGE']
-    col_x   = [0.08, 0.30, 0.48, 0.66, 0.84]
-    y_hdr   = 0.76
+def draw_text_wrapped(draw, text, x, y, max_width, font, fill, spacing=8):
+    """Word-wrap text and draw it"""
+    words = text.split()
+    lines = []
+    line = ""
+    for w in words:
+        test = (line+" "+w).strip()
+        bbox = draw.textbbox((0,0), test, font=font)
+        if bbox[2] - bbox[0] <= max_width:
+            line = test
+        else:
+            if line: lines.append(line)
+            line = w
+    if line: lines.append(line)
+    for i, ln in enumerate(lines):
+        draw.text((x, y + i*(font.size+spacing)), ln, fill=fill, font=font)
+    return y + len(lines)*(font.size+spacing)
 
-    # Header row
-    for h, x in zip(headers, col_x):
-        ax.text(x, y_hdr, h, transform=ax.transAxes,
-                fontsize=12, fontweight='bold', color='#94a3b8',
-                ha='left', va='center')
+# ── Slide generators ──────────────────────────────────────────────────────────
 
-    # Divider
-    ax.plot([0.04, 0.96], [0.71, 0.71],
-               color='#334155', linewidth=1, transform=ax.transAxes)
-
-    # Data rows
-    for i, (name, price_s, sup, res, pct) in enumerate(levels):
-        y = 0.60 - i * 0.17
-        pct_color = '#2ecc71' if pct >= 0 else '#e74c3c'
-        arrow     = '▲' if pct >= 0 else '▼'
-
-        # Row background
-        ax.add_patch(mpatches.FancyBboxPatch(
-            (0.04, y - 0.06), 0.92, 0.12,
-            boxstyle="round,pad=0.01",
-            color='#1e293b', transform=ax.transAxes, zorder=1
-        ))
-
-        ax.text(col_x[0], y, name,  transform=ax.transAxes, fontsize=15,
-                fontweight='bold', color='white',   ha='left', va='center')
-        ax.text(col_x[1], y, price_s, transform=ax.transAxes, fontsize=15,
-                fontweight='bold', color='white',   ha='left', va='center')
-        ax.text(col_x[2], y, sup,   transform=ax.transAxes, fontsize=15,
-                color='#2ecc71', ha='left', va='center', fontweight='bold')
-        ax.text(col_x[3], y, res,   transform=ax.transAxes, fontsize=15,
-                color='#e74c3c', ha='left', va='center', fontweight='bold')
-        ax.text(col_x[4], y, f'{arrow} {abs(pct):.2f}%',
-                transform=ax.transAxes, fontsize=15,
-                color=pct_color, ha='left', va='center', fontweight='bold')
-
-    # Legend
-    ax.text(0.08, 0.10, '🟢 Support = BUY ZONE    🔴 Resistance = WATCH FOR REJECTION',
-            transform=ax.transAxes, fontsize=12, color='#64748b',
-            ha='left', va='center')
-    ax.text(0.5, 0.03, f'ai360trading.in  |  {date_display}',
-            transform=ax.transAxes, fontsize=10,
-            color='#475569', ha='center', va='center')
-
-    ax.set_xlim(0, 1); ax.set_ylim(0, 1)
-    ax.axis('off')
-    plt.tight_layout(pad=0)
-    save_fig(fig, output_path)
-
-def create_fear_greed_slide(fg_val, fg_label, prices, color, output_path):
-    """Create Fear & Greed gauge slide"""
-    fig, (ax_gauge, ax_info) = plt.subplots(1, 2, figsize=(12.8, 7.2), dpi=100,
-                                             gridspec_kw={'width_ratios': [1, 1]})
-    fig.patch.set_facecolor(hex_to_rgb(BRAND_DARK))
-
-    # ── Left: Gauge ──
-    ax_gauge.set_facecolor(hex_to_rgb(BRAND_DARK))
-    theta = np.linspace(np.pi, 0, 200)
-
-    # Color arcs
-    zones = [(0,25,'#e74c3c'), (25,45,'#e67e22'),
-             (45,55,'#f1c40f'), (55,75,'#2ecc71'), (75,100,'#27ae60')]
-    for lo, hi, zc in zones:
-        t = np.linspace(np.pi * (1 - lo/100), np.pi * (1 - hi/100), 50)
-        ax_gauge.plot(np.cos(t), np.sin(t), color=zc, linewidth=18, alpha=0.85)
-
-    # Needle
-    angle = np.pi * (1 - fg_val / 100)
-    ax_gauge.annotate('', xy=(0.72*np.cos(angle), 0.72*np.sin(angle)),
-                      xytext=(0, 0),
-                      arrowprops=dict(arrowstyle='->', color='white', lw=3))
-
-    # Value
-    needle_color = '#e74c3c' if fg_val < 35 else '#f1c40f' if fg_val < 55 else '#2ecc71'
-    ax_gauge.text(0, -0.25, str(fg_val), fontsize=48, fontweight='black',
-                  color=needle_color, ha='center', va='center')
-    ax_gauge.text(0, -0.5, fg_label.upper(), fontsize=16, fontweight='bold',
-                  color=needle_color, ha='center', va='center')
-    ax_gauge.text(0, 0.15, 'FEAR & GREED INDEX', fontsize=12,
-                  color='#94a3b8', ha='center', va='center', fontweight='bold')
-    ax_gauge.set_xlim(-1.2, 1.2); ax_gauge.set_ylim(-0.7, 1.1)
-    ax_gauge.axis('off')
-
-    # ── Right: Market data ──
-    ax_info.set_facecolor(hex_to_rgb(BRAND_DARK))
-    ax_info.text(0.5, 0.93, 'LIVE MARKET SNAPSHOT',
-                 transform=ax_info.transAxes, fontsize=16,
-                 fontweight='bold', color='white', ha='center', va='top')
-
-    items = [
-        ('NIFTY 50',  prices.get('NIFTY 50',  {}).get('display','N/A'), prices.get('NIFTY 50',{}).get('pct',0)),
-        ('S&P 500',   prices.get('S&P 500',   {}).get('display','N/A'), prices.get('S&P 500',{}).get('pct',0)),
-        ('Bitcoin',   prices.get('Bitcoin',   {}).get('display','N/A'), prices.get('Bitcoin',{}).get('pct',0)),
-        ('Gold',      prices.get('Gold',       {}).get('display','N/A'), prices.get('Gold',{}).get('pct',0)),
-    ]
-    for i, (name, disp, pct) in enumerate(items):
-        y = 0.74 - i * 0.155
-        clr = '#2ecc71' if pct >= 0 else '#e74c3c'
-        ax_info.add_patch(mpatches.FancyBboxPatch(
-            (0.04, y - 0.055), 0.92, 0.11,
-            boxstyle="round,pad=0.01", color='#1e293b',
-            transform=ax_info.transAxes, zorder=1))
-        ax_info.text(0.10, y, name, transform=ax_info.transAxes,
-                     fontsize=14, color='#94a3b8', ha='left', va='center')
-        ax_info.text(0.90, y, disp, transform=ax_info.transAxes,
-                     fontsize=14, fontweight='bold', color=clr,
-                     ha='right', va='center')
-
-    ax_info.text(0.5, 0.04, f'ai360trading.in  |  {date_display}',
-                 transform=ax_info.transAxes, fontsize=10,
-                 color='#475569', ha='center', va='bottom')
-    ax_info.set_xlim(0,1); ax_info.set_ylim(0,1)
-    ax_info.axis('off')
-
-    fig.text(0.5, 0.97, 'AI360TRADING  —  DAILY MARKET INTELLIGENCE',
-             fontsize=13, fontweight='bold', color=hex_to_rgb(color),
-             ha='center', va='top')
-
-    plt.tight_layout(rect=[0, 0, 1, 0.95])
-    save_fig(fig, output_path)
-
-def create_content_slide(slide_text, narrator_text, color, slide_num, total, output_path, hindi_sub=""):
-    """Content slide — English heading + Hindi subtitle"""
-    fig, ax = plt.subplots(figsize=(12.8, 7.2), dpi=100)
-    fig.patch.set_facecolor(hex_to_rgb(BRAND_DARK))
-    ax.set_facecolor(hex_to_rgb(BRAND_DARK))
-
-    # Left accent bar
-    ax.add_patch(mpatches.FancyBboxPatch(
-        (0.0, 0.0), 0.007, 1.0,
-        boxstyle="round,pad=0", color=hex_to_rgb(color),
-        transform=ax.transAxes, zorder=2))
+def slide_title(title, subtitle, brand_color, path):
+    img, draw = new_canvas()
+    gradient_bg(img, C["dark"], (5,10,30))
+    img = add_diagonal_lines(img, brand_color, alpha=15, gap=55)
+    img = add_glow_circle(img, W//2, H//2, 400, brand_color, alpha=18)
+    draw = ImageDraw.Draw(img)
 
     # Top bar
-    ax.add_patch(mpatches.FancyBboxPatch(
-        (0.0, 0.92), 1.0, 0.08,
-        boxstyle="round,pad=0", color='#0f1c2e',
-        transform=ax.transAxes, zorder=1))
-    ax.text(0.04, 0.96, 'AI360TRADING', transform=ax.transAxes,
-            fontsize=12, fontweight='bold', color=hex_to_rgb(color),
-            ha='left', va='center')
-    ax.text(0.96, 0.96, f'{slide_num} / {total}', transform=ax.transAxes,
-            fontsize=11, color='#475569', ha='right', va='center')
+    add_top_bar(draw, brand_color)
 
-    # Main text — heading + body
-    lines = slide_text.strip().split('\n')
-    heading = lines[0] if lines else slide_text
-    body    = '\n'.join(lines[1:]) if len(lines) > 1 else ''
+    # Big brand logo area — left accent stripe
+    draw.rectangle([0,56,6,H-44], fill=brand_color)
 
-    # Heading box
-    ax.add_patch(mpatches.FancyBboxPatch(
-        (0.04, 0.62), 0.92, 0.26,
-        boxstyle="round,pad=0.02", color='#1e293b',
-        transform=ax.transAxes, zorder=1))
-    ax.text(0.5, 0.75, textwrap.fill(heading, 50),
-            transform=ax.transAxes, fontsize=24, fontweight='bold',
-            color='white', ha='center', va='center', linespacing=1.2)
+    # Title — large centered
+    lines = textwrap.wrap(title, 32)
+    y = 130
+    for ln in lines:
+        bbox = draw.textbbox((0,0), ln, font=get_font(52, bold=True))
+        tw = bbox[2]-bbox[0]
+        # Shadow
+        draw.text((W//2-tw//2+3, y+3), ln, fill=(0,0,0), font=get_font(52,bold=True))
+        draw.text((W//2-tw//2, y), ln, fill=C["white"], font=get_font(52,bold=True))
+        y += 68
 
-    # Body text
-    if body:
-        wrapped_body = textwrap.fill(body, 70)
-        ax.text(0.08, 0.58, wrapped_body, transform=ax.transAxes,
-                fontsize=15, color='#cbd5e1', ha='left', va='top',
-                linespacing=1.5)
+    # Subtitle pill
+    if subtitle:
+        sbbox = draw.textbbox((0,0), subtitle, font=get_font(20))
+        sw = sbbox[2]-sbbox[0]+40
+        sx = W//2 - sw//2
+        rounded_rect(draw, sx, y+16, sx+sw, y+52, 8, fill=(*brand_color,60))
+        draw.text((W//2, y+34), subtitle, fill=brand_color,
+                  font=get_font(20,bold=True), anchor="mm")
+        y += 70
 
-    # Hindi subtitle bar removed — slides English only
-    # YouTube auto-captions handle multilingual subtitles for viewers
+    # Date badge
+    date_text = f"  {date_display}  "
+    dbbox = draw.textbbox((0,0), date_text, font=get_font(18))
+    dw = dbbox[2]-dbbox[0]+20
+    rounded_rect(draw, W//2-dw//2, y+14, W//2+dw//2, y+46, 6,
+                 fill=(*C["dark2"],200), outline=brand_color, width=1)
+    draw.text((W//2, y+30), date_text, fill=brand_color,
+              font=get_font(18,bold=True), anchor="mm")
 
-    # Narrator quote bottom
-    quote = narrator_text[:100] + '...' if len(narrator_text) > 100 else narrator_text
-    ax.add_patch(mpatches.FancyBboxPatch(
-        (0.04, 0.03), 0.92, 0.12,
-        boxstyle="round,pad=0.02", color='#0f1c2e',
-        transform=ax.transAxes, zorder=1))
-    ax.text(0.5, 0.09, f'"{quote}"', transform=ax.transAxes,
-            fontsize=11, color='#64748b', ha='center', va='center',
-            style='italic')
+    add_bottom_bar(draw)
+    img.save(path, quality=96)
 
-    ax.set_xlim(0, 1); ax.set_ylim(0, 1)
-    ax.axis('off')
+
+def slide_fear_greed(fg_val, fg_label, prices, brand_color, path):
+    img, draw = new_canvas()
+    gradient_bg(img, C["dark"], (8,15,35))
+    img = add_grid_lines(img, C["blue"])
+    draw = ImageDraw.Draw(img)
+    add_top_bar(draw, brand_color, date_display)
+
+    # Left panel — Fear & Greed gauge (matplotlib)
+    fig, ax = plt.subplots(figsize=(5.5,4.5), dpi=100)
+    fig.patch.set_facecolor((10/255,14/255,28/255))
+    ax.set_facecolor((10/255,14/255,28/255))
+    zones = [(0,25,'#e74c3c'),(25,45,'#e67e22'),(45,55,'#f1c40f'),(55,75,'#2ecc71'),(75,100,'#27ae60')]
+    for lo,hi,zc in zones:
+        th = np.linspace(np.pi*(1-lo/100), np.pi*(1-hi/100), 50)
+        ax.plot(np.cos(th), np.sin(th), color=zc, linewidth=22, alpha=0.9, solid_capstyle='round')
+    # Needle
+    angle = np.pi*(1-fg_val/100)
+    ax.annotate('', xy=(0.68*np.cos(angle),0.68*np.sin(angle)), xytext=(0,0),
+                arrowprops=dict(arrowstyle='->', color='white', lw=3))
+    ax.add_patch(plt.Circle((0,0),0.06,color='white'))
+    # Value
+    nc = '#e74c3c' if fg_val<35 else '#f1c40f' if fg_val<55 else '#2ecc71'
+    ax.text(0,-0.22,str(fg_val),fontsize=52,fontweight='black',color=nc,ha='center',va='center')
+    ax.text(0,-0.48,fg_label.upper(),fontsize=15,fontweight='bold',color=nc,ha='center',va='center')
+    ax.text(0,0.16,'FEAR & GREED',fontsize=12,color='#94a3b8',ha='center',fontweight='bold')
+    ax.set_xlim(-1.2,1.2); ax.set_ylim(-0.7,1.1); ax.axis('off')
     plt.tight_layout(pad=0)
-    save_fig(fig, output_path)
+    buf = BytesIO(); plt.savefig(buf,format='png',dpi=100,bbox_inches='tight',
+                                  facecolor=fig.get_facecolor()); plt.close()
+    buf.seek(0)
+    gauge_img = Image.open(buf).convert("RGB").resize((550,390))
+    img.paste(gauge_img,(30,80))
 
-def create_title_slide(title, subtitle, color, output_path):
-    """Create branded title card"""
-    fig, ax = plt.subplots(figsize=(12.8, 7.2), dpi=100)
-    fig.patch.set_facecolor(hex_to_rgb(BRAND_DARK))
-    ax.set_facecolor(hex_to_rgb(BRAND_DARK))
+    # Right panel — live prices cards
+    items = [
+        ("NIFTY 50",   prices.get("NIFTY 50",{}).get("display","N/A"),  prices.get("NIFTY 50",{}).get("pct",0)),
+        ("S&P 500",    prices.get("S&P 500",{}).get("display","N/A"),   prices.get("S&P 500",{}).get("pct",0)),
+        ("Bitcoin",    prices.get("Bitcoin",{}).get("display","N/A"),   prices.get("Bitcoin",{}).get("pct",0)),
+        ("Gold",       prices.get("Gold",{}).get("display","N/A"),      prices.get("Gold",{}).get("pct",0)),
+    ]
+    draw = ImageDraw.Draw(img)
+    rx = 620
+    draw.text((rx+220, 75), "LIVE MARKET", fill=C["white"],
+              font=get_font(22,bold=True), anchor="mm")
+    for i,(name,disp,pct) in enumerate(items):
+        ry = 112 + i*138
+        clr = C["green"] if pct>=0 else C["red"]
+        arrow = "▲" if pct>=0 else "▼"
+        rounded_rect(draw, rx, ry, W-30, ry+120, 14, fill=C["card"])
+        draw.rectangle([rx,ry,rx+5,ry+120], fill=clr)
+        draw.text((rx+22, ry+24), name, fill=C["muted"], font=get_font(16,bold=True))
+        draw.text((rx+22, ry+50), disp, fill=C["white"], font=get_font(24,bold=True))
+        draw.text((rx+22, ry+86), f"{arrow} {abs(pct):.2f}% today",
+                  fill=clr, font=get_font(18,bold=True))
 
-    # Background gradient effect via stacked rectangles
-    for i in range(20):
-        alpha = 0.03 * (1 - i/20)
-        ax.add_patch(mpatches.FancyBboxPatch(
-            (0, i/20), 1, 0.05,
-            boxstyle="round,pad=0", color=hex_to_rgb(color),
-            transform=ax.transAxes, alpha=alpha))
+    add_bottom_bar(draw)
+    img.save(path, quality=96)
 
-    # Top accent bar
-    ax.add_patch(mpatches.FancyBboxPatch(
-        (0.0, 0.91), 1.0, 0.09,
-        boxstyle="round,pad=0", color=hex_to_rgb(color),
-        transform=ax.transAxes, alpha=0.15))
-    ax.text(0.5, 0.95, 'AI360TRADING', transform=ax.transAxes,
-            fontsize=16, fontweight='bold', color=hex_to_rgb(color),
-            ha='center', va='center')
 
-    # Main title — very large
-    wrapped = textwrap.fill(title, width=35)
-    ax.text(0.5, 0.62, wrapped, transform=ax.transAxes,
-            fontsize=32, fontweight='black', color='white',
-            ha='center', va='center', linespacing=1.2)
+def slide_candlestick_chart(prices, title_label, brand_color, path):
+    fig, axes = plt.subplots(2, 1, figsize=(12.8,7.2), dpi=100,
+                             gridspec_kw={'height_ratios':[3,1],'hspace':0.04})
+    fig.patch.set_facecolor(rgb2f(C["dark"]))
+    ax, vax = axes
 
-    # Subtitle
-    ax.text(0.5, 0.36, subtitle, transform=ax.transAxes,
-            fontsize=17, color='#94a3b8', ha='center', va='center')
+    base  = prices.get('NIFTY 50',{}).get('price',24000)
+    pct   = prices.get('NIFTY 50',{}).get('pct',0)
+    np.random.seed(int(base)%999)
+    n = 25
+    opens,highs,lows,closes,vols = [],[],[],[],[]
+    p = base*(1-pct/100*4)
+    for i in range(n):
+        o=p; c=o+np.random.normal(0,base*0.005)
+        h=max(o,c)+abs(np.random.normal(0,base*0.003))
+        l=min(o,c)-abs(np.random.normal(0,base*0.003))
+        v=np.random.randint(8000,22000)
+        opens.append(o);closes.append(c);highs.append(h);lows.append(l);vols.append(v)
+        p=c
+    closes[-1]=base; highs[-1]=max(opens[-1],base)*1.003; lows[-1]=min(opens[-1],base)*0.997
 
-    # Date pill
-    ax.add_patch(mpatches.FancyBboxPatch(
-        (0.35, 0.20), 0.30, 0.08,
-        boxstyle="round,pad=0.02", color=hex_to_rgb(color),
-        transform=ax.transAxes, alpha=0.2))
-    ax.text(0.5, 0.24, f'📅 {date_display}', transform=ax.transAxes,
-            fontsize=13, color=hex_to_rgb(color),
-            ha='center', va='center', fontweight='bold')
+    ax.set_facecolor(rgb2f(C["dark2"]))
+    vax.set_facecolor(rgb2f(C["dark2"]))
+
+    # Draw candles
+    for i in range(n):
+        bull=closes[i]>=opens[i]
+        clr='#2ecc71' if bull else '#e74c3c'
+        ax.plot([i,i],[lows[i],highs[i]],color=clr,lw=1.5,zorder=2)
+        bh=max(abs(closes[i]-opens[i]),base*0.001)
+        rect=mpatches.Rectangle((i-0.38,min(opens[i],closes[i])),0.76,bh,
+                                  color=clr,alpha=0.9,zorder=3)
+        ax.add_patch(rect)
+        vax.bar(i,vols[i],color=clr,alpha=0.6,width=0.7)
+
+    # Levels
+    s1=base*0.986; s2=base*0.972; r1=base*1.014; r2=base*1.028
+    for level,color_,label_ in [(s2,'#f59e0b',f'S2  {s2:,.0f}'),
+                                   (s1,'#2ecc71',f'S1  {s1:,.0f}'),
+                                   (base,'#ffffff',f'NOW {base:,.0f}'),
+                                   (r1,'#e74c3c',f'R1  {r1:,.0f}'),
+                                   (r2,'#f59e0b',f'R2  {r2:,.0f}')]:
+        ls = ':' if level==base else '--'
+        ax.axhline(level,color=color_,lw=1.8,linestyle=ls,alpha=0.85,zorder=4)
+        ax.text(n+0.4, level, label_, color=color_, fontsize=10,
+                fontweight='bold', va='center')
+
+    # Shaded SR zone
+    ax.axhspan(s1*0.998,s1*1.002,alpha=0.07,color='#2ecc71')
+    ax.axhspan(r1*0.998,r1*1.002,alpha=0.07,color='#e74c3c')
+
+    ax.set_xlim(-1,n+5); ax.set_ylim(min(lows)*0.997,max(highs)*1.007)
+    vax.set_xlim(-1,n+5)
+    for spine in ax.spines.values(): spine.set_color(rgb2f(C["accent"]))
+    for spine in vax.spines.values(): spine.set_color(rgb2f(C["accent"]))
+    ax.tick_params(colors=rgb2f(C["muted"]),labelsize=9); ax.set_xticks([])
+    vax.tick_params(colors=rgb2f(C["muted"]),labelsize=8); vax.set_xticks([])
+    ax.yaxis.set_major_formatter(mticker.FuncFormatter(lambda x,_:f'{x:,.0f}'))
+    vax.yaxis.set_major_formatter(mticker.FuncFormatter(lambda x,_:f'{x//1000:.0f}K'))
+    vax.set_ylabel('Volume',color=rgb2f(C["muted"]),fontsize=9)
+
+    pc = rgb2f(C["green"] if pct>=0 else C["red"])
+    arrow = '▲' if pct>=0 else '▼'
+    fig.text(0.03,0.97,'AI360TRADING',fontsize=12,fontweight='bold',
+             color=rgb2f(brand_color),va='top')
+    fig.text(0.5,0.97,title_label,fontsize=16,fontweight='bold',
+             color=rgb2f(C["white"]),ha='center',va='top')
+    fig.text(0.97,0.97,f'NIFTY  {arrow} {abs(pct):.2f}%',
+             fontsize=14,fontweight='bold',color=pc,ha='right',va='top')
+    fig.text(0.5,0.01,'ai360trading.in  |  Subscribe for daily NIFTY analysis',
+             fontsize=10,color=rgb2f(C["muted"]),ha='center',va='bottom')
+    plt.tight_layout(rect=[0,0.03,1,0.94])
+    fig.savefig(path,dpi=100,bbox_inches='tight',facecolor=fig.get_facecolor())
+    plt.close()
+
+
+def slide_sr_table(prices, brand_color, path):
+    img, draw = new_canvas()
+    gradient_bg(img, C["dark"], (5,12,30))
+    img = add_grid_lines(img, brand_color, alpha=6)
+    draw = ImageDraw.Draw(img)
+    add_top_bar(draw, brand_color, date_display)
+
+    draw.text((W//2, 80), "KEY LEVELS TO WATCH", fill=C["white"],
+              font=get_font(32,bold=True), anchor="mm")
+
+    rows = [
+        ("NIFTY 50",   prices.get("NIFTY 50",{}).get("price",24000),   prices.get("NIFTY 50",{}).get("pct",0),   ""),
+        ("S&P 500",    prices.get("S&P 500",{}).get("price",5500),     prices.get("S&P 500",{}).get("pct",0),    ""),
+        ("Bitcoin",    prices.get("Bitcoin",{}).get("price",65000),    prices.get("Bitcoin",{}).get("pct",0),    "$"),
+    ]
+    headers = ["INSTRUMENT","PRICE","SUPPORT","RESISTANCE","CHANGE"]
+    col_x   = [60, 310, 520, 730, 950]
+    hy = 120
+    for h,x in zip(headers,col_x):
+        draw.text((x,hy), h, fill=C["muted"], font=get_font(15,bold=True))
+    draw.line([(40,148),(W-40,148)], fill=C["accent"], width=1)
+
+    for i,(name,price,pct,prefix) in enumerate(rows):
+        ry = 170 + i*148
+        clr = C["green"] if pct>=0 else C["red"]
+        arrow = "▲" if pct>=0 else "▼"
+
+        # Row card
+        rounded_rect(draw, 40, ry, W-40, ry+128, 12, fill=C["card"])
+        draw.rectangle([40,ry,48,ry+128], fill=clr)
+
+        s1 = price*0.986; s2 = price*0.972
+        r1 = price*1.014
+        p_fmt = f"{prefix}{price:,.0f}"
+        s1_fmt = f"{prefix}{s1:,.0f}"
+        r1_fmt = f"{prefix}{r1:,.0f}"
+
+        draw.text((col_x[0]+8, ry+44), name,   fill=C["white"],  font=get_font(20,bold=True))
+        draw.text((col_x[1],   ry+44), p_fmt,  fill=C["white"],  font=get_font(20,bold=True))
+        draw.text((col_x[2],   ry+44), s1_fmt, fill=C["green"],  font=get_font(20,bold=True))
+        draw.text((col_x[3],   ry+44), r1_fmt, fill=C["red"],    font=get_font(20,bold=True))
+        draw.text((col_x[4],   ry+44), f"{arrow} {abs(pct):.2f}%", fill=clr, font=get_font(20,bold=True))
+
+    draw.text((W//2, H-70),
+              "🟢 Support = Buying zone    🔴 Resistance = Watch for rejection",
+              fill=C["muted"], font=get_font(15), anchor="mm")
+    add_bottom_bar(draw)
+    img.save(path, quality=96)
+
+
+def slide_content(slide_text, narrator_text, brand_color, num, total, path):
+    """Modern content slide — no boxy feel, layered design"""
+    img, draw = new_canvas()
+    gradient_bg(img, C["dark"], (8,14,32), vertical=True)
+    img = add_diagonal_lines(img, brand_color, alpha=10, gap=70)
+
+    # Left glow
+    img = add_glow_circle(img, 80, H//2, 320, brand_color, alpha=20)
+    draw = ImageDraw.Draw(img)
+    add_top_bar(draw, brand_color, f"{num} / {total}")
+
+    # Left accent bar
+    draw.rectangle([0,56,5,H-44], fill=brand_color)
+
+    # Progress bar
+    prog_w = int((num/total)*(W-80))
+    draw.rectangle([40,H-52,40+prog_w,H-48], fill=brand_color)
+
+    # Slide heading — large, modern
+    heading = slide_text.strip().split('\n')[0] if slide_text else narrator_text[:60]
+    heading = re.sub(r'[*#]','',heading).strip()[:60]
+
+    # Heading block with left border
+    draw.rectangle([40,74,6,74+56], fill=brand_color)   # left colored strip
+    y = draw_text_wrapped(draw, heading, 50, 82,
+                          W-80, get_font(36, bold=True), C["white"], spacing=10)
+    y += 20
+
+    # Divider line
+    draw.line([(50,y),(W-50,y)], fill=(*brand_color, 80), width=1)
+    y += 24
+
+    # Body — narrator text excerpt (first 180 chars)
+    body = narrator_text[:220] + ("..." if len(narrator_text)>220 else "")
+    body = re.sub(r'(SLIDE|NARRATOR|HINDI_SUB):[^\n]*','',body).strip()
+    draw_text_wrapped(draw, body, 50, y, W-80, get_font(22), C["white"], spacing=12)
+
+    # Bottom quote strip
+    quote = narrator_text[:90].strip()
+    quote = re.sub(r'\s+',' ',quote)
+    rounded_rect(draw, 40, H-110, W-40, H-52, 8, fill=(*C["dark2"],180))
+    draw.text((W//2, H-81), f'"{quote}..."', fill=(*C["muted"],),
+              font=get_font(14), anchor="mm")
+
+    add_bottom_bar(draw)
+    img.save(path, quality=96)
+
+
+def slide_education_icon(topic_title, points, brand_color, path):
+    """Education slide with emoji icon cards — attractive, non-boxy"""
+    img, draw = new_canvas()
+    gradient_bg(img, (8,20,18) if brand_color==C["green"] else C["dark"], C["dark"])
+    img = add_grid_lines(img, brand_color, alpha=8)
+    img = add_glow_circle(img, W//2, 120, 300, brand_color, alpha=15)
+    draw = ImageDraw.Draw(img)
+    add_top_bar(draw, brand_color)
+
+    draw.text((W//2, 84), topic_title, fill=C["white"],
+              font=get_font(28,bold=True), anchor="mm")
+
+    if len(points) <= 4:
+        cols = 2
+    else:
+        cols = 3
+    rows = math.ceil(len(points)/cols)
+    card_w = (W - 80 - (cols-1)*16) // cols
+    card_h = min(160, (H - 160 - (rows-1)*14) // rows)
+    icons = ["📊","📈","📉","💡","⚡","🎯","🔑","💰","📌","✅","⚠️","🔄"]
+
+    for i, pt in enumerate(points[:cols*rows]):
+        col = i % cols; row = i // cols
+        x1 = 40 + col*(card_w+16)
+        y1 = 110 + row*(card_h+14)
+        x2 = x1 + card_w; y2 = y1 + card_h
+        rounded_rect(draw, x1, y1, x2, y2, 14, fill=C["card"])
+        draw.rectangle([x1,y1,x1+4,y2], fill=brand_color)
+        ic = icons[i % len(icons)]
+        draw.text((x1+22, y1+card_h//2-20), ic, fill=brand_color,
+                  font=get_font(26))
+        draw_text_wrapped(draw, pt, x1+60, y1+16, card_w-70,
+                         get_font(16,bold=True), C["white"], spacing=6)
+
+    add_bottom_bar(draw)
+    img.save(path, quality=96)
+
+
+def slide_finance_chart(data_type, prices, brand_color, path):
+    """Personal finance visual — SIP chart or comparison bar chart"""
+    fig, ax = plt.subplots(figsize=(12.8,7.2), dpi=100)
+    fig.patch.set_facecolor(rgb2f(C["dark"]))
+    ax.set_facecolor(rgb2f(C["dark2"]))
+
+    if data_type == "sip_growth":
+        # SIP vs Lump Sum growth over 10 years
+        years = list(range(0,11))
+        sip_monthly = 5000
+        lump = 600000
+        rate = 0.12
+        sip_vals = []
+        sip_total = 0
+        for y in years:
+            if y > 0: sip_total = sip_total*(1+rate/12)**12 + sip_monthly*12
+            sip_vals.append(sip_total)
+        lump_vals = [lump*(1+rate)**y for y in years]
+
+        ax.fill_between(years, sip_vals, alpha=0.25, color='#2ecc71')
+        ax.fill_between(years, lump_vals, alpha=0.20, color='#0062ff')
+        ax.plot(years, sip_vals, color='#2ecc71', lw=3, label=f'SIP ₹5k/month', marker='o', markersize=6)
+        ax.plot(years, lump_vals, color='#0062ff', lw=3, label=f'Lump Sum ₹6L', marker='s', markersize=6)
+
+        # Labels on last point
+        ax.annotate(f'₹{sip_vals[-1]/100000:.1f}L', xy=(10,sip_vals[-1]),
+                    xytext=(9.2,sip_vals[-1]*1.06),
+                    color='#2ecc71', fontsize=12, fontweight='bold',
+                    arrowprops=dict(arrowstyle='-',color='#2ecc71',lw=1.5))
+        ax.annotate(f'₹{lump_vals[-1]/100000:.1f}L', xy=(10,lump_vals[-1]),
+                    xytext=(9.0,lump_vals[-1]*0.92),
+                    color='#0062ff', fontsize=12, fontweight='bold',
+                    arrowprops=dict(arrowstyle='-',color='#0062ff',lw=1.5))
+
+        ax.set_xlabel('Years', color=rgb2f(C["muted"]), fontsize=11)
+        ax.set_ylabel('Portfolio Value (₹)', color=rgb2f(C["muted"]), fontsize=11)
+        ax.yaxis.set_major_formatter(mticker.FuncFormatter(lambda x,_:f'₹{x/100000:.0f}L'))
+        ax.legend(loc='upper left', facecolor=rgb2f(C["card"]),
+                  labelcolor='white', fontsize=12, framealpha=0.9)
+        fig.text(0.5,0.97,'SIP vs Lump Sum — 10 Year Growth at 12% CAGR',
+                 fontsize=16,fontweight='bold',color='white',ha='center',va='top')
+
+    else:
+        # 15-15-15 rule bar chart
+        labels = ['Year 5','Year 10','Year 15']
+        monthly_15k = [15000*12*5*1.15, 15000*12*10*1.25, 10000000]
+        colors_ = ['#378ADD','#2ecc71','#f59e0b']
+        bars = ax.bar(labels, [v/100000 for v in monthly_15k],
+                      color=colors_, alpha=0.85, width=0.5)
+        for bar,val in zip(bars,monthly_15k):
+            ax.text(bar.get_x()+bar.get_width()/2,
+                    bar.get_height()+0.5,
+                    f'₹{val/100000:.0f}L',
+                    ha='center',color='white',fontsize=14,fontweight='bold')
+        ax.set_ylabel('Value (₹ Lakh)', color=rgb2f(C["muted"]), fontsize=11)
+        fig.text(0.5,0.97,'15-15-15 Rule — ₹15k/Month SIP @ 15% Return',
+                 fontsize=16,fontweight='bold',color='white',ha='center',va='top')
+
+    for spine in ax.spines.values(): spine.set_color(rgb2f(C["accent"]))
+    ax.tick_params(colors=rgb2f(C["muted"]), labelsize=10)
+    fig.text(0.5,0.01,'ai360trading.in  |  Not financial advice — educational only',
+             fontsize=10,color=rgb2f(C["muted"]),ha='center',va='bottom')
+    plt.tight_layout(rect=[0,0.04,1,0.94])
+    fig.savefig(path,dpi=100,bbox_inches='tight',facecolor=fig.get_facecolor())
+    plt.close()
+
+
+def slide_outro(brand_color, path):
+    img, draw = new_canvas()
+    gradient_bg(img, C["dark"], (5,10,28))
+    img = add_glow_circle(img, W//2, H//2-60, 380, brand_color, alpha=22)
+    img = add_diagonal_lines(img, brand_color, alpha=8)
+    draw = ImageDraw.Draw(img)
+
+    # Brand circle
+    draw.ellipse([W//2-90, 60, W//2+90, 240], fill=(*brand_color, 25),
+                 outline=brand_color, width=2)
+    draw.text((W//2, 150), "AI360", fill=brand_color,
+              font=get_font(44,bold=True), anchor="mm")
+
+    draw.text((W//2, 268), "TRADING", fill=C["muted"],
+              font=get_font(20,bold=True), anchor="mm")
+    draw.text((W//2, 316), "Subscribe for Daily Market Intelligence",
+              fill=C["white"], font=get_font(26,bold=True), anchor="mm")
+
+    # 4 pillar cards
+    pillars = [("📊","Stock Market"),("₿","Bitcoin"),("💰","Personal Finance"),("🤖","AI Trading")]
+    pw = 240; gap = 20; sx = (W - 4*pw - 3*gap) // 2
+    for i,(ic,lb) in enumerate(pillars):
+        px = sx + i*(pw+gap)
+        rounded_rect(draw, px, 360, px+pw, 470, 12, fill=C["card"])
+        draw.text((px+pw//2, 400), ic, fill=brand_color,
+                  font=get_font(28), anchor="mm")
+        draw.text((px+pw//2, 440), lb, fill=C["white"],
+                  font=get_font(16,bold=True), anchor="mm")
+
+    draw.text((W//2, 508), "📣  t.me/ai360trading",
+              fill=C["green"], font=get_font(20,bold=True), anchor="mm")
+    draw.text((W//2, 548), "🌐  ai360trading.in",
+              fill=brand_color, font=get_font(20,bold=True), anchor="mm")
+    draw.text((W//2, 590),
+              "⚠️  Educational content only — not SEBI registered investment advice",
+              fill=C["muted"], font=get_font(13), anchor="mm")
+
+    add_bottom_bar(draw)
+    img.save(path, quality=96)
+
+
+def create_thumbnail(title, prices, pct_change, brand_color, path):
+    """YouTube thumbnail — person photo + bold Hinglish headline"""
+    is_crash = pct_change < -0.5
+    img, draw = new_canvas()
+
+    # Dramatic gradient
+    c1 = (140,0,0) if is_crash else (0,100,15)
+    c2 = (8,0,0) if is_crash else (0,10,3)
+    gradient_bg(img, c1, c2, vertical=False)
+    img = add_diagonal_lines(img, C["white"], alpha=6)
+    draw = ImageDraw.Draw(img)
+
+    # Candle watermark (background)
+    np.random.seed(42)
+    overlay = Image.new("RGBA",(W,H),(0,0,0,0))
+    od = ImageDraw.Draw(overlay)
+    p = 24500
+    for i in range(18):
+        o=p; c=o+random.uniform(-180,180)
+        hh=max(o,c)+random.uniform(40,120); ll=min(o,c)-random.uniform(40,120)
+        x=460+i*46; bull=c>=o; col=(70,200,70,40) if bull else (200,70,70,40)
+        yo=int(560-(o-24100)*0.018); yc=int(560-(c-24100)*0.018)
+        yh=int(560-(hh-24100)*0.018); yl=int(560-(ll-24100)*0.018)
+        od.line([(x,yh),(x,yl)],fill=col,width=2)
+        od.rectangle([x-9,min(yo,yc),x+9,max(yo,yc)+1],fill=col)
+        p=c
+    img = Image.alpha_composite(img.convert("RGBA"),overlay).convert("RGB")
+
+    # Person photo from GitHub
+    base_url = "https://raw.githubusercontent.com/systronics/ai360trading/master/public/image/"
+    options = ["person_crash_1.jpg","person_crash_2.jpg","person_crash_3.jpg","person_crash_4.jpg"] if is_crash else ["person_green_1.jpg","person_green_2.jpg","person_green_3.jpg"]
+    photo_choice = options[now.timetuple().tm_yday % len(options)]
+    try:
+        resp = requests.get(base_url+photo_choice, timeout=10)
+        if resp.status_code == 200:
+            person_img = Image.open(BytesIO(resp.content)).convert("RGBA")
+            pw,ph = person_img.size
+            p_h = int(H*0.98); p_w = int(pw*(p_h/ph))
+            person_img = person_img.resize((p_w,p_h),Image.LANCZOS)
+            px_ = W-p_w-8; py_ = H-p_h
+            # Left fade on person
+            fa = np.ones((p_h,p_w),dtype=np.float32)*255
+            for x in range(min(80,p_w)): fa[:,x] *= x/80
+            person_img.putalpha(Image.fromarray(fa.astype(np.uint8)))
+            # Shadow
+            shadow = Image.new("RGBA",(W,H),(0,0,0,0))
+            shadow.paste(Image.new("RGBA",(p_w+30,p_h),(0,0,0,120)),
+                        (px_+15,py_+20),
+                        person_img.getchannel("A").filter(ImageFilter.GaussianBlur(20)))
+            img = Image.alpha_composite(img.convert("RGBA"),shadow).convert("RGB")
+            img.paste(person_img,(px_,py_),person_img)
+    except Exception as e:
+        print(f"Photo fetch: {e}")
+
+    # Left text overlay gradient
+    lo = Image.new("RGBA",(W,H),(0,0,0,0))
+    ld = ImageDraw.Draw(lo)
+    for x in range(700):
+        a = int(120*(1-x/700))
+        ld.line([(x,0),(x,H)],fill=(0,0,0,a))
+    img = Image.alpha_composite(img.convert("RGBA"),lo).convert("RGB")
+    draw = ImageDraw.Draw(img)
+
+    # Headline text — Hinglish style
+    h1 = "NIFTY" if "nifty" in title.lower() or "stock" in title.lower() else "BITCOIN" if "bitcoin" in title.lower() else "MARKET"
+    h2 = "गिरा !" if is_crash else "उठा !"
+    badge = f"{'▼' if is_crash else '▲'} {abs(pct_change):.2f}% TODAY"
+    badge_c = (200,0,0) if is_crash else (0,150,20)
+    txt_c2 = (255,215,0) if is_crash else (100,255,100)
+    subtitle = "देखो Level तोड़ा ?" if is_crash else "Buy करें या Wait ?"
+
+    # Shadow text
+    def sh(d,xy,t,f,fill):
+        d.text((xy[0]+4,xy[1]+4),t,font=f,fill=(0,0,0,180))
+        d.text(xy,t,font=f,fill=fill)
+
+    sh(draw,(36,22),h1,get_font(108,bold=True),C["white"])
+    sh(draw,(36,126),h2,get_font(118,bold=True),txt_c2)
+    # Badge pill
+    bb = draw.textbbox((0,0),badge,font=get_font(36,bold=True))
+    bw = bb[2]-bb[0]+32
+    draw.rounded_rectangle([36,270,36+bw,318],radius=12,fill=badge_c)
+    draw.text((52,284),badge,fill=C["white"],font=get_font(36,bold=True))
+    draw.text((36,330),date_display,fill=(200,200,200),font=get_font(32,bold=False))
+    # Subtitle pill
+    sb = draw.textbbox((0,0),subtitle,font=get_font(30,bold=True))
+    sw2 = sb[2]-sb[0]+32
+    draw.rounded_rectangle([36,376,36+sw2,418],radius=10,fill=(200,80,0))
+    draw.text((52,388),subtitle,fill=C["white"],font=get_font(30,bold=True))
+    draw.text((36,432),"ai360trading.in",fill=(120,180,255),font=get_font(26,bold=False))
 
     # Bottom bar
-    ax.add_patch(mpatches.FancyBboxPatch(
-        (0.0, 0.0), 1.0, 0.10,
-        boxstyle="round,pad=0", color='#0f1c2e',
-        transform=ax.transAxes))
-    ax.text(0.5, 0.05, 'ai360trading.in  |  t.me/ai360trading  |  @ai360trading',
-            transform=ax.transAxes, fontsize=11,
-            color='#475569', ha='center', va='center')
+    draw.rectangle([0,668,W,H],fill=(0,0,0))
+    draw.text((W//2,684),
+              "AI360TRADING  |  Daily Market Analysis  |  @ai360trading",
+              fill=(80,160,255),font=get_font(24,bold=True),anchor="mm")
 
-    ax.set_xlim(0, 1); ax.set_ylim(0, 1)
-    ax.axis('off')
-    plt.tight_layout(pad=0)
-    save_fig(fig, output_path)
-
-def create_outro_slide(color, output_path):
-    """Subscribe CTA outro"""
-    fig, ax = plt.subplots(figsize=(12.8, 7.2), dpi=100)
-    fig.patch.set_facecolor(hex_to_rgb(BRAND_DARK))
-    ax.set_facecolor(hex_to_rgb(BRAND_DARK))
-
-    # Glow circle behind brand
-    circle = plt.Circle((0.5, 0.72), 0.22, color=hex_to_rgb(color),
-                         alpha=0.08, transform=ax.transAxes)
-    ax.add_patch(circle)
-
-    ax.text(0.5, 0.82, 'AI360TRADING', transform=ax.transAxes,
-            fontsize=40, fontweight='black', color=hex_to_rgb(color),
-            ha='center', va='center')
-    ax.text(0.5, 0.65, '🔔  SUBSCRIBE for Daily Market Intelligence',
-            transform=ax.transAxes, fontsize=20, fontweight='bold',
-            color='white', ha='center', va='center')
-
-    # 4 pillars
-    pillars = [('📊', 'Stock Market'), ('₿', 'Bitcoin'),
-               ('💰', 'Personal Finance'), ('🤖', 'AI Trading')]
-    for i, (icon, label) in enumerate(pillars):
-        x = 0.14 + i * 0.24
-        ax.add_patch(mpatches.FancyBboxPatch(
-            (x-0.09, 0.42), 0.18, 0.13,
-            boxstyle="round,pad=0.02", color='#1e293b',
-            transform=ax.transAxes))
-        ax.text(x, 0.52, icon,  transform=ax.transAxes,
-                fontsize=18, ha='center', va='center')
-        ax.text(x, 0.45, label, transform=ax.transAxes,
-                fontsize=11, color='#94a3b8', ha='center', va='center',
-                fontweight='bold')
-
-    ax.text(0.5, 0.32, '📣  Telegram: t.me/ai360trading',
-            transform=ax.transAxes, fontsize=16,
-            color=hex_to_rgb(BRAND_GREEN), ha='center', va='center',
-            fontweight='bold')
-    ax.text(0.5, 0.21, '🌐  ai360trading.in',
-            transform=ax.transAxes, fontsize=16,
-            color=hex_to_rgb(color), ha='center', va='center',
-            fontweight='bold')
-    ax.text(0.5, 0.09,
-            '⚠️ Educational content only. Not financial advice.',
-            transform=ax.transAxes, fontsize=11,
-            color='#475569', ha='center', va='center')
-
-    ax.set_xlim(0, 1); ax.set_ylim(0, 1)
-    ax.axis('off')
-    plt.tight_layout(pad=0)
-    save_fig(fig, output_path)
-
-# ─── 5. Text to Speech ────────────────────────────────────────────────────────
-# Edge TTS voice — Indian male, natural accent
-EDGE_VOICE       = "en-IN-PrabhatNeural"   # Indian male — deep, professional
-EDGE_VOICE_ALT   = "en-IN-NeerjaNeural"    # Indian female — fallback
-EDGE_RATE        = "+0%"    # normal speed
-EDGE_PITCH       = "+0Hz"   # natural pitch
-EDGE_VOLUME      = "+10%"   # slightly louder
+    img.save(path, quality=96)
 
 
-def clean_for_tts(text):
-    """Clean text so TTS sounds natural"""
-    import re
-    text = text.replace("₹", " rupees ").replace("$", " dollars ")
-    text = text.replace("%", " percent").replace("&", " and ")
-    text = text.replace("|", ". ").replace("→", " to ")
-    text = text.replace("▲", " up ").replace("▼", " down ")
-    text = text.replace("—", ", ").replace("–", ", ")
-    text = text.replace("...", ". ").replace("…", ". ")
-    text = text.replace("**", "").replace("##", "").replace("*", "")
-    text = text.replace("NIFTY", "Nifty")
-    text = re.sub(r"\bBTC\b", "Bitcoin", text)  # only standalone BTC
-    text = text.replace("S&P", "S and P").replace("F&O", "F and O")
-    # Add natural pause after key phrases
-    text = re.sub(r"(\d+),(\d+)", lambda m: m.group(1)+m.group(2), text)  # 24,500 -> 24500 for TTS
-    # Remove any remaining tags
-    text = re.sub(r"(SLIDE|HINDI_SUB|NARRATOR):[^\n]*", "", text)
-    text = re.sub(r"\s+", " ", text).strip()
+# ── TTS ───────────────────────────────────────────────────────────────────────
+VOICE     = "en-IN-PrabhatNeural"
+VOICE_ALT = "en-IN-NeerjaNeural"
+
+def clean_tts(text):
+    text = text.replace("₹"," rupees ").replace("$"," dollars ").replace("%"," percent")
+    text = text.replace("&"," and ").replace("|",". ").replace("→"," to ")
+    text = text.replace("▲"," up ").replace("▼"," down ")
+    text = text.replace("—",", ").replace("–",", ")
+    text = text.replace("**","").replace("##","").replace("*","")
+    text = text.replace("NIFTY","Nifty").replace("S&P","S and P")
+    text = re.sub(r"(SLIDE|NARRATOR|HINDI_SUB):[^\n]*","",text)
+    text = re.sub(r"\d{1,3}(,\d{3})+", lambda m: m.group(0).replace(",",""), text)
+    text = re.sub(r"\s+"," ",text).strip()
     return text
 
+async def _tts(text, path, voice):
+    comm = edge_tts.Communicate(text=text, voice=voice, rate="+0%", pitch="+0Hz", volume="+10%")
+    await comm.save(path)
 
-async def _edge_tts_async(text, output_path, voice):
-    """Async Edge TTS call"""
-    communicate = edge_tts.Communicate(
-        text=text,
-        voice=voice,
-        rate=EDGE_RATE,
-        pitch=EDGE_PITCH,
-        volume=EDGE_VOLUME,
-    )
-    await communicate.save(output_path)
-
-
-def text_to_speech(text, output_path, lang=None, tld=None):
-    """Convert text to MP3 using Edge TTS — en-IN-PrabhatNeural Indian male voice"""
+def tts(text, path):
     try:
-        clean = clean_for_tts(text)
-        if not clean or len(clean) < 5:
-            return False
-        # Run async edge TTS in sync context
-        asyncio.run(_edge_tts_async(clean, output_path, EDGE_VOICE))
-        if os.path.exists(output_path) and os.path.getsize(output_path) > 1000:
-            return True
-        raise Exception("Output file empty")
+        c = clean_tts(text)
+        if not c or len(c)<5: return False
+        asyncio.run(_tts(c, path, VOICE))
+        return os.path.exists(path) and os.path.getsize(path)>1000
     except Exception as e:
-        print(f"  Edge TTS failed ({e}), trying fallback voice...")
+        print(f"TTS fallback: {e}")
         try:
-            clean = clean_for_tts(text)
-            asyncio.run(_edge_tts_async(clean, output_path, EDGE_VOICE_ALT))
-            return os.path.exists(output_path) and os.path.getsize(output_path) > 1000
-        except Exception as e2:
-            print(f"  TTS fallback also failed: {e2}")
+            asyncio.run(_tts(clean_tts(text), path, VOICE_ALT))
+            return os.path.exists(path) and os.path.getsize(path)>1000
+        except:
             return False
 
-# ─── 6. Assemble Video ────────────────────────────────────────────────────────
-def assemble_video(slides_data, script_slides, prices, topic, output_path):
-    """Combine all image slides + audio into final MP4"""
+# ── Video assembly ────────────────────────────────────────────────────────────
+def assemble(slide_paths, narrators, out_path):
     clips = []
-
-    for i, (img_path, slide) in enumerate(zip(slides_data, script_slides)):
-        narrator_text = slide.get("narrator", "")
-        if not narrator_text:
-            continue
-
-        # Strip SLIDE/HINDI_SUB lines accidentally mixed into narrator
-        clean_lines = []
-        for ln in narrator_text.replace("\n", ". ").split(". "):
-            ln = ln.strip()
-            skip = any(ln.startswith(tag) for tag in
-                       ["SLIDE:", "HINDI_SUB:", "NARRATOR:", "**", "##", "---"])
-            if not skip and len(ln) > 5:
-                clean_lines.append(ln)
-        narrator_text = ". ".join(clean_lines).strip()
-        if not narrator_text:
-            continue
-
-        # Generate audio for this slide
-        audio_path = os.path.join(OUTPUT_DIR, f"audio_{i}.mp3")
-        success = text_to_speech(narrator_text, audio_path)
-
-        if not success or not os.path.exists(audio_path):
-            # Fallback: silent 5 second clip
-            img_clip = ImageClip(img_path).set_duration(5)
-            clips.append(img_clip)
-            continue
-
-        # Load audio and get duration
-        audio_clip = AudioFileClip(audio_path)
-        duration   = audio_clip.duration + 0.5  # 0.5s pause between slides
-
-        # Create image clip matching audio duration
-        img_clip = (ImageClip(img_path)
-                    .set_duration(duration)
-                    .set_audio(audio_clip))
-
-        clips.append(img_clip)
-        time.sleep(0.2)
-
-    if not clips:
-        print("No clips generated")
-        return False
-
-    # Concatenate all clips
-    final_video = concatenate_videoclips(clips, method="compose")
-    final_video.write_videofile(
-        output_path,
-        fps=24,
-        codec='libx264',
-        audio_codec='aac',
-        temp_audiofile=os.path.join(OUTPUT_DIR, 'temp_audio.m4a'),
-        remove_temp=True,
-        logger=None
-    )
+    for i,(sp,nar) in enumerate(zip(slide_paths, narrators)):
+        if not nar: continue
+        ap = os.path.join(OUTPUT_DIR, f"a_{i}.mp3")
+        ok = tts(nar, ap)
+        if ok:
+            ac = AudioFileClip(ap)
+            clip = ImageClip(sp).set_duration(ac.duration+0.4).set_audio(ac)
+        else:
+            clip = ImageClip(sp).set_duration(5)
+        clips.append(clip)
+        time.sleep(0.15)
+    if not clips: return False
+    vid = concatenate_videoclips(clips, method="compose")
+    vid.write_videofile(out_path, fps=24, codec='libx264', audio_codec='aac',
+                        temp_audiofile=os.path.join(OUTPUT_DIR,'_tmp.m4a'),
+                        remove_temp=True, logger=None)
     return True
 
-# ─── 7. Upload to YouTube ─────────────────────────────────────────────────────
-def upload_to_youtube(video_path, title, description, tags, thumbnail_path=None):
-    """Upload video to YouTube using OAuth2 credentials from environment"""
-    if not YOUTUBE_OK:
-        print("YouTube upload skipped — library not installed")
-        return None
-
+# ── YouTube upload ────────────────────────────────────────────────────────────
+def upload_yt(video_path, title, description, tags, thumb_path=None):
+    if not YOUTUBE_OK: return None
     try:
-        # Load credentials from environment variable
-        creds_json = os.environ.get("YOUTUBE_CREDENTIALS")
-        if not creds_json:
-            print("YOUTUBE_CREDENTIALS not set in GitHub Secrets")
-            return None
-
-        creds_data = json.loads(creds_json)
-        creds = Credentials(
-            token=creds_data.get("token"),
-            refresh_token=creds_data.get("refresh_token"),
-            token_uri="https://oauth2.googleapis.com/token",
-            client_id=creds_data.get("client_id"),
-            client_secret=creds_data.get("client_secret"),
-        )
-
-        youtube = build('youtube', 'v3', credentials=creds)
-
-        body = {
-            'snippet': {
-                'title':       title[:100],
-                'description': description,
-                'tags':        tags,
-                'categoryId':  '27',  # Education category
-                'defaultLanguage': 'en',
-            },
-            'status': {
-                'privacyStatus': 'public',
-                'selfDeclaredMadeForKids': False,
-            }
-        }
-
-        media = MediaFileUpload(
-            video_path,
-            chunksize=-1,
-            resumable=True,
-            mimetype='video/mp4'
-        )
-
-        request  = youtube.videos().insert(
-            part=','.join(body.keys()),
-            body=body,
-            media_body=media
-        )
-
-        response = None
-        while response is None:
-            status, response = request.next_chunk()
-            if status:
-                print(f"  Upload progress: {int(status.progress() * 100)}%")
-
-        video_id  = response['id']
-        video_url = f"https://www.youtube.com/watch?v={video_id}"
-        print(f"  ✅ Uploaded: {video_url}")
-
-        # Upload custom thumbnail if provided
-        if thumbnail_path and os.path.exists(thumbnail_path):
-            youtube.thumbnails().set(
-                videoId=video_id,
-                media_body=MediaFileUpload(thumbnail_path)
-            ).execute()
-            print("  ✅ Thumbnail uploaded")
-
-        return video_id
-
+        cj = os.environ.get("YOUTUBE_CREDENTIALS")
+        if not cj: return None
+        cd = json.loads(cj)
+        creds = Credentials(token=cd.get("token"),refresh_token=cd.get("refresh_token"),
+                            token_uri="https://oauth2.googleapis.com/token",
+                            client_id=cd.get("client_id"),client_secret=cd.get("client_secret"))
+        yt = build('youtube','v3',credentials=creds)
+        body = {'snippet':{'title':title[:100],'description':description,
+                           'tags':tags,'categoryId':'27','defaultLanguage':'en'},
+                'status':{'privacyStatus':'public','selfDeclaredMadeForKids':False}}
+        req = yt.videos().insert(part=','.join(body.keys()), body=body,
+                                  media_body=MediaFileUpload(video_path,chunksize=-1,
+                                                             resumable=True,mimetype='video/mp4'))
+        resp = None
+        while resp is None:
+            status, resp = req.next_chunk()
+            if status: print(f"  Upload: {int(status.progress()*100)}%")
+        vid_id = resp['id']
+        if thumb_path and os.path.exists(thumb_path):
+            yt.thumbnails().set(videoId=vid_id,
+                                media_body=MediaFileUpload(thumb_path)).execute()
+        return vid_id
     except Exception as e:
-        print(f"  ❌ YouTube upload failed: {e}")
+        print(f"Upload failed: {e}")
         return None
 
-# ─── 8. Main ──────────────────────────────────────────────────────────────────
-def generate_video():
+# ── Main ─────────────────────────────────────────────────────────────────────
+def main():
     if not LIBS_OK:
-        print("❌ Required libraries not installed. See requirements.")
-        sys.exit(1)
+        print("Missing libraries"); sys.exit(1)
 
-    topic = VIDEO_TOPICS[weekday]
+    topic = TOPICS[weekday]
+    tt = topic["type"]
+    bc = topic["color"]
 
-    print("=" * 60)
-    print(f"  AI360Trading Video Bot — {date_display}")
-    print(f"  Today: {topic['type']}")
-    print("=" * 60)
+    print("="*60)
+    print(f"  AI360Trading Video Bot v2 — {date_display}  [{tt}]")
+    print("="*60)
 
-    # Fetch live data
-    print("\n  Fetching live market data...")
-    prices   = get_live_prices()
-    fg_val, fg_label = get_fear_greed()
+    prices = get_prices()
+    fg_val, fg_label = get_fg()
+    np_  = prices.get("NIFTY 50",{}).get("price",24000)
+    npct = prices.get("NIFTY 50",{}).get("pct",0)
+    bp_  = prices.get("Bitcoin",{}).get("price",65000)
+    bpct = prices.get("Bitcoin",{}).get("pct",0)
+
     print(f"  NIFTY  : {prices.get('NIFTY 50',{}).get('display','N/A')}")
     print(f"  BTC    : {prices.get('Bitcoin',{}).get('display','N/A')}")
     print(f"  F&G    : {fg_val} — {fg_label}")
 
-    # Build title and description
-    nifty_pct_abs = abs(prices.get("NIFTY 50", {}).get("pct", 0))
-    btc_price_fmt = f"{int(prices.get('Bitcoin', {}).get('price', 65000)):,}"
-    title = topic["title_template"].format(
-        date=date_display,
-        year=now.year,
-        pct=f"{nifty_pct_abs:.1f}",
-        btc=btc_price_fmt,
-    )
-    description = topic["description_template"].format(
-        date=date_display,
-        year=now.year
-    )
+    # Build title
+    direction = ("Market Crash" if npct<-2 else "Big Fall" if npct<-1 else
+                 "Recovery" if npct>1 else "Big Rally" if npct>2 else "At Key Levels")
+    title = topic["title"].format(
+        date=date_display, year=now.year,
+        nifty=f"{np_:,.0f}", btc=f"{int(bp_):,}",
+        direction=direction)
+    desc = topic["desc"].format(date=date_display, year=now.year)
 
     # Generate script
-    print("\n  Generating video script...")
-    script_text = generate_video_script(topic, prices, fg_val, fg_label)
-    if not script_text:
-        print("❌ Script generation failed")
-        sys.exit(1)
-    print(f"  Script: {len(script_text)} chars")
+    print("\n  Generating script...")
+    script = generate_script(topic, prices, fg_val, fg_label)
+    if not script: sys.exit(1)
+    script_slides = parse_script(script)
+    print(f"  Script: {len(script)} chars | {len(script_slides)} slides")
 
-    # Parse script into slides
-    script_slides = parse_script(script_text)
-    print(f"  Slides: {len(script_slides)} sections")
+    # Build all slides
+    print("\n  Building slides...")
+    img_paths = []; narrators = []
 
-    # Generate slide images
-    print("\n  Generating slide images...")
-    slide_image_paths = []
-    color = topic["color"]
+    # 0. Title
+    p = os.path.join(OUTPUT_DIR,"s00_title.png")
+    slide_title(title, tt.replace('_',' ').title(), bc, p)
+    img_paths.append(p)
+    narrators.append(f"Aaj AI360Trading par — {title}. Mere saath bane rahiye.")
 
-    # Slide 0 — Title
-    title_path = os.path.join(OUTPUT_DIR, "slide_00_title.png")
-    create_title_slide(title, f"{topic['type'].replace('_',' ').title()} | AI360Trading", color, title_path)
-    slide_image_paths.append(title_path)
-    # Hook intro — use first line of actual script as opener, not robotic welcome
-    script_slides.insert(0, {"narrator": f"Today on AI360Trading — {title}. Stay with me for the key levels.", "slide": "Title"})
+    # 1. Fear & Greed
+    p = os.path.join(OUTPUT_DIR,"s01_fg.png")
+    slide_fear_greed(fg_val, fg_label, prices, bc, p)
+    img_paths.append(p)
+    narrators.append(
+        f"Shuru karne se pehle — Fear and Greed index abhi {fg_val} pe hai, "
+        f"matlab {fg_label}. NIFTY {prices.get('NIFTY 50',{}).get('display','N/A')}, "
+        f"S&P 500 {prices.get('S&P 500',{}).get('display','N/A')}, "
+        f"aur Bitcoin {prices.get('Bitcoin',{}).get('display','N/A')} pe chal raha hai.")
 
-    # Slide 1 — Fear & Greed + live snapshot (all topics)
-    fg_slide_path = os.path.join(OUTPUT_DIR, "slide_01_fg.png")
-    create_fear_greed_slide(fg_val, fg_label, prices, color, fg_slide_path)
-    slide_image_paths.append(fg_slide_path)
-    script_slides.insert(1, {
-        "narrator": f"Before we dive in — the Fear and Greed index is currently at {fg_val}, showing {fg_label}. NIFTY is at {prices.get('NIFTY 50',{}).get('display','N/A')}, S&P 500 at {prices.get('S&P 500',{}).get('display','N/A')}, and Bitcoin at {prices.get('Bitcoin',{}).get('display','N/A')}.",
-        "slide": "Fear & Greed"
-    })
+    # 2. Chart (market videos)
+    if tt in ["nifty","weekly","stocks"]:
+        p = os.path.join(OUTPUT_DIR,"s02_chart.png")
+        slide_candlestick_chart(prices, f"NIFTY 50 — {date_display}", bc, p)
+        img_paths.append(p)
+        s1n = int(np_*0.986); r1n = int(np_*1.014)
+        mood = "pressure mein" if npct<-1 else "recovery mein" if npct>0 else "flat"
+        narrators.append(
+            f"NIFTY abhi {prices.get('NIFTY 50',{}).get('display','N/A')} pe hai — {mood}. "
+            f"Jo level main dekhna chahta hoon neeche {s1n:,} hai, aur upar {r1n:,} hai. "
+            f"In dono ke beech jo hoga woh batayega market kis direction mein ja rahi hai.")
 
-    # Slide 2 — Candlestick chart (for market topics)
-    if topic["type"] in ["nifty_analysis", "weekly_outlook", "top5_stocks"]:
-        chart_path = os.path.join(OUTPUT_DIR, "slide_02_chart.png")
-        create_candlestick_chart_slide(prices, f"NIFTY 50 — {date_display}", color, chart_path)
-        slide_image_paths.append(chart_path)
-        nifty_p   = prices.get('NIFTY 50',{}).get('price', 24000)
-        nifty_pct = prices.get('NIFTY 50',{}).get('pct', 0)
-        mood_word = "under pressure" if nifty_pct < -1 else "selling off hard" if nifty_pct < -2 else "trying to recover" if nifty_pct > 0 else "flat"
-        s1 = int(nifty_p * 0.986)
-        r1 = int(nifty_p * 1.014)
-        script_slides.insert(2, {
-            "narrator": f"NIFTY is currently at {prices.get('NIFTY 50',{}).get('display','N/A')} — {mood_word}. The level I want you to focus on is {s1:,} below and {r1:,} above. What happens at these two levels in the next few sessions will tell us a lot about where this market is heading.",
-            "slide": "NIFTY Chart"
-        })
+    # 3. SR Table (market + bitcoin)
+    if tt in ["nifty","bitcoin","weekly"]:
+        p = os.path.join(OUTPUT_DIR,"s03_sr.png")
+        slide_sr_table(prices, bc, p)
+        img_paths.append(p)
+        narrators.append(
+            f"Ye hain aaj ke key levels. NIFTY ke liye {int(np_*0.986):,} support pe nazar rakhna. "
+            f"Bitcoin ke liye ${int(bp_*0.95):,} woh zone hai jahan buyers dikhne chahiye. "
+            f"S&P 500 {prices.get('S&P 500',{}).get('display','N/A')} pe hai — "
+            f"yeh raat ko kahan band hota hai kal ke NIFTY ka tone set karega.")
 
-    # Slide 3 — SR Levels table (market topics)
-    if topic["type"] in ["nifty_analysis", "bitcoin_analysis", "weekly_outlook"]:
-        sr_path = os.path.join(OUTPUT_DIR, "slide_03_sr.png")
-        create_sr_levels_slide(prices, color, sr_path)
-        slide_image_paths.append(sr_path)
-        nifty_now = prices.get('NIFTY 50',{}).get('price', 24000)
-        btc_now   = prices.get('Bitcoin',{}).get('price', 65000)
-        sp_now    = prices.get('S&P 500',{}).get('price', 5500)
-        script_slides.insert(3, {
-            "narrator": f"These are the levels I am personally watching today. For NIFTY — {int(nifty_now*0.986):,} is the key support. If that breaks on volume, the next stop is {int(nifty_now*0.972):,}. Resistance sits at {int(nifty_now*1.014):,}. For Bitcoin — {int(btc_now*0.95):,} is where buyers need to show up. S&P 500 is at {sp_now:,.0f} — and what happens there overnight will set the tone for NIFTY tomorrow morning.",
-            "slide": "Key Levels"
-        })
+    # 4. Education-specific slides
+    if tt == "education":
+        p = os.path.join(OUTPUT_DIR,"s04_edu.png")
+        slide_education_icon("5 Must-Know Candlestick Patterns",
+            ["Doji — Indecision Signal","Hammer — Reversal Bottom",
+             "Hanging Man — Reversal Top","Engulfing — Strong Signal",
+             "Morning Star — 3 Candle Reversal","Shooting Star — Rejection"],
+            bc, p)
+        img_paths.append(p)
+        narrators.append("Ye hain 5 patterns jo har trader ko aane chahiye. Aaj inhe ek-ek karke samjhenge.")
 
-    # Content slides from script
-    for i, slide in enumerate(script_slides[4:], start=4):
-        img_path = os.path.join(OUTPUT_DIR, f"slide_{i:02d}_content.png")
-        create_content_slide(
-            slide.get("slide", slide.get("narrator","")[:80]),
-            slide.get("narrator", ""),
-            color, i, len(script_slides), img_path
-        )
-        slide_image_paths.append(img_path)
+    if tt == "finance":
+        p = os.path.join(OUTPUT_DIR,"s04_fin.png")
+        slide_finance_chart("sip_growth", prices, bc, p)
+        img_paths.append(p)
+        narrators.append(
+            "Ye chart dekho. SIP rupees 5 hazar per month, aur lump sum rupees 6 lakh ek saath. "
+            "10 saal baad SIP ne rupees 23 lakh bana diya. Lump sum ne sirf rupees 18 lakh. "
+            "Iska matlab hai SIP ne zyaada returns diye? Haan — par honest answer aur complicated hai.")
 
-    # Outro slide
-    outro_path = os.path.join(OUTPUT_DIR, "slide_outro.png")
-    create_outro_slide(color, outro_path)
-    slide_image_paths.append(outro_path)
-    script_slides.append({
-        "narrator": "Those are the levels I am watching today. If this was useful — subscribe, and I will see you tomorrow morning before the market opens.",
-        "slide": "Outro"
-    })
+    if tt == "support":
+        p = os.path.join(OUTPUT_DIR,"s04_sup.png")
+        slide_education_icon("Support & Resistance — Key Concepts",
+            [f"S1 = {int(np_*0.986):,} — Previous swing low",
+             f"R1 = {int(np_*1.014):,} — Previous swing high",
+             "Round numbers = Psychological magnets",
+             "Volume confirms the level",
+             "Bounce trade — wait for confirmation",
+             "Fake breakout = Biggest beginner trap"],
+            bc, p)
+        img_paths.append(p)
+        narrators.append(
+            f"Ye levels hain jo main aaj use kar raha hoon. {int(np_*0.986):,} support, "
+            f"{int(np_*1.014):,} resistance. Inhe mark kar lo apne chart pe.")
 
-    # Generate thumbnail — use relevant asset pct for this video type
-    topic_type = topic["type"]
-    if topic_type == "bitcoin_analysis":
-        thumb_pct = prices.get("Bitcoin", {}).get("pct", 0)
-    elif topic_type in ("personal_finance", "education_candlestick", "education_patterns"):
-        # neutral topics — use NIFTY but treat as green/neutral
-        thumb_pct = abs(prices.get("NIFTY 50", {}).get("pct", 0))  # always green
-    else:
-        thumb_pct = prices.get("NIFTY 50", {}).get("pct", 0)
-    thumb_path = os.path.join(OUTPUT_DIR, "thumbnail.png")
-    create_thumbnail(title, prices, thumb_pct, color, thumb_path)
-    print(f"  ✅ Thumbnail created")
+    # 5-N. Script content slides
+    for i, sl in enumerate(script_slides[:8], start=len(img_paths)):
+        p = os.path.join(OUTPUT_DIR,f"s{i:02d}_content.png")
+        slide_content(sl.get("slide",""),sl.get("narrator",""),
+                      bc, i+1, len(script_slides)+4, p)
+        img_paths.append(p)
+        narrators.append(sl.get("narrator",""))
 
-    # Assemble video
+    # Outro
+    p = os.path.join(OUTPUT_DIR,"s_outro.png")
+    slide_outro(bc, p)
+    img_paths.append(p)
+    narrators.append(
+        "Ye the aaj ke key levels aur mera personal view. "
+        "Agar ye useful laga — subscribe karo, aur kal subah market khulne se pehle milte hain.")
+
+    # Thumbnail
+    thumb_pct = bpct if tt=="bitcoin" else (abs(npct) if tt in ["education","finance","support"] else npct)
+    tp = os.path.join(OUTPUT_DIR,"thumbnail.png")
+    create_thumbnail(title, prices, thumb_pct, bc, tp)
+    print("  Thumbnail created")
+
+    # Assemble
     print("\n  Assembling video...")
-    video_path = os.path.join(OUTPUT_DIR, f"ai360trading_{date_str}_{topic['type']}.mp4")
-    success = assemble_video(slide_image_paths, script_slides, prices, topic, video_path)
+    vp = os.path.join(OUTPUT_DIR,f"ai360_{date_str}_{tt}.mp4")
+    ok = assemble(img_paths, narrators, vp)
+    if not ok: sys.exit(1)
+    print(f"  Video ready: {os.path.getsize(vp)/1024/1024:.1f} MB")
 
-    if not success:
-        print("❌ Video assembly failed")
-        sys.exit(1)
-
-    size_mb = os.path.getsize(video_path) / (1024*1024)
-    print(f"  ✅ Video ready: {size_mb:.1f} MB")
-
-    # Upload to YouTube
+    # Upload
     print("\n  Uploading to YouTube...")
-    video_id = upload_to_youtube(
-        video_path,
-        title,
-        description,
-        topic["tags"],
-        thumbnail_path=thumb_path
-    )
-
-    if video_id:
-        print(f"\n{'='*60}")
-        print(f"  ✅ VIDEO LIVE: https://www.youtube.com/watch?v={video_id}")
-        print(f"  Title: {title[:70]}")
-        print(f"  Channel: https://www.youtube.com/@ai360trading")
-        print(f"{'='*60}")
+    vid_id = upload_yt(vp, title, desc, topic["tags"], tp)
+    if vid_id:
+        print(f"\n  LIVE: https://www.youtube.com/watch?v={vid_id}")
     else:
-        print(f"\n  Video saved locally: {video_path}")
-        print("  Set YOUTUBE_CREDENTIALS in GitHub Secrets to enable auto-upload")
+        print(f"  Saved: {vp}")
+        print("  Set YOUTUBE_CREDENTIALS in GitHub Secrets to enable upload")
 
 if __name__ == "__main__":
-    generate_video()
+    main()
