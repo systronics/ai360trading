@@ -8,6 +8,8 @@
   <meta name="description" content="{% if page.description %}{{ page.description }}{% else %}AI360Trading provides institutional-grade price action and algorithmic market intelligence.{% endif %}">
   <meta name="keywords" content="{% if page.keywords %}{{ page.keywords }}{% else %}stock market, global market intelligence, NASDAQ, FTSE 100, trading signals, market analysis{% endif %}">
   <meta name="author" content="Amit Kumar">
+
+  <!-- Canonical -->
   <link rel="canonical" href="{{ page.url | replace:'index.html','' | absolute_url }}">
 
   <!-- Open Graph -->
@@ -28,35 +30,66 @@
   <link rel="shortcut icon" href="{{ '/favicon.ico' | relative_url }}">
   <link rel="apple-touch-icon" sizes="180x180" href="{{ '/apple-touch-icon.png' | relative_url }}">
 
-  <!-- Fonts & Styles -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <!-- FIX 1: Font Awesome — load async to remove render blocking -->
+  <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"></noscript>
+
+  <!-- FIX 2: Google Fonts — preconnect + display=swap already set, add font-display -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <!-- FIX 3: Load font async with media trick — removes render blocking -->
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet"></noscript>
+
+  <!-- FIX 4: Local CSS — these are fine, served from same domain -->
   <link rel="stylesheet" href="{{ '/public/css/poole.css' | relative_url }}">
   <link rel="stylesheet" href="{{ '/public/css/gpstyle.css' | relative_url }}">
 
-  <!-- JSON-LD Structured Data -->
+  <!-- FIX 5: Inline critical font fallback so page renders immediately without flash -->
+  <style>
+    body { font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+  </style>
+
+  <!-- JSON-LD Structured Data — FIX 6: moved to bottom of head, non-blocking -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "NewsArticle",
-    "headline": "{{ page.title }}",
+    "headline": "{{ page.title | escape }}",
     "datePublished": "{{ page.date | date_to_xmlschema }}",
+    "dateModified": "{{ page.date | date_to_xmlschema }}",
     "author": {
       "@type": "Person",
-      "name": "Amit Kumar"
+      "name": "Amit Kumar",
+      "url": "https://ai360trading.in/about/"
     },
     "publisher": {
       "@type": "Organization",
       "name": "AI360Trading",
+      "url": "https://ai360trading.in",
       "logo": {
         "@type": "ImageObject",
         "url": "{{ '/public/image/header.webp' | absolute_url }}"
       }
     },
-    "description": "{% if page.description %}{{ page.description }}{% else %}Global Market Intelligence Report by AI360Trading{% endif %}",
-    "url": "{{ page.url | absolute_url }}"
+    "description": "{% if page.description %}{{ page.description | escape }}{% else %}Global Market Intelligence Report by AI360Trading{% endif %}",
+    "url": "{{ page.url | absolute_url }}",
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": "{{ page.url | absolute_url }}"
+    }
   }
   </script>
+
+  <!-- Google Analytics — async, non-blocking -->
+  {% if site.google_analytics %}
+  <script async src="https://www.googletagmanager.com/gtag/js?id={{ site.google_analytics }}"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', '{{ site.google_analytics }}', { anonymize_ip: true });
+  </script>
+  {% endif %}
+
 </head>
