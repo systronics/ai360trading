@@ -780,7 +780,7 @@ def slide_content(slide_text, narrator_text, brand_color, num, total, path):
     heading = re.sub(r'[*#]','',heading).strip()[:60]
 
     # Heading block with left border
-    draw.rectangle([40,74,6,74+56], fill=brand_color)   # left colored strip
+    draw.rectangle([6,74,40,74+56], fill=brand_color)   # left colored strip
     y = draw_text_wrapped(draw, heading, 50, 82,
                           W-80, get_font(36, bold=True), C["white"], spacing=10)
     y += 20
