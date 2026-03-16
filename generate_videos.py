@@ -1098,10 +1098,10 @@ def upload_yt(video_path, title, description, tags, thumb_path=None):
             if status: print(f"  Upload: {int(status.progress()*100)}%")
 
         vid_id = resp['id']
-        if thumb_path and os.path.exists(thumb_path):
-            yt.thumbnails().set(
-                videoId=vid_id,
-                media_body=MediaFileUpload(thumb_path)).execute()
+        # if thumb_path and os.path.exists(thumb_path):
+        #     yt.thumbnails().set(
+        #         videoId=vid_id,
+        #         media_body=MediaFileUpload(thumb_path)).execute()
         return vid_id
 
     except Exception as e:
