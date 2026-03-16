@@ -1,11 +1,20 @@
 ---
 layout: default
 ---
-<article class="post-outer-container">
+<article class="post-outer-container" itemscope itemtype="https://schema.org/NewsArticle">
+
+  <!-- FIX: Hidden machine-readable metadata for crawlers -->
+  <meta itemprop="headline" content="{{ page.title }}">
+  <meta itemprop="datePublished" content="{{ page.date | date_to_xmlschema }}">
+  <meta itemprop="dateModified" content="{{ page.date | date_to_xmlschema }}">
+  <meta itemprop="author" content="Amit Kumar">
+  <meta itemprop="description" content="{{ page.description }}">
+
   <div class="post-article-card" {% if page.lang %}lang="{{page.lang}}"{% endif %}>
-    
+
     <header class="post-header-section">
-      <h1 class="post-title-main">{{ page.title }}</h1>
+      <!-- FIX: H1 is present — added itemprop for schema reinforcement -->
+      <h1 class="post-title-main" itemprop="name">{{ page.title }}</h1>
       <div class="post-metadata-row">
         <span class="meta-item">📅 {{ page.date | date: "%b %-d, %Y" }}</span>
         <span class="meta-divider">|</span>
@@ -21,19 +30,30 @@ layout: default
           <a href="/topics/{{ page.pillar }}/" class="meta-item pillar-badge pillar-badge-{{ page.pillar }}">{{ page.pillar | replace: "-", " " | upcase }}</a>
         {% endif %}
       </div>
+
+      <!-- FIX: Live market data snippet — adds relevant keyword-rich text near H1 -->
+      {% if page.nifty_level or page.sp500_level or page.bitcoin_level %}
+      <div class="post-live-data-strip" aria-label="Live market data at time of analysis">
+        {% if page.nifty_level and page.nifty_level != "N/A" %}<span class="live-data-item"><strong>NIFTY</strong> {{ page.nifty_level }}</span>{% endif %}
+        {% if page.sp500_level and page.sp500_level != "N/A" %}<span class="live-data-item"><strong>S&amp;P 500</strong> {{ page.sp500_level }}</span>{% endif %}
+        {% if page.bitcoin_level and page.bitcoin_level != "N/A" %}<span class="live-data-item"><strong>Bitcoin</strong> {{ page.bitcoin_level }}</span>{% endif %}
+        {% if page.gold_level and page.gold_level != "N/A" %}<span class="live-data-item"><strong>Gold</strong> {{ page.gold_level }}</span>{% endif %}
+        {% if page.fear_greed and page.fear_greed != "" %}<span class="live-data-item"><strong>Fear &amp; Greed</strong> {{ page.fear_greed }}</span>{% endif %}
+      </div>
+      {% endif %}
     </header>
 
-    <div class="post-body-content">
+    <div class="post-body-content" itemprop="articleBody">
       {{ content }}
     </div>
 
     <!-- AUTHOR BIO BOX -->
-    <div class="author-bio-box">
+    <div class="author-bio-box" itemscope itemtype="https://schema.org/Person">
       <div class="author-bio-inner">
-        <img src="/public/image/person_author.jpg" alt="Amit Kumar AI360Trading" class="author-avatar" width="72" height="72" loading="lazy">
+        <img src="/public/image/person_author.jpg" alt="Amit Kumar AI360Trading Founder" class="author-avatar" width="72" height="72" loading="lazy" itemprop="image">
         <div class="author-bio-text">
-          <strong class="author-name">Amit Kumar</strong>
-          <span class="author-title">Founder, AI360Trading | Independent Market Analyst | Haridwar, India</span>
+          <strong class="author-name" itemprop="name">Amit Kumar</strong>
+          <span class="author-title" itemprop="jobTitle">Founder, AI360Trading | Independent Market Analyst | Haridwar, India</span>
           <p class="author-desc">Tracking markets daily across India, US, and Crypto. Not SEBI registered. All analysis is educational — trade at your own risk.</p>
         </div>
       </div>
@@ -44,7 +64,7 @@ layout: default
       <p class="share-label">EXPLORE MORE:</p>
       <div class="related-links">
         <a href="/topics/stock-market/" class="rel-link">📊 Stock Market</a>
-        <a href="/topics/bitcoin/" class="rel-link">₿ Bitcoin & Crypto</a>
+        <a href="/topics/bitcoin/" class="rel-link">₿ Bitcoin &amp; Crypto</a>
         <a href="/topics/personal-finance/" class="rel-link">💰 Personal Finance</a>
         <a href="/topics/ai-trading/" class="rel-link">🤖 AI Trading</a>
         <a href="/swing-dashboard/" class="rel-link">📈 Swing Dashboard</a>
@@ -57,26 +77,26 @@ layout: default
     <div class="post-share-logic">
       <p class="share-label">SHARE ANALYSIS:</p>
       <div class="share-buttons-gap">
-        <a href="https://t.me/share/url?url={{ page.url | absolute_url | uri_escape }}&text={{ page.title | uri_escape }}" target="_blank" class="pc-share-btn tg">📣 Telegram</a>
-        <a href="https://api.whatsapp.com/send?text={{ page.title | uri_escape }}%20{{ page.url | absolute_url | uri_escape }}" target="_blank" class="pc-share-btn wa">💬 WhatsApp</a>
-        <a href="https://twitter.com/intent/tweet?url={{ page.url | absolute_url | uri_escape }}&text={{ page.title | uri_escape }}" target="_blank" class="pc-share-btn tw">𝕏 Twitter</a>
-        <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ page.url | absolute_url | uri_escape }}" target="_blank" class="pc-share-btn li">🔗 LinkedIn</a>
+        <a href="https://t.me/share/url?url={{ page.url | absolute_url | uri_escape }}&text={{ page.title | uri_escape }}" target="_blank" rel="noopener" class="pc-share-btn tg">📣 Telegram</a>
+        <a href="https://api.whatsapp.com/send?text={{ page.title | uri_escape }}%20{{ page.url | absolute_url | uri_escape }}" target="_blank" rel="noopener" class="pc-share-btn wa">💬 WhatsApp</a>
+        <a href="https://twitter.com/intent/tweet?url={{ page.url | absolute_url | uri_escape }}&text={{ page.title | uri_escape }}" target="_blank" rel="noopener" class="pc-share-btn tw">𝕏 Twitter</a>
+        <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ page.url | absolute_url | uri_escape }}" target="_blank" rel="noopener" class="pc-share-btn li">🔗 LinkedIn</a>
       </div>
     </div>
 
     <footer class="post-terminal-footer">
       <p>Verified Price Action Research | AI360Trading Insights</p>
     </footer>
-    
+
   </div>
 </article>
 
 <!-- FLOATING MOBILE BAR -->
-<div class="mobile-social-bar">
-  <a href="https://t.me/share/url?url={{ page.url | absolute_url | uri_escape }}&text={{ page.title | uri_escape }}" class="share-icon telegram">📣 Telegram</a>
-  <a href="https://api.whatsapp.com/send?text={{ page.title | uri_escape }}%20{{ page.url | absolute_url | uri_escape }}" class="share-icon whatsapp">💬 WhatsApp</a>
-  <a href="https://twitter.com/intent/tweet?url={{ page.url | absolute_url | uri_escape }}&text={{ page.title | uri_escape }}" target="_blank" class="share-icon twitter">𝕏 Twitter</a>
-  <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ page.url | absolute_url | uri_escape }}" target="_blank" class="share-icon linkedin">🔗 LinkedIn</a>
+<div class="mobile-social-bar" aria-label="Share this article">
+  <a href="https://t.me/share/url?url={{ page.url | absolute_url | uri_escape }}&text={{ page.title | uri_escape }}" class="share-icon telegram" rel="noopener">📣 Telegram</a>
+  <a href="https://api.whatsapp.com/send?text={{ page.title | uri_escape }}%20{{ page.url | absolute_url | uri_escape }}" class="share-icon whatsapp" rel="noopener">💬 WhatsApp</a>
+  <a href="https://twitter.com/intent/tweet?url={{ page.url | absolute_url | uri_escape }}&text={{ page.title | uri_escape }}" target="_blank" rel="noopener" class="share-icon twitter">𝕏 Twitter</a>
+  <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ page.url | absolute_url | uri_escape }}" target="_blank" rel="noopener" class="share-icon linkedin">🔗 LinkedIn</a>
 </div>
 
 <style>
@@ -85,6 +105,10 @@ layout: default
   .post-header-section { text-align: center; margin-bottom: 40px; border-bottom: 1px solid #f1f5f9; padding-bottom: 25px; }
   .post-title-main { color: #0062ff; font-weight: 900; font-size: 28px !important; line-height: 1.2; margin-bottom: 15px; }
   .post-metadata-row { font-size: 13px; color: #64748b; font-weight: 700; display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; }
+  /* FIX: Live data strip */
+  .post-live-data-strip { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 16px; padding: 10px 16px; background: #f8faff; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 13px; color: #1e293b; }
+  .live-data-item { white-space: nowrap; }
+  .live-data-item strong { color: #0062ff; }
   .pillar-badge { padding: 3px 10px; border-radius: 4px; font-size: 11px; font-weight: 800; text-decoration: none; display: inline-block; transition: 0.2s; }
   .pillar-badge-stock-market   { background: #eff6ff; color: #0062ff; border: 1px solid #0062ff; }
   .pillar-badge-bitcoin        { background: #fff7ed; color: #f7931a; border: 1px solid #f7931a; }
@@ -115,7 +139,6 @@ layout: default
   .post-terminal-footer { margin-top: 50px; padding-top: 20px; border-top: 1px dashed #e2e8f0; text-align: center; }
   .post-terminal-footer p { font-size: 13px; color: #94a3b8; font-style: italic; }
   .sub-box, #sub-box, .subscription-container, .subscription-box { display: none !important; visibility: hidden !important; }
-  /* Author bio box */
   .author-bio-box { margin: 35px 0; padding: 24px; background: #f8faff; border-radius: 12px; border: 1px solid #e2e8f0; border-left: 4px solid #0062ff; }
   .author-bio-inner { display: flex; gap: 18px; align-items: flex-start; }
   .author-avatar { width: 72px; height: 72px; border-radius: 50%; object-fit: cover; border: 3px solid #0062ff; flex-shrink: 0; }
@@ -132,5 +155,6 @@ layout: default
     .post-outer-container { padding-bottom: 80px; }
     .post-share-logic { display: none; }
     .rel-link { font-size: 12px; padding: 8px 12px; }
+    .post-live-data-strip { font-size: 12px; gap: 8px; }
   }
 </style>
