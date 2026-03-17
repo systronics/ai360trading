@@ -1,26 +1,18 @@
-# ─────────────────────────────────────────────
 # TELEGRAM & GOOGLE SHEETS
-# ─────────────────────────────────────────────
 gspread>=6.1.0
 oauth2client>=4.1.3
 requests>=2.32.0
 pytz>=2025.1
 
-# ─────────────────────────────────────────────
-# YOUTUBE VIDEO BOT — Market Data
-# ─────────────────────────────────────────────
+# MARKET DATA
 yfinance>=0.2.40
 pandas>=2.0.0
 numpy>=1.26.0
 
-# ─────────────────────────────────────────────
-# YOUTUBE VIDEO BOT — AI Script Generation
-# ─────────────────────────────────────────────
+# AI SCRIPT
 groq>=1.0.0
 
-# ─────────────────────────────────────────────
-# YOUTUBE VIDEO BOT — Video & Audio
-# ─────────────────────────────────────────────
+# VIDEO & AUDIO
 Pillow>=10.3.0
 moviepy==1.0.3
 edge-tts>=6.1.0
@@ -28,17 +20,13 @@ imageio>=2.34.0
 imageio-ffmpeg>=0.4.9
 matplotlib>=3.8.0
 
-# ─────────────────────────────────────────────
-# YOUTUBE UPLOAD — Google Auth
-# ─────────────────────────────────────────────
+# YOUTUBE UPLOAD
 google-api-python-client>=2.120.0
 google-auth>=2.30.0
 google-auth-oauthlib>=1.2.0
 pynacl>=1.5.0
 
-# ─────────────────────────────────────────────
-# ARTICLES, TRENDS & SYSTEM
-# ─────────────────────────────────────────────
+# SYSTEM
 pytrends>=4.9.0
 python-dotenv>=1.0.1
 certifi>=2025.1.0
