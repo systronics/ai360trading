@@ -4,12 +4,12 @@ oauth2client>=4.1.3
 requests>=2.32.0
 pytz>=2025.1
 
-# MARKET DATA
+# MARKET DATA — GLOBAL
 yfinance>=0.2.40
 pandas>=2.0.0
 numpy>=1.26.0
 
-# AI SCRIPT
+# AI SCRIPT GENERATION
 groq>=1.0.0
 
 # VIDEO & AUDIO
