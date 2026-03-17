@@ -1,306 +1,435 @@
 """
-AI360Trading — Smart Content Calendar
-Every day = different educational topic based on what Indian traders
-actually search for. Topics rotate intelligently by day-of-week.
+AI360Trading — Global Content Calendar
+Smart topic rotation covering ALL markets and ALL audiences worldwide.
+
+Monday    = Options & Derivatives (universal — works for US, India, UK, Brazil)
+Tuesday   = Technical Analysis (universal charts — any market)
+Wednesday = Fundamental + Macro + Global Events
+Thursday  = Strategies (intraday, swing, positional — universal)
+Friday    = Psychology + Risk Management (universal)
 """
 
-# ══════════════════════════════════════════════════════════
-# CONTENT CALENDAR — What to teach on which day
-# Monday   = Options & Derivatives (most searched on Mondays)
-# Tuesday  = Technical Analysis & Indicators
-# Wednesday= Fundamental + Sector + News Analysis
-# Thursday = Strategies & Trade Setups (pre-expiry week)
-# Friday   = Psychology, Risk, Weekly Review
-# ══════════════════════════════════════════════════════════
+from datetime import datetime
 
+# ══════════════════════════════════════════════════════════
+# MONDAY — OPTIONS & DERIVATIVES (Global)
+# ══════════════════════════════════════════════════════════
 MONDAY_TOPICS = [
     {
-        "title": "Options Trading Basics — Call & Put Explained",
+        "title": "Options Trading Complete Beginner Guide",
         "category": "Options",
         "level": "Beginner",
-        "why_today": "Monday: fresh week, beginners start learning",
+        "target_audience": "US, India, UK, Brazil — universal",
         "slides": [
-            {"heading": "What is an Option?", "points": ["Right but not obligation to buy/sell","Call = right to BUY","Put = right to SELL","Premium is the price you pay","Expiry date — when it expires"], "visual": "comparison_table"},
-            {"heading": "Call Option — How it Works", "points": ["You buy CALL when market will go UP","Example: Nifty at 22000, buy 22200 CE","If Nifty goes to 22500 — profit","If Nifty falls — max loss is premium paid","Risk is limited, reward is unlimited"], "visual": "payoff_chart"},
-            {"heading": "Put Option — How it Works", "points": ["You buy PUT when market will go DOWN","Example: Nifty at 22000, buy 21800 PE","If Nifty falls to 21500 — profit","If Nifty rises — max loss is premium paid","Used for hedging your portfolio too"], "visual": "payoff_chart"},
-            {"heading": "In The Money vs Out The Money", "points": ["ITM Call: Strike BELOW current price","OTM Call: Strike ABOVE current price","ATM: Strike = current price","ITM has intrinsic value","OTM is pure time value"], "visual": "levels_diagram"},
-            {"heading": "Option Premium — What affects it?", "points": ["Underlying price movement","Time to expiry (theta decay)","Volatility (India VIX)","Interest rates","Dividends"], "visual": "factors_chart"},
-            {"heading": "Common Beginner Mistakes in Options", "points": ["Buying far OTM options — lottery mindset","Holding till expiry hoping for recovery","Ignoring theta decay","Not using stop loss","Overtrading on expiry day"], "visual": "mistake_icons"},
-            {"heading": "Golden Rules for Option Buyers", "points": ["Trade only with money you can lose","Set max loss per trade before entering","Exit at 30-40% profit — don't be greedy","Avoid trading first 15 min","Weekly expiry = faster theta decay"], "visual": "rules_checklist"},
+            {"heading": "What is an Option Contract?",
+             "points": ["Right but not obligation to buy or sell","Call option = right to BUY","Put option = right to SELL","Premium = price you pay for this right","Works for stocks, indices, crypto — any market worldwide"]},
+            {"heading": "How Call Options Make Money",
+             "points": ["Buy call when you think price will rise","Example: Apple at 180, buy 185 call","If Apple rises to 200 — your call explodes in value","If Apple stays below 185 — you lose only the premium","Maximum loss is always just the premium paid"]},
+            {"heading": "How Put Options Make Money",
+             "points": ["Buy put when you think price will fall","Used to profit from crashes","Used to protect your stock portfolio","Example: S&P 500 drops 10% — your put 5x","Every big investor uses puts as insurance"]},
+            {"heading": "Why Options Beat Stocks for Returns",
+             "points": ["Control 100 shares for fraction of the cost","10% stock move can mean 100% option return","Risk is always capped at premium paid","Leverage without borrowing money","Why hedge funds and institutions love options"]},
+            {"heading": "The 3 Rules Every Option Buyer Must Know",
+             "points": ["Time is your enemy — options lose value daily","Buy options with at least 30 days to expiry","Always set a stop loss at 40% of premium","Exit winners at 50-100% profit — do not be greedy","Weekly options = highest risk, highest reward"]},
+            {"heading": "Options in Different Markets",
+             "points": ["US: SPY QQQ Apple Tesla options most liquid","India: Nifty Bank Nifty weekly options most popular","UK: FTSE options available on spread betting platforms","Brazil: Bovespa options very actively traded","Crypto: Bitcoin Ethereum options on Deribit and Bybit"]},
         ]
     },
     {
-        "title": "Option Chain Reading — Complete Guide",
+        "title": "Option Selling — How to Collect Premium Like a Bank",
         "category": "Options",
         "level": "Intermediate",
+        "target_audience": "Global",
         "slides": [
-            {"heading": "What is Option Chain?", "points": ["Live table of all strikes","Shows CE and PE data","OI = Open Interest = active contracts","Volume = contracts traded today","IV = Implied Volatility"], "visual": "option_chain_screenshot"},
-            {"heading": "Open Interest — What it Tells You", "points": ["High CE OI at a strike = strong resistance","High PE OI at a strike = strong support","Rising OI with rising price = bullish","Rising OI with falling price = bearish","Unwinding OI = reversal signal"], "visual": "oi_chart"},
-            {"heading": "Put Call Ratio (PCR)", "points": ["PCR = Total PE OI / Total CE OI","PCR above 1.2 = Bearish sentiment, often contrarian bullish","PCR below 0.8 = Bullish sentiment, often contrarian bearish","PCR 0.9 to 1.1 = Neutral market","Best used with price action"], "visual": "pcr_gauge"},
-            {"heading": "Max Pain Theory", "points": ["Level where most option buyers lose","Market often gravitates toward max pain on expiry","Not always accurate but useful reference","Used by institutional traders","Check every week before expiry"], "visual": "max_pain_chart"},
-            {"heading": "How to Find Support & Resistance", "points": ["Find strike with highest PE OI = support","Find strike with highest CE OI = resistance","These are your key levels for the week","Change weekly on Thursday after expiry","More reliable than normal S/R for short term"], "visual": "sr_diagram"},
+            {"heading": "Why Option Sellers Win Long Term",
+             "points": ["80% of options expire worthless","Sellers collect that premium every expiry","Time decay works FOR sellers, AGAINST buyers","Like being the casino — house always wins over time","Warren Buffett sold options to buy Coca-Cola cheaper"]},
+            {"heading": "Covered Call — Generate Monthly Income",
+             "points": ["Own 100 shares of a stock you like","Sell a call option every month against those shares","Collect premium whether stock goes up, down, or sideways","Example: Own Apple, sell monthly call, collect 1-2% every month","This is how retirees in US generate income from stocks"]},
+            {"heading": "Cash Secured Put — Buy Stocks at a Discount",
+             "points": ["Pick a stock you want to own","Sell a put below current price and collect premium","If stock falls to your strike — you buy it at a discount","If stock stays up — keep the premium and repeat","Warren Buffett used this to buy Coca-Cola in the 1990s"]},
+            {"heading": "Iron Condor — Profit When Market Does Nothing",
+             "points": ["Sell both a call spread and a put spread","Profit when market stays in a range","Perfect for sideways markets and low volatility periods","Maximum profit if market closes between your short strikes","Used widely on SPX, Nifty, FTSE during consolidation"]},
+            {"heading": "Risk Management for Option Sellers",
+             "points": ["Always buy a further out option to cap your loss","Never sell naked options without a hedge","Exit when loss equals 2x the premium collected","Avoid holding through major news events","Position size: never risk more than 5% of account on one trade"]},
         ]
     },
     {
-        "title": "Option Selling — The Professional Strategy",
+        "title": "Understanding Greeks — Delta Theta Vega Gamma",
         "category": "Options",
         "level": "Advanced",
+        "target_audience": "Global",
         "slides": [
-            {"heading": "Why 90% of Options Expire Worthless", "points": ["Time decay (theta) destroys premium every day","Sellers collect premium = positive theta","Buyers fight time every single day","On expiry day — most OTM options go to zero","This is why sellers have statistical edge"], "visual": "theta_decay_curve"},
-            {"heading": "Covered Call Strategy", "points": ["Own shares + Sell Call option","Generate monthly income from your shares","Example: Hold Reliance, Sell CE every month","Maximum profit = premium collected","Risk: stock rises sharply above strike"], "visual": "covered_call_diagram"},
-            {"heading": "Cash Secured Put Strategy", "points": ["Sell Put on stock you want to own","Collect premium while waiting to buy","If stock falls below strike — you buy it cheap","If stock stays up — keep the premium","Warren Buffett uses this strategy"], "visual": "csp_diagram"},
-            {"heading": "Iron Condor — Range Bound Strategy", "points": ["Sell OTM Call + Buy further OTM Call","Sell OTM Put + Buy further OTM Put","Profit when market stays in a range","Maximum loss is defined and limited","Best for sideways markets — like pre RBI policy"], "visual": "iron_condor_chart"},
-            {"heading": "Risk Management for Option Sellers", "points": ["Never sell naked options without hedge","Keep margin buffer of 50% extra","Exit if premium doubles against you","Avoid holding through big events","Position size: max 5% of capital per trade"], "visual": "risk_table"},
+            {"heading": "Why Greeks Are the Secret Language of Options",
+             "points": ["Greeks tell you exactly how your option will behave","Without Greeks you are flying blind","Professional traders think in Greeks not prices","Master these and you trade like an institution","Same Greeks apply to US, India, UK, crypto options"]},
+            {"heading": "Delta — Your Directional Exposure",
+             "points": ["Delta 0.5 means option moves 50 cents per $1 stock move","Deep ITM option delta approaches 1.0","Far OTM option delta approaches 0","Total portfolio delta tells you your net market exposure","Use delta to size positions correctly"]},
+            {"heading": "Theta — Time is Money, Literally",
+             "points": ["Theta is how much premium you lose per day","ATM weekly option loses 20-30% of value in last 3 days","Sellers love theta — they earn it every night","Buyers must be fast or theta destroys them","Why selling options before weekends is popular"]},
+            {"heading": "Vega — Volatility Is Your Hidden Risk",
+             "points": ["High VIX means expensive options — good to sell","Low VIX means cheap options — good to buy","Buy options before big events when VIX is low","Sell options after fear spike when VIX is elevated","This applies identically in US, India, and crypto markets"]},
         ]
     },
     {
-        "title": "Greeks — Delta Gamma Theta Vega Explained",
+        "title": "Weekly Options Expiry Strategy — Thursday Friday Plays",
         "category": "Options",
-        "level": "Advanced",
+        "level": "Intermediate",
+        "target_audience": "India + Global",
         "slides": [
-            {"heading": "What are Option Greeks?", "points": ["Mathematical measures of option sensitivity","Delta: sensitivity to price move","Gamma: rate of change of delta","Theta: time decay per day","Vega: sensitivity to volatility"], "visual": "greeks_overview"},
-            {"heading": "Delta — The Most Important Greek", "points": ["ATM option delta = 0.5","ITM option delta approaches 1.0","OTM option delta approaches 0","Delta 0.5 means: Nifty up 100 = option up 50","Use delta to understand your real market exposure"], "visual": "delta_chart"},
-            {"heading": "Theta — Your Enemy as Buyer", "points": ["Theta = premium lost per day due to time","ATM option loses most theta","Accelerates rapidly in last week","Weekly expiry: highest theta decay Thursday-Friday","This is why option buyers must be quick"], "visual": "theta_decay"},
-            {"heading": "Vega — Volatility's Role", "points": ["High VIX = expensive options (high vega)","Buy options when VIX is low","Sell options when VIX is high","Event days: VIX spikes before, crashes after","Budget day: sell options after 11 AM when VIX falls"], "visual": "vega_vix_chart"},
+            {"heading": "Weekly Options — The Fastest Money in Markets",
+             "points": ["Weekly options expire every Thursday in India","Every Friday for US SPX and SPY","Theta decay is maximum in last 48 hours","Huge volatility on expiry day = big opportunities","Most traded financial instrument in the world by volume"]},
+            {"heading": "Expiry Day Strategy for Option Buyers",
+             "points": ["Buy ATM options only after clear direction is established","First 30 minutes — wait and watch, do not trade","Enter after 10 AM when direction is clear","Target 50-100% in hours — exit same day","Stop loss at 50% of premium — no exceptions"]},
+            {"heading": "Expiry Day Strategy for Option Sellers",
+             "points": ["Sell OTM options at open on expiry morning","Collect premium from rapid theta decay","Most profitable strategy statistically on expiry day","Exit by 2 PM — do not hold into last 30 minutes","Risk: sudden big move can wipe out sellers fast"]},
+            {"heading": "Max Pain Theory on Expiry",
+             "points": ["Max pain is the price where most option buyers lose money","Market gravitates toward max pain as expiry approaches","Check max pain every Thursday morning before trading","Available on NSE website for Nifty Bank Nifty","For US: available on optionstrat.com and unusualwhales.com"]},
         ]
     },
 ]
 
+# ══════════════════════════════════════════════════════════
+# TUESDAY — TECHNICAL ANALYSIS (Universal — any market)
+# ══════════════════════════════════════════════════════════
 TUESDAY_TOPICS = [
     {
-        "title": "Candlestick Patterns — Complete Visual Guide",
+        "title": "Candlestick Patterns — The Language of Price",
         "category": "Technical Analysis",
         "level": "Beginner",
+        "target_audience": "Global",
         "slides": [
-            {"heading": "How to Read a Candle", "points": ["Green candle = price went UP","Red candle = price went DOWN","Body = open to close range","Wick = high and low extremes","Long wick = rejection of that price level"], "visual": "candle_anatomy"},
-            {"heading": "Doji — Indecision Candle", "points": ["Open and close almost equal","Market is indecisive","Strong signal after a big trend","Dragonfly Doji = bullish reversal","Gravestone Doji = bearish reversal"], "visual": "doji_types"},
-            {"heading": "Hammer & Hanging Man", "points": ["Long lower wick, small body at top","Hammer at bottom = BULLISH reversal","Hanging Man at top = BEARISH reversal","Confirmation candle is important","One of most reliable single candle patterns"], "visual": "hammer_chart"},
-            {"heading": "Engulfing Pattern", "points": ["Second candle completely covers first","Bullish Engulfing: red then big green","Bearish Engulfing: green then big red","Most powerful at key support/resistance","Volume should be higher on engulfing candle"], "visual": "engulfing_chart"},
-            {"heading": "Morning Star & Evening Star", "points": ["3-candle reversal patterns","Morning Star: bearish + doji + bullish = BUY","Evening Star: bullish + doji + bearish = SELL","Most reliable at end of strong trends","Confirmation: third candle closes above/below midpoint"], "visual": "star_patterns"},
-            {"heading": "Shooting Star & Inverted Hammer", "points": ["Long upper wick, small body at bottom","Shooting Star at TOP = bearish reversal","Inverted Hammer at BOTTOM = bullish reversal","Wick shows rejection of higher prices","Always confirm with next candle"], "visual": "shooting_star"},
+            {"heading": "Candlesticks Work in Every Market on Earth",
+             "points": ["Invented in Japan 300 years ago for rice trading","Now used on stocks, crypto, forex, commodities","Same patterns on Nifty, S&P 500, Bitcoin, Gold","Learn once — trade any market anywhere in the world","Most powerful visual tool in all of trading"]},
+            {"heading": "The Doji — Markets Most Honest Signal",
+             "points": ["Open and close at almost the same price","The market is perfectly balanced between buyers and sellers","After a strong trend this means reversal is coming","Dragonfly doji after downtrend = powerful buy signal","Gravestone doji after uptrend = powerful sell signal"]},
+            {"heading": "Engulfing Candles — Institutional Footprint",
+             "points": ["The second candle completely swallows the first","Bullish engulfing: institutions stepped in and bought hard","Bearish engulfing: institutions distributed and sold hard","Works on all timeframes from 5-minute to weekly","Most reliable when it appears at key support or resistance"]},
+            {"heading": "Hammer and Shooting Star",
+             "points": ["Long wick shows the market rejected that price level violently","Hammer at bottom: sellers pushed down but buyers overwhelmed them","Shooting Star at top: buyers pushed up but sellers crushed them","The longer the wick the stronger the rejection","Works identically on Bitcoin, Apple, Nifty, Gold"]},
+            {"heading": "How to Use Candlesticks Correctly",
+             "points": ["Never trade a single candle in isolation","Always look at the trend before the candle","Confirmation from the next candle is essential","Combine with support and resistance for 80% accuracy","Volume should increase on reversal candles"]},
         ]
     },
     {
-        "title": "RSI — How to Use it Correctly",
-        "category": "Technical Analysis",
-        "level": "Intermediate",
-        "slides": [
-            {"heading": "What is RSI?", "points": ["Relative Strength Index","Range: 0 to 100","Above 70 = Overbought","Below 30 = Oversold","Default period: 14 days"], "visual": "rsi_gauge"},
-            {"heading": "RSI Divergence — Most Powerful Signal", "points": ["Price makes new high, RSI makes lower high = BEARISH divergence","Price makes new low, RSI makes higher low = BULLISH divergence","Divergence warns of trend reversal","Works on all timeframes","Most reliable signal RSI gives"], "visual": "divergence_chart"},
-            {"heading": "RSI in Trending Markets", "points": ["In strong uptrend: RSI stays 50-80","In strong downtrend: RSI stays 20-50","Overbought in uptrend = buy signal, not sell","Oversold in downtrend = sell signal, not buy","Always check the bigger trend first"], "visual": "rsi_trend"},
-            {"heading": "RSI 50 Level — The Trend Filter", "points": ["RSI above 50 = bullish momentum","RSI below 50 = bearish momentum","RSI crossing 50 upward = trend change","Only take buy trades when RSI above 50","Only take sell trades when RSI below 50"], "visual": "rsi_50_chart"},
-            {"heading": "RSI Failure Swings", "points": ["RSI enters overbought, pulls back, fails to reach 70 again = SELL","RSI enters oversold, bounces, fails to reach 30 again = BUY","More reliable than simple overbought/oversold","Used by professional traders","Works well on daily charts"], "visual": "failure_swing"},
-        ]
-    },
-    {
-        "title": "Moving Averages — Complete Masterclass",
+        "title": "Support and Resistance — The Foundation of All Trading",
         "category": "Technical Analysis",
         "level": "Beginner",
+        "target_audience": "Global",
         "slides": [
-            {"heading": "What is a Moving Average?", "points": ["Average of last N closing prices","Smooths out price noise","Shows the direction of trend","EMA reacts faster than SMA","Most used: 20, 50, 200 EMA"], "visual": "ma_chart"},
-            {"heading": "Golden Cross & Death Cross", "points": ["Golden Cross: 50 EMA crosses above 200 EMA = STRONG BUY","Death Cross: 50 EMA crosses below 200 EMA = STRONG SELL","Long-term trend change signals","Lagging but very reliable","Used by mutual funds and institutions"], "visual": "golden_cross"},
-            {"heading": "20 EMA — The Trader's Friend", "points": ["Price above 20 EMA = short-term uptrend","Price below 20 EMA = short-term downtrend","20 EMA acts as dynamic support in uptrend","Bounce from 20 EMA = buy opportunity","Break below 20 EMA = exit long positions"], "visual": "ema20_chart"},
-            {"heading": "200 EMA — The Big Trend Line", "points": ["Price above 200 EMA = long-term bull market","Price below 200 EMA = long-term bear market","200 EMA = strongest support/resistance","Nifty above 200 EMA = stay invested","Nifty below 200 EMA = be cautious with longs"], "visual": "ema200_chart"},
-            {"heading": "EMA Crossover Strategy", "points": ["Buy: 20 EMA crosses above 50 EMA","Sell: 20 EMA crosses below 50 EMA","Works best on daily and weekly charts","Add RSI confirmation to reduce false signals","Best for positional and swing traders"], "visual": "crossover_strategy"},
+            {"heading": "What Support and Resistance Really Means",
+             "points": ["Support: price level where buyers are stronger than sellers","Resistance: price level where sellers are stronger than buyers","These levels exist because traders have memory","Same levels work on Apple, Bitcoin, EUR/USD, Gold, Nifty","The most universal concept in all of trading worldwide"]},
+            {"heading": "How to Draw Support and Resistance",
+             "points": ["Connect at least 2-3 price touches at the same level","More touches = stronger the level","Round numbers are always strong: 50000 Bitcoin, 20000 Nifty, 400 SPY","Use the body of candles not the wicks for cleaner levels","Weekly and monthly levels are strongest of all"]},
+            {"heading": "Role Reversal — The Most Powerful Concept",
+             "points": ["When price breaks above resistance it BECOMES support","When price breaks below support it BECOMES resistance","This is one of the most reliable setups in all markets","Example: Bitcoin 20000 was resistance for years, then became support","Trade the retest of the broken level for high-probability entries"]},
+            {"heading": "How Institutions Use Support and Resistance",
+             "points": ["Banks and hedge funds place huge orders at key levels","This is why the same levels hold again and again","They buy at support, sell at resistance, always","Retail traders who understand this trade WITH institutions","The levels on your chart represent real money, real orders"]},
+            {"heading": "Trading Support and Resistance Step by Step",
+             "points": ["Identify the key level on daily or weekly chart first","Wait for price to come back to that level","Watch for a reversal candlestick pattern at the level","Enter with tight stop just beyond the level","Target the next major support or resistance level"]},
         ]
     },
     {
-        "title": "Chart Patterns — Head Shoulders Double Top Bottom",
+        "title": "RSI — The Complete Masterclass",
         "category": "Technical Analysis",
         "level": "Intermediate",
+        "target_audience": "Global",
         "slides": [
-            {"heading": "Head and Shoulders — Most Reliable Pattern", "points": ["Left shoulder + Head (highest) + Right shoulder","Neckline connects the two lows","Break below neckline = STRONG SELL","Target = Head height projected down","Volume decreases on right shoulder"], "visual": "head_shoulders"},
-            {"heading": "Double Top — Bearish Reversal", "points": ["Two peaks at same resistance level","Market tried twice and failed","Break below middle trough = SELL","Target = distance from top to trough","RSI usually shows divergence on second top"], "visual": "double_top"},
-            {"heading": "Double Bottom — Bullish Reversal", "points": ["Two troughs at same support level","Market found buyers at same level twice","Break above middle peak = BUY","Target = distance from bottom to peak","Volume higher on second bottom breakout"], "visual": "double_bottom"},
-            {"heading": "Triangle Patterns", "points": ["Ascending Triangle: flat top + rising lows = bullish","Descending Triangle: flat bottom + falling highs = bearish","Symmetrical Triangle: breakout direction = trend continuation","Trade the breakout with volume confirmation","Stop loss below/above the triangle"], "visual": "triangle_types"},
-            {"heading": "Flag & Pennant — Continuation Patterns", "points": ["Strong move (pole) then consolidation (flag/pennant)","Flag: parallel channels","Pennant: converging lines","Both break in direction of original move","One of highest success rate patterns"], "visual": "flag_pennant"},
+            {"heading": "RSI Works the Same on Every Asset on Earth",
+             "points": ["Relative Strength Index — measures momentum","Range 0 to 100, same on stocks, crypto, forex, commodities","Above 70 = overbought, below 30 = oversold","Created by J. Welles Wilder in 1978 — still the most used indicator","Same settings work on Bitcoin, S&P 500, Nifty, Gold, EUR/USD"]},
+            {"heading": "RSI Divergence — The Signal Professionals Watch",
+             "points": ["Price makes new high but RSI makes lower high = hidden weakness","Price makes new low but RSI makes higher low = hidden strength","This divergence predicted every major crash in history","Bitcoin 2021 top: price at 69000, RSI divergence was screaming sell","Nifty tops: RSI divergence visible weeks before crashes"]},
+            {"heading": "RSI in Bull and Bear Markets",
+             "points": ["In a bull market RSI rarely goes below 40","In a bear market RSI rarely goes above 60","RSI below 40 in a bull market = golden buy opportunity","RSI above 60 in a bear market = golden sell opportunity","First step: identify the trend, then use RSI correctly"]},
+            {"heading": "RSI Hidden Divergence — Trend Continuation",
+             "points": ["Price makes higher low but RSI makes lower low = buy signal in uptrend","Price makes lower high but RSI makes higher high = sell signal in downtrend","Used by professional traders to add to winning positions","Much more reliable than regular divergence in trending markets","Works beautifully on crypto which has strong sustained trends"]},
+        ]
+    },
+    {
+        "title": "MACD — How to Read Market Momentum",
+        "category": "Technical Analysis",
+        "level": "Intermediate",
+        "target_audience": "Global",
+        "slides": [
+            {"heading": "What MACD is Really Telling You",
+             "points": ["Moving Average Convergence Divergence","Measures the relationship between two moving averages","MACD line above signal line = bullish momentum","MACD line below signal line = bearish momentum","Same indicator, same settings — works on all global markets"]},
+            {"heading": "MACD Histogram — The Real Secret",
+             "points": ["Bars above zero line = buyers in control","Bars below zero line = sellers in control","Histogram shrinking while above zero = momentum weakening","Histogram expanding above zero = momentum strengthening","This is how you see institutional momentum shifts early"]},
+            {"heading": "MACD Zero Line Crossover",
+             "points": ["MACD crossing above zero = major bullish shift","MACD crossing below zero = major bearish shift","Strongest signal MACD gives on any market","Works best on daily and weekly charts","Used widely on S&P 500, Bitcoin, Nifty, Crude Oil"]},
+            {"heading": "Combining MACD with Other Indicators",
+             "points": ["MACD crossover + RSI above 50 = strongest buy signal","MACD crossover + price above 200 EMA = confirmed uptrend","MACD + volume surge = institutional accumulation","MACD divergence + resistance level = high probability short","This combination works on any stock in any country"]},
+        ]
+    },
+    {
+        "title": "Chart Patterns — Head Shoulders Triangle Flag",
+        "category": "Technical Analysis",
+        "level": "Intermediate",
+        "target_audience": "Global",
+        "slides": [
+            {"heading": "Why Chart Patterns Work in Every Market",
+             "points": ["Patterns form because human psychology never changes","Fear and greed look the same in India, USA, Brazil, UK","Same patterns on Apple, Tata Motors, Bitcoin, Gold","Learned once — applied everywhere for your entire career","The most timeless skill in all of financial trading"]},
+            {"heading": "Head and Shoulders — Most Reliable Reversal",
+             "points": ["Three peaks: left shoulder, head (highest), right shoulder","Neckline connects the two lows between the peaks","Break below neckline = strong sell signal with a specific target","Target = height of head projected down from neckline","Appeared before the 2008 crash, 2021 Bitcoin top, many more"]},
+            {"heading": "Bull Flag — The Momentum Trader Favourite",
+             "points": ["Strong vertical move up (the flagpole)","Then tight sideways or slightly downward consolidation (the flag)","Breakout above flag = continuation of the original move","Target = flagpole height added to breakout point","One of highest win-rate patterns in trending markets"]},
+            {"heading": "Ascending Triangle — Institutional Accumulation",
+             "points": ["Flat top resistance with rising lows","Institutions buying quietly, pushing lows higher each time","They have a target and they keep buying every dip","Breakout above flat top = explosive move begins","Seen on Bitcoin before every major bull run, and on growth stocks"]},
+            {"heading": "How to Trade Patterns Correctly",
+             "points": ["Never buy the pattern — wait for the breakout","Breakout must be accompanied by above average volume","Place stop loss just below the breakout level","Target is the measured move from the pattern","If breakout fails and price comes back inside — exit immediately"]},
         ]
     },
 ]
 
+# ══════════════════════════════════════════════════════════
+# WEDNESDAY — GLOBAL MACRO + FUNDAMENTALS + EVENTS
+# ══════════════════════════════════════════════════════════
 WEDNESDAY_TOPICS = [
     {
-        "title": "How to Read Company Fundamentals",
-        "category": "Fundamental Analysis",
+        "title": "How US Federal Reserve Moves Every Market on Earth",
+        "category": "Global Macro",
         "level": "Beginner",
+        "target_audience": "US, India, Brazil, UK — everyone",
         "slides": [
-            {"heading": "What is Fundamental Analysis?", "points": ["Study of company's financial health","Revenue, profit, debt, growth","Not chart — it is business analysis","Long-term investing approach","Warren Buffett uses this method"], "visual": "fa_overview"},
-            {"heading": "P/E Ratio — Price to Earnings", "points": ["Stock price divided by EPS","P/E 15 means paying 15 years of earnings","Low P/E vs sector = possibly undervalued","High P/E = growth expectations priced in","Compare within same sector only"], "visual": "pe_comparison"},
-            {"heading": "Debt to Equity Ratio", "points": ["Total debt divided by shareholders equity","Low D/E = financially strong company","D/E above 1.5 = high debt risk","Banks and NBFCs naturally have high D/E","Avoid high D/E companies in rising interest rate era"], "visual": "debt_chart"},
-            {"heading": "Return on Equity (ROE)", "points": ["Net profit divided by shareholders equity","ROE above 15% = good business","ROE above 20% = excellent business","Consistent ROE = quality company","Look for improving ROE trend over 5 years"], "visual": "roe_chart"},
-            {"heading": "How to Find Quality Stocks", "points": ["ROE above 15% consistently","Low debt (D/E below 0.5)","Revenue growing 15%+ per year","Positive free cash flow","Promoter holding stable or increasing"], "visual": "quality_checklist"},
+            {"heading": "Why the Fed Controls All Global Markets",
+             "points": ["US Federal Reserve sets interest rates for the world's reserve currency","When Fed raises rates: global money flows back to USA","Stocks fall, emerging markets crash, dollar strengthens","When Fed cuts rates: money floods into stocks and emerging markets","India, Brazil, UK — all affected immediately by Fed decisions"]},
+            {"heading": "How Fed Decisions Affect Indian Markets",
+             "points": ["Fed rate hike: FII pull money out of India and return to US","Nifty often falls 2-5% within days of Fed hike","Rupee weakens: USDINR rises, imports become expensive","IT stocks benefit: they earn in USD","Every Indian investor must watch Fed calendar, not just RBI"]},
+            {"heading": "How to Trade Fed Announcement Days",
+             "points": ["Fed announces 8 times per year — mark all dates now","Markets are highly volatile 30 minutes before and after","Professional strategy: sell options 2 days before (collect VIX premium)","After announcement: trade the direction of the initial reaction","Second move after 30 minutes is often more reliable than first"]},
+            {"heading": "Fed Dot Plot — What It Really Means",
+             "points": ["Dot plot shows where Fed members expect rates to go","More dots at higher levels = hawkish = bad for stocks","More dots at lower levels = dovish = good for stocks","Stocks often move more on dot plot than on actual rate decision","Released 4 times per year — more important than the rate decision itself"]},
+            {"heading": "Central Banks Around the World",
+             "points": ["RBI: India — watch every 6 weeks","ECB: Europe — affects EUR/USD and European stocks","Bank of England: UK — affects GBP and FTSE","Bank of Japan: huge impact on global markets through Yen carry trade","All follow the Fed — Fed moves first, everyone else follows within months"]},
         ]
     },
     {
-        "title": "Sector Rotation — Follow Smart Money",
-        "category": "Sector Analysis",
+        "title": "Bitcoin and Crypto — Technical Analysis Guide",
+        "category": "Crypto",
+        "level": "Beginner",
+        "target_audience": "Global — huge Brazil, US, India audience",
+        "slides": [
+            {"heading": "Why Crypto is the Best Market for Technical Analysis",
+             "points": ["Crypto trades 24/7 — no gaps, pure price action","Retail dominated — patterns work extremely well","No earnings reports to blindside you","Same support resistance RSI MACD work perfectly","Highest volatility = highest potential returns for traders"]},
+            {"heading": "Bitcoin Halving Cycle — The Most Predictable Pattern",
+             "points": ["Bitcoin supply cuts in half every 4 years — called the halving","After every halving Bitcoin has made all-time highs within 12-18 months","2012 halving: Bitcoin went from 12 to 1000 dollars","2016 halving: Bitcoin went from 650 to 20000 dollars","2020 halving: Bitcoin went from 9000 to 69000 dollars"]},
+            {"heading": "Key Bitcoin Levels Every Trader Watches",
+             "points": ["200 week moving average: most important support in all of crypto","Previous all time high always becomes support after being broken","Round numbers: 50000, 100000, 200000 are massive psychological levels","4 year cycle low: historically the best time to buy Bitcoin","On-chain data confirms these technical levels every single cycle"]},
+            {"heading": "How to Apply Technical Analysis to Crypto",
+             "points": ["Use daily and weekly charts for trend direction","Use 4-hour chart for entry timing","RSI below 30 on weekly chart = generational buy opportunity","RSI above 80 on weekly chart = take significant profits","Bitcoin dominance chart tells you when altcoins will outperform"]},
+            {"heading": "Crypto Risk Management — Critical Rules",
+             "points": ["Never invest more than you can afford to lose completely","Crypto can fall 80-90% in bear markets — this is normal","Dollar cost averaging beats trying to time the market","Cold wallet storage for anything you hold long term","Do not trade crypto with leverage unless you are very experienced"]},
+        ]
+    },
+    {
+        "title": "How to Read Economic Data — Jobs CPI GDP",
+        "category": "Global Macro",
         "level": "Intermediate",
+        "target_audience": "Global",
         "slides": [
-            {"heading": "What is Sector Rotation?", "points": ["Money moves from sector to sector in cycles","FII and mutual funds drive this rotation","Riding the right sector = 2-3x better returns","Technology leads in bull markets","FMCG and Pharma lead in bear markets"], "visual": "rotation_cycle"},
-            {"heading": "Economic Cycle and Sectors", "points": ["Recovery: Banks, Auto, Real Estate","Expansion: IT, Capital Goods, Consumer","Peak: Energy, Metals, Materials","Recession: FMCG, Pharma, Utilities","Know where we are in the cycle"], "visual": "economic_cycle"},
-            {"heading": "How to Identify Leading Sectors", "points": ["Compare sector index vs Nifty50","Sector making new highs while Nifty stagnates = leadership","Sector relative strength vs Nifty","FII buying data sector-wise","Mutual fund holdings quarterly data"], "visual": "sector_comparison"},
-            {"heading": "Nifty Sector Indices to Track", "points": ["Nifty Bank — biggest weight in Nifty","Nifty IT — global tech sentiment","Nifty Auto — rural demand indicator","Nifty Pharma — defensive sector","Nifty Realty — interest rate sensitive"], "visual": "sector_indices"},
-            {"heading": "Sector Rotation Trading Strategy", "points": ["Monthly review which sectors outperforming","Shift capital to top 2-3 sectors","Exit sectors showing relative weakness","Never put all capital in one sector","Best strategy for 6-12 month holding"], "visual": "rotation_strategy"},
+            {"heading": "The Economic Calendar — Your Most Important Tool",
+             "points": ["Economic data moves markets more than any chart pattern","Three reports move US markets most: NFP, CPI, GDP","NFP: Non-Farm Payrolls — released first Friday every month","CPI: Consumer Price Index — inflation data, moves everything","GDP: economic growth data — quarterly, big picture signal"]},
+            {"heading": "Non-Farm Payrolls — The Most Watched Number on Earth",
+             "points": ["Released every first Friday of the month at 8:30 AM US Eastern","Strong jobs report: economy healthy, Fed may raise rates, stocks mixed","Weak jobs report: Fed may cut rates, stocks often rally","Gold and bonds move opposite to stocks on this data","Indian markets react indirectly through FII flow changes"]},
+            {"heading": "CPI — Inflation Data That Controls Fed Policy",
+             "points": ["CPI above expectations: inflation hot, Fed stays hawkish, stocks fall","CPI below expectations: inflation cooling, Fed turns dovish, stocks rally","Core CPI excludes food and energy — Fed focuses on core","This single number has caused 3-5% market moves in recent years","Watch this more than any technical indicator on release day"]},
+            {"heading": "How India's Economic Data Moves Markets",
+             "points": ["India GDP growth rate: 7%+ is bullish for Nifty long term","India CPI: RBI targets 4%, above 6% means rate hikes coming","India PMI Manufacturing: above 50 = expansion, bullish","Current Account Deficit: high CAD weakens rupee","Foreign Exchange Reserves: RBI uses to stabilise rupee — watch monthly"]},
         ]
     },
     {
-        "title": "How News & Events Move Markets",
-        "category": "News & Events",
-        "level": "Beginner",
+        "title": "Gold and Oil — How Commodities Affect Your Stocks",
+        "category": "Commodities",
+        "level": "Intermediate",
+        "target_audience": "Global",
         "slides": [
-            {"heading": "Events that Move Markets Most", "points": ["RBI Monetary Policy — interest rates","Union Budget — February every year","US Federal Reserve policy","Quarterly earnings results","Global geopolitical events"], "visual": "events_calendar"},
-            {"heading": "How to Trade RBI Policy Day", "points": ["Market volatile before announcement","Buy straddle 2 days before if VIX low","After announcement: trend usually continues","Rate cut = Bank Nifty rally","Rate hike = Bank Nifty falls"], "visual": "rbi_trade"},
-            {"heading": "Budget Day Strategy", "points": ["Most volatile day of the year","Avoid taking new positions morning of budget","Wait for direction after 1 PM","Sector plays: infrastructure, defence, agriculture","Sell options day before — collect premium from VIX spike"], "visual": "budget_strategy"},
-            {"heading": "Quarterly Results Trading", "points": ["Check results calendar every week","Buy before results only if technically strong","Avoid holding through results unless long-term","Good results in weak market = sell the news","Bad results in strong market = buy the dip"], "visual": "results_strategy"},
-            {"heading": "Global Events Checklist", "points": ["US Jobs data (first Friday every month)","US CPI inflation data","Fed meeting minutes","China PMI data","Oil prices — directly affects Indian market"], "visual": "global_calendar"},
-        ]
-    },
-    {
-        "title": "IPO Investing — How to Evaluate and Apply",
-        "category": "IPO & New Listings",
-        "level": "Beginner",
-        "slides": [
-            {"heading": "What is an IPO?", "points": ["Company selling shares to public first time","Primary market — money goes to company","Price band set by investment bankers","Apply through broker or UPI ASEAN","Allotment is lottery based if oversubscribed"], "visual": "ipo_process"},
-            {"heading": "How to Evaluate an IPO", "points": ["Read DRHP — Draft Red Herring Prospectus","Check why company needs money","Look at promoter reputation and holding","Compare valuation with listed peers","Avoid IPOs where existing investors fully exit"], "visual": "ipo_checklist"},
-            {"heading": "Grey Market Premium (GMP)", "points": ["Unofficial indicator of listing price expectation","High GMP = strong listing expected","GMP can be manipulated — use with caution","Good proxy but not guarantee","Check GMP 2-3 days before listing"], "visual": "gmp_chart"},
-            {"heading": "IPO Listing Strategy", "points": ["Sell on listing day if profit above 20%","Hold quality IPOs for 6-12 months","Never apply for IPOs with borrowed money","Diversify — apply in multiple IPOs","Subscription 50x+ = good demand signal"], "visual": "listing_strategy"},
+            {"heading": "Why Every Stock Trader Must Watch Gold and Oil",
+             "points": ["Commodities signal inflation before it shows in economic data","Rising oil = higher inflation = Fed hawks = stock market pressure","Rising gold = fear in markets = risk-off = stocks often fall","Falling oil = good for India — we import 80% of our oil","These relationships have worked for 50+ years across all countries"]},
+            {"heading": "Gold — The Fear Gauge of Global Markets",
+             "points": ["Gold rises when investors fear: war, recession, banking crisis","Gold falls when confidence returns and risk appetite is high","Key levels: 2000, 2500, 3000 USD per ounce are psychological","Gold in rupees: USDINR × gold USD price — affects Indian buyers","Central banks are buying gold at record pace — very bullish signal"]},
+            {"heading": "Crude Oil — The Lifeblood of the Global Economy",
+             "points": ["Brent crude affects petrol prices in every country","High oil = higher inflation globally = central banks raise rates","India imports 85% of oil: high oil = higher CAD = weaker rupee","Oil company stocks (ONGC, Reliance, Saudi Aramco) benefit from high oil","OPEC decisions on production cuts move oil price immediately"]},
+            {"heading": "How to Trade Commodity Correlations",
+             "points": ["Oil rises: buy oil companies, sell airlines and paint companies","Gold rises: buy gold ETFs, gold mining stocks","Copper rises: strong global economic growth signal — buy industrial stocks","Falling commodities: buy consumer companies whose costs are falling","These sector rotation plays work the same in India, USA, and UK"]},
         ]
     },
 ]
 
+# ══════════════════════════════════════════════════════════
+# THURSDAY — STRATEGIES (Universal)
+# ══════════════════════════════════════════════════════════
 THURSDAY_TOPICS = [
     {
-        "title": "Intraday Trading — Complete Strategy Guide",
+        "title": "Price Action Trading — No Indicators Needed",
         "category": "Trading Strategy",
         "level": "Intermediate",
+        "target_audience": "Global",
         "slides": [
-            {"heading": "Golden Rules of Intraday Trading", "points": ["Never carry intraday position overnight","Set daily loss limit — stop when hit","Trade only in high volume stocks/indices","Avoid first 15 minutes of market open","Square off all positions before 3:15 PM"], "visual": "golden_rules"},
-            {"heading": "Opening Range Breakout (ORB)", "points": ["Mark high and low of first 15 minutes","Buy on break above 15 min high","Sell on break below 15 min low","Stop loss = other side of range","Target = 1.5x to 2x the range size"], "visual": "orb_chart"},
-            {"heading": "VWAP Strategy", "points": ["VWAP = Volume Weighted Average Price","Price above VWAP = bullish intraday","Price below VWAP = bearish intraday","Buy bounce from VWAP in uptrend","Institutions trade around VWAP all day"], "visual": "vwap_chart"},
-            {"heading": "Best Times to Trade Intraday", "points": ["9:30-11:00 AM: Most volatile, best moves","11:00-1:00 PM: Slower, avoid overtrading","1:00-2:00 PM: Lunch lull, low volume","2:00-3:15 PM: Second good window","Avoid last 15 minutes — erratic moves"], "visual": "time_chart"},
-            {"heading": "Risk Management for Intraday", "points": ["Max loss per trade = 0.5% of capital","Max daily loss = 2% of capital","Risk:Reward minimum 1:2","Never average a losing intraday trade","Reduce size after 2 consecutive losses"], "visual": "risk_rules"},
-            {"heading": "Stocks Best for Intraday", "points": ["High liquidity — Nifty 50 stocks only","High ATR = good daily range","Avoid stocks in news (too unpredictable)","Bank Nifty and Nifty futures — best","Avoid small cap and mid cap for intraday"], "visual": "stock_selection"},
+            {"heading": "What is Price Action Trading?",
+             "points": ["Trade using only raw price movement — no indicators","Candlestick patterns, support resistance, trend lines","Used by most professional traders worldwide","Works on stocks, forex, crypto, commodities, indices","Cleaner charts mean cleaner thinking and better decisions"]},
+            {"heading": "The Pin Bar — Most Powerful Price Action Signal",
+             "points": ["Long wick with small body = strong rejection","Pin bar at support = institutional buying signal","Pin bar at resistance = institutional selling signal","The longer the wick relative to body the stronger the signal","Works on 5-minute charts for day traders and weekly charts for investors"]},
+            {"heading": "Inside Bar — Coiled Spring Setup",
+             "points": ["Entire second candle fits inside the first candle","Market consolidating, about to make a big move","Break above inside bar high = buy","Break below inside bar low = sell","Tightest stop loss of any price action setup"]},
+            {"heading": "Trend Line Trading",
+             "points": ["Draw trend line connecting swing lows in uptrend","Third touch of trend line = highest probability entry","Break of trend line = trend is changing — reduce long positions","Trend lines become stronger with every successful touch","Same trend lines visible on Bitcoin, S&P 500, Nifty, Gold"]},
+            {"heading": "How to Build a Price Action System",
+             "points": ["Identify trend on weekly chart first","Find key levels of support and resistance","Wait for price to reach those levels","Look for a rejection candle — pin bar or engulfing","Enter on next candle open with tight stop — simple and powerful"]},
         ]
     },
     {
-        "title": "Positional Trading — Swing Trade Masterclass",
+        "title": "Swing Trading — The Perfect Strategy for Working People",
         "category": "Trading Strategy",
         "level": "Intermediate",
+        "target_audience": "Global",
         "slides": [
-            {"heading": "What is Positional Trading?", "points": ["Hold trades for days to weeks","Based on daily and weekly charts","Less stressful than intraday","Better risk:reward ratios possible","Perfect for working professionals"], "visual": "position_overview"},
-            {"heading": "How to Find Swing Trades", "points": ["Stock in strong uptrend (above all EMAs)","Wait for pullback to 20 EMA","RSI pulling back to 40-50 zone","Volume declining on pullback","Buy when price bounces with volume"], "visual": "swing_setup"},
-            {"heading": "Weekly Chart Analysis", "points": ["Weekly chart = most important for positional","Candle closing above resistance on weekly = strong buy","Weekly 200 EMA = major trend decider","Weekly RSI above 60 = strong momentum","Trade with weekly trend, not against it"], "visual": "weekly_chart"},
-            {"heading": "Position Sizing for Swing Trades", "points": ["Risk max 2% of total capital per trade","Calculate share quantity from stop loss","If SL is 5% away: position = 2%/5% = 40% of capital","This controls loss perfectly","Never bet more than 10% in one stock"], "visual": "position_sizing"},
-            {"heading": "Exit Strategy for Positional Trades", "points": ["Trailing stop loss — move up as profit increases","Exit 50% at first target","Let remaining run with trailing SL","Time stop: exit if thesis not playing out in 2 weeks","Never convert positional to long-term investment"], "visual": "exit_strategy"},
+            {"heading": "Why Swing Trading Beats Intraday for Most People",
+             "points": ["Hold trades for 2 to 10 days — check once per day","No need to stare at screen all day","Works while you have a full-time job","Better risk to reward ratios than intraday","Used successfully on US stocks, Indian stocks, crypto, forex"]},
+            {"heading": "The Perfect Swing Trade Setup",
+             "points": ["Stock in strong uptrend: above 20, 50, and 200 EMA","Price pulls back to 20 EMA — this is the entry zone","RSI pulls back to 40-50 during the pullback","Volume decreasing on pullback — sellers not aggressive","Enter when first green candle appears at the 20 EMA"]},
+            {"heading": "Finding the Best Stocks to Swing Trade",
+             "points": ["Screen for stocks making 52-week highs — these have momentum","Look for high relative strength vs the index","Avoid stocks below their 200 EMA — only trade the trend","In US: use Finviz.com screener for this","In India: use Screener.in or TradingView screener"]},
+            {"heading": "Swing Trading Crypto",
+             "points": ["Crypto perfect for swing trading — moves 10-30% in days","Apply exact same setup: pullback to 20 EMA in uptrend","Bitcoin and Ethereum most liquid — tightest spreads","Altcoins: higher reward but higher risk — smaller position size","Set alerts so you don't need to watch 24/7"]},
+            {"heading": "Exit Strategy That Maximises Profits",
+             "points": ["Sell half at first target — usually 5-8% profit","Move stop to breakeven on remaining position","Trail stop below each new swing low as price rises","If stock gaps up strongly — sell entire position into strength","Never let a good profit turn into a loss — always move stops up"]},
         ]
     },
     {
-        "title": "Fibonacci Retracement — Professional Trading Tool",
-        "category": "Technical Analysis",
-        "level": "Intermediate",
+        "title": "How to Build a Complete Trading System",
+        "category": "Trading Strategy",
+        "level": "All Levels",
+        "target_audience": "Global",
         "slides": [
-            {"heading": "What is Fibonacci?", "points": ["Golden ratio found in nature","38.2%, 50%, 61.8% are key levels","After a big move, market retraces to these levels","Works because millions of traders watch same levels","Self-fulfilling prophecy of technical analysis"], "visual": "fibonacci_overview"},
-            {"heading": "How to Draw Fibonacci", "points": ["In uptrend: draw from swing low to swing high","In downtrend: draw from swing high to swing low","Watch 38.2% and 61.8% most carefully","50% is also a strong psychological level","Multiple timeframe confluence = strongest signal"], "visual": "fibonacci_drawing"},
-            {"heading": "Fibonacci + RSI Strategy", "points": ["Price at 61.8% retracement = golden zone","RSI at 40-50 zone at same time = buy signal","Place stop below 78.6% level","Target: previous high = full retracement","Risk:Reward typically 1:3 or better"], "visual": "fib_rsi_strategy"},
-            {"heading": "Fibonacci Extensions — Finding Targets", "points": ["After breakout, where will price go?","127.2%, 161.8%, 261.8% are extension levels","Draw from swing low to high to the retracement","161.8% is the most common target","Use to set realistic profit targets"], "visual": "fib_extension"},
+            {"heading": "Why Most Traders Fail — The Real Reason",
+             "points": ["Not lack of a strategy — lack of a COMPLETE system","A system has: entry rules, exit rules, position sizing, risk rules","Without all four, emotion takes over every trade","Professional traders follow systems even when it feels wrong","Your system is your edge — protect it and follow it always"]},
+            {"heading": "Step 1 — Define Your Market and Timeframe",
+             "points": ["Pick ONE market to master first: Nifty, S&P 500, or Bitcoin","Pick ONE primary timeframe: daily chart is best for beginners","Use one higher timeframe (weekly) for trend direction","Use one lower timeframe (4 hour) for entry timing","Do not jump between markets — depth beats breadth always"]},
+            {"heading": "Step 2 — Your Entry Rules",
+             "points": ["Write down exactly what conditions must be true to enter","Example: Price above 200 EMA AND RSI above 50 AND bullish engulfing candle","If all three not present — no trade, period","Having rules removes 90% of emotional trading mistakes","Test your rules on at least 50 historical setups before trading live"]},
+            {"heading": "Step 3 — Position Sizing Formula",
+             "points": ["Risk per trade = 1% of your total account","Account is 10 lakh rupees or 10000 USD: max risk per trade = 10000 Rs or 100 USD","Calculate shares from your stop loss distance","This formula keeps you alive through any losing streak","Consistent position sizing is more important than your entry strategy"]},
+            {"heading": "Step 4 — Review and Improve Weekly",
+             "points": ["Every Sunday review all trades of the past week","Calculate win rate and average risk to reward","Identify which setups are working and which are not","Remove or adjust rules that consistently lose","This weekly review process is how good traders become great traders"]},
         ]
     },
     {
-        "title": "Supply & Demand Zones — How Institutions Trade",
+        "title": "Fibonacci Retracement — How Professionals Find Entries",
         "category": "Trading Strategy",
-        "level": "Advanced",
+        "level": "Intermediate",
+        "target_audience": "Global",
         "slides": [
-            {"heading": "What are Supply & Demand Zones?", "points": ["Areas where institutions placed big orders","Demand zone: area where big buying happened","Supply zone: area where big selling happened","Price returns to these zones to fill remaining orders","More powerful than normal support/resistance"], "visual": "sd_overview"},
-            {"heading": "How to Identify Demand Zones", "points": ["Big bullish candle after sideways consolidation","The consolidation before the big move = demand zone","Price left that area fast = strong unfilled orders remain","Mark the consolidation as the zone","Wait for price to return to that zone to buy"], "visual": "demand_zone"},
-            {"heading": "How to Identify Supply Zones", "points": ["Big bearish candle after sideways consolidation","The consolidation before the big drop = supply zone","Price dropped sharply = strong sellers at that level","Mark the consolidation as the supply zone","Wait for price to return to sell/short"], "visual": "supply_zone"},
-            {"heading": "Trading Supply & Demand Zones", "points": ["Enter at the zone, not after breakout","Tight stop loss just beyond the zone","First time price revisits = highest probability","Zone loses power once tested multiple times","Works on all timeframes — 5 min to weekly"], "visual": "sd_trade_setup"},
-            {"heading": "Why this is How Institutions Think", "points": ["Retail traders see support/resistance on charts","Institutions see unfilled order blocks","This is why charts look the same — same orders","Smart money buys demand, sells supply","Understanding this = trading like a professional"], "visual": "institutional_flow"},
+            {"heading": "Why Fibonacci Works on Every Market on Earth",
+             "points": ["Based on the golden ratio found throughout nature","Used by millions of traders worldwide simultaneously","Self-fulfilling prophecy — works because everyone watches the same levels","61.8% retracement is the golden zone in any market","Same levels work on Apple, Bitcoin, EUR/USD, Gold, Nifty"]},
+            {"heading": "How to Draw Fibonacci Correctly",
+             "points": ["In uptrend: drag from the significant swing low to swing high","In downtrend: drag from swing high to swing low","The tool automatically draws 38.2%, 50%, 61.8% levels","Most important levels: 38.2% for strong trends, 61.8% for normal trends","Use the wick extremes — not candle bodies — for accuracy"]},
+            {"heading": "The Golden Zone — 61.8% Strategy",
+             "points": ["Price retraces to 61.8% after a strong move","RSI reaches 40-50 at the same time = confluence","This confluence gives you a very high probability entry","Stop loss just below 78.6% level — minimal risk","Target: return to the previous high = typically 2:1 to 4:1 reward"]},
+            {"heading": "Fibonacci Extensions — Finding Profit Targets",
+             "points": ["After a breakout, where will price go next?","161.8% extension is the most common first target","261.8% extension is the target for strong trending markets","Draw from swing low to swing high to retracement low","This gives you a mathematical price target in any market"]},
         ]
     },
 ]
 
+# ══════════════════════════════════════════════════════════
+# FRIDAY — PSYCHOLOGY + RISK (Universal)
+# ══════════════════════════════════════════════════════════
 FRIDAY_TOPICS = [
     {
-        "title": "Trading Psychology — Why Most Traders Fail",
+        "title": "Trading Psychology — Why Smart People Lose Money",
         "category": "Psychology",
         "level": "All Levels",
+        "target_audience": "Global",
         "slides": [
-            {"heading": "The Real Reason 90% Traders Lose", "points": ["Not lack of strategy — lack of discipline","Greed: holding winners too long","Fear: cutting winners too early","Hope: holding losers too long","Revenge: trading bigger after a loss"], "visual": "psychology_cycle"},
-            {"heading": "Greed — How it Destroys Accounts", "points": ["Good trade running, target hit — but not exiting","Market turns, profit becomes loss","Doubling position size after winning streak","Trading in F&O with all savings","FOMO trading — entering after big moves"], "visual": "greed_chart"},
-            {"heading": "Fear — The Paralysis Trap", "points": ["Perfect setup, but not entering","Exiting at small profit, missing big move","Not taking loss early, hoping for recovery","Reducing position too much after a loss","Fear of missing out leads to impulsive entries"], "visual": "fear_chart"},
-            {"heading": "Revenge Trading — Account Killer", "points": ["Lost money, now trading bigger to recover","This leads to even bigger losses","Emotional state = worst time to trade","Solution: stop after 2 losses in a day","Walk away, come back tomorrow fresh"], "visual": "revenge_trade"},
-            {"heading": "Building Mental Discipline", "points": ["Write down rules BEFORE trading","Follow rules even when emotions say otherwise","Journal every trade — review weekly","Accept losses as cost of doing business","Consistency beats brilliance in trading"], "visual": "discipline_rules"},
-            {"heading": "The Professional Trader Mindset", "points": ["Focus on process, not profits","Every trade is just one of 1000 trades","No single trade defines you","Small consistent profits beat occasional big wins","Trading is a marathon, not a sprint"], "visual": "pro_mindset"},
+            {"heading": "The Dirty Secret of the Trading Industry",
+             "points": ["90% of traders lose money — this is a documented fact worldwide","The problem is never the strategy — it is always psychology","A perfect strategy fails if you cannot follow it under pressure","The same psychological traps destroy traders in India, USA, UK, Brazil","Understanding your enemy is the first step to defeating it"]},
+            {"heading": "Loss Aversion — Why Losses Hurt More Than Gains Feel Good",
+             "points": ["Losing 1000 rupees feels twice as bad as gaining 1000 feels good","This is hardwired into human DNA for survival","In trading this makes you hold losers too long hoping to break even","And cut winners too early to lock in the 'safe' profit","This single bias is responsible for most trading losses worldwide"]},
+            {"heading": "The Revenge Trade — Account Killer",
+             "points": ["You take a loss. Now you feel angry and need to recover it immediately","You trade bigger — sometimes 3x or 5x your normal size","You lose again — now the account is seriously damaged","This sequence destroys accounts in hours across all countries","Rule: after any loss exceeding your daily limit — turn off your screen and walk away"]},
+            {"heading": "Overconfidence — The Bull Market Trap",
+             "points": ["After 5 consecutive wins traders feel invincible","They increase position size to 3x or 5x their normal size","The inevitable losing trade wipes out all previous profits","Bull markets make everyone look like a genius","Keep position size consistent regardless of recent wins or losses"]},
+            {"heading": "Building Unbreakable Mental Discipline",
+             "points": ["Write your trading rules in a physical notebook — not just on screen","Read them before every trading session — make it a ritual","Accept that every loss is simply the cost of doing business","Professional traders aim for consistency — not big wins","Your goal is to be in the game for 10 years — one trade never matters"]},
         ]
     },
     {
-        "title": "Risk Management — The Only Thing That Matters",
+        "title": "Risk Management — The Only Thing That Guarantees Survival",
         "category": "Risk Management",
         "level": "All Levels",
+        "target_audience": "Global",
         "slides": [
-            {"heading": "The Golden Rule of Trading", "points": ["Preserve capital at all costs","A 50% loss needs 100% gain to recover","A 25% loss needs only 33% to recover","Protecting capital is more important than making money","Live to trade another day"], "visual": "recovery_chart"},
-            {"heading": "Position Sizing — The Science", "points": ["Risk per trade = 1-2% of total capital","If capital is 1 lakh: max loss per trade = 1000-2000","Calculate share quantity from this","Never increase size because you are confident","Consistency in position size = consistency in results"], "visual": "position_formula"},
-            {"heading": "Stop Loss — Non-Negotiable Rule", "points": ["Every trade must have a stop loss before entry","Stop loss is not optional — it is mandatory","Mental stop loss does not work — place it in system","Move stop to breakeven after 1:1 profit","Trailing stop loss protects profits automatically"], "visual": "stop_loss_types"},
-            {"heading": "The 2% Rule", "points": ["Never risk more than 2% on any single trade","With 1 lakh capital: max loss per trade = 2000","This means you can have 50 losing trades before wiping out","Gives you time to learn and improve","Even George Soros uses this principle"], "visual": "two_percent_rule"},
-            {"heading": "Building Your Personal Risk Plan", "points": ["Daily loss limit: stop trading at -3% day","Weekly loss limit: review strategy at -6% week","Monthly loss limit: stop trading at -10% month","Review all trades that hit stop loss","Keep a trading journal — it will save your account"], "visual": "risk_plan"},
+            {"heading": "The Mathematics of Ruin — Why Small Losses Compound",
+             "points": ["Lose 10%: need 11% to recover","Lose 25%: need 33% to recover","Lose 50%: need 100% to recover","Lose 75%: need 300% to recover","This is why protecting capital is more important than making money"]},
+            {"heading": "The 1% Rule — Professional Risk Management",
+             "points": ["Never risk more than 1-2% of your account on any single trade","With 1 lakh rupees: max risk per trade is 1000-2000 rupees","With 10000 USD: max risk per trade is 100-200 USD","This means you can have 50 consecutive losing trades before account is gone","No strategy has a 50-trade losing streak — this gives you complete safety"]},
+            {"heading": "Stop Loss — Your Insurance Policy",
+             "points": ["Every trade needs a stop loss placed in the system before entry","A stop loss in your head does not exist — the market will find your weakness","Move stop to breakeven once profit equals your risk","Trailing stop lock in profits as price moves in your favour","Traders who remove stop losses eventually blow up — no exceptions"]},
+            {"heading": "Portfolio Risk — Not Just Per Trade",
+             "points": ["Maximum 20-25% of portfolio in any single stock","Maximum 10-15% in any single sector","Keep 20-30% in cash at all times for opportunities","If total portfolio is down 10% — reduce all positions by 50%","Diversification across markets: stocks, gold, a little crypto is smart"]},
+            {"heading": "Your Personal Risk Management Plan",
+             "points": ["Daily loss limit: stop trading when down 3% in one day","Weekly loss limit: review strategy when down 6% in one week","Monthly loss limit: take a break when down 10% in one month","These limits prevent small losses becoming catastrophic ones","Write this plan now — before your next trade, not after your next loss"]},
         ]
     },
     {
-        "title": "How to Build a Trading Plan — Step by Step",
-        "category": "Trading Plan",
-        "level": "All Levels",
-        "slides": [
-            {"heading": "Why You Need a Trading Plan", "points": ["Plan removes emotion from trading","Without plan: gambling, not trading","Plan tells you exactly what to do","Review plan when market is closed, not open","Professionals have written trading plans"], "visual": "plan_overview"},
-            {"heading": "Define Your Trading Style", "points": ["Intraday: need full day free","Swing: check once daily, 1-5 day holds","Positional: check weekly, weeks to months hold","Long-term investing: quarterly review","Match your style to your schedule and personality"], "visual": "style_matrix"},
-            {"heading": "Your Entry Rules", "points": ["What setup am I looking for?","Which timeframe am I trading?","What indicators confirm my entry?","What is my entry price exactly?","Am I entering market order or limit order?"], "visual": "entry_rules"},
-            {"heading": "Your Exit Rules", "points": ["Where is my stop loss? (write exact price)","Where is my target? (write exact price)","Will I trail stop after profit?","How much time will I give trade to work?","Will I scale out or exit all at once?"], "visual": "exit_rules"},
-            {"heading": "Weekly Review Process", "points": ["Every Sunday: review all trades of the week","Calculate win rate and risk:reward","Identify which setups are working","Remove setups that are not working","This continuous improvement is how you grow"], "visual": "review_process"},
-        ]
-    },
-    {
-        "title": "Mutual Funds vs Stocks vs FD — Complete Guide",
+        "title": "How to Invest for Long Term Wealth — SIP Index Fund Strategy",
         "category": "Personal Finance",
         "level": "Beginner",
+        "target_audience": "Global — huge audience",
         "slides": [
-            {"heading": "Where Should You Invest?", "points": ["FD: safe, 6-7% return, fully taxable","Mutual Fund: 10-15% average over long term","Direct Stocks: 15-20% possible, higher risk","Gold: hedge, not primary investment","Real Estate: illiquid, high entry cost"], "visual": "investment_comparison"},
-            {"heading": "SIP — Systematic Investment Plan", "points": ["Invest fixed amount every month in mutual fund","Rupee cost averaging — buy more when market falls","5000 per month for 20 years = 50 lakh+ at 12%","Best for salaried people — automate it","SIP in Nifty50 index fund = simplest strategy"], "visual": "sip_calculator"},
-            {"heading": "Index Fund vs Active Fund", "points": ["Index fund: mimics Nifty50, expense ratio 0.1%","Active fund: fund manager picks stocks, expense 1-2%","80% of active funds underperform Nifty over 10 years","Index fund = best choice for most people","Warren Buffett recommends index funds for all"], "visual": "index_vs_active"},
-            {"heading": "How to Start Investing with 500 Rupees", "points": ["Open Zerodha or Groww or Angel One account","Start SIP in Nifty50 index fund with 500/month","Increase amount every year with salary hike","Never stop SIP during market crash — keep going","Compounding works best over 15-20 years"], "visual": "getting_started"},
+            {"heading": "The Simplest Path to Wealth That Works in Any Country",
+             "points": ["Invest a fixed amount every month into an index fund","Do not try to time the market — just keep buying","This strategy has made millions of ordinary people wealthy","Warren Buffett recommends this for everyone who is not a professional","Works whether you are in India, USA, UK, Brazil, or anywhere"]},
+            {"heading": "Why Index Funds Beat 80% of Professional Fund Managers",
+             "points": ["S&P 500 index fund: average 10-12% per year for 100 years","Nifty 50 index fund: average 12-14% per year over 20 years","80% of actively managed funds underperform the index over 10 years","Index fund fees: 0.1% per year vs active funds 1-2% per year","This fee difference alone costs you 20-30% of your wealth over 30 years"]},
+            {"heading": "The Magic of Compound Interest — Numbers That Will Shock You",
+             "points": ["5000 rupees per month from age 25 to 60 at 12% = 3.2 crore rupees","Same from age 35: only 90 lakhs — the 10 year delay costs 2.4 crore","200 USD per month from age 25 in S&P 500 index = over 1 million USD by retirement","Starting 10 years late reduces your final wealth by 70%","Time in the market beats timing the market — always"]},
+            {"heading": "Dollar Cost Averaging — Why Market Crashes Are Your Friend",
+             "points": ["When market falls 20%: your monthly investment buys more shares","When market recovers: all those extra shares are now worth much more","This is why you must NEVER stop your SIP during a crash","2020 COVID crash: people who kept their SIP running made the most money","Every crash in history has been followed by new all-time highs"]},
+            {"heading": "Getting Started Today — The Action Plan",
+             "points": ["India: open Zerodha or Groww, start Nifty 50 index fund SIP with as little as 500 rupees","USA: open Vanguard or Fidelity, invest in VOO or SPY — zero fees","UK: open Vanguard UK, invest in FTSE All-World index","Brazil: invest in BOVA11 ETF which tracks Ibovespa index","Start today with whatever amount you have — the amount matters far less than starting"]},
+        ]
+    },
+    {
+        "title": "How to Read a Stock — Fundamental Analysis for Everyone",
+        "category": "Fundamental Analysis",
+        "level": "Beginner",
+        "target_audience": "Global",
+        "slides": [
+            {"heading": "What Makes a Stock Worth Owning Long Term",
+             "points": ["A business that grows revenue and profits every year","Low or no debt — financial strength to survive downturns","High return on equity — management uses money efficiently","Strong brand or competitive moat — hard for competitors to copy","Consistent dividend growth for income investors"]},
+            {"heading": "The P/E Ratio — Most Used Valuation Metric",
+             "points": ["Price per share divided by earnings per share","P/E of 20 means paying 20 years of earnings upfront","Compare P/E to industry average — not to the entire market","Growth stocks command high P/E: Apple 30, Reliance 25, Infosys 24","Value stocks have low P/E: banks, energy companies often below 15"]},
+            {"heading": "Revenue and Profit Growth — The Most Important Numbers",
+             "points": ["Revenue growing 15%+ per year = fast growing company","Net profit growing faster than revenue = improving margins","Check 5 years of data — one good year means nothing","Consistent growth beats spectacular but inconsistent growth","This works whether you are analysing Apple, TCS, or a Brazilian bank"]},
+            {"heading": "Finding Great Stocks Using Free Tools",
+             "points": ["Screener.in: best free tool for Indian stock analysis","Finviz.com: best free screener for US stocks","Simply Wall St: visual fundamental analysis for global stocks","Set filters: ROE above 15%, debt below 0.5, revenue growth above 15%","This takes 10 minutes per week and beats most paid research"]},
         ]
     },
 ]
 
-# Map weekday to topics (0=Monday, 4=Friday)
+# ══════════════════════════════════════════════════════════
+# MASTER MAPPING
+# ══════════════════════════════════════════════════════════
 WEEKDAY_TOPICS = {
-    0: MONDAY_TOPICS,    # Monday = Options
-    1: TUESDAY_TOPICS,   # Tuesday = Technical Analysis
-    2: WEDNESDAY_TOPICS, # Wednesday = Fundamentals + Sectors + News
-    3: THURSDAY_TOPICS,  # Thursday = Strategies
-    4: FRIDAY_TOPICS,    # Friday = Psychology + Risk
+    0: MONDAY_TOPICS,
+    1: TUESDAY_TOPICS,
+    2: WEDNESDAY_TOPICS,
+    3: THURSDAY_TOPICS,
+    4: FRIDAY_TOPICS,
 }
 
-def get_todays_education_topic(today=None):
-    """Returns the education topic for today based on smart rotation."""
-    from datetime import datetime
+def get_todays_education_topic():
+    """Smart rotation — returns today's education topic."""
     now = datetime.now()
-    weekday = now.weekday()  # 0=Mon, 4=Fri, 5=Sat, 6=Sun
-
+    weekday = now.weekday()
     if weekday >= 5:
-        weekday = 0  # Weekend defaults to Monday (Options)
-
+        weekday = 0
     topics = WEEKDAY_TOPICS[weekday]
-
-    # Rotate through topics by week number
-    week_number = now.isocalendar()[1]
-    topic_index = week_number % len(topics)
-
-    return topics[topic_index]
+    week_num = now.isocalendar()[1]
+    return topics[week_num % len(topics)]
 
 
 if __name__ == "__main__":
-    from datetime import datetime
     topic = get_todays_education_topic()
-    print(f"Today's education topic: {topic['title']}")
-    print(f"Category: {topic['category']}")
-    print(f"Level: {topic['level']}")
+    print(f"Today: {topic['title']}")
+    print(f"Category: {topic['category']} | Level: {topic['level']}")
+    print(f"Target: {topic['target_audience']}")
     print(f"Slides: {len(topic['slides'])}")
