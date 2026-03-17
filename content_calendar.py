@@ -281,10 +281,8 @@ WEEKDAY_TOPICS = {
 
 def get_todays_education_topic(today=None):
     """Returns the education topic for today based on smart rotation."""
-    if today is None:
-        today = datetime.now() if hasattr(__import__('datetime'), 'datetime') else None
-    from datetime import datetime as dt
-    now = dt.now()
+    from datetime import datetime
+    now = datetime.now()
     weekday = now.weekday()  # 0=Mon, 4=Fri, 5=Sat, 6=Sun
 
     if weekday >= 5:
