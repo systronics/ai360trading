@@ -1,24 +1,30 @@
 name: Daily YouTube Video Generator
+
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 10 * * 1-5'   # Fixed: 3:30 PM IST (Mon-Fri) for Market Close
+    - cron: '0 10 * * 1-5'   # 3:30 PM IST Mon–Fri (10:00 UTC)
+
 jobs:
   generate-video:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60           # Extra time for 10-min video render
+
     permissions:
-      contents: write       # Fixed: Must be "write" to save YouTube tokens
+      contents: write
+
     steps:
       - name: Checkout master
         uses: actions/checkout@v4
         with:
           ref: master
+
       - name: Setup Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
           cache: 'pip'
+
       - name: Install system dependencies
         run: |
           sudo apt-get update -qq
@@ -26,29 +32,39 @@ jobs:
             ffmpeg \
             fonts-liberation \
             fonts-dejavu \
-            fonts-freefont-ttf
+            fonts-freefont-ttf \
+            fonts-ubuntu
+
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
           pip install \
-            pynacl \
             groq \
             pytz \
             requests \
             edge-tts \
             "moviepy==1.0.3" \
-            matplotlib \
-            numpy \
             pillow \
             imageio \
             imageio-ffmpeg \
             google-api-python-client \
             google-auth \
             google-auth-oauthlib
+
+      # ── CRITICAL: Write YouTube OAuth token from secret ──
+      - name: Write YouTube token.json
+        env:
+          YOUTUBE_CREDENTIALS: ${{ secrets.YOUTUBE_CREDENTIALS }}
+        run: |
+          echo "$YOUTUBE_CREDENTIALS" > token.json
+          echo "✅ token.json written ($(wc -c < token.json) bytes)"
+
       - name: Generate and Upload Video
         env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-          YOUTUBE_CREDENTIALS: ${{ secrets.YOUTUBE_CREDENTIALS }}
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
         run: python generate_videos.py
+
+      # Clean up sensitive token after upload
+      - name: Remove token.json
+        if: always()
+        run: rm -f token.json
