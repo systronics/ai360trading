@@ -1,4 +1,4 @@
-sharing in two parts-"""
+"""
 AI360Trading — YouTube Video Automation Bot v2.0
 =================================================
 IMPROVEMENTS in v2:
