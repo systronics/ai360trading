@@ -1,8 +1,19 @@
-name: Daily NIFTY Video — AI360Trading
+name: Daily Global Markets Video — AI360Trading
 
 on:
   workflow_dispatch:
   schedule:
+    # ═══════════════════════════════════════════════════════
+    # OPTIMAL POSTING TIME FOR GLOBAL AUDIENCE:
+    #
+    # 01:00 UTC = 6:30 AM IST   = Indian pre-market (huge audience)
+    # 01:00 UTC = 6:30 PM US Pacific previous day = US evening traders
+    # 01:00 UTC = 2:30 AM UK    = UK traders wake up to fresh video
+    # 01:00 UTC = 10:30 PM Brazil previous day = Brazil night viewers
+    #
+    # YouTube promotes fresh videos in first 2 hours.
+    # Being live at 7 AM IST = first result for "stock market analysis today"
+    # ═══════════════════════════════════════════════════════
     - cron: '0 1 * * 1-5'    # 6:30 AM IST Mon–Fri
 
 jobs:
@@ -11,33 +22,54 @@ jobs:
     timeout-minutes: 75
     permissions:
       contents: write
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
         with: { ref: master }
 
-      - uses: actions/setup-python@v5
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
         with: { python-version: '3.11', cache: 'pip' }
 
       - name: System dependencies
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y --no-install-recommends ffmpeg fonts-liberation fonts-dejavu fonts-freefont-ttf fonts-ubuntu
+          sudo apt-get install -y --no-install-recommends \
+            ffmpeg fonts-liberation fonts-dejavu fonts-freefont-ttf fonts-ubuntu
 
       - name: Python dependencies
         run: |
           pip install --upgrade pip
-          pip install groq yfinance pandas numpy requests edge-tts "moviepy==1.0.3" pillow imageio imageio-ffmpeg google-api-python-client google-auth google-auth-oauthlib
+          pip install \
+            groq \
+            yfinance \
+            pandas \
+            numpy \
+            requests \
+            edge-tts \
+            "moviepy==1.0.3" \
+            pillow \
+            imageio \
+            imageio-ffmpeg \
+            google-api-python-client \
+            google-auth \
+            google-auth-oauthlib
 
-      - name: Write YouTube token
+      - name: Write YouTube OAuth token
         env:
           YOUTUBE_CREDENTIALS: ${{ secrets.YOUTUBE_CREDENTIALS }}
-        run: echo "$YOUTUBE_CREDENTIALS" > token.json
+        run: |
+          echo "$YOUTUBE_CREDENTIALS" > token.json
+          echo "✅ token.json ready"
 
-      - name: Generate and Upload
+      - name: Generate and Upload Video
         env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
         run: python generate_videos.py
 
       - name: Cleanup
         if: always()
-        run: rm -f token.json && rm -rf output/
+        run: |
+          rm -f token.json
+          rm -rf output/
