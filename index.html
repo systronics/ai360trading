@@ -129,7 +129,14 @@ keywords: "NIFTY trading signals, S&P 500 analysis today, FTSE 100 analysis, IBO
         </h3>
         <p class="post-excerpt">{{ post.excerpt | strip_html | truncate: 140 }}</p>
         <!-- CHANGED: anchor text now includes post pillar dynamically — fixes duplicate "Read Analysis →" issue -->
-        <a href="{{ post.url | relative_url }}" class="read-more">Read {% if post.pillar %}{{ post.pillar | replace: "-", " " | capitalize }}{% else %}Full{% endif %} Analysis →</a>
+        <a href="{{ post.url | relative_url }}" class="read-more">Read 
+{% case post.pillar %}
+  {% when 'stock-market' %}Stock Market
+  {% when 'bitcoin' %}Bitcoin
+  {% when 'personal-finance' %}Personal Finance
+  {% when 'ai-trading' %}AI Trading
+  {% else %}Full
+{% endcase %} Analysis →</a>
       </article>
     {% endfor %}
   </div>
