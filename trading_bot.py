@@ -4,9 +4,9 @@ AI360 TRADING BOT — FINAL
 FILE: trading_bot.py  (replace content, keep filename)
 
 3-CHANNEL TELEGRAM ROUTING:
-  BASIC   (Free)    → market mood, basic summary, attract subscribers
-  ADVANCE (₹499/mo) → full signals, entry/exit/TSL alerts, P/L details
-  PREMIUM (Bundle)  → everything in Advance + options hints + priority details
+  BASIC   → ai360trading (Free)           → market mood, basic summary, attract subscribers
+  ADVANCE → ai360trading_Advance (Rs499)  → full signals, entry/exit/TSL alerts, P/L details
+  PREMIUM → ai360trading_Premium (Bundle) → everything in Advance + options hints
 
 COMPLETE CHANGE LOG vs original v7:
 
@@ -49,9 +49,9 @@ IST        = pytz.timezone('Asia/Kolkata')
 TG_TOKEN   = os.environ.get('TELEGRAM_TOKEN')
 
 # ── 3 Telegram channels ───────────────────────────────────────────────────────
-CHAT_BASIC   = os.environ.get('CHAT_ID_BASIC')    # Free public channel
-CHAT_ADVANCE = os.environ.get('CHAT_ID_ADVANCE')  # ₹499/month Signal Channel
-CHAT_PREMIUM = os.environ.get('CHAT_ID_PREMIUM')  # Bundle subscribers
+CHAT_BASIC   = os.environ.get('TELEGRAM_CHAT_ID')  # ai360trading (Free — original channel)
+CHAT_ADVANCE = os.environ.get('CHAT_ID_ADVANCE')   # ai360trading_Advance (Rs499/month)
+CHAT_PREMIUM = os.environ.get('CHAT_ID_PREMIUM')   # ai360trading_Premium (Bundle)
 
 SHEET_NAME = "Ai360tradingAlgo"
 
@@ -1174,9 +1174,9 @@ def run_test_telegram():
         f"💬 Chat: Connected ✅\n\n"
     )
 
-    ok1 = _send_one(CHAT_BASIC,   test_msg + "📢 Channel: <b>BASIC (Free)</b>")
-    ok2 = _send_one(CHAT_ADVANCE, test_msg + "💎 Channel: <b>ADVANCE (₹499/mo)</b>")
-    ok3 = _send_one(CHAT_PREMIUM, test_msg + "👑 Channel: <b>PREMIUM (Bundle)</b>")
+    ok1 = _send_one(CHAT_BASIC,   test_msg + "📢 Channel: <b>ai360trading (Free)</b>")
+    ok2 = _send_one(CHAT_ADVANCE, test_msg + "💎 Channel: <b>ai360trading_Advance (Rs499/mo)</b>")
+    ok3 = _send_one(CHAT_PREMIUM, test_msg + "👑 Channel: <b>ai360trading_Premium (Bundle)</b>")
 
     print(f"[TEST] BASIC={'✅' if ok1 else '❌'} | ADVANCE={'✅' if ok2 else '❌'} | PREMIUM={'✅' if ok3 else '❌'}")
     if not ok1: print("[TEST] BASIC FAILED — check CHAT_ID_BASIC secret")
