@@ -2,8 +2,13 @@
 # Site Settings - AI360TRADING GLOBAL
 # ==========================================
 name: "AI360Trading"
-title: "AI360Trading | Global Market Intelligence & Algorithmic Insights"
-description: "Professional algorithmic trading signals and global macro analysis for NASDAQ, FTSE, and NIFTY markets. High-probability setups backed by price action logic."
+
+# CHANGED: Title now reflects all 4 markets — India, US, UK, Brazil
+title: "AI360Trading | NIFTY, S&P 500, FTSE 100 & IBOVESPA Intelligence Terminal"
+
+# CHANGED: Description now covers all 4 markets and audiences
+description: "Daily AI-powered market intelligence for NIFTY, S&P 500, FTSE 100 and IBOVESPA. Swing and positional trading signals for traders in India, US, UK and Brazil."
+
 url: "https://ai360trading.in"
 enforce_ssl: ai360trading.in
 baseurl: ""
@@ -25,7 +30,9 @@ author:
 # Permalinks & Markdown
 markdown: kramdown
 highlighter: rouge
-permalink: /:year/:month/:day/:title/   # FIXED: was /:title/ — caused duplicate URLs and canonical errors
+# WARNING: Do NOT change permalink format until 301 redirects are in place
+# Changing this breaks all existing indexed URLs
+permalink: /:year/:month/:day/:title/
 
 # SOCIAL MEDIA
 twitter_username: ai360trading
@@ -33,6 +40,8 @@ telegram_username: ai360trading
 facebook_username: ai360trading
 youtube_username: ai360trading
 instagram_username: ai360trading
+# ADDED: Add your LinkedIn company page handle here once created
+# linkedin_username: ai360trading
 
 # Plugins
 plugins:
