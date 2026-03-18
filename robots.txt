@@ -1,6 +1,6 @@
 # ==========================================
 # robots.txt for ai360trading.in
-# Optimized for Global Market Intelligence (US, UK, China)
+# Updated: March 2026
 # ==========================================
 User-agent: *
 Allow: /
@@ -37,7 +37,11 @@ Disallow: /atom.xml
 # 6. Block pagination — duplicate content
 Disallow: /page/
 
-# 7. Global Bot Optimization
+# 7. Block low-value pages — no SEO benefit
+Disallow: /policy.html
+Disallow: /darvas-box.html
+
+# 8. Global Bot Optimization
 # Allow Baiduspider for China reach
 User-agent: Baiduspider
 Allow: /
@@ -54,5 +58,5 @@ Disallow: /
 User-agent: MJ12bot
 Disallow: /
 
-# 8. Sitemap
+# 9. Sitemap
 Sitemap: https://ai360trading.in/sitemap.xml
