@@ -4,15 +4,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <!-- Primary Meta -->
-  <title>{% if page.title %}{{ page.title }}{% else %}AI360Trading | Indian Market Intelligence Terminal{% endif %}</title>
-  <meta name="description" content="{% if page.description %}{{ page.description }}{% else %}AI360Trading provides institutional-grade price action and algorithmic market intelligence.{% endif %}">
+  <title>{% if page.title %}{{ page.title }}{% else %}AI360Trading | Global Market Intelligence Terminal{% endif %}</title>
 
-  <!-- CHANGED: Added NIFTY, S&P 500, India-specific keywords for better relevancy signals -->
-  <meta name="keywords" content="{% if page.keywords %}{{ page.keywords }}{% else %}NIFTY trading signals, S&P 500 analysis, stock market India, AI trading signals, swing trading India, positional picks, Bitcoin analysis, market intelligence terminal{% endif %}">
+  <!-- CHANGED: Default description now reflects all 4 markets — India, US, UK, Brazil -->
+  <meta name="description" content="{% if page.description %}{{ page.description }}{% else %}Daily AI-powered market intelligence for NIFTY, S&P 500, FTSE 100 and IBOVESPA. Swing and positional trading signals for India, US, UK and Brazil.{% endif %}">
+
+  <!-- CHANGED: Keywords now cover all 4 target markets instead of India-only -->
+  <meta name="keywords" content="{% if page.keywords %}{{ page.keywords }}{% else %}NIFTY trading signals, S&P 500 analysis, FTSE 100 today, IBOVESPA analysis, stock market India, swing trading signals, Bitcoin analysis, global market intelligence, AI trading terminal{% endif %}">
 
   <meta name="author" content="Amit Kumar">
 
-  <!-- ADDED: Preload hero image so browser fetches it immediately — directly improves LCP score -->
+  <!-- ADDED: Preload hero image — browser fetches it immediately, directly improves LCP score -->
   <link rel="preload" as="image" href="{{ '/public/image/header.webp' | absolute_url }}">
 
   <!-- Canonical -->
@@ -20,8 +22,8 @@
 
   <!-- Open Graph -->
   <meta property="og:type" content="article">
-  <meta property="og:title" content="{% if page.title %}{{ page.title }}{% else %}AI360Trading | Market Intelligence{% endif %}">
-  <meta property="og:description" content="{% if page.description %}{{ page.description }}{% else %}Institutional-grade market intelligence and trading signals.{% endif %}">
+  <meta property="og:title" content="{% if page.title %}{{ page.title }}{% else %}AI360Trading | Global Market Intelligence{% endif %}">
+  <meta property="og:description" content="{% if page.description %}{{ page.description }}{% else %}Daily AI-powered market intelligence for NIFTY, S&P 500, FTSE 100 and IBOVESPA.{% endif %}">
   <meta property="og:url" content="{{ page.url | absolute_url }}">
   <meta property="og:site_name" content="AI360Trading">
   <meta property="og:image" content="{% if page.image %}{{ page.image | absolute_url }}{% else %}{{ '/public/image/header.webp' | absolute_url }}{% endif %}">
@@ -29,7 +31,7 @@
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="{% if page.title %}{{ page.title }}{% else %}AI360Trading{% endif %}">
-  <meta name="twitter:description" content="{% if page.description %}{{ page.description }}{% else %}Institutional-grade market intelligence.{% endif %}">
+  <meta name="twitter:description" content="{% if page.description %}{{ page.description }}{% else %}Daily AI-powered market intelligence for NIFTY, S&P 500, FTSE 100 and IBOVESPA.{% endif %}">
   <meta name="twitter:image" content="{% if page.image %}{{ page.image | absolute_url }}{% else %}{{ '/public/image/header.webp' | absolute_url }}{% endif %}">
 
   <!-- Favicon -->
@@ -40,14 +42,15 @@
   <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"></noscript>
 
-  <!-- FIX 2: Google Fonts — preconnect + display=swap already set, add font-display -->
+  <!-- FIX 2: Google Fonts — preconnect + display=swap already set -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
   <!-- FIX 3: Load font async with media trick — removes render blocking -->
   <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet"></noscript>
 
-  <!-- FIX 4: Local CSS — these are fine, served from same domain -->
+  <!-- FIX 4: Local CSS — served from same domain, no blocking issue -->
   <link rel="stylesheet" href="{{ '/public/css/poole.css' | relative_url }}">
   <link rel="stylesheet" href="{{ '/public/css/gpstyle.css' | relative_url }}">
 
@@ -56,7 +59,7 @@
     body { font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
   </style>
 
-  <!-- JSON-LD Structured Data — FIX 6: moved to bottom of head, non-blocking -->
+  <!-- JSON-LD: NewsArticle schema — fires on every page for blog posts -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -87,7 +90,7 @@
   }
   </script>
 
-  <!-- ADDED: Organization + WebSite schema — homepage only, won't affect any other page -->
+  <!-- ADDED: Organization + WebSite schema — homepage only, zero impact on other pages -->
   {% if page.url == '/' %}
   <script type="application/ld+json">
   {
@@ -96,7 +99,7 @@
     "name": "AI360Trading",
     "url": "https://ai360trading.in",
     "logo": "{{ '/public/image/header.webp' | absolute_url }}",
-    "description": "AI-powered stock market intelligence for NIFTY, S&P 500, Bitcoin and Personal Finance.",
+    "description": "Daily market intelligence terminal covering NIFTY, S&P 500, FTSE 100 and IBOVESPA for traders in India, US, UK and Brazil.",
     "sameAs": ["https://t.me/ai360trading"]
   }
   </script>
