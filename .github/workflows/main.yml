@@ -1,18 +1,16 @@
 name: AlgoTradeBot
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# CHANGELOG vs original:
-# 1. CRON FIXED: */5 (every 5 min) Mon–Fri 8:30–16:30 IST
-# 2. SECRETS: mapped to match Python os.environ.get() names
-# 3. BOT_MODE dropdown: trade / test_telegram / daily_summary / weekly_summary
-# 4. Filename fixed: trading_bot.py
-# 5. Multi-channel: CHAT_ID_BASIC, CHAT_ID_ADVANCE, CHAT_ID_PREMIUM added
+# CHANNELS:
+#   TELEGRAM_CHAT_ID = ai360trading (Free — original channel)
+#   CHAT_ID_ADVANCE  = ai360trading_Advance (Rs499/month)
+#   CHAT_ID_PREMIUM  = ai360trading_Premium (Bundle)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 on:
   schedule:
     # Every 5 min, 08:30–16:29 IST (03:00–10:59 UTC), Mon–Fri
     - cron: '*/5 3-10 * * 1-5'
   push:
-    branches: [ master ]   # also triggers on every code push — keeps repo "active"
+    branches: [ master ]
   workflow_dispatch:
     inputs:
       mode:
@@ -46,11 +44,10 @@ jobs:
       - name: Run Trading Bot
         env:
           GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
-          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          CHAT_ID_BASIC:   ${{ secrets.CHAT_ID_BASIC }}
-          CHAT_ID_ADVANCE: ${{ secrets.CHAT_ID_ADVANCE }}
-          CHAT_ID_PREMIUM: ${{ secrets.CHAT_ID_PREMIUM }}
+          TELEGRAM_TOKEN:    ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID:  ${{ secrets.TELEGRAM_CHAT_ID }}
+          CHAT_ID_ADVANCE:   ${{ secrets.CHAT_ID_ADVANCE }}
+          CHAT_ID_PREMIUM:   ${{ secrets.CHAT_ID_PREMIUM }}
           BOT_MODE: ${{ github.event.inputs.mode || 'trade' }}
         run: |
           export BOT_MODE="${BOT_MODE:-trade}"
