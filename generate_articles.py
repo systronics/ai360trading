@@ -231,7 +231,6 @@ PERSONAS = [
         "opening_hook": "opens with a specific chart pattern forming right now across multiple timeframes signaling a high-probability move",
         "signature_phrase": "Price is the only truth in this market.",
     },
-    # Pillar-specific personas
     {
         "name": "Certified Financial Planner",
         "tone": "warm, practical and trustworthy",
@@ -248,12 +247,12 @@ PERSONAS = [
     },
 ]
 
-# Pillar-to-persona mapping — ensures right persona for right topic
+# Pillar-to-persona mapping
 PILLAR_PERSONA_MAP = {
-    "stock-market":     [0, 1, 2, 3, 4, 5],   # all trading personas
-    "bitcoin":          [2, 3, 4, 5, 0, 1],   # quant/technical first
-    "personal-finance": [6, 1, 3, 6, 1, 3],   # CFP persona dominant
-    "ai-trading":       [7, 2, 5, 7, 2, 5],   # AI strategist dominant
+    "stock-market":     [0, 1, 2, 3, 4, 5],
+    "bitcoin":          [2, 3, 4, 5, 0, 1],
+    "personal-finance": [6, 1, 3, 6, 1, 3],
+    "ai-trading":       [7, 2, 5, 7, 2, 5],
 }
 
 # ─── 1. Live Prices ───────────────────────────────────────────────────────────
@@ -399,12 +398,21 @@ def get_recent_posts(pillar_id, limit=3):
                 try:
                     with open(fpath, 'r', encoding='utf-8') as f:
                         content = f.read()
+                    title = None
+                    url_slug_match = None
                     for line in content.split('\n'):
                         if line.startswith('title:'):
                             title = line.replace('title:', '').strip().strip('"')
-                            slug  = fname.replace('.md', '')
-                            recent.append({"title": title, "slug": slug})
+                        if line.startswith('permalink:'):
+                            # Extract clean slug from permalink line
+                            # e.g. permalink: /stock-market/sp500-today-why-different/
+                            parts = line.strip().rstrip('/').split('/')
+                            if len(parts) >= 2:
+                                url_slug_match = parts[-1]
+                        if title and url_slug_match:
                             break
+                    if title and url_slug_match:
+                        recent.append({"title": title, "slug": url_slug_match})
                 except:
                     pass
             if len(recent) >= limit:
@@ -457,7 +465,6 @@ def generate_schema(title, description, pillar, url_slug):
 
 # ─── 8. Build Dynamic Title ───────────────────────────────────────────────────
 def build_title(pillar, trends, prices, fear_greed):
-    # FIX: Use pillar-specific trend — pick first trend relevant to pillar, not just trends[0]
     pillar_trend_keywords = {
         "stock-market":     ['stock', 'nifty', 'sensex', 'nasdaq', 's&p', 'market', 'dow', 'ftse', 'ibovespa'],
         "bitcoin":          ['bitcoin', 'crypto', 'btc', 'ethereum', 'defi', 'altcoin', 'blockchain'],
@@ -467,7 +474,7 @@ def build_title(pillar, trends, prices, fear_greed):
     relevant_keywords = pillar_trend_keywords.get(pillar['id'], [])
     top_trend = next(
         (t for t in trends if any(kw in t.lower() for kw in relevant_keywords)),
-        pillar['primary_keywords'][0]  # fallback to pillar's own keyword — never bleeds cross-pillar
+        pillar['primary_keywords'][0]
     )
 
     nifty_price = prices.get("NIFTY 50", {}).get("price", 24000)
@@ -526,19 +533,37 @@ def generate_article(pillar, prices, trends, fear_greed, persona, article_index)
 
     article_title, direction, top_trend = build_title(pillar, trends, prices, fear_greed)
 
+    # ─── CHANGED: Clean short slug generation ────────────────────────────────
     import re as _re
-    # Use article title for slug — unique every day, good for SEO
+
+    # Step 1: clean the title into slug-safe string
     _title_clean = article_title.lower()
-    _title_clean = _title_clean.replace('&', '-and-').replace('s&p', 'sp').replace('s-and-p', 'sp')
-    _title_clean = _title_clean.replace('$', '').replace('/', '-').replace(' ', '-')
-    _title_clean = _title_clean.replace('|', '-').replace(':', '-').replace('?', '').replace('!', '')
-    _title_clean = _title_clean.replace("'", '').replace('"', '').replace(',', '')
+    _title_clean = _title_clean.replace('s&p', 'sp').replace('s-and-p', 'sp')
+    _title_clean = _title_clean.replace('&', '-').replace('$', '').replace('/', '-')
+    _title_clean = _title_clean.replace(' ', '-').replace('|', '-').replace(':', '-')
+    _title_clean = _title_clean.replace('?', '').replace('!', '').replace("'", '')
+    _title_clean = _title_clean.replace('"', '').replace(',', '').replace('(', '').replace(')', '')
     _title_clean = _title_clean.replace('₹', 'rs').replace('%', 'pct')
     _title_clean = _re.sub(r'[^a-z0-9\-]', '', _title_clean)
     _title_clean = _re.sub(r'-+', '-', _title_clean).strip('-')
-    title_slug   = _title_clean[:45]
-    chosen_slug  = f"{date_str}-{pillar['id']}-{title_slug}"
-    file_path    = os.path.join(POSTS_DIR, f"{chosen_slug}.md")
+
+    # Step 2: remove stop words so slug stays short and meaningful
+    _stop = {'the','a','an','and','or','but','in','on','at','to','for','of',
+             'with','is','are','was','were','its','this','that','i','my','we',
+             'you','he','she','they','what','why','how','when','where','from',
+             'by','as','so','if','just','vs','im','heres','thats','dont'}
+    _words = [w for w in _title_clean.split('-') if w and w not in _stop]
+
+    # Step 3: take first 6 meaningful words — keeps URL under 60 chars
+    title_slug = '-'.join(_words[:6])
+
+    # Step 4: two separate variables
+    # file_slug  → Jekyll NEEDS date prefix in filename to recognise post
+    # chosen_slug → clean short URL used in permalink and schema (NO date, NO pillar)
+    file_slug   = f"{date_str}-{pillar['id']}-{title_slug}"
+    chosen_slug = title_slug
+    file_path   = os.path.join(POSTS_DIR, f"{file_slug}.md")
+    # ─── END CHANGE ──────────────────────────────────────────────────────────
 
     # Internal links
     recent_posts = get_recent_posts(pillar['id'])
@@ -562,7 +587,6 @@ def generate_article(pillar, prices, trends, fear_greed, persona, article_index)
     r1_btc   = round(btc_price * 1.05, 0)
     r2_btc   = round(btc_price * 1.10, 0)
 
-    # Rotating article formats — never same structure twice
     FORMAT_TYPES = [
         "story_led",
         "contrarian",
@@ -718,24 +742,19 @@ WORD COUNT CHECK: Count your words before finishing. If under 1800 words — exp
         )
         content = completion.choices[0].message.content
 
-        # ── FIX 1: meta_description fallback uses article_title, not top_trend ──
         meta_description = f"{article_title} | {pillar['name']} — {date_display}. Live prices, key levels and insights for US, UK, India and Brazil."[:155]
         cleaned_lines = []
         for line in content.split("\n"):
             if line.strip().startswith("META_DESCRIPTION:"):
                 extracted = line.replace("META_DESCRIPTION:", "").strip().strip('"')
-                # FIX: enforce 130-160 char range — short descriptions hurt SEO
                 if 130 <= len(extracted) <= 160:
                     meta_description = extracted
                 elif 100 < len(extracted) < 130:
-                    # pad with pillar + date context
                     meta_description = (extracted + f" | {pillar['name']} analysis {date_display}.")[:160]
             else:
                 cleaned_lines.append(line)
         content = "\n".join(cleaned_lines).lstrip("\n")
 
-        # ── FIX 2: article_excerpt uses article_title, not top_trend ──
-        # FIX: excerpt uses article title + pillar keywords for SEO match
         _primary_kw = pillar['primary_keywords'][0]
         article_excerpt = (
             f"{article_title} — {pillar['name']} analysis for {date_display}. "
@@ -745,7 +764,6 @@ WORD COUNT CHECK: Count your words before finishing. If under 1800 words — exp
 
         schema_json = generate_schema(article_title, meta_description, pillar, chosen_slug)
 
-        # Sanitize title — remove chars that break YAML/XML sitemap
         safe_title = (article_title
             .replace('"', "'")
             .replace('&', 'and')
