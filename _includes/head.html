@@ -6,8 +6,14 @@
   <!-- Primary Meta -->
   <title>{% if page.title %}{{ page.title }}{% else %}AI360Trading | Indian Market Intelligence Terminal{% endif %}</title>
   <meta name="description" content="{% if page.description %}{{ page.description }}{% else %}AI360Trading provides institutional-grade price action and algorithmic market intelligence.{% endif %}">
-  <meta name="keywords" content="{% if page.keywords %}{{ page.keywords }}{% else %}stock market, global market intelligence, NASDAQ, FTSE 100, trading signals, market analysis{% endif %}">
+
+  <!-- CHANGED: Added NIFTY, S&P 500, India-specific keywords for better relevancy signals -->
+  <meta name="keywords" content="{% if page.keywords %}{{ page.keywords }}{% else %}NIFTY trading signals, S&P 500 analysis, stock market India, AI trading signals, swing trading India, positional picks, Bitcoin analysis, market intelligence terminal{% endif %}">
+
   <meta name="author" content="Amit Kumar">
+
+  <!-- ADDED: Preload hero image so browser fetches it immediately — directly improves LCP score -->
+  <link rel="preload" as="image" href="{{ '/public/image/header.webp' | absolute_url }}">
 
   <!-- Canonical -->
   <link rel="canonical" href="{{ page.url | replace:'index.html','' | absolute_url }}">
@@ -80,6 +86,29 @@
     }
   }
   </script>
+
+  <!-- ADDED: Organization + WebSite schema — homepage only, won't affect any other page -->
+  {% if page.url == '/' %}
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "AI360Trading",
+    "url": "https://ai360trading.in",
+    "logo": "{{ '/public/image/header.webp' | absolute_url }}",
+    "description": "AI-powered stock market intelligence for NIFTY, S&P 500, Bitcoin and Personal Finance.",
+    "sameAs": ["https://t.me/ai360trading"]
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "AI360Trading",
+    "url": "https://ai360trading.in"
+  }
+  </script>
+  {% endif %}
 
   <!-- Google Analytics — async, non-blocking -->
   {% if site.google_analytics %}
