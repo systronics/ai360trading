@@ -3,7 +3,6 @@ layout: null
 ---
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-
   {% comment %}
   ─────────────────────────────────────────────────────────
   SECTION 1: CORE STATIC PAGES
@@ -19,7 +18,9 @@ layout: null
           or page.url contains "feed"
           or page.url contains "404"
           or page.url contains "sitemap"
-          or page.url contains "page" %}
+          or page.url contains "page"
+          or page.url contains "darvas-box"
+          or page.url contains "policy.html" %}
     <url>
       <loc>{{ site.url }}{{ page.url | replace: 'index.html', '' }}</loc>
       {% if page.last_modified_at %}
@@ -34,7 +35,6 @@ layout: null
     </url>
     {% endunless %}
   {% endfor %}
-
   {% comment %}
   ─────────────────────────────────────────────────────────
   SECTION 2: POSTS — split by age for honest signals
@@ -47,14 +47,11 @@ layout: null
   {% endcomment %}
   {% assign now_ts   = site.time | date: "%s" | plus: 0 %}
   {% assign day_secs = 86400 %}
-
   {% for post in site.posts %}
     {% unless post.sitemap == false %}
-
       {% assign post_ts  = post.date | date: "%s" | plus: 0 %}
       {% assign age_secs = now_ts | minus: post_ts %}
       {% assign age_days = age_secs | divided_by: day_secs %}
-
       {% if age_days <= 1 %}
         {% assign post_priority   = "1.0" %}
         {% assign post_changefreq = "daily" %}
@@ -68,7 +65,6 @@ layout: null
         {% assign post_priority   = "0.6" %}
         {% assign post_changefreq = "monthly" %}
       {% endif %}
-
     <url>
       <loc>{{ site.url }}{{ post.url }}</loc>
       {% if post.last_modified_at %}
@@ -79,8 +75,6 @@ layout: null
       <changefreq>{{ post_changefreq }}</changefreq>
       <priority>{{ post_priority }}</priority>
     </url>
-
     {% endunless %}
   {% endfor %}
-
 </urlset>
