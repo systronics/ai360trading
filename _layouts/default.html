@@ -17,7 +17,6 @@
     .header-banner-img {
       display: block;
       margin: 0 auto 16px;
-      /* FIXED: was 450px — now fills nicely on all screen sizes */
       max-width: 720px;
       width: 85%;
       height: auto;
@@ -54,6 +53,8 @@
     .social-icon-link.yt:hover { background: #ff0000; color: #ffffff !important; border-color: #ff0000; }
     .social-icon-link.ig:hover { background: #e4405f; color: #ffffff !important; border-color: #e4405f; }
     .social-icon-link.fb:hover { background: #1877f2; color: #ffffff !important; border-color: #1877f2; }
+    /* ADDED: LinkedIn hover style — matches pattern of all other social icons */
+    .social-icon-link.li:hover { background: #0077b5; color: #ffffff !important; border-color: #0077b5; }
     .social-icon-link:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
 
     .content-wrapper { max-width: 1100px; margin: 0 auto; padding: 40px 20px; min-height: 70vh; }
@@ -99,7 +100,11 @@
 
   <header class="header-container">
     <a href="/">
-      <img src="/public/image/header.webp" alt="AI360Trading Terminal" class="header-banner-img">
+      <!-- CHANGED: alt text now descriptive for all 4 markets — fixes missing alt audit flag -->
+      <img src="/public/image/header.webp"
+           alt="AI360Trading — Market Intelligence Terminal for NIFTY, S&P 500, FTSE 100 and IBOVESPA"
+           class="header-banner-img"
+           width="720" height="120">
     </a>
     <nav class="site-nav">
       <a href="/" class="nav-link">Home</a>
@@ -113,28 +118,34 @@
     </nav>
     <div class="social-links-header">
       {% if site.telegram_username %}
-        <a href="https://t.me/{{ site.telegram_username }}" class="social-icon-link tg" target="_blank" title="Telegram">
+        <a href="https://t.me/{{ site.telegram_username }}" class="social-icon-link tg" target="_blank" rel="noopener" title="Join AI360Trading on Telegram">
           <i class="fa fa-paper-plane"></i>
         </a>
       {% endif %}
       {% if site.twitter_username %}
-        <a href="https://twitter.com/{{ site.twitter_username }}" class="social-icon-link tw" target="_blank" title="Twitter">
+        <a href="https://twitter.com/{{ site.twitter_username }}" class="social-icon-link tw" target="_blank" rel="noopener" title="Follow AI360Trading on Twitter">
           <i class="fa fa-twitter"></i>
         </a>
       {% endif %}
       {% if site.youtube_username %}
-        <a href="https://youtube.com/@{{ site.youtube_username }}" class="social-icon-link yt" target="_blank" title="YouTube">
+        <a href="https://youtube.com/@{{ site.youtube_username }}" class="social-icon-link yt" target="_blank" rel="noopener" title="AI360Trading on YouTube">
           <i class="fa fa-youtube-play"></i>
         </a>
       {% endif %}
       {% if site.instagram_username %}
-        <a href="https://instagram.com/{{ site.instagram_username }}" class="social-icon-link ig" target="_blank" title="Instagram">
+        <a href="https://instagram.com/{{ site.instagram_username }}" class="social-icon-link ig" target="_blank" rel="noopener" title="AI360Trading on Instagram">
           <i class="fa fa-instagram"></i>
         </a>
       {% endif %}
       {% if site.facebook_username %}
-        <a href="https://facebook.com/{{ site.facebook_username }}" class="social-icon-link fb" target="_blank" title="Facebook">
+        <a href="https://facebook.com/{{ site.facebook_username }}" class="social-icon-link fb" target="_blank" rel="noopener" title="AI360Trading on Facebook">
           <i class="fa fa-facebook"></i>
+        </a>
+      {% endif %}
+      <!-- ADDED: LinkedIn icon — shows only when linkedin_username is set in _config.yml -->
+      {% if site.linkedin_username %}
+        <a href="https://linkedin.com/company/{{ site.linkedin_username }}" class="social-icon-link li" target="_blank" rel="noopener" title="AI360Trading on LinkedIn">
+          <i class="fa fa-linkedin"></i>
         </a>
       {% endif %}
     </div>
@@ -144,14 +155,25 @@
     {{ content }}
   </main>
 
+  <!-- CHANGED: Footer expanded — added market coverage and useful links for SEO -->
   <footer class="site-footer">
-    <p>© 2026 AI360TRADING | Institutional Grade Market Intelligence</p>
+    <p style="font-size:15px; font-weight:800; margin-bottom:12px;">© 2026 AI360TRADING | Institutional Grade Market Intelligence</p>
+    <p style="font-size:13px; color:#94a3b8; margin-bottom:16px;">
+      Daily analysis for NIFTY &bull; S&amp;P 500 &bull; FTSE 100 &bull; IBOVESPA &bull; Bitcoin
+    </p>
+    <p style="font-size:12px; color:#64748b;">
+      <a href="/about/" style="color:#60a5fa; text-decoration:none; margin:0 8px;">About</a>
+      <a href="/disclaimer/" style="color:#60a5fa; text-decoration:none; margin:0 8px;">Disclaimer</a>
+      <a href="/policy/" style="color:#60a5fa; text-decoration:none; margin:0 8px;">Privacy Policy</a>
+      <a href="/contact/" style="color:#60a5fa; text-decoration:none; margin:0 8px;">Contact</a>
+      <a href="/membership/" style="color:#60a5fa; text-decoration:none; margin:0 8px;">Membership</a>
+    </p>
   </footer>
 
   <!-- COOKIE CONSENT BANNER -->
   <div id="cookie-banner">
     <p>We use cookies for analytics and personalized advertising. By continuing to use this site, you agree to our <a href="/policy/">Privacy Policy</a> and use of cookies.</p>
-    <button id="cookie-accept-btn" onclick="acceptCookies()">Accept & Continue</button>
+    <button id="cookie-accept-btn" onclick="acceptCookies()">Accept &amp; Continue</button>
   </div>
 
   <script>
