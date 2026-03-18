@@ -50,8 +50,8 @@ TG_TOKEN   = os.environ.get('TELEGRAM_TOKEN')
 
 # ── 3 Telegram channels ───────────────────────────────────────────────────────
 CHAT_BASIC   = os.environ.get('TELEGRAM_CHAT_ID')  # ai360trading (Free — original channel)
-CHAT_ADVANCE = os.environ.get('CHAT_ID_ADVANCE')   # ai360trading_Advance (Rs499/month)
-CHAT_PREMIUM = os.environ.get('CHAT_ID_PREMIUM')   # ai360trading_Premium (Bundle)
+CHAT_ADVANCE = os.environ.get('CHAT_ID_PREMIUM')   # ai360trading_Advance (secret name is PREMIUM)
+CHAT_PREMIUM = os.environ.get('CHAT_ID_ADVANCE')   # ai360trading_Premium (secret name is ADVANCE)
 
 SHEET_NAME = "Ai360tradingAlgo"
 
@@ -1175,8 +1175,8 @@ def run_test_telegram():
     )
 
     ok1 = _send_one(CHAT_BASIC,   test_msg + "📢 Channel: <b>ai360trading (Free)</b>")
-    ok2 = _send_one(CHAT_ADVANCE, test_msg + "💎 Channel: <b>ai360trading_Advance (Rs499/mo)</b>")
-    ok3 = _send_one(CHAT_PREMIUM, test_msg + "👑 Channel: <b>ai360trading_Premium (Bundle)</b>")
+    ok2 = _send_one(CHAT_ADVANCE, test_msg + "💎 Channel: <b>ai360trading_Advance</b>")
+    ok3 = _send_one(CHAT_PREMIUM, test_msg + "👑 Channel: <b>ai360trading_Premium</b>")
 
     print(f"[TEST] BASIC={'✅' if ok1 else '❌'} | ADVANCE={'✅' if ok2 else '❌'} | PREMIUM={'✅' if ok3 else '❌'}")
     if not ok1: print("[TEST] BASIC FAILED — check CHAT_ID_BASIC secret")
