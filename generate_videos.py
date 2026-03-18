@@ -6,7 +6,7 @@ Part 1: Live Market Analysis — Nifty + S&P500 + Bitcoin + Gold
 Part 2: Education — Universal topics that rank in US, UK, Brazil, India
 """
 
-import os, sys, json, asyncio, textwrap, time
+import os, sys, json, asyncio, textwrap, time, re
 from datetime import datetime
 
 import requests
@@ -100,7 +100,6 @@ def compute_indicators(df):
     }
 
 def quick_price(ticker):
-    """Fetch just price and change for display tickers."""
     try:
         df = flatten(yf.download(ticker, period="5d", interval="1d",
                                   progress=False, auto_adjust=True))
@@ -155,7 +154,6 @@ def fetch_all():
     print("📡 Fetching global market data...")
     ses = nse_session(); md = {}
 
-    # Indian indices — full indicators
     for nm, tk, pd_ in [("nifty","^NSEI","250d"), ("banknifty","^NSEBANK","60d")]:
         try:
             df = flatten(yf.download(tk, period=pd_, interval="1d",
@@ -165,22 +163,11 @@ def fetch_all():
         except Exception as e:
             print(f"  ✗ {nm}: {e}"); md[nm] = {}
 
-    # Global markets — price + change
     global_tickers = {
-        "sp500":    "^GSPC",
-        "nasdaq":   "^IXIC",
-        "dow":      "^DJI",
-        "bitcoin":  "BTC-USD",
-        "ethereum": "ETH-USD",
-        "gold":     "GC=F",
-        "oil":      "CL=F",
-        "india_vix":"^INDIAVIX",
-        "vix":      "^VIX",
-        "ftse":     "^FTSE",
-        "nikkei":   "^N225",
-        "eurusd":   "EURUSD=X",
-        "gbpusd":   "GBPUSD=X",
-        "usdinr":   "INR=X",
+        "sp500":"^GSPC","nasdaq":"^IXIC","dow":"^DJI",
+        "bitcoin":"BTC-USD","ethereum":"ETH-USD","gold":"GC=F","oil":"CL=F",
+        "india_vix":"^INDIAVIX","vix":"^VIX","ftse":"^FTSE","nikkei":"^N225",
+        "eurusd":"EURUSD=X","gbpusd":"GBPUSD=X","usdinr":"INR=X",
     }
     md["global"] = {}
     for nm, tk in global_tickers.items():
@@ -310,17 +297,17 @@ AT = {
         "bg_top":(6,16,10),"bg_bot":(4,32,18),
         "accent":(0,210,100),"accent2":(0,160,75),
         "text":(238,255,244),"subtext":(150,210,175),
-        "badge_bg":(0,175,85),"badge_txt":(0,28,14),"badge":"▲ BULLISH"},
+        "badge_bg":(0,175,85),"badge_txt":(0,28,14),"badge":"BULLISH"},
     "bearish": {
         "bg_top":(22,6,6),"bg_bot":(42,10,10),
         "accent":(255,70,50),"accent2":(195,45,35),
         "text":(255,244,240),"subtext":(225,165,155),
-        "badge_bg":(215,45,35),"badge_txt":(255,238,235),"badge":"▼ BEARISH"},
+        "badge_bg":(215,45,35),"badge_txt":(255,238,235),"badge":"BEARISH"},
     "neutral": {
         "bg_top":(6,10,28),"bg_bot":(10,18,52),
         "accent":(75,145,255),"accent2":(55,115,205),
         "text":(238,244,255),"subtext":(155,180,225),
-        "badge_bg":(55,115,200),"badge_txt":(228,238,255),"badge":"◆ NEUTRAL"},
+        "badge_bg":(55,115,200),"badge_txt":(228,238,255),"badge":"NEUTRAL"},
 }
 ET = {
     "Options":             {"bg_top":(20,5,35),"bg_bot":(35,10,60),"accent":(180,100,255),"text":(248,240,255),"subtext":(195,165,235)},
@@ -350,12 +337,9 @@ def mini_candles(draw, th, x0=1025, y0=160, cw=30, gap=50, ch=185):
         draw.rounded_rectangle([(x,bt),(x+cw,bt+max(bb-bt,5))],radius=3,fill=clr)
 
 def global_ticker_bar(draw, md):
-    """Scrolling global ticker across bottom of analysis slides."""
     gl = md.get("global", {})
-    items = [
-        ("S&P500", "sp500"), ("NASDAQ", "nasdaq"), ("BTC", "bitcoin"),
-        ("GOLD", "gold"), ("OIL", "oil"), ("FTSE", "ftse"), ("VIX", "vix"),
-    ]
+    items = [("S&P500","sp500"),("NASDAQ","nasdaq"),("BTC","bitcoin"),
+             ("GOLD","gold"),("OIL","oil"),("FTSE","ftse"),("VIX","vix")]
     f = font(FONT_BOLD, 20)
     draw.rectangle([(0, H-52),(W, H-1)], fill=(0,0,0,200))
     x = 30
@@ -364,7 +348,7 @@ def global_ticker_bar(draw, md):
         last = d.get("last","N/A"); chg = d.get("chg_pct","N/A")
         if last == "N/A": continue
         clr = (0,220,110) if isinstance(chg,float) and chg>=0 else (255,80,60)
-        sign = "▲" if isinstance(chg,float) and chg>=0 else "▼"
+        sign = "+" if isinstance(chg,float) and chg>=0 else "-"
         text = f"{label}: {last}  {sign}{abs(float(chg)) if isinstance(chg,float) else chg}%"
         draw.text((x, H-32), text, fill=clr, font=f, anchor="lm")
         x += len(text)*11 + 30
@@ -410,13 +394,12 @@ def make_analysis_slide(slide, idx, total, n, md, path):
 
     price=n.get("current",""); chg=n.get("change",0); chg_pct=n.get("change_pct",0)
     clr=th["accent"] if float(chg)>=0 else th.get("accent2",th["accent"])
-    sign="▲" if float(chg)>=0 else "▼"
+    sign="+" if float(chg)>=0 else "-"
     draw.rounded_rectangle([(900,415),(1890,560)], radius=14, fill=(0,0,0,90))
     draw.text((1395,450), "NIFTY 50", fill=th["subtext"], font=fS, anchor="mm")
     draw.text((1395,508), f"{price:,}", fill=th["text"], font=fP, anchor="mm")
     draw.text((1395,582), f"{sign} {abs(float(chg)):,.2f}  ({float(chg_pct):+.2f}%)", fill=clr, font=fC, anchor="mm")
 
-    # Stats
     stats = [("Open",n.get("open","")),("High",n.get("high","")),("Low",n.get("low","")),
              ("EMA20",n.get("ema20","")),("EMA50",n.get("ema50","")),("EMA200",n.get("ema200","")),
              ("RSI",n.get("rsi","")),("ATR",n.get("atr",""))]
@@ -425,7 +408,6 @@ def make_analysis_slide(slide, idx, total, n, md, path):
         draw.text((x,y), str(lbl), fill=th["subtext"], font=fSL)
         draw.text((x+148,y), str(val), fill=th["text"], font=fSV)
 
-    # Key levels
     lx,ly=1520,625; fSR=font(FONT_BOLD,20); fSL2=font(FONT_REG,18)
     draw.text((lx,ly), "KEY LEVELS", fill=th["accent"], font=fSR); ly+=30
     for lbl,val,c2 in [
@@ -476,8 +458,6 @@ def make_edu_slide(slide, idx, total, topic_title, category, level, path):
               fill=(*th["subtext"][:3],110), font=fD)
 
     draw.rectangle([(922,0),(926,H)], fill=(*th["accent"][:3],50))
-
-    # Right panel
     draw.text((1450,145), f"{idx}", fill=(*th["accent"][:3],28),
               font=font(FONT_BOLD,220), anchor="mm")
     draw.rounded_rectangle([(960,375),(1900,795)], radius=20, fill=(0,0,0,100))
@@ -487,7 +467,7 @@ def make_edu_slide(slide, idx, total, topic_title, category, level, path):
     pts = [s.strip() for s in slide["content"].split(".") if s.strip()][:4]
     pt_y = 458
     for i, pt in enumerate(pts):
-        short = (pt[:62]+"…") if len(pt)>62 else pt
+        short = (pt[:62]+"...") if len(pt)>62 else pt
         draw.rounded_rectangle([(978,pt_y-6),(1882,pt_y+44)], radius=8,
                                 fill=(*th["accent"][:3],20))
         draw.text((1000,pt_y+18), f"{nums[i]}  {short}",
@@ -499,7 +479,6 @@ def make_edu_slide(slide, idx, total, topic_title, category, level, path):
     draw.rectangle([(960,835),(960+prog,852)], fill=th["accent"])
     draw.text((1390,872), f"Lesson {idx} of {total}",
               fill=th["subtext"], font=fS, anchor="mm")
-
     img.save(path, quality=95)
 
 
@@ -519,7 +498,6 @@ def make_intro(n, md, edu, path):
     img = gbg((4,7,22),(7,14,46)); draw = ImageDraw.Draw(img)
     gl = md.get("global",{})
     draw.rectangle([(0,0),(W,7)], fill=(0,200,110))
-
     draw.text((W//2,148), "AI360Trading", fill=(0,218,118),
               font=font(FONT_BOLD,96), anchor="mm")
     draw.rectangle([(W//2-340,208),(W//2+340,215)], fill=(0,200,110))
@@ -528,24 +506,22 @@ def make_intro(n, md, edu, path):
     draw.text((W//2,342), datetime.now().strftime("%A, %d %B %Y"),
               fill=(135,175,238), font=font(FONT_REG,34), anchor="mm")
 
-    # Nifty price
     price=n.get("current",""); chg=n.get("change",0); chg_pct=n.get("change_pct",0)
     clr=(0,218,118) if float(chg)>=0 else (255,75,55)
-    sign="▲" if float(chg)>=0 else "▼"
+    sign="+" if float(chg)>=0 else "-"
     draw.rounded_rectangle([(W//2-400,395),(W//2+400,510)], radius=16, fill=(0,0,0,110))
     draw.text((W//2,430), "NIFTY 50", fill=(135,175,238), font=font(FONT_REG,26), anchor="mm")
     draw.text((W//2,482),
               f"{price:,}  {sign} {abs(float(chg)):,.2f}  ({float(chg_pct):+.2f}%)",
               fill=clr, font=font(FONT_BOLD,48), anchor="mm")
 
-    # Global mini row
     gl_items=[("S&P 500","sp500"),("Bitcoin","bitcoin"),("Gold","gold"),("VIX","vix")]
     gx = 240
     for lbl,key in gl_items:
         d=gl.get(key,{}); last=d.get("last","N/A"); cp=d.get("chg_pct","N/A")
         if last=="N/A": gx+=360; continue
         gc=(0,210,100) if isinstance(cp,float) and cp>=0 else (255,75,55)
-        gs="▲" if isinstance(cp,float) and cp>=0 else "▼"
+        gs="+" if isinstance(cp,float) and cp>=0 else "-"
         draw.text((gx,558), lbl, fill=(135,175,238), font=font(FONT_REG,20), anchor="mm")
         draw.text((gx,590), f"{last}", fill=(220,235,255), font=font(FONT_BOLD,26), anchor="mm")
         draw.text((gx,618), f"{gs}{abs(float(cp)) if isinstance(cp,float) else cp}%", fill=gc, font=font(FONT_REG,20), anchor="mm")
@@ -576,7 +552,7 @@ def make_outro(edu, path):
     draw.text((W//2,488), "Drop your market view in the comments!",
               fill=(100,155,210), font=font(FONT_REG,28), anchor="mm")
     draw.text((W//2,570),
-              "Viewers from India  🇮🇳   USA  🇺🇸   UK  🇬🇧   Brazil  🇧🇷   UAE  🇦🇪",
+              "Viewers from India, USA, UK, Brazil, UAE",
               fill=(80,130,190), font=font(FONT_REG,26), anchor="mm")
     draw.text((W//2,650),
               "#StockMarket #TechnicalAnalysis #Bitcoin #Nifty #SP500 #Trading #AI360Trading",
@@ -588,55 +564,93 @@ def make_outro(edu, path):
 
 
 # ══════════════════════════════════════════════════════════
+# SAFE TITLE BUILDER — Prevents YouTube invalidTitle error
+# ══════════════════════════════════════════════════════════
+def safe_str(val, fallback=""):
+    """Convert any value to a clean string safe for YouTube title."""
+    if val is None or val == "N/A" or val == "":
+        return fallback
+    s = str(val).strip()
+    s = re.sub(r'[<>]', '', s)
+    return s if s else fallback
+
+def build_title(n, md, edu):
+    """Build a safe YouTube title — never empty, never invalid."""
+    gl       = md.get("global", {})
+    price    = safe_str(n.get("current"), "Live")
+    chg_pct  = n.get("change_pct", 0)
+    sp       = safe_str(gl.get("sp500",{}).get("last"), "Live")
+    btc      = safe_str(gl.get("bitcoin",{}).get("last"), "Live")
+    sign     = "UP" if float(chg_pct) >= 0 else "DOWN"
+    date_str = datetime.now().strftime("%d %b %Y")
+
+    # Edu title — strip to ASCII safe chars, max 30 chars
+    edu_raw  = edu.get("title", "Market Education")
+    edu_safe = re.sub(r'[^a-zA-Z0-9 \-]', '', edu_raw).strip()[:30]
+    if not edu_safe:
+        edu_safe = "Market Education"
+
+    title = (
+        f"Stock Market {date_str} | "
+        f"Nifty {price} {sign} | S&P {sp} | BTC {btc} | {edu_safe}"
+    )
+
+    # Final safety: strip, cap at 100 chars
+    title = title.strip()[:100]
+    if len(title) < 5:
+        title = f"Global Markets Analysis {date_str}"
+
+    print(f"  Title ({len(title)} chars): {title}")
+    return title
+
+
+# ══════════════════════════════════════════════════════════
 # YOUTUBE UPLOAD — Global SEO
 # ══════════════════════════════════════════════════════════
 def upload(video_path, n, md, edu):
     if not os.path.exists("token.json"):
         print("❌ token.json missing."); return
 
-    gl = md.get("global",{})
-    price=n.get("current",""); chg_pct=n.get("change_pct",0)
-    btc=gl.get("bitcoin",{}).get("last","N/A")
-    sp=gl.get("sp500",{}).get("last","N/A")
-    sign="UP" if float(chg_pct)>=0 else "DOWN"
+    gl      = md.get("global",{})
+    price   = safe_str(n.get("current"), "N/A")
+    chg_pct = n.get("change_pct", 0)
+    btc     = safe_str(gl.get("bitcoin",{}).get("last"), "N/A")
+    sp      = safe_str(gl.get("sp500",{}).get("last"), "N/A")
+    gold    = safe_str(gl.get("gold",{}).get("last"), "N/A")
 
-    # SEO-optimised title for global search
-    title = (
-        f"Stock Market Analysis {datetime.now().strftime('%d %b %Y')} | "
-        f"Nifty {price} {sign} | S&P500 {sp} | BTC {btc} | {edu['title'][:35]}"
-    )
+    title = build_title(n, md, edu)
 
-    description = f"""📊 Global Stock Market Analysis — {datetime.now().strftime('%d %B %Y')}
+    description = f"""Global Stock Market Analysis — {datetime.now().strftime('%d %B %Y')}
 
-🌍 Covering: Indian Markets (Nifty, Bank Nifty) + US Markets (S&P 500, Nasdaq) + Bitcoin + Gold + Forex
+Covering: Indian Markets (Nifty, Bank Nifty) + US Markets (S&P 500, Nasdaq) + Bitcoin + Gold + Forex
 
-🔴 TODAY'S MARKET ANALYSIS:
-• Nifty 50: {price} ({'+' if float(chg_pct)>=0 else ''}{chg_pct}%)
-• S&P 500: {sp} | Bitcoin: {btc} | Gold: {gl.get('gold',{}).get('last','N/A')}
-• Support & Resistance Levels • EMA 20/50/200 • RSI • MACD
-• Bollinger Bands • Volume • India VIX • US VIX
-• Bank Nifty • FII/DII Activity
-• Option Chain PCR & Max Pain
-• Intraday Trade Setup (Entry, Target, Stop-Loss)
-• Positional Swing Setup
-• Option Trade of the Day
+TODAY'S MARKET ANALYSIS:
+- Nifty 50: {price} ({'+' if float(chg_pct)>=0 else ''}{chg_pct}%)
+- S&P 500: {sp} | Bitcoin: {btc} | Gold: {gold}
+- Support and Resistance Levels | EMA 20/50/200 | RSI | MACD
+- Bollinger Bands | Volume | India VIX | US VIX
+- Bank Nifty | FII/DII Activity
+- Option Chain PCR and Max Pain
+- Intraday Trade Setup (Entry, Target, Stop-Loss)
+- Positional Swing Setup
+- Option Trade of the Day
 
-📚 TODAY'S EDUCATION: {edu['title']}
-Level: {edu['level']} | Category: {edu['category']}
+TODAY'S EDUCATION: {edu.get('title', 'Market Education')}
+Level: {edu.get('level','All Levels')} | Category: {edu.get('category','Finance')}
 Who should watch: {edu.get('target_audience', 'All traders and investors worldwide')}
 
-🌐 This channel covers global markets for viewers in India, USA, UK, Brazil, UAE, Singapore and worldwide.
+This channel covers global markets for viewers in India, USA, UK, Brazil, UAE, Singapore and worldwide.
 
-⏰ New video every weekday morning — like and subscribe to never miss an analysis!
+New video every weekday morning — like and subscribe to never miss an analysis!
 
-⚠️ DISCLAIMER: This video is for educational and informational purposes only.
+DISCLAIMER: This video is for educational and informational purposes only.
 It does not constitute financial advice or investment recommendations.
 Please consult a SEBI-registered advisor (India) or regulated financial advisor in your country before making any investment decisions.
 
 #StockMarket #TechnicalAnalysis #Nifty #SP500 #Bitcoin #Trading #Investing
 #OptionsTrading #SwingTrading #IntradayTrading #StockMarketToday
 #NiftyAnalysis #MarketAnalysis #AI360Trading #FinancialEducation
-#{edu['category'].replace(' ','')} #GlobalMarkets #Nasdaq #BankNifty #Gold"""
+#GlobalMarkets #Nasdaq #BankNifty #Gold"""
 
     tags = [
         "stock market analysis", "technical analysis", "Nifty analysis",
@@ -644,7 +658,7 @@ Please consult a SEBI-registered advisor (India) or regulated financial advisor 
         "intraday trading", "swing trading", "stock market today",
         "Nifty 50", "Bank Nifty", "RSI", "MACD", "support resistance",
         "trading strategy", "market analysis today", "AI360Trading",
-        edu['category'], edu['level'], "global markets",
+        edu.get('category','Finance'), edu.get('level','All Levels'), "global markets",
         "stock market India", "US stock market", "crypto trading",
         "gold price", "forex trading", "financial education",
         "stock market for beginners", "how to trade stocks",
@@ -675,7 +689,6 @@ Please consult a SEBI-registered advisor (India) or regulated financial advisor 
         vid_id = resp["id"]
         print(f"\n✅ LIVE: https://www.youtube.com/watch?v={vid_id}")
 
-        # Upload custom thumbnail
         thumb_path = f"{OUT}/thumbnail.png"
         if os.path.exists(thumb_path):
             youtube.thumbnails().set(
@@ -689,16 +702,15 @@ Please consult a SEBI-registered advisor (India) or regulated financial advisor 
 
 
 # ══════════════════════════════════════════════════════════
-# CUSTOM THUMBNAIL — Click-worthy design
+# CUSTOM THUMBNAIL
 # ══════════════════════════════════════════════════════════
 def make_thumbnail(n, md, edu, path):
-    """YouTube thumbnail: 1280x720, bold, click-worthy."""
     TW, TH = 1280, 720
     gl = md.get("global",{})
     price = n.get("current","")
     chg_pct = n.get("change_pct", 0)
     is_bull = float(chg_pct) >= 0
-    sign = "▲" if is_bull else "▼"
+    sign = "+" if is_bull else "-"
     bg_top = (6,16,10) if is_bull else (22,6,6)
     bg_bot = (4,32,18) if is_bull else (42,10,10)
     accent = (0,210,100) if is_bull else (255,70,50)
@@ -709,48 +721,39 @@ def make_thumbnail(n, md, edu, path):
         for x in range(TW): px[x,y] = c
     draw = ImageDraw.Draw(img, "RGBA")
 
-    # Accent bar left side
     draw.rectangle([(0,0),(18,TH)], fill=accent)
     draw.rectangle([(0,0),(TW,14)], fill=accent)
     draw.rectangle([(0,TH-14),(TW,TH)], fill=accent)
 
-    # Channel name
     draw.text((50,45), "AI360Trading", fill=(255,255,255),
               font=font(FONT_BOLD,52), anchor="lm")
-
-    # Date
     draw.text((TW-40,45), datetime.now().strftime("%d %b %Y"),
               fill=(180,200,240), font=font(FONT_REG,32), anchor="rm")
 
-    # Big price
     draw.text((50,200), "NIFTY", fill=(180,210,255), font=font(FONT_BOLD,60))
     draw.text((50,270), f"{price:,}", fill=(255,255,255), font=font(FONT_BOLD,120))
     draw.text((50,400), f"{sign} {abs(float(chg_pct))}%  TODAY",
               fill=accent, font=font(FONT_BOLD,58))
 
-    # Education topic teaser
     draw.rounded_rectangle([(40,480),(900,580)], radius=12, fill=(*accent[:3],40))
-    edu_short = edu['title'][:52]
-    draw.text((60,530), f"📚  {edu_short}", fill=(220,240,255),
+    edu_short = re.sub(r'[^a-zA-Z0-9 \-]', '', edu.get('title','')).strip()[:52]
+    draw.text((60,530), f"  {edu_short}", fill=(220,240,255),
               font=font(FONT_BOLD,28), anchor="lm")
 
-    # Global prices right side
     gl_items=[("S&P 500","sp500"),("BTC","bitcoin"),("GOLD","gold")]
     gy = 160
     for lbl,key in gl_items:
         d=gl.get(key,{}); last=d.get("last","N/A"); cp=d.get("chg_pct","N/A")
         if last=="N/A": gy+=140; continue
         gc=(0,210,100) if isinstance(cp,float) and cp>=0 else (255,75,55)
-        gs="▲" if isinstance(cp,float) and cp>=0 else "▼"
+        gs="+" if isinstance(cp,float) and cp>=0 else "-"
         draw.text((980,gy), lbl, fill=(180,205,240), font=font(FONT_BOLD,32), anchor="lm")
         draw.text((980,gy+42), f"{last}", fill=(255,255,255), font=font(FONT_BOLD,44), anchor="lm")
         draw.text((980,gy+90), f"{gs} {abs(float(cp)) if isinstance(cp,float) else cp}%", fill=gc, font=font(FONT_BOLD,30), anchor="lm")
         gy += 155
 
-    # Bottom tag
     draw.text((TW//2, TH-32), "LIKE  •  SUBSCRIBE  •  GLOBAL MARKETS DAILY",
               fill=(*accent[:3],200), font=font(FONT_BOLD,24), anchor="mm")
-
     img.save(path, quality=98)
 
 
@@ -763,16 +766,13 @@ async def tts(text, voice, path):
     await edge_tts.Communicate(text, voice).save(path)
 
 async def run():
-    # 1. Fetch global market data
     md = fetch_all(); n = md.get("nifty",{})
     gl = md.get("global",{})
 
-    # 2. Today's education topic
     edu = get_todays_education_topic()
     print(f"\n📚 Education: {edu['title']} ({edu['category']}, {edu['level']})")
     print(f"   Audience: {edu.get('target_audience','Global')}")
 
-    # 3. Generate scripts
     gkey = os.environ.get("GROQ_API_KEY")
     if not gkey: sys.exit("❌ GROQ_API_KEY not set.")
     client = Groq(api_key=gkey)
@@ -797,7 +797,7 @@ async def run():
 
     clips = []
 
-    # 4. Intro
+    # Intro
     ipath, iapath = f"{OUT}/intro.png", f"{OUT}/intro.mp3"
     make_intro(n, md, edu, ipath)
     btc_price = gl.get("bitcoin",{}).get("last","N/A")
@@ -816,16 +816,16 @@ async def run():
     ia = AudioFileClip(iapath)
     clips.append(ImageClip(ipath).set_duration(max(ia.duration+2,20)).set_audio(ia))
 
-    # 5. Analysis divider
+    # Analysis divider
     adp, adap = f"{OUT}/div_a.png", f"{OUT}/div_a.mp3"
     make_divider("GLOBAL MARKET ANALYSIS",
-                 f"Nifty {n.get('current','')}  •  S&P {sp_price}  •  BTC {btc_price}",
+                 f"Nifty {n.get('current','')}  |  S&P {sp_price}  |  BTC {btc_price}",
                  (0,210,100), adp)
-    await tts("Part One. Global Market Analysis.",VOICES[0], adap)
+    await tts("Part One. Global Market Analysis.", VOICES[0], adap)
     ada = AudioFileClip(adap)
     clips.append(ImageClip(adp).set_duration(max(ada.duration+1,5)).set_audio(ada))
 
-    # 6. Analysis slides
+    # Analysis slides
     print("\n🎬 Analysis slides...")
     an = len(as_slides)
     for i, s in enumerate(as_slides):
@@ -836,7 +836,7 @@ async def run():
         clips.append(ImageClip(ip).set_duration(dur).set_audio(au))
         print(f"  ✓ [A{i+1:02d}/{an}] {s['title'][:38]:<38} {dur:.0f}s")
 
-    # 7. Education divider
+    # Education divider
     eth = ET.get(edu['category'], DEFAULT_EDU_THEME)
     edp, edap = f"{OUT}/div_e.png", f"{OUT}/div_e.mp3"
     make_divider("TODAY'S EDUCATION",
@@ -848,7 +848,7 @@ async def run():
     eda = AudioFileClip(edap)
     clips.append(ImageClip(edp).set_duration(max(eda.duration+1,7)).set_audio(eda))
 
-    # 8. Education slides
+    # Education slides
     print("\n🎬 Education slides...")
     en = len(ed_slides)
     for i, s in enumerate(ed_slides):
@@ -859,7 +859,7 @@ async def run():
         clips.append(ImageClip(ip).set_duration(dur).set_audio(au))
         print(f"  ✓ [E{i+1:02d}/{en}] {s.get('title','')[:38]:<38} {dur:.0f}s")
 
-    # 9. Outro
+    # Outro
     op, oap = f"{OUT}/outro.png", f"{OUT}/outro.mp3"
     make_outro(edu, op)
     ot = (f"That is our complete global markets analysis and education for today. "
@@ -873,7 +873,7 @@ async def run():
     oa = AudioFileClip(oap)
     clips.append(ImageClip(op).set_duration(max(oa.duration+3,22)).set_audio(oa))
 
-    # 10. Render
+    # Render
     final = f"{OUT}/final_video.mp4"
     total_mins = sum(c.duration for c in clips)/60
     print(f"\n🎥 Rendering {len(clips)} clips — {total_mins:.1f} minutes...")
@@ -882,12 +882,12 @@ async def run():
         audio_codec="aac", bitrate="4000k", logger=None)
     print(f"✅ {final}  ({os.path.getsize(final)/1e6:.1f} MB)  {total_mins:.1f} min")
 
-    # 11. Make thumbnail
+    # Thumbnail
     thumb_path = f"{OUT}/thumbnail.png"
     make_thumbnail(n, md, edu, thumb_path)
     print("✅ Thumbnail created.")
 
-    # 12. Upload with full global SEO
+    # Upload
     upload(final, n, md, edu)
 
 
