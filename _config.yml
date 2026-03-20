@@ -2,61 +2,44 @@
 # Site Settings - AI360TRADING GLOBAL
 # ==========================================
 name: "AI360Trading"
-
-# CHANGED: Title now reflects all 4 markets — India, US, UK, Brazil
-title: "title: "AI360Trading | NIFTY, S&P 500 & Global Market Intelligence"
-
-# CHANGED: Description now covers all 4 markets and audiences
+title: "AI360Trading | NIFTY, S&P 500 & Global Market Intelligence"
 description: "Daily AI-powered market intelligence for NIFTY, S&P 500, FTSE 100 and IBOVESPA. Swing and positional trading signals for traders in India, US, UK and Brazil."
-
 url: "https://ai360trading.in"
 enforce_ssl: ai360trading.in
 baseurl: ""
 timezone: "Asia/Kolkata"
 future: true
 encoding: "utf-8"
-
 # SEO & Ownership
 google_site_verification: "2yLD14QlM9ElbyiFZO_pUf-hTO09aCQEinK5LqD8Bpk"
 google_analytics: "G-YR9E0CYRCV"
 social_image: "/public/image/swing.webp"
-
 # Author Information
 author:
   name: "Amit Kumar"
   twitter: ai360trading
   email: admin@ai360trading.in
-
 # Permalinks & Markdown
 markdown: kramdown
 highlighter: rouge
-# WARNING: Do NOT change permalink format until 301 redirects are in place
-# Changing this breaks all existing indexed URLs
 permalink: /:year/:month/:day/:title/
-
 # SOCIAL MEDIA
 twitter_username: ai360trading
 telegram_username: ai360trading
 facebook_username: ai360trading
 youtube_username: ai360trading
 instagram_username: ai360trading
-# ADDED: Add your LinkedIn company page handle here once created
-# linkedin_username: ai360trading
-
 # Plugins
 plugins:
   - jekyll-paginate
   - jekyll-seo-tag
   - jekyll-feed
-
 # Pagination Settings
 paginate: 10
 paginate_path: "/page:num/"
-
 # Include custom pages directory
 include:
   - _pages
-
 # Exclude from Jekyll build
 exclude:
   - generate_articles.py
@@ -64,7 +47,6 @@ exclude:
   - requirements.txt
   - README.md
   - LICENSE.md
-
 # Defaults
 defaults:
   - scope:
