@@ -1,13 +1,13 @@
 name: AlgoTradeBot
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # CHANNELS:
-#   TELEGRAM_CHAT_ID = ai360trading (Free)
-#   CHAT_ID_ADVANCE  = ai360trading_Advance
-#   CHAT_ID_PREMIUM  = ai360trading_Premium
+#   TELEGRAM_CHAT_ID = ai360trading (Free — original channel)
+#   CHAT_ID_ADVANCE  = ai360trading_Advance (Rs499/month)
+#   CHAT_ID_PREMIUM  = ai360trading_Premium (Bundle)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 on:
   schedule:
-    # Every 5 min, 08:30–16:29 IST (02:45–10:59 UTC), Mon–Fri
+    # Every 5 min, 08:15–16:29 IST (02:45–10:59 UTC), Mon–Fri
     - cron: '*/5 2-10 * * 1-5'
     # Good Morning backup — 8:45 AM IST (03:15 UTC)
     - cron: '15 3 * * 1-5'
