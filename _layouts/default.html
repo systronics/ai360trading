@@ -53,12 +53,37 @@
     .social-icon-link.yt:hover { background: #ff0000; color: #ffffff !important; border-color: #ff0000; }
     .social-icon-link.ig:hover { background: #e4405f; color: #ffffff !important; border-color: #e4405f; }
     .social-icon-link.fb:hover { background: #1877f2; color: #ffffff !important; border-color: #1877f2; }
-    /* ADDED: LinkedIn hover style — matches pattern of all other social icons */
     .social-icon-link.li:hover { background: #0077b5; color: #ffffff !important; border-color: #0077b5; }
     .social-icon-link:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
 
     .content-wrapper { max-width: 1100px; margin: 0 auto; padding: 40px 20px; min-height: 70vh; }
-    .site-footer { background: #101c28; color: #ffffff; padding: 40px 20px; text-align: center; margin-top: 60px; }
+
+    /* ── FOOTER ── */
+    .site-footer {
+      background: #101c28;
+      color: #ffffff;
+      padding: 50px 20px 30px;
+      text-align: center;
+      margin-top: 60px;
+    }
+    .footer-brand { font-size: 16px; font-weight: 900; color: #ffffff; margin-bottom: 6px; letter-spacing: 0.5px; }
+    .footer-tagline { font-size: 13px; color: #94a3b8; margin-bottom: 30px; }
+    .footer-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 30px;
+      max-width: 800px;
+      margin: 0 auto 30px;
+      text-align: left;
+    }
+    .footer-col h4 { font-size: 11px; font-weight: 800; color: #60a5fa; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+    .footer-col a { display: block; color: #94a3b8 !important; text-decoration: none; font-size: 13px; margin-bottom: 8px; transition: color 0.2s; }
+    .footer-col a:hover { color: #ffffff !important; }
+    .footer-divider { border: none; border-top: 1px solid #1e3a5f; margin: 20px auto; max-width: 800px; }
+    .footer-bottom { font-size: 12px; color: #475569; line-height: 1.8; }
+    .footer-bottom a { color: #60a5fa !important; text-decoration: none; margin: 0 6px; }
+    .footer-bottom a:hover { color: #ffffff !important; }
+
     .sub-box, #sub-box, .subscription-container { display: none !important; }
 
     #cookie-banner {
@@ -77,12 +102,11 @@
     #cookie-accept-btn:hover { background: #004dc7; }
 
     /* ── RESPONSIVE ── */
-    @media (max-width: 1024px) {
-      .header-banner-img { max-width: 560px; width: 88%; }
-    }
+    @media (max-width: 1024px) { .header-banner-img { max-width: 560px; width: 88%; } }
     @media (max-width: 768px) {
       .header-banner-img { max-width: 420px; width: 92%; }
       .header-container { padding: 16px 12px 14px; }
+      .footer-grid { grid-template-columns: repeat(2, 1fr); gap: 20px; }
     }
     @media (max-width: 480px) {
       .header-banner-img { max-width: 100%; width: 96%; margin-bottom: 12px; }
@@ -90,31 +114,28 @@
       .site-nav { gap: 12px; margin-bottom: 12px; }
       .nav-link { font-size: 11px; }
       .social-icon-link { width: 36px; height: 36px; font-size: 15px; }
+      .footer-grid { grid-template-columns: 1fr 1fr; gap: 15px; }
     }
-    @media (max-width: 600px) {
-      #cookie-banner { padding: 15px; }
-    }
+    @media (max-width: 600px) { #cookie-banner { padding: 15px; } }
   </style>
 </head>
 <body>
 
   <header class="header-container">
     <a href="/">
-      <!-- CHANGED: alt text now descriptive for all 4 markets — fixes missing alt audit flag -->
       <img src="/public/image/header.webp"
            alt="AI360Trading — Market Intelligence Terminal for NIFTY, S&P 500, FTSE 100 and IBOVESPA"
            class="header-banner-img"
            width="720" height="120">
     </a>
+    <!-- HEADER NAV: About + Contact in header for E-E-A-T SEO — Disclaimer + Privacy Policy in footer only -->
     <nav class="site-nav">
       <a href="/" class="nav-link">Home</a>
       <a href="/about/" class="nav-link">About</a>
+      <a href="/membership/" class="nav-link">Membership</a>
       <a href="/shop/" class="nav-link">Store</a>
       <a href="/plot-for-sale/" class="nav-link">Plot Sale</a>
-      <a href="/membership/" class="nav-link">Membership</a>
       <a href="/contact/" class="nav-link">Contact</a>
-      <a href="/disclaimer/" class="nav-link">Disclaimer</a>
-      <a href="/policy/" class="nav-link">Policy</a>
     </nav>
     <div class="social-links-header">
       {% if site.telegram_username %}
@@ -142,7 +163,6 @@
           <i class="fa fa-facebook"></i>
         </a>
       {% endif %}
-      <!-- ADDED: LinkedIn icon — shows only when linkedin_username is set in _config.yml -->
       {% if site.linkedin_username %}
         <a href="https://linkedin.com/company/{{ site.linkedin_username }}" class="social-icon-link li" target="_blank" rel="noopener" title="AI360Trading on LinkedIn">
           <i class="fa fa-linkedin"></i>
@@ -155,19 +175,50 @@
     {{ content }}
   </main>
 
-  <!-- CHANGED: Footer expanded — added market coverage and useful links for SEO -->
+  <!-- FOOTER: 3-column grid — Markets, Platform, Company (legal links here) -->
   <footer class="site-footer">
-    <p style="font-size:15px; font-weight:800; margin-bottom:12px;">© 2026 AI360TRADING | Institutional Grade Market Intelligence</p>
-    <p style="font-size:13px; color:#94a3b8; margin-bottom:16px;">
-      Daily analysis for NIFTY &bull; S&amp;P 500 &bull; FTSE 100 &bull; IBOVESPA &bull; Bitcoin
-    </p>
-    <p style="font-size:12px; color:#64748b;">
-      <a href="/about/" style="color:#60a5fa; text-decoration:none; margin:0 8px;">About</a>
-      <a href="/disclaimer/" style="color:#60a5fa; text-decoration:none; margin:0 8px;">Disclaimer</a>
-      <a href="/policy/" style="color:#60a5fa; text-decoration:none; margin:0 8px;">Privacy Policy</a>
-      <a href="/contact/" style="color:#60a5fa; text-decoration:none; margin:0 8px;">Contact</a>
-      <a href="/membership/" style="color:#60a5fa; text-decoration:none; margin:0 8px;">Membership</a>
-    </p>
+    <p class="footer-brand">© 2026 AI360TRADING</p>
+    <p class="footer-tagline">Daily AI-powered market intelligence for NIFTY · S&P 500 · FTSE 100 · IBOVESPA · Bitcoin</p>
+
+    <div class="footer-grid">
+      <div class="footer-col">
+        <h4>Markets</h4>
+        <a href="/topics/stock-market/">📊 Stock Market</a>
+        <a href="/topics/bitcoin/">₿ Bitcoin &amp; Crypto</a>
+        <a href="/topics/personal-finance/">💰 Personal Finance</a>
+        <a href="/topics/ai-trading/">🤖 AI Trading</a>
+      </div>
+      <div class="footer-col">
+        <h4>Platform</h4>
+        <a href="/swing-dashboard/">🎯 Swing Dashboard</a>
+        <a href="/positional-picks/">📈 Positional Picks</a>
+        <a href="/tutorial-videos/">🎥 Trading Academy</a>
+        <a href="/membership/">💎 Membership</a>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <a href="/about/">ℹ️ About</a>
+        <a href="/contact/">📬 Contact</a>
+        <a href="/disclaimer/">⚠️ Disclaimer</a>
+        <a href="/policy/">🔒 Privacy Policy</a>
+      </div>
+    </div>
+
+    <hr class="footer-divider">
+
+    <div class="footer-bottom">
+      <p>⚠️ Not SEBI registered. All content is for educational purposes only. Trading involves risk of loss.</p>
+      <p style="margin-top:8px;">
+        <a href="/about/">About</a>
+        <a href="/contact/">Contact</a>
+        <a href="/disclaimer/">Disclaimer</a>
+        <a href="/policy/">Privacy Policy</a>
+        <a href="/membership/">Membership</a>
+      </p>
+      <p style="margin-top:10px; font-size:11px; color:#334155;">
+        Haridwar, Uttarakhand, India &bull; admin@ai360trading.in
+      </p>
+    </div>
   </footer>
 
   <!-- COOKIE CONSENT BANNER -->
