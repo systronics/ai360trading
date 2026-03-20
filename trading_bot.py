@@ -490,7 +490,9 @@ def options_hint(sym: str, cp: float, atr: float, trade_type: str) -> str:
     )
 
 
+# ── ONLY THIS FUNCTION WAS CHANGED — retry on transient Google API errors ─────
 def get_sheets():
+    import time
     scope = [
         "https://spreadsheets.google.com/feeds",
         "https://www.googleapis.com/auth/drive"
@@ -498,8 +500,22 @@ def get_sheets():
     creds = ServiceAccountCredentials.from_json_keyfile_dict(
         json.loads(os.environ.get('GCP_SERVICE_ACCOUNT_JSON')), scope
     )
-    ss = gspread.authorize(creds).open(SHEET_NAME)
-    return ss.worksheet("AlertLog"), ss.worksheet("History"), ss.worksheet("Nifty200")
+    delays = [5, 15, 30, 60, 120]
+    last_error = None
+    for attempt, delay in enumerate(delays):
+        try:
+            ss = gspread.authorize(creds).open(SHEET_NAME)
+            return ss.worksheet("AlertLog"), ss.worksheet("History"), ss.worksheet("Nifty200")
+        except gspread.exceptions.APIError as e:
+            status = e.response.status_code if hasattr(e, 'response') else 0
+            if status in (429, 500, 502, 503, 504):
+                last_error = e
+                if attempt < len(delays) - 1:
+                    print(f"[RETRY] Google Sheets {status} — retry {attempt+1}/{len(delays)} in {delay}s...")
+                    time.sleep(delay)
+                    continue
+            raise  # non-retryable error (auth failure, wrong sheet name, etc.)
+    raise last_error  # all retries exhausted
 
 
 def get_market_regime(nifty_sheet) -> bool:
