@@ -38,8 +38,7 @@ Disallow: /atom.xml
 Disallow: /page/
 
 # 7. Block low-value pages — no SEO benefit
-Disallow: /policy.html
-Disallow: /darvas-box.html
+Disallow: /darvas-box/
 
 # 8. Global Bot Optimization
 # Allow Baiduspider for China reach
