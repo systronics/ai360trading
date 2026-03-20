@@ -404,8 +404,6 @@ def get_recent_posts(pillar_id, limit=3):
                         if line.startswith('title:'):
                             title = line.replace('title:', '').strip().strip('"')
                         if line.startswith('permalink:'):
-                            # Extract clean slug from permalink line
-                            # e.g. permalink: /stock-market/sp500-today-why-different/
                             parts = line.strip().rstrip('/').split('/')
                             if len(parts) >= 2:
                                 url_slug_match = parts[-1]
@@ -533,10 +531,9 @@ def generate_article(pillar, prices, trends, fear_greed, persona, article_index)
 
     article_title, direction, top_trend = build_title(pillar, trends, prices, fear_greed)
 
-    # ─── CHANGED: Clean short slug generation ────────────────────────────────
+    # ─── Clean short slug generation ─────────────────────────────────────────
     import re as _re
 
-    # Step 1: clean the title into slug-safe string
     _title_clean = article_title.lower()
     _title_clean = _title_clean.replace('s&p', 'sp').replace('s-and-p', 'sp')
     _title_clean = _title_clean.replace('&', '-').replace('$', '').replace('/', '-')
@@ -547,23 +544,16 @@ def generate_article(pillar, prices, trends, fear_greed, persona, article_index)
     _title_clean = _re.sub(r'[^a-z0-9\-]', '', _title_clean)
     _title_clean = _re.sub(r'-+', '-', _title_clean).strip('-')
 
-    # Step 2: remove stop words so slug stays short and meaningful
     _stop = {'the','a','an','and','or','but','in','on','at','to','for','of',
              'with','is','are','was','were','its','this','that','i','my','we',
              'you','he','she','they','what','why','how','when','where','from',
              'by','as','so','if','just','vs','im','heres','thats','dont'}
     _words = [w for w in _title_clean.split('-') if w and w not in _stop]
 
-    # Step 3: take first 6 meaningful words — keeps URL under 60 chars
-    title_slug = '-'.join(_words[:6])
-
-    # Step 4: two separate variables
-    # file_slug  → Jekyll NEEDS date prefix in filename to recognise post
-    # chosen_slug → clean short URL used in permalink and schema (NO date, NO pillar)
+    title_slug  = '-'.join(_words[:6])
     file_slug   = f"{date_str}-{pillar['id']}-{title_slug}"
     chosen_slug = title_slug
     file_path   = os.path.join(POSTS_DIR, f"{file_slug}.md")
-    # ─── END CHANGE ──────────────────────────────────────────────────────────
 
     # Internal links
     recent_posts = get_recent_posts(pillar['id'])
@@ -841,8 +831,24 @@ def generate_all_articles():
     print(f"  F&G      : {fear_greed}")
     print(f"  Trending : {', '.join(trends[:3])}")
 
+    # ── Duplicate prevention: skip pillars already generated today ────────────
     results = []
     for i, pillar in enumerate(PILLARS):
+        # Check if today's file already exists for this pillar
+        already_exists = False
+        if os.path.exists(POSTS_DIR):
+            pillar_today = [
+                f for f in os.listdir(POSTS_DIR)
+                if f.endswith('.md') and f.startswith(date_str) and pillar['id'] in f
+            ]
+            if pillar_today:
+                print(f"\n  [{i+1}/4] ⏭️  Skipping {pillar['name']} — already exists today")
+                results.append((pillar['name'], True))
+                already_exists = True
+
+        if already_exists:
+            continue
+
         persona_pool = PILLAR_PERSONA_MAP.get(pillar['id'], [0,1,2,3,4,5])
         persona_idx  = persona_pool[now.weekday() % len(persona_pool)]
         persona      = PERSONAS[persona_idx]
