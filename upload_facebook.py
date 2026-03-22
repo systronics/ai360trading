@@ -261,31 +261,23 @@ def main():
     if not meta_path.exists():
         raise FileNotFoundError(f"No metadata: {meta_path}. Run generate_reel.py first.")
 
-    meta      = json.loads(meta_path.read_text())
-    video     = Path(meta["video_path"])
-    yt_url    = meta.get("youtube_url", "")
+    meta  = json.loads(meta_path.read_text())
+    video = Path(meta["video_path"])
 
-    # A: Upload ZENO reel to Facebook
+    # Upload ZENO reel video to Facebook Page only
+    # Articles and YouTube links are shared by their own workflows
     if video.exists():
         try:
             fb_video_id = upload_reel_to_facebook(video, meta)
             meta["facebook_video_id"] = fb_video_id
         except Exception as e:
             print(f"❌ Facebook reel upload failed: {e}")
-
-    # B: Fetch articles
-    articles = fetch_today_articles(max_articles=4)
-
-    # C: Post article links
-    post_article_links(articles)
-
-    # D: Post YouTube link
-    if yt_url:
-        post_youtube_link(yt_url, meta)
+    else:
+        print(f"❌ Video not found: {video}")
 
     # Save updated meta
     meta_path.write_text(json.dumps(meta, indent=2, ensure_ascii=False))
-    print("\n🎉 Facebook posting complete!")
+    print("\n🎉 Facebook reel posting complete!")
 
 
 if __name__ == "__main__":
