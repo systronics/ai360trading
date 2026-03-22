@@ -18,9 +18,9 @@ from datetime import datetime
 
 # ─── CONFIG ───────────────────────────────────────────────────────────────────
 META_ACCESS_TOKEN      = os.environ["META_ACCESS_TOKEN"]
-INSTAGRAM_ACCOUNT_ID   = os.environ.get("INSTAGRAM_ACCOUNT_ID", "")  # IG Business account ID
-TELEGRAM_BOT_TOKEN     = os.environ.get("TELEGRAM_BOT_TOKEN", "")    # your existing bot
-TELEGRAM_CHAT_ID       = os.environ.get("TELEGRAM_ADMIN_CHAT_ID", "") # your personal chat ID
+INSTAGRAM_ACCOUNT_ID   = os.environ.get("INSTAGRAM_ACCOUNT_ID", "")
+TELEGRAM_BOT_TOKEN     = os.environ.get("TELEGRAM_BOT_TOKEN", "")
+TELEGRAM_CHAT_ID       = os.environ.get("TELEGRAM_CHAT_ID", "")  # your personal chat ID
 
 OUTPUT_DIR    = Path("output")
 GRAPH_BASE    = "https://graph.facebook.com/v21.0"
