@@ -99,9 +99,9 @@ def upload_to_instagram(video_url: str, caption: str) -> bool:
 
 
 # ─── TELEGRAM MANUAL POST NOTIFICATION ───────────────────────────────────────
-def send_manual_post_notification(meta: dict, video_path: Path):
+def save_caption_for_instagram(meta: dict, video_path: Path):
     """
-    Send Telegram message to you with video + caption to manually post on Instagram.
+    Save caption to output/instagram_caption.txt for manual Instagram posting.
     """
     if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
         print("⚠️  Telegram config missing — skipping manual notification.")
