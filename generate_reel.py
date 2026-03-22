@@ -266,6 +266,9 @@ def assemble_video(
     )
     from moviepy.video.fx.all import resize, fadein, fadeout
     import numpy as np
+    import PIL.Image
+    if not hasattr(PIL.Image, "ANTIALIAS"):
+        PIL.Image.ANTIALIAS = PIL.Image.LANCZOS
 
     audio    = AudioFileClip(str(audio_path))
     duration = audio.duration
@@ -277,7 +280,7 @@ def assemble_video(
     # ── ZENO image (centered, large) ──
     zeno = (ImageClip(str(zeno_image))
             .set_duration(duration)
-            .resize(height=900)
+            .resize(height=900, resizer='pillow')
             .set_position(("center", 400)))
 
     # ── Optional background music (very low volume) ──
