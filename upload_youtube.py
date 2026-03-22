@@ -18,9 +18,15 @@ from googleapiclient.http import MediaFileUpload
 
 
 # ─── CONFIG ───────────────────────────────────────────────────────────────────
-YT_CLIENT_ID      = os.environ["YT_CLIENT_ID"]
-YT_CLIENT_SECRET  = os.environ["YT_CLIENT_SECRET"]
-YT_REFRESH_TOKEN  = os.environ["YT_REFRESH_TOKEN"]   # get via OAuth2 flow once
+# YOUTUBE_CREDENTIALS secret = the full JSON from Google OAuth2 credentials file
+# Contains: client_id, client_secret, refresh_token, token_uri
+import json as _json
+_yt_creds_raw = os.environ["YOUTUBE_CREDENTIALS"]
+_yt_creds     = _json.loads(_yt_creds_raw)
+
+YT_CLIENT_ID      = _yt_creds.get("client_id", "")
+YT_CLIENT_SECRET  = _yt_creds.get("client_secret", "")
+YT_REFRESH_TOKEN  = _yt_creds.get("refresh_token", "")
 
 OUTPUT_DIR = Path("output")
 
