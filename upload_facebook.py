@@ -21,7 +21,6 @@ FACEBOOK_GROUP_ID   = os.environ["FACEBOOK_GROUP_ID"]
 # Your website RSS or API endpoint — adjust to your WordPress/site setup
 WEBSITE_RSS_URL     = os.environ.get("WEBSITE_RSS_URL", "https://ai360trading.in/feed/")
 YOUTUBE_CHANNEL_ID  = os.environ.get("YT_CHANNEL_ID", "")
-
 OUTPUT_DIR = Path("output")
 
 GRAPH_BASE = "https://graph.facebook.com/v21.0"
