@@ -1,0 +1,149 @@
+name: AI360 Daily ZENO Reel + Social Posting
+
+on:
+  schedule:
+    # Runs at 7:00 AM IST = 1:30 AM UTC (Mon–Sat)
+    - cron: "30 1 * * 1-6"
+  workflow_dispatch:  # Allow manual trigger from GitHub Actions UI
+
+jobs:
+  generate-and-post:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      # ── 1. Checkout repo ──────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── 2. Python setup ───────────────────────────────────────────────────
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      # ── 3. System dependencies (FFmpeg for moviepy) ───────────────────────
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq \
+            ffmpeg \
+            fonts-noto-color-emoji \
+            fonts-dejavu-core \
+            imagemagick \
+            libmagickwand-dev
+
+          # Fix ImageMagick policy for moviepy TextClip
+          sudo sed -i 's/<policy domain="path" rights="none" pattern="@\*"\/>/<policy domain="path" rights="read|write" pattern="@*"\/>/' /etc/ImageMagick-6/policy.xml || true
+          sudo sed -i 's/rights="none" pattern="PDF"/rights="read|write" pattern="PDF"/' /etc/ImageMagick-6/policy.xml || true
+
+      # ── 4. Python dependencies ────────────────────────────────────────────
+      - name: Install Python dependencies
+        run: |
+          pip install --upgrade pip
+          pip install \
+            groq \
+            edge-tts \
+            moviepy==1.0.3 \
+            requests \
+            google-api-python-client \
+            google-auth \
+            google-auth-httplib2 \
+            google-auth-oauthlib \
+            feedparser \
+            python-dotenv
+
+      # ── 5. Generate ZENO reel ─────────────────────────────────────────────
+      - name: Generate ZENO reel (script + voice + video)
+        env:
+          GROQ_API_KEY:   ${{ secrets.GROQ_API_KEY }}
+        run: |
+          python scripts/generate_reel.py
+          echo "✅ Reel generation complete"
+
+      # ── 6. Upload to YouTube Shorts ───────────────────────────────────────
+      - name: Upload to YouTube Shorts
+        env:
+          YT_CLIENT_ID:      ${{ secrets.YT_CLIENT_ID }}
+          YT_CLIENT_SECRET:  ${{ secrets.YT_CLIENT_SECRET }}
+          YT_REFRESH_TOKEN:  ${{ secrets.YT_REFRESH_TOKEN }}
+        run: |
+          python scripts/upload_youtube.py
+          echo "✅ YouTube upload complete"
+
+      # ── 7. Facebook posting (reel + articles + yt link) ───────────────────
+      - name: Post to Facebook (Page + Group + articles)
+        env:
+          META_ACCESS_TOKEN:  ${{ secrets.META_ACCESS_TOKEN }}
+          FACEBOOK_PAGE_ID:   ${{ secrets.FACEBOOK_PAGE_ID }}
+          FACEBOOK_GROUP_ID:  ${{ secrets.FACEBOOK_GROUP_ID }}
+          WEBSITE_RSS_URL:    ${{ secrets.WEBSITE_RSS_URL }}
+          YT_CHANNEL_ID:      ${{ secrets.YT_CHANNEL_ID }}
+        run: |
+          python scripts/upload_facebook.py
+          echo "✅ Facebook posting complete"
+
+      # ── 8. Instagram (auto + manual Telegram fallback) ────────────────────
+      - name: Post to Instagram (semi-auto)
+        env:
+          META_ACCESS_TOKEN:      ${{ secrets.META_ACCESS_TOKEN }}
+          INSTAGRAM_ACCOUNT_ID:   ${{ secrets.INSTAGRAM_ACCOUNT_ID }}
+          TELEGRAM_BOT_TOKEN:     ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_ADMIN_CHAT_ID: ${{ secrets.TELEGRAM_ADMIN_CHAT_ID }}
+        run: |
+          python scripts/upload_instagram.py
+          echo "✅ Instagram step complete"
+
+      # ── 9. Save video as artifact (download from Actions UI) ──────────────
+      - name: Upload video artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: zeno-reel-${{ github.run_id }}
+          path: output/reel_*.mp4
+          retention-days: 7
+
+      # ── 10. Send Telegram summary ─────────────────────────────────────────
+      - name: Send completion summary to Telegram
+        if: always()
+        env:
+          TELEGRAM_BOT_TOKEN:     ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_ADMIN_CHAT_ID: ${{ secrets.TELEGRAM_ADMIN_CHAT_ID }}
+        run: |
+          python - <<'EOF'
+          import os, requests, json
+          from pathlib import Path
+          from datetime import datetime
+
+          bot_token = os.environ.get("TELEGRAM_BOT_TOKEN", "")
+          chat_id   = os.environ.get("TELEGRAM_ADMIN_CHAT_ID", "")
+          if not bot_token or not chat_id:
+              print("Telegram not configured, skipping summary")
+              exit(0)
+
+          today = datetime.now().strftime("%Y%m%d")
+          meta  = {}
+          meta_path = Path(f"output/meta_{today}.json")
+          if meta_path.exists():
+              meta = json.loads(meta_path.read_text())
+
+          yt_url = meta.get("youtube_url", "N/A")
+          topic  = meta.get("topic", "N/A")
+
+          msg = (
+              f"🤖 *AI360 Daily Automation Complete*\n"
+              f"📅 {datetime.now().strftime('%d %B %Y')}\n\n"
+              f"✅ ZENO reel generated\n"
+              f"✅ YouTube Shorts: {yt_url}\n"
+              f"✅ Facebook Page + Group posted\n"
+              f"📲 Instagram: Check Telegram for manual post\n\n"
+              f"📌 Topic: {topic}\n"
+              f"🏃 GitHub Actions run #{os.environ.get('GITHUB_RUN_NUMBER','N/A')}"
+          )
+
+          requests.post(
+              f"https://api.telegram.org/bot{bot_token}/sendMessage",
+              json={"chat_id": chat_id, "text": msg, "parse_mode": "Markdown"},
+              timeout=10
+          )
+          EOF
