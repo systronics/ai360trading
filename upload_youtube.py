@@ -9,6 +9,7 @@ import json
 import time
 from pathlib import Path
 from datetime import datetime
+from datetime import datetime as _dt
 
 # Google API
 from google.oauth2.credentials import Credentials
@@ -32,7 +33,7 @@ OUTPUT_DIR = Path("output")
 
 SHORTS_HASHTAGS = "#Shorts #ai360trading #ZenoKiBaat #HinglishMotivation #StockMarket #NiftyToday"
 
-DESCRIPTION_TEMPLATE = """
+DESCRIPTION_WEEKDAY = """
 🎭 ZENO ki baat — aaj ka lesson: {topic}
 
 📊 Aaj ka market:
@@ -42,6 +43,20 @@ DESCRIPTION_TEMPLATE = """
 💡 Agar ye video helpful laga toh like karo, share karo, aur channel subscribe karo!
 
 🔔 Daily stock signals aur moral lessons ke liye follow karo:
+🌐 Website: https://ai360trading.in
+📱 Telegram: https://t.me/ai360trading
+
+{hashtags}
+"""
+
+DESCRIPTION_WEEKEND = """
+🎭 ZENO ki baat — {topic}
+
+💡 Zindagi ka ek important lesson — jo aaj zaroor kaam aayega!
+
+❤️ Agar ye video helpful laga toh like karo, share karo, aur subscribe karo!
+
+🔔 Daily moral lessons aur trading wisdom ke liye:
 🌐 Website: https://ai360trading.in
 📱 Telegram: https://t.me/ai360trading
 
@@ -64,11 +79,18 @@ def get_youtube_client():
 
 
 def build_description(meta: dict) -> str:
+    weekend = datetime.now().weekday() >= 5
+    topic   = meta.get("topic", "Aaj ka lesson")
+    if weekend:
+        return DESCRIPTION_WEEKEND.format(
+            topic    = topic,
+            hashtags = SHORTS_HASHTAGS,
+        ).strip()
     market = meta.get("market", {})
     nifty  = market.get("nifty",   {"price": "N/A", "change": "N/A"})
     btc    = market.get("bitcoin", {"price": "N/A", "change": "N/A"})
-    return DESCRIPTION_TEMPLATE.format(
-        topic        = meta.get("topic", "Aaj ka lesson"),
+    return DESCRIPTION_WEEKDAY.format(
+        topic        = topic,
         nifty_price  = nifty["price"],
         nifty_change = nifty["change"],
         btc_price    = btc["price"],
@@ -83,7 +105,12 @@ def upload_to_youtube(video_path: Path, meta: dict) -> str:
     print("🔐 Authenticating with YouTube...")
     yt = get_youtube_client()
 
-    title = f"ZENO ki baat: {meta['topic']} | {datetime.now().strftime('%d %b %Y')} | #Shorts"
+    weekend = _dt.now().weekday() >= 5
+    date_str = _dt.now().strftime('%d %b %Y')
+    if weekend:
+        title = f"ZENO ki baat: {meta['topic']} | Weekend Special | #Shorts"
+    else:
+        title = f"ZENO ki baat: {meta['topic']} | {date_str} | #Shorts"
     title = title[:100]  # YouTube title limit
 
     description = build_description(meta)
