@@ -22,7 +22,7 @@ OUTPUT_DIR.mkdir(exist_ok=True)
 BACKGROUND_MUSIC_DIR = Path("assets/music")     # optional: add .mp3 files here
 FONT_PATH       = Path("assets/fonts/Kalpana.ttf")  # Hindi-compatible font
 
-TOPICS = [
+TOPICS_WEEKDAY = [
     "patience aur mehnat ka phal",
     "sach bolne ki takat",
     "dosto ki ahmiyat",
@@ -34,6 +34,22 @@ TOPICS = [
     "family ki value",
     "positivity ka jaadu",
 ]
+
+TOPICS_WEEKEND = [
+    "apni feelings samjho — emotional intelligence",
+    "galti karna zaroori hai — growth mindset",
+    "paisa sikhata hai — financial basics for beginners",
+    "zindagi mein patience ki shakti",
+    "chote kadam bade sapne — consistency",
+    "darr ko jeeto — fear of failure",
+    "rishte aur paisa — balance in life",
+    "bachat ki aadat kaise banaye",
+    "apne aap se pyaar karo — self love",
+    "haar maan lena bhi ek lesson hai",
+]
+
+def is_weekend() -> bool:
+    return datetime.now().weekday() >= 5
 
 MARKET_MOODS = {
     "bullish": ["happy", "excited", "confident"],
@@ -103,7 +119,34 @@ def generate_script(topic: str, market_data: dict) -> dict:
             f"Bitcoin {b.get('price','N/A')} pe chal raha hai."
         )
 
-    prompt = f"""You are ZENO, a wise and friendly pixel-art kid character who teaches moral lessons 
+    weekend = is_weekend()
+
+    if weekend:
+        prompt = f"""You are ZENO, a wise and friendly pixel-art kid character who teaches emotional
+and life lessons. Create a 55-60 second Hinglish reel script for a weekend audience.
+
+TODAY'S TOPIC: {topic}
+
+Rules:
+- Mix Hindi + English naturally (Hinglish)
+- NO market data or stock prices — this is a weekend emotional/educational reel
+- Start with a strong emotional hook in first 3 seconds
+- Make people feel something — inspired, emotional, motivated
+- End with a call to action (like/follow/comment)
+- Total ~130-150 words (for 55-60s at normal speech rate)
+- Tone: warm, heartfelt, like a wise friend talking to you
+- Topics: life lessons, emotional growth, money mindset, self-improvement
+
+Return ONLY a JSON object with these exact keys:
+{{
+  "script": "full spoken script here",
+  "subtitles": ["line1 max 7 words", "line2 max 7 words", ...],
+  "hook": "first 1 line hook",
+  "cta": "call to action line",
+  "emotion": "happy/sad/excited/thinking/worried/confident/curious/angry/greedy/neutral"
+}}"""
+    else:
+        prompt = f"""You are ZENO, a wise and friendly pixel-art kid character who teaches moral lessons 
 mixed with real market wisdom. Create a 55-60 second Hinglish reel script.
 
 TODAY'S TOPIC: {topic}
@@ -333,15 +376,23 @@ def assemble_video(
 async def main():
     today = datetime.now().strftime("%Y%m%d")
 
-    print("📊 Step 1: Fetching live market data...")
-    market_data = get_live_market_data()
-    mood = market_mood(market_data)
-    print(f"   Market mood: {mood}")
-    for k, v in market_data.items():
-        print(f"   {k}: {v['price']} {v['change']}")
+    weekend = is_weekend()
+    print(f"📅 Mode: {'Weekend (educational)' if weekend else 'Weekday (market+moral)'}")
+
+    print("📊 Step 1: Fetching market data...")
+    if weekend:
+        market_data = {}
+        mood = "neutral"
+        print("   Weekend mode — skipping live market data")
+    else:
+        market_data = get_live_market_data()
+        mood = market_mood(market_data)
+        print(f"   Market mood: {mood}")
+        for k, v in market_data.items():
+            print(f"   {k}: {v['price']} {v['change']}")
 
     print("\n🧠 Step 2: Generating Hinglish script with Groq...")
-    topic = random.choice(TOPICS)
+    topic = random.choice(TOPICS_WEEKEND if is_weekend() else TOPICS_WEEKDAY)
     print(f"   Topic: {topic}")
     script_data = generate_script(topic, market_data)
     print(f"   Script preview: {script_data['script'][:80]}...")
