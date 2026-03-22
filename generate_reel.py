@@ -124,7 +124,7 @@ Return ONLY a JSON object with these exact keys:
   "subtitles": ["line1 max 7 words", "line2 max 7 words", ...],
   "hook": "first 1 line hook",
   "cta": "call to action line",
-  "emotion": "happy/sad/excited/thinking/worried/confident/curious"
+  "emotion": "happy/sad/excited/thinking/worried/confident/curious/angry/greedy/neutral"
 }}"""
 
     headers = {
@@ -174,15 +174,19 @@ def select_zeno_image(emotion: str, mood: str) -> Path:
     """Pick best ZENO image based on emotion + market mood."""
 
     # Map emotion to likely filename patterns (adjust to your actual filenames)
+    # Mapped to actual files: zeno_angry, zeno_celebrating, zeno_fear,
+    # zeno_greed, zeno_happy, zeno_sad, zeno_thinking
     emotion_map = {
-        "happy":     ["happy", "excited", "joy"],
-        "excited":   ["excited", "happy", "jump"],
-        "sad":       ["sad", "down", "cry"],
-        "worried":   ["worried", "sad", "concern"],
-        "thinking":  ["think", "curious", "wonder"],
-        "confident": ["confident", "strong", "cool"],
-        "curious":   ["curious", "think", "question"],
-        "neutral":   ["neutral", "normal", "default"],
+        "happy":     ["zeno_happy", "zeno_celebrating"],
+        "excited":   ["zeno_celebrating", "zeno_happy"],
+        "sad":       ["zeno_sad", "zeno_fear"],
+        "worried":   ["zeno_fear", "zeno_sad"],
+        "thinking":  ["zeno_thinking", "zeno_happy"],
+        "confident": ["zeno_celebrating", "zeno_happy"],
+        "curious":   ["zeno_thinking", "zeno_happy"],
+        "angry":     ["zeno_angry", "zeno_greed"],
+        "greedy":    ["zeno_greed", "zeno_angry"],
+        "neutral":   ["zeno_thinking", "zeno_happy"],
     }
 
     if not ZENO_IMAGE_DIR.exists():
