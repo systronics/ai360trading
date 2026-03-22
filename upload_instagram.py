@@ -19,8 +19,6 @@ from datetime import datetime
 # ─── CONFIG ───────────────────────────────────────────────────────────────────
 META_ACCESS_TOKEN      = os.environ["META_ACCESS_TOKEN"]
 INSTAGRAM_ACCOUNT_ID   = os.environ.get("INSTAGRAM_ACCOUNT_ID", "")
-TELEGRAM_BOT_TOKEN     = os.environ.get("TELEGRAM_BOT_TOKEN", "")
-TELEGRAM_CHAT_ID       = os.environ.get("TELEGRAM_CHAT_ID", "")  # your personal chat ID
 
 OUTPUT_DIR    = Path("output")
 GRAPH_BASE    = "https://graph.facebook.com/v21.0"
@@ -219,7 +217,7 @@ def main():
         ig_success = upload_to_instagram(public_video_url, caption)
 
     # Always send Telegram notification for manual backup
-    send_manual_post_notification(meta, video)
+    save_caption_for_instagram(meta, video)
 
     if ig_success:
         print("\n🎉 Instagram auto-post successful!")
