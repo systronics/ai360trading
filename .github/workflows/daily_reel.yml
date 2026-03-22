@@ -59,7 +59,7 @@ jobs:
         env:
           GROQ_API_KEY:   ${{ secrets.GROQ_API_KEY }}
         run: |
-          python scripts/generate_reel.py
+          python generate_reel.py
           echo "✅ Reel generation complete"
 
       # ── 6. Upload to YouTube Shorts ───────────────────────────────────────
@@ -69,7 +69,7 @@ jobs:
           YT_CLIENT_SECRET:  ${{ secrets.YT_CLIENT_SECRET }}
           YT_REFRESH_TOKEN:  ${{ secrets.YT_REFRESH_TOKEN }}
         run: |
-          python scripts/upload_youtube.py
+          python upload_youtube.py
           echo "✅ YouTube upload complete"
 
       # ── 7. Facebook posting (reel + articles + yt link) ───────────────────
@@ -81,7 +81,7 @@ jobs:
           WEBSITE_RSS_URL:    ${{ secrets.WEBSITE_RSS_URL }}
           YT_CHANNEL_ID:      ${{ secrets.YT_CHANNEL_ID }}
         run: |
-          python scripts/upload_facebook.py
+          python upload_facebook.py
           echo "✅ Facebook posting complete"
 
       # ── 8. Instagram (auto + manual Telegram fallback) ────────────────────
@@ -92,7 +92,7 @@ jobs:
           TELEGRAM_BOT_TOKEN:     ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_ADMIN_CHAT_ID: ${{ secrets.TELEGRAM_ADMIN_CHAT_ID }}
         run: |
-          python scripts/upload_instagram.py
+          python upload_instagram.py
           echo "✅ Instagram step complete"
 
       # ── 9. Save video as artifact (download from Actions UI) ──────────────
