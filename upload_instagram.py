@@ -115,13 +115,21 @@ def send_manual_post_notification(meta: dict, video_path: Path):
     nifty   = meta.get("market", {}).get("nifty", {})
     yt_url  = meta.get("youtube_url", "")
     today   = datetime.now().strftime("%d %B %Y")
+    weekend = datetime.now().weekday() >= 5
 
-    caption = (
-        f"🎭 ZENO ki baat — {topic.title()}\n"
-        f"📅 {today}\n\n"
-        f"📊 Nifty: {nifty.get('price','N/A')} {nifty.get('change','')}\n\n"
-        f"💡 Apni life ka ek important lesson jo aaj zaroor kaam aayega!\n\n"
-    )
+    if weekend:
+        caption = (
+            f"🎭 ZENO ki baat — {topic.title()}\n"
+            f"📅 {today} | Weekend Special\n\n"
+            f"💡 Aaj ka life lesson jo aapki zindagi badal sakta hai!\n\n"
+        )
+    else:
+        caption = (
+            f"🎭 ZENO ki baat — {topic.title()}\n"
+            f"📅 {today}\n\n"
+            f"📊 Nifty: {nifty.get('price','N/A')} {nifty.get('change','')}\n\n"
+            f"💡 Apni life ka ek important lesson jo aaj zaroor kaam aayega!\n\n"
+        )
     if yt_url:
         caption += f"🎬 YouTube: {yt_url}\n\n"
     caption += (
@@ -185,12 +193,19 @@ def main():
 
     topic   = meta.get("topic", "Aaj ka lesson")
     nifty   = meta.get("market", {}).get("nifty", {})
+    weekend = datetime.now().weekday() >= 5
 
-    caption = (
-        f"🎭 ZENO ki baat — {topic.title()}\n"
-        f"📊 Nifty: {nifty.get('price','N/A')} {nifty.get('change','')}\n\n"
-        f"💡 Aaj ka moral lesson jo apni life badal dega!\n\n"
-    )
+    if weekend:
+        caption = (
+            f"🎭 ZENO ki baat — {topic.title()}\n"
+            f"💡 Aaj ka life lesson jo apni zindagi badal dega!\n\n"
+        )
+    else:
+        caption = (
+            f"🎭 ZENO ki baat — {topic.title()}\n"
+            f"📊 Nifty: {nifty.get('price','N/A')} {nifty.get('change','')}\n\n"
+            f"💡 Aaj ka moral lesson jo apni life badal dega!\n\n"
+        )
     if yt_url:
         caption += f"🎬 Full video: {yt_url}\n\n"
     caption += f"🌐 ai360trading.in\n\n{IG_HASHTAGS}"
