@@ -269,6 +269,9 @@ def assemble_video(
     import PIL.Image
     if not hasattr(PIL.Image, "ANTIALIAS"):
         PIL.Image.ANTIALIAS = PIL.Image.LANCZOS
+    from PIL import Image as PilImage
+    if not hasattr(PilImage, "ANTIALIAS"):
+        PilImage.ANTIALIAS = PilImage.LANCZOS
 
     audio    = AudioFileClip(str(audio_path))
     duration = audio.duration
@@ -280,7 +283,7 @@ def assemble_video(
     # ── ZENO image (centered, large) ──
     zeno = (ImageClip(str(zeno_image))
             .set_duration(duration)
-            .resize(height=900, resizer='pillow')
+            .resize(height=900)
             .set_position(("center", 400)))
 
     # ── Optional background music (very low volume) ──
