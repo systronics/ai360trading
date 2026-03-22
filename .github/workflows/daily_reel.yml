@@ -63,8 +63,6 @@ jobs:
         env:
           META_ACCESS_TOKEN:    ${{ secrets.META_ACCESS_TOKEN }}
           INSTAGRAM_ACCOUNT_ID: ${{ secrets.INSTAGRAM_ACCOUNT_ID }}
-          TELEGRAM_BOT_TOKEN:   ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID:     ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           python upload_instagram.py
           echo "✅ Instagram step complete"
@@ -73,43 +71,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: zeno-reel-${{ github.run_id }}
-          path: output/reel_*.mp4
+          path: |
+            output/reel_*.mp4
+            output/instagram_caption.txt
           retention-days: 7
-
-      - name: Send Telegram summary
-        if: always()
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID:   ${{ secrets.TELEGRAM_CHAT_ID }}
-        run: |
-          python - <<'EOF'
-          import os, requests, json
-          from pathlib import Path
-          from datetime import datetime
-          bot_token = os.environ.get("TELEGRAM_BOT_TOKEN", "")
-          chat_id   = os.environ.get("TELEGRAM_CHAT_ID", "")
-          if not bot_token or not chat_id:
-              exit(0)
-          today = datetime.now().strftime("%Y%m%d")
-          meta  = {}
-          meta_path = Path(f"output/meta_{today}.json")
-          if meta_path.exists():
-              meta = json.loads(meta_path.read_text())
-          weekend = datetime.now().weekday() >= 5
-          mode    = "Weekend emotional" if weekend else "Weekday market+moral"
-          msg = (
-              f"🤖 *AI360 ZENO Reel Complete*\n"
-              f"📅 {datetime.now().strftime('%d %B %Y')} — {mode}\n\n"
-              f"✅ Reel generated\n"
-              f"✅ YouTube Shorts: {meta.get('youtube_url','N/A')}\n"
-              f"✅ Facebook posted\n"
-              f"📲 Instagram: check Telegram\n\n"
-              f"📌 Topic: {meta.get('topic','N/A')}\n"
-              f"🏃 Run #{os.environ.get('GITHUB_RUN_NUMBER','N/A')}"
-          )
-          requests.post(
-              f"https://api.telegram.org/bot{bot_token}/sendMessage",
-              json={"chat_id": chat_id, "text": msg, "parse_mode": "Markdown"},
-              timeout=10
-          )
-          EOF
