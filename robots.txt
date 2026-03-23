@@ -30,22 +30,16 @@ Disallow: /tags/
 Disallow: /categories/
 Disallow: /category/
 
-# 5. Block feed files — not for indexing
-Disallow: /feed.xml
-Disallow: /atom.xml
-
-# 6. Block pagination — duplicate content
+# 5. Block pagination — duplicate content
 Disallow: /page/
 
-# 7. Block low-value pages — no SEO benefit
+# 6. Block low-value pages — no SEO benefit
 Disallow: /darvas-box/
 
-# 8. Global Bot Optimization
-# Allow Baiduspider for China reach
+# 7. Global Bot Optimization
 User-agent: Baiduspider
 Allow: /
 
-# Throttle heavy SEO scrapers
 User-agent: dotbot
 Crawl-delay: 20
 Disallow: /
@@ -57,5 +51,6 @@ Disallow: /
 User-agent: MJ12bot
 Disallow: /
 
-# 9. Sitemap
+# 8. Sitemaps
 Sitemap: https://ai360trading.in/sitemap.xml
+Sitemap: https://ai360trading.in/atom.xml
