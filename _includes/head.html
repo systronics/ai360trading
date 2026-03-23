@@ -6,15 +6,13 @@
   <!-- Primary Meta -->
   <title>{% if page.title %}{{ page.title }}{% else %}AI360Trading | Global Market Intelligence Terminal{% endif %}</title>
 
-  <!-- CHANGED: Default description now reflects all 4 markets — India, US, UK, Brazil -->
   <meta name="description" content="{% if page.description %}{{ page.description }}{% else %}Daily AI-powered market intelligence for NIFTY, S&P 500, FTSE 100 and IBOVESPA. Swing and positional trading signals for India, US, UK and Brazil.{% endif %}">
 
-  <!-- CHANGED: Keywords now cover all 4 target markets instead of India-only -->
   <meta name="keywords" content="{% if page.keywords %}{{ page.keywords }}{% else %}NIFTY trading signals, S&P 500 analysis, FTSE 100 today, IBOVESPA analysis, stock market India, swing trading signals, Bitcoin analysis, global market intelligence, AI trading terminal{% endif %}">
 
   <meta name="author" content="Amit Kumar">
 
-  <!-- ADDED: Preload hero image — browser fetches it immediately, directly improves LCP score -->
+  <!-- Preload hero image -->
   <link rel="preload" as="image" href="{{ '/public/image/header.webp' | absolute_url }}">
 
   <!-- Canonical -->
@@ -38,28 +36,24 @@
   <link rel="shortcut icon" href="{{ '/favicon.ico' | relative_url }}">
   <link rel="apple-touch-icon" sizes="180x180" href="{{ '/apple-touch-icon.png' | relative_url }}">
 
-  <!-- FIX 1: Font Awesome — load async to remove render blocking -->
+  <!-- Font Awesome — load async -->
   <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-  <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"></noscript>
 
-  <!-- FIX 2: Google Fonts — preconnect + display=swap already set -->
+  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-  <!-- FIX 3: Load font async with media trick — removes render blocking -->
   <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
-  <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet"></noscript>
 
-  <!-- FIX 4: Local CSS — served from same domain, no blocking issue -->
+  <!-- Local CSS -->
   <link rel="stylesheet" href="{{ '/public/css/poole.css' | relative_url }}">
   <link rel="stylesheet" href="{{ '/public/css/gpstyle.css' | relative_url }}">
 
-  <!-- FIX 5: Inline critical font fallback so page renders immediately without flash -->
+  <!-- Critical font fallback -->
   <style>
     body { font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
   </style>
 
-  <!-- JSON-LD: NewsArticle schema — fires on every page for blog posts -->
+  <!-- JSON-LD: NewsArticle schema -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -90,7 +84,6 @@
   }
   </script>
 
-  <!-- ADDED: Organization + WebSite schema — homepage only, zero impact on other pages -->
   {% if page.url == '/' %}
   <script type="application/ld+json">
   {
@@ -113,7 +106,7 @@
   </script>
   {% endif %}
 
-  <!-- Google Analytics — async, non-blocking -->
+  <!-- Google Analytics -->
   {% if site.google_analytics %}
   <script async src="https://www.googletagmanager.com/gtag/js?id={{ site.google_analytics }}"></script>
   <script>
@@ -125,3 +118,6 @@
   {% endif %}
 
 </head>
+<!-- noscript tags moved outside <head> — fixes Google indexing warning -->
+<noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"></noscript>
+<noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet"></noscript>
