@@ -504,14 +504,13 @@ async def main():
     audio_path = OUTPUT_DIR / f"voice_{today}.mp3"
     await generate_voice(script_data["script"], audio_path)
 
-    print("\n🎭 Step 4: Selecting ZENO image...")
-    zeno_image = select_zeno_image(script_data["emotion"], mood)
-    print(f"   Using: {zeno_image.name}")
+    print("\n🎭 Step 4: Selecting ZENO images (story arc)...")
+    zeno_images = select_zeno_images(script_data["emotion"], mood)
 
-    print("\n🎬 Step 5: Assembling video with moviepy...")
+    print("\n🎬 Step 5: Assembling video with Ken Burns effect...")
     video_path = OUTPUT_DIR / f"reel_{today}.mp4"
     assemble_video(
-        zeno_image   = zeno_image,
+        zeno_images  = zeno_images,
         audio_path   = audio_path,
         subtitles    = script_data.get("subtitles", []),
         market_data  = market_data,
