@@ -13,7 +13,6 @@ encoding: "utf-8"
 
 # SEO & Ownership
 google_site_verification: "2yLD14QlM9ElbyiFZO_pUf-hTO09aCQEinK5LqD8Bpk"
-google_analytics: "G-YR9E0CYRCV"
 social_image: "/public/image/swing.webp"
 
 # Author Information
@@ -49,17 +48,28 @@ paginate_path: "/page:num/"
 include:
   - _pages
 
-# Exclude from Jekyll build
+# Exclude from Jekyll build — keep all Python/automation files out
 exclude:
   - generate_articles.py
+  - generate_analysis.py
+  - generate_education.py
+  - generate_reel.py
+  - generate_shorts.py
+  - content_calendar.py
+  - upload_youtube.py
+  - upload_facebook.py
+  - upload_instagram.py
   - trading_bot.py
   - requirements.txt
+  - SYSTEM.md
   - README.md
   - LICENSE.md
   - Gemfile
   - Gemfile.lock
   - .github/
   - vendor/
+  - output/
+  - token.json
 
 # Defaults
 defaults:
