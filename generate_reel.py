@@ -212,26 +212,23 @@ async def generate_voice(script: str, output_path: Path):
     print(f"✅ Voice saved: {output_path}")
 
 
-# ─── STEP 4: SELECT ZENO IMAGE ────────────────────────────────────────────────
-def select_zeno_image(emotion: str, mood: str) -> Path:
-    """Pick best ZENO image based on emotion + market mood."""
+# ─── STEP 4: SELECT ZENO IMAGES (3 images for story arc) ────────────────────
+def get_image(keyword: str, all_images: list, fallback: str = "zeno_happy") -> Path:
+    """Find image by keyword, fallback to another keyword."""
+    matches = [img for img in all_images if keyword.lower() in img.stem.lower()]
+    if matches:
+        return matches[0]
+    matches = [img for img in all_images if fallback.lower() in img.stem.lower()]
+    if matches:
+        return matches[0]
+    return random.choice(all_images)
 
-    # Map emotion to likely filename patterns (adjust to your actual filenames)
-    # Mapped to actual files: zeno_angry, zeno_celebrating, zeno_fear,
-    # zeno_greed, zeno_happy, zeno_sad, zeno_thinking
-    emotion_map = {
-        "happy":     ["zeno_happy", "zeno_celebrating"],
-        "excited":   ["zeno_celebrating", "zeno_happy"],
-        "sad":       ["zeno_sad", "zeno_fear"],
-        "worried":   ["zeno_fear", "zeno_sad"],
-        "thinking":  ["zeno_thinking", "zeno_happy"],
-        "confident": ["zeno_celebrating", "zeno_happy"],
-        "curious":   ["zeno_thinking", "zeno_happy"],
-        "angry":     ["zeno_angry", "zeno_greed"],
-        "greedy":    ["zeno_greed", "zeno_angry"],
-        "neutral":   ["zeno_thinking", "zeno_happy"],
-    }
 
+def select_zeno_images(emotion: str, mood: str) -> list:
+    """
+    Return 3 ZENO images for beginning → middle → end story arc.
+    Images tell a mini emotional journey — never random or unrelated.
+    """
     if not ZENO_IMAGE_DIR.exists():
         raise FileNotFoundError(f"ZENO image dir not found: {ZENO_IMAGE_DIR}")
 
@@ -239,55 +236,154 @@ def select_zeno_image(emotion: str, mood: str) -> Path:
     if not all_images:
         raise FileNotFoundError(f"No images found in {ZENO_IMAGE_DIR}")
 
-    # Try to match emotion keywords in filename
-    keywords = emotion_map.get(emotion, ["neutral"])
-    for kw in keywords:
-        matches = [img for img in all_images if kw.lower() in img.stem.lower()]
-        if matches:
-            return random.choice(matches)
+    # Story arc map: emotion → [hook image, lesson image, end image]
+    # End is ALWAYS positive (celebrating/happy) — good CTA energy
+    arc_map = {
+        "happy":     ["zeno_happy",       "zeno_thinking",    "zeno_celebrating"],
+        "excited":   ["zeno_celebrating", "zeno_happy",       "zeno_celebrating"],
+        "sad":       ["zeno_sad",         "zeno_thinking",    "zeno_happy"],
+        "worried":   ["zeno_fear",        "zeno_thinking",    "zeno_happy"],
+        "thinking":  ["zeno_thinking",    "zeno_curious" ,    "zeno_celebrating"],
+        "confident": ["zeno_happy",       "zeno_celebrating", "zeno_celebrating"],
+        "curious":   ["zeno_thinking",    "zeno_happy",       "zeno_celebrating"],
+        "angry":     ["zeno_angry",       "zeno_thinking",    "zeno_happy"],
+        "greedy":    ["zeno_greed",       "zeno_thinking",    "zeno_celebrating"],
+        "neutral":   ["zeno_thinking",    "zeno_happy",       "zeno_celebrating"],
+    }
 
-    # Fallback: random image
-    return random.choice(all_images)
+    # Market mood override for hook image on weekdays
+    if mood == "bearish" and emotion in ["happy", "excited", "confident"]:
+        arc_map[emotion][0] = "zeno_worried"
+    elif mood == "bullish" and emotion in ["sad", "worried"]:
+        arc_map[emotion][2] = "zeno_celebrating"
+
+    keywords = arc_map.get(emotion, arc_map["neutral"])
+    images = [get_image(kw, all_images) for kw in keywords]
+
+    print(f"   Story arc: {' → '.join(Path(img).stem for img in images)}")
+    return images
 
 
 # ─── STEP 5: MOVIEPY VIDEO ASSEMBLY ──────────────────────────────────────────
+def make_ken_burns(image_path: Path, seg_duration: float, effect: str) -> object:
+    """
+    Apply Ken Burns effect to a single image segment.
+    effect: "zoom_in", "zoom_out", "pan_left", "pan_right"
+    Returns a moviepy clip.
+    """
+    from moviepy.editor import ImageClip
+    from moviepy.video.fx.all import fadein, fadeout
+    import numpy as np
+    from PIL import Image as PilImage
+
+    if not hasattr(PilImage, "ANTIALIAS"):
+        PilImage.ANTIALIAS = PilImage.LANCZOS
+
+    # Load and resize image to 1080x1920 canvas
+    img = PilImage.open(str(image_path)).convert("RGBA")
+
+    # Fit ZENO on dark navy background
+    canvas_w, canvas_h = 1080, 1920
+    img_ratio = img.width / img.height
+    new_h = 900
+    new_w = int(new_h * img_ratio)
+    img = img.resize((new_w, new_h), PilImage.LANCZOS)
+
+    canvas = PilImage.new("RGBA", (canvas_w, canvas_h), (18, 20, 35, 255))
+    x_off  = (canvas_w - new_w) // 2
+    y_off  = 400
+    canvas.paste(img, (x_off, y_off), img)
+    frame  = np.array(canvas.convert("RGB"))
+
+    def make_frame(t):
+        progress = t / seg_duration  # 0.0 → 1.0
+        if effect == "zoom_in":
+            scale = 1.0 + 0.08 * progress
+        elif effect == "zoom_out":
+            scale = 1.08 - 0.08 * progress
+        elif effect == "pan_left":
+            scale = 1.05
+        else:  # pan_right
+            scale = 1.05
+
+        h, w = frame.shape[:2]
+        new_w2 = int(w * scale)
+        new_h2 = int(h * scale)
+
+        resized = PilImage.fromarray(frame).resize((new_w2, new_h2), PilImage.LANCZOS)
+        resized = np.array(resized)
+
+        if effect == "pan_left":
+            x_start = int((new_w2 - w) * progress)
+            y_start = (new_h2 - h) // 2
+        elif effect == "pan_right":
+            x_start = int((new_w2 - w) * (1 - progress))
+            y_start = (new_h2 - h) // 2
+        else:
+            x_start = (new_w2 - w) // 2
+            y_start = (new_h2 - h) // 2
+
+        x_start = max(0, min(x_start, new_w2 - w))
+        y_start = max(0, min(y_start, new_h2 - h))
+
+        return resized[y_start:y_start+h, x_start:x_start+w]
+
+    clip = (ImageClip(make_frame, duration=seg_duration)
+            .fx(fadein, 0.4)
+            .fx(fadeout, 0.4))
+    return clip
+
+
 def assemble_video(
-    zeno_image: Path,
+    zeno_images: list,
     audio_path: Path,
     subtitles: list,
     market_data: dict,
     output_path: Path,
     topic: str,
 ):
-    """Assemble final MP4 reel using moviepy."""
+    """Assemble final MP4 reel with Ken Burns multi-image story arc."""
     from moviepy.editor import (
         ImageClip, AudioFileClip, CompositeVideoClip,
         TextClip, ColorClip, concatenate_videoclips
     )
-    from moviepy.video.fx.all import resize, fadein, fadeout
+    from moviepy.video.fx.all import fadein, fadeout
     import numpy as np
     import PIL.Image
     if not hasattr(PIL.Image, "ANTIALIAS"):
         PIL.Image.ANTIALIAS = PIL.Image.LANCZOS
-    from PIL import Image as PilImage
-    if not hasattr(PilImage, "ANTIALIAS"):
-        PilImage.ANTIALIAS = PilImage.LANCZOS
 
     audio    = AudioFileClip(str(audio_path))
     duration = audio.duration
 
+    # ── Ken Burns segments — 3 images, each ~1/3 of video ──
+    effects   = ["zoom_in", "pan_left", "zoom_out"]
+    n_images  = len(zeno_images)
+    seg_dur   = duration / n_images
+
+    zeno_segments = []
+    for i, img_path in enumerate(zeno_images):
+        effect = effects[i % len(effects)]
+        try:
+            seg = make_ken_burns(img_path, seg_dur, effect)
+            seg = seg.set_start(i * seg_dur)
+            zeno_segments.append(seg)
+            print(f"   Segment {i+1}: {Path(img_path).stem} — {effect}")
+        except Exception as e:
+            print(f"   Segment {i+1} failed ({e}), using static fallback")
+            seg = (ImageClip(str(img_path))
+                   .set_duration(seg_dur)
+                   .resize(height=900)
+                   .set_position(("center", 400))
+                   .set_start(i * seg_dur))
+            zeno_segments.append(seg)
+
     # ── Background ──
-    bg_color = [18, 20, 35]  # dark navy — looks great for reels
-    bg = ColorClip(size=(1080, 1920), color=bg_color, duration=duration)
+    bg = ColorClip(size=(1080, 1920), color=[18, 20, 35], duration=duration)
+    clips = [bg] + zeno_segments
 
-    # ── ZENO image (centered, large) ──
-    zeno = (ImageClip(str(zeno_image))
-            .set_duration(duration)
-            .resize(height=900)
-            .set_position(("center", 400)))
-
-    # ── Optional background music (very low volume) ──
-    clips = [bg, zeno]
+    # ── Optional background music ──
+    clips_audio = [audio]
     if BACKGROUND_MUSIC_DIR.exists():
         music_files = list(BACKGROUND_MUSIC_DIR.glob("*.mp3"))
         if music_files:
@@ -362,7 +458,7 @@ def assemble_video(
 
     # ── Compose + export ──
     final = (CompositeVideoClip(clips, size=(1080, 1920))
-             .set_audio(audio))
+             .set_audio(final_audio))
 
     final.write_videofile(
         str(output_path),
@@ -425,14 +521,15 @@ async def main():
 
     # Save metadata for upload scripts
     meta = {
-        "date":       today,
-        "topic":      topic,
-        "hook":       script_data.get("hook", ""),
-        "cta":        script_data.get("cta", ""),
-        "script":     script_data["script"],
-        "emotion":    script_data["emotion"],
-        "video_path": str(video_path),
-        "market":     market_data,
+        "date":        today,
+        "topic":       topic,
+        "hook":        script_data.get("hook", ""),
+        "cta":         script_data.get("cta", ""),
+        "script":      script_data["script"],
+        "emotion":     script_data["emotion"],
+        "video_path":  str(video_path),
+        "zeno_images": [str(img) for img in zeno_images],
+        "market":      market_data,
     }
     meta_path = OUTPUT_DIR / f"meta_{today}.json"
     meta_path.write_text(json.dumps(meta, indent=2, ensure_ascii=False))
