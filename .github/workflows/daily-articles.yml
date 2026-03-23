@@ -3,8 +3,8 @@ name: Daily AI Market Intelligence Report
 on:
   workflow_dispatch:
   schedule:
-    - cron: "45 1 * * 1-5"   # 7:15 AM IST Mon-Fri (market days)
-    - cron: "30 4 * * 6,0"   # 10:00 AM IST Sat-Sun (weekend educational)
+    - cron: "45 1 * * 1-5"   # 7:15 AM IST Mon-Fri
+    - cron: "30 4 * * 6,0"   # 10:00 AM IST Sat-Sun
 
 jobs:
   build:
@@ -24,12 +24,17 @@ jobs:
           python-version: "3.11"
 
       - name: Install dependencies
-        run: pip install groq pytz requests pytrends python-dotenv certifi
+        run: |
+          pip install --upgrade pip
+          pip install \
+            groq pytz requests pytrends python-dotenv certifi \
+            cryptography
 
       - name: Run AI Article Generator
         env:
-          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-          IS_WEEKEND:   ${{ (github.event.schedule == '30 4 * * 6,0') && 'true' || 'false' }}
+          GROQ_API_KEY:              ${{ secrets.GROQ_API_KEY }}
+          GCP_SERVICE_ACCOUNT_JSON:  ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
+          IS_WEEKEND: ${{ (github.event.schedule == '30 4 * * 6,0') && 'true' || 'false' }}
         run: python generate_articles.py
 
       - name: Commit and Push articles
@@ -45,8 +50,6 @@ jobs:
           META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
           FACEBOOK_PAGE_ID:  ${{ secrets.FACEBOOK_PAGE_ID }}
           FACEBOOK_GROUP_ID: ${{ secrets.FACEBOOK_GROUP_ID }}
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID:   ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           python - <<'EOF'
           import os, requests
@@ -55,8 +58,6 @@ jobs:
           META_TOKEN  = os.environ.get("META_ACCESS_TOKEN", "")
           PAGE_ID     = os.environ.get("FACEBOOK_PAGE_ID", "")
           GROUP_ID    = os.environ.get("FACEBOOK_GROUP_ID", "")
-          BOT_TOKEN   = os.environ.get("TELEGRAM_BOT_TOKEN", "")
-          CHAT_ID     = os.environ.get("TELEGRAM_CHAT_ID", "")
           GRAPH       = "https://graph.facebook.com/v21.0"
           weekend     = datetime.now().weekday() >= 5
           today_str   = datetime.now().strftime("%d %B %Y")
@@ -65,45 +66,37 @@ jobs:
               msg = (
                   f"📚 Weekend Special — {today_str}\n\n"
                   f"Aaj ke educational articles:\n\n"
-                  f"1️⃣ Trading basics ke liye:\n🌐 https://ai360trading.in\n\n"
-                  f"💡 Weekend ka best use karo — seekho, samjho, grow karo!\n\n"
+                  f"1️⃣ Stock Market Basics\n"
+                  f"2️⃣ Bitcoin and Crypto Guide\n"
+                  f"3️⃣ Personal Finance Tips\n"
+                  f"4️⃣ AI Trading Strategies\n\n"
+                  f"👉 https://ai360trading.in\n\n"
+                  f"💡 Weekend ka best use karo — seekho, samjho, grow karo!\n"
                   f"🔔 Follow karo: ai360trading.in\n"
                   f"#WeekendLearning #Trading101 #ai360trading"
               )
           else:
               msg = (
                   f"📰 Aaj ke Market Articles — {today_str}\n\n"
-                  f"📊 Fresh analysis aur insights:\n"
-                  f"🌐 https://ai360trading.in\n\n"
-                  f"💡 Daily market updates ke liye website visit karo!\n\n"
+                  f"Fresh analysis across all 4 pillars:\n\n"
+                  f"📊 Stock Market Analysis\n"
+                  f"₿ Bitcoin and Crypto\n"
+                  f"💰 Personal Finance\n"
+                  f"🤖 AI Trading Technology\n\n"
+                  f"👉 https://ai360trading.in\n\n"
                   f"🔔 Telegram: t.me/ai360trading\n"
-                  f"#StockMarket #Nifty #Trading #ai360trading"
+                  f"#StockMarket #Nifty #Trading #ai360trading #India"
               )
 
-          if META_TOKEN and PAGE_ID:
-              try:
-                  r = requests.post(f"{GRAPH}/{PAGE_ID}/feed",
-                      data={"message": msg, "link": "https://ai360trading.in",
-                            "access_token": META_TOKEN}, timeout=15)
-                  print(f"✅ Page post: {r.json().get('id','error')}")
-              except Exception as e:
-                  print(f"❌ Page post failed: {e}")
-
-          if META_TOKEN and GROUP_ID:
-              try:
-                  r = requests.post(f"{GRAPH}/{GROUP_ID}/feed",
-                      data={"message": msg, "access_token": META_TOKEN}, timeout=15)
-                  print(f"✅ Group post: {r.json().get('id','error')}")
-              except Exception as e:
-                  print(f"❌ Group post failed: {e}")
-
-          if BOT_TOKEN and CHAT_ID:
-              mode = "Weekend educational" if weekend else "Weekday market"
-              requests.post(
-                  f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage",
-                  json={"chat_id": CHAT_ID,
-                        "text": f"📰 *Articles shared to Facebook*\nMode: {mode}\n📅 {today_str}",
-                        "parse_mode": "Markdown"},
-                  timeout=10
-              )
+          for entity_id in [PAGE_ID, GROUP_ID]:
+              if META_TOKEN and entity_id:
+                  try:
+                      r = requests.post(f"{GRAPH}/{entity_id}/feed",
+                          data={"message": msg,
+                                "link": "https://ai360trading.in",
+                                "access_token": META_TOKEN}, timeout=15)
+                      label = "Page" if entity_id==PAGE_ID else "Group"
+                      print(f"✅ {label}: {r.json().get('id','error')}")
+                  except Exception as e:
+                      print(f"❌ Post failed: {e}")
           EOF
