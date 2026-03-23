@@ -5,13 +5,13 @@
 User-agent: *
 Allow: /
 
-# 1. Block technical & internal folders
+# Block technical & internal folders
 Disallow: /assets/css/
 Disallow: /assets/js/
 Disallow: /cgi-bin/
 Disallow: /_site/
 
-# 2. Block Jekyll system files
+# Block Jekyll system files
 Disallow: /_drafts/
 Disallow: /_includes/
 Disallow: /_layouts/
@@ -19,24 +19,24 @@ Disallow: /_posts/
 Disallow: /Gemfile
 Disallow: /Gemfile.lock
 
-# 3. Block private areas
+# Block private areas
 Disallow: /admin/
 Disallow: /private/
 Disallow: /temp/
 
-# 4. Block tag and category pages — no unique content
+# Block tag and category pages
 Disallow: /tag/
 Disallow: /tags/
 Disallow: /categories/
 Disallow: /category/
 
-# 5. Block pagination — duplicate content
+# Block pagination
 Disallow: /page/
 
-# 6. Block low-value pages — no SEO benefit
+# Block low-value pages
 Disallow: /darvas-box/
 
-# 7. Global Bot Optimization
+# Bot optimization
 User-agent: Baiduspider
 Allow: /
 
@@ -51,6 +51,5 @@ Disallow: /
 User-agent: MJ12bot
 Disallow: /
 
-# 8. Sitemaps
+# Sitemap
 Sitemap: https://ai360trading.in/sitemap.xml
-Sitemap: https://ai360trading.in/atom.xml
