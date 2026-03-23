@@ -106,17 +106,6 @@
   </script>
   {% endif %}
 
-  <!-- Google Analytics -->
-  {% if site.google_analytics %}
-  <script async src="https://www.googletagmanager.com/gtag/js?id={{ site.google_analytics }}"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', '{{ site.google_analytics }}', { anonymize_ip: true });
-  </script>
-  {% endif %}
-
 </head>
 <!-- noscript tags moved outside <head> — fixes Google indexing warning -->
 <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"></noscript>
