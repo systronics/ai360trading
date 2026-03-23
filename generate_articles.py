@@ -8,6 +8,108 @@ import xml.etree.ElementTree as ET
 from datetime import datetime
 from groq import Groq
 
+# ─── Google Indexing API ─────────────────────────────────────────────────────
+def submit_urls_to_google(urls: list):
+    """
+    Submit article URLs to Google Indexing API for immediate crawling.
+    Uses GCP_SERVICE_ACCOUNT_JSON secret — same one used by trading bot.
+    Quota: 200 requests/day free. Each article = 1 request.
+    """
+    try:
+        import json as _json
+        sa_json = os.environ.get("GCP_SERVICE_ACCOUNT_JSON", "")
+        if not sa_json:
+            print("  ⚠️  GCP_SERVICE_ACCOUNT_JSON not set — skipping indexing API")
+            return
+
+        sa = _json.loads(sa_json)
+
+        # Get OAuth2 token using service account JWT
+        import time as _time
+        import base64
+        import hmac
+        import hashlib
+
+        # Build JWT for Google OAuth2
+        header  = base64.urlsafe_b64encode(
+            _json.dumps({"alg":"RS256","typ":"JWT"}).encode()
+        ).rstrip(b'=').decode()
+
+        now_ts  = int(_time.time())
+        payload = base64.urlsafe_b64encode(_json.dumps({
+            "iss":   sa["client_email"],
+            "scope": "https://www.googleapis.com/auth/indexing",
+            "aud":   "https://oauth2.googleapis.com/token",
+            "exp":   now_ts + 3600,
+            "iat":   now_ts,
+        }).encode()).rstrip(b'=').decode()
+
+        # Sign with RSA private key using cryptography library
+        try:
+            from cryptography.hazmat.primitives import hashes, serialization
+            from cryptography.hazmat.primitives.asymmetric import padding
+
+            private_key = serialization.load_pem_private_key(
+                sa["private_key"].encode(), password=None
+            )
+            signing_input = f"{header}.{payload}".encode()
+            signature = private_key.sign(signing_input, padding.PKCS1v15(), hashes.SHA256())
+            sig_b64 = base64.urlsafe_b64encode(signature).rstrip(b'=').decode()
+            jwt_token = f"{header}.{payload}.{sig_b64}"
+        except ImportError:
+            print("  ⚠️  cryptography library not available — skipping indexing API")
+            return
+
+        # Exchange JWT for access token
+        token_resp = requests.post(
+            "https://oauth2.googleapis.com/token",
+            data={
+                "grant_type": "urn:ietf:params:oauth:grant-type:jwt-bearer",
+                "assertion":  jwt_token,
+            },
+            timeout=15
+        )
+        if not token_resp.ok:
+            print(f"  ⚠️  Token error: {token_resp.text[:100]}")
+            return
+
+        access_token = token_resp.json().get("access_token", "")
+        if not access_token:
+            print("  ⚠️  No access token received")
+            return
+
+        # Submit each URL
+        headers = {
+            "Authorization": f"Bearer {access_token}",
+            "Content-Type":  "application/json",
+        }
+        success_count = 0
+        for url in urls:
+            try:
+                resp = requests.post(
+                    "https://indexing.googleapis.com/v3/urlNotifications:publish",
+                    headers=headers,
+                    json={"url": url, "type": "URL_UPDATED"},
+                    timeout=10
+                )
+                if resp.ok:
+                    print(f"  ✅ Indexed: {url}")
+                    success_count += 1
+                else:
+                    print(f"  ⚠️  Index failed ({resp.status_code}): {url}")
+                time.sleep(0.5)
+            except Exception as e:
+                print(f"  ⚠️  Index error for {url}: {e}")
+
+        print(f"  📡 Google Indexing API: {success_count}/{len(urls)} URLs submitted")
+
+    except Exception as e:
+        print(f"  ⚠️  Indexing API error: {e} — articles still published normally")
+
+
+# ─── robots.txt fix — submit atom.xml too ────────────────────────────────────
+SITE_URL = "https://ai360trading.in"
+
 # ─── Init ────────────────────────────────────────────────────────────────────
 client       = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 ist          = pytz.timezone('Asia/Kolkata')
@@ -187,7 +289,7 @@ PILLARS = [
     },
 ]
 
-# ─── Writing Personas — 8 total, 2 pillar-specific ───────────────────────────
+# ─── Writing Personas ─────────────────────────────────────────────────────────
 PERSONAS = [
     {
         "name": "Senior Derivatives Trader",
@@ -234,20 +336,19 @@ PERSONAS = [
     {
         "name": "Certified Financial Planner",
         "tone": "warm, practical and trustworthy",
-        "style": "speaks like a trusted advisor sitting across the table, uses real family finance examples, compares options with actual numbers and percentages, never condescending, references real Indian middle-class and US working-class financial situations, uses terms like 'your money', 'your family', 'your future' naturally",
-        "opening_hook": "opens with a relatable personal finance situation that thousands of families face right now — something specific to current market or economic conditions",
+        "style": "speaks like a trusted advisor sitting across the table, uses real family finance examples, compares options with actual numbers and percentages, never condescending",
+        "opening_hook": "opens with a relatable personal finance situation that thousands of families face right now",
         "signature_phrase": "The best financial plan is one you will actually follow.",
     },
     {
         "name": "AI and Technology Strategist",
         "tone": "sharp, forward-thinking and data-driven",
-        "style": "explains how AI algorithms actually work in simple language, references specific models and tools retail traders can use today, connects tech company earnings to market movements, uses precise technical language but always explains it, references GitHub repos, trading APIs, and free tools available to everyone",
-        "opening_hook": "opens with a specific AI signal or algorithmic pattern that most traders are missing right now — something data-driven and immediately actionable",
+        "style": "explains how AI algorithms actually work in simple language, references specific models and tools retail traders can use today",
+        "opening_hook": "opens with a specific AI signal or algorithmic pattern that most traders are missing right now",
         "signature_phrase": "The algorithm already knows. The question is whether you're listening.",
     },
 ]
 
-# Pillar-to-persona mapping
 PILLAR_PERSONA_MAP = {
     "stock-market":     [0, 1, 2, 3, 4, 5],
     "bitcoin":          [2, 3, 4, 5, 0, 1],
@@ -531,9 +632,7 @@ def generate_article(pillar, prices, trends, fear_greed, persona, article_index)
 
     article_title, direction, top_trend = build_title(pillar, trends, prices, fear_greed)
 
-    # ─── Clean short slug generation ─────────────────────────────────────────
     import re as _re
-
     _title_clean = article_title.lower()
     _title_clean = _title_clean.replace('s&p', 'sp').replace('s-and-p', 'sp')
     _title_clean = _title_clean.replace('&', '-').replace('$', '').replace('/', '-')
@@ -555,7 +654,6 @@ def generate_article(pillar, prices, trends, fear_greed, persona, article_index)
     chosen_slug = title_slug
     file_path   = os.path.join(POSTS_DIR, f"{file_slug}.md")
 
-    # Internal links
     recent_posts = get_recent_posts(pillar['id'])
     internal_links_text = ""
     if recent_posts:
@@ -563,7 +661,6 @@ def generate_article(pillar, prices, trends, fear_greed, persona, article_index)
         for post in recent_posts:
             internal_links_text += f'- [{post["title"]}](/{pillar["permalink_base"]}/{post["slug"]}/)\n'
 
-    # Levels
     s1_nifty = round(nifty_price * 0.986, 0)
     s2_nifty = round(nifty_price * 0.972, 0)
     r1_nifty = round(nifty_price * 1.014, 0)
@@ -578,23 +675,19 @@ def generate_article(pillar, prices, trends, fear_greed, persona, article_index)
     r2_btc   = round(btc_price * 1.10, 0)
 
     FORMAT_TYPES = [
-        "story_led",
-        "contrarian",
-        "trader_notebook",
-        "macro_driver",
-        "chart_story",
-        "question_led",
+        "story_led", "contrarian", "trader_notebook",
+        "macro_driver", "chart_story", "question_led",
     ]
     _pillar_idx = ["stock-market","bitcoin","personal-finance","ai-trading"].index(pillar["id"]) if pillar["id"] in ["stock-market","bitcoin","personal-finance","ai-trading"] else 0
     fmt = FORMAT_TYPES[(now.day + article_index + _pillar_idx) % len(FORMAT_TYPES)]
 
     FORMAT_INSTRUCTIONS = {
-        "story_led": "Start with a specific market observation — a price level, a candle pattern, or an unusual move you noticed today. Make it feel like you are talking to a friend trader.",
-        "contrarian": "Open with the view most people have wrong right now. State it bluntly. Then prove it with data.",
-        "trader_notebook": "Write like a trading diary entry. Use 'I'm watching...', 'The level that matters to me today is...', 'What worries me is...'. Raw and real.",
-        "macro_driver": "Identify the single biggest macro force driving markets today — Fed, dollar, oil, war, earnings — and build the whole article around how it ripples into each market.",
-        "chart_story": "Describe what the chart is telling you in plain language. What pattern, what level, what the last 5 candles mean. Then connect to fundamentals.",
-        "question_led": "Open with the exact question traders are googling right now. Answer it directly in para 1. Then go deeper.",
+        "story_led":      "Start with a specific market observation — a price level, a candle pattern, or an unusual move you noticed today.",
+        "contrarian":     "Open with the view most people have wrong right now. State it bluntly. Then prove it with data.",
+        "trader_notebook":"Write like a trading diary entry. Use 'I'm watching...', 'The level that matters to me today is...'",
+        "macro_driver":   "Identify the single biggest macro force driving markets today and build the whole article around it.",
+        "chart_story":    "Describe what the chart is telling you in plain language. Then connect to fundamentals.",
+        "question_led":   "Open with the exact question traders are googling right now. Answer it directly in para 1.",
     }
 
     SECTION_STRUCTURES = {
@@ -640,74 +733,44 @@ TRENDING SEARCHES: {', '.join(trends[:8])}
 {internal_links_text}
 
 === HUMAN WRITING RULES (CRITICAL) ===
-
-1. VARY SENTENCE LENGTH aggressively. Mix short punchy sentences with longer analytical ones.
-   Example: "The S&P is sitting at 6,740. That number matters more than people think right now."
-
-2. EXPRESS GENUINE OPINIONS with reasoning:
-   BAD: "Bitcoin may reach $70,000."
-   GOOD: "Personally I think the $70K breakout fails the first attempt. Too many leveraged longs stacked just below that level — the market will hunt those stops first."
-
-3. SHOW UNCERTAINTY where real:
-   BAD: "The market will find support at 23,500."
-   GOOD: "23,500 looks like support — but I'd be lying if I said I was confident here given the global backdrop."
-
-4. USE TRADER LANGUAGE naturally:
-   - "the tape is telling me..."
-   - "what I'm watching for..."
-   - "the level that matters today..."
-   - "options flow shows..."
-   - "smart money positioning suggests..."
-
-5. ADD ONE REAL HISTORICAL PARALLEL with exact month/year:
-   Example: "This setup reminds me of August 2023 when NIFTY bounced hard from exactly the same zone."
-
-6. BREAK PARAGRAPH SYMMETRY — no two consecutive paragraphs same length.
-
-7. BANNED WORDS AND PHRASES (never use):
-   "In conclusion", "Furthermore", "Moreover", "This underscores", "This highlights",
+1. VARY SENTENCE LENGTH aggressively.
+2. EXPRESS GENUINE OPINIONS with reasoning.
+3. SHOW UNCERTAINTY where real.
+4. USE TRADER LANGUAGE naturally.
+5. ADD ONE REAL HISTORICAL PARALLEL with exact month/year.
+6. BREAK PARAGRAPH SYMMETRY.
+7. BANNED WORDS: "In conclusion", "Furthermore", "Moreover", "This underscores",
    "Navigating", "Landscape", "Delve into", "Robust", "Game-changer", "Paradigm shift",
-   "Deep dive", "Shed light", "Bustling", "It's worth noting", "It is important to note",
-   "As I analyze", "Core Analysis", "Country Analysis", "Brand View"
-
-8. NEVER use these AI structure headers: "Core Analysis", "Country Analysis", "Brand View",
-   "AI360Trading View" — use the section names from SECTIONS list below instead.
-
-9. NUMBERS must connect to decisions:
-   BAD: "RSI is at 64.21"
-   GOOD: "RSI just hit 64 — entering overbought territory. Historically at this level NIFTY either consolidates 3-5 days or shakes out weak hands with a quick 1.5% dip first."
-
-10. DELETE fake authority lines like "As I spoke with a Wall Street trader" — unless you have a specific name/firm.
+   "Deep dive", "Shed light", "It's worth noting", "It is important to note"
+8. NEVER use headers: "Core Analysis", "Country Analysis", "Brand View", "AI360Trading View"
+9. NUMBERS must connect to decisions.
+10. DELETE fake authority lines.
 
 === ARTICLE STRUCTURE ===
-
-Use EXACTLY these section names in this order:
+Use EXACTLY these section names:
 {chr(10).join(f"## {s}" for s in sections)}
 
-Also include ONE key levels table:
+Include ONE key levels table:
 | Instrument | Price | S2 | S1 | R1 | R2 |
 |---|---|---|---|---|---|
 
-And ONE FAQ block with 3 questions that people actually search on Google (use exact search phrasing).
+Include ONE FAQ block with 3 questions people actually search on Google.
 Include 2-3 internal links naturally in body text if provided above.
 
 === FORMAT ===
 First line: META_DESCRIPTION: <150-160 chars with specific price data and date>
 Then the article starting with ## {sections[0]}
 
-CRITICAL SEO RULE — Title Integration:
+CRITICAL SEO RULE:
 The article title is: "{article_title}"
-You MUST use the exact key words from this title in:
+Use exact key words from this title in:
 1. The very first sentence of ## {sections[0]}
 2. At least 2 more times naturally throughout the article body
-3. The FAQ questions must reference the title topic directly
-This is mandatory for SEO — Google checks that H1 matches body content.
+3. FAQ questions must reference the title topic directly
 
 Target length: 2000-2200 words. Minimum 1800 words — never less.
 End with:
 *{date_display} | Educational content only. Not SEBI registered investment advice.*
-
-WORD COUNT CHECK: Count your words before finishing. If under 1800 words — expand the analysis sections with more specific price levels, historical context, and actionable trader notes. Google penalizes thin content.
 """
     try:
         completion = client.chat.completions.create(
@@ -755,25 +818,12 @@ WORD COUNT CHECK: Count your words before finishing. If under 1800 words — exp
         schema_json = generate_schema(article_title, meta_description, pillar, chosen_slug)
 
         safe_title = (article_title
-            .replace('"', "'")
-            .replace('&', 'and')
-            .replace('<', '')
-            .replace('>', '')
-            .replace('₹', 'Rs.')
-            .replace('\n', ' ')
-            .strip())
+            .replace('"', "'").replace('&', 'and').replace('<', '')
+            .replace('>', '').replace('₹', 'Rs.').replace('\n', ' ').strip())
         safe_excerpt = (article_excerpt
-            .replace('"', "'")
-            .replace('&', 'and')
-            .replace('<', '')
-            .replace('>', '')
-            .strip())
+            .replace('"', "'").replace('&', 'and').replace('<', '').replace('>', '').strip())
         safe_desc = (meta_description
-            .replace('"', "'")
-            .replace('&', 'and')
-            .replace('<', '')
-            .replace('>', '')
-            .strip())
+            .replace('"', "'").replace('&', 'and').replace('<', '').replace('>', '').strip())
 
         header = (
             "---\n"
@@ -804,13 +854,14 @@ WORD COUNT CHECK: Count your words before finishing. If under 1800 words — exp
         with open(file_path, "w", encoding="utf-8") as f:
             f.write(header + schema_block + content)
 
+        article_url = f"{SITE_URL}/{pillar['permalink_base']}/{chosen_slug}/"
         print(f"  ✅ /{pillar['permalink_base']}/{chosen_slug}/")
         print(f"     {article_title[:70]}...")
-        return True
+        return True, article_url
 
     except Exception as e:
         print(f"  ❌ Failed: {e}")
-        return False
+        return False, None
 
 
 # ─── 10. Main ─────────────────────────────────────────────────────────────────
@@ -831,10 +882,10 @@ def generate_all_articles():
     print(f"  F&G      : {fear_greed}")
     print(f"  Trending : {', '.join(trends[:3])}")
 
-    # ── Duplicate prevention: skip pillars already generated today ────────────
-    results = []
+    results      = []
+    published_urls = []
+
     for i, pillar in enumerate(PILLARS):
-        # Check if today's file already exists for this pillar
         already_exists = False
         if os.path.exists(POSTS_DIR):
             pillar_today = [
@@ -852,8 +903,12 @@ def generate_all_articles():
         persona_pool = PILLAR_PERSONA_MAP.get(pillar['id'], [0,1,2,3,4,5])
         persona_idx  = persona_pool[now.weekday() % len(persona_pool)]
         persona      = PERSONAS[persona_idx]
-        success = generate_article(pillar, prices, trends, fear_greed, persona, i + 1)
+        success, article_url = generate_article(
+            pillar, prices, trends, fear_greed, persona, i + 1
+        )
         results.append((pillar['name'], success))
+        if success and article_url:
+            published_urls.append(article_url)
         if i < len(PILLARS) - 1:
             time.sleep(3)
 
@@ -862,6 +917,13 @@ def generate_all_articles():
     print("=" * 60)
     for name, success in results:
         print(f"  {'✅' if success else '❌'} {name}")
+
+    # ── Google Indexing API — submit new articles immediately ──────────────
+    if published_urls:
+        print(f"\n📡 Submitting {len(published_urls)} new URLs to Google Indexing API...")
+        submit_urls_to_google(published_urls)
+    else:
+        print("\n  No new articles to submit to Google.")
 
     cleanup_old_posts()
     print("\n  Done. Bot will run again tomorrow.")
