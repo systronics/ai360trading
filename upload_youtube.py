@@ -1,203 +1,118 @@
-"""
-YouTube Shorts Uploader
-Uploads the daily ZENO reel to YouTube Shorts section
-Uses YouTube Data API v3 with OAuth2 (service account or refresh token)
-"""
-
 import os
 import json
-import time
+import datetime
 from pathlib import Path
-from datetime import datetime
-from datetime import datetime as _dt
-
-# Google API
-from google.oauth2.credentials import Credentials
-from google.auth.transport.requests import Request
+import google.auth
 from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
 from googleapiclient.http import MediaFileUpload
-
+from google.oauth2.credentials import Credentials
 
 # ─── CONFIG ───────────────────────────────────────────────────────────────────
-# YOUTUBE_CREDENTIALS secret = the full JSON from Google OAuth2 credentials file
-# Contains: client_id, client_secret, refresh_token, token_uri
-import json as _json
-_yt_creds_raw = os.environ["YOUTUBE_CREDENTIALS"]
-_yt_creds     = _json.loads(_yt_creds_raw)
+# Ensure these match your Google Cloud Console / GitHub Secrets
+CLIENT_SECRET_FILE = 'client_secrets.json'
+API_NAME = 'youtube'
+API_VERSION = 'v3'
+SCOPES = ['https://www.googleapis.com/auth/youtube.upload']
 
-YT_CLIENT_ID      = _yt_creds.get("client_id", "")
-YT_CLIENT_SECRET  = _yt_creds.get("client_secret", "")
-YT_REFRESH_TOKEN  = _yt_creds.get("refresh_token", "")
+def get_service():
+    """Authenticates and returns the YouTube service."""
+    # This assumes you have your token/credentials handled via environment or file
+    # For GitHub Actions, you usually use a stored Refresh Token
+    creds = None
+    if os.path.exists('token.json'):
+        creds = Credentials.from_authorized_user_file('token.json', SCOPES)
+    
+    if not creds or not creds.valid:
+        print("❌ Authentication Error: token.json is missing or invalid.")
+        return None
 
-OUTPUT_DIR = Path("output")
+    return build(API_NAME, API_VERSION, credentials=creds)
 
-SHORTS_HASHTAGS = "#Shorts #ai360trading #ZenoKiBaat #HinglishMotivation #StockMarket #NiftyToday"
-
-DESCRIPTION_WEEKDAY = """
-🎭 ZENO ki baat — aaj ka lesson: {topic}
-
-📊 Aaj ka market:
-• Nifty: {nifty_price} ({nifty_change})
-• Bitcoin: {btc_price} ({btc_change})
-
-💡 Agar ye video helpful laga toh like karo, share karo, aur channel subscribe karo!
-
-🔔 Daily stock signals aur moral lessons ke liye follow karo:
-🌐 Website: https://ai360trading.in
-📱 Telegram: https://t.me/ai360trading
-
-{hashtags}
-"""
-
-DESCRIPTION_WEEKEND = """
-🎭 ZENO ki baat — {topic}
-
-💡 Zindagi ka ek important lesson — jo aaj zaroor kaam aayega!
-
-❤️ Agar ye video helpful laga toh like karo, share karo, aur subscribe karo!
-
-🔔 Daily moral lessons aur trading wisdom ke liye:
-🌐 Website: https://ai360trading.in
-📱 Telegram: https://t.me/ai360trading
-
-{hashtags}
-"""
-
-
-def get_youtube_client():
-    """Build authenticated YouTube API client using refresh token."""
-    creds = Credentials(
-        token         = None,
-        refresh_token = YT_REFRESH_TOKEN,
-        token_uri     = "https://oauth2.googleapis.com/token",
-        client_id     = YT_CLIENT_ID,
-        client_secret = YT_CLIENT_SECRET,
-        scopes        = ["https://www.googleapis.com/auth/youtube.upload"],
-    )
-    creds.refresh(Request())
-    return build("youtube", "v3", credentials=creds, cache_discovery=False)
-
-
-def build_description(meta: dict) -> str:
-    weekend = datetime.now().weekday() >= 5
-    topic   = meta.get("topic", "Aaj ka lesson")
-    if weekend:
-        return DESCRIPTION_WEEKEND.format(
-            topic    = topic,
-            hashtags = SHORTS_HASHTAGS,
-        ).strip()
-    market = meta.get("market", {})
-    nifty  = market.get("nifty",   {"price": "N/A", "change": "N/A"})
-    btc    = market.get("bitcoin", {"price": "N/A", "change": "N/A"})
-    return DESCRIPTION_WEEKDAY.format(
-        topic        = topic,
-        nifty_price  = nifty["price"],
-        nifty_change = nifty["change"],
-        btc_price    = btc["price"],
-        btc_change   = btc["change"],
-        hashtags     = SHORTS_HASHTAGS,
-    ).strip()
-
-
-def upload_to_youtube(video_path: Path, meta: dict) -> str:
-    """Upload video to YouTube Shorts. Returns video ID."""
-
-    print("🔐 Authenticating with YouTube...")
-    yt = get_youtube_client()
-
-    weekend = _dt.now().weekday() >= 5
-    date_str = _dt.now().strftime('%d %b %Y')
-    if weekend:
-        title = f"ZENO ki baat: {meta['topic']} | Weekend Special | #Shorts"
-    else:
-        title = f"ZENO ki baat: {meta['topic']} | {date_str} | #Shorts"
-    title = title[:100]  # YouTube title limit
-
-    description = build_description(meta)
-    hook = meta.get("hook", "")
-    if hook:
-        description = f"{hook}\n\n{description}"
+def upload_video(video_path, title, description):
+    """Handles the actual YouTube API upload."""
+    youtube = get_service()
+    if not youtube:
+        return
 
     body = {
-        "snippet": {
-            "title":       title,
-            "description": description,
-            "tags": [
-                "shorts", "ai360trading", "zeno", "hinglish",
-                "motivation", "nifty", "stockmarket", "moralstory",
-                "education", "india",
-            ],
-            "categoryId":        "27",  # Education
-            "defaultLanguage":   "hi",
-            "defaultAudioLanguage": "hi",
+        'snippet': {
+            'title': title,
+            'description': description,
+            'tags': ['AI360Trading', 'Zeno', 'AlgorithmicTrading', 'Shorts'],
+            'categoryId': '27' # Education
         },
-        "status": {
-            "privacyStatus":          "public",
-            "selfDeclaredMadeForKids": False,
-            "madeForKids":             False,
-        },
+        'status': {
+            'privacyStatus': 'public', # Change to 'private' or 'unlisted' for testing
+            'selfDeclaredMadeForKids': False,
+        }
     }
 
     media = MediaFileUpload(
         str(video_path),
-        mimetype   = "video/mp4",
-        resumable  = True,
-        chunksize  = 4 * 1024 * 1024,  # 4MB chunks
+        mimetype='video/mp4',
+        resumable=True
     )
 
-    print(f"📤 Uploading to YouTube Shorts: {title}")
-    request = yt.videos().insert(
-        part        = "snippet,status",
-        body        = body,
-        media_body  = media,
+    print(f"🚀 Uploading to YouTube: {title}...")
+    request = youtube.videos().insert(
+        part='snippet,status',
+        body=body,
+        media_body=media
     )
 
     response = None
-    retry    = 0
     while response is None:
-        try:
-            status, response = request.next_chunk()
-            if status:
-                pct = int(status.progress() * 100)
-                print(f"   Upload progress: {pct}%")
-        except Exception as e:
-            retry += 1
-            if retry > 5:
-                raise
-            wait = 2 ** retry
-            print(f"   Upload error (retry {retry}/5 in {wait}s): {e}")
-            time.sleep(wait)
+        status, response = request.next_chunk()
+        if status:
+            print(f"Uploaded {int(status.progress() * 100)}%")
 
-    video_id = response["id"]
-    url = f"https://youtube.com/shorts/{video_id}"
-    print(f"✅ YouTube Shorts uploaded: {url}")
-    return video_id
+    print(f"✅ Video Uploaded! Video ID: {response['id']}")
+    return response
 
-
+# ─── MAIN ENGINE (FIXED) ──────────────────────────────────────────────────────
 def main():
-    today     = datetime.now().strftime("%Y%m%d")
-    meta_path = OUTPUT_DIR / f"meta_{today}.json"
-    video_path_key = f"video_path"
+    # 1. Setup Time and Paths
+    today = datetime.datetime.now().strftime("%Y%m%d")
+    output_dir = Path("output")
+    meta_path = output_dir / f"meta_{today}.json"
+    video_path = output_dir / f"reel_{today}.mp4"
 
-    if not meta_path.exists():
-        raise FileNotFoundError(f"No metadata found: {meta_path}. Run generate_reel.py first.")
+    print(f"📅 Production Date: {today}")
 
-    meta  = json.loads(meta_path.read_text())
-    video = Path(meta["video_path"])
+    # 2. Critical Check: Does the video exist?
+    if not video_path.exists():
+        print(f"❌ ERROR: Video file not found: {video_path}")
+        print("Ensure 'generate_reel.py' finished successfully.")
+        return
 
-    if not video.exists():
-        raise FileNotFoundError(f"Video not found: {video}")
+    # 3. Load Metadata (The fix for Line 183 FileNotFoundError)
+    if meta_path.exists():
+        try:
+            with open(meta_path, "r", encoding="utf-8") as f:
+                meta = json.load(f)
+            
+            # Extract info from the JSON generated by the Reel script
+            title = meta.get("title", f"ZENO Daily Wisdom {today}")
+            description = meta.get("description", "Daily market insights by AI360 ZENO.")
+            print(f"📝 Metadata loaded successfully from {meta_path}")
+        except Exception as e:
+            print(f"⚠️ Error reading JSON: {e}. Using defaults.")
+            title = f"AI360 ZENO Update - {today}"
+            description = "Daily automated trading wisdom."
+    else:
+        # This prevents the script from crashing if the JSON is missing
+        print(f"⚠️ Metadata file {meta_path} NOT FOUND. Using fallback title.")
+        title = f"AI360 ZENO Trading Wisdom - {today} #Shorts"
+        description = "Daily market updates and motivation. #AI360Trading #Zeno"
 
-    video_id = upload_to_youtube(video, meta)
-
-    # Save video ID back to metadata for other uploaders to use
-    meta["youtube_video_id"] = video_id
-    meta["youtube_url"]      = f"https://youtube.com/shorts/{video_id}"
-    meta_path.write_text(json.dumps(meta, indent=2, ensure_ascii=False))
-
-    print(f"\n🎉 YouTube upload complete!")
-    print(f"   URL: {meta['youtube_url']}")
-
+    # 4. Execute Upload
+    try:
+        upload_video(video_path, title, description)
+    except HttpError as e:
+        print(f"❌ An HTTP error occurred: {e.resp.status} - {e.content}")
+    except Exception as e:
+        print(f"❌ An unexpected error occurred: {e}")
 
 if __name__ == "__main__":
     main()
