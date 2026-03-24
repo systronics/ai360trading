@@ -30,27 +30,34 @@ jobs:
             fonts-dejavu-core \
             imagemagick \
             libmagickwand-dev
-          sudo sed -i 's/<policy domain="path" rights="none" pattern="@\*"\/>/<policy domain="path" rights="read|write" pattern="@*"\/>/' /etc/ImageMagick-6/policy.xml || true
-          sudo sed -i 's/rights="none" pattern="PDF"/rights="read|write" pattern="PDF"/' /etc/ImageMagick-6/policy.xml || true
+          # Mandatory fix for MoviePy TextClip permissions
+          sudo sed -i 's/none/read,write/g' /etc/ImageMagick-6/policy.xml || true
 
       - name: Install Python dependencies
         run: pip install -r requirements.txt
 
-      - name: Generate ZENO reel
+      - name: Create Output Directory
+        run: mkdir -p output
+
+      - name: Step 1 - Generate ZENO reel
         env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
         run: |
           python generate_reel.py
-          echo "✅ Reel generation complete"
+          echo "✅ Reel and Metadata generation complete"
 
-      - name: Upload to YouTube Shorts
-        env:
-          YOUTUBE_CREDENTIALS: ${{ secrets.YOUTUBE_CREDENTIALS }}
+      - name: Step 2 - Prepare Credentials
+        run: |
+          # Recreating the token.json from your GitHub Secrets
+          echo '${{ secrets.YOUTUBE_TOKEN_JSON }}' > token.json
+          echo '${{ secrets.YOUTUBE_CLIENT_SECRET }}' > client_secrets.json
+
+      - name: Step 3 - Upload to YouTube Shorts
         run: |
           python upload_youtube.py
           echo "✅ YouTube upload complete"
 
-      - name: Post to Facebook
+      - name: Step 4 - Post to Facebook
         env:
           META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
           FACEBOOK_PAGE_ID:  ${{ secrets.FACEBOOK_PAGE_ID }}
@@ -59,7 +66,7 @@ jobs:
           python upload_facebook.py
           echo "✅ Facebook posting complete"
 
-      - name: Post to Instagram
+      - name: Step 5 - Post to Instagram
         env:
           META_ACCESS_TOKEN:    ${{ secrets.META_ACCESS_TOKEN }}
           INSTAGRAM_ACCOUNT_ID: ${{ secrets.INSTAGRAM_ACCOUNT_ID }}
@@ -69,9 +76,10 @@ jobs:
 
       - name: Upload video artifact
         uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: zeno-reel-${{ github.run_id }}
           path: |
             output/reel_*.mp4
-            output/instagram_caption.txt
+            output/meta_*.json
           retention-days: 7
