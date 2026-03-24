@@ -2,8 +2,8 @@ name: AI360 Daily ZENO Reel + Social Posting
 
 on:
   schedule:
-    - cron: "0 3 * * 1-5"     # 8:30 AM IST Mon-Fri (market days)
-    - cron: "30 5 * * 6,0"    # 11:00 AM IST Sat-Sun (weekend emotional)
+    - cron: "0 3 * * 1-5"     # 8:30 AM IST Mon-Fri
+    - cron: "30 5 * * 6,0"    # 11:00 AM IST Sat-Sun
   workflow_dispatch:
 
 jobs:
@@ -24,19 +24,14 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y -qq \
-            ffmpeg \
-            fonts-noto-color-emoji \
-            fonts-dejavu-core \
-            imagemagick \
-            libmagickwand-dev
-          # Mandatory fix for MoviePy TextClip permissions
+          sudo apt-get install -y -qq ffmpeg imagemagick
+          # Fix for MoviePy TextClip permissions
           sudo sed -i 's/none/read,write/g' /etc/ImageMagick-6/policy.xml || true
 
       - name: Install Python dependencies
         run: pip install -r requirements.txt
 
-      - name: Create Output Directory
+      - name: Prepare Workspace
         run: mkdir -p output
 
       - name: Step 1 - Generate ZENO reel
@@ -46,11 +41,11 @@ jobs:
           python generate_reel.py
           echo "✅ Reel and Metadata generation complete"
 
-      - name: Step 2 - Prepare Credentials
+      - name: Step 2 - Prepare YouTube Credentials
         run: |
-          # Recreating the token.json from your GitHub Secrets
-          echo '${{ secrets.YOUTUBE_TOKEN_JSON }}' > token.json
-          echo '${{ secrets.YOUTUBE_CLIENT_SECRET }}' > client_secrets.json
+          # Creating the required files from your GitHub Secrets
+          echo '${{ secrets.YOUTUBE_CREDENTIALS }}' > token.json
+          echo '${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}' > client_secrets.json
 
       - name: Step 3 - Upload to YouTube Shorts
         run: |
