@@ -26,53 +26,70 @@ def upload_video(video_path, title, description):
     youtube = get_service()
     if not youtube: return
 
+    # Category 27 is Education; perfect for Trading Wisdom
     body = {
         'snippet': {
-            'title': title,
+            'title': title[:100], # YouTube limit is 100 chars
             'description': description,
-            'tags': ['AI360Trading', 'Zeno', 'Shorts'],
-            'categoryId': '27' # Education
+            'tags': ['AI360Trading', 'ZenoKiBaat', 'StockMarketIndia', 'Shorts'],
+            'categoryId': '27' 
         },
-        'status': {'privacyStatus': 'public', 'selfDeclaredMadeForKids': False}
+        'status': {
+            'privacyStatus': 'public', 
+            'selfDeclaredMadeForKids': False # Essential for comments/reach
+        }
     }
 
     media = MediaFileUpload(str(video_path), mimetype='video/mp4', resumable=True)
-    print(f"🚀 Uploading: {title}")
+    print(f"🚀 Uploading to YouTube: {title}")
     
-    request = youtube.videos().insert(part='snippet,status', body=body, media_body=media)
-    response = None
-    while response is None:
-        status, response = request.next_chunk()
-        if status:
-            print(f"Uploaded {int(status.progress() * 100)}%")
-    
-    # --- CLICKABLE LINK LOGIC ---
-    video_id = response['id']
-    shorts_url = f"https://youtube.com/shorts/{video_id}"
-    
-    print(f"✅ Success! Video ID: {video_id}")
-    print(f"🔗 LIVE LINK: {shorts_url}") # This will be clickable in GitHub Logs
-    return shorts_url
+    try:
+        request = youtube.videos().insert(part='snippet,status', body=body, media_body=media)
+        response = None
+        while response is None:
+            status, response = request.next_chunk()
+            if status:
+                print(f"Uploaded {int(status.progress() * 100)}%")
+        
+        video_id = response['id']
+        shorts_url = f"https://youtube.com/shorts/{video_id}"
+        
+        print(f"✅ Success! Video ID: {video_id}")
+        print(f"🔗 LIVE LINK: {shorts_url}") 
+        return shorts_url
+    except Exception as e:
+        print(f"❌ Upload Failed: {e}")
+        return None
 
 # ─── MAIN ENGINE ─────────────────────────────────────────────────────────────
 def main():
     today = datetime.datetime.now().strftime("%Y%m%d")
     output_dir = Path("output")
+    
+    # Robust file detection
     meta_path = output_dir / f"meta_{today}.json"
     video_path = output_dir / f"reel_{today}.mp4"
 
+    # Fallback: if exact date file isn't found, grab the first .mp4 in output
     if not video_path.exists():
-        print(f"❌ Video not found: {video_path}")
-        return
+        video_files = list(output_dir.glob("*.mp4"))
+        if video_files:
+            video_path = video_files[0]
+            print(f"⚠️ Exact date match not found. Using: {video_path.name}")
+        else:
+            print(f"❌ No video found in {output_dir}")
+            return
 
+    # Load Metadata
     if meta_path.exists():
         with open(meta_path, "r", encoding="utf-8") as f:
             meta = json.load(f)
-        title = meta.get("title", f"ZENO Daily {today}")
-        description = meta.get("description", "Daily Market Wisdom")
+        title = meta.get("title", f"ZENO Ki Baat - {today}")
+        description = meta.get("description", "Daily Trading Wisdom by @ai360trading.in")
     else:
+        # Emergency Fallback description
         title = f"ZENO Ki Baat - {today} #Shorts"
-        description = "Automated trading wisdom by AI360."
+        description = "Expert trading insights for the Indian Market. \nVisit: ai360trading.in"
 
     upload_video(video_path, title, description)
 
