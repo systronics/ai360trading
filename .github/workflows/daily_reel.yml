@@ -2,8 +2,10 @@ name: AI360 Daily ZENO Reel + Social Posting
 
 on:
   schedule:
-    - cron: "0 3 * * 1-5"     # 8:30 AM IST Mon-Fri
-    - cron: "30 5 * * 6,0"    # 11:00 AM IST Sat-Sun
+    # Mon-Fri: 8:30 AM IST AND 6:30 PM IST
+    - cron: "0 3,13 * * 1-5"
+    # Sat-Sun: 11:00 AM IST
+    - cron: "30 5 * * 6,0"
   workflow_dispatch:
 
 jobs:
@@ -43,7 +45,6 @@ jobs:
 
       - name: Step 2 - Upload to YouTube Shorts
         env:
-          # This maps your Secret directly to the script's environment
           YOUTUBE_CREDENTIALS: ${{ secrets.YOUTUBE_CREDENTIALS }}
         run: |
           python upload_youtube.py
@@ -58,7 +59,7 @@ jobs:
           python upload_facebook.py
           echo "✅ Facebook posting complete"
 
-      - name: Step 4 - Post to Instagram
+      - name: Step 4 - Post to Instagram (Manual Caption Prep)
         env:
           META_ACCESS_TOKEN:    ${{ secrets.META_ACCESS_TOKEN }}
           INSTAGRAM_ACCOUNT_ID: ${{ secrets.INSTAGRAM_ACCOUNT_ID }}
