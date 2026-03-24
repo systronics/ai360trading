@@ -3,52 +3,81 @@ name: Daily YouTube Shorts — Trade Setup + Market Pulse
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 6 * * 1-5"    # 11:30 AM IST Mon-Fri (after analysis video done)
-    - cron: "0 8 * * 6,0"    # 1:30 PM IST Sat-Sun
+    # 1:30 PM IST (Mon-Fri) -> Peak post-lunch market interest
+    # 08:00 UTC = 13:30 IST
+    - cron: "0 8 * * 1-5"    
+    # 10:30 AM IST (Sat-Sun) -> Weekend strategy planning
+    # 05:00 UTC = 10:30 IST
+    - cron: "0 5 * * 6,0"   
 
 jobs:
   generate-shorts:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
+    
+    # Prevents multiple runs if the previous one is still processing
+    concurrency:
+      group: shorts-production
+      cancel-in-progress: true
 
     steps:
-      - name: Checkout
+      - name: Checkout Repository
         uses: actions/checkout@v4
-        with: { ref: master }
+        with:
+          ref: master
 
       - name: Setup Python 3.11
         uses: actions/setup-python@v5
-        with: { python-version: "3.11", cache: "pip" }
+        with:
+          python-version: "3.11"
+          cache: "pip"
 
-      - name: System dependencies
+      - name: Install System Dependencies
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends \
-            ffmpeg fonts-liberation fonts-dejavu fonts-freefont-ttf fonts-ubuntu
-          sudo sed -i 's/<policy domain="path" rights="none" pattern="@\*"\/>/<policy domain="path" rights="read|write" pattern="@*"\/>/' /etc/ImageMagick-6/policy.xml || true
+            ffmpeg \
+            imagemagick \
+            fonts-liberation \
+            fonts-dejavu \
+            fonts-freefont-ttf
+          
+          # CRITICAL: Fix ImageMagick security policy to allow MoviePy Text Rendering
+          sudo sed -i 's/rights="none" pattern="@\*"/rights="read|write" pattern="@*"/g' /etc/ImageMagick-6/policy.xml
+          
+      - name: Install Python Packages
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          # Ensure pytz is installed for the IST timing logic in the script
+          pip install pytz moviepy==1.0.3
 
-      - name: Python dependencies
-        run: pip install -r requirements.txt
-
-      - name: Write YouTube OAuth token
+      - name: Write YouTube OAuth Token
         env:
           YOUTUBE_CREDENTIALS: ${{ secrets.YOUTUBE_CREDENTIALS }}
         run: |
           echo "$YOUTUBE_CREDENTIALS" > token.json
-          echo "✅ token.json ready"
+          if [ ! -s token.json ]; then echo "❌ YOUTUBE_CREDENTIALS Secret is empty!"; exit 1; fi
+          echo "✅ token.json generated successfully"
 
-      - name: Generate and upload both shorts
+      - name: Run Shorts Generation & Upload
         env:
-          GROQ_API_KEY:      ${{ secrets.GROQ_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
-          FACEBOOK_PAGE_ID:  ${{ secrets.FACEBOOK_PAGE_ID }}
+          FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
           FACEBOOK_GROUP_ID: ${{ secrets.FACEBOOK_GROUP_ID }}
+          PYTHONUNBUFFERED: 1
         run: |
           python generate_shorts.py
-          echo "✅ Both shorts uploaded"
+          echo "✅ Production Run Complete"
 
-      - name: Cleanup
+      - name: Cleanup Sensitive Data
         if: always()
         run: |
           rm -f token.json
           rm -rf output/
+          echo "🧹 Workspace cleaned"
+
+      - name: Keepalive Workflow
+        uses: gautamkrishnar/keepalive-workflow@v1
+        if: always()
