@@ -49,7 +49,7 @@ def gbg(top, bot):
 
 ET = {
     "Options":              {"bg_top":(20,5,35),"bg_bot":(35,10,60),"accent":(180,100,255),"text":(248,240,255),"subtext":(195,165,235)},
-    "Technical Analysis":   {"bg_top":(5,20,35),"bg_bot":(8,35,65),"accent":(0,180,255),"text":(235,248,255),"subtext":(155,195,230)},
+    "Technical Analysis":    {"bg_top":(5,20,35),"bg_bot":(8,35,65),"accent":(0,180,255),"text":(235,248,255),"subtext":(155,195,230)},
     "Fundamental Analysis": {"bg_top":(5,30,15),"bg_bot":(8,55,25),"accent":(0,220,130),"text":(235,255,245),"subtext":(150,215,180)},
     "Trading Strategy":     {"bg_top":(30,20,5),"bg_bot":(55,35,8),"accent":(255,170,0),"text":(255,250,235),"subtext":(230,200,150)},
     "Psychology":           {"bg_top":(30,5,20),"bg_bot":(55,8,35),"accent":(255,80,150),"text":(255,238,248),"subtext":(230,165,200)},
@@ -211,28 +211,25 @@ Consult a SEBI-registered advisor (India) or regulated advisor in your country.
 
 def build_prompt(topic):
     slides_info="\n".join([f"Slide {i+1}: {s.get('heading','')} — Points: {'; '.join(s.get('points',[]))}"
-                           for i,s in enumerate(topic["slides"])])
-    return f"""You are a world-class financial educator watched in India, USA, UK, and Brazil.
-Style: clear, engaging, uses real examples with actual numbers.
+                            for i,s in enumerate(topic["slides"])])
+    # ADDED THE WORD 'JSON' EXPLICITLY TO COMPLY WITH GROQ RULES
+    return f"""You are a world-class financial educator. 
+Style: clear, engaging, uses real examples.
 
 TOPIC: {topic['title']}
 CATEGORY: {topic['category']} | LEVEL: {topic['level']}
-TARGET: {topic.get('target_audience','Global')}
 
 SLIDES:
 {slides_info}
 
 For each slide write:
 - "title": exact heading
-- "content": 6 sentences — simple enough for a 16-year-old,
-  real examples (Apple, Tesla, Bitcoin, Reliance, TCS, S&P 500, Nifty, Gold),
-  actual numbers to make examples concrete,
-  connect to multiple countries (India + USA + UK or Brazil),
-  end with one clear actionable takeaway
+- "content": 6 sentences with real numbers and global examples.
 - "sentiment": "neutral"
 
+CRITICAL: Return the output as a valid JSON object.
 Total: {len(topic['slides'])} slides.
-Respond ONLY: {{"slides":[...]}}"""
+Respond ONLY with JSON: {{"slides":[...]}}"""
 
 async def tts(text, path):
     voices=["en-IN-PrabhatNeural","en-IN-NeerjaNeural"]
@@ -270,9 +267,7 @@ def upload_video(video_path, topic, analysis_url, analysis_video_id):
         resp=req.execute(); vid_id=resp["id"]
         edu_url=f"https://youtube.com/watch?v={vid_id}"
         print(f"✅ Education video: {edu_url}")
-        # Save for workflow to use in Facebook sharing
         with open(f"{OUT}/education_video_id.txt","w") as f: f.write(vid_id)
-        # Now update analysis video description to link to education video
         if analysis_video_id:
             try:
                 vid_resp=yt.videos().list(part="snippet",id=analysis_video_id).execute()
@@ -283,7 +278,6 @@ def upload_video(video_path, topic, analysis_url, analysis_video_id):
                     print(f"✅ Analysis video updated with Part 2 link")
             except Exception as e:
                 print(f"  Could not update Part 1 description: {e}")
-        # Upload thumbnail
         thumb=f"{OUT}/thumbnail_education.png"
         if os.path.exists(thumb):
             yt.thumbnails().set(videoId=vid_id,
@@ -296,7 +290,6 @@ async def run():
     topic = get_todays_education_topic()
     print(f"\n📚 Topic: {topic['title']} ({topic['category']}, {topic['level']})")
 
-    # Get analysis video ID if it exists
     analysis_video_id = None
     analysis_url = "https://youtube.com/@ai360trading"
     try:
@@ -312,8 +305,12 @@ async def run():
     client = Groq(api_key=gkey)
 
     print("\n🤖 Generating education script...")
+    # UPDATED SYSTEM MESSAGE TO INCLUDE THE WORD 'JSON'
     resp = client.chat.completions.create(
-        messages=[{"role":"user","content":build_prompt(topic)}],
+        messages=[
+            {"role":"system", "content": "You are a helpful assistant that outputs financial education content in JSON format."},
+            {"role":"user","content":build_prompt(topic)}
+        ],
         model="llama-3.3-70b-versatile",
         response_format={"type":"json_object"},
         temperature=0.7, max_tokens=5000)
@@ -322,7 +319,6 @@ async def run():
 
     clips = []
 
-    # Intro
     ip,ap=f"{OUT}/intro_e.png",f"{OUT}/intro_e.mp3"
     make_intro_slide(topic, ip)
     intro_txt=(f"Welcome to AI360Trading education. "
@@ -334,7 +330,6 @@ async def run():
     ia=AudioFileClip(ap)
     clips.append(ImageClip(ip).set_duration(max(ia.duration+2,16)).set_audio(ia))
 
-    # Education slides
     print("\n🎬 Rendering slides...")
     for i,s in enumerate(slides):
         ip,ap=f"{OUT}/e{i:02d}.png",f"{OUT}/e{i:02d}.mp3"
@@ -344,7 +339,6 @@ async def run():
         clips.append(ImageClip(ip).set_duration(dur).set_audio(au))
         print(f"  ✓ [{i+1:02d}/{len(slides)}] {s.get('title','')[:40]:<40} {dur:.0f}s")
 
-    # Outro
     op,oap=f"{OUT}/outro_e.png",f"{OUT}/outro_e.mp3"
     make_outro_slide(topic, analysis_url, op)
     outro_txt=(f"That completes today's education on {topic['title']}. "
@@ -355,7 +349,6 @@ async def run():
     oa=AudioFileClip(oap)
     clips.append(ImageClip(op).set_duration(max(oa.duration+2,16)).set_audio(oa))
 
-    # Render
     final=f"{OUT}/education_video.mp4"
     total_mins=sum(c.duration for c in clips)/60
     print(f"\n🎥 Rendering {len(clips)} clips — {total_mins:.1f} minutes...")
