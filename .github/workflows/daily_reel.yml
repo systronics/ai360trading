@@ -25,7 +25,7 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq ffmpeg imagemagick
-          # Fix for MoviePy TextClip permissions
+          # Mandatory fix for MoviePy TextClip permissions
           sudo sed -i 's/none/read,write/g' /etc/ImageMagick-6/policy.xml || true
 
       - name: Install Python dependencies
@@ -41,18 +41,15 @@ jobs:
           python generate_reel.py
           echo "✅ Reel and Metadata generation complete"
 
-      - name: Step 2 - Prepare YouTube Credentials
-        run: |
-          # Creating the required files from your GitHub Secrets
-          echo '${{ secrets.YOUTUBE_CREDENTIALS }}' > token.json
-          echo '${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}' > client_secrets.json
-
-      - name: Step 3 - Upload to YouTube Shorts
+      - name: Step 2 - Upload to YouTube Shorts
+        env:
+          # This maps your Secret directly to the script's environment
+          YOUTUBE_CREDENTIALS: ${{ secrets.YOUTUBE_CREDENTIALS }}
         run: |
           python upload_youtube.py
           echo "✅ YouTube upload complete"
 
-      - name: Step 4 - Post to Facebook
+      - name: Step 3 - Post to Facebook
         env:
           META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
           FACEBOOK_PAGE_ID:  ${{ secrets.FACEBOOK_PAGE_ID }}
@@ -61,7 +58,7 @@ jobs:
           python upload_facebook.py
           echo "✅ Facebook posting complete"
 
-      - name: Step 5 - Post to Instagram
+      - name: Step 4 - Post to Instagram
         env:
           META_ACCESS_TOKEN:    ${{ secrets.META_ACCESS_TOKEN }}
           INSTAGRAM_ACCOUNT_ID: ${{ secrets.INSTAGRAM_ACCOUNT_ID }}
