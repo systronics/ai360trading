@@ -1,68 +1,89 @@
 import os
 import asyncio
-import pandas as pd
-from moviepy.editor import *
+from pathlib import Path
+from PIL import Image, ImageDraw, ImageFont, ImageFilter
 import edge_tts
+from moviepy.editor import ImageClip, AudioFileClip, CompositeAudioClip, TextClip
 
-# --- PATHS ---
-IMAGE_DIR = "public/image"
-MUSIC_DIR = "public/music"
-OUTPUT_DIR = "output"
+# --- PILLOW/MOVIEPY COMPATIBILITY ---
+import PIL.Image
+if not hasattr(PIL.Image, 'ANTIALIAS'):
+    PIL.Image.ANTIALIAS = PIL.Image.LANCZOS
+
+# --- CONFIG ---
+OUT = Path("output")
+IMAGE_DIR = Path("public/image")
+MUSIC_DIR = Path("public/music")
+SW, SH = 1080, 1920
+os.makedirs(OUT, exist_ok=True)
+
+# --- DISNEY 3D EFFECT ---
+def apply_3d_effect(base_img, emotion="thinking"):
+    zeno_path = IMAGE_DIR / f"zeno_{emotion}.png"
+    if not zeno_path.exists():
+        return base_img
+    
+    zeno = Image.open(str(zeno_path)).convert("RGBA")
+    target_w = int(SW * 0.85)
+    w_ratio = target_w / float(zeno.size[0])
+    target_h = int(float(zeno.size[1]) * float(w_ratio))
+    zeno = zeno.resize((target_w, target_h), Image.LANCZOS)
+
+    shadow_layer = Image.new("RGBA", (SW, SH), (0, 0, 0, 0))
+    zeno_mask = zeno.split()[3]
+    shadow_pos = ((SW - zeno.width)//2 + 15, SH - zeno.height - 180 + 15)
+    shadow_img = Image.new("RGBA", zeno.size, (0, 0, 0, 110))
+    shadow_layer.paste(shadow_img, shadow_pos, zeno_mask)
+    shadow_layer = shadow_layer.filter(ImageFilter.GaussianBlur(radius=15))
+
+    temp_bg = base_img.convert("RGBA")
+    combined = Image.alpha_composite(temp_bg, shadow_layer)
+    zeno_pos = ((SW - zeno.width)//2, SH - zeno.height - 200)
+    combined.paste(zeno, zeno_pos, zeno)
+    return combined.convert("RGB")
 
 async def generate_content():
-    if not os.path.exists(OUTPUT_DIR):
-        os.makedirs(OUTPUT_DIR)
-
-    # Handshake with main video data
-    context_path = os.path.join(OUTPUT_DIR, "analysis_video_id.txt")
-    main_id = "LIVE"
-    if os.path.exists(context_path):
-        with open(context_path, 'r') as f:
-            main_id = f.read().strip()
-
-    # 1. THE ZENO REEL (Storytelling)
-    # Pronunciation: "ड र" (Space forces short 'a' sound)
-    hindi_display = "मार्केट नहीं आपका डर है। पेशेंस रखिए।"
-    hindi_audio = "दोस्तों ट्रेडिंग में सबसे बड़ा दुश्मन मार्केट नहीं आपका ड र है। पेशेंस रखिए।"
+    print("🎬 Starting Master Generation...")
     
-    # Generate Audio
-    audio_path = os.path.join(OUTPUT_DIR, "zeno_voice.mp3")
-    communicate = edge_tts.Communicate(hindi_audio, "hi-IN-SwaraNeural", rate="+5%")
-    await communicate.save(audio_path)
-    audio_clip = AudioFileClip(audio_path)
-
-    # Build Visuals
-    bg = ColorClip(size=(1080, 1920), color=(5, 15, 35)).set_duration(audio_clip.duration)
+    # 1. TEXT & AUDIO (Fixing "Dar" pronunciation)
+    display_text = "मार्केट नहीं आपका डर है। पेशेंस रखिए।"
+    audio_script = "दोस्तों ट्रेडिंग में सबसे बड़ा दुश्मन मार्केट नहीं आपका ड र है। पेशेंस रखिए।"
     
-    # Use your specific file from public/image/
-    zeno_file = os.path.join(IMAGE_DIR, "zeno_fear.png")
-    if os.path.exists(zeno_file):
-        zeno_char = ImageClip(zeno_file).set_duration(audio_clip.duration).resize(width=900).set_position(('center', 700))
-    else:
-        zeno_char = ColorClip(size=(1,1), color=(0,0,0)).set_duration(0)
+    audio_path = OUT / "voice.mp3"
+    await edge_tts.Communicate(audio_script, "hi-IN-SwaraNeural").save(str(audio_path))
+    audio_clip = AudioFileClip(str(audio_path))
 
-    # Captions (Positioned low to avoid blocking Zeno)
-    txt = TextClip(hindi_display, fontsize=55, color='white', bg_color='black', method='caption', size=(900, None), font='Arial')
-    txt = txt.set_position(('center', 1400)).set_duration(audio_clip.duration)
+    # 2. FRAME BUILDER
+    bg = Image.new("RGB", (SW, SH))
+    draw = ImageDraw.Draw(bg)
+    # Gradient
+    for y in range(SH):
+        r = int(5 + (15 - 5) * (y / SH))
+        g = int(10 + (30 - 10) * (y / SH))
+        b = int(25 + (70 - 25) * (y / SH))
+        draw.line([(0, y), (SW, y)], fill=(r, g, b))
+    
+    final_frame_img = apply_3d_effect(bg, emotion="fear")
+    frame_path = OUT / "final_frame.png"
+    final_frame_img.save(frame_path)
 
-    # Final Reel
-    reel = CompositeVideoClip([bg, zeno_char, txt]).set_audio(audio_clip)
-    reel_output = os.path.join(OUTPUT_DIR, "zeno_reel.mp4")
-    reel.write_videofile(reel_output, fps=30, codec="libx264", threads=4, logger=None)
+    # 3. VIDEO ASSEMBLY (Fixing the Font Error)
+    # Using 'DejaVu-Sans' because 'Arial' does not exist on Ubuntu
+    try:
+        txt = TextClip(display_text, fontsize=60, color='white', bg_color='black', 
+                       method='caption', size=(900, None), font='DejaVu-Sans')
+    except:
+        txt = TextClip(display_text, fontsize=60, color='white', bg_color='black', 
+                       method='caption', size=(900, None))
 
-    # 2. THE MARKET SHORT (Data Crop)
-    short_bg = ColorClip(size=(1080, 1920), color=(0, 0, 0)).set_duration(5)
-    short_txt = TextClip(f"TRADING LEVELS\n{main_id}", fontsize=80, color='gold', font='Arial')
-    short_v = CompositeVideoClip([short_bg, short_txt.set_position('center')]).set_duration(5)
-    short_output = os.path.join(OUTPUT_DIR, "market_short.mp4")
-    short_v.write_videofile(short_output, fps=30, codec="libx264", threads=4, logger=None)
+    video = ImageClip(str(frame_path)).set_duration(audio_clip.duration + 0.5)
+    txt_clip = txt.set_position(('center', 1400)).set_duration(audio_clip.duration)
+    
+    final_video = CompositeVideoClip([video, txt_clip]).set_audio(audio_clip)
+    final_video.write_videofile(str(OUT / "zeno_reel.mp4"), fps=30, codec="libx264", logger=None)
 
-    # --- LOGS FOR YOUR CHANNEL ---
-    print("\n" + "="*50)
-    print(f"✅ REEL: {reel_output}")
-    print(f"TITLE: ZENO Ki Baat | #TradingPsychology")
-    print(f"DESC: {hindi_display}\n\nJoin for Daily Alerts:\n🔗 Telegram: t.me/ai360trading\n🌐 Web: https://ai360trading.in")
-    print("="*50 + "\n")
+    print(f"\n✅ SUCCESS\nTelegram: t.me/ai360trading\nWeb: ai360trading.in\n")
 
 if __name__ == "__main__":
+    from moviepy.video.VideoClip import CompositeVideoClip
     asyncio.run(generate_content())
