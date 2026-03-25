@@ -1,4 +1,4 @@
-name: Daily YouTube Shorts — Trade Setup + Market Pulse
+name: "Daily YouTube Shorts — Trade Setup + Market Pulse"
 
 on:
   workflow_dispatch:
@@ -9,6 +9,10 @@ on:
 jobs:
   generate-shorts:
     runs-on: ubuntu-latest
+    # CRITICAL: Granting explicit write access to unblock repository access
+    permissions:
+      contents: write
+      actions: write
     timeout-minutes: 45
     concurrency:
       group: shorts-production
@@ -17,8 +21,7 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-        with:
-          ref: master
+        # Removed 'ref: master' to allow auto-detection and prevent 403 errors
 
       - name: Setup Python 3.11
         uses: actions/setup-python@v5
