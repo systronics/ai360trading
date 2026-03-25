@@ -1,14 +1,13 @@
 name: Daily YouTube Shorts — Trade Setup + Market Pulse
 
 on:
-  workflow_dispatch:
   schedule:
-    # 1:30 PM IST (Mon-Fri) -> Peak post-lunch market interest
-    # 08:00 UTC = 13:30 IST
-    - cron: "0 8 * * 1-5"    
-    # 10:30 AM IST (Sat-Sun) -> Weekend strategy planning
-    # 05:00 UTC = 10:30 IST
-    - cron: "0 5 * * 6,0"   
+    # 11:30 UTC 
+    # (05:00 PM IST | 07:30 PM China | 11:30 AM UK | 08:30 AM Brazil | 06:30 AM US)
+    - cron: "30 11 * * 1-5"
+    
+    # Weekend: 07:00 UTC
+    - cron: "0 7 * * 6,0"  
 
 jobs:
   generate-shorts:
