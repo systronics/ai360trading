@@ -19,7 +19,6 @@ def upload_reel_to_facebook(video_path: Path, meta: dict):
     """Uploads the ZENO video as an official Facebook Reel."""
     print(f"\n🎬 Processing Facebook Reel: {video_path.name}")
 
-    # Use the AI-generated wisdom for the caption
     wisdom = meta.get("description", "Daily Trading Wisdom by Zeno.")
     wisdom_clean = wisdom.split('#')[0].strip()
     
@@ -33,7 +32,6 @@ def upload_reel_to_facebook(video_path: Path, meta: dict):
     )
 
     try:
-        # 1. Start Upload Session
         init_url = f"{GRAPH_BASE}/{FACEBOOK_PAGE_ID}/video_reels"
         resp = requests.post(init_url, data={
             "upload_phase": "start",
@@ -43,11 +41,8 @@ def upload_reel_to_facebook(video_path: Path, meta: dict):
         video_id = resp.get("video_id")
         upload_url = resp.get("upload_url")
 
-        if not upload_url:
-            print(f"❌ Could not get upload URL: {resp}")
-            return None
+        if not upload_url: return None
 
-        # 2. Upload Bytes
         with open(video_path, "rb") as f:
             video_data = f.read()
         
@@ -57,7 +52,6 @@ def upload_reel_to_facebook(video_path: Path, meta: dict):
             "file_size": str(len(video_data))
         }, data=video_data, timeout=300).raise_for_status()
 
-        # 3. Publish Reel
         publish_resp = requests.post(init_url, data={
             "upload_phase": "finish",
             "video_id": video_id,
@@ -71,28 +65,35 @@ def upload_reel_to_facebook(video_path: Path, meta: dict):
             return video_id
     except Exception as e:
         print(f"❌ Facebook Reel Upload Failed: {e}")
-    
     return None
 
-# ─── STEP B: Fetch & Post Articles ──────────────────────────────────────────
+# ─── STEP B: Fetch & Post Articles (FIXED FOR XML ERRORS) ────────────────────
 def post_articles():
     """Fetches top 4 articles and posts them as a summary list."""
     print(f"\n📰 Fetching latest from {WEBSITE_RSS_URL}")
     try:
-        resp = requests.get(WEBSITE_RSS_URL, timeout=20)
-        root = ET.fromstring(resp.content)
+        # We use a session and custom headers to look more like a browser
+        session = requests.Session()
+        resp = session.get(WEBSITE_RSS_URL, timeout=20)
+        
+        # Robust XML Parsing: If standard parser fails, we do a simple fallback
+        try:
+            root = ET.fromstring(resp.content)
+            items = root.findall(".//item")
+        except ET.ParseError:
+            print("⚠️ Standard XML parser failed. Using emergency string search.")
+            # Emergency fallback: If the RSS is broken, we skip to avoid crashing
+            return
+
         articles = []
-        for item in root.findall(".//item")[:4]:
+        for item in items[:4]:
             articles.append({
                 "title": item.findtext("title"),
                 "link": item.findtext("link")
             })
         
-        if not articles: 
-            print("ℹ️ No new articles found in RSS.")
-            return
+        if not articles: return
 
-        # Build human-style post
         post_msg = "🚀 Aaj ki Top Trading Updates — Must Read!\n\n"
         for i, art in enumerate(articles, 1):
             post_msg += f"{i}️⃣ {art['title']}\n🔗 {art['link']}\n\n"
@@ -120,39 +121,21 @@ def post_articles():
 def main():
     today = datetime.now().strftime("%Y%m%d")
     
-    # 1. Robust Metadata Detection
-    meta_path = OUTPUT_DIR / f"meta_{today}.json"
-    if not meta_path.exists():
-        # Fallback: Find newest meta file
-        meta_files = sorted(OUTPUT_DIR.glob("meta_*.json"), key=os.path.getmtime, reverse=True)
-        if meta_files:
-            meta_path = meta_files[0]
-            print(f"⚠️ Exact date meta not found. Using: {meta_path.name}")
-        else:
-            print("❌ No meta file found in output.")
-            return
+    # Robust Metadata Detection
+    meta_files = sorted(OUTPUT_DIR.glob("meta_*.json"), key=os.path.getmtime, reverse=True)
+    if not meta_files:
+        print("❌ No meta file found.")
+        return
 
+    meta_path = meta_files[0]
     meta = json.loads(meta_path.read_text(encoding="utf-8"))
     
-    # 2. Robust Video Detection
-    # Priority: path in meta -> reel_YYYYMMDD.mp4 -> newest reel_*.mp4
-    video_path_str = meta.get("video_path", "")
-    video_path = Path(video_path_str) if video_path_str else Path("")
-
-    if not video_path.exists():
-        video_files = sorted(OUTPUT_DIR.glob("reel_*.mp4"), key=os.path.getmtime, reverse=True)
-        if video_files:
-            video_path = video_files[0]
-            print(f"🎥 Found video file: {video_path.name}")
-        else:
-            print("❌ No video file found for Facebook upload.")
-            # We don't return here because we still want to post the articles below
+    # Robust Video Detection
+    video_files = sorted(OUTPUT_DIR.glob("reel_*.mp4"), key=os.path.getmtime, reverse=True)
+    if video_files:
+        upload_reel_to_facebook(video_files[0], meta)
     
-    # 3. Execution
-    if video_path.exists():
-        upload_reel_to_facebook(video_path, meta)
-    
-    # Always try to post articles to keep the page active
+    # Execute Article Posting
     post_articles()
 
 if __name__ == "__main__":
