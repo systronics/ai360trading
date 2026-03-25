@@ -16,6 +16,7 @@ def get_live_market_snapshot():
     """Fetches high-accuracy live data to share with Shorts/Reels."""
     print("📊 Fetching Market Snapshot for AI360TRADING...")
     
+    # Global & Local Tickers for Worldwide + Indian Audience
     tickers = {
         "nifty": "^NSEI",
         "btc": "BTC-USD",
@@ -26,9 +27,10 @@ def get_live_market_snapshot():
     snapshot = {}
     for name, sym in tickers.items():
         try:
-            # interval="1m" forces GitHub to pull NEW data, not cached data
+            # interval="1m" forces a fresh pull from Yahoo Finance servers
             df = yf.download(sym, period="1d", interval="1m", progress=False)
             if df.empty:
+                # Fallback if market is closed or 1m data is unavailable
                 df = yf.download(sym, period="5d", interval="1d", progress=False)
             
             current_price = float(df["Close"].iloc[-1])
@@ -52,7 +54,8 @@ async def run_analysis():
     # 1. Get Fresh Data
     market_data = get_live_market_snapshot()
     
-    # 2. Save for SHORTS (This stops the 'Old Data' bug)
+    # 2. Save Snapshot for SHORTS & REELS (Stops the 'Old Data' bug)
+    # This file acts as the 'Source of Truth' for all other scripts
     today_str = now_ist.strftime("%Y%m%d")
     data_file = OUT / f"market_snapshot_{today_str}.json"
     
@@ -63,26 +66,32 @@ async def run_analysis():
     # 3. Generate Script for Main Video via Groq
     client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
     
-    # Custom Prompt for your "Worldwide/Beginner" Brand
+    # Prompt optimized for Global Beginners (Zeno's Audience)
     prompt = f"""
-    Write a professional 2-minute market analysis script.
-    Data: Nifty is at {market_data['nifty']['price']} ({market_data['nifty']['change']}).
-    Focus on: Global trends and simple logic for beginners.
-    Tone: Expert yet encouraging.
+    Write a professional 2-minute market analysis script for YouTube.
+    Market Data: Nifty is at {market_data['nifty']['price']} ({market_data['nifty']['change']}).
+    BTC is at {market_data['btc']['price']}.
+    Target: Worldwide Beginners.
+    Focus: Logical explanation of price action and emotional control.
+    Tone: Calm, Expert, and Encouraging.
     """
     
-    chat_completion = client.chat.completions.create(
-        messages=[{"role": "user", "content": prompt}],
-        model="llama3-8b-8192",
-    )
-    
-    main_script = chat_completion.choices[0].message.content
-    
-    # 4. Save Metadata for the Workflow 'Handshake'
+    try:
+        chat_completion = client.chat.completions.create(
+            messages=[{"role": "user", "content": prompt}],
+            model="llama3-8b-8192",
+        )
+        main_script = chat_completion.choices[0].message.content
+    except Exception as e:
+        print(f"❌ Groq Script Error: {e}")
+        main_script = "Market Analysis: Nifty is showing movement. Stay disciplined."
+
+    # 4. Create Meta JSON for YouTube Upload & FaceBook Share
     meta = {
-        "title": f"Market Analysis {now_ist.strftime('%d %b %Y')}",
+        "title": f"Daily Global Market Analysis — {now_ist.strftime('%d %b %Y')}",
+        "description": f"Live Market Update: Nifty {market_data['nifty']['change']}. Join Telegram: https://t.me/ai360trading",
         "script": main_script,
-        "video_url": "PENDING_UPLOAD", # Updated after YouTube upload step
+        "video_url": "", # Will be filled by the upload step in the workflow
         "market_data": market_data
     }
     
@@ -90,7 +99,7 @@ async def run_analysis():
     with open(meta_path, "w") as f:
         json.dump(meta, f, indent=4)
         
-    print("✅ Analysis Metadata created for YouTube & Shorts.")
+    print(f"✅ Analysis Metadata created: {meta_path}")
 
 if __name__ == "__main__":
     asyncio.run(run_analysis())
