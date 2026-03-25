@@ -1,10 +1,11 @@
 name: Daily Global Markets Video — AI360Trading
 
 on:
-  workflow_dispatch:
   schedule:
-    - cron: "30 0 * * 1-5"   # 6:00 AM IST Mon-Fri
-    - cron: "30 3 * * 6,0"   # 9:00 AM IST Sat-Sun
+    # 02:00 UTC = 07:30 AM IST (India) | 10:00 AM CST (China) | 11:00 PM EST (US)
+    - cron: "0 2 * * 1-5"
+    # Weekend: 04:00 UTC = 09:30 AM IST
+    - cron: "0 4 * * 6,0"
 
 jobs:
   generate-video:
