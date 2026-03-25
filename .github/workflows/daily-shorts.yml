@@ -1,17 +1,18 @@
 name: Generate Daily Shorts (Zeno-Enabled)
 
 on:
-  workflow_run:
-    workflows: ["Daily Market Analysis"] # Triggers after Part 1 is done
-    types:
-      completed:
-  workflow_dispatch: # Allows you to run it manually for testing
+  schedule:
+    # Runs at 04:00 UTC (9:30 AM IST) every day to match market open
+    - cron: '0 4 * * *'
+  workflow_dispatch:
+    # Allows you to run it manually from the Actions tab
 
 jobs:
-  build-shorts:
+  build-and-upload:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
-    
+    permissions:
+      contents: write # Needed if you commit logs or assets back to the repo
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -22,32 +23,41 @@ jobs:
           python-version: '3.10'
           cache: 'pip'
 
-      - name: Install Dependencies
+      - name: Install System Dependencies
         run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg fonts-dejavu-core fonts-liberation
+
+      - name: Install Python Requirements
+        run: |
+          pip install --upgrade pip
           pip install groq edge-tts Pillow moviepy google-api-python-client google-auth-oauthlib google-auth-httplib2
 
-      - name: Setup Image Directory
-        run: mkdir -p public/image # Ensures the path for Zeno exists
+      - name: Prepare Directories
+        run: |
+          mkdir -p output
+          mkdir -p public/image
 
-      - name: Generate Market Analysis Short
+      - name: Run Market Analysis Short
         env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-          VIDEO_TYPE: SHORT  # CRITICAL: This triggers Zeno and Vertical Layout
+          VIDEO_TYPE: SHORT
         run: python generate_analysis.py
 
-      - name: Generate Education Short
+      - name: Run Education Short
         env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-          VIDEO_TYPE: SHORT  # CRITICAL: This triggers Zeno and Vertical Layout
+          VIDEO_TYPE: SHORT
         run: python generate_education.py
 
-      - name: Upload Shorts to YouTube
-        # This assumes your upload logic is inside the python scripts
-        # If you have a separate upload step, ensure it points to the 'output' folder
-        run: echo "Shorts generated and uploaded successfully."
-
-      - name: Archive Production Assets
+      - name: Upload Artifacts (Debug)
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: daily-shorts-output
+          name: daily-shorts-videos
           path: output/
+
+      # This section assumes your Python script handles the YouTube Upload
+      # If you use a separate step for uploading, add it here.
+      - name: Finalize
+        run: echo "Shorts generation process completed."
