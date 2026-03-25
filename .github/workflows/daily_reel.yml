@@ -2,10 +2,18 @@ name: AI360 Daily ZENO Reel + Social Posting
 
 on:
   schedule:
-    # Mon-Fri: 8:30 AM IST AND 6:30 PM IST
-    - cron: "0 3,13 * * 1-5"
-    # Sat-Sun: 11:00 AM IST
-    - cron: "30 5 * * 6,0"
+    # Slot 1: 06:30 UTC 
+    # (12:00 PM IST | 02:30 PM China | 06:30 AM UK)
+    - cron: "30 6 * * 1-5"
+    
+    # Slot 2: 15:30 UTC 
+    # (09:00 PM IST | 03:30 PM UK | 10:30 AM US EST | 12:30 PM Brazil)
+    # This hits the US/Brazil lunch break and India evening peak.
+    - cron: "30 15 * * 1-5"
+    
+    # Weekend: 13:00 UTC (Global afternoon)
+    - cron: "0 13 * * 6,0"
+    
   workflow_dispatch:
 
 jobs:
