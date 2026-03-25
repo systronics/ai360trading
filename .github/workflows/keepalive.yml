@@ -1,10 +1,8 @@
 name: KeepAlive
-# Prevents GitHub from disabling cron on inactive repos
-# Runs at midnight IST (18:30 UTC previous day) so repo is active before market opens
 
 on:
   schedule:
-    - cron: '30 18 * * 0-4'  # 11:59 PM IST Sun-Thu (18:30 UTC) = before each trading day
+    - cron: '30 18 * * 0-4'  # 11:59 PM IST Sun-Thu (Before market opens)
   workflow_dispatch:
 
 jobs:
@@ -12,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      actions: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
