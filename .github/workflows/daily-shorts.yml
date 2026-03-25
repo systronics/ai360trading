@@ -1,20 +1,15 @@
 name: Daily YouTube Shorts — Trade Setup + Market Pulse
 
 on:
+  workflow_dispatch:
   schedule:
-    # 11:30 UTC 
-    # (05:00 PM IST | 07:30 PM China | 11:30 AM UK | 08:30 AM Brazil | 06:30 AM US)
-    - cron: "30 11 * * 1-5"
-    
-    # Weekend: 07:00 UTC
-    - cron: "0 7 * * 6,0"  
+    - cron: "30 11 * * 1-5"  # 5:00 PM IST Mon-Fri
+    - cron: "0 5 * * 6,0"    # 10:30 AM IST Sat-Sun
 
 jobs:
   generate-shorts:
     runs-on: ubuntu-latest
     timeout-minutes: 45
-    
-    # Prevents multiple runs if the previous one is still processing
     concurrency:
       group: shorts-production
       cancel-in-progress: true
@@ -35,20 +30,13 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends \
-            ffmpeg \
-            imagemagick \
-            fonts-liberation \
-            fonts-dejavu \
-            fonts-freefont-ttf
-          
-          # CRITICAL: Fix ImageMagick security policy to allow MoviePy Text Rendering
+            ffmpeg imagemagick fonts-liberation fonts-dejavu fonts-freefont-ttf
           sudo sed -i 's/rights="none" pattern="@\*"/rights="read|write" pattern="@*"/g' /etc/ImageMagick-6/policy.xml
           
       - name: Install Python Packages
         run: |
           pip install --upgrade pip
           pip install -r requirements.txt
-          # Ensure pytz is installed for the IST timing logic in the script
           pip install pytz moviepy==1.0.3
 
       - name: Write YouTube OAuth Token
@@ -56,8 +44,7 @@ jobs:
           YOUTUBE_CREDENTIALS: ${{ secrets.YOUTUBE_CREDENTIALS }}
         run: |
           echo "$YOUTUBE_CREDENTIALS" > token.json
-          if [ ! -s token.json ]; then echo "❌ YOUTUBE_CREDENTIALS Secret is empty!"; exit 1; fi
-          echo "✅ token.json generated successfully"
+          echo "✅ token.json generated"
 
       - name: Run Shorts Generation & Upload
         env:
@@ -66,16 +53,13 @@ jobs:
           FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
           FACEBOOK_GROUP_ID: ${{ secrets.FACEBOOK_GROUP_ID }}
           PYTHONUNBUFFERED: 1
-        run: |
-          python generate_shorts.py
-          echo "✅ Production Run Complete"
+        run: python generate_shorts.py
 
       - name: Cleanup Sensitive Data
         if: always()
         run: |
           rm -f token.json
           rm -rf output/
-          echo "🧹 Workspace cleaned"
 
       - name: Keepalive Workflow
         uses: gautamkrishnar/keepalive-workflow@v1
