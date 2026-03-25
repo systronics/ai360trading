@@ -19,9 +19,8 @@ IG_HASHTAGS = (
 
 def build_caption(meta: dict) -> str:
     """Creates a human-style caption using the AI-generated wisdom."""
-    # Pulling the actual wisdom sentence we generated in Step 1
     wisdom = meta.get("description", "Aaj ka special trading lesson.")
-    # Cleaning description if it has existing hashtags to avoid double-posting
+    # Cleaning description if it has existing hashtags
     wisdom_clean = wisdom.split('#')[0].strip()
     
     today = datetime.now().strftime("%d %b %Y")
@@ -38,7 +37,7 @@ def build_caption(meta: dict) -> str:
     return caption
 
 def save_caption(caption: str):
-    """Saves the caption for manual posting if API fails."""
+    """Saves the caption for manual posting if API fails or URL is missing."""
     caption_path = OUTPUT_DIR / "instagram_caption.txt"
     caption_path.write_text(caption, encoding="utf-8")
     print(f"✅ Caption saved for manual use: {caption_path}")
@@ -46,6 +45,7 @@ def save_caption(caption: str):
 def upload_to_instagram(video_url: str, caption: str) -> bool:
     """Attempts auto-upload via Meta Graph API."""
     if not INSTAGRAM_ACCOUNT_ID or not META_ACCESS_TOKEN or not video_url:
+        print("❌ Missing credentials or Public Video URL for Instagram API.")
         return False
 
     print("\n📱 Attempting Instagram API upload...")
@@ -63,15 +63,15 @@ def upload_to_instagram(video_url: str, caption: str) -> bool:
         container_id = resp.json()["id"]
 
         # Step 2: Wait for processing (Instagram needs time to process HD video)
-        for i in range(15):
-            time.sleep(20) # Increased wait time for HD video
+        for i in range(20): # Increased retry count
+            time.sleep(30) # 30s intervals
             status_resp = requests.get(
                 f"{GRAPH_BASE}/{container_id}",
                 params={"fields": "status_code", "access_token": META_ACCESS_TOKEN},
                 timeout=15
             ).json()
             status = status_resp.get("status_code", "")
-            print(f"   Status Check: {status} ({(i+1)*20}s)")
+            print(f"   Status Check: {status} ({(i+1)*30}s)")
             
             if status == "FINISHED":
                 # Step 3: Publish
@@ -84,8 +84,10 @@ def upload_to_instagram(video_url: str, caption: str) -> bool:
                 print(f"✅ Instagram published! ID: {pub.json()['id']}")
                 return True
             elif status == "ERROR":
-                print("❌ Instagram processing error.")
+                print(f"❌ Instagram processing error: {status_resp}")
                 return False
+        
+        print("⌛ Instagram processing timed out.")
         return False
     except Exception as e:
         print(f"❌ Instagram API error: {e}")
@@ -93,25 +95,34 @@ def upload_to_instagram(video_url: str, caption: str) -> bool:
 
 def main():
     today = datetime.now().strftime("%Y%m%d")
-    meta_path = OUTPUT_DIR / f"meta_{today}.json"
     
-    # Robust file detection (fallback to any meta if today's is missing)
+    # 1. Robust Metadata Detection
+    meta_path = OUTPUT_DIR / f"meta_{today}.json"
     if not meta_path.exists():
-        meta_files = list(OUTPUT_DIR.glob("meta_*.json"))
-        if not meta_files: return
-        meta_path = meta_files[0]
+        # Fallback: Find newest meta file
+        meta_files = sorted(OUTPUT_DIR.glob("meta_*.json"), key=os.path.getmtime, reverse=True)
+        if meta_files:
+            meta_path = meta_files[0]
+            print(f"⚠️ Exact date meta not found. Using: {meta_path.name}")
+        else:
+            print("❌ No meta file found in output folder.")
+            return
 
     meta = json.loads(meta_path.read_text(encoding="utf-8"))
     caption = build_caption(meta)
     save_caption(caption)
 
-    # Note: Instagram API requires a PUBLIC URL for the video (like a S3 or Dropbox link)
-    # If you aren't using a public hosting service, it will skip to manual mode.
+    # 2. Instagram API Constraint Check
+    # Important: Instagram API requires the video to be accessible via a public URL.
+    # Files sitting inside a GitHub Runner are not 'public'.
     public_video_url = meta.get("public_video_url", "")
+    
     if public_video_url:
         upload_to_instagram(public_video_url, caption)
     else:
-        print("\n📲 No public URL found. Download the .mp4 and instagram_caption.txt from GitHub Artifacts to post manually.")
+        print("\n📲 No public URL found (Instagram API limitation).")
+        print("💡 TIP: Download the .mp4 and instagram_caption.txt from GitHub Artifacts for manual posting.")
+        print("💡 TIP: To automate this, host your video on a public cloud and update the meta 'public_video_url'.")
 
 if __name__ == "__main__":
     main()
