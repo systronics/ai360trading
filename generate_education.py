@@ -3,7 +3,7 @@ from datetime import datetime
 from pathlib import Path
 
 import edge_tts
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageFilter
 from moviepy.editor import ImageClip, AudioFileClip, CompositeAudioClip, concatenate_videoclips, concatenate_audioclips
 from groq import Groq
 from content_calendar import get_todays_education_topic
@@ -122,7 +122,6 @@ Respond ONLY with valid JSON, no markdown, no extra text:
         return data
     except Exception as e:
         print(f"⚠️ Groq error: {e} — using topic slides directly")
-        # Fallback: use content_calendar slides directly
         fallback_slides = []
         for s in topic.get("slides", []):
             fallback_slides.append({
@@ -136,7 +135,7 @@ Respond ONLY with valid JSON, no markdown, no extra text:
             "slides":            fallback_slides
         }
 
-# ─── SLIDE RENDERER ──────────────────────────────────────────────────────────
+# ─── SLIDE RENDERER (UPDATED FOR 3D DISNEY EFFECT) ──────────────────────────
 def make_edu_slide(slide, idx, total, topic, path):
     level = topic.get("level", "Beginner")
     th    = LEVEL_THEMES.get(level, DEFAULT_THEME)
@@ -150,6 +149,35 @@ def make_edu_slide(slide, idx, total, topic, path):
             px[x, y] = c
 
     draw = ImageDraw.Draw(img, "RGBA")
+
+    # 1. ADDING 3D ZENO CHARACTER (Disney Style)
+    zeno_emotion = "happy" if idx % 2 == 0 else "thinking"
+    zeno_path = Path(f"public/zeno_{zeno_emotion}.png")
+    
+    if zeno_path.exists():
+        zeno = Image.open(zeno_path).convert("RGBA")
+        # Scaling: Make him large for "Human Touch" (approx 45% of screen height)
+        z_h = int(H * 0.45)
+        z_w = int(zeno.width * (z_h / zeno.height))
+        zeno = zeno.resize((z_w, z_h), Image.LANCZOS)
+
+        # Create 3D Shadow/Glow
+        shadow_layer = Image.new("RGBA", (W, H), (0,0,0,0))
+        z_mask = zeno.split()[3]
+        shadow_pos = (W - z_w - 60, H - z_h - 40) # Positioned bottom-right
+        
+        # Soft dark glow
+        shadow_color = (0, 0, 0, 90)
+        shadow_img = Image.new("RGBA", zeno.size, shadow_color)
+        shadow_layer.paste(shadow_img, (shadow_pos[0]+15, shadow_pos[1]+15), z_mask)
+        shadow_layer = shadow_layer.filter(ImageFilter.GaussianBlur(radius=12))
+        
+        # Composite Zeno
+        img_rgba = img.convert("RGBA")
+        img_rgba = Image.alpha_composite(img_rgba, shadow_layer)
+        img_rgba.paste(zeno, shadow_pos, zeno)
+        img = img_rgba.convert("RGB")
+        draw = ImageDraw.Draw(img, "RGBA")
 
     # Top accent bar
     draw.rectangle([(0, 0), (W, 10)], fill=th["accent"])
@@ -186,21 +214,21 @@ def make_edu_slide(slide, idx, total, topic, path):
         anchor="mm"
     )
 
-    # Title
+    # Title (Shifted slightly left to accommodate Zeno)
     title_font  = get_font(FONT_BOLD_PATHS, 68)
-    title_lines = textwrap.wrap(slide["title"].upper(), width=30)
+    title_lines = textwrap.wrap(slide["title"].upper(), width=25)
     ty = 150
     for line in title_lines[:2]:
-        draw.text((W // 2, ty), line, fill=th["text"], font=title_font, anchor="mm")
+        draw.text((W // 2 - 100, ty), line, fill=th["text"], font=title_font, anchor="mm")
         ty += 84
 
     # Accent divider
-    draw.rectangle([(80, ty + 15), (W - 80, ty + 19)], fill=th["accent"])
+    draw.rectangle([(80, ty + 15), (W - 400, ty + 19)], fill=th["accent"])
     ty += 55
 
-    # Content
+    # Content (Wrapped narrower so it doesn't overlap Zeno)
     content_font  = get_font(FONT_REG_PATHS, 40)
-    content_lines = textwrap.wrap(slide["content"], width=58)
+    content_lines = textwrap.wrap(slide["content"], width=45)
     for line in content_lines[:7]:
         draw.text((80, ty), line, fill=th["text"], font=content_font)
         ty += 54
@@ -210,7 +238,7 @@ def make_edu_slide(slide, idx, total, topic, path):
         ty += 20
         box_top = ty
         box_bot = ty + 70
-        draw.rectangle([(60, box_top), (W - 60, box_bot)], fill=(*th["accent"], 30))
+        draw.rectangle([(60, box_top), (W - 450, box_bot)], fill=(*th["accent"], 30))
         draw.rectangle([(60, box_top), (63, box_bot)], fill=th["accent"])
         draw.text(
             (90, box_top + 35),
@@ -284,7 +312,6 @@ def upload_to_youtube(video_path, title, description, tags):
         return None
 
 def update_part1_description(part1_id, part1_desc, part2_url):
-    """Adds Part 2 link to Part 1 video description."""
     youtube = get_youtube_service()
     if not youtube or not part1_id or part1_id == "UPLOAD_FAILED":
         return
@@ -310,7 +337,6 @@ async def run():
     today  = datetime.now().strftime("%Y%m%d")
     client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
-    # 1. Read Part 1 video ID (saved by generate_analysis.py)
     part1_id  = ""
     part1_url = ""
     id_path   = OUT / "analysis_video_id.txt"
@@ -324,18 +350,15 @@ async def run():
     else:
         print("⚠️ No analysis_video_id.txt found — continuing without Part 1 link")
 
-    # 2. Get today's education topic
     topic = get_todays_education_topic()
     print(f"📚 Topic: {topic['title']} | {topic['category']} | {topic['level']}")
 
-    # 3. Generate script
     data   = generate_edu_slides(client, topic, part1_url)
     slides = data["slides"]
 
     vid_title = data.get("video_title", f"{topic['title']} — ai360trading")
     vid_desc  = data.get("video_description", f"Learn {topic['title']} with ai360trading.in")
 
-    # Full SEO description
     part1_section = f"\n▶️ Part 1 — Market Analysis: {part1_url}\n" if part1_url else ""
     full_desc = (
         f"{vid_desc}\n\n"
@@ -349,8 +372,7 @@ async def run():
         f"#StockMarketIndia #Hinglish #LearnTrading #NSE #BSE #TradingIndia"
     )
 
-    # 4. Build slides and voice
-    print(f"\n🎬 Building {len(slides)} education slides...")
+    print(f"\n🎬 Building {len(slides)} education slides with 3D Zeno...")
     clips = []
     for i, s in enumerate(slides):
         img_path   = OUT / f"edu_{i}.png"
@@ -362,7 +384,6 @@ async def run():
         voice_clip = AudioFileClip(str(audio_path))
         duration   = voice_clip.duration + 0.8
 
-        # Background music
         bg_music_path = get_bg_music()
         if bg_music_path:
             try:
@@ -382,7 +403,6 @@ async def run():
         clips.append(clip)
         print(f"   Slide {i+1}/{len(slides)} ready")
 
-    # 5. Render video
     video_path = OUT / "education_video.mp4"
     print(f"\n🎥 Rendering education video...")
     concatenate_videoclips(clips, method="compose").write_videofile(
@@ -396,7 +416,6 @@ async def run():
     )
     print(f"✅ Video rendered: {video_path}")
 
-    # 6. Upload to YouTube
     tags = [
         topic["title"], topic["category"], "Trading Education", "ai360trading",
         "Stock Market India", "Learn Trading", "NSE", "BSE",
@@ -404,19 +423,16 @@ async def run():
     ]
     part2_id = upload_to_youtube(video_path, vid_title, full_desc, tags)
 
-    # 7. Save Part 2 ID and update Part 1 description
     if part2_id:
         (OUT / "education_video_id.txt").write_text(part2_id, encoding="utf-8")
         part2_url = f"https://youtube.com/watch?v={part2_id}"
         print(f"✅ Education video ID saved")
 
-        # Update Part 1 description to include Part 2 link
         if part1_id and part1_id != "UPLOAD_FAILED":
             update_part1_description(part1_id, full_desc, part2_url)
 
-        # Save metadata for Facebook sharing
         meta = {
-            "title":       vid_title,
+            "title":        vid_title,
             "description": full_desc,
             "video_id":    part2_id,
             "video_url":   part2_url,
