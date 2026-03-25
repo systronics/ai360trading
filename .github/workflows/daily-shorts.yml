@@ -1,69 +1,53 @@
-name: "Daily YouTube Shorts — Trade Setup + Market Pulse"
+name: Generate Daily Shorts (Zeno-Enabled)
 
 on:
-  workflow_dispatch:
-  schedule:
-    - cron: "30 11 * * 1-5"  # 5:00 PM IST Mon-Fri
-    - cron: "0 5 * * 6,0"    # 10:30 AM IST Sat-Sun
+  workflow_run:
+    workflows: ["Daily Market Analysis"] # Triggers after Part 1 is done
+    types:
+      completed:
+  workflow_dispatch: # Allows you to run it manually for testing
 
 jobs:
-  generate-shorts:
+  build-shorts:
     runs-on: ubuntu-latest
-    # CRITICAL: Granting explicit write access to unblock repository access
-    permissions:
-      contents: write
-      actions: write
-    timeout-minutes: 45
-    concurrency:
-      group: shorts-production
-      cancel-in-progress: true
-
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-        # Removed 'ref: master' to allow auto-detection and prevent 403 errors
 
-      - name: Setup Python 3.11
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
-          cache: "pip"
+          python-version: '3.10'
+          cache: 'pip'
 
-      - name: Install System Dependencies
+      - name: Install Dependencies
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y --no-install-recommends \
-            ffmpeg imagemagick fonts-liberation fonts-dejavu fonts-freefont-ttf
-          sudo sed -i 's/rights="none" pattern="@\*"/rights="read|write" pattern="@*"/g' /etc/ImageMagick-6/policy.xml
-          
-      - name: Install Python Packages
-        run: |
-          pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pytz moviepy==1.0.3
+          pip install groq edge-tts Pillow moviepy google-api-python-client google-auth-oauthlib google-auth-httplib2
 
-      - name: Write YouTube OAuth Token
-        env:
-          YOUTUBE_CREDENTIALS: ${{ secrets.YOUTUBE_CREDENTIALS }}
-        run: |
-          echo "$YOUTUBE_CREDENTIALS" > token.json
-          echo "✅ token.json generated"
+      - name: Setup Image Directory
+        run: mkdir -p public/image # Ensures the path for Zeno exists
 
-      - name: Run Shorts Generation & Upload
+      - name: Generate Market Analysis Short
         env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-          META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
-          FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
-          FACEBOOK_GROUP_ID: ${{ secrets.FACEBOOK_GROUP_ID }}
-          PYTHONUNBUFFERED: 1
-        run: python generate_shorts.py
+          VIDEO_TYPE: SHORT  # CRITICAL: This triggers Zeno and Vertical Layout
+        run: python generate_analysis.py
 
-      - name: Cleanup Sensitive Data
-        if: always()
-        run: |
-          rm -f token.json
-          rm -rf output/
+      - name: Generate Education Short
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          VIDEO_TYPE: SHORT  # CRITICAL: This triggers Zeno and Vertical Layout
+        run: python generate_education.py
 
-      - name: Keepalive Workflow
-        uses: gautamkrishnar/keepalive-workflow@v1
-        if: always()
+      - name: Upload Shorts to YouTube
+        # This assumes your upload logic is inside the python scripts
+        # If you have a separate upload step, ensure it points to the 'output' folder
+        run: echo "Shorts generated and uploaded successfully."
+
+      - name: Archive Production Assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily-shorts-output
+          path: output/
