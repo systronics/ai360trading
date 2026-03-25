@@ -1,16 +1,15 @@
 name: "Daily Shorts — AI360Trading (Short 2 + Short 3)"
+
 on:
   workflow_dispatch:
   schedule:
-    # Mon-Fri: 11:30 AM IST (06:00 UTC) — runs after daily-videos.yml finishes
-    - cron: "0 6 * * 1-5"
-    # Sat-Sun: 1:30 PM IST (08:00 UTC)
-    - cron: "0 8 * * 6,0"
+    - cron: "0 6 * * 1-5" # 11:30 AM IST
+    - cron: "0 8 * * 6,0" # 1:30 PM IST
 
 jobs:
   build-and-upload:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     permissions:
       contents: write
 
@@ -45,16 +44,20 @@ jobs:
       - name: Prepare workspace
         run: mkdir -p output
 
-      - name: Restore analysis_video_id from daily-videos run
-        # This step tries to find analysis_video_id.txt saved by generate_analysis.py
-        # If daily-videos ran in the same repo session it may still be in output/
-        # If not, we create a placeholder so generate_shorts.py handles it gracefully
+      - name: 📥 Download Context from Main Video
+        uses: actions/download-artifact@v4
+        with:
+          name: daily-market-context
+          path: output/
+        continue-on-error: true
+
+      - name: Verify Snapshot Data
         run: |
-          if [ ! -f output/analysis_video_id.txt ]; then
-            echo "⚠️ analysis_video_id.txt not found — shorts will run without Part 1 link"
-            echo "UPLOAD_FAILED" > output/analysis_video_id.txt
-          else
+          ls -l output/
+          if [ -f output/analysis_video_id.txt ]; then
             echo "✅ analysis_video_id.txt found: $(cat output/analysis_video_id.txt)"
+          else
+            echo "UPLOAD_FAILED" > output/analysis_video_id.txt
           fi
 
       - name: Generate Short 2 (Trade Setup) + Short 3 (Market Pulse)
@@ -72,7 +75,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: daily-shorts-${{ github.run_id }}
+          name: daily-shorts-debug
           path: |
             output/short2_*.mp4
             output/short3_*.mp4
