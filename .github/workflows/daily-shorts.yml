@@ -1,82 +1,35 @@
-name: "Daily Shorts — AI360Trading (Short 2 + Short 3)"
-
+name: Generate Reels and Shorts
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "0 6 * * 1-5" # 11:30 AM IST
-    - cron: "0 8 * * 6,0" # 1:30 PM IST
+  # Add your schedule here if needed
 
 jobs:
-  build-and-upload:
-    runs-on: ubuntu-latest
-    timeout-minutes: 45
-    permissions:
-      contents: write
-
+  build:
+    runs-on: ubuntu-22.04
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Set up Python 3.11
+      - uses: actions/checkout@v4
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
           cache: "pip"
-
-      - name: Install system dependencies
+      - name: Install System Dependencies
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y --no-install-recommends \
-            ffmpeg \
-            fonts-dejavu \
-            fonts-liberation \
-            fonts-freefont-ttf \
-            fonts-ubuntu \
-            imagemagick
-          sudo sed -i 's/rights="none" pattern="@\*"/rights="read|write" pattern="@*"/g' /etc/ImageMagick-6/policy.xml || true
-
-      - name: Install Python dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install --force-reinstall moviepy==1.0.3
-          pip install -r requirements.txt
-
-      - name: Prepare workspace
-        run: mkdir -p output
-
-      - name: 📥 Download Context from Main Video
+          sudo apt-get update
+          # Fix: Installing specific fonts so MoviePy doesn't crash
+          sudo apt-get install -y ffmpeg imagemagick fonts-liberation fonts-dejavu
+          # Fix: ImageMagick Policy
+          sudo sed -i 's/rights="none" pattern="@\*"/rights="read|write" pattern="@*"/g' /etc/ImageMagick-6/policy.xml
+      - name: Install Python Libs
+        run: pip install -r requirements.txt
+      - name: 📥 Retrieve Context
         uses: actions/download-artifact@v4
         with:
-          name: daily-market-context
+          name: market-context
           path: output/
         continue-on-error: true
-
-      - name: Verify Snapshot Data
-        run: |
-          ls -l output/
-          if [ -f output/analysis_video_id.txt ]; then
-            echo "✅ analysis_video_id.txt found: $(cat output/analysis_video_id.txt)"
-          else
-            echo "UPLOAD_FAILED" > output/analysis_video_id.txt
-          fi
-
-      - name: Generate Short 2 (Trade Setup) + Short 3 (Market Pulse)
-        env:
-          GROQ_API_KEY:        ${{ secrets.GROQ_API_KEY }}
-          YOUTUBE_CREDENTIALS: ${{ secrets.YOUTUBE_CREDENTIALS }}
-          META_ACCESS_TOKEN:   ${{ secrets.META_ACCESS_TOKEN }}
-          FACEBOOK_PAGE_ID:    ${{ secrets.FACEBOOK_PAGE_ID }}
-          FACEBOOK_GROUP_ID:   ${{ secrets.FACEBOOK_GROUP_ID }}
+      - name: Run Generator
         run: |
           python generate_shorts.py
-          echo "✅ Both shorts complete"
-
-      - name: Upload artifacts for debug
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: daily-shorts-debug
-          path: |
-            output/short2_*.mp4
-            output/short3_*.mp4
-          retention-days: 3
+          # If you use generate_reel.py separately, add it here:
+          # python generate_reel.py
