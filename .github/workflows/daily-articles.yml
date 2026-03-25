@@ -3,8 +3,10 @@ name: Daily AI Market Intelligence Report
 on:
   workflow_dispatch:
   schedule:
-    - cron: "45 1 * * 1-5"   # 7:15 AM IST Mon-Fri
-    - cron: "30 4 * * 6,0"   # 10:00 AM IST Sat-Sun
+    # 04:30 UTC = 10:00 AM IST | 12:30 PM CST | 04:30 AM UK | 12:30 AM EST
+    - cron: "30 4 * * 1-5"   
+    # Weekend: 06:00 UTC = 11:30 AM IST
+    - cron: "0 6 * * 6,0"
 
 jobs:
   build:
@@ -32,9 +34,10 @@ jobs:
 
       - name: Run AI Article Generator
         env:
-          GROQ_API_KEY:              ${{ secrets.GROQ_API_KEY }}
+          GROQ_API_KEY:             ${{ secrets.GROQ_API_KEY }}
           GCP_SERVICE_ACCOUNT_JSON:  ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
-          IS_WEEKEND: ${{ (github.event.schedule == '30 4 * * 6,0') && 'true' || 'false' }}
+          # CRITICAL: Logic updated to match new weekend cron
+          IS_WEEKEND: ${{ (github.event.schedule == '0 6 * * 6,0') && 'true' || 'false' }}
         run: python generate_articles.py
 
       - name: Commit and Push articles
@@ -72,7 +75,6 @@ jobs:
                   f"4️⃣ AI Trading Strategies\n\n"
                   f"👉 https://ai360trading.in\n\n"
                   f"💡 Weekend ka best use karo — seekho, samjho, grow karo!\n"
-                  f"🔔 Follow karo: ai360trading.in\n"
                   f"#WeekendLearning #Trading101 #ai360trading"
               )
           else:
@@ -84,7 +86,6 @@ jobs:
                   f"💰 Personal Finance\n"
                   f"🤖 AI Trading Technology\n\n"
                   f"👉 https://ai360trading.in\n\n"
-                  f"🔔 Telegram: t.me/ai360trading\n"
                   f"#StockMarket #Nifty #Trading #ai360trading #India"
               )
 
@@ -92,11 +93,9 @@ jobs:
               if META_TOKEN and entity_id:
                   try:
                       r = requests.post(f"{GRAPH}/{entity_id}/feed",
-                          data={"message": msg,
-                                "link": "https://ai360trading.in",
-                                "access_token": META_TOKEN}, timeout=15)
-                      label = "Page" if entity_id==PAGE_ID else "Group"
-                      print(f"✅ {label}: {r.json().get('id','error')}")
+                          data={"message": msg, "link": "https://ai360trading.in", "access_token": META_TOKEN}, 
+                          timeout=15)
+                      print(f"✅ Posted: {r.json().get('id','error')}")
                   except Exception as e:
                       print(f"❌ Post failed: {e}")
           EOF
