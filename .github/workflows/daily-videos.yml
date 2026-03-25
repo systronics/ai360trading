@@ -1,4 +1,5 @@
 name: "Daily Global Markets Video — AI360Trading"
+
 on:
   workflow_dispatch:
   schedule:
@@ -83,7 +84,6 @@ jobs:
               print("❌ META_ACCESS_TOKEN missing — skipping Facebook share")
               exit(0)
 
-          # Read Part 1 meta
           part1_url   = ""
           part1_title = ""
           p1_meta     = OUT / f"analysis_meta_{today}.json"
@@ -92,7 +92,6 @@ jobs:
               part1_url   = d.get("video_url", "")
               part1_title = d.get("title", "Market Analysis")
 
-          # Read Part 2 meta
           part2_url   = ""
           part2_title = ""
           p2_meta     = OUT / f"education_meta_{today}.json"
@@ -105,7 +104,6 @@ jobs:
               print("⚠️ No video URLs found — skipping Facebook share")
               exit(0)
 
-          # Build post message
           msg = "🎬 Aaj ke do naaye videos aa gaye! Must Watch! 📊\n\n"
           if part1_url:
               msg += f"📊 Part 1 — Market Analysis:\n{part1_title}\n🔗 {part1_url}\n\n"
@@ -118,7 +116,6 @@ jobs:
               "#ai360trading #StockMarket #Nifty #TradingIndia #MarketAnalysis"
           )
 
-          # Post to Facebook Page
           try:
               resp = requests.post(
                   f"{GRAPH_BASE}/{FACEBOOK_PAGE_ID}/feed",
@@ -130,7 +127,6 @@ jobs:
           except Exception as e:
               print(f"⚠️ Facebook Page post failed: {e}")
 
-          # Post to Facebook Group
           if FACEBOOK_GROUP_ID:
               try:
                   resp = requests.post(
@@ -144,15 +140,20 @@ jobs:
                   print(f"⚠️ Facebook Group post failed: {e}")
           EOF
 
-      - name: Cleanup temp files only — keep output for shorts workflow
+      - name: 📦 Archive Market Context for Shorts
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily-market-context
+          path: |
+            output/market_snapshot_*.json
+            output/analysis_video_id.txt
+          retention-days: 1
+
+      - name: Cleanup temp files
         if: always()
         run: |
-          # Only remove temp video files — keep video IDs and meta JSONs
-          # generate_shorts.py needs analysis_video_id.txt from output/
-          rm -f output/analysis_*.png
-          rm -f output/edu_*.png
-          rm -f output/analysis_*.mp3
-          rm -f output/edu_*.mp3
+          rm -f output/*.png
+          rm -f output/*.mp3
           rm -f output/temp_*.mp3
           rm -f token.json
-          echo "✅ Temp files cleaned — video IDs preserved"
+          echo "✅ Temp files cleaned — Context preserved in Artifacts"
