@@ -3,10 +3,8 @@ name: Daily Global Markets Video — AI360Trading
 on:
   workflow_dispatch:
   schedule:
-    # 02:00 UTC = 07:30 AM IST | 10:00 AM CST | 09:00 PM EST (Prev)
-    - cron: "0 2 * * 1-5"
-    # Weekend: 04:00 UTC = 09:30 AM IST
-    - cron: "0 4 * * 6,0"
+    - cron: "0 2 * * 1-5"   # 7:30 AM IST Mon-Fri
+    - cron: "0 4 * * 6,0"   # 9:30 AM IST Sat-Sun
 
 jobs:
   generate-video:
@@ -44,21 +42,86 @@ jobs:
           YOUTUBE_CREDENTIALS: ${{ secrets.YOUTUBE_CREDENTIALS }}
         run: |
           echo "$YOUTUBE_CREDENTIALS" > token.json
+          echo "✅ token.json ready"
 
       - name: Generate Part 1 — Market Analysis Video
         env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-        run: python generate_analysis.py
+        run: |
+          python generate_analysis.py
+          echo "✅ Part 1 analysis video complete"
 
       - name: Generate Part 2 — Education Video
         env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-        run: python generate_education.py
+        run: |
+          python generate_education.py
+          echo "✅ Part 2 education video complete"
 
-      - name: Share both video links to Facebook
+      - name: Share both video links to Facebook + Group
         env:
           META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
           FACEBOOK_PAGE_ID:  ${{ secrets.FACEBOOK_PAGE_ID }}
           FACEBOOK_GROUP_ID: ${{ secrets.FACEBOOK_GROUP_ID }}
         run: |
-          # (Your existing Python sharing logic remains identical here)
+          python - <<'EOF'
+          import os, requests
+          from datetime import datetime
+
+          META    = os.environ.get("META_ACCESS_TOKEN","")
+          PAGE    = os.environ.get("FACEBOOK_PAGE_ID","")
+          GROUP   = os.environ.get("FACEBOOK_GROUP_ID","")
+          GRAPH   = "https://graph.facebook.com/v21.0"
+          today   = datetime.now().strftime("%d %B %Y")
+          weekend = datetime.now().weekday() >= 5
+
+          analysis_url = "https://youtube.com/@ai360trading"
+          edu_url      = "https://youtube.com/@ai360trading"
+
+          try:
+              with open("output/analysis_video_id.txt") as f:
+                  analysis_url = f"https://youtube.com/watch?v={f.read().strip()}"
+          except: pass
+          try:
+              with open("output/education_video_id.txt") as f:
+                  edu_url = f"https://youtube.com/watch?v={f.read().strip()}"
+          except: pass
+
+          if weekend:
+              msg = (
+                  f"📚 Weekend Learning — {today}\n\n"
+                  f"Aaj ke do special educational videos:\n\n"
+                  f"🎬 Part 1 — Market Analysis:\n{analysis_url}\n\n"
+                  f"📖 Part 2 — Education:\n{edu_url}\n\n"
+                  f"💡 Weekend mein seekho, weekday mein kamaao!\n"
+                  f"🌐 ai360trading.in | 📱 t.me/ai360trading\n\n"
+                  f"#WeekendLearning #Trading101 #StockMarket #AI360Trading"
+              )
+          else:
+              msg = (
+                  f"📊 Aaj ke Market Videos — {today}\n\n"
+                  f"🎬 Part 1 — Live Market Analysis + Trade Setups:\n{analysis_url}\n\n"
+                  f"📖 Part 2 — Education + Learning:\n{edu_url}\n\n"
+                  f"💡 Dono videos zaroor dekho — market samjho aur seekho!\n"
+                  f"🌐 ai360trading.in | 📱 t.me/ai360trading\n\n"
+                  f"#StockMarket #Nifty #TechnicalAnalysis #Trading #AI360Trading\n"
+                  f"#GlobalMarkets #Bitcoin #Gold #IntradayTrading #SwingTrading"
+              )
+
+          for entity_id in [PAGE, GROUP]:
+              if META and entity_id:
+                  try:
+                      r = requests.post(f"{GRAPH}/{entity_id}/feed",
+                          data={"message":msg,"link":analysis_url,"access_token":META},
+                          timeout=15)
+                      label = "Page" if entity_id==PAGE else "Group"
+                      print(f"✅ {label}: {r.json().get('id','error')}")
+                  except Exception as e:
+                      print(f"❌ Post failed: {e}")
+          EOF
+
+      - name: Cleanup
+        if: always()
+        run: |
+          rm -f token.json
+          rm -rf output/
