@@ -7,10 +7,10 @@ from pathlib import Path
 from datetime import datetime
 
 # ─── CONFIG ───────────────────────────────────────────────────────────────────
-META_ACCESS_TOKEN   = os.environ.get("META_ACCESS_TOKEN", "")
-FACEBOOK_PAGE_ID    = os.environ.get("FACEBOOK_PAGE_ID", "")
-FACEBOOK_GROUP_ID   = os.environ.get("FACEBOOK_GROUP_ID", "")
-WEBSITE_RSS_URL     = "https://ai360trading.in/feed/"
+META_ACCESS_TOKEN    = os.environ.get("META_ACCESS_TOKEN", "")
+FACEBOOK_PAGE_ID     = os.environ.get("FACEBOOK_PAGE_ID", "")
+FACEBOOK_GROUP_ID    = os.environ.get("FACEBOOK_GROUP_ID", "")
+WEBSITE_RSS_URL      = "https://ai360trading.in/feed/"
 OUTPUT_DIR          = Path("output")
 GRAPH_BASE          = "https://graph.facebook.com/v21.0"
 
@@ -32,38 +32,46 @@ def upload_reel_to_facebook(video_path: Path, meta: dict):
         f"#Reels #ZenoKiBaat #ai360trading #StockMarketIndia #TradingMotivation"
     )
 
-    # 1. Start Upload Session
-    init_url = f"{GRAPH_BASE}/{FACEBOOK_PAGE_ID}/video_reels"
-    resp = requests.post(init_url, data={
-        "upload_phase": "start",
-        "access_token": META_ACCESS_TOKEN
-    }, timeout=30).json()
+    try:
+        # 1. Start Upload Session
+        init_url = f"{GRAPH_BASE}/{FACEBOOK_PAGE_ID}/video_reels"
+        resp = requests.post(init_url, data={
+            "upload_phase": "start",
+            "access_token": META_ACCESS_TOKEN
+        }, timeout=30).json()
+        
+        video_id = resp.get("video_id")
+        upload_url = resp.get("upload_url")
+
+        if not upload_url:
+            print(f"❌ Could not get upload URL: {resp}")
+            return None
+
+        # 2. Upload Bytes
+        with open(video_path, "rb") as f:
+            video_data = f.read()
+        
+        requests.post(upload_url, headers={
+            "Authorization": f"OAuth {META_ACCESS_TOKEN}",
+            "offset": "0",
+            "file_size": str(len(video_data))
+        }, data=video_data, timeout=300).raise_for_status()
+
+        # 3. Publish Reel
+        publish_resp = requests.post(init_url, data={
+            "upload_phase": "finish",
+            "video_id": video_id,
+            "video_state": "PUBLISHED",
+            "description": caption,
+            "access_token": META_ACCESS_TOKEN
+        }, timeout=30).json()
+
+        if "success" in str(publish_resp).lower() or video_id:
+            print(f"✅ Facebook Reel Published! ID: {video_id}")
+            return video_id
+    except Exception as e:
+        print(f"❌ Facebook Reel Upload Failed: {e}")
     
-    video_id = resp.get("video_id")
-    upload_url = resp.get("upload_url")
-
-    # 2. Upload Bytes
-    with open(video_path, "rb") as f:
-        video_data = f.read()
-    
-    requests.post(upload_url, headers={
-        "Authorization": f"OAuth {META_ACCESS_TOKEN}",
-        "offset": "0",
-        "file_size": str(len(video_data))
-    }, data=video_data, timeout=300).raise_for_status()
-
-    # 3. Publish Reel
-    publish_resp = requests.post(init_url, data={
-        "upload_phase": "finish",
-        "video_id": video_id,
-        "video_state": "PUBLISHED",
-        "description": caption,
-        "access_token": META_ACCESS_TOKEN
-    }, timeout=30).json()
-
-    if "success" in str(publish_resp).lower() or video_id:
-        print(f"✅ Facebook Reel Published! ID: {video_id}")
-        return video_id
     return None
 
 # ─── STEP B: Fetch & Post Articles ──────────────────────────────────────────
@@ -80,7 +88,9 @@ def post_articles():
                 "link": item.findtext("link")
             })
         
-        if not articles: return
+        if not articles: 
+            print("ℹ️ No new articles found in RSS.")
+            return
 
         # Build human-style post
         post_msg = "🚀 Aaj ki Top Trading Updates — Must Read!\n\n"
@@ -109,20 +119,40 @@ def post_articles():
 # ─── MAIN ────────────────────────────────────────────────────────────────────
 def main():
     today = datetime.now().strftime("%Y%m%d")
+    
+    # 1. Robust Metadata Detection
     meta_path = OUTPUT_DIR / f"meta_{today}.json"
-
     if not meta_path.exists():
-        print("❌ Meta file not found. Run generator first.")
-        return
+        # Fallback: Find newest meta file
+        meta_files = sorted(OUTPUT_DIR.glob("meta_*.json"), key=os.path.getmtime, reverse=True)
+        if meta_files:
+            meta_path = meta_files[0]
+            print(f"⚠️ Exact date meta not found. Using: {meta_path.name}")
+        else:
+            print("❌ No meta file found in output.")
+            return
 
     meta = json.loads(meta_path.read_text(encoding="utf-8"))
-    video_path = Path(meta.get("video_path", ""))
+    
+    # 2. Robust Video Detection
+    # Priority: path in meta -> reel_YYYYMMDD.mp4 -> newest reel_*.mp4
+    video_path_str = meta.get("video_path", "")
+    video_path = Path(video_path_str) if video_path_str else Path("")
 
-    # 1. Video Reel Upload
+    if not video_path.exists():
+        video_files = sorted(OUTPUT_DIR.glob("reel_*.mp4"), key=os.path.getmtime, reverse=True)
+        if video_files:
+            video_path = video_files[0]
+            print(f"🎥 Found video file: {video_path.name}")
+        else:
+            print("❌ No video file found for Facebook upload.")
+            # We don't return here because we still want to post the articles below
+    
+    # 3. Execution
     if video_path.exists():
         upload_reel_to_facebook(video_path, meta)
     
-    # 2. Automated Article Summary (Human-style hard work look)
+    # Always try to post articles to keep the page active
     post_articles()
 
 if __name__ == "__main__":
