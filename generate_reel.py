@@ -1,16 +1,18 @@
 import os
 import asyncio
-from moviepy.editor import VideoFileClip, AudioFileClip, TextClip, CompositeVideoClip
+import random
+from moviepy.editor import ColorClip, AudioFileClip, TextClip, CompositeVideoClip
 from moviepy.config import change_settings
 import edge_tts
 
 # --- CONFIGURATION FOR GITHUB ACTIONS ---
-# This tells MoviePy exactly where the ImageMagick binary is located on Ubuntu
+# Ensures MoviePy finds ImageMagick on Ubuntu runners
 change_settings({"IMAGEMAGICK_BINARY": "/usr/bin/convert"})
 
 async def generate_voiceover(text, output_path):
-    """Generates the Hindi voiceover using edge-tts."""
+    """Generates Hindi voiceover using edge-tts."""
     print(f"🎙️ Generating voice for: {text[:50]}...")
+    # Using Madhur (Male) or Swara (Female) - both sound natural
     communicate = edge_tts.Communicate(text, "hi-IN-MadhurNeural")
     await communicate.save(output_path)
     print(f"✅ Voice generated at: {output_path}")
@@ -18,55 +20,64 @@ async def generate_voiceover(text, output_path):
 
 def create_video(voice_file, script_text):
     """
-    Combines voiceover with background and text.
-    Uses MoviePy 1.0.3 syntax (set_opacity, fontsize).
+    Creates a 1080x1920 Reel. 
+    Uses a solid color background if background.mp4 is missing.
     """
     print("🎬 Starting video synthesis...")
     try:
-        # 1. Load Audio and determine duration
+        # 1. Load Audio
         audio = AudioFileClip(voice_file)
         duration = audio.duration
 
-        # 2. Load Background Video
-        # Path assumes your background is in an 'assets' folder
-        bg_video = VideoFileClip("assets/background.mp4").subclip(0, duration)
-        
-        # 3. Create Branding Clip (Top/Bottom Branding)
+        # 2. Create/Load Background
+        # If you ever upload assets/background.mp4, it will use that. 
+        # Otherwise, it creates a professional dark blue background.
+        bg_path = "assets/background.mp4"
+        if os.path.exists(bg_path):
+            from moviepy.editor import VideoFileClip
+            bg_clip = VideoFileClip(bg_path).subclip(0, duration)
+        else:
+            print("ℹ️ background.mp4 not found. Generating a solid background...")
+            # Create a 1080x1920 (9:16) dark background
+            bg_clip = ColorClip(size=(1080, 1920), color=(10, 20, 35), duration=duration)
+
+        # 3. Create Branding (Bottom)
         branding = (TextClip(
                         "ai360trading.in", 
-                        fontsize=40, 
-                        color='white', 
+                        fontsize=45, 
+                        color='gray', 
                         font='Arial-Bold',
                         method='caption'
                     )
-                    .set_opacity(0.6)
+                    .set_opacity(0.5)
                     .set_duration(duration)
-                    .set_position(('center', 1600))) # Positioned near the bottom
+                    .set_position(('center', 1700)))
 
         # 4. Create Main Script Text (Subtitles)
-        # size=(width, None) ensures text wraps within the reel width
+        # We use 'caption' method to ensure Hindi text wraps properly
         content_text = (TextClip(
                             script_text,
-                            fontsize=60,
+                            fontsize=70,
                             color='yellow',
                             font='Arial-Bold',
                             method='caption',
-                            size=(bg_video.w * 0.8, None)
+                            size=(900, None) # Wraps text within 900px width
                         )
                         .set_duration(duration)
                         .set_position('center'))
 
-        # 5. Combine everything
-        final_video = CompositeVideoClip([bg_video, branding, content_text])
+        # 5. Composite
+        final_video = CompositeVideoClip([bg_clip, branding, content_text])
         final_video.audio = audio
 
-        # 6. Define Output Path
+        # 6. Output Handling
         if not os.path.exists("output"):
             os.makedirs("output")
             
         output_filename = f"output/reel_{os.path.basename(voice_file).replace('.mp3', '.mp4')}"
 
-        # 7. Write the File
+        # 7. Write File
+        # Using 'libx264' for maximum compatibility with Instagram/YouTube
         final_video.write_videofile(
             output_filename,
             fps=24,
@@ -74,7 +85,7 @@ def create_video(voice_file, script_text):
             audio_codec="aac",
             temp_audiofile='temp-audio.m4a',
             remove_temp=True,
-            threads=4 # Faster processing on GitHub Runners
+            threads=4
         )
 
         print(f"🚀 Success! Reel created: {output_filename}")
@@ -82,26 +93,22 @@ def create_video(voice_file, script_text):
 
     except Exception as e:
         print(f"❌ Error during video creation: {e}")
-        # Fallback: Save video with just audio if TextClip fails
-        print("⚠️ Attempting fallback (Video + Audio only)...")
-        bg_video = VideoFileClip("assets/background.mp4").subclip(0, duration)
-        bg_video.audio = audio
-        fallback_name = f"output/fallback_{os.path.basename(voice_file).replace('.mp3', '.mp4')}"
-        bg_video.write_videofile(fallback_name, fps=24, codec="libx264")
-        return fallback_name
+        return None
 
 async def main():
-    # Example Script - In a real run, you might fetch this from Groq/API
-    script = "Mujhe lagta hai ki trading mein sabse badi cheez hai patience aur discipline, kyunki agar aap in dono ko follow karte hain to aapke losses kam honge."
-    
-    # Generate Audio
-    voice_path = "output/voice.mp3"
+    # Folder Setup
     if not os.path.exists("output"):
         os.makedirs("output")
-        
-    await generate_voiceover(script, voice_path)
+    if not os.path.exists("assets"):
+        os.makedirs("assets")
+
+    # The Script (You can replace this with Groq output later)
+    script = "Mujhe lagta hai ki trading mein sabse badi cheez hai patience aur discipline, kyunki agar aap in dono ko follow karte hain to aapke losses kam honge."
     
-    # Generate Video
+    voice_path = "output/voice.mp3"
+    
+    # Run Steps
+    await generate_voiceover(script, voice_path)
     create_video(voice_path, script)
 
 if __name__ == "__main__":
