@@ -1,4 +1,4 @@
-import os, sys, json, asyncio, textwrap
+import os, sys, json, asyncio
 from datetime import datetime
 from pathlib import Path
 
@@ -6,7 +6,7 @@ import pytz
 import yfinance as yf
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 import edge_tts
-from moviepy.editor import ImageClip, AudioFileClip, CompositeAudioClip
+from moviepy.editor import ImageClip, AudioFileClip
 from groq import Groq
 
 # ─── CONFIG ──────────────────────────────────────────────────────────────────
@@ -24,8 +24,11 @@ GOLD        = (255, 200, 50)
 WHITE       = (255, 255, 255)
 
 # ─── FONTS ───────────────────────────────────────────────────────────────────
-FONT_BOLD_PATHS = ["/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf"]
-FONT_REG_PATHS = ["/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"]
+FONT_BOLD_PATHS = [
+    "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+    "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
+    "/usr/share/fonts/truetype/ubuntu/Ubuntu-B.ttf",
+]
 
 def get_font(paths, size):
     for p in paths:
@@ -34,89 +37,116 @@ def get_font(paths, size):
             except: continue
     return ImageFont.load_default()
 
-# ─── DATA HANDSHAKE (SYNC WITH MAIN VIDEO) ───────────────────────────────────
+def draw_text_outlined(draw, text, x, y, font, fill, outline=3, anchor="mm"):
+    for dx in range(-outline, outline + 1):
+        for dy in range(-outline, outline + 1):
+            if dx != 0 or dy != 0:
+                draw.text((x + dx, y + dy), text, font=font, fill=(0, 0, 0), anchor=anchor)
+    draw.text((x, y), text, font=font, fill=fill, anchor=anchor)
+
+# ─── MARKET DATA (FIXED SERIES ERROR) ────────────────────────────────────────
 def get_synced_market_data():
-    """Tries to load snapshot from generate_analysis.py first for 100% sync."""
-    snap_path = OUT / f"market_snapshot_{now_ist.strftime('%Y%m%d')}.json"
-    if snap_path.exists():
-        print("🔗 Syncing with Main Video Data...")
-        return json.loads(snap_path.read_text())
-    
-    # Fallback to your Live Fetch if snapshot is missing
+    """Tries to load snapshot first; fallbacks to LIVE 1m fetch."""
+    snap_file = OUT / f"market_snapshot_{now_ist.strftime('%Y%m%d')}.json"
+    if snap_file.exists():
+        print("🔗 Loading Synced Market Snapshot...")
+        return json.loads(snap_file.read_text())
+
     print("📡 Snapshot missing, performing independent LIVE fetch...")
-    tickers = {"nifty": "^NSEI", "btc": "BTC-USD"}
+    tickers = {"nifty": "^NSEI", "btc": "BTC-USD", "gold": "GC=F", "sp500": "^GSPC"}
     data = {}
     for name, sym in tickers.items():
-        df = yf.download(sym, period="1d", interval="1m", progress=False)
-        last = float(df["Close"].iloc[-1])
-        prev = float(df["Open"].iloc[0])
-        chg = ((last - prev) / prev) * 100
-        data[name] = {"price": round(last, 2), "change": f"{chg:+.2f}%", "up": chg >= 0}
+        try:
+            # interval='1m' ensures fresh data
+            df = yf.download(sym, period="1d", interval="1m", progress=False)
+            if df.empty:
+                df = yf.download(sym, period="5d", interval="1d", progress=False)
+            
+            # Use .iloc[-1] and .item() to ensure we get a single float value, not a Series
+            last = float(df["Close"].iloc[-1].item())
+            prev = float(df["Open"].iloc[0].item())
+            chg  = ((last - prev) / prev) * 100
+            
+            data[name] = {"val": f"{last:,.2f}", "chg": f"{chg:+.2f}%", "up": chg >= 0}
+        except Exception as e:
+            print(f"⚠️ Error fetching {name}: {e}")
+            data[name] = {"val": "N/A", "chg": "0.00%", "up": True}
     return data
 
-# ─── 3D ZENO EFFECT (ENHANCED RIM LIGHT) ─────────────────────────────────────
+# ─── 3D ZENO EFFECT ──────────────────────────────────────────────────────────
 def apply_3d_zeno(base_img, emotion="thinking"):
     zeno_file = f"public/zeno_{emotion}.png"
     if not os.path.exists(zeno_file): return base_img
     
     zeno = Image.open(zeno_file).convert("RGBA")
     target_w = int(SW * 0.85)
-    z_h = int(zeno.height * (target_w / zeno.width))
-    zeno = zeno.resize((target_w, z_h), Image.LANCZOS)
+    target_h = int(zeno.height * (target_w / zeno.width))
+    zeno = zeno.resize((target_w, target_h), Image.LANCZOS)
     
-    # Shadow
     shadow_layer = Image.new("RGBA", base_img.size, (0,0,0,0))
     mask = zeno.split()[3]
-    pos = ((SW - target_w)//2, SH - z_h - 150)
-    shadow_layer.paste((0,0,0,120), (pos[0]+20, pos[1]+20), mask)
-    shadow_layer = shadow_layer.filter(ImageFilter.GaussianBlur(15))
+    pos = ((SW - target_w)//2, SH - target_h - 150)
     
-    # Composite
-    base_rgba = base_img.convert("RGBA")
-    combined = Image.alpha_composite(base_rgba, shadow_layer)
-    combined.paste(zeno, pos, zeno)
-    return combined.convert("RGB")
+    # 3D Shadow Offset
+    shadow_layer.paste((0, 0, 0, 100), (pos[0]+15, pos[1]+15), mask)
+    shadow_layer = shadow_layer.filter(ImageFilter.GaussianBlur(radius=10))
+    
+    final_img = Image.alpha_composite(base_img.convert("RGBA"), shadow_layer)
+    final_img.paste(zeno, pos, zeno)
+    return final_img.convert("RGB")
 
-# ─── DYNAMIC FRAME RENDERER ──────────────────────────────────────────────────
-def render_short_frame(market, title, is_zeno=False):
+# ─── FRAME RENDERER ──────────────────────────────────────────────────────────
+def make_frame(script_data, market, is_zeno=False):
     img = Image.new("RGB", (SW, SH), (10, 15, 30))
     draw = ImageDraw.Draw(img, "RGBA")
     
-    # Gradient
+    # Background Gradient
     for y in range(SH):
         draw.line([(0, y), (SW, y)], fill=(10, 15+int(20*y/SH), 30+int(40*y/SH)))
+
+    nifty_data = market.get("nifty", {"val": "N/A", "chg": "0.00%", "up": True})
+    accent = BULL_GREEN if nifty_data["up"] else BEAR_RED
     
-    accent = BULL_GREEN if market["nifty"]["up"] else BEAR_RED
+    draw_text_outlined(draw, "AI360TRADING", SW//2, 100, get_font(FONT_BOLD_PATHS, 70), accent)
     
     if is_zeno:
-        img = apply_3d_zeno(img, "happy" if market["nifty"]["up"] else "thinking")
+        img = apply_3d_zeno(img, emotion=script_data.get("emotion", "thinking"))
         draw = ImageDraw.Draw(img, "RGBA")
-        draw.text((SW//2, 300), title, font=get_font(FONT_BOLD_PATHS, 80), fill=WHITE, anchor="mm")
+        draw_text_outlined(draw, script_data.get("title", "Wisdom"), SW//2, 300, get_font(FONT_BOLD_PATHS, 80), WHITE)
     else:
-        draw.text((SW//2, 200), "TRADE SETUP", font=get_font(FONT_BOLD_PATHS, 90), fill=WHITE, anchor="mm")
-        # Nifty Price Box
-        draw.rounded_rectangle([100, 400, SW-100, 650], radius=40, fill=(255,255,255,15))
-        draw.text((SW//2, 480), "NIFTY 50", font=get_font(FONT_BOLD_PATHS, 50), fill=accent, anchor="mm")
-        draw.text((SW//2, 570), f"{market['nifty']['price']} ({market['nifty']['change']})", font=get_font(FONT_BOLD_PATHS, 85), fill=WHITE, anchor="mm")
+        draw_text_outlined(draw, "LIVE SETUP", SW//2, 250, get_font(FONT_BOLD_PATHS, 90), WHITE)
+        draw.rounded_rectangle([100, 400, SW-100, 600], radius=30, fill=(255,255,255,20))
+        draw.text((SW//2, 460), "NIFTY 50", font=get_font(FONT_BOLD_PATHS, 40), fill=accent, anchor="mm")
+        draw.text((SW//2, 530), f"{nifty_data['val']} ({nifty_data['chg']})", font=get_font(FONT_BOLD_PATHS, 70), fill=WHITE, anchor="mm")
 
-    path = OUT / f"frame_{'zeno' if is_zeno else 'setup'}.png"
+    path = OUT / f"frame_{datetime.now().strftime('%H%M%S')}.png"
     img.save(path)
     return path
 
 async def main():
     market = get_synced_market_data()
     
-    # 1. Young Trader Short (No Zeno)
-    f1 = render_short_frame(market, "Fast Trade", False)
-    a1 = OUT / "v1.mp3"
-    await edge_tts.Communicate("Market alert! Nifty levels are active. Check description.", "hi-IN-MadhurNeural").save(str(a1))
-    ImageClip(str(f1)).set_duration(15).set_audio(AudioFileClip(str(a1))).write_videofile(str(OUT / "short_setup.mp4"), fps=FPS, logger=None)
+    # Short 2: Trade Setup
+    print("🎬 Rendering Short 2...")
+    s_data = {"script": "Bhaiyo! Nifty fire mode mein hai. Entry levels description mein check karo!", "emotion": "happy"}
+    s_frame = make_frame(s_data, market, is_zeno=False)
+    s_audio = OUT / "s2.mp3"
+    await edge_tts.Communicate(s_data["script"], "hi-IN-MadhurNeural", rate="+15%").save(str(s_audio))
+    
+    clip2 = ImageClip(str(s_frame)).set_duration(15).set_audio(AudioFileClip(str(s_audio)))
+    clip2.write_videofile(str(OUT / "short2.mp4"), fps=FPS, logger=None)
 
-    # 2. Beginner Reel (3D Zeno)
-    f2 = render_short_frame(market, "Zeno's Wisdom", True)
-    a2 = OUT / "v2.mp3"
-    await edge_tts.Communicate("Doston, trading mein sabr hi sabse bada hathyaar hai.", "hi-IN-SwaraNeural").save(str(a2))
-    ImageClip(str(f2)).set_duration(15).set_audio(AudioFileClip(str(a2))).write_videofile(str(OUT / "reel_zeno.mp4"), fps=FPS, logger=None)
+    # Short 3: Zeno Wisdom
+    print("🎬 Rendering Short 3...")
+    r_data = {"script": "Namaste! Market mein sabr hi asli paisa hai. Jaldbazi mat kijiye.", "emotion": "thinking", "title": "Zeno Wisdom"}
+    r_frame = make_frame(r_data, market, is_zeno=True)
+    r_audio = OUT / "s3.mp3"
+    await edge_tts.Communicate(r_data["script"], "hi-IN-SwaraNeural", rate="+5%").save(str(r_audio))
+    
+    clip3 = ImageClip(str(r_frame)).set_duration(15).set_audio(AudioFileClip(str(r_audio)))
+    clip3.write_videofile(str(OUT / "short3.mp4"), fps=FPS, logger=None)
+
+    print("🚀 Process Complete.")
 
 if __name__ == "__main__":
     asyncio.run(main())
