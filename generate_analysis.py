@@ -382,7 +382,7 @@ async def run():
         fps=FPS,
         codec="libx264",
         audio_codec="aac",
-        temp_audiofile=str(OUT / "temp_analysis_audio.mp3"),
+        temp_audiofile=str(OUT / "temp_analysis_audio.aac"),   # ✅ FIXED: .mp3 → .aac
         remove_temp=True,
         logger=None
     )
