@@ -1,6 +1,7 @@
 import os
 import json
 import asyncio
+import shutil
 from datetime import datetime
 from pathlib import Path
 import pytz
@@ -12,15 +13,13 @@ from moviepy.editor import (
 
 # --- CONFIGURATION & PATHS ---
 OUT = Path("output")
-# FIXED: Points to your actual folder structure seen in your screenshots
-IMAGE_DIR = Path("public/image") 
+IMAGE_DIR = Path("public/image")
 MUSIC_DIR = Path("public/music")
 SW, SH = 1080, 1920  # 9:16 Vertical
 FPS = 30
 os.makedirs(OUT, exist_ok=True)
 
 # --- FONTS ---
-# Standard Linux paths for GitHub Actions runners
 FONT_BOLD = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
 WHITE = (255, 255, 255)
 
@@ -34,11 +33,9 @@ def apply_zeno_disney_effect(base_img, emotion="thinking"):
     """
     Renders Zeno with depth and a soft cinematic shadow.
     """
-    # FIXED: Uses your actual subfolder and the 'zeno_' prefix
     zeno_path = IMAGE_DIR / f"zeno_{emotion}.png"
     if not zeno_path.exists():
         print(f"⚠️ Zeno image missing: {zeno_path}")
-        # Fallback to a generic zeno if the specific emotion is missing
         zeno_path = IMAGE_DIR / "zeno_thinking.png"
         if not zeno_path.exists(): return base_img
 
@@ -52,19 +49,19 @@ def apply_zeno_disney_effect(base_img, emotion="thinking"):
 
     # 2. 3D DEPTH SHADOW (The 'Human Touch' effect)
     shadow_layer = Image.new("RGBA", (SW, SH), (0, 0, 0, 0))
-    zeno_mask = zeno.split()[3] 
-    
-    shadow_offset = (15, 15) 
+    zeno_mask = zeno.split()[3]
+
+    shadow_offset = (15, 15)
     shadow_pos = ((SW - zeno.width)//2 + shadow_offset[0], SH - zeno.height - 180 + shadow_offset[1])
-    
-    shadow_img = Image.new("RGBA", zeno.size, (0, 0, 0, 110)) 
+
+    shadow_img = Image.new("RGBA", zeno.size, (0, 0, 0, 110))
     shadow_layer.paste(shadow_img, shadow_pos, zeno_mask)
     shadow_layer = shadow_layer.filter(ImageFilter.GaussianBlur(radius=15))
 
     # 3. COMPOSITE
     temp_bg = base_img.convert("RGBA")
     combined = Image.alpha_composite(temp_bg, shadow_layer)
-    
+
     zeno_pos = ((SW - zeno.width)//2, SH - zeno.height - 200)
     combined.paste(zeno, zeno_pos, zeno)
 
@@ -75,7 +72,7 @@ def build_reel_frame(title_text, emotion="thinking"):
     """Creates the cinematic background with Zeno."""
     img = Image.new("RGB", (SW, SH))
     draw = ImageDraw.Draw(img, "RGBA")
-    
+
     # Cinematic Gradient (Dark blue depth)
     for y in range(SH):
         top_color, bot_color = (5, 10, 25), (15, 30, 70)
@@ -89,16 +86,16 @@ def build_reel_frame(title_text, emotion="thinking"):
 
     # Apply your 3D Disney logic
     img = apply_zeno_disney_effect(img, emotion)
-    
+
     # Render Title Text
     draw_text = ImageDraw.Draw(img)
     font_title = get_font(FONT_BOLD, 85)
-    
+
     text_y = 350
     words = title_text.split()
     line1 = " ".join(words[:len(words)//2])
     line2 = " ".join(words[len(words)//2:])
-    
+
     for line, offset in [(line1, 0), (line2, 100)]:
         # Black Outline
         for dx, dy in [(-2,-2), (2,-2), (-2,2), (2,2)]:
@@ -113,24 +110,26 @@ def build_reel_frame(title_text, emotion="thinking"):
 # --- MAIN REEL GENERATOR ---
 async def generate_reel():
     print("🎬 Starting 3D Zeno Reel Generation...")
-    
-    # 1. SCRIPT FIX: Hindi Script + Space Trick for "Dar" (Fear) pronunciation
+
+    today = datetime.now().strftime("%Y%m%d")
+
+    # 1. SCRIPT: Hindi Script + Space Trick for "Dar" (Fear) pronunciation
     display_text = "मार्केट नहीं आपका डर है। पेशेंस रखिए।"
     audio_script = "दोस्तों ट्रेडिंग में सबसे बड़ा दुश्मन मार्केट नहीं आपका ड र है। पेशेंस रखिए।"
     title = "CONTROL YOUR EMOTIONS"
-    
+
     # 2. AUDIO GENERATION
     audio_path = OUT / "zeno_speech.mp3"
     print("🎙️ Generating Voice...")
     await edge_tts.Communicate(audio_script, "hi-IN-SwaraNeural", rate="+0%").save(str(audio_path))
-    
+
     # 3. FRAME GENERATION (Emotion set to 'fear' to match the script)
     frame_path = build_reel_frame(title, emotion="fear")
-    
+
     # 4. VIDEO ASSEMBLY
     print("🎞️ Rendering Final 3D Reel...")
     voice_clip = AudioFileClip(str(audio_path))
-    
+
     # Optional Background Music
     music_file = MUSIC_DIR / "bgmusic2.mp3"
     if music_file.exists():
@@ -142,11 +141,29 @@ async def generate_reel():
     video = (ImageClip(str(frame_path))
              .set_duration(voice_clip.duration + 0.5)
              .set_audio(final_audio))
-    
+
+    # Save as final_zeno_reel.mp4 (your original name — upload_youtube finds it)
     output_file = OUT / "final_zeno_reel.mp4"
     video.write_videofile(str(output_file), fps=FPS, codec="libx264", audio_codec="aac", logger=None)
 
-    # --- LOGS FOR YOUR CHANNEL ---
+    # ── FIX 1: Also save as reel_{today}.mp4 so upload_facebook finds it ──
+    reel_dated = OUT / f"reel_{today}.mp4"
+    shutil.copy2(str(output_file), str(reel_dated))
+    print(f"✅ Video also saved as: {reel_dated.name}")
+
+    # ── FIX 2: Save meta_{today}.json so upload_facebook + upload_instagram work ──
+    meta = {
+        "title":            f"ZENO Ki Baat - {title}",
+        "description":      display_text + " 🔗 t.me/ai360trading | ai360trading.in",
+        "sentiment":        "fearful",
+        "hashtags":         "#ZenoKiBaat #ai360trading #StockMarketIndia #TradingWisdom #Hinglish",
+        "public_video_url": ""
+    }
+    meta_path = OUT / f"meta_{today}.json"
+    meta_path.write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"✅ Meta saved: {meta_path.name}")
+
+    # --- LOGS ---
     print("\n" + "="*50)
     print(f"✅ REEL SUCCESS: {output_file}")
     print(f"TITLE: ZENO Ki Baat - {title}")
