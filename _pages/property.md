@@ -2,7 +2,7 @@
 layout: default
 title: "Plot for Sale — Saroj Enclave, Jamalpur Kalan, Haridwar | 1000 Sq Ft | ₹22 Lakh"
 permalink: /plot-for-sale/
-description: "Plot for sale in Saroj Enclave, Jamalpur Kalan, Haridwar. 1000 sq ft, North facing, Market rate ₹2500/sqft — Our price ₹2200/sqft negotiable. 3km from Haridwar-Laksar Highway."
+description: "Plot for sale in Saroj Enclave, Jamalpur Kalan, Haridwar. 1000 sq ft, North facing, Market rate ₹2500/sqft — Our price ₹2200/sqft negotiable."
 ---
 
 <style>
@@ -186,11 +186,10 @@ description: "Plot for sale in Saroj Enclave, Jamalpur Kalan, Haridwar. 1000 sq 
     <div class="price-tags">
       <span class="price-tag good">✅ Registry Done</span>
       <span class="price-tag good">🧭 North Facing</span>
-      <span class="price-tag">🛣️ 30 Ft Road</span>
-      <span class="price-tag">💧 Near Chhoti nahar</span>
-      <span class="price-tag">🏗️ Developing Area</span>
-      <span class="price-tag">🛣️ Both side Road on Chhoti nahar</span>
-    </div>
+      <span class="price-tag">🛣️ 20 Ft Road</span>
+      <span class="price-tag">💧 Near Chhoti nahar Pulia and Sangam Vihar, Phase-2</span>
+      <span class="price-tag">🏗️ Fast Developing Area</span>
+      </div>
   </div>
 
   <!-- MAIN CONTENT -->
@@ -220,7 +219,7 @@ description: "Plot for sale in Saroj Enclave, Jamalpur Kalan, Haridwar. 1000 sq 
           <div class="play-btn">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="#000"><path d="M8 5v14l11-7z"/></svg>
           </div>
-          <div class="video-label">Click to play — Highway to Property walkthrough</div>
+          <div class="video-label">Click to play — Jamalpur Sitapur Road to Property walkthrough</div>
         </div>
         <!-- REPLACE YOUR_YOUTUBE_VIDEO_ID with actual ID after uploading -->
         <iframe class="video-embed" id="videoEmbed"
@@ -238,13 +237,13 @@ description: "Plot for sale in Saroj Enclave, Jamalpur Kalan, Haridwar. 1000 sq 
           <div class="detail-item"><div class="detail-label">Price</div><div class="detail-value">₹22,00,000</div></div>
           <div class="detail-item"><div class="detail-label">Our Price/Sq.Ft.</div><div class="detail-value">₹2,200 (Neg.)</div></div>
           <div class="detail-item"><div class="detail-label">Facing</div><div class="detail-value good">North ✅</div></div>
-          <div class="detail-item"><div class="detail-label">Front Road</div><div class="detail-value">25 Feet (Paved)</div></div>
+          <div class="detail-item"><div class="detail-label">Front Road</div><div class="detail-value">25 Feet </div></div>
           <div class="detail-item"><div class="detail-label">Back Road</div><div class="detail-value good">40 Feet ✅</div></div>
           <div class="detail-item"><div class="detail-label">Registry</div><div class="detail-value good">Done ✅</div></div>
           <div class="detail-item"><div class="detail-label">Property Type</div><div class="detail-value">Residential Plot</div></div>
           <div class="detail-item"><div class="detail-label">Colony</div><div class="detail-value">Saroj Enclave</div></div>
-          <div class="detail-item"><div class="detail-label">Area</div><div class="detail-value">Jamalpur Kalan, Jwalapur</div></div>
-          <div class="detail-item"><div class="detail-label">Highway</div><div class="detail-value">3 km from Haridwar-Laksar</div></div>
+          <div class="detail-item"><div class="detail-label">Area</div><div class="detail-value">Jamalpur Kalan, Haridwar</div></div>
+          <div class="detail-item"><div class="detail-label">Highway</div><div class="detail-value">Near Sangam Vihar Phase-2, Before Flyover on Chhoti nahar pulia</div></div>
           <div class="detail-item"><div class="detail-label">Market Rate</div><div class="detail-value" style="text-decoration:line-through;color:var(--muted)">₹2,500/sq.ft.</div></div></div><div class="details-grid" style="margin-top:10px"><div class="detail-item"><div class="detail-label">Ownership</div><div class="detail-value good">Freehold ✅</div></div>
         </div>
       </div>
@@ -254,13 +253,13 @@ description: "Plot for sale in Saroj Enclave, Jamalpur Kalan, Haridwar. 1000 sq 
         <div class="details-title">⭐ Key Features</div>
         <div class="features-grid">
           <div class="feature-item"><span class="feature-icon">🧭</span>North facing — most preferred for Vastu and resale value</div>
-          <div class="feature-item"><span class="feature-icon">🛣️</span>25 ft front road + 40 ft back road — excellent access from both sides</div>
+          <div class="feature-item"><span class="feature-icon">🛣️</span>25 ft front + 40 ft back</div>
           <div class="feature-item"><span class="feature-icon">✅</span>Registry done — zero legal risk, immediate construction possible</div>
           <div class="feature-item"><span class="feature-icon">💧</span>Near Chhoti Nahar — natural water source, green surroundings</div>
-          <div class="feature-item"><span class="feature-icon">🏗️</span>Active development nearby — houses already built around plot</div>
+          <div class="feature-item"><span class="feature-icon">🏗️</span>Fast Devolping Area, House already built around</div>
           <div class="feature-item"><span class="feature-icon">💰</span>Market rate ₹2,500/sqft — our price ₹2,200/sqft — save ₹3 lakh</div>
           <div class="feature-item"><span class="feature-icon">📍</span>Saroj Enclave, Jamalpur Kalan — peaceful residential colony</div>
-          <div class="feature-item"><span class="feature-icon">🚗</span>Jamalpur Road connectivity — easy highway access both sides</div>
+          <div class="feature-item"><span class="feature-icon">🚗</span>Jamalpur Sitapur Road connectivity — easy highway access both sides</div>
         </div>
       </div>
 
@@ -366,7 +365,7 @@ const EMAIL    = "admin@ai360trading.in";
 
 // Photo gallery
 const photos = [
-  { src: "/public/image/property1.png", alt: "30 ft road in front of plot" },
+  { src: "/public/image/property1.png", alt: "20 ft road in front of plot" },
   { src: "/public/image/property2.png", alt: "Colony view — active construction nearby" },
   { src: "/public/image/property3.png", alt: "Chhoti Nahar — canal nearby" },
   { src: "/public/image/property4.png", alt: "Jamalpur Road — highway connectivity" },
