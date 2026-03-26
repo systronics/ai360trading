@@ -1,5 +1,5 @@
 # AI360Trading — Complete System Documentation
-> Last updated: March 2026
+> Last updated: March 2026 (Updated by Claude — full system review session)
 > Read this file before making ANY changes to this project.
 
 ---
@@ -27,13 +27,13 @@ AI360Trading is a **fully automated content + trading signal system** running on
 | File | Purpose | Called by |
 |---|---|---|
 | `trading_bot.py` | Stock signal scanner — Nifty200 stocks | `main.yml` |
-| `generate_analysis.py` | Part 1: 12-slide market analysis video (~15 min) | `daily-videos.yml` |
-| `generate_education.py` | Part 2: Education video (~12 min) | `daily-videos.yml` |
+| `generate_analysis.py` | Part 1: 8-slide market analysis video + YouTube upload | `daily-videos.yml` |
+| `generate_education.py` | Part 2: Education video + YouTube upload + links Part 1 | `daily-videos.yml` |
 | `generate_shorts.py` | Short 2 (trade setup) + Short 3 (market pulse) | `daily-shorts.yml` |
 | `generate_articles.py` | 4 daily market articles pushed to `_posts/` | `daily-articles.yml` |
-| `generate_reel.py` | ZENO 60s Hinglish moral reel with Ken Burns effect | `daily_reel.yml` |
+| `generate_reel.py` | ZENO 60s Hinglish moral reel with 3D Disney effect + Groq | `daily_reel.yml` |
 | `upload_youtube.py` | Uploads ZENO reel to YouTube Shorts | `daily_reel.yml` |
-| `upload_facebook.py` | Uploads ZENO reel video to Facebook Page | `daily_reel.yml` |
+| `upload_facebook.py` | Uploads ZENO reel video to Facebook Page + posts articles | `daily_reel.yml` |
 | `upload_instagram.py` | Saves Instagram caption to artifact for manual posting | `daily_reel.yml` |
 | `content_calendar.py` | Weekly education topic rotation (Mon–Fri topics) | `generate_education.py` |
 | `requirements.txt` | Python dependencies for all scripts | all workflows |
@@ -42,7 +42,8 @@ AI360Trading is a **fully automated content + trading signal system** running on
 ### Do NOT delete
 - `content_calendar.py` — `generate_education.py` imports it directly
 - `requirements.txt` — all workflows depend on it
-- `public/image/` — ZENO character images used by `generate_reel.py` and `generate_shorts.py`
+- `public/image/` — ZENO character images used by `generate_reel.py`
+- `public/music/` — background music files (bgmusic1.mp3, bgmusic2.mp3, bgmusic3.mp3)
 - `SYSTEM.md` — project memory for AI assistants and developers
 
 ---
@@ -57,47 +58,50 @@ AI360Trading is a **fully automated content + trading signal system** running on
 - **Timeout:** 4 minutes per run
 
 ### `daily-videos.yml` — Two YouTube Videos
-- **Weekday cron:** `30 0 * * 1-5` = 6:00 AM IST Mon–Fri
-- **Weekend cron:** `30 3 * * 6,0` = 9:00 AM IST Sat–Sun
+- **Weekday cron:** `0 2 * * 1-5` = 7:30 AM IST Mon–Fri
+- **Weekend cron:** `0 4 * * 6,0` = 9:30 AM IST Sat–Sun
 - **Sequence:**
-  1. `generate_analysis.py` → 12-slide market video → uploads to YouTube → saves `output/analysis_video_id.txt`
-  2. `generate_education.py` → education video → uploads to YouTube → links back to Part 1 → saves `output/education_video_id.txt`
-  3. Facebook share step → posts both video links to Page + Group
-- **Weekend mode:** No live market data — evergreen educational content
+  1. `generate_analysis.py` → 8-slide market video → uploads to YouTube → saves `output/analysis_video_id.txt` + `output/analysis_meta_{today}.json`
+  2. `generate_education.py` → education video → uploads to YouTube → links back to Part 1 → saves `output/education_video_id.txt` + `output/education_meta_{today}.json`
+  3. Facebook share step → reads both meta JSONs → posts video links to Page + Group
+- **Weekend mode:** Evergreen educational content — no live market data
 - **Timeout:** 90 minutes
+- **Cleanup:** Removes temp PNGs/MP3s only — keeps video ID files for shorts
 
 ### `daily-shorts.yml` — Two YouTube Shorts (Short 2 + Short 3)
 - **Weekday cron:** `0 6 * * 1-5` = 11:30 AM IST Mon–Fri
 - **Weekend cron:** `0 8 * * 6,0` = 1:30 PM IST Sat–Sun
 - **Runs after:** `daily-videos.yml` so `output/analysis_video_id.txt` exists
 - **Sequence:**
-  1. Fetch live market data (Nifty, BTC, Gold, S&P500, USD/INR)
-  2. Short 2 — trade setup vertical card + Hinglish voice → upload YouTube Shorts
-  3. Short 3 — market pulse vertical card + Hinglish voice → upload YouTube Shorts
+  1. Fetch live market data (Nifty, BTC, Gold, S&P500, USD/INR via yfinance)
+  2. Short 2 — trade setup vertical card + `hi-IN-MadhurNeural` voice → upload YouTube Shorts
+  3. Short 3 — market pulse vertical card + `hi-IN-SwaraNeural` voice → upload YouTube Shorts
   4. Facebook share → both short links posted to Page + Group
+- **No ZENO in shorts** — professional card design only
 - **Timeout:** 30 minutes
 
 ### `daily-articles.yml` — 4 Articles
-- **Weekday cron:** `45 1 * * 1-5` = 7:15 AM IST Mon–Fri
-- **Weekend cron:** `30 4 * * 6,0` = 10:00 AM IST Sat–Sun
+- **Weekday cron:** `30 4 * * 1-5` = 10:00 AM IST Mon–Fri
+- **Weekend cron:** `0 6 * * 6,0` = 11:30 AM IST Sat–Sun
 - **Sequence:**
   1. `generate_articles.py` → pushes articles to `_posts/` folder
-  2. Facebook share step → posts article links to Page + Group
+  2. Git commit + push to master
+  3. Facebook share step → posts article links to Page + Group
 - **Weekend mode:** Educational/beginner topics instead of market analysis
 
 ### `daily_reel.yml` — ZENO Reel (Short 1)
-- **Weekday cron:** `0 3 * * 1-5` = 8:30 AM IST Mon–Fri
-- **Weekend cron:** `30 5 * * 6,0` = 11:00 AM IST Sat–Sun
+- **Daily cron:** `0 15 * * *` = 8:30 PM IST every day (best time for global audience)
 - **Sequence:**
-  1. `generate_reel.py` → Groq script → edge-tts voice → Ken Burns video → saves `output/reel_YYYYMMDD.mp4`
+  1. `generate_reel.py` → Groq script → edge-tts voice → 3D Disney ZENO reel → saves `output/reel_{today}.mp4` + `output/final_zeno_reel.mp4` + `output/meta_{today}.json`
   2. `upload_youtube.py` → uploads to YouTube Shorts
-  3. `upload_facebook.py` → uploads reel to Facebook Page
+  3. `upload_facebook.py` → uploads reel to Facebook Page + posts articles
   4. `upload_instagram.py` → saves caption to `output/instagram_caption.txt`
-  5. Artifact upload → `reel_*.mp4` + `instagram_caption.txt` downloadable from Actions UI
+  5. Artifact upload → `reel_*.mp4` + `meta_*.json` downloadable from Actions UI
 - **Weekend mode:** Emotional/life lesson topics, no market data
 - **Timeout:** 45 minutes
 
 ### `keepalive.yml` — Repository Keepalive
+- **Cron:** `30 18 * * 0-4` = 11:59 PM IST Sun–Thu
 - Prevents GitHub from disabling scheduled workflows on inactive repos
 
 ---
@@ -107,24 +111,24 @@ AI360Trading is a **fully automated content + trading signal system** running on
 ### Monday to Friday (market days)
 | Time IST | Workflow | Content | Posts to |
 |---|---|---|---|
-| 6:00 AM | daily-videos | Part 1: Market analysis video ~15 min | YouTube |
-| 6:20 AM | daily-videos | Part 2: Education video ~12 min | YouTube |
-| 6:35 AM | daily-videos | Both video links shared | Facebook Page + Group |
-| 7:15 AM | daily-articles | 4 market articles + Facebook share | Website + Facebook |
-| 8:30 AM | daily_reel | Short 1: ZENO 60s moral reel | YouTube Shorts + Facebook + Instagram caption |
-| 11:30 AM | daily-shorts | Short 2: Trade setup clip + Short 3: Market pulse | YouTube Shorts + Facebook |
+| 7:30 AM | daily-videos | Part 1: Market analysis video ~12 min | YouTube |
+| 7:45 AM | daily-videos | Part 2: Education video ~12 min | YouTube |
+| 8:00 AM | daily-videos | Both video links shared | Facebook Page + Group |
+| 10:00 AM | daily-articles | 4 market articles + Facebook share | Website + Facebook |
+| 11:30 AM | daily-shorts | Short 2: Trade setup + Short 3: Market pulse | YouTube Shorts + Facebook |
+| 8:30 PM | daily_reel | Short 1: ZENO 60s moral reel | YouTube Shorts + Facebook + Instagram caption |
 
 ### Saturday and Sunday (market closed)
 | Time IST | Workflow | Content |
 |---|---|---|
-| 9:00 AM | daily-videos | Educational videos — no live market data |
-| 10:00 AM | daily-articles | Educational/beginner articles |
-| 11:00 AM | daily_reel | Short 1: Emotional/life lesson ZENO reel |
+| 9:30 AM | daily-videos | Educational videos — no live market data |
+| 11:30 AM | daily-articles | Educational/beginner articles |
 | 1:30 PM | daily-shorts | Short 2 + Short 3: Educational market content |
+| 8:30 PM | daily_reel | Short 1: Emotional/life lesson ZENO reel |
 
 ### Daily content totals
-- 2 full YouTube videos (~27 min total)
-- 3 YouTube Shorts (~2.5 min total)
+- 2 full YouTube videos
+- 3 YouTube Shorts
 - 4 website articles
 - 5 Facebook posts (2 video links + 1 article + 1 reel + 1 shorts)
 - 1 Instagram caption (manual posting)
@@ -156,13 +160,12 @@ AI360Trading is a **fully automated content + trading signal system** running on
 | `TELEGRAM_CHAT_ID` | Free channel ID (ai360trading) | main.yml |
 | `CHAT_ID_ADVANCE` | Advance channel ID (Rs499/month) | main.yml |
 | `CHAT_ID_PREMIUM` | Premium bundle channel ID | main.yml |
-| `GCP_SERVICE_ACCOUNT_JSON` | Google Cloud service account for Sheets access | main.yml (trading bot) |
+| `GCP_SERVICE_ACCOUNT_JSON` | Google Cloud service account for Sheets access + Google Indexing API | main.yml, generate_articles.py |
 | `DHAN_API_KEY` | Dhan broker API key | trading_bot.py |
 | `DHAN_API_SECRET` | Dhan broker secret | trading_bot.py |
 | `DHAN_CLIENT_ID` | Dhan client ID | trading_bot.py |
 | `DHAN_PIN` | Dhan PIN | trading_bot.py |
 | `DHAN_TOTP_KEY` | Dhan TOTP key | trading_bot.py |
-| `GH_TOKEN` | GitHub token for repo write access | daily-articles.yml |
 
 ### Important: META_ACCESS_TOKEN expires every 60 days
 Refresh process:
@@ -188,108 +191,101 @@ Refresh process:
 | `zeno_angry.png` | Angry | Strong warning topics |
 | `zeno_greed.png` | Greedy | Money/greed related topics |
 
-### Story arc logic in generate_reel.py (3 images per reel)
-Every reel uses 3 ZENO images — never random, always tells a story:
-- Image 1 (hook): matches script emotion
-- Image 2 (middle/lesson): related reflective emotion
-- Image 3 (CTA/end): always positive — `zeno_celebrating` or `zeno_happy`
+### ZENO is ONLY used in generate_reel.py
+- **NOT in generate_shorts.py** — shorts are professional market data cards
+- **NOT in generate_education.py** — education videos are slide-based
+- **NOT in generate_analysis.py** — analysis videos are professional slides
 
-Example for sad topic: `zeno_sad → zeno_thinking → zeno_celebrating`
+### 3D Disney Effect (generate_reel.py)
+- ZENO scaled to 85% screen width for hero impact
+- GaussianBlur shadow layer for 3D depth effect
+- Single emotion per reel matching Groq script sentiment
+- Cinematic dark blue gradient background
 
-### ZENO in generate_shorts.py
-- Short 2: uses `zeno_happy` or `zeno_celebrating` (bullish) / `zeno_sad` or `zeno_fear` (bearish)
-- Short 3: same mood-based selection from `public/image/`
-
-### Ken Burns animation (generate_reel.py only)
-Each image gets smooth zoom or pan:
-- Segment 1: zoom_in
-- Segment 2: pan_left
-- Segment 3: zoom_out
-
----
-
-## 7. Pipeline Diagrams
-
-### ZENO Reel (Short 1) Pipeline
-```
-GitHub Actions trigger (8:30 AM IST)
-→ Weekend detection (datetime.weekday() >= 5)
-→ Groq API → Hinglish script (weekday: market+moral, weekend: emotional)
-→ edge-tts → Hindi voice (hi-IN-SwaraNeural)
-→ select_zeno_images() → 3 images based on emotion + market mood
-→ make_ken_burns() → zoom/pan effect on each image
-→ moviepy → background + ZENO segments + voice + subtitles + title
-→ output/reel_YYYYMMDD.mp4
-→ upload_youtube.py → YouTube Shorts
-→ upload_facebook.py → Facebook Page Reel
-→ upload_instagram.py → saves instagram_caption.txt
-```
-
-### Shorts 2 + 3 Pipeline
-```
-GitHub Actions trigger (11:30 AM IST)
-→ Read output/analysis_video_id.txt (link to today's Part 1)
-→ fetch_market() → Nifty + BTC + Gold + S&P500 + USD/INR (Yahoo Finance)
-→ Short 2:
-   make_short2_frame() → vertical 1080x1920 trade setup card (PIL)
-   make_short2_script() → Groq Hinglish trade setup script
-   edge-tts → hi-IN-SwaraNeural voice
-   moviepy → short2_YYYYMMDD.mp4
-   YouTube API → upload as Short
-→ Short 3:
-   make_short3_frame() → vertical 1080x1920 market pulse card (PIL)
-   make_short3_script() → Groq Hinglish market pulse script
-   edge-tts → hi-IN-MadhurNeural voice (different voice = variety)
-   moviepy → short3_YYYYMMDD.mp4
-   YouTube API → upload as Short
-→ Facebook → share both short links to Page + Group
-```
-
-### Analysis + Education Videos Pipeline
-```
-GitHub Actions trigger (6:00 AM IST)
-→ generate_analysis.py:
-   fetch_all() → Nifty + BankNifty + 9 global + Options + FII/DII
-   Groq → 12 analysis slides JSON
-   PIL → render each slide 1920x1080 PNG
-   edge-tts → voice for each slide
-   moviepy → analysis_video.mp4 (~15 min)
-   YouTube API → upload → save analysis_video_id.txt
-   PIL → custom thumbnail
-→ generate_education.py:
-   content_calendar.py → get today's topic
-   read analysis_video_id.txt → link Part 1
-   Groq → education slides JSON
-   PIL → render slides
-   edge-tts → voice
-   moviepy → education_video.mp4 (~12 min)
-   YouTube API → upload → update Part 1 with Part 2 link
-→ Facebook → share both video links
-```
+### Background Music (public/music/)
+Day-based rotation used by generate_reel.py, generate_analysis.py, generate_education.py, generate_shorts.py:
+- Mon/Thu → bgmusic1.mp3
+- Tue/Fri → bgmusic2.mp3
+- Wed/Sat → bgmusic3.mp3
+- Sun → bgmusic1.mp3
+- Volume: 7-8% so voice is always clear
 
 ---
 
-## 8. Known Fixes Applied
+## 7. Output Files — What Each Script Saves
+
+### generate_reel.py saves:
+- `output/final_zeno_reel.mp4` — upload_youtube.py reads this
+- `output/reel_{YYYYMMDD}.mp4` — upload_facebook.py reads this (glob: reel_*.mp4)
+- `output/meta_{YYYYMMDD}.json` — upload_facebook.py + upload_instagram.py read this
+
+### meta_{today}.json fields:
+```json
+{
+  "title": "ZENO Ki Baat - TITLE",
+  "description": "...",
+  "sentiment": "fearful/positive/neutral/etc",
+  "hashtags": "#ZenoKiBaat ...",
+  "public_video_url": ""
+}
+```
+
+### generate_analysis.py saves:
+- `output/analysis_video.mp4`
+- `output/analysis_video_id.txt` — generate_education.py + generate_shorts.py read this
+- `output/analysis_meta_{YYYYMMDD}.json` — daily-videos.yml Facebook step reads this
+
+### generate_education.py saves:
+- `output/education_video.mp4`
+- `output/education_video_id.txt`
+- `output/education_meta_{YYYYMMDD}.json` — daily-videos.yml Facebook step reads this
+
+### generate_shorts.py saves:
+- `output/short2_{YYYYMMDD}.mp4`
+- `output/short3_{YYYYMMDD}.mp4`
+
+---
+
+## 8. Voice System
+
+| Script | Voice | Style |
+|---|---|---|
+| `generate_reel.py` | `hi-IN-SwaraNeural` | Female Hinglish — warm kid-friendly |
+| `generate_analysis.py` | `hi-IN-SwaraNeural` | Female Hinglish — market analysis |
+| `generate_education.py` | `hi-IN-SwaraNeural` | Female Hinglish — education |
+| `generate_shorts.py` Short 2 | `hi-IN-MadhurNeural` | Male Hinglish — authoritative trade setup |
+| `generate_shorts.py` Short 3 | `hi-IN-SwaraNeural` | Female Hinglish — energetic market pulse |
+
+---
+
+## 9. Known Fixes Applied
 
 | Fix | Where | Why |
 |---|---|---|
-| `PIL.Image.ANTIALIAS = PIL.Image.LANCZOS` | generate_reel.py, generate_shorts.py | Pillow 10+ removed ANTIALIAS |
+| `PIL.Image.ANTIALIAS = PIL.Image.LANCZOS` | all generate scripts | Pillow 10+ removed ANTIALIAS |
 | `imageio==2.9.0` pinned | requirements.txt | moviepy 1.0.3 breaks with newer imageio |
 | `decorator==4.4.2` pinned | requirements.txt | moviepy 1.0.3 breaks with newer decorator |
-| ImageMagick policy fix | daily_reel.yml system deps | TextClip fails without this |
-| `YOUTUBE_CREDENTIALS` single JSON | upload_youtube.py, generate_shorts.py | Repo uses one JSON not 3 separate keys |
-| `TELEGRAM_CHAT_ID` not `TELEGRAM_ADMIN_CHAT_ID` | all files | Match actual secret name in repo |
-| `select_zeno_images` (plural) | generate_reel.py | Returns list of 3 images for Ken Burns arc |
+| `Pillow>=10.3.0` | requirements.txt | Old Pillow==9.5.0 was breaking LANCZOS fix |
+| ImageMagick policy fix | all workflows | TextClip fails without this |
+| `YOUTUBE_CREDENTIALS` single JSON | all upload scripts | Repo uses one JSON not 3 separate keys |
+| `TELEGRAM_CHAT_ID` not `TELEGRAM_ADMIN_CHAT_ID` | main.yml | Match actual secret name in repo |
+| `meta_{today}.json` saved by generate_reel.py | generate_reel.py | upload_facebook + upload_instagram were failing — no meta file |
+| `reel_{today}.mp4` saved by generate_reel.py | generate_reel.py | upload_facebook glob reel_*.mp4 was failing |
+| YouTube upload inside generate scripts | generate_analysis.py, generate_education.py | analysis_video_id.txt now saved immediately after upload |
+| ZENO removed from generate_education.py | generate_education.py | ZENO is only for reels — education uses slides |
+| Facebook share step implemented | daily-videos.yml | Was placeholder comment before — now fully working |
+| Output cleanup fixed | daily-videos.yml | Now only removes temp files — keeps video ID for shorts |
+| daily_reel.yml schedule fixed | daily_reel.yml | Was running twice daily — now once at 8:30 PM IST |
 
 ---
 
-## 9. Platform Details
+## 10. Platform Details
 
 ### YouTube
 - Short 1 (ZENO reel) → **Shorts** (vertical 1080x1920, ~60s)
 - Short 2 (trade setup) → **Shorts** (vertical 1080x1920, ~45s)
 - Short 3 (market pulse) → **Shorts** (vertical 1080x1920, ~35s)
-- Analysis video → **regular video** (horizontal 1920x1080, ~15 min)
+- Analysis video → **regular video** (horizontal 1920x1080, ~12 min)
 - Education video → **regular video** (horizontal 1920x1080, ~12 min)
 - Channel: `@ai360trading`
 - Auth: `YOUTUBE_CREDENTIALS` JSON secret (OAuth2 refresh token — never expires)
@@ -316,10 +312,11 @@ GitHub Actions trigger (6:00 AM IST)
 - Static Jekyll site on GitHub Pages
 - Articles auto-pushed to `_posts/` by `generate_articles.py`
 - RSS: `https://ai360trading.in/feed/`
+- Google Indexing API: new articles submitted immediately after publish
 
 ---
 
-## 10. Monetization Status and Roadmap
+## 11. Monetization Status and Roadmap
 
 ### Current status
 - YouTube Partner Program: working toward 1,000 subs + 4,000 watch hours
@@ -338,7 +335,7 @@ GitHub Actions trigger (6:00 AM IST)
 
 ---
 
-## 11. Future Roadmap (Phase 3+)
+## 12. Future Roadmap (Phase 3+)
 
 - [ ] Twitter/X auto-post — daily Nifty + BTC + reel link
 - [ ] Reddit auto-post — share articles to trading communities
@@ -352,23 +349,23 @@ GitHub Actions trigger (6:00 AM IST)
 
 ---
 
-## 12. Quick Reference — All Cron Times
+## 13. Quick Reference — All Cron Times
 
 | Cron expression | UTC | IST | Days | Workflow |
 |---|---|---|---|---|
-| `30 0 * * 1-5` | 00:30 | 6:00 AM | Mon-Fri | daily-videos (analysis + education) |
-| `30 3 * * 6,0` | 03:30 | 9:00 AM | Sat-Sun | daily-videos (educational) |
-| `45 1 * * 1-5` | 01:45 | 7:15 AM | Mon-Fri | daily-articles |
-| `30 4 * * 6,0` | 04:30 | 10:00 AM | Sat-Sun | daily-articles (educational) |
-| `0 3 * * 1-5` | 03:00 | 8:30 AM | Mon-Fri | daily_reel (ZENO Short 1) |
-| `30 5 * * 6,0` | 05:30 | 11:00 AM | Sat-Sun | daily_reel (emotional) |
+| `0 2 * * 1-5` | 02:00 | 7:30 AM | Mon-Fri | daily-videos (analysis + education) |
+| `0 4 * * 6,0` | 04:00 | 9:30 AM | Sat-Sun | daily-videos (educational) |
+| `30 4 * * 1-5` | 04:30 | 10:00 AM | Mon-Fri | daily-articles |
+| `0 6 * * 6,0` | 06:00 | 11:30 AM | Sat-Sun | daily-articles (educational) |
 | `0 6 * * 1-5` | 06:00 | 11:30 AM | Mon-Fri | daily-shorts (Short 2 + Short 3) |
 | `0 8 * * 6,0` | 08:00 | 1:30 PM | Sat-Sun | daily-shorts (educational) |
+| `0 15 * * *` | 15:00 | 8:30 PM | Every day | daily_reel (ZENO Short 1) |
+| `30 18 * * 0-4` | 18:30 | 11:59 PM | Sun-Thu | keepalive |
 | `*/5 2-10 * * 1-5` | every 5 min | 8:15-4:30 IST | Mon-Fri | AlgoTradeBot |
 
 ---
 
-## 13. How to Test Each Workflow
+## 14. How to Test Each Workflow
 
 1. Go to GitHub repo → Actions tab
 2. Click workflow name on left sidebar
@@ -377,15 +374,21 @@ GitHub Actions trigger (6:00 AM IST)
 5. Click any red step → expand logs → find error message
 
 ### Recommended test order (first time or after changes)
-1. `daily_reel.yml` — simplest, tests ZENO + YouTube + Facebook
-2. `daily-shorts.yml` — tests Short 2 + Short 3
+1. `daily_reel.yml` — simplest, tests ZENO + YouTube + Facebook + meta fix
+2. `daily-shorts.yml` — tests Short 2 + Short 3 market data
 3. `daily-articles.yml` — tests article generation + Facebook share
 4. `daily-videos.yml` — longest (~30 min), test last
 5. `main.yml` (AlgoTradeBot) — already running, do not break
 
+### What to check in logs
+- generate_reel.py: `✅ Meta saved: meta_YYYYMMDD.json` + `✅ Video saved`
+- upload_youtube.py: `✅ Success! Video ID: xxxxx`
+- upload_facebook.py: `✅ Facebook Reel Published!`
+- upload_instagram.py: `✅ Caption saved for manual use`
+
 ---
 
-## 14. How to Use This File with Any AI Assistant
+## 15. How to Use This File with Any AI Assistant
 
 Paste this prompt to any AI:
 > "Read the SYSTEM.md file in my GitHub repo ai360trading.
@@ -400,3 +403,4 @@ The AI will understand the full system instantly. Always update this file after 
 *Complete AI360Trading automation system — built with Claude AI, March 2026.*
 *9 pieces of content daily. Zero cost. Fully automatic.*
 *The journey from zero to earning — documented here.*
+*Last full system review: March 2026 — all files checked and fixed by Claude.*
