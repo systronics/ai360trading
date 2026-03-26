@@ -199,13 +199,13 @@ description: "Plot for sale in Saroj Enclave, Jamalpur Kalan, Haridwar. 1000 sq 
       <!-- PHOTO GALLERY -->
       <div class="gallery-wrap">
         <div class="gallery-main">
-          <img id="mainPhoto" src="/public/image/property1.png" alt="Plot view — 30ft road in front" onerror="this.style.background='#1a1a2e';this.style.minHeight='200px'">
+          <img id="mainPhoto" src="/public/image/property1.png" alt="Plot view — 20ft road in front" onerror="this.style.background='#1a1a2e';this.style.minHeight='200px'">
           <button class="gallery-nav gallery-prev" onclick="changePhoto(-1)">&#8249;</button>
           <button class="gallery-nav gallery-next" onclick="changePhoto(1)">&#8250;</button>
           <div class="gallery-counter" id="photoCounter">1 / 4</div>
         </div>
         <div class="gallery-thumbs">
-          <div class="gallery-thumb active" onclick="setPhoto(0)"><img src="/public/image/property1.png" alt="Front road view" onerror="this.parentElement.style.background='#f1ede4'"></div>
+          <div class="gallery-thumb active" onclick="setPhoto(0)"><img src="/public/image/property1.png" alt="Front view" onerror="this.parentElement.style.background='#f1ede4'"></div>
           <div class="gallery-thumb" onclick="setPhoto(1)"><img src="/public/image/property2.png" alt="Colony view" onerror="this.parentElement.style.background='#f1ede4'"></div>
           <div class="gallery-thumb" onclick="setPhoto(2)"><img src="/public/image/property3.png" alt="Canal nearby" onerror="this.parentElement.style.background='#f1ede4'"></div>
           <div class="gallery-thumb" onclick="setPhoto(3)"><img src="/public/image/property4.png" alt="Jamalpur Road" onerror="this.parentElement.style.background='#f1ede4'"></div>
@@ -237,8 +237,8 @@ description: "Plot for sale in Saroj Enclave, Jamalpur Kalan, Haridwar. 1000 sq 
           <div class="detail-item"><div class="detail-label">Price</div><div class="detail-value">₹22,00,000</div></div>
           <div class="detail-item"><div class="detail-label">Our Price/Sq.Ft.</div><div class="detail-value">₹2,200 (Neg.)</div></div>
           <div class="detail-item"><div class="detail-label">Facing</div><div class="detail-value good">North ✅</div></div>
-          <div class="detail-item"><div class="detail-label">Front Road</div><div class="detail-value">25 Feet </div></div>
-          <div class="detail-item"><div class="detail-label">Back Road</div><div class="detail-value good">40 Feet ✅</div></div>
+          <div class="detail-item"><div class="detail-label">Front </div><div class="detail-value">25 Feet </div></div>
+          <div class="detail-item"><div class="detail-label">Back </div><div class="detail-value good">40 Feet ✅</div></div>
           <div class="detail-item"><div class="detail-label">Registry</div><div class="detail-value good">Done ✅</div></div>
           <div class="detail-item"><div class="detail-label">Property Type</div><div class="detail-value">Residential Plot</div></div>
           <div class="detail-item"><div class="detail-label">Colony</div><div class="detail-value">Saroj Enclave</div></div>
