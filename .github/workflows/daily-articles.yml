@@ -1,17 +1,14 @@
 name: Daily AI Market Intelligence Report
-
 on:
   workflow_dispatch:
   schedule:
     - cron: "30 4 * * 1-5"   # 10:00 AM IST Mon-Fri
     - cron: "0 6 * * 6,0"    # 11:30 AM IST Sat-Sun
-
 jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-
     steps:
       - name: Checkout master
         uses: actions/checkout@v4
@@ -22,19 +19,18 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+          cache: "pip"
 
       - name: Install dependencies
         run: |
-          pip install --upgrade pip
-          pip install \
-            groq pytz requests pytrends python-dotenv certifi \
-            cryptography
+          python -m pip install --upgrade pip
+          pip install --force-reinstall moviepy==1.0.3
+          pip install -r requirements.txt
 
       - name: Run AI Article Generator
         env:
           GROQ_API_KEY:             ${{ secrets.GROQ_API_KEY }}
-          GCP_SERVICE_ACCOUNT_JSON:  ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
-          IS_WEEKEND: ${{ (github.event.schedule == '0 6 * * 6,0') && 'true' || 'false' }}
+          GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
         run: python generate_articles.py
 
       - name: Commit and Push articles
@@ -54,14 +50,12 @@ jobs:
           python - <<'EOF'
           import os, requests
           from datetime import datetime
-
           META_TOKEN  = os.environ.get("META_ACCESS_TOKEN", "")
           PAGE_ID     = os.environ.get("FACEBOOK_PAGE_ID", "")
           GROUP_ID    = os.environ.get("FACEBOOK_GROUP_ID", "")
           GRAPH       = "https://graph.facebook.com/v21.0"
           weekend     = datetime.now().weekday() >= 5
           today_str   = datetime.now().strftime("%d %B %Y")
-
           if weekend:
               msg = (
                   f"📚 Weekend Special — {today_str}\n\n"
@@ -87,14 +81,16 @@ jobs:
                   f"🔔 Telegram: t.me/ai360trading\n"
                   f"#StockMarket #Nifty #Trading #ai360trading #India"
               )
-
           for entity_id in [PAGE_ID, GROUP_ID]:
               if META_TOKEN and entity_id:
                   try:
-                      r = requests.post(f"{GRAPH}/{entity_id}/feed",
-                          data={"message": msg, "link": "https://ai360trading.in", "access_token": META_TOKEN}, timeout=15)
-                      label = "Page" if entity_id==PAGE_ID else "Group"
-                      print(f"✅ {label}: {r.json().get('id','error')}")
+                      r = requests.post(
+                          f"{GRAPH}/{entity_id}/feed",
+                          data={"message": msg, "link": "https://ai360trading.in", "access_token": META_TOKEN},
+                          timeout=15
+                      )
+                      label = "Page" if entity_id == PAGE_ID else "Group"
+                      print(f"✅ {label}: {r.json().get('id', 'error')}")
                   except Exception as e:
                       print(f"❌ Post failed: {e}")
           EOF
