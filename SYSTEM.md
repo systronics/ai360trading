@@ -1,5 +1,5 @@
 # AI360Trading — Complete System Documentation
-> Last updated: March 2026 (Updated by Claude — full system review session)
+> Last updated: March 2026 (Updated by Claude — full holiday/weekend mode integration)
 > Read this file before making ANY changes to this project.
 
 ---
@@ -9,7 +9,7 @@
 AI360Trading is a **fully automated content + trading signal system** running on GitHub Actions (free, public repo = unlimited minutes).
 
 **What it does every day — automatically:**
-- Posts stock buy/sell signals to Telegram (trading bot)
+- Posts stock buy/sell signals to Telegram (trading bot) — market days only
 - Creates and uploads 2 YouTube full videos (market analysis + education)
 - Creates and uploads 3 YouTube Shorts (ZENO reel + trade setup + market pulse)
 - Writes and publishes 4 articles to website
@@ -18,6 +18,19 @@ AI360Trading is a **fully automated content + trading signal system** running on
 
 **Total daily content: 9 pieces — fully automatic**
 **Only manual task:** Instagram Reels posting (~30 seconds/day)
+
+### Content Mode System (NEW March 2026)
+All scripts now support 3 content modes via `CONTENT_MODE` env var:
+- `market` → Normal weekday — live data, trading signals, market analysis
+- `weekend` → Saturday/Sunday — educational, evergreen, global audience content
+- `holiday` → Indian market holiday — motivational, savings, storytelling content
+
+**On holidays and weekends:**
+- ❌ No trading signals — AlgoTradeBot skips entirely
+- ❌ No midnight Telegram messages (push trigger removed from main.yml)
+- ✅ All 9 content pieces still publish — educational/motivational topics
+- ✅ Facebook posts say "Market band hai — time to learn!"
+- ✅ Content optimised for global audience: US, UK, Brazil, India
 
 ---
 
@@ -35,12 +48,14 @@ AI360Trading is a **fully automated content + trading signal system** running on
 | `upload_youtube.py` | Uploads ZENO reel to YouTube Shorts | `daily_reel.yml` |
 | `upload_facebook.py` | Uploads ZENO reel video to Facebook Page + posts articles | `daily_reel.yml` |
 | `upload_instagram.py` | Saves Instagram caption to artifact for manual posting | `daily_reel.yml` |
-| `content_calendar.py` | Weekly education topic rotation (Mon–Fri topics) | `generate_education.py` |
+| `content_calendar.py` | Weekly education topic rotation (Mon–Fri topics) + holiday topics | `generate_education.py` |
+| `indian_holidays.py` | NSE API + fallback holiday detection — shared by all workflows | all workflows |
 | `requirements.txt` | Python dependencies for all scripts | all workflows |
 | `SYSTEM.md` | This file — complete system documentation | humans + AI |
 
 ### Do NOT delete
 - `content_calendar.py` — `generate_education.py` imports it directly
+- `indian_holidays.py` — all workflows import it for holiday detection
 - `requirements.txt` — all workflows depend on it
 - `public/image/` — ZENO character images used by `generate_reel.py`
 - `public/music/` — background music files (bgmusic1.mp3, bgmusic2.mp3, bgmusic3.mp3)
@@ -51,62 +66,101 @@ AI360Trading is a **fully automated content + trading signal system** running on
 ## 3. Workflows (`.github/workflows/`)
 
 ### `main.yml` — AlgoTradeBot
-- **Runs:** Every 5 min, 8:15 AM–4:30 PM IST, Mon–Fri
+- **Runs:** Every 5 min, 8:15 AM–4:30 PM IST, Mon–Fri (schedule only — push trigger REMOVED)
 - **Also:** 8:45 AM backup, 12:28 PM backup, 3:15 PM backup
 - **Does:** Runs `trading_bot.py` — scans Google Sheets, sends Telegram signals
+- **Skips on:** Weekends (existing check) + Indian market holidays (new indian_holidays.py check)
 - **Posts to:** Telegram (3 channels: free, advance, premium)
 - **Timeout:** 4 minutes per run
+- **NOTE:** `push:` trigger was REMOVED — it was causing midnight Telegram messages on every commit
 
 ### `daily-videos.yml` — Two YouTube Videos
 - **Weekday cron:** `0 2 * * 1-5` = 7:30 AM IST Mon–Fri
 - **Weekend cron:** `0 4 * * 6,0` = 9:30 AM IST Sat–Sun
+- **New step:** "Detect content mode" runs `indian_holidays.py` → sets `CONTENT_MODE` env var
 - **Sequence:**
-  1. `generate_analysis.py` → 8-slide market video → uploads to YouTube → saves `output/analysis_video_id.txt` + `output/analysis_meta_{today}.json`
-  2. `generate_education.py` → education video → uploads to YouTube → links back to Part 1 → saves `output/education_video_id.txt` + `output/education_meta_{today}.json`
-  3. Facebook share step → reads both meta JSONs → posts video links to Page + Group
-- **Weekend mode:** Evergreen educational content — no live market data
+  1. Detect mode (market/weekend/holiday) → `CONTENT_MODE` + `HOLIDAY_NAME` env vars
+  2. `generate_analysis.py` → 8-slide video → uploads to YouTube → saves video ID + meta
+  3. `generate_education.py` → education video → uploads → links back to Part 1 → saves meta
+  4. Facebook share step → mode-aware message (holiday says "market band hai!")
+- **Weekend/Holiday mode:** Evergreen educational content — no live market data
 - **Timeout:** 90 minutes
-- **Cleanup:** Removes temp PNGs/MP3s only — keeps video ID files for shorts
 
 ### `daily-shorts.yml` — Two YouTube Shorts (Short 2 + Short 3)
 - **Weekday cron:** `0 6 * * 1-5` = 11:30 AM IST Mon–Fri
 - **Weekend cron:** `0 8 * * 6,0` = 1:30 PM IST Sat–Sun
+- **New step:** "Detect content mode" runs `indian_holidays.py` → sets `CONTENT_MODE`
 - **Runs after:** `daily-videos.yml` so `output/analysis_video_id.txt` exists
 - **Sequence:**
-  1. Fetch live market data (Nifty, BTC, Gold, S&P500, USD/INR via yfinance)
-  2. Short 2 — trade setup vertical card + `hi-IN-MadhurNeural` voice → upload YouTube Shorts
-  3. Short 3 — market pulse vertical card + `hi-IN-SwaraNeural` voice → upload YouTube Shorts
-  4. Facebook share → both short links posted to Page + Group
-- **No ZENO in shorts** — professional card design only
+  1. Detect mode → CONTENT_MODE env var
+  2. Short 2 — holiday: educational card + learning script | market: trade setup card
+  3. Short 3 — holiday: inspirational dashboard | market: live market pulse
+  4. Facebook share → mode-aware message
 - **Timeout:** 30 minutes
 
 ### `daily-articles.yml` — 4 Articles
 - **Weekday cron:** `30 4 * * 1-5` = 10:00 AM IST Mon–Fri
 - **Weekend cron:** `0 6 * * 6,0` = 11:30 AM IST Sat–Sun
+- **New step:** "Detect content mode" runs `indian_holidays.py` → sets `CONTENT_MODE`
 - **Sequence:**
-  1. `generate_articles.py` → pushes articles to `_posts/` folder
-  2. Git commit + push to master
-  3. Facebook share step → posts article links to Page + Group
-- **Weekend mode:** Educational/beginner topics instead of market analysis
+  1. Detect mode → CONTENT_MODE env var
+  2. `generate_articles.py` → market: live analysis articles | holiday/weekend: evergreen articles
+  3. Git commit + push to master
+  4. Facebook share step → mode-aware message (3 variants: market/weekend/holiday)
+- **Weekend/Holiday mode:** Educational/beginner topics from HOLIDAY_PILLARS
 
 ### `daily_reel.yml` — ZENO Reel (Short 1)
-- **Daily cron:** `0 15 * * *` = 8:30 PM IST every day (best time for global audience)
-- **Sequence:**
-  1. `generate_reel.py` → Groq script → edge-tts voice → 3D Disney ZENO reel → saves `output/reel_{today}.mp4` + `output/final_zeno_reel.mp4` + `output/meta_{today}.json`
+- **Daily cron:** `0 15 * * *` = 8:30 PM IST every day
+- **Sequence:** (unchanged — ZENO reel always runs)
+  1. `generate_reel.py` → holiday: special holiday message | weekend: life lesson | market: trading wisdom
   2. `upload_youtube.py` → uploads to YouTube Shorts
   3. `upload_facebook.py` → uploads reel to Facebook Page + posts articles
   4. `upload_instagram.py` → saves caption to `output/instagram_caption.txt`
-  5. Artifact upload → `reel_*.mp4` + `meta_*.json` downloadable from Actions UI
-- **Weekend mode:** Emotional/life lesson topics, no market data
 - **Timeout:** 45 minutes
 
 ### `keepalive.yml` — Repository Keepalive
 - **Cron:** `30 18 * * 0-4` = 11:59 PM IST Sun–Thu
 - Prevents GitHub from disabling scheduled workflows on inactive repos
+- NOTE: This commit no longer triggers AlgoTradeBot (push trigger removed from main.yml)
 
 ---
 
-## 4. Content Schedule
+## 4. Holiday/Weekend Content System
+
+### How mode detection works
+Every workflow (except main.yml and daily_reel.yml) has a "Detect content mode" step:
+```python
+from indian_holidays import get_day_mode, get_holiday_name
+mode = get_day_mode()  # returns "market", "weekend", or "holiday"
+# Written to GITHUB_ENV so all subsequent steps get CONTENT_MODE
+```
+
+### How each script uses CONTENT_MODE
+| Script | market | weekend | holiday |
+|---|---|---|---|
+| `generate_articles.py` | MARKET_PILLARS (live analysis) | HOLIDAY_PILLARS (evergreen) | HOLIDAY_PILLARS (motivational) |
+| `generate_education.py` | `get_todays_education_topic()` | `get_holiday_topic()` | `get_holiday_topic()` |
+| `generate_analysis.py` | Live Nifty/global data | Evergreen educational | Holiday special lesson |
+| `generate_shorts.py` | Trade setup + market pulse | Educational cards | Holiday learning cards |
+| `generate_reel.py` | Trading wisdom ZENO | Life lesson ZENO | Holiday message ZENO |
+| `trading_bot.py` | Runs normally | Skips (weekend check) | Skips (holiday check) |
+
+### indian_holidays.py
+- Primary source: NSE official API (fetches live holiday list)
+- Fallback: Hardcoded major Indian holidays (used if NSE API unreachable)
+- Functions: `get_day_mode()`, `is_market_holiday()`, `get_holiday_name()`
+- Cached: NSE API called once per run, result cached in memory
+
+### content_calendar.py holiday topics
+8 rotating holiday topics covering:
+- Motivational (2 topics) — trader comeback stories, wealth building mindset
+- Savings & Investment (2 topics) — 50-30-20 rule, gold vs stocks vs crypto
+- Market Emotions (2 topics) — fear/greed cycle, crash survival guide
+- Storytelling (2 topics) — Warren Buffett story, biggest crashes in history
+
+---
+
+## 5. Content Schedule
 
 ### Monday to Friday (market days)
 | Time IST | Workflow | Content | Posts to |
@@ -122,31 +176,35 @@ AI360Trading is a **fully automated content + trading signal system** running on
 | Time IST | Workflow | Content |
 |---|---|---|
 | 9:30 AM | daily-videos | Educational videos — no live market data |
-| 11:30 AM | daily-articles | Educational/beginner articles |
-| 1:30 PM | daily-shorts | Short 2 + Short 3: Educational market content |
+| 11:30 AM | daily-articles | Educational/beginner articles from HOLIDAY_PILLARS |
+| 1:30 PM | daily-shorts | Short 2 + Short 3: Educational cards |
 | 8:30 PM | daily_reel | Short 1: Emotional/life lesson ZENO reel |
 
-### Daily content totals
+### Indian Market Holidays (market closed weekday)
+Same as weekend schedule — all content switches to educational/motivational.
+AlgoTradeBot completely silent.
+
+### Daily content totals (all modes)
 - 2 full YouTube videos
 - 3 YouTube Shorts
 - 4 website articles
 - 5 Facebook posts (2 video links + 1 article + 1 reel + 1 shorts)
 - 1 Instagram caption (manual posting)
-- Stock signals every 5 min on Telegram (market hours)
+- Stock signals every 5 min on Telegram (market hours, market days only)
 
 ### Education topic rotation (content_calendar.py)
-| Day | Topic category |
-|---|---|
-| Monday | Options and Derivatives |
-| Tuesday | Technical Analysis |
-| Wednesday | Global Macro + Fundamentals |
-| Thursday | Trading Strategies |
-| Friday | Psychology + Risk Management |
-| Weekend | Rotates from Monday topics |
+| Day | Market mode topic | Holiday/Weekend topic |
+|---|---|---|
+| Monday | Options and Derivatives | Rotates from 8 HOLIDAY_TOPICS |
+| Tuesday | Technical Analysis | Rotates from 8 HOLIDAY_TOPICS |
+| Wednesday | Global Macro + Fundamentals | Rotates from 8 HOLIDAY_TOPICS |
+| Thursday | Trading Strategies | Rotates from 8 HOLIDAY_TOPICS |
+| Friday | Psychology + Risk Management | Rotates from 8 HOLIDAY_TOPICS |
+| Weekend | Rotates from Monday topics | Rotates from 8 HOLIDAY_TOPICS |
 
 ---
 
-## 5. GitHub Secrets
+## 6. GitHub Secrets
 
 | Secret name | What it is | Used by |
 |---|---|---|
@@ -178,7 +236,7 @@ Refresh process:
 
 ---
 
-## 6. ZENO Character System
+## 7. ZENO Character System
 
 ### Image files (in `public/image/`)
 | Filename | Emotion | Used when |
@@ -196,6 +254,11 @@ Refresh process:
 - **NOT in generate_education.py** — education videos are slide-based
 - **NOT in generate_analysis.py** — analysis videos are professional slides
 
+### Holiday ZENO behaviour
+- `holiday` mode: ZENO delivers special holiday message + investment wisdom
+- `weekend` mode: ZENO delivers life lesson / motivational content
+- `market` mode: ZENO delivers trading wisdom / market psychology
+
 ### 3D Disney Effect (generate_reel.py)
 - ZENO scaled to 85% screen width for hero impact
 - GaussianBlur shadow layer for 3D depth effect
@@ -203,7 +266,7 @@ Refresh process:
 - Cinematic dark blue gradient background
 
 ### Background Music (public/music/)
-Day-based rotation used by generate_reel.py, generate_analysis.py, generate_education.py, generate_shorts.py:
+Day-based rotation used by all generate scripts:
 - Mon/Thu → bgmusic1.mp3
 - Tue/Fri → bgmusic2.mp3
 - Wed/Sat → bgmusic3.mp3
@@ -212,7 +275,7 @@ Day-based rotation used by generate_reel.py, generate_analysis.py, generate_educ
 
 ---
 
-## 7. Output Files — What Each Script Saves
+## 8. Output Files — What Each Script Saves
 
 ### generate_reel.py saves:
 - `output/final_zeno_reel.mp4` — upload_youtube.py reads this
@@ -225,6 +288,7 @@ Day-based rotation used by generate_reel.py, generate_analysis.py, generate_educ
   "title": "ZENO Ki Baat - TITLE",
   "description": "...",
   "sentiment": "fearful/positive/neutral/etc",
+  "content_mode": "market/weekend/holiday",
   "hashtags": "#ZenoKiBaat ...",
   "public_video_url": ""
 }
@@ -246,19 +310,19 @@ Day-based rotation used by generate_reel.py, generate_analysis.py, generate_educ
 
 ---
 
-## 8. Voice System
+## 9. Voice System
 
 | Script | Voice | Style |
 |---|---|---|
 | `generate_reel.py` | `hi-IN-SwaraNeural` | Female Hinglish — warm kid-friendly |
 | `generate_analysis.py` | `hi-IN-SwaraNeural` | Female Hinglish — market analysis |
 | `generate_education.py` | `hi-IN-SwaraNeural` | Female Hinglish — education |
-| `generate_shorts.py` Short 2 | `hi-IN-MadhurNeural` | Male Hinglish — authoritative trade setup |
-| `generate_shorts.py` Short 3 | `hi-IN-SwaraNeural` | Female Hinglish — energetic market pulse |
+| `generate_shorts.py` Short 2 | `hi-IN-MadhurNeural` | Male Hinglish — authoritative |
+| `generate_shorts.py` Short 3 | `hi-IN-SwaraNeural` | Female Hinglish — energetic |
 
 ---
 
-## 9. Known Fixes Applied
+## 10. Known Fixes Applied
 
 | Fix | Where | Why |
 |---|---|---|
@@ -269,17 +333,25 @@ Day-based rotation used by generate_reel.py, generate_analysis.py, generate_educ
 | ImageMagick policy fix | all workflows | TextClip fails without this |
 | `YOUTUBE_CREDENTIALS` single JSON | all upload scripts | Repo uses one JSON not 3 separate keys |
 | `TELEGRAM_CHAT_ID` not `TELEGRAM_ADMIN_CHAT_ID` | main.yml | Match actual secret name in repo |
-| `meta_{today}.json` saved by generate_reel.py | generate_reel.py | upload_facebook + upload_instagram were failing — no meta file |
+| `meta_{today}.json` saved by generate_reel.py | generate_reel.py | upload_facebook + upload_instagram were failing |
 | `reel_{today}.mp4` saved by generate_reel.py | generate_reel.py | upload_facebook glob reel_*.mp4 was failing |
 | YouTube upload inside generate scripts | generate_analysis.py, generate_education.py | analysis_video_id.txt now saved immediately after upload |
-| ZENO removed from generate_education.py | generate_education.py | ZENO is only for reels — education uses slides |
-| Facebook share step implemented | daily-videos.yml | Was placeholder comment before — now fully working |
+| ZENO removed from generate_education.py | generate_education.py | ZENO is only for reels |
+| Facebook share step implemented | daily-videos.yml | Was placeholder comment before |
 | Output cleanup fixed | daily-videos.yml | Now only removes temp files — keeps video ID for shorts |
 | daily_reel.yml schedule fixed | daily_reel.yml | Was running twice daily — now once at 8:30 PM IST |
+| `push:` trigger removed from main.yml | main.yml | Was causing midnight Telegram messages on every commit (keepalive, articles, content_calendar updates) |
+| Holiday detection added to trading_bot.py | trading_bot.py | AlgoTradeBot now skips Indian market holidays |
+| CONTENT_MODE detection step added | daily-videos.yml, daily-shorts.yml, daily-articles.yml | All workflows detect market/weekend/holiday mode |
+| CONTENT_MODE support in all 5 generate scripts | all generate scripts | Holiday/weekend = educational content, no live market data |
+| Holiday/weekend Facebook messages | daily-videos.yml, daily-shorts.yml, daily-articles.yml | "Market band hai — time to learn!" on holidays |
+| HOLIDAY_PILLARS added to generate_articles.py | generate_articles.py | 4 evergreen global articles on holidays/weekends |
+| get_holiday_topic() wired to generate_education.py | generate_education.py | Motivational/savings/storytelling content on holidays |
+| indian_holidays.py created | indian_holidays.py | Shared NSE API + fallback holiday detection for all scripts |
 
 ---
 
-## 10. Platform Details
+## 11. Platform Details
 
 ### YouTube
 - Short 1 (ZENO reel) → **Shorts** (vertical 1080x1920, ~60s)
@@ -305,7 +377,7 @@ Day-based rotation used by generate_reel.py, generate_analysis.py, generate_educ
 ### Telegram
 - 3 channels: free (ai360trading), advance (Rs499/month), premium (bundle)
 - ONLY for stock buy/sell signals — not used for video/reel/article notifications
-- AlgoTradeBot runs every 5 min during market hours
+- AlgoTradeBot runs every 5 min during market hours (skips weekends + holidays)
 
 ### Website
 - URL: `https://ai360trading.in`
@@ -316,7 +388,7 @@ Day-based rotation used by generate_reel.py, generate_analysis.py, generate_educ
 
 ---
 
-## 11. Monetization Status and Roadmap
+## 12. Monetization Status and Roadmap
 
 ### Current status
 - YouTube Partner Program: working toward 1,000 subs + 4,000 watch hours
@@ -335,7 +407,7 @@ Day-based rotation used by generate_reel.py, generate_analysis.py, generate_educ
 
 ---
 
-## 12. Future Roadmap (Phase 3+)
+## 13. Future Roadmap (Phase 3+)
 
 - [ ] Twitter/X auto-post — daily Nifty + BTC + reel link
 - [ ] Reddit auto-post — share articles to trading communities
@@ -349,7 +421,7 @@ Day-based rotation used by generate_reel.py, generate_analysis.py, generate_educ
 
 ---
 
-## 13. Quick Reference — All Cron Times
+## 14. Quick Reference — All Cron Times
 
 | Cron expression | UTC | IST | Days | Workflow |
 |---|---|---|---|---|
@@ -365,7 +437,7 @@ Day-based rotation used by generate_reel.py, generate_analysis.py, generate_educ
 
 ---
 
-## 14. How to Test Each Workflow
+## 15. How to Test Each Workflow
 
 1. Go to GitHub repo → Actions tab
 2. Click workflow name on left sidebar
@@ -381,14 +453,25 @@ Day-based rotation used by generate_reel.py, generate_analysis.py, generate_educ
 5. `main.yml` (AlgoTradeBot) — already running, do not break
 
 ### What to check in logs
+- generate_reel.py: `[MODE] generate_reel.py running in mode: MARKET/WEEKEND/HOLIDAY`
+- generate_articles.py: `[MODE] generate_articles.py running in mode: MARKET/WEEKEND/HOLIDAY`
+- All generate scripts: mode logged at startup
 - generate_reel.py: `✅ Meta saved: meta_YYYYMMDD.json` + `✅ Video saved`
 - upload_youtube.py: `✅ Success! Video ID: xxxxx`
 - upload_facebook.py: `✅ Facebook Reel Published!`
 - upload_instagram.py: `✅ Caption saved for manual use`
+- trading_bot.py: `[SKIP] Indian Market Holiday: Ram Navami — no signals today`
+
+### Testing holiday mode manually
+To test holiday mode without waiting for an actual holiday:
+1. Go to any workflow → Run workflow
+2. The "Detect content mode" step will show current mode in logs
+3. To force holiday mode: temporarily set `CONTENT_MODE=holiday` in workflow env
+   (revert after testing)
 
 ---
 
-## 15. How to Use This File with Any AI Assistant
+## 16. How to Use This File with Any AI Assistant
 
 Paste this prompt to any AI:
 > "Read the SYSTEM.md file in my GitHub repo ai360trading.
@@ -402,5 +485,6 @@ The AI will understand the full system instantly. Always update this file after 
 
 *Complete AI360Trading automation system — built with Claude AI, March 2026.*
 *9 pieces of content daily. Zero cost. Fully automatic.*
+*Holiday/weekend mode: educational global content for US, UK, Brazil, India.*
 *The journey from zero to earning — documented here.*
-*Last full system review: March 2026 — all files checked and fixed by Claude.*
+*Last full system review: March 2026 — holiday/weekend mode fully integrated by Claude.*
