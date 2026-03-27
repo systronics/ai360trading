@@ -1,100 +1,119 @@
-import os
-import asyncio
-import yfinance as yf
-import pandas as pd
-import matplotlib.pyplot as plt
-from moviepy.editor import *
+import os, sys, json, asyncio, textwrap, random
 from datetime import datetime
-import pytz
+from pathlib import Path
+
 import edge_tts
+import yfinance as yf
+import pytz
+from PIL import Image, ImageDraw, ImageFont
+from moviepy.editor import ImageClip, AudioFileClip, CompositeAudioClip, concatenate_videoclips
+from groq import Groq
 
-# --- BRANDING & SEO SETTINGS ---
-BRAND = "AI360Trading"
-TELEGRAM = "https://t.me/ai360trading"
-WEBSITE = "ai360trading.in"
-OUTPUT_DIR = "output"
-os.makedirs(OUTPUT_DIR, exist_ok=True)
-IST = pytz.timezone('Asia/Kolkata')
+# ─── CONFIG ──────────────────────────────────────────────────────────────────
+IST = pytz.timezone("Asia/Kolkata")
+OUT = Path("output")
+W, H = 1080, 1920  # Vertical for Shorts/Reels
+FPS = 24
+VOICE = "hi-IN-SwaraNeural"
+os.makedirs(OUT, exist_ok=True)
 
-async def make_voice(text, path):
-    """Clean professional voiceover"""
-    comm = edge_tts.Communicate(text, "en-IN-PrabhatNeural")
-    await comm.save(path)
+# ─── THE LOCKER CHECK (Today's Main Change) ──────────────────────────────────
+def get_morning_video_id():
+    """Checks the 'locker' for the morning video link note."""
+    id_file = OUT / "analysis_video_id.txt"
+    if id_file.exists():
+        v_id = id_file.read_text().strip()
+        return f"https://youtube.com/watch?v={v_id}"
+    return "https://ai360trading.in" # Fallback to website if no video found
 
-def fetch_market_pulse():
-    """Live data for the visual trust factor"""
-    stats = {}
-    # Nifty (Gift), Bitcoin, S&P 500
-    tickers = {"NIFTY": "GIFTY=F", "BITCOIN": "BTC-USD", "S&P 500": "^GSPC"}
-    for name, sym in tickers.items():
-        try:
-            t = yf.Ticker(sym)
-            h = t.history(period="1d", interval="15m")
-            curr = h['Close'].iloc[-1]
-            change = ((curr - h['Close'].iloc[0]) / h['Close'].iloc[0]) * 100
-            stats[name] = {"p": f"{curr:,.1f}", "c": f"{change:+.2f}%", "color": "green" if change >= 0 else "red"}
-        except: pass
-    return stats
+# ─── MARKET DATA ─────────────────────────────────────────────────────────────
+def get_midday_data():
+    """Fetches real-time price for the mid-day pulse."""
+    try:
+        ticker = yf.Ticker("^NSEI") # Nifty 50
+        df = ticker.history(period="1d", interval="5m")
+        if not df.empty:
+            current = df['Close'].iloc[-1]
+            high = df['High'].max()
+            low = df['Low'].min()
+            return f"Nifty at {current:.2f} (H: {high:.2f}, L: {low:.2f})"
+    except: pass
+    return "Market is showing volatile action."
 
-def get_viral_meta(stats):
-    """Generates the SEO Package for YouTube/Instagram"""
-    nifty = stats.get('NIFTY', {}).get('p', 'N/A')
-    btc = stats.get('BITCOIN', {}).get('p', 'N/A')
+# ─── GROQ SCRIPT GENERATION ──────────────────────────────────────────────────
+def generate_short_scripts(client):
+    midday_info = get_midday_data()
+    morning_link = get_morning_video_id()
     
-    # 1. THE HOOK (Caption)
-    caption = f"🚨 Market Shock? Nifty @ {nifty} | BTC Move!"
-    
-    # 2. THE DESCRIPTION (SEO + Translation)
-    # Mixing Hindi and English for high engagement
-    description = (
-        f"📊 {BRAND} Daily Market Update - {datetime.now(IST).strftime('%d %b %Y')}\n\n"
-        f"Global markets are moving fast! 🌍\n"
-        f"Gift Nifty current level: {nifty}\n"
-        f"Bitcoin price action: {btc}\n\n"
-        f"Doston, levels ko dhyan se follow karein. Live setups ke liye Telegram join karein! 👇\n"
-        f"🚀 Join Telegram: {TELEGRAM}\n"
-        f"🌐 Website: {WEBSITE}\n\n"
-        f"--- VIRAL HASHTAGS ---\n"
-        f"#Shorts #Trading #Nifty50 #BitcoinNews #StockMarketIndia #Investing2026 #AI360Trading #PriceAction"
+    prompt = f"""Create 2 Viral Shorts (9:16) in Hinglish.
+Mid-day Market Status: {midday_info}
+Call to Action: Tell viewers to check the full analysis at {morning_link}
+
+Short 1: Mid-day Trend Setup (Technical)
+Short 2: Market Sentiment & Strategy (Psychology)
+
+Respond ONLY with JSON:
+{{
+  "shorts": [
+    {{
+      "title": "Viral Title",
+      "content": "40-50 words fast-paced Hinglish script",
+      "description": "Viral description with tags and this link: {morning_link}"
+    }}
+  ]
+}}"""
+
+    resp = client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
+        messages=[{"role": "user", "content": prompt}],
+        response_format={"type": "json_object"}
     )
-    return caption, description
+    return json.loads(resp.choices[0].message.content)
 
-def create_viral_short():
-    data = fetch_market_pulse()
-    cap, desc = get_viral_meta(data)
+# ─── RENDERER ────────────────────────────────────────────────────────────────
+def make_vertical_slide(text, title, path):
+    img = Image.new("RGB", (W, H), (10, 20, 30)) # Dark Blue Pro Theme
+    draw = ImageDraw.Draw(img)
     
-    # 1. Voiceover (10-12 seconds is best for 100% completion rate)
-    script = f"Quick market update from {BRAND}. Gift Nifty is at {data['NIFTY']['p']}. Bitcoin is trading at {data['BITCOIN']['p']}. Join our Telegram for the full trade plan."
-    audio_file = os.path.join(OUTPUT_DIR, "v_audio.mp3")
-    asyncio.run(make_voice(script, audio_file))
-    
-    # 2. Vertical Visuals (1080x1920)
-    bg = ColorClip(size=(1080, 1920), color=(15, 15, 15), duration=11)
-    
-    # Branding Header
-    brand_tag = TextClip(f"@{BRAND}", fontsize=50, color='orange', font='Ubuntu-Bold').set_position(('center', 80)).set_duration(11)
-    
-    # Live Data Rows
-    y_pos = 400
-    rows = []
-    for name, info in data.items():
-        row = TextClip(f"{name}: {info['p']} ({info['c']})", fontsize=75, color=info['color'], font='Ubuntu-Bold')
-        rows.append(row.set_position((100, y_pos)).set_duration(11))
-        y_pos += 400
+    # Simple Pro Layout
+    try:
+        font_title = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 80)
+        font_content = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 50)
+    except:
+        font_title = font_content = ImageFont.load_default()
 
-    # Call to Action (CTA)
-    cta = TextClip("LINK IN BIO / DESCRIPTION", fontsize=60, color='yellow', font='Ubuntu-Bold', bg_color='red').set_position(('center', 1700)).set_duration(11)
+    # Draw Title
+    draw.text((W//2, 300), title.upper(), fill=(0, 255, 150), font=font_title, anchor="mm")
     
-    # 3. Final Render
-    final = CompositeVideoClip([bg, brand_tag, *rows, cta])
-    final.audio = AudioFileClip(audio_file)
+    # Draw Wrapped Content
+    lines = textwrap.wrap(text, width=25)
+    y = 600
+    for line in lines:
+        draw.text((W//2, y), line, fill=(255, 255, 255), font=font_content, anchor="mm")
+        y += 80
+        
+    img.save(str(path))
+
+async def run():
+    client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+    data = generate_short_scripts(client)
     
-    output_path = os.path.join(OUTPUT_DIR, "viral_short.mp4")
-    final.write_videofile(output_path, fps=24, codec="libx264", audio_codec="aac")
-    
-    # 4. Export SEO Text for you to copy
-    with open(os.path.join(OUTPUT_DIR, "SEO_GUIDE.txt"), "w", encoding="utf-8") as f:
-        f.write(f"--- TITLE ---\n{cap}\n\n--- DESCRIPTION ---\n{desc}")
+    for idx, s in enumerate(data["shorts"]):
+        img_p = OUT/f"short_v_{idx}.png"
+        aud_p = OUT/f"short_v_{idx}.mp3"
+        out_p = OUT/f"short{idx+2}_final.mp4" # Named short2 and short3 for your workflow
+        
+        make_vertical_slide(s["content"], s["title"], img_p)
+        await edge_tts.Communicate(s["content"], VOICE).save(str(aud_p))
+        
+        audio = AudioFileClip(str(aud_p))
+        clip = ImageClip(str(img_p)).set_duration(audio.duration).set_audio(audio)
+        clip.write_videofile(str(out_p), fps=FPS, codec="libx264")
+        
+        # Save SEO metadata for the uploader
+        (OUT / f"short{idx+2}_meta.txt").write_text(s["description"])
+
+    print("✅ Mid-day Shorts with Morning Links are ready!")
 
 if __name__ == "__main__":
-    create_viral_short()
+    asyncio.run(run())
