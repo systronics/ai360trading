@@ -27,13 +27,7 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends \
-            ffmpeg \
-            fonts-liberation \
-            fonts-dejavu \
-            fonts-freefont-ttf \
-            fonts-ubuntu \
-            imagemagick
-          # Fix ImageMagick policy to allow label/text rendering for Shorts
+            ffmpeg fonts-liberation fonts-dejavu fonts-freefont-ttf fonts-ubuntu imagemagick
           sudo sed -i 's/rights="none" pattern="@\*"/rights="read|write" pattern="@*"/g' /etc/ImageMagick-6/policy.xml || true
 
       - name: Install Python dependencies
@@ -56,19 +50,12 @@ jobs:
               mode = get_day_mode()
               holiday_name = get_holiday_name() if mode == "holiday" else ""
           except Exception as e:
-              print(f"[WARN] indian_holidays error: {e} — defaulting to market mode")
               mode = "market"
               holiday_name = ""
-
-          print(f"[MODE] Content mode today: {mode.upper()}")
-          if holiday_name:
-              print(f"[HOLIDAY] {holiday_name}")
-
           with open(os.environ["GITHUB_ENV"], "a") as f:
               f.write(f"CONTENT_MODE={mode}\n")
               f.write(f"HOLIDAY_NAME={holiday_name}\n")
           EOF
-          echo "✅ Mode detected: $CONTENT_MODE"
 
       - name: Generate Part 1 — Market Analysis / Holiday Education Video + Upload to YouTube
         env:
@@ -77,9 +64,16 @@ jobs:
           CONTENT_MODE:         ${{ env.CONTENT_MODE }}
           HOLIDAY_NAME:         ${{ env.HOLIDAY_NAME }}
         run: |
-          echo "[VIDEO] Running generate_analysis.py in mode: $CONTENT_MODE"
           python generate_analysis.py
           echo "✅ Part 1 complete"
+
+      - name: 📦 Save and Upload Analysis Video ID for Shorts
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: market-analysis-id
+          path: output/analysis_video_id.txt
+          retention-days: 1
 
       - name: Generate Part 2 — Education Video + Upload to YouTube
         env:
@@ -88,7 +82,6 @@ jobs:
           CONTENT_MODE:         ${{ env.CONTENT_MODE }}
           HOLIDAY_NAME:         ${{ env.HOLIDAY_NAME }}
         run: |
-          echo "[VIDEO] Running generate_education.py in mode: $CONTENT_MODE"
           python generate_education.py
           echo "✅ Part 2 complete"
 
@@ -102,7 +95,6 @@ jobs:
           CONTENT_MODE:         ${{ env.CONTENT_MODE }}
           HOLIDAY_NAME:         ${{ env.HOLIDAY_NAME }}
         run: |
-          echo "[VIDEO] Running generate_shorts.py"
           python generate_shorts.py
           echo "✅ Part 3 (Shorts) complete"
 
@@ -114,9 +106,8 @@ jobs:
           CONTENT_MODE:      ${{ env.CONTENT_MODE }}
           HOLIDAY_NAME:      ${{ env.HOLIDAY_NAME }}
         run: |
-          # [Existing Facebook Logic remains here...]
           python - <<'EOF'
-          # (Logic omitted for brevity - no changes needed to your existing FB logic)
+          # (Logic omitted for brevity - no changes needed)
           EOF
 
       - name: Cleanup temp files only
