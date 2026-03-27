@@ -1,110 +1,105 @@
 import os
-import sys
+import asyncio
 import yfinance as yf
 import pandas as pd
 import matplotlib.pyplot as plt
-from moviepy.editor import VideoFileClip, TextClip, CompositeVideoClip, ColorClip, ImageClip
+from moviepy.editor import *
+from moviepy.video.fx.all import resize
 from datetime import datetime
 import pytz
+import edge_tts
 
-# --- CONFIGURATION ---
+# --- SEO & BRANDING CONFIG ---
+BRAND_NAME = "AI360Trading"
+TELEGRAM_URL = "t.me/ai360trading"
+WEBSITE_URL = "ai360trading.in"
 OUTPUT_DIR = "output"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 IST = pytz.timezone('Asia/Kolkata')
 
+async def generate_voiceover(text, output_path):
+    """Professional Global Voiceover (English-Indian accent for trust)"""
+    communicate = edge_tts.Communicate(text, "en-IN-PrabhatNeural")
+    await communicate.save(output_path)
+
 def get_market_data():
-    """Fetch live data for Global & Indian Markets"""
-    print("[DATA] Fetching live market stats...")
-    # Nifty Futures (Gift Nifty), Bitcoin, S&P 500
-    tickers = {
-        "NIFTY": "GIFTY=F", 
-        "BITCOIN": "BTC-USD", 
-        "S&P 500": "^GSPC"
-    }
-    
+    """Live Market Stats for Global Growth"""
+    tickers = {"NIFTY": "GIFTY=F", "BITCOIN": "BTC-USD", "S&P 500": "^GSPC"}
     stats = {}
     for name, symbol in tickers.items():
         try:
-            ticker = yf.Ticker(symbol)
-            # Fetch last 24h data for a small sparkline chart
-            hist = ticker.history(period="1d", interval="15m")
-            current_price = hist['Close'].iloc[-1]
-            prev_close = hist['Close'].iloc[0]
-            change_pct = ((current_price - prev_close) / prev_close) * 100
-            
-            stats[name] = {
-                "price": f"{current_price:,.2f}",
-                "change": f"{change_pct:+.2f}%",
-                "color": "green" if change_pct >= 0 else "red",
-                "history": hist['Close']
-            }
-        except Exception as e:
-            print(f"[WARN] Could not fetch {name}: {e}")
+            t = yf.Ticker(symbol)
+            hist = t.history(period="1d", interval="15m")
+            price = hist['Close'].iloc[-1]
+            change = ((price - hist['Close'].iloc[0]) / hist['Close'].iloc[0]) * 100
+            stats[name] = {"p": f"{price:,.1f}", "c": f"{change:+.2f}%", "color": "green" if change >= 0 else "red", "hist": hist['Close']}
+        except: pass
     return stats
 
-def generate_sparkline(name, data_series, color):
-    """Generate a clean, human-style chart for the Short"""
-    plt.figure(figsize=(4, 2), facecolor='none')
-    ax = plt.axes([0, 0, 1, 1], frameon=False)
-    ax.get_xaxis().set_visible(False)
-    ax.get_yaxis().set_visible(False)
+def generate_seo_metadata(stats):
+    """Dynamic Caption & Description for Algorithm Boost"""
+    nifty_p = stats.get('NIFTY', {}).get('p', 'Data N/A')
+    btc_p = stats.get('BITCOIN', {}).get('p', 'Data N/A')
     
-    plt.plot(data_series.values, color=color, linewidth=4)
-    chart_path = os.path.join(OUTPUT_DIR, f"chart_{name.lower()}.png")
-    plt.savefig(chart_path, transparent=True, dpi=150)
-    plt.close()
-    return chart_path
+    # Auto-Translation Logic: Mix of Global English and Indian Context
+    caption = f"🚀 Market Update: Nifty @ {nifty_p} | BTC @ {btc_p}"
+    
+    description = (
+        f"📊 {BRAND_NAME} Daily Pulse - {datetime.now(IST).strftime('%d %b %Y')}\n\n"
+        f"Aaj ka market sentiment global aur domestic levels pe setup ho raha hai.\n"
+        f"Current Status:\n"
+        f"✅ Gift Nifty: {nifty_p}\n"
+        f"✅ Bitcoin: {btc_p}\n\n"
+        f"Join our community for high-conviction trade setups:\n"
+        f"📱 Telegram: {TELEGRAM_URL}\n"
+        f"🌐 Web: {WEBSITE_URL}\n\n"
+        f"#StockMarket #Nifty50 #TradingIndia #CryptoNews #S&P500 #Investing #AI360Trading #TechnicalAnalysis"
+    )
+    return caption, description
 
 def create_short_video():
-    """Construct the Vertical Short with Live Data"""
     stats = get_market_data()
-    today_str = datetime.now(IST).strftime("%d %b, %H:%M IST")
+    caption, description = generate_seo_metadata(stats)
     
-    # 1. Background (Solid Dark Professional Theme)
-    bg = ColorClip(size=(1080, 1920), color=(15, 15, 15), duration=15)
+    # 1. AUDIO GENERATION
+    audio_text = f"Welcome to AI 360 Trading. Gift Nifty is trading at {stats['NIFTY']['p']}. Bitcoin is at {stats['BITCOIN']['p']}. Global sentiment looks { 'positive' if '+' in stats['S&P 500']['c'] else 'cautious' }. Check our Telegram for levels."
+    audio_path = os.path.join(OUTPUT_DIR, "short_audio.mp3")
+    asyncio.run(generate_voiceover(audio_text, audio_path))
     
-    # 2. Header
-    title = TextClip("LIVE MARKET PULSE", fontsize=80, color='white', font='Ubuntu-Bold')
-    title = title.set_position(('center', 100)).set_duration(15)
+    # 2. VISUALS
+    bg = ColorClip(size=(1080, 1920), color=(10, 10, 10), duration=12)
     
-    time_text = TextClip(today_str, fontsize=40, color='gray', font='Ubuntu')
-    time_text = time_text.set_position(('center', 200)).set_duration(15)
-
-    clips = [bg, title, time_text]
+    # Brand Watermark (Top Right)
+    brand = TextClip(BRAND_NAME, fontsize=45, color='orange', font='Ubuntu-Bold', kerning=2).set_position((700, 50)).set_duration(12)
     
-    # 3. Data Rows
-    y_offset = 350
+    # Main Headline
+    head = TextClip("GLOBAL MARKET LIVE", fontsize=85, color='white', font='Ubuntu-Bold').set_position(('center', 150)).set_duration(12)
+    
+    # Data Rows Construction
+    clips = [bg, brand, head]
+    y_pos = 450
     for name, info in stats.items():
-        # Text Label
-        txt = TextClip(f"{name}: {info['price']} ({info['change']})", 
-                       fontsize=60, color=info['color'], font='Ubuntu-Bold')
-        txt = txt.set_position((100, y_offset)).set_duration(15)
+        txt = TextClip(f"{name}: {info['p']} ({info['c']})", fontsize=65, color=info['color'], font='Ubuntu-Bold').set_position((80, y_pos)).set_duration(12)
         clips.append(txt)
-        
-        # Sparkline Chart
-        chart_file = generate_sparkline(name, info['history'], info['color'])
-        chart_img = ImageClip(chart_file).set_duration(15).resize(width=400)
-        chart_img = chart_img.set_position((600, y_offset - 40))
-        clips.append(chart_img)
-        
-        y_offset += 300
+        y_pos += 350
 
-    # 4. Branding (AI360Trading)
-    footer = TextClip("ai360trading.in", fontsize=50, color='orange', font='Ubuntu-Bold')
-    footer = footer.set_position(('center', 1750)).set_duration(15)
-    clips.append(footer)
+    # Telegram CTA (Bottom)
+    cta = TextClip(f"JOIN: {TELEGRAM_URL}", fontsize=55, color='yellow', font='Ubuntu-Bold', bg_color='black').set_position(('center', 1700)).set_duration(12)
+    clips.append(cta)
 
-    # 5. Export
-    final_video = CompositeVideoClip(clips)
-    video_path = os.path.join(OUTPUT_DIR, "daily_market_short.mp4")
+    # 3. ASSEMBLY
+    video = CompositeVideoClip(clips)
+    audio = AudioFileClip(audio_path)
+    final_video = video.set_audio(audio)
     
-    print("[VIDEO] Rendering final short...")
-    final_video.write_videofile(video_path, fps=24, codec="libx264", audio=False)
-    return video_path
+    output_file = os.path.join(OUTPUT_DIR, "viral_market_short.mp4")
+    final_video.write_videofile(output_file, fps=24, codec="libx264", audio_codec="aac")
+    
+    # SAVE SEO FILE FOR MANUAL UPLOAD OR API
+    with open(os.path.join(OUTPUT_DIR, "seo_meta.txt"), "w", encoding="utf-8") as f:
+        f.write(f"TITLE: {caption}\n\nDESCRIPTION:\n{description}")
+    
+    return output_file
 
 if __name__ == "__main__":
-    try:
-        path = create_short_video()
-        print(f"✅ Success! Short generated at: {path}")
-    except Exception as e:
-        print(f"❌ Error: {e}")
+    create_short_video()
