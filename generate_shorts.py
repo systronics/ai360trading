@@ -97,9 +97,9 @@ def mix_audio(voice_clip, duration):
         print(f"⚠️ Music error: {e}")
         return voice_clip
 
-# ─── MARKET DATA ─────────────────────────────────────────────────────────────
+# ─── MARKET DATA (FIXED FOR LIVE ACCURACY) ───────────────────────────────────
 def fetch_market_data():
-    print("📡 Fetching market data...")
+    print("📡 Fetching LIVE market data for Shorts...")
     if CONTENT_MODE in ("holiday", "weekend"):
         print(f"📅 {CONTENT_MODE.upper()} mode — educational placeholders")
         return {
@@ -109,22 +109,49 @@ def fetch_market_data():
             "usdinr": {"val": "Invest Now",     "chg": "+₹",      "up": True,  "raw": 0},
             "sp500":  {"val": "Stay Calm",      "chg": "+Learn%", "up": True,  "raw": 0},
         }
+    
     tickers = {
         "nifty":  ("^NSEI","₹"), "btc":("BTC-USD","$"),
         "gold":   ("GC=F","$"),  "usdinr":("INR=X","₹"), "sp500":("^GSPC","$"),
     }
     data = {}
+    
     for name, (sym, curr) in tickers.items():
         try:
-            df   = yf.download(sym, period="2d", interval="1d", progress=False)
-            last = float(df["Close"].iloc[-1])
-            prev = float(df["Close"].iloc[-2])
-            chg  = ((last - prev) / prev) * 100
-            val  = f"{curr}{last:.2f}" if name=="usdinr" else f"{curr}{last:,.0f}" if name in ("btc","sp500") else f"{curr}{last:,.2f}"
-            data[name] = {"val": val, "chg": f"{chg:+.2f}%", "up": chg >= 0, "raw": last}
+            t_obj = yf.Ticker(sym)
+            # Use fast_info to get the real-time last price and yesterday's close
+            last = t_obj.fast_info['last_price']
+            prev = t_obj.fast_info['previous_close']
+            
+            chg = ((last - prev) / prev) * 100
+            
+            if name == "usdinr":
+                val = f"{curr}{last:.2f}"
+            elif name in ("btc", "sp500"):
+                val = f"{curr}{last:,.0f}"
+            else:
+                val = f"{curr}{last:,.2f}"
+                
+            data[name] = {
+                "val": val, 
+                "chg": f"{chg:+.2f}%", 
+                "up": chg >= 0, 
+                "raw": last
+            }
+            print(f"✅ {name} fetched: {val} ({chg:+.2f}%)")
+            
         except Exception as e:
-            print(f"⚠️ {name}: {e}")
-            data[name] = {"val": "N/A", "chg": "0.00%", "up": True, "raw": 0}
+            print(f"⚠️ {name} live fetch failed: {e}. Falling back to 2d historical...")
+            try:
+                df = yf.download(sym, period="2d", interval="1d", progress=False)
+                last = float(df["Close"].iloc[-1])
+                prev = float(df["Close"].iloc[-2])
+                chg = ((last - prev) / prev) * 100
+                val = f"{curr}{last:.2f}"
+                data[name] = {"val": val, "chg": f"{chg:+.2f}%", "up": chg >= 0, "raw": last}
+            except:
+                data[name] = {"val": "N/A", "chg": "0.00%", "up": True, "raw": 0}
+                
     return data
 
 def get_part1_url():
@@ -181,7 +208,7 @@ def make_short2_frame(script_data, market):
         levels = [
             ("🎯 ENTRY",  script_data.get("entry","Market Price"), WHITE),
             ("📊 TARGET", script_data.get("target","See Description"), BULL_GREEN),
-            ("🛑 SL",     script_data.get("sl","Risk Managed"), BEAR_RED),
+            ("🛑 SL",      script_data.get("sl","Risk Managed"), BEAR_RED),
             ("⏱ HORIZON",script_data.get("horizon","Intraday/Swing"), GOLD),
         ]
 
@@ -299,12 +326,11 @@ def make_short3_frame(script_data, market):
         draw_text_outlined(draw,market["nifty"]["chg"],SW//2,520,get_font(FONT_BOLD_PATHS,65),accent,outline=2)
 
     if CONTENT_MODE in ("holiday","weekend"):
-        # Show educational topics instead of market data
         edu_items = [
             ("📚 TOPIC",   script_data.get("key_level","Investment Basics"),    580),
-            ("💡 LESSON",  "Use holidays to plan finances",                      760),
-            ("🌍 AUDIENCE","India • US • UK • Brazil",                           940),
-            ("🎯 ACTION",  "Subscribe for daily education",                      1120),
+            ("💡 LESSON",  "Use holidays to plan finances",                     760),
+            ("🌍 AUDIENCE","India • US • UK • Brazil",                          940),
+            ("🎯 ACTION",  "Subscribe for daily education",                     1120),
         ]
         for label, value, y in edu_items:
             draw.rounded_rectangle([(60,y),(SW-60,y+155)],radius=22,fill=(0,0,0,90))
