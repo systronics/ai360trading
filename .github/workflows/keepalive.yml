@@ -2,9 +2,7 @@ name: KeepAlive
 
 on:
   schedule:
-    # 2026 Update: Native IST scheduling (11:59 PM IST, Sun-Thu)
-    - cron: '59 23 * * 0-4'
-      timezone: "Asia/Kolkata"
+    - cron: '30 18 * * 0-4'  # 11:59 PM IST Sun-Thu (Before market opens)
   workflow_dispatch:
 
 jobs:
@@ -12,25 +10,16 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      actions: write
     steps:
-      - name: Checkout Repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Perform Keep-Alive Commit
+      - name: Keep alive commit
         run: |
           git config user.email "actions@github.com"
           git config user.name "GitHub Actions"
-          
-          # Using a timestamp to ensure the file always changes
-          TIMESTAMP=$(date -u '+%Y-%m-%d %H:%M:%S UTC')
-          echo "$TIMESTAMP" > .keepalive
-          
+          echo "$(date -u '+%Y-%m-%d %H:%M:%S UTC')" > .keepalive
           git add .keepalive
-          
-          # Only commit and push if there is a change (prevents noise)
-          if git diff --staged --quiet; then
-            echo "No changes to commit."
-          else
-            git commit -m "chore: keepalive $TIMESTAMP [IST Schedule]"
-            git push
-          fi
+          git commit -m "chore: keepalive $(date -u '+%Y-%m-%d')" || echo "Nothing to commit"
+          git push || echo "Push failed"
