@@ -8,13 +8,16 @@ import xml.etree.ElementTree as ET
 from datetime import datetime
 from groq import Groq
 
+# ─── Content Mode ─────────────────────────────────────────────────────────────
+# "market"  → normal weekday — live market data + analysis articles
+# "weekend" → Saturday/Sunday — educational/beginner articles
+# "holiday" → Indian market holiday — motivational/savings/storytelling articles
+CONTENT_MODE = os.environ.get("CONTENT_MODE", "market").lower()
+HOLIDAY_NAME = os.environ.get("HOLIDAY_NAME", "Indian Market Holiday")
+print(f"[MODE] generate_articles.py running in mode: {CONTENT_MODE.upper()}")
+
 # ─── Google Indexing API ─────────────────────────────────────────────────────
 def submit_urls_to_google(urls: list):
-    """
-    Submit article URLs to Google Indexing API for immediate crawling.
-    Uses GCP_SERVICE_ACCOUNT_JSON secret — same one used by trading bot.
-    Quota: 200 requests/day free. Each article = 1 request.
-    """
     try:
         import json as _json
         sa_json = os.environ.get("GCP_SERVICE_ACCOUNT_JSON", "")
@@ -24,13 +27,9 @@ def submit_urls_to_google(urls: list):
 
         sa = _json.loads(sa_json)
 
-        # Get OAuth2 token using service account JWT
         import time as _time
         import base64
-        import hmac
-        import hashlib
 
-        # Build JWT for Google OAuth2
         header  = base64.urlsafe_b64encode(
             _json.dumps({"alg":"RS256","typ":"JWT"}).encode()
         ).rstrip(b'=').decode()
@@ -44,7 +43,6 @@ def submit_urls_to_google(urls: list):
             "iat":   now_ts,
         }).encode()).rstrip(b'=').decode()
 
-        # Sign with RSA private key using cryptography library
         try:
             from cryptography.hazmat.primitives import hashes, serialization
             from cryptography.hazmat.primitives.asymmetric import padding
@@ -60,7 +58,6 @@ def submit_urls_to_google(urls: list):
             print("  ⚠️  cryptography library not available — skipping indexing API")
             return
 
-        # Exchange JWT for access token
         token_resp = requests.post(
             "https://oauth2.googleapis.com/token",
             data={
@@ -78,7 +75,6 @@ def submit_urls_to_google(urls: list):
             print("  ⚠️  No access token received")
             return
 
-        # Submit each URL
         headers = {
             "Authorization": f"Bearer {access_token}",
             "Content-Type":  "application/json",
@@ -107,10 +103,8 @@ def submit_urls_to_google(urls: list):
         print(f"  ⚠️  Indexing API error: {e} — articles still published normally")
 
 
-# ─── robots.txt fix — submit atom.xml too ────────────────────────────────────
 SITE_URL = "https://ai360trading.in"
 
-# ─── Init ────────────────────────────────────────────────────────────────────
 client       = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 ist          = pytz.timezone('Asia/Kolkata')
 now          = datetime.now(ist)
@@ -118,10 +112,132 @@ date_str     = now.strftime("%Y-%m-%d")
 date_display = now.strftime("%B %d, %Y")
 day_name     = now.strftime("%A")
 POSTS_DIR    = os.path.join(os.getcwd(), '_posts')
-MAX_POSTS    = 60  # 4 articles/day — keep 15 days
+MAX_POSTS    = 60
 
-# ─── 4 PILLAR TOPICS ─────────────────────────────────────────────────────────
-PILLARS = [
+# ─── HOLIDAY / WEEKEND ARTICLE PILLARS ───────────────────────────────────────
+# Used when CONTENT_MODE is "holiday" or "weekend"
+# These replace live market analysis with evergreen global-audience content
+HOLIDAY_PILLARS = [
+    {
+        "id": "stock-market",
+        "name": "Stock Market",
+        "permalink_base": "stock-market",
+        "category": "Stock-Market",
+        "tag": "stock-market",
+        "primary_keywords": ["stock market basics", "how to invest", "index fund", "S&P 500", "NIFTY"],
+        "us_keywords": ["how to invest in stocks USA", "best index fund 2026", "S&P 500 investing"],
+        "uk_keywords": ["how to invest UK 2026", "FTSE 100 beginner guide"],
+        "brazil_keywords": ["como investir na bolsa 2026", "IBOVESPA iniciantes"],
+        "india_keywords": ["how to invest in share market India", "Nifty 50 beginner guide", "SIP vs lump sum"],
+        "article_focus": """Write a comprehensive beginner-friendly stock market education article covering:
+- How stock markets work globally (India NSE/BSE, US NYSE/NASDAQ, UK LSE, Brazil B3)
+- Why index fund investing beats stock picking for most people
+- How to start investing with small amounts in each country
+- Compound interest examples with real numbers
+- Common beginner mistakes and how to avoid them
+- Actionable steps readers can take today
+Target: complete beginners in US, UK, Brazil and India""",
+        "title_templates": [
+            "How to Start Investing in the Stock Market — Complete 2026 Guide for US, UK, India and Brazil",
+            "Index Funds vs Stock Picking — The Data Will Surprise You ({date})",
+            "The Biggest Mistake New Investors Make — And the Simple Fix",
+            "How Compound Interest Really Works — Numbers That Change Everything ({date})",
+            "Stock Market Basics in 2026 — Everything a Beginner Needs to Know",
+        ],
+        "news_queries": ["stock+market+beginner+investing+2026", "index+fund+returns+2026", "how+to+invest+money+2026"],
+        "india_keywords": ["stock market India beginner", "NSE BSE guide 2026"],
+    },
+    {
+        "id": "bitcoin",
+        "name": "Bitcoin and Crypto",
+        "permalink_base": "bitcoin",
+        "category": "Bitcoin-Crypto",
+        "tag": "bitcoin",
+        "primary_keywords": ["Bitcoin explained", "how to buy crypto safely", "crypto beginner guide 2026"],
+        "us_keywords": ["how to buy bitcoin USA 2026", "crypto investing guide", "bitcoin safe investment"],
+        "uk_keywords": ["how to buy bitcoin UK 2026", "crypto regulation UK"],
+        "brazil_keywords": ["como comprar bitcoin 2026", "criptomoedas guia Brasil"],
+        "india_keywords": ["how to buy bitcoin India 2026", "crypto tax India", "bitcoin INR guide"],
+        "article_focus": """Write a comprehensive beginner crypto education article covering:
+- What Bitcoin and Ethereum actually are in simple terms
+- How to buy crypto safely in US, UK, Brazil and India (step by step)
+- How much to invest — risk management for beginners
+- Cold wallet vs exchange — what new investors need to know
+- Bitcoin halving cycle explained simply
+- Common crypto scams and how to avoid them
+- Tax implications in each country
+Target: complete beginners worldwide who keep hearing about crypto""",
+        "title_templates": [
+            "Bitcoin Explained Simply — Complete Beginner Guide 2026 for US, UK, India and Brazil",
+            "How to Buy Crypto Safely in 2026 — Step by Step Guide",
+            "Is Bitcoin a Safe Investment? — Honest Answer for Beginners ({date})",
+            "Crypto Beginner Mistakes That Cost People Money — And How to Avoid Them",
+            "Bitcoin Halving Cycle Explained — What Every New Investor Should Know",
+        ],
+        "news_queries": ["bitcoin+beginner+guide+2026", "how+to+buy+crypto+safely+2026", "bitcoin+halving+explained"],
+    },
+    {
+        "id": "personal-finance",
+        "name": "Personal Finance",
+        "permalink_base": "personal-finance",
+        "category": "Personal-Finance",
+        "tag": "personal-finance",
+        "primary_keywords": ["personal finance tips 2026", "how to save money", "emergency fund", "term life insurance"],
+        "us_keywords": ["best savings account USA 2026", "401k guide", "term life insurance USA"],
+        "uk_keywords": ["best ISA 2026", "UK pension guide", "how to save money UK"],
+        "brazil_keywords": ["como economizar dinheiro 2026", "previdencia privada Brasil"],
+        "india_keywords": ["how to save money India 2026", "best term insurance India", "PPF vs ELSS", "emergency fund India"],
+        "article_focus": """Write a comprehensive personal finance guide covering:
+- The 50-30-20 rule explained with real examples for each country
+- Emergency fund: how much, where to keep it (India, US, UK, Brazil)
+- Best term life insurance comparison with real numbers 2026
+- SIP/401k/ISA — retirement savings starter guide per country
+- How to get out of debt — practical steps
+- The one financial habit that changes everything
+- Actionable steps for today — not generic advice
+Target: working adults aged 25-45 in US, UK, Brazil and India who feel behind on finances""",
+        "title_templates": [
+            "Personal Finance Complete Guide 2026 — US, UK, India and Brazil",
+            "Why 80% of People Never Build Wealth — And the Simple Fix",
+            "Emergency Fund: How Much You Actually Need in 2026",
+            "Best Term Life Insurance 2026 — US, UK and India Compared",
+            "The 50-30-20 Rule — Does It Actually Work? Real Numbers Inside",
+        ],
+        "news_queries": ["personal+finance+tips+2026", "emergency+fund+guide", "term+life+insurance+2026"],
+    },
+    {
+        "id": "ai-trading",
+        "name": "AI and Trading Technology",
+        "permalink_base": "ai-trading",
+        "category": "AI-Trading",
+        "tag": "ai-trading",
+        "primary_keywords": ["AI trading tools 2026", "free trading tools", "algorithmic trading beginner", "fintech 2026"],
+        "us_keywords": ["best free AI trading tools USA 2026", "AI stock screener free"],
+        "uk_keywords": ["AI trading UK 2026", "free stock analysis tools UK"],
+        "brazil_keywords": ["ferramentas gratuitas trading 2026", "inteligencia artificial bolsa"],
+        "india_keywords": ["free AI trading tools India 2026", "best stock screener India free", "algo trading beginner India"],
+        "article_focus": """Write a comprehensive guide to free AI and trading tools covering:
+- Best completely free stock screeners for India, US, UK and Brazil
+- How retail traders can use AI tools for better decisions today
+- Free technical analysis tools vs paid ones — honest comparison
+- How algorithmic trading works without coding knowledge
+- AI tools that actually work vs overhyped ones
+- How to build a simple trading system using free tools
+- Risk management tools that are free and effective
+Target: retail traders of all levels looking for an edge without paying""",
+        "title_templates": [
+            "Best Free AI Trading Tools 2026 — Complete Guide for US, UK, India and Brazil",
+            "How to Use AI for Stock Market Analysis — Free Tools That Actually Work",
+            "Free vs Paid Trading Tools — Honest Comparison 2026",
+            "Algorithmic Trading for Beginners — No Coding Required 2026 Guide",
+            "The Free Stock Screeners That Professional Traders Actually Use",
+        ],
+        "news_queries": ["free+AI+trading+tools+2026", "best+stock+screener+free+2026", "algorithmic+trading+beginner+2026"],
+    },
+]
+
+# ─── MARKET DAY PILLARS (unchanged from original) ────────────────────────────
+MARKET_PILLARS = [
     {
         "id": "stock-market",
         "name": "Stock Market",
@@ -289,6 +405,9 @@ PILLARS = [
     },
 ]
 
+# ─── Select correct pillar set based on mode ─────────────────────────────────
+PILLARS = HOLIDAY_PILLARS if CONTENT_MODE in ("holiday", "weekend") else MARKET_PILLARS
+
 # ─── Writing Personas ─────────────────────────────────────────────────────────
 PERSONAS = [
     {
@@ -356,8 +475,12 @@ PILLAR_PERSONA_MAP = {
     "ai-trading":       [7, 2, 5, 7, 2, 5],
 }
 
-# ─── 1. Live Prices ───────────────────────────────────────────────────────────
+# ─── Live Prices (market mode only) ──────────────────────────────────────────
 def get_live_prices():
+    if CONTENT_MODE in ("holiday", "weekend"):
+        print("  📅 Holiday/Weekend mode — skipping live price fetch")
+        return {}
+
     symbols = {
         "NIFTY 50":      "^NSEI",
         "SENSEX":        "^BSESN",
@@ -404,7 +527,6 @@ def get_live_prices():
             prices[name] = {"price": 0, "change": 0, "pct": 0, "display": "N/A"}
     return prices
 
-# ─── 2. Google Trends ─────────────────────────────────────────────────────────
 def get_google_trends():
     all_trends = []
     regions = [("US", "-330"), ("IN", "-330"), ("GB", "0"), ("BR", "-180")]
@@ -446,7 +568,6 @@ def get_google_trends():
             unique.append(t)
     return unique[:15]
 
-# ─── 3. News by Pillar ────────────────────────────────────────────────────────
 def get_live_news(queries):
     all_headlines = []
     for query in queries:
@@ -466,10 +587,11 @@ def get_live_news(queries):
         except:
             continue
     random.shuffle(all_headlines)
-    return "\n".join(all_headlines[:20]) if all_headlines else "Market active today."
+    return "\n".join(all_headlines[:20]) if all_headlines else "Educational content day — no live news needed."
 
-# ─── 4. Fear & Greed ─────────────────────────────────────────────────────────
 def get_fear_greed():
+    if CONTENT_MODE in ("holiday", "weekend"):
+        return "N/A — Holiday/Weekend"
     try:
         r = requests.get("https://api.alternative.me/fng/?limit=1", timeout=6)
         d = r.json()['data'][0]
@@ -477,7 +599,6 @@ def get_fear_greed():
     except:
         return "50 — Neutral"
 
-# ─── 5. Cleanup old posts ─────────────────────────────────────────────────────
 def cleanup_old_posts():
     try:
         files = sorted([f for f in os.listdir(POSTS_DIR) if f.endswith('.md')])
@@ -488,7 +609,6 @@ def cleanup_old_posts():
     except Exception as e:
         print(f"  Cleanup warning: {e}")
 
-# ─── 6. Get recent posts for internal linking ─────────────────────────────────
 def get_recent_posts(pillar_id, limit=3):
     try:
         files = sorted([f for f in os.listdir(POSTS_DIR) if f.endswith('.md')], reverse=True)
@@ -520,7 +640,6 @@ def get_recent_posts(pillar_id, limit=3):
     except:
         return []
 
-# ─── 7. Schema Markup ─────────────────────────────────────────────────────────
 def generate_schema(title, description, pillar, url_slug):
     schema = {
         "@context": "https://schema.org",
@@ -562,8 +681,13 @@ def generate_schema(title, description, pillar, url_slug):
     }
     return json.dumps(schema, indent=2)
 
-# ─── 8. Build Dynamic Title ───────────────────────────────────────────────────
 def build_title(pillar, trends, prices, fear_greed):
+    # For holiday/weekend — use simple template from the pillar
+    if CONTENT_MODE in ("holiday", "weekend"):
+        template = pillar['title_templates'][now.day % len(pillar['title_templates'])]
+        title = template.format(date=date_display, trend="investing", direction="grows", nifty="N/A", sp500="N/A", btc="N/A", fg="N/A")
+        return title, "educational", "financial education"
+
     pillar_trend_keywords = {
         "stock-market":     ['stock', 'nifty', 'sensex', 'nasdaq', 's&p', 'market', 'dow', 'ftse', 'ibovespa'],
         "bitcoin":          ['bitcoin', 'crypto', 'btc', 'ethereum', 'defi', 'altcoin', 'blockchain'],
@@ -610,25 +734,32 @@ def build_title(pillar, trends, prices, fear_greed):
     )
     return title, direction, top_trend
 
-# ─── 9. Generate Single Article ──────────────────────────────────────────────
 def generate_article(pillar, prices, trends, fear_greed, persona, article_index):
-    print(f"\n  [{article_index}/4] Generating: {pillar['name']}...")
+    print(f"\n  [{article_index}/4] Generating: {pillar['name']} [{CONTENT_MODE} mode]...")
 
     news = get_live_news(pillar['news_queries'])
 
-    nifty_price  = prices.get("NIFTY 50",    {}).get("price", 24000)
-    nifty_pct    = prices.get("NIFTY 50",    {}).get("pct", 0)
-    sp500_price  = prices.get("S&P 500",     {}).get("price", 5500)
-    sp500_pct    = prices.get("S&P 500",     {}).get("pct", 0)
-    btc_price    = prices.get("Bitcoin",     {}).get("price", 65000)
-    btc_pct      = prices.get("Bitcoin",     {}).get("pct", 0)
-    gold_price   = prices.get("Gold",        {}).get("price", 2200)
-    nasdaq_price = prices.get("NASDAQ",      {}).get("price", 17000)
-    ibov_display = prices.get("IBOVESPA",    {}).get("display", "N/A")
-    dxy_price    = prices.get("DXY (Dollar)",{}).get("price", 104)
-    vix_display  = prices.get("India VIX",   {}).get("display", "N/A")
-    eth_price    = prices.get("Ethereum",    {}).get("price", 3000)
-    price_lines  = "\n".join([f"  - {k}: {v['display']}" for k, v in prices.items()])
+    # Build market context — empty on holiday/weekend
+    if CONTENT_MODE in ("holiday", "weekend"):
+        price_lines = "Market closed today — educational content mode"
+        mode_note   = f"This is a {'holiday' if CONTENT_MODE == 'holiday' else 'weekend'} article. Write educational, evergreen content. No live market data. Focus on timeless investment wisdom applicable to US, UK, Brazil and India readers."
+        if CONTENT_MODE == "holiday":
+            mode_note += f" Today is {HOLIDAY_NAME} — a market holiday. Content should be educational and globally appealing."
+    else:
+        nifty_price  = prices.get("NIFTY 50",    {}).get("price", 24000)
+        nifty_pct    = prices.get("NIFTY 50",    {}).get("pct", 0)
+        sp500_price  = prices.get("S&P 500",     {}).get("price", 5500)
+        sp500_pct    = prices.get("S&P 500",     {}).get("pct", 0)
+        btc_price    = prices.get("Bitcoin",     {}).get("price", 65000)
+        btc_pct      = prices.get("Bitcoin",     {}).get("pct", 0)
+        gold_price   = prices.get("Gold",        {}).get("price", 2200)
+        nasdaq_price = prices.get("NASDAQ",      {}).get("price", 17000)
+        ibov_display = prices.get("IBOVESPA",    {}).get("display", "N/A")
+        dxy_price    = prices.get("DXY (Dollar)",{}).get("price", 104)
+        vix_display  = prices.get("India VIX",   {}).get("display", "N/A")
+        eth_price    = prices.get("Ethereum",    {}).get("price", 3000)
+        price_lines  = "\n".join([f"  - {k}: {v['display']}" for k, v in prices.items()])
+        mode_note    = ""
 
     article_title, direction, top_trend = build_title(pillar, trends, prices, fear_greed)
 
@@ -661,19 +792,6 @@ def generate_article(pillar, prices, trends, fear_greed, persona, article_index)
         for post in recent_posts:
             internal_links_text += f'- [{post["title"]}](/{pillar["permalink_base"]}/{post["slug"]}/)\n'
 
-    s1_nifty = round(nifty_price * 0.986, 0)
-    s2_nifty = round(nifty_price * 0.972, 0)
-    r1_nifty = round(nifty_price * 1.014, 0)
-    r2_nifty = round(nifty_price * 1.028, 0)
-    s1_sp500 = round(sp500_price * 0.986, 0)
-    s2_sp500 = round(sp500_price * 0.972, 0)
-    r1_sp500 = round(sp500_price * 1.014, 0)
-    r2_sp500 = round(sp500_price * 1.028, 0)
-    s1_btc   = round(btc_price * 0.95, 0)
-    s2_btc   = round(btc_price * 0.90, 0)
-    r1_btc   = round(btc_price * 1.05, 0)
-    r2_btc   = round(btc_price * 1.10, 0)
-
     FORMAT_TYPES = [
         "story_led", "contrarian", "trader_notebook",
         "macro_driver", "chart_story", "question_led",
@@ -682,21 +800,21 @@ def generate_article(pillar, prices, trends, fear_greed, persona, article_index)
     fmt = FORMAT_TYPES[(now.day + article_index + _pillar_idx) % len(FORMAT_TYPES)]
 
     FORMAT_INSTRUCTIONS = {
-        "story_led":      "Start with a specific market observation — a price level, a candle pattern, or an unusual move you noticed today.",
+        "story_led":      "Start with a specific observation — a fact, a number, or a situation that real readers face today.",
         "contrarian":     "Open with the view most people have wrong right now. State it bluntly. Then prove it with data.",
-        "trader_notebook":"Write like a trading diary entry. Use 'I'm watching...', 'The level that matters to me today is...'",
-        "macro_driver":   "Identify the single biggest macro force driving markets today and build the whole article around it.",
-        "chart_story":    "Describe what the chart is telling you in plain language. Then connect to fundamentals.",
-        "question_led":   "Open with the exact question traders are googling right now. Answer it directly in para 1.",
+        "trader_notebook":"Write like a personal finance diary entry. Use 'I'm watching...', 'The number that matters today is...'",
+        "macro_driver":   "Identify the single biggest force affecting personal finances or markets today and build the whole article around it.",
+        "chart_story":    "Describe what the data is telling you in plain language. Then connect to actionable advice.",
+        "question_led":   "Open with the exact question your target reader is googling right now. Answer it directly in paragraph 1.",
     }
 
     SECTION_STRUCTURES = {
-        "story_led":      ["The Setup", "What the Data Actually Says", "How Each Market Is Playing It", "Key Levels I'm Watching", "The Risk Nobody's Talking About", "My Take", "Quick Answers"],
-        "contrarian":     ["The Consensus View (And Why It's Wrong)", "What the Data Shows Instead", "Market By Market Breakdown", "The Levels That Actually Matter", "What Smart Money Is Doing", "Bottom Line", "Reader Questions"],
-        "trader_notebook":["Morning Observations", "NIFTY and India — What I See", "US Markets — Reading the Tape", "Bitcoin — Where I Stand", "Levels I'm Using Today", "What Could Go Wrong", "Common Questions Today"],
-        "macro_driver":   ["The Macro Driver Today", "How It's Moving Each Market", "India's Position", "US and Global Impact", "Technical Levels to Watch", "Scenario Analysis", "Key Questions Answered"],
-        "chart_story":    ["What the Chart Is Saying", "Confirming Signals", "Country By Country View", "The Numbers That Matter", "Bull vs Bear Case", "My Positioning View", "Trader FAQs"],
-        "question_led":   ["The Direct Answer", "The Deeper Context", "India View", "US and Crypto View", "Support and Resistance Map", "What Happens Next", "More Questions"],
+        "story_led":      ["The Setup", "What the Data Actually Says", "How This Affects Each Country", "Key Numbers to Know", "The Risk Nobody's Talking About", "My Take", "Quick Answers"],
+        "contrarian":     ["The Consensus View (And Why It's Wrong)", "What the Data Shows Instead", "Country By Country Breakdown", "The Numbers That Actually Matter", "What Smart Investors Are Doing", "Bottom Line", "Reader Questions"],
+        "trader_notebook":["Today's Observations", "India View", "Global Context", "The Numbers I'm Using", "What Could Go Wrong", "Action Steps", "Common Questions"],
+        "macro_driver":   ["The Big Force Today", "How It Affects Each Market", "India's Position", "US and Global Impact", "Numbers to Watch", "Scenario Analysis", "Key Questions Answered"],
+        "chart_story":    ["What the Data Is Saying", "Confirming Signals", "Country By Country View", "The Numbers That Matter", "Best Case vs Worst Case", "My Recommendation", "Trader FAQs"],
+        "question_led":   ["The Direct Answer", "The Deeper Context", "India View", "US, UK and Brazil View", "Numbers and Levels", "What Happens Next", "More Questions"],
     }
 
     sections = SECTION_STRUCTURES[fmt]
@@ -710,21 +828,14 @@ WRITING STYLE: {persona['style']}
 Today is {day_name}, {date_display}.
 ARTICLE FORMAT TYPE: {fmt}
 OPENING INSTRUCTION: {opening_instruction}
+{mode_note}
 
 TOPIC: {pillar['name']}
 {pillar['article_focus']}
 
-LIVE MARKET DATA RIGHT NOW:
+LIVE DATA:
 {price_lines}
-Fear and Greed: {fear_greed} | India VIX: {vix_display}
-NIFTY: {nifty_price} ({nifty_pct:+.2f}%) | S&P 500: {sp500_price} ({sp500_pct:+.2f}%)
-Bitcoin: ${btc_price} ({btc_pct:+.2f}%) | Gold: ${gold_price} | ETH: ${eth_price}
-IBOVESPA: {ibov_display} | DXY: {dxy_price}
-
-CALCULATED KEY LEVELS:
-NIFTY — S2:{s2_nifty} S1:{s1_nifty} [NOW:{nifty_price}] R1:{r1_nifty} R2:{r2_nifty}
-S&P 500 — S2:{s2_sp500} S1:{s1_sp500} [NOW:{sp500_price}] R1:{r1_sp500} R2:{r2_sp500}
-Bitcoin — S2:{s2_btc} S1:{s1_btc} [NOW:{btc_price}] R1:{r1_btc} R2:{r2_btc}
+Fear and Greed: {fear_greed}
 
 NEWS TODAY (use as context only — write YOUR OWN analysis):
 {news}
@@ -736,13 +847,13 @@ TRENDING SEARCHES: {', '.join(trends[:8])}
 1. VARY SENTENCE LENGTH aggressively.
 2. EXPRESS GENUINE OPINIONS with reasoning.
 3. SHOW UNCERTAINTY where real.
-4. USE TRADER LANGUAGE naturally.
+4. USE NATURAL LANGUAGE — no jargon overload.
 5. ADD ONE REAL HISTORICAL PARALLEL with exact month/year.
 6. BREAK PARAGRAPH SYMMETRY.
 7. BANNED WORDS: "In conclusion", "Furthermore", "Moreover", "This underscores",
    "Navigating", "Landscape", "Delve into", "Robust", "Game-changer", "Paradigm shift",
    "Deep dive", "Shed light", "It's worth noting", "It is important to note"
-8. NEVER use headers: "Core Analysis", "Country Analysis", "Brand View", "AI360Trading View"
+8. NEVER use headers: "Core Analysis", "Country Analysis", "Brand View"
 9. NUMBERS must connect to decisions.
 10. DELETE fake authority lines.
 
@@ -750,15 +861,11 @@ TRENDING SEARCHES: {', '.join(trends[:8])}
 Use EXACTLY these section names:
 {chr(10).join(f"## {s}" for s in sections)}
 
-Include ONE key levels table:
-| Instrument | Price | S2 | S1 | R1 | R2 |
-|---|---|---|---|---|---|
-
 Include ONE FAQ block with 3 questions people actually search on Google.
 Include 2-3 internal links naturally in body text if provided above.
 
 === FORMAT ===
-First line: META_DESCRIPTION: <150-160 chars with specific price data and date>
+First line: META_DESCRIPTION: <150-160 chars with specific data and date>
 Then the article starting with ## {sections[0]}
 
 CRITICAL SEO RULE:
@@ -795,7 +902,7 @@ End with:
         )
         content = completion.choices[0].message.content
 
-        meta_description = f"{article_title} | {pillar['name']} — {date_display}. Live prices, key levels and insights for US, UK, India and Brazil."[:155]
+        meta_description = f"{article_title} | {pillar['name']} — {date_display}. Insights for US, UK, India and Brazil investors."[:155]
         cleaned_lines = []
         for line in content.split("\n"):
             if line.strip().startswith("META_DESCRIPTION:"):
@@ -803,16 +910,15 @@ End with:
                 if 130 <= len(extracted) <= 160:
                     meta_description = extracted
                 elif 100 < len(extracted) < 130:
-                    meta_description = (extracted + f" | {pillar['name']} analysis {date_display}.")[:160]
+                    meta_description = (extracted + f" | {pillar['name']} {date_display}.")[:160]
             else:
                 cleaned_lines.append(line)
         content = "\n".join(cleaned_lines).lstrip("\n")
 
         _primary_kw = pillar['primary_keywords'][0]
         article_excerpt = (
-            f"{article_title} — {pillar['name']} analysis for {date_display}. "
-            f"Live {_primary_kw} data, key support resistance levels, "
-            f"actionable insights for US, UK, India and Brazil traders."
+            f"{article_title} — {pillar['name']} for {date_display}. "
+            f"Insights on {_primary_kw} for US, UK, India and Brazil investors."
         )[:200]
 
         schema_json = generate_schema(article_title, meta_description, pillar, chosen_slug)
@@ -832,16 +938,13 @@ End with:
             f"date: {date_str}\n"
             "author: \"Amit Kumar\"\n"
             f"pillar: \"{pillar['id']}\"\n"
+            f"content_mode: \"{CONTENT_MODE}\"\n"
             f"permalink: /{pillar['permalink_base']}/{chosen_slug}/\n"
             f"excerpt: \"{safe_excerpt}\"\n"
             f"description: \"{safe_desc}\"\n"
-            f"keywords: \"{', '.join(pillar['primary_keywords'])}, {', '.join(pillar['us_keywords'][:2])}, {', '.join(pillar['india_keywords'][:2])}\"\n"
+            f"keywords: \"{', '.join(pillar['primary_keywords'])}, {', '.join(pillar.get('us_keywords', [])[:2])}, {', '.join(pillar.get('india_keywords', [])[:2])}\"\n"
             f"categories: [{pillar['category']}]\n"
             f"tags: [{pillar['tag']}]\n"
-            f"nifty_level: \"{prices.get('NIFTY 50',{}).get('display','N/A')}\"\n"
-            f"sp500_level: \"{prices.get('S&P 500',{}).get('display','N/A')}\"\n"
-            f"bitcoin_level: \"{prices.get('Bitcoin',{}).get('display','N/A')}\"\n"
-            f"gold_level: \"{prices.get('Gold',{}).get('display','N/A')}\"\n"
             f"fear_greed: \"{fear_greed}\"\n"
             f"trending: \"{', '.join(trends[:5])}\"\n"
             "---\n\n"
@@ -864,25 +967,28 @@ End with:
         return False, None
 
 
-# ─── 10. Main ─────────────────────────────────────────────────────────────────
 def generate_all_articles():
     print("=" * 60)
     print(f"  AI360Trading Daily Bot — {date_display}")
+    print(f"  Mode: {CONTENT_MODE.upper()}")
+    if CONTENT_MODE == "holiday":
+        print(f"  Holiday: {HOLIDAY_NAME}")
     print("=" * 60)
 
-    print("\nFetching live market data...")
+    print("\nFetching data...")
     prices     = get_live_prices()
     trends     = get_google_trends()
     fear_greed = get_fear_greed()
 
-    print(f"  S&P 500  : {prices.get('S&P 500',{}).get('display','N/A')}")
-    print(f"  NIFTY    : {prices.get('NIFTY 50',{}).get('display','N/A')}")
-    print(f"  Bitcoin  : {prices.get('Bitcoin',{}).get('display','N/A')}")
-    print(f"  Gold     : {prices.get('Gold',{}).get('display','N/A')}")
-    print(f"  F&G      : {fear_greed}")
+    if CONTENT_MODE == "market":
+        print(f"  S&P 500  : {prices.get('S&P 500',{}).get('display','N/A')}")
+        print(f"  NIFTY    : {prices.get('NIFTY 50',{}).get('display','N/A')}")
+        print(f"  Bitcoin  : {prices.get('Bitcoin',{}).get('display','N/A')}")
+        print(f"  Gold     : {prices.get('Gold',{}).get('display','N/A')}")
+        print(f"  F&G      : {fear_greed}")
     print(f"  Trending : {', '.join(trends[:3])}")
 
-    results      = []
+    results        = []
     published_urls = []
 
     for i, pillar in enumerate(PILLARS):
@@ -918,7 +1024,6 @@ def generate_all_articles():
     for name, success in results:
         print(f"  {'✅' if success else '❌'} {name}")
 
-    # ── Google Indexing API — submit new articles immediately ──────────────
     if published_urls:
         print(f"\n📡 Submitting {len(published_urls)} new URLs to Google Indexing API...")
         submit_urls_to_google(published_urls)
@@ -926,7 +1031,7 @@ def generate_all_articles():
         print("\n  No new articles to submit to Google.")
 
     cleanup_old_posts()
-    print("\n  Done. Bot will run again tomorrow.")
+    print(f"\n  Done. Mode was: {CONTENT_MODE.upper()}")
 
 
 if __name__ == "__main__":
