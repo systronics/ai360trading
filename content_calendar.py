@@ -7,6 +7,7 @@ Tuesday   = Technical Analysis (universal charts — any market)
 Wednesday = Fundamental + Macro + Global Events
 Thursday  = Strategies (intraday, swing, positional — universal)
 Friday    = Psychology + Risk Management (universal)
+Holiday   = Rotates: Motivational | Savings & Investment | Market Emotions | Storytelling
 """
 
 from datetime import datetime
@@ -342,7 +343,7 @@ FRIDAY_TOPICS = [
             {"heading": "The Dirty Secret of the Trading Industry",
              "points": ["90% of traders lose money — this is a documented fact worldwide","The problem is never the strategy — it is always psychology","A perfect strategy fails if you cannot follow it under pressure","The same psychological traps destroy traders in India, USA, UK, Brazil","Understanding your enemy is the first step to defeating it"]},
             {"heading": "Loss Aversion — Why Losses Hurt More Than Gains Feel Good",
-             "points": ["Losing 1000 rupees feels twice as bad as gaining 1000 feels good","This is hardwired into human DNA for survival","In trading this makes you hold losers too long hoping to break even","And cut winners too early to lock in the 'safe' profit","This single bias is responsible for most trading losses worldwide"]},
+             "points": ["Losing 1000 rupees feels twice as bad as gaining 1000 feels good","This is hardwired into human DNA for survival","In trading this makes you hold losers too long hoping to break even","And cut winners too early to lock in the safe profit","This single bias is responsible for most trading losses worldwide"]},
             {"heading": "The Revenge Trade — Account Killer",
              "points": ["You take a loss. Now you feel angry and need to recover it immediately","You trade bigger — sometimes 3x or 5x your normal size","You lose again — now the account is seriously damaged","This sequence destroys accounts in hours across all countries","Rule: after any loss exceeding your daily limit — turn off your screen and walk away"]},
             {"heading": "Overconfidence — The Bull Market Trap",
@@ -406,6 +407,165 @@ FRIDAY_TOPICS = [
 ]
 
 # ══════════════════════════════════════════════════════════
+# HOLIDAY TOPICS — Motivational + Savings + Market Emotions + Storytelling
+# Rotates every holiday — worldwide audience appeal
+# ══════════════════════════════════════════════════════════
+HOLIDAY_TOPICS = [
+    # ── MOTIVATIONAL ─────────────────────────────────────
+    {
+        "title": "The Trader Who Lost Everything — And Then Built It All Back",
+        "category": "Motivational",
+        "level": "All Levels",
+        "target_audience": "Global — universal human story",
+        "slides": [
+            {"heading": "Every Great Trader Has a Breaking Point Story",
+             "points": ["The traders you admire most have all hit rock bottom","Jesse Livermore lost everything multiple times before his greatest wins","George Soros was a refugee with nothing before becoming a billionaire","Your worst trading loss is not the end — it is the beginning of real learning","The market teaches you through pain what books never could"]},
+            {"heading": "What Losing Teaches You That Winning Never Can",
+             "points": ["Losses reveal your psychology in a way no win ever does","You discover your true risk tolerance only when you are losing","The rules you break under pressure are the rules that matter most","Every successful trader has a specific loss that changed everything","That loss becomes the foundation of all their future discipline"]},
+            {"heading": "The Rebuilding Process — Step by Step",
+             "points": ["Step 1: Stop trading completely for at least 2 weeks","Step 2: Write down every mistake from memory — be brutally honest","Step 3: Start again with 10% of your normal position size","Step 4: Do not increase size until you are profitable for 3 months straight","Step 5: Your rebuilt account will be stronger than the original"]},
+            {"heading": "Why Holidays Are the Best Time to Restart",
+             "points": ["Markets are closed — no pressure, no temptation","Perfect time to read, reflect, and reset your mindset","Review your last 3 months of trades with fresh eyes today","Write down the ONE thing you will change when markets reopen","The best traders use every holiday as a performance review day"]},
+            {"heading": "The One Mindset Shift That Changes Everything",
+             "points": ["Stop measuring success by profit and loss — measure by process quality","Did you follow your rules? That is the only question that matters","A good trade following rules that lost money is better than a bad trade that won","Consistency of process creates consistency of results over time","This is the mindset of every trader who survived more than 5 years"]},
+        ]
+    },
+    # ── SAVINGS & INVESTMENT ─────────────────────────────
+    {
+        "title": "Holiday Special — Your Complete Savings and Investment Roadmap",
+        "category": "Savings and Investment",
+        "level": "Beginner",
+        "target_audience": "Global — India, US, UK, Brazil",
+        "slides": [
+            {"heading": "Why Holidays Are the Perfect Time to Plan Your Finances",
+             "points": ["Markets are closed — no distractions, pure planning time","The biggest financial decisions are made with a clear head, not during market hours","Most people spend holidays spending money — smart people spend them planning","One hour of financial planning today can change the next 10 years","Use this market holiday to build your wealth foundation"]},
+            {"heading": "The 50-30-20 Rule — Simple Formula for Every Income Level",
+             "points": ["50% of income: needs — rent, food, utilities, EMIs","30% of income: wants — entertainment, dining, travel","20% of income: savings and investments — non-negotiable","This rule works whether you earn 20,000 or 2,00,000 rupees per month","Start with whatever percentage you can — 5% is better than 0%"]},
+            {"heading": "Emergency Fund — Build This Before Anything Else",
+             "points": ["Keep 6 months of expenses in a liquid savings account","This is your financial shock absorber — job loss, medical, car repair","Without emergency fund: every crisis forces you to sell investments at wrong time","India: keep in high-interest savings account or liquid mutual fund","US/UK: high-yield savings account currently paying 4-5% — use it"]},
+            {"heading": "Where to Invest in 2026 — Simple Allocation",
+             "points": ["60% in equity index funds — Nifty 50 or S&P 500","20% in gold — physical or sovereign gold bonds or gold ETF","10% in debt/bonds — FD or government bonds for stability","10% in direct stocks — only if you understand the companies","This allocation works for 90% of investors in any country"]},
+            {"heading": "The One Financial Decision to Make Before Markets Reopen",
+             "points": ["Set up an automatic monthly SIP if you do not have one already","India: Zerodha Coin or Groww — Nifty 50 index fund, even 1000 rupees","USA: Vanguard VOO or Fidelity ZERO — set up auto-invest today","The best time to start was 10 years ago — the second best time is today","Automation removes emotion: money invested before you can spend it"]},
+        ]
+    },
+    # ── MARKET EMOTIONS ──────────────────────────────────
+    {
+        "title": "Fear and Greed — Understanding the Two Emotions That Control Markets",
+        "category": "Market Emotions",
+        "level": "All Levels",
+        "target_audience": "Global — universal appeal",
+        "slides": [
+            {"heading": "Markets Are Just Millions of Human Emotions Aggregated",
+             "points": ["Every price on every chart is the result of human emotion","Fear pushes prices below fair value — creating opportunities","Greed pushes prices above fair value — creating danger","The market is the world's largest psychology experiment running 24/7","Understanding this gives you an edge no algorithm fully captures"]},
+            {"heading": "What Extreme Fear Looks Like — And How to Use It",
+             "points": ["Fear and Greed Index below 20 = extreme fear in the market","Everyone is selling, headlines are catastrophic, social media is panicking","This is historically the best time to buy — not sell","March 2020 COVID crash: extreme fear, S&P 500 fell 35% — then rose 100%","India VIX above 30: extreme fear in Indian market = buy zone for patient investors"]},
+            {"heading": "What Extreme Greed Looks Like — And How to Protect Yourself",
+             "points": ["Fear and Greed Index above 80 = extreme greed","Everyone is buying, tips flowing freely, even non-traders are investing","This is when risk is highest — not when market is falling","2021 crypto bubble: extreme greed, Bitcoin 69000 — then fell 75%","When everyone around you is talking about stocks — reduce your exposure"]},
+            {"heading": "The Emotional Cycle Every Market Goes Through",
+             "points": ["Disbelief: market rises but people do not trust it","Hope: more people start to believe the trend","Optimism: everyone is bullish and happy","Euphoria: maximum risk point — top of the market","Anxiety, denial, fear, panic: the crash — maximum opportunity point","Understanding where we are in this cycle is more valuable than any indicator"]},
+            {"heading": "How to Stay Emotionally Neutral in Any Market",
+             "points": ["Check the Fear and Greed Index every morning — takes 10 seconds","When index is extreme: do the OPPOSITE of what you feel like doing","Build a pre-trade checklist that takes emotion out of entry decisions","Never check your portfolio more than once per day — more checks = more emotion","The best traders feel the fear and greed but act according to their system anyway"]},
+        ]
+    },
+    # ── STORYTELLING ─────────────────────────────────────
+    {
+        "title": "The Story of Warren Buffett — Lessons Every Indian Investor Must Know",
+        "category": "Storytelling",
+        "level": "All Levels",
+        "target_audience": "Global — huge appeal",
+        "slides": [
+            {"heading": "The Boy Who Started With 114 Dollars",
+             "points": ["Warren Buffett bought his first stock at age 11 — Cities Service Preferred","He invested 114 dollars — his entire savings from delivering newspapers","The stock fell first, he panicked and sold at a small profit","It then rose to 200 dollars — his first lesson in patience","He has never forgotten that lesson in 80 years of investing"]},
+            {"heading": "The Rule That Made Him the Richest Investor in History",
+             "points": ["Rule 1: Never lose money","Rule 2: Never forget Rule 1","This is not about avoiding losses — every investor has losses","It means never risk capital you cannot afford to lose","It means never invest in something you do not deeply understand"]},
+            {"heading": "How Buffett Thinks About Buying Stocks",
+             "points": ["He buys businesses — not stocks","Would he be happy owning this company if the stock market closed for 10 years?","He only buys companies with durable competitive advantages — moats","Coca-Cola: same product, same formula, 100 years of dominance","Apply this to Indian stocks: HDFC Bank, Asian Paints, TCS — all have moats"]},
+            {"heading": "The Lessons That Apply to Every Indian Investor Today",
+             "points": ["Time in the market beats timing the market — Buffett held Coca-Cola since 1988","Invest in what you understand — do not chase unfamiliar stocks","Be fearful when others are greedy — and greedy when others are fearful","The stock market transfers money from the impatient to the patient","You do not need 100 great ideas — you need 5 to 10 really great ones"]},
+            {"heading": "What Buffett Would Tell a Young Indian Investor Today",
+             "points": ["Start a SIP in Nifty 50 index fund immediately and never stop","Read one annual report per week — not Twitter, not Telegram tips","Your biggest financial asset is your ability to earn — invest in your skills first","Avoid debt for consumption — use debt only for assets that produce income","The best investment you can ever make is in yourself — Buffett said this at 93"]},
+        ]
+    },
+    # ── MOTIVATIONAL 2 ───────────────────────────────────
+    {
+        "title": "Why Most People Never Build Wealth — And the Simple Fix",
+        "category": "Motivational",
+        "level": "All Levels",
+        "target_audience": "Global",
+        "slides": [
+            {"heading": "The Uncomfortable Truth About Why People Stay Poor",
+             "points": ["It is not income — doctors and engineers go broke too","It is not intelligence — the smartest people make terrible financial decisions","It is one thing: financial habits practiced consistently over years","Wealth is not built in bull markets — it is built in boring, consistent routines","The person investing 5000 rupees every month for 20 years beats the person who gets lucky once"]},
+            {"heading": "The 5 Habits of People Who Build Wealth Quietly",
+             "points": ["They spend less than they earn — always, without exception","They invest before they spend — automatic, not optional","They never try to get rich quickly — they trust the process","They learn about money consistently — 30 minutes per day minimum","They ignore what others think about their lifestyle choices"]},
+            {"heading": "The Comparison Trap — Why Social Media Is Destroying Your Finances",
+             "points": ["Social media shows you everyone's highlights — not their debt","The person with the fancy car often has zero investments","The person with the modest lifestyle often has a crore in index funds","Lifestyle inflation is the silent killer of wealth for the middle class","Every rupee spent on status is a rupee not working for your future"]},
+            {"heading": "Your Financial Life 10 Years From Now",
+             "points": ["If you invest 10,000 per month for 10 years at 12%: 23 lakhs","If you invest 10,000 per month for 20 years at 12%: 1 crore","If you invest 10,000 per month for 30 years at 12%: 3.5 crore","The difference between 10 and 30 years is just time — not more money","The only question is: will you start today, or will you wait another year?"]},
+            {"heading": "The One Action to Take Before This Holiday Ends",
+             "points": ["Open your bank app right now — check your balance","Calculate: how much did you invest last month? Be honest","If the answer is zero or less than 10% of income — set up a SIP today","It takes 10 minutes — and it is the most important 10 minutes of this holiday","Your future self will remember this day as the day everything changed"]},
+        ]
+    },
+    # ── SAVINGS & INVESTMENT 2 ───────────────────────────
+    {
+        "title": "Gold vs Stocks vs Real Estate vs Bitcoin — Where Should You Invest in 2026?",
+        "category": "Savings and Investment",
+        "level": "Beginner",
+        "target_audience": "Global",
+        "slides": [
+            {"heading": "The Great Investment Debate — Which Asset Class Wins?",
+             "points": ["Every asset class has had its decade of dominance","2000s: Gold and real estate beat stocks","2010s: US stocks crushed everything","2020s: Crypto burst onto the scene then crashed","The answer is never one asset — it is always diversification across all"]},
+            {"heading": "Stocks — The Wealth-Building Champion Long Term",
+             "points": ["Nifty 50: 14% average annual return over 20 years","S&P 500: 10-12% average annual return over 100 years","Best for: long term wealth building, 10+ year horizon","Risk: can fall 30-50% in bear markets — you must stay invested","Suitable for: anyone under 50 who can handle short term volatility"]},
+            {"heading": "Gold — The Insurance Policy Every Portfolio Needs",
+             "points": ["Gold has preserved wealth for 5000 years — no other asset matches this","Rises when stocks fall, when currencies weaken, when war breaks out","Target allocation: 10-20% of portfolio at all times","India: Sovereign Gold Bonds give 2.5% interest plus price appreciation","Not for growth — for protection when everything else falls"]},
+            {"heading": "Real Estate — The Most Understood But Most Overvalued Asset in India",
+             "points": ["Real estate in India: average 5-8% annual appreciation historically","After costs, taxes, maintenance: real returns often only 3-4%","Nifty 50 returns 14% — real estate rarely beats this on real returns","Advantage: rental income, forced savings, emotional satisfaction","Disadvantage: illiquid, high transaction costs, concentrated risk"]},
+            {"heading": "The Simple Portfolio That Works for 90% of Indians",
+             "points": ["60% Nifty 50 index fund via monthly SIP","20% Sovereign Gold Bond — buy on dips","10% liquid fund or FD — emergency reserve","10% international index fund — S&P 500 via Motilal Oswal","Review once per year — do not touch otherwise — let compound interest work"]},
+        ]
+    },
+    # ── MARKET EMOTIONS 2 ────────────────────────────────
+    {
+        "title": "How to Stay Calm When the Market is Crashing — A Practical Guide",
+        "category": "Market Emotions",
+        "level": "All Levels",
+        "target_audience": "Global",
+        "slides": [
+            {"heading": "Market Crashes Are Normal — The Data Proves It",
+             "points": ["S&P 500 has fallen 10% or more 38 times since 1950","Nifty 50 has fallen 20%+ at least 8 times since 2000","Every single crash has been followed by new all-time highs","The average time to recover from a crash: 18-24 months","Knowing this turns panic into patience — data over emotion always"]},
+            {"heading": "What Your Brain Does During a Crash — And Why It Lies to You",
+             "points": ["Amygdala activates: fight or flight response for financial pain","Your brain genuinely cannot distinguish market loss from physical danger","This is why selling during crashes feels like survival — it is wired in","The traders who stay rational during crashes have trained this response","Preparation before the crash is the only solution — not willpower during it"]},
+            {"heading": "The 5-Step Crash Protocol — Do This Before the Next Crash",
+             "points": ["Write your Investment Policy Statement today — before the next crash","State: I will not sell unless fundamentals change — not just price","Set a specific level where you will BUY MORE — not sell","Turn off financial news during market crashes — it makes panic worse","Check portfolio only once per week during volatile periods"]},
+            {"heading": "How the Wealthy Use Crashes Differently",
+             "points": ["Average investor: panics, sells at the bottom, misses recovery","Wealthy investor: already has cash ready, buys aggressively at lows","The 2020 COVID crash: billionaires bought billions in stocks at the bottom","They were not smarter — they were more prepared and less emotional","Build a crash watchlist now: the 5 stocks you want to buy when they fall 30%"]},
+            {"heading": "The Most Important Thing to Do During This Market Holiday",
+             "points": ["Markets are closed — use this peace to build your crash plan","Write down: at what portfolio loss percentage will I buy more? (answer: 20%)","Write down: which 3 funds will I add to during the next crash?","Write down: how many months of expenses do I have in emergency fund?","Review this plan every 6 months — and NEVER deviate from it during a crash"]},
+        ]
+    },
+    # ── STORYTELLING 2 ───────────────────────────────────
+    {
+        "title": "The Biggest Market Crashes in History — And What They Taught Us",
+        "category": "Storytelling",
+        "level": "All Levels",
+        "target_audience": "Global",
+        "slides": [
+            {"heading": "1929 — The Great Crash That Changed Everything",
+             "points": ["US stock market fell 89% from peak — the worst crash in recorded history","Took 25 years to recover to previous highs — an entire generation","Caused by excessive leverage, speculation, and zero regulation","Created the SEC, deposit insurance, and modern financial regulation","Lesson: leverage and speculation without regulation always ends in catastrophe"]},
+            {"heading": "2000 — The Dot-Com Bubble — When Story Beats Profit",
+             "points": ["NASDAQ fell 78% — tech stocks lost 8 trillion USD in 2 years","Companies with zero revenue were worth billions — pure speculation","Pets.com raised 82 million USD and shut down in 9 months","The companies that survived — Amazon, Google — became the greatest ever","Lesson: business fundamentals always win over narrative — eventually"]},
+            {"heading": "2008 — The Global Financial Crisis — Risk Nobody Understood",
+             "points": ["S&P 500 fell 57% — Nifty fell 60% from peak to trough","Caused by mortgage-backed securities nobody truly understood","Banks were leveraged 30:1 — one bad asset class brought the system down","Lehman Brothers: 150 years old, gone in a weekend","Lesson: when everyone says the risk is managed — that is when risk is highest"]},
+            {"heading": "2020 — COVID Crash — The Fastest Recovery in History",
+             "points": ["S&P 500 fell 34% in 33 days — fastest crash ever recorded","Nifty fell from 12000 to 7500 in weeks — pure panic","Then recovered everything in 6 months and made new all-time highs","People who sold in March 2020 missed the greatest recovery in history","Lesson: the best time to buy is when the fear is most extreme — if fundamentals are intact"]},
+            {"heading": "What Every Crash Has in Common — The Pattern That Never Changes",
+             "points": ["Every crash felt like the end of the financial world — and was not","Every crash was caused by excessive optimism and leverage before it","Every crash created the greatest buying opportunities of the decade","Every crash rewarded patient investors who did not panic sell","Your job is not to predict the crash — it is to be prepared when it comes"]},
+        ]
+    },
+]
+
+# ══════════════════════════════════════════════════════════
 # MASTER MAPPING
 # ══════════════════════════════════════════════════════════
 WEEKDAY_TOPICS = {
@@ -416,20 +576,45 @@ WEEKDAY_TOPICS = {
     4: FRIDAY_TOPICS,
 }
 
+
 def get_todays_education_topic():
-    """Smart rotation — returns today's education topic."""
-    now = datetime.now()
+    """
+    Smart rotation — returns today's education topic.
+    Weekends fall back to Monday topics.
+    """
+    now     = datetime.now()
     weekday = now.weekday()
     if weekday >= 5:
         weekday = 0
-    topics = WEEKDAY_TOPICS[weekday]
+    topics   = WEEKDAY_TOPICS[weekday]
     week_num = now.isocalendar()[1]
     return topics[week_num % len(topics)]
 
 
+def get_holiday_topic():
+    """
+    Returns a holiday topic rotating across all 8 holiday topics.
+    Rotates by day of year so each holiday gets different content.
+    """
+    now     = datetime.now()
+    day_num = now.timetuple().tm_yday   # 1-365
+    return HOLIDAY_TOPICS[day_num % len(HOLIDAY_TOPICS)]
+
+
+def get_todays_topic():
+    """
+    Master function — returns correct topic for today.
+    Automatically detects weekend vs holiday vs market day.
+    Import indian_holidays separately to use this correctly.
+    """
+    return get_todays_education_topic()
+
+
 if __name__ == "__main__":
     topic = get_todays_education_topic()
-    print(f"Today: {topic['title']}")
+    print(f"Today market topic: {topic['title']}")
     print(f"Category: {topic['category']} | Level: {topic['level']}")
-    print(f"Target: {topic['target_audience']}")
-    print(f"Slides: {len(topic['slides'])}")
+
+    holiday_topic = get_holiday_topic()
+    print(f"\nHoliday topic: {holiday_topic['title']}")
+    print(f"Category: {holiday_topic['category']} | Level: {holiday_topic['level']}")
