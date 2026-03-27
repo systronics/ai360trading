@@ -1,60 +1,72 @@
 name: AI360 Daily ZENO Reel + Social Posting
+
 on:
   schedule:
-    # Daily 8:30 PM IST (15:00 UTC) — best time for global audience
-    # Catches India prime time + USA morning + UK next morning + Brazil afternoon
+    # 8:30 PM IST (15:00 UTC) - Prime time for Global & Indian engagement
     - cron: "0 15 * * *"
   workflow_dispatch:
+
 jobs:
   generate-and-post:
     runs-on: ubuntu-latest
     timeout-minutes: 45
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
           cache: "pip"
+
       - name: Install system dependencies
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq ffmpeg imagemagick
-          # Fix ImageMagick policy to allow TextClip to process text
+          # Fix ImageMagick policy to allow TextClip to process high-quality text for Zeno
           sudo sed -i 's/rights="none" pattern="@\*"/rights="read|write" pattern="@\*"/g' /etc/ImageMagick-6/policy.xml || true
+
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
-          # Force MoviePy 1.0.3 to overwrite any v2.0+ dependencies
           pip install --force-reinstall moviepy==1.0.3
           pip install -r requirements.txt
+
       - name: Prepare Workspace
         run: mkdir -p output
-      - name: Step 1 - Generate ZENO reel
+
+      - name: Step 1 - Generate ZENO Viral Reel
         env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          # Passing CONTENT_MODE allows Zeno to switch between Market/Holiday/Weekend logic
+          CONTENT_MODE: ${{ env.CONTENT_MODE }} 
         run: python generate_reel.py
-      - name: Step 2 - Upload to YouTube Shorts
+
+      - name: Step 2 - Upload to YouTube Shorts (SEO Optimized)
         env:
           YOUTUBE_CREDENTIALS: ${{ secrets.YOUTUBE_CREDENTIALS }}
         run: python upload_youtube.py
-      - name: Step 3 - Post to Facebook
+
+      - name: Step 3 - Post to Facebook (Page & Group)
         env:
           META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
           FACEBOOK_PAGE_ID:  ${{ secrets.FACEBOOK_PAGE_ID }}
           FACEBOOK_GROUP_ID: ${{ secrets.FACEBOOK_GROUP_ID }}
         run: python upload_facebook.py
-      - name: Step 4 - Post to Instagram
+
+      - name: Step 4 - Post to Instagram (Viral Hashtags)
         env:
           META_ACCESS_TOKEN:    ${{ secrets.META_ACCESS_TOKEN }}
           INSTAGRAM_ACCOUNT_ID: ${{ secrets.INSTAGRAM_ACCOUNT_ID }}
         run: python upload_instagram.py
+
       - name: Upload video artifact
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: zeno-reel-${{ github.run_id }}
+          name: zeno-reel-package
           path: |
             output/reel_*.mp4
             output/meta_*.json
