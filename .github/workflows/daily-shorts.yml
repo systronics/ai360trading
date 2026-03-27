@@ -45,10 +45,32 @@ jobs:
       - name: Prepare workspace
         run: mkdir -p output
 
+      - name: Detect content mode (market / weekend / holiday)
+        id: detect_mode
+        run: |
+          python - <<'EOF'
+          import os, sys
+          sys.path.insert(0, ".")
+          try:
+              from indian_holidays import get_day_mode, get_holiday_name
+              mode = get_day_mode()
+              holiday_name = get_holiday_name() if mode == "holiday" else ""
+          except Exception as e:
+              print(f"[WARN] indian_holidays error: {e} — defaulting to market mode")
+              mode = "market"
+              holiday_name = ""
+
+          print(f"[MODE] Shorts content mode today: {mode.upper()}")
+          if holiday_name:
+              print(f"[HOLIDAY] {holiday_name}")
+
+          with open(os.environ["GITHUB_ENV"], "a") as f:
+              f.write(f"CONTENT_MODE={mode}\n")
+              f.write(f"HOLIDAY_NAME={holiday_name}\n")
+          EOF
+          echo "✅ Mode detected: $CONTENT_MODE"
+
       - name: Restore analysis_video_id from daily-videos run
-        # This step tries to find analysis_video_id.txt saved by generate_analysis.py
-        # If daily-videos ran in the same repo session it may still be in output/
-        # If not, we create a placeholder so generate_shorts.py handles it gracefully
         run: |
           if [ ! -f output/analysis_video_id.txt ]; then
             echo "⚠️ analysis_video_id.txt not found — shorts will run without Part 1 link"
@@ -64,7 +86,10 @@ jobs:
           META_ACCESS_TOKEN:   ${{ secrets.META_ACCESS_TOKEN }}
           FACEBOOK_PAGE_ID:    ${{ secrets.FACEBOOK_PAGE_ID }}
           FACEBOOK_GROUP_ID:   ${{ secrets.FACEBOOK_GROUP_ID }}
+          CONTENT_MODE:        ${{ env.CONTENT_MODE }}
+          HOLIDAY_NAME:        ${{ env.HOLIDAY_NAME }}
         run: |
+          echo "[SHORTS] Running generate_shorts.py in mode: $CONTENT_MODE"
           python generate_shorts.py
           echo "✅ Both shorts complete"
 
