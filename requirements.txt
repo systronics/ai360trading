@@ -2,18 +2,19 @@
 gspread>=6.1.0
 oauth2client>=4.1.3
 requests>=2.32.0
-pytz>=2025.1
+pytz>=2026.1
 # MARKET DATA — GLOBAL
 yfinance>=0.2.40
 pandas>=2.0.0
 numpy>=1.26.0
 # AI SCRIPT GENERATION
 groq>=1.0.0
+openai>=1.0.0
 # VIDEO & AUDIO
 Pillow>=10.3.0
 moviepy==1.0.3
 edge-tts>=6.1.0
-imageio==2.9.0
+imageio>=2.34.0
 imageio-ffmpeg>=0.4.9
 matplotlib>=3.8.0
 decorator==4.4.2
@@ -30,4 +31,4 @@ cryptography>=42.0.0
 # SYSTEM
 pytrends>=4.9.0
 python-dotenv>=1.0.1
-certifi>=2025.1.0
+certifi>=2026.1.0
