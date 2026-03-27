@@ -1,20 +1,104 @@
-name: daily-shorts
+name: "Daily Shorts — AI360Trading (Short 2 + Short 3)"
 on:
+  workflow_dispatch:
   schedule:
-    - cron: '0 6 * * 1-5' # 11:30 AM IST
+    # Mon-Fri: 11:30 AM IST (06:00 UTC) — runs after daily-videos.yml finishes
+    - cron: "0 6 * * 1-5"
+    # Sat-Sun: 1:30 PM IST (08:00 UTC)
+    - cron: "0 8 * * 6,0"
+
 jobs:
-  build:
+  build-and-upload:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+
     steps:
-      - uses: actions/checkout@v3
-      - name: Download Morning ID
-        uses: dawidd6/action-download-artifact@v3
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
         with:
-          workflow: daily-videos.yml
-          name: market-analysis-id
-          path: output/
-          if_no_artifact_found: warn
-      - name: Run Shorts Generation
-        run: python generate_shorts.py
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            ffmpeg \
+            fonts-dejavu \
+            fonts-liberation \
+            fonts-freefont-ttf \
+            fonts-ubuntu \
+            imagemagick
+          sudo sed -i 's/rights="none" pattern="@\*"/rights="read|write" pattern="@*"/g' /etc/ImageMagick-6/policy.xml || true
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install --force-reinstall moviepy==1.0.3
+          pip install -r requirements.txt
+
+      - name: Prepare workspace
+        run: mkdir -p output
+
+      - name: Detect content mode (market / weekend / holiday)
+        id: detect_mode
+        run: |
+          python - <<'EOF'
+          import os, sys
+          sys.path.insert(0, ".")
+          try:
+              from indian_holidays import get_day_mode, get_holiday_name
+              mode = get_day_mode()
+              holiday_name = get_holiday_name() if mode == "holiday" else ""
+          except Exception as e:
+              print(f"[WARN] indian_holidays error: {e} — defaulting to market mode")
+              mode = "market"
+              holiday_name = ""
+
+          print(f"[MODE] Shorts content mode today: {mode.upper()}")
+          if holiday_name:
+              print(f"[HOLIDAY] {holiday_name}")
+
+          with open(os.environ["GITHUB_ENV"], "a") as f:
+              f.write(f"CONTENT_MODE={mode}\n")
+              f.write(f"HOLIDAY_NAME={holiday_name}\n")
+          EOF
+          echo "✅ Mode detected: $CONTENT_MODE"
+
+      - name: Restore analysis_video_id from daily-videos run
+        run: |
+          if [ ! -f output/analysis_video_id.txt ]; then
+            echo "⚠️ analysis_video_id.txt not found — shorts will run without Part 1 link"
+            echo "UPLOAD_FAILED" > output/analysis_video_id.txt
+          else
+            echo "✅ analysis_video_id.txt found: $(cat output/analysis_video_id.txt)"
+          fi
+
+      - name: Generate Short 2 (Trade Setup) + Short 3 (Market Pulse)
         env:
-          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          GROQ_API_KEY:        ${{ secrets.GROQ_API_KEY }}
+          YOUTUBE_CREDENTIALS: ${{ secrets.YOUTUBE_CREDENTIALS }}
+          META_ACCESS_TOKEN:   ${{ secrets.META_ACCESS_TOKEN }}
+          FACEBOOK_PAGE_ID:    ${{ secrets.FACEBOOK_PAGE_ID }}
+          FACEBOOK_GROUP_ID:   ${{ secrets.FACEBOOK_GROUP_ID }}
+          CONTENT_MODE:        ${{ env.CONTENT_MODE }}
+          HOLIDAY_NAME:        ${{ env.HOLIDAY_NAME }}
+        run: |
+          echo "[SHORTS] Running generate_shorts.py in mode: $CONTENT_MODE"
+          python generate_shorts.py
+          echo "✅ Both shorts complete"
+
+      - name: Upload artifacts for debug
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily-shorts-${{ github.run_id }}
+          path: |
+            output/short2_*.mp4
+            output/short3_*.mp4
+          retention-days: 3
