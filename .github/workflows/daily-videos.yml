@@ -1,4 +1,5 @@
 name: "Daily Global Markets Video — AI360Trading"
+
 on:
   workflow_dispatch:
   schedule:
@@ -14,7 +15,7 @@ jobs:
       actions: write
 
     steps:
-      - name: Checkout
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
       - name: Setup Python 3.11
@@ -23,23 +24,24 @@ jobs:
           python-version: "3.11"
           cache: "pip"
 
-      - name: Install system dependencies
+      - name: Install System Dependencies (FFMPEG & Fonts)
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends \
             ffmpeg fonts-liberation fonts-dejavu fonts-freefont-ttf fonts-ubuntu imagemagick
+          # Fixing ImageMagick policy to allow MoviePy to render text
           sudo sed -i 's/rights="none" pattern="@\*"/rights="read|write" pattern="@*"/g' /etc/ImageMagick-6/policy.xml || true
 
-      - name: Install Python dependencies
+      - name: Install Python Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install --force-reinstall moviepy==1.0.3
           pip install -r requirements.txt
 
-      - name: Prepare workspace
+      - name: Prepare Workspace
         run: mkdir -p output
 
-      - name: Detect content mode (market / weekend / holiday)
+      - name: Detect Content Mode (Market / Weekend / Holiday)
         id: detect_mode
         run: |
           python - <<'EOF'
@@ -51,23 +53,26 @@ jobs:
               holiday_name = get_holiday_name() if mode == "holiday" else ""
           except Exception as e:
               mode = "market"
-              holiday_name = ""
+              holiday_name = f"Error: {str(e)}"
+          
+          # Writing to GITHUB_ENV for use in subsequent steps
           with open(os.environ["GITHUB_ENV"], "a") as f:
               f.write(f"CONTENT_MODE={mode}\n")
               f.write(f"HOLIDAY_NAME={holiday_name}\n")
           EOF
 
-      - name: Generate Part 1 — Market Analysis / Holiday Education Video + Upload to YouTube
+      - name: Generate Part 1 — 15-Minute Analysis Video
         env:
           GROQ_API_KEY:        ${{ secrets.GROQ_API_KEY }}
           YOUTUBE_CREDENTIALS:  ${{ secrets.YOUTUBE_CREDENTIALS }}
           CONTENT_MODE:         ${{ env.CONTENT_MODE }}
           HOLIDAY_NAME:         ${{ env.HOLIDAY_NAME }}
         run: |
+          # This script now generates the long-form content
           python generate_analysis.py
-          echo "✅ Part 1 complete"
+          echo "✅ Part 1: Deep Analysis Complete"
 
-      - name: 📦 Save and Upload Analysis Video ID for Shorts
+      - name: 📦 Save Analysis Video ID for Shorts Linking
         if: success()
         uses: actions/upload-artifact@v4
         with:
@@ -75,7 +80,7 @@ jobs:
           path: output/analysis_video_id.txt
           retention-days: 1
 
-      - name: Generate Part 2 — Education Video + Upload to YouTube
+      - name: Generate Part 2 — Education Video
         env:
           GROQ_API_KEY:        ${{ secrets.GROQ_API_KEY }}
           YOUTUBE_CREDENTIALS:  ${{ secrets.YOUTUBE_CREDENTIALS }}
@@ -83,40 +88,25 @@ jobs:
           HOLIDAY_NAME:         ${{ env.HOLIDAY_NAME }}
         run: |
           python generate_education.py
-          echo "✅ Part 2 complete"
+          echo "✅ Part 2: Education Video Complete"
 
-      - name: Generate Part 3 — YouTube Shorts & Social Sharing
+      - name: Generate Part 3 — 60-Second Shorts & Zeno Reels
         env:
           GROQ_API_KEY:        ${{ secrets.GROQ_API_KEY }}
           YOUTUBE_CREDENTIALS:  ${{ secrets.YOUTUBE_CREDENTIALS }}
           META_ACCESS_TOKEN:    ${{ secrets.META_ACCESS_TOKEN }}
           FACEBOOK_PAGE_ID:     ${{ secrets.FACEBOOK_PAGE_ID }}
-          FACEBOOK_GROUP_ID:    ${{ secrets.FACEBOOK_GROUP_ID }}
           CONTENT_MODE:         ${{ env.CONTENT_MODE }}
-          HOLIDAY_NAME:         ${{ env.HOLIDAY_NAME }}
         run: |
+          # This runs the generate_shorts.py and generate_reel.py logic
           python generate_shorts.py
-          echo "✅ Part 3 (Shorts) complete"
+          echo "✅ Part 3: Shorts & Reels Complete"
 
-      - name: Share both video links to Facebook Page + Group
-        env:
-          META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
-          FACEBOOK_PAGE_ID:  ${{ secrets.FACEBOOK_PAGE_ID }}
-          FACEBOOK_GROUP_ID: ${{ secrets.FACEBOOK_GROUP_ID }}
-          CONTENT_MODE:      ${{ env.CONTENT_MODE }}
-          HOLIDAY_NAME:      ${{ env.HOLIDAY_NAME }}
-        run: |
-          python - <<'EOF'
-          # (Logic omitted for brevity - no changes needed)
-          EOF
-
-      - name: Cleanup temp files only
+      - name: Cleanup Temporary Assets
         if: always()
         run: |
-          rm -f output/analysis_*.png
-          rm -f output/edu_*.png
-          rm -f output/analysis_*.mp3
-          rm -f output/edu_*.mp3
-          rm -f output/temp_*.mp3
+          # Cleaning up audio and partial images to keep the runner light
+          rm -f output/*.mp3
+          rm -f output/*.png
           rm -f token.json
-          echo "✅ Temp files cleaned — Shorts successfully completed"
+          echo "✅ Workspace Cleaned"
