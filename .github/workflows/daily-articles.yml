@@ -4,11 +4,13 @@ on:
   schedule:
     - cron: "30 4 * * 1-5"   # 10:00 AM IST Mon-Fri
     - cron: "0 6 * * 6,0"    # 11:30 AM IST Sat-Sun
+
 jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+
     steps:
       - name: Checkout master
         uses: actions/checkout@v4
@@ -27,11 +29,40 @@ jobs:
           pip install --force-reinstall moviepy==1.0.3
           pip install -r requirements.txt
 
+      - name: Detect content mode (market / weekend / holiday)
+        id: detect_mode
+        run: |
+          python - <<'EOF'
+          import os, sys
+          sys.path.insert(0, ".")
+          try:
+              from indian_holidays import get_day_mode, get_holiday_name
+              mode = get_day_mode()
+              holiday_name = get_holiday_name() if mode == "holiday" else ""
+          except Exception as e:
+              print(f"[WARN] indian_holidays error: {e} — defaulting to market mode")
+              mode = "market"
+              holiday_name = ""
+
+          print(f"[MODE] Articles content mode today: {mode.upper()}")
+          if holiday_name:
+              print(f"[HOLIDAY] {holiday_name}")
+
+          with open(os.environ["GITHUB_ENV"], "a") as f:
+              f.write(f"CONTENT_MODE={mode}\n")
+              f.write(f"HOLIDAY_NAME={holiday_name}\n")
+          EOF
+          echo "✅ Mode detected: $CONTENT_MODE"
+
       - name: Run AI Article Generator
         env:
           GROQ_API_KEY:             ${{ secrets.GROQ_API_KEY }}
           GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
-        run: python generate_articles.py
+          CONTENT_MODE:             ${{ env.CONTENT_MODE }}
+          HOLIDAY_NAME:             ${{ env.HOLIDAY_NAME }}
+        run: |
+          echo "[ARTICLES] Running generate_articles.py in mode: $CONTENT_MODE"
+          python generate_articles.py
 
       - name: Commit and Push articles
         run: |
@@ -46,28 +77,47 @@ jobs:
           META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
           FACEBOOK_PAGE_ID:  ${{ secrets.FACEBOOK_PAGE_ID }}
           FACEBOOK_GROUP_ID: ${{ secrets.FACEBOOK_GROUP_ID }}
+          CONTENT_MODE:      ${{ env.CONTENT_MODE }}
+          HOLIDAY_NAME:      ${{ env.HOLIDAY_NAME }}
         run: |
           python - <<'EOF'
           import os, requests
           from datetime import datetime
-          META_TOKEN  = os.environ.get("META_ACCESS_TOKEN", "")
-          PAGE_ID     = os.environ.get("FACEBOOK_PAGE_ID", "")
-          GROUP_ID    = os.environ.get("FACEBOOK_GROUP_ID", "")
-          GRAPH       = "https://graph.facebook.com/v21.0"
-          weekend     = datetime.now().weekday() >= 5
-          today_str   = datetime.now().strftime("%d %B %Y")
-          if weekend:
+
+          META_TOKEN   = os.environ.get("META_ACCESS_TOKEN", "")
+          PAGE_ID      = os.environ.get("FACEBOOK_PAGE_ID", "")
+          GROUP_ID     = os.environ.get("FACEBOOK_GROUP_ID", "")
+          GRAPH        = "https://graph.facebook.com/v21.0"
+          mode         = os.environ.get("CONTENT_MODE", "market")
+          holiday_name = os.environ.get("HOLIDAY_NAME", "")
+          today_str    = datetime.now().strftime("%d %B %Y")
+
+          if mode == "holiday":
+              label = f"🎉 {holiday_name}" if holiday_name else "🎉 Market Holiday"
+              msg = (
+                  f"📚 {label} — {today_str}\n\n"
+                  f"Aaj market band hai — perfect time to learn! 📖\n\n"
+                  f"Aaj ke special holiday articles:\n\n"
+                  f"💡 How to use holidays to review your portfolio\n"
+                  f"📊 Investment strategies for long-term wealth\n"
+                  f"🌍 Global market insights for Indian investors\n"
+                  f"🧠 Trading psychology and financial mindset\n\n"
+                  f"👉 https://ai360trading.in\n\n"
+                  f"🌍 For investors from India, US, UK and Brazil!\n"
+                  f"#HolidayLearning #InvestmentEducation #ai360trading #GlobalInvesting"
+              )
+          elif mode == "weekend":
               msg = (
                   f"📚 Weekend Special — {today_str}\n\n"
                   f"Aaj ke educational articles:\n\n"
-                  f"1️⃣ Stock Market Basics\n"
-                  f"2️⃣ Bitcoin and Crypto Guide\n"
-                  f"3️⃣ Personal Finance Tips\n"
-                  f"4️⃣ AI Trading Strategies\n\n"
+                  f"1️⃣ Stock Market Basics for Everyone\n"
+                  f"2️⃣ Bitcoin and Crypto Complete Guide\n"
+                  f"3️⃣ Personal Finance and Savings Tips\n"
+                  f"4️⃣ AI Trading Strategies for 2026\n\n"
                   f"👉 https://ai360trading.in\n\n"
                   f"💡 Weekend ka best use karo — seekho, samjho, grow karo!\n"
-                  f"🔔 Follow karo: ai360trading.in\n"
-                  f"#WeekendLearning #Trading101 #ai360trading"
+                  f"🌍 For investors from India, US, UK and Brazil!\n"
+                  f"#WeekendLearning #Trading101 #ai360trading #GlobalInvesting"
               )
           else:
               msg = (
@@ -81,6 +131,7 @@ jobs:
                   f"🔔 Telegram: t.me/ai360trading\n"
                   f"#StockMarket #Nifty #Trading #ai360trading #India"
               )
+
           for entity_id in [PAGE_ID, GROUP_ID]:
               if META_TOKEN and entity_id:
                   try:
@@ -90,7 +141,7 @@ jobs:
                           timeout=15
                       )
                       label = "Page" if entity_id == PAGE_ID else "Group"
-                      print(f"✅ {label}: {r.json().get('id', 'error')}")
+                      print(f"✅ {label} [{mode} mode]: {r.json().get('id', 'error')}")
                   except Exception as e:
                       print(f"❌ Post failed: {e}")
           EOF
