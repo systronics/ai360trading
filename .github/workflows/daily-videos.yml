@@ -33,7 +33,6 @@ jobs:
             fonts-freefont-ttf \
             fonts-ubuntu \
             imagemagick
-          # Fix ImageMagick policy
           sudo sed -i 's/rights="none" pattern="@\*"/rights="read|write" pattern="@*"/g' /etc/ImageMagick-6/policy.xml || true
 
       - name: Install Python dependencies
@@ -45,11 +44,39 @@ jobs:
       - name: Prepare workspace
         run: mkdir -p output
 
-      - name: Generate Part 1 — Market Analysis Video + Upload to YouTube
+      - name: Detect content mode (market / weekend / holiday)
+        id: detect_mode
+        run: |
+          python - <<'EOF'
+          import os, sys
+          sys.path.insert(0, ".")
+          try:
+              from indian_holidays import get_day_mode, get_holiday_name
+              mode = get_day_mode()
+              holiday_name = get_holiday_name() if mode == "holiday" else ""
+          except Exception as e:
+              print(f"[WARN] indian_holidays error: {e} — defaulting to market mode")
+              mode = "market"
+              holiday_name = ""
+
+          print(f"[MODE] Content mode today: {mode.upper()}")
+          if holiday_name:
+              print(f"[HOLIDAY] {holiday_name}")
+
+          with open(os.environ["GITHUB_ENV"], "a") as f:
+              f.write(f"CONTENT_MODE={mode}\n")
+              f.write(f"HOLIDAY_NAME={holiday_name}\n")
+          EOF
+          echo "✅ Mode detected: $CONTENT_MODE"
+
+      - name: Generate Part 1 — Market Analysis / Holiday Education Video + Upload to YouTube
         env:
           GROQ_API_KEY:          ${{ secrets.GROQ_API_KEY }}
           YOUTUBE_CREDENTIALS:   ${{ secrets.YOUTUBE_CREDENTIALS }}
+          CONTENT_MODE:          ${{ env.CONTENT_MODE }}
+          HOLIDAY_NAME:          ${{ env.HOLIDAY_NAME }}
         run: |
+          echo "[VIDEO] Running generate_analysis.py in mode: $CONTENT_MODE"
           python generate_analysis.py
           echo "✅ Part 1 complete"
 
@@ -57,7 +84,10 @@ jobs:
         env:
           GROQ_API_KEY:          ${{ secrets.GROQ_API_KEY }}
           YOUTUBE_CREDENTIALS:   ${{ secrets.YOUTUBE_CREDENTIALS }}
+          CONTENT_MODE:          ${{ env.CONTENT_MODE }}
+          HOLIDAY_NAME:          ${{ env.HOLIDAY_NAME }}
         run: |
+          echo "[VIDEO] Running generate_education.py in mode: $CONTENT_MODE"
           python generate_education.py
           echo "✅ Part 2 complete"
 
@@ -66,6 +96,8 @@ jobs:
           META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
           FACEBOOK_PAGE_ID:  ${{ secrets.FACEBOOK_PAGE_ID }}
           FACEBOOK_GROUP_ID: ${{ secrets.FACEBOOK_GROUP_ID }}
+          CONTENT_MODE:      ${{ env.CONTENT_MODE }}
+          HOLIDAY_NAME:      ${{ env.HOLIDAY_NAME }}
         run: |
           python - <<'EOF'
           import os, json, requests
@@ -78,6 +110,8 @@ jobs:
           GRAPH_BASE        = "https://graph.facebook.com/v21.0"
           OUT               = Path("output")
           today             = datetime.now().strftime("%Y%m%d")
+          mode              = os.environ.get("CONTENT_MODE", "market")
+          holiday_name      = os.environ.get("HOLIDAY_NAME", "")
 
           if not META_ACCESS_TOKEN:
               print("❌ META_ACCESS_TOKEN missing — skipping Facebook share")
@@ -105,18 +139,38 @@ jobs:
               print("⚠️ No video URLs found — skipping Facebook share")
               exit(0)
 
-          # Build post message
-          msg = "🎬 Aaj ke do naaye videos aa gaye! Must Watch! 📊\n\n"
+          # Build post message based on mode
+          if mode == "holiday":
+              label = f"🎉 {holiday_name} Special" if holiday_name else "🎉 Market Holiday Special"
+              msg = (
+                  f"📚 {label} — Aaj market band hai, lekin learning band nahi!\n\n"
+                  f"Is holiday pe do powerful videos:\n\n"
+              )
+          elif mode == "weekend":
+              msg = "📚 Weekend Learning Special — Market se zyada important hai financial education!\n\n"
+          else:
+              msg = "🎬 Aaj ke do naaye videos aa gaye! Must Watch! 📊\n\n"
+
           if part1_url:
-              msg += f"📊 Part 1 — Market Analysis:\n{part1_title}\n🔗 {part1_url}\n\n"
+              msg += f"📊 Part 1:\n{part1_title}\n🔗 {part1_url}\n\n"
           if part2_url:
-              msg += f"📚 Part 2 — Education:\n{part2_title}\n🔗 {part2_url}\n\n"
-          msg += (
-              "Daily market analysis aur education ke liye subscribe karo! 🔔\n\n"
-              "🌐 https://ai360trading.in\n"
-              "📱 https://t.me/ai360trading\n\n"
-              "#ai360trading #StockMarket #Nifty #TradingIndia #MarketAnalysis"
-          )
+              msg += f"📚 Part 2:\n{part2_title}\n🔗 {part2_url}\n\n"
+
+          if mode in ("holiday", "weekend"):
+              msg += (
+                  "💡 Markets closed = best time to learn and plan!\n\n"
+                  "🌍 For investors worldwide: US, UK, Brazil, India\n"
+                  "🌐 https://ai360trading.in\n"
+                  "📱 https://t.me/ai360trading\n\n"
+                  "#InvestmentEducation #StockMarket #ai360trading #GlobalInvesting"
+              )
+          else:
+              msg += (
+                  "Daily market analysis aur education ke liye subscribe karo! 🔔\n\n"
+                  "🌐 https://ai360trading.in\n"
+                  "📱 https://t.me/ai360trading\n\n"
+                  "#ai360trading #StockMarket #Nifty #TradingIndia #MarketAnalysis"
+              )
 
           # Post to Facebook Page
           try:
@@ -126,7 +180,7 @@ jobs:
                   timeout=30
               )
               resp.raise_for_status()
-              print(f"✅ Posted to Facebook Page")
+              print(f"✅ Posted to Facebook Page [{mode} mode]")
           except Exception as e:
               print(f"⚠️ Facebook Page post failed: {e}")
 
@@ -139,7 +193,7 @@ jobs:
                       timeout=30
                   )
                   resp.raise_for_status()
-                  print(f"✅ Posted to Facebook Group")
+                  print(f"✅ Posted to Facebook Group [{mode} mode]")
               except Exception as e:
                   print(f"⚠️ Facebook Group post failed: {e}")
           EOF
@@ -147,8 +201,6 @@ jobs:
       - name: Cleanup temp files only — keep output for shorts workflow
         if: always()
         run: |
-          # Only remove temp video files — keep video IDs and meta JSONs
-          # generate_shorts.py needs analysis_video_id.txt from output/
           rm -f output/analysis_*.png
           rm -f output/edu_*.png
           rm -f output/analysis_*.mp3
