@@ -1,0 +1,66 @@
+# token_refresh.yml
+# ==========================================
+# Auto-refreshes META_ACCESS_TOKEN every 50 days
+# Runs silently — no manual intervention needed
+# Sends Telegram alert on success or failure
+# ==========================================
+
+name: Auto Token Refresh
+
+on:
+  schedule:
+    # Every 50 days at 10:00 AM IST (4:30 AM UTC)
+    # Day 1: Jan 1 → Day 50: Feb 20 → Day 100: Apr 11 → etc.
+    - cron: "30 4 1,20 * *"   # Runs on 1st and 20th of every month (~50 day cycle)
+
+  workflow_dispatch:
+    inputs:
+      force_refresh:
+        description: "Force token refresh even if not due"
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
+
+jobs:
+  refresh-meta-token:
+    name: Refresh META Access Token
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Dependencies
+        run: |
+          pip install requests PyNaCl pytz --quiet
+
+      - name: Run Token Refresh
+        env:
+          META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
+          META_APP_ID: ${{ secrets.META_APP_ID }}
+          META_APP_SECRET: ${{ secrets.META_APP_SECRET }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          python token_refresh.py
+
+      - name: Log Completion
+        if: success()
+        run: echo "✅ META token refreshed successfully at $(date)"
+
+      - name: Log Failure
+        if: failure()
+        run: |
+          echo "❌ Token refresh failed! Check Telegram for details."
+          echo "Manual action required: Refresh META_ACCESS_TOKEN in GitHub Secrets"
