@@ -1,103 +1,83 @@
 # AI360Trading — Master System Documentation
 
-**Last Updated:** March 28, 2026
-**Status:** Phase 2 — Partially Operational (See Platform Status below)
-**Primary Audience:** Bilingual Hindi + English (Indian retail traders + global audience)
+**Last Updated:** March 28, 2026 — Full audit by Claude Sonnet
+**Status:** Phase 2 Active (FB Group + Instagram being resolved)
+**Primary Audience:** Bilingual Hindi + English — Indian retail traders + global investors
 
-> ⚠️ **Read this file completely before making ANY changes to logic, workflows, or environment variables.**
-> This is the single source of truth for all AI assistants (Claude, Gemini, GPT) working on this project.
+> ⚠️ **Read this file completely before making ANY changes.**
+> This is the single source of truth for all AI assistants (Claude, Gemini, GPT).
 
 ---
 
-## 1. Project Overview
+## 1. Real Mission
 
-**AI360Trading** is a zero-cost, high-frequency automated content engine and trading signal system running entirely on **GitHub Actions** (Free Tier). It uses AI (Groq / Llama 3.3) and real-time financial data to maintain a consistent, human-feel presence across 5+ social platforms.
+> This system is built to run **forever, fully automated**, generating passive income for the owner's family — even without active involvement. Built on ₹0/month infrastructure. No employees. No office. Pure automation.
 
-### The Real Mission
+### Monetisation — Every Stream Simultaneously
 
-> This system is built to run forever — fully automated — so it generates income for the owner's family continuously, even without active involvement. The goal is financial freedom through zero-cost automation, targeting maximum ad revenue from the highest-paying countries globally.
-
-### Core Goals
-
-| Goal | Detail |
-|---|---|
-| Daily Output | Videos, Shorts, Reels, Articles — as many as the system can generate |
-| Cost | ₹0 / $0 — Free API tiers + GitHub Free Tier only |
-| Automation | 95%+ target — minimize all manual steps |
-| Strategy | "Value Buying" and "Fast Returns" for retail traders |
-| Language | Bilingual: Hindi + English (maximises India + global reach) |
-| Long-term Goal | Self-sustaining passive income for family — system must work without human intervention |
-
-### Monetization Targets
-
-The system is designed to earn from **every possible revenue stream simultaneously:**
-
-| Stream | Platform | Target Countries (High CPM) |
+| Stream | Platform | High-CPM Target Countries |
 |---|---|---|
 | Video Ad Revenue | YouTube | USA, UK, Canada, Australia, UAE |
-| Reels / Shorts Bonus | YouTube, Facebook, Instagram | USA, UK, Brazil, India |
+| Shorts / Reels Bonus | YouTube, Facebook, Instagram | USA, UK, Brazil, India |
 | Website Ad Revenue | GitHub Pages (ai360trading.in) | USA, UK, Canada |
-| Telegram Paid Signals | Telegram (Premium/Advance channels) | India, UAE, Global |
-| Facebook In-Stream Ads | Facebook Page videos | USA, UK, Brazil, India |
+| In-Stream Video Ads | Facebook Page | USA, UK, Brazil, India |
+| Paid Signal Subscriptions | Telegram (Advance + Premium channels) | India, UAE, Global |
 
-### High-Value Target Countries (by Ad CPM priority)
+### Target Countries by Ad CPM Priority
 
 1. 🇺🇸 USA — Highest CPM globally for finance content
 2. 🇬🇧 UK — Very high CPM, strong trading audience
-3. 🇦🇺 Australia — High CPM, growing retail trader base
+3. 🇦🇺 Australia — High CPM, growing retail base
 4. 🇦🇪 UAE — High CPM, large NRI + Gulf investor audience
-5. 🇨🇦 Canada — High CPM, similar to USA audience
-6. 🇧🇷 Brazil — Large audience, growing CPM for finance
-7. 🇮🇳 India — Largest volume audience, Nifty/stock focus
+5. 🇨🇦 Canada — High CPM, similar to USA
+6. 🇧🇷 Brazil — Large audience, fast-growing finance CPM
+7. 🇮🇳 India — Largest volume, Nifty/stock focus
 
-> **AI Instruction:** When suggesting content topics, hooks, thumbnails, or posting times — always optimise for these countries first. USA/UK prime time matters as much as Indian market hours.
+> **AI Rule:** Always optimise content topics, hooks, SEO tags, and posting times for these countries. USA/UK prime time = 11 PM–1 AM IST. Include global keywords (`USStocks`, `UKInvesting`, `BrazilMarket`, `GlobalInvesting`) in all titles, descriptions, and tags.
 
 ---
 
-## 2. Platform Status (Current)
+## 2. Platform Status
 
 | Platform | Status | Notes |
 |---|---|---|
-| YouTube (Videos) | ✅ Fully Auto | Main videos, Reels, Shorts all working |
-| YouTube (Shorts) | ✅ Fully Auto | 9:16 format, posting correctly |
-| Facebook Page | ✅ Fully Auto | Posts text, video, mode-aware content |
-| Facebook Group | ❌ Broken | Posting fails — root cause unknown (token scope or group ID issue) |
-| Instagram | ❌ Manual | Video + caption saved as GitHub Artifact; must be posted manually |
-| GitHub Pages (Website) | ✅ Fully Auto | Articles auto-published + indexed via Google Search Console |
-| Telegram | ✅ Fully Auto | Signal alerts via TELEGRAM_BOT_TOKEN |
-
-### Active Work Items (Priority)
-1. **Fix Facebook Group posting** — Diagnose whether it is a token permission issue, wrong Group ID, or code logic bug
-2. **Automate Instagram** — Evaluate Meta Content Publishing API vs third-party tools (Buffer, Make.com) — approach not yet decided
+| YouTube Videos | ✅ Auto | Analysis + Education videos working |
+| YouTube Shorts | ✅ Auto | Short 2 + Short 3 working |
+| YouTube Reels | ✅ Auto | ZENO reel working |
+| Facebook Page | ✅ Auto | Posts, reels, article shares all working |
+| Facebook Group | ❌ Broken | Missing `publish_to_groups` token scope — see Section 8 |
+| Instagram | ⚠️ Partial | Upload chain built; needs `INSTAGRAM_ACCOUNT_ID` secret added |
+| GitHub Pages | ✅ Auto | 4 articles/day + instant Google indexing |
+| Telegram | ✅ Auto | Signal alerts to all 3 channels |
 
 ---
 
 ## 3. Content Mode System
 
-The system reads the `CONTENT_MODE` environment variable to switch content strategy automatically.
+Mode is **auto-detected** by `indian_holidays.py` at the start of every workflow and written to `$GITHUB_ENV`. All scripts read `CONTENT_MODE` environment variable — never hardcoded.
 
-| Mode | When | Content Type |
+| Mode | When | Content Strategy |
 |---|---|---|
-| `market` | Monday–Friday (excluding Indian holidays) | Live Nifty50/Global data, trade setups, technical signals |
-| `weekend` | Saturday–Sunday | Educational/Evergreen content, wealth-building mindset |
-| `holiday` | Indian Market Holidays | Motivational stories, savings tips, "Market band hai, par seekhna chalu rakho!" |
+| `market` | Mon–Fri (excluding Indian holidays) | Live Nifty50/Global data, trade setups, signals |
+| `weekend` | Saturday–Sunday | Educational, wealth-building, global audience focus |
+| `holiday` | Indian Market Holidays | Motivational, "Market band hai par seekhna chalu", holiday name shown |
 
-**Mode detection logic lives in:** `indian_holidays.py` (uses NSE API with fallback)
+**Detection logic:** `indian_holidays.py` → NSE API (primary) → hardcoded fallback dates
 
 ---
 
 ## 4. GitHub Actions Workflows
 
-There are **6 workflow files** in `.github/workflows/`:
+| File | Trigger (IST) | Purpose | Mode-Aware |
+|---|---|---|---|
+| `main.yml` | Every 5 min (market hours, Mon–Fri) | `trading_bot.py` — Nifty200 signals | ✅ Auto-skips weekends/holidays |
+| `daily-videos.yml` | 7:30 AM Mon–Fri / 9:30 AM Sat–Sun | Part 1 (analysis) + Part 2 (education) | ✅ |
+| `daily-shorts.yml` | 11:30 AM Mon–Fri / 1:30 PM Sat–Sun | Short 2 (trade setup) + Short 3 (market pulse) | ✅ |
+| `daily_reel.yml` | 8:30 PM daily | ZENO 60s Reel | ✅ Fixed March 2026 |
+| `daily-articles.yml` | 10:00 AM Mon–Fri / 11:30 AM Sat–Sun | 4 SEO articles → GitHub Pages | ✅ |
+| `keepalive.yml` | Periodic | Prevents GitHub disabling inactive workflows | N/A |
 
-| File | Trigger (IST) | Purpose |
-|---|---|---|
-| `main.yml` | Every 5 mins (market hours, weekdays) | Runs `trading_bot.py` — scans Nifty200 for buy/sell signals. Auto-skips on weekends/holidays. |
-| `daily-shorts.yml` | 11:30 AM (weekday) / 1:30 PM (weekend) | Generates Short 2 (Trade Setup) + Short 3 (Global Market Pulse) |
-| `daily-videos.yml` | Scheduled daily | Generates Part 1 (8-slide market analysis) via `generate_analysis.py` |
-| `daily_reel.yml` | 8:30 PM daily | Generates ZENO 60s Reel — posts auto to YouTube + Facebook; Instagram is manual |
-| `daily-articles.yml` | Scheduled daily | Generates 4 SEO-optimised articles via `generate_articles.py` → Jekyll `_posts` |
-| `keepalive.yml` | Periodic | Prevents GitHub Actions from disabling inactive workflows |
+All workflows support `workflow_dispatch` with a `content_mode` dropdown to force any mode for testing.
 
 ---
 
@@ -105,175 +85,248 @@ There are **6 workflow files** in `.github/workflows/`:
 
 ### Core Content Generation
 
-| File | Role | Key Technology |
-|---|---|---|
-| `trading_bot.py` | Scans Nifty200 for buy/sell signals | Dhan API, Google Sheets |
-| `generate_shorts.py` | Live Price Market Pulse + Trade Setup cards | yfinance (`fast_info`), PIL, Edge-TTS |
-| `generate_reel.py` | ZENO 3D Disney-style moral/wisdom reels | Groq, MoviePy, PIL (Hero scaling) |
-| `generate_analysis.py` | Part 1: 8-slide market analysis video | PIL, MoviePy, Groq |
-| `generate_education.py` | Part 2: Educational deep-dive (links to Part 1) | `content_calendar.py`, Groq |
-| `generate_articles.py` | 4 SEO-optimised articles daily | Groq, Jekyll (`_posts`) |
+| File | Role | Key Tech | Status |
+|---|---|---|---|
+| `trading_bot.py` | Nifty200 buy/sell signal scanner | Dhan API, Google Sheets | ✅ |
+| `generate_shorts.py` | Short 2 + Short 3 generator | yfinance fast_info, PIL, Edge-TTS, Groq | ✅ Fixed Mar 2026 |
+| `generate_reel.py` | ZENO 60s reel generator | Groq, MoviePy, PIL | ✅ |
+| `generate_analysis.py` | 8-slide market analysis video (Part 1) | PIL, MoviePy, Groq | ✅ |
+| `generate_education.py` | Educational deep-dive video (Part 2) | content_calendar.py, Groq | ✅ |
+| `generate_articles.py` | 4 SEO articles daily → Jekyll _posts | Groq | ✅ |
 
-### Infrastructure & Support
+### Upload & Distribution
+
+| File | Role | Status |
+|---|---|---|
+| `upload_youtube.py` | Uploads ZENO reel; saves `youtube_video_id` + `public_video_url` to meta | ✅ Fixed Mar 2026 |
+| `upload_facebook.py` | Uploads reel to FB Page; shares link to Group; posts RSS articles | ✅ Fixed Mar 2026 |
+| `upload_instagram.py` | Auto-uploads via Meta API using `public_video_url` from meta | ✅ Fixed Mar 2026 |
+
+### Infrastructure
 
 | File | Role |
 |---|---|
-| `indian_holidays.py` | Mode detection brain — NSE API + fallback calendar |
-| `content_calendar.py` | Rotates topics: Options, Tech Analysis, Psychology |
-| `upload_facebook.py` | Facebook upload handler — includes emergency string search for RSS feeds |
+| `indian_holidays.py` | Mode detection — NSE API + fallback; shared by ALL workflows |
+| `content_calendar.py` | Rotates topics: Options, Technical Analysis, Psychology |
 
 ### Static Assets
 
 | Path | Contents |
 |---|---|
-| `public/image/` | ZENO emotion assets: `happy`, `sad`, `greed`, `thinking` |
-| `public/music/` | Background tracks: `bgmusic1`, `bgmusic2`, `bgmusic3` — rotated by day of week |
+| `public/image/` | `zeno_happy.png`, `zeno_sad.png`, `zeno_greed.png`, `zeno_thinking.png` |
+| `public/music/` | `bgmusic1.mp3`, `bgmusic2.mp3`, `bgmusic3.mp3` — rotated by weekday |
 
 ---
 
-## 6. Environment Variables & Secrets
+## 6. Critical Upload Chain
 
-All secrets are stored in **GitHub Actions Secrets**. Never hardcode any of these.
+Scripts must run in this exact order. Each one feeds data to the next:
+
+```
+generate_reel.py
+    └── output/reel_YYYYMMDD.mp4
+    └── output/meta_YYYYMMDD.json  ← created here
+
+upload_youtube.py
+    └── Uploads reel to YouTube
+    └── Writes to meta → youtube_video_id, youtube_video_url, public_video_url
+    └── output/youtube_video_id.txt
+
+upload_facebook.py
+    └── Uploads reel to Facebook Page (3-phase upload)
+    └── Posts link message to Facebook Group
+    └── Overwrites meta → public_video_url (Facebook watch URL)
+    └── Posts articles from RSS feed to Page + Group
+
+upload_instagram.py
+    └── Reads public_video_url from meta
+    └── Submits to Instagram API → polls until FINISHED → publishes
+    └── output/instagram_caption.txt (always saved as manual backup)
+```
+
+> **Manual fallback for Instagram:** GitHub Actions → Run → Artifacts → download `zeno-reel-{run}-{mode}` → post `.mp4` + `instagram_caption.txt` manually.
+
+---
+
+## 7. Environment Variables & Secrets
+
+All stored in **GitHub Actions Secrets**. Never hardcode any of these values.
 
 ### Dhan Trading API
 | Secret | Purpose |
 |---|---|
-| `DHAN_API_KEY` | Dhan broker API key |
-| `DHAN_API_SECRET` | Dhan broker API secret |
-| `DHAN_CLIENT_ID` | Dhan client ID |
-| `DHAN_PIN` | Dhan account PIN |
-| `DHAN_TOTP_KEY` | TOTP key for 2FA login |
+| `DHAN_API_KEY` | API key |
+| `DHAN_API_SECRET` | API secret |
+| `DHAN_CLIENT_ID` | Client ID |
+| `DHAN_PIN` | Account PIN |
+| `DHAN_TOTP_KEY` | 2FA TOTP key |
 
 ### Social Platforms
-| Secret | Purpose | Notes |
+| Secret | Purpose | Critical Notes |
 |---|---|---|
-| `META_ACCESS_TOKEN` | Facebook Page + Group posting | **Expires every 60 days — must refresh manually** |
+| `META_ACCESS_TOKEN` | Facebook + Instagram API | **Expires every 60 days — set reminder** |
 | `FACEBOOK_PAGE_ID` | Target Facebook Page ID | |
-| `FACEBOOK_GROUP_ID` | Target Facebook Group ID | Group posting currently broken |
-| `YOUTUBE_CREDENTIALS` | YouTube OAuth JSON | Single JSON secret for all YouTube uploads |
+| `FACEBOOK_GROUP_ID` | Target Facebook Group ID | Group posting broken until token fixed |
+| `INSTAGRAM_ACCOUNT_ID` | Instagram Business/Creator numeric ID | **Not yet set — needed for auto-post** |
+| `YOUTUBE_CREDENTIALS` | YouTube OAuth JSON | Single secret for all uploads |
 
-### Telegram Alerts
+### Telegram
 | Secret | Purpose |
 |---|---|
-| `TELEGRAM_BOT_TOKEN` | Bot token for sending signals |
-| `TELEGRAM_CHAT_ID` | Default chat/channel ID |
-| `CHAT_ID_ADVANCE` | Advance signals chat ID |
-| `CHAT_ID_PREMIUM` | Premium signals chat ID |
+| `TELEGRAM_BOT_TOKEN` | Bot authentication token |
+| `TELEGRAM_CHAT_ID` | Default channel ID |
+| `CHAT_ID_ADVANCE` | Advance signals channel |
+| `CHAT_ID_PREMIUM` | Premium signals channel |
 
 ### Google / GCP
 | Secret | Purpose |
 |---|---|
-| `GCP_SERVICE_ACCOUNT_JSON` | Google Search Console Indexing API + Sheets access |
+| `GCP_SERVICE_ACCOUNT_JSON` | Search Console Indexing API + Google Sheets |
 
-### AI & General
+### General
 | Secret | Purpose |
 |---|---|
-| `GROQ_API_KEY` | Groq API (Llama 3.3) for content generation |
-| `GH_TOKEN` | GitHub token for cross-repo or API operations |
+| `GROQ_API_KEY` | Groq API — Llama 3.3 70B — all content generation |
+| `GH_TOKEN` | GitHub API token |
 
 ---
 
-## 7. Technical Standards & Critical Rules
+## 8. Known Issues & How to Fix
+
+### Facebook Group Posting ❌
+
+**Symptom:** Page posts succeed, Group posts fail.
+
+**Diagnose:** Check GitHub Actions log. `upload_facebook.py` now runs `verify_token_permissions()` at startup and prints exactly which permission is missing with fix instructions.
+
+**Root causes (check in order):**
+1. `META_ACCESS_TOKEN` missing `publish_to_groups` scope — most common cause
+2. Bot account is not an **Admin** of the group (member is not enough)
+3. Group Settings → Advanced → "Allow content from apps" is OFF
+4. App not approved for Groups API by Meta
+
+**Fix:** Go to [developers.facebook.com](https://developers.facebook.com) → Your App → Add `publish_to_groups` permission → regenerate long-lived token → update `META_ACCESS_TOKEN` in GitHub Secrets.
+
+**Current workaround:** Group posting now sends a text post with the video link (instead of direct video upload). This only requires `publish_to_groups` scope — not the stricter Groups Video API approval.
+
+### Instagram Auto-Post ⚠️
+
+**One missing secret:** Add `INSTAGRAM_ACCOUNT_ID` to GitHub Secrets.
+
+Find your ID:
+```
+https://graph.facebook.com/me/accounts?access_token=YOUR_META_TOKEN
+```
+
+**How the chain works:** YouTube uploads reel → saves public URL to meta → Facebook uploads → overwrites with FB watch URL → Instagram reads URL from meta → processes and publishes automatically.
+
+### META_ACCESS_TOKEN Expiry
+
+- Expires every **60 days**
+- Set a calendar reminder when you refresh
+- After refresh → update `META_ACCESS_TOKEN` in GitHub Secrets immediately
+- When expired: Facebook Page, Group, AND Instagram all stop working simultaneously
+
+---
+
+## 9. Technical Standards
 
 ### The "Full Code" Rule
-> **AI assistants MUST always provide the complete content of any file they modify.**
-> Partial snippets or diffs are strictly prohibited — they break the GitHub Actions environment.
+> AI assistants **must always provide the complete content** of any modified file. Partial snippets or diffs are strictly prohibited — they break the GitHub Actions environment.
 
-**Always start your task prompt with:**
+**Standard AI task prompt:**
 ```
 Context: I am working on the ai360trading system. Refer to SYSTEM.md for architecture.
-Task: [Your Task Here]
+Task: [Your Task]
 Note: Provide the full code for any file you modify.
 ```
 
-### Dependency Pins (Do Not Change)
-| Package | Required Version | Reason |
+### Dependency Pins
+
+| Package | Version | Reason |
 |---|---|---|
-| `Pillow` | `>=10.3.0` | Required for `LANCZOS` resampling |
+| `Pillow` | `>=10.3.0` | Required for LANCZOS resampling |
 | `imageio` | `==2.9.0` | Prevents MoviePy rendering crashes |
-| `yfinance` | Latest | Must use `fast_info['last_price']` — avoids 1-day data lag |
+| `moviepy` | `==1.0.3` | Force reinstall — newer versions break audio |
+| `yfinance` | Latest | Use `fast_info['last_price']` only — not `.history()` |
 
 ### Voice Assignments
-| Voice | Gender | Used For |
-|---|---|---|
-| `Madhur` | Male | Short 2 — Authoritative trade setup narration |
-| `Swara` | Female | ZENO Reel, Analysis, Education, Short 3 — Energetic tone |
 
-### Content Output Formats
-| Content | Aspect Ratio | Platform |
+| Voice ID | Gender | Used For |
 |---|---|---|
-| Analysis / Education Videos | 16:9 | YouTube |
-| Shorts 1, 2, 3 | 9:16 | YouTube Shorts |
-| ZENO Reel | 9:16 | YouTube, Facebook, Instagram (manual) |
+| `hi-IN-MadhurNeural` | Male | Short 2 — authoritative trade setups |
+| `hi-IN-SwaraNeural` | Female | Short 3, ZENO Reel, Analysis, Education |
+
+### Video Formats
+
+| Content | Ratio | Platform |
+|---|---|---|
+| Analysis + Education | 16:9 | YouTube |
+| Short 2, Short 3, ZENO Reel | 9:16 | YouTube Shorts / Reels / Instagram |
+
+### SEO Tags Strategy
+
+Every video includes both India-specific AND global tags:
+- India: `Nifty50`, `TradingIndia`, `StockMarketIndia`, `BankNifty`
+- Global: `USStocks`, `UKInvesting`, `BrazilMarket`, `UAEInvesting`, `GlobalInvesting`
+- Universal: `Finance`, `Investing`, `FinancialLiteracy`, `Shorts`
 
 ---
 
-## 8. Known Issues & Fixes
-
-### Facebook Group Posting (❌ Broken)
-- **Symptom:** Posts succeed on Facebook Page but fail silently or error on Group
-- **Suspected causes (not yet confirmed):**
-  - `META_ACCESS_TOKEN` may lack `publish_to_groups` permission scope
-  - `FACEBOOK_GROUP_ID` may be incorrect or the bot is not a Group admin
-  - Code logic in `upload_facebook.py` may not handle group endpoint correctly
-- **Next step for AI assistant:** Audit `upload_facebook.py` — check the API endpoint used for group vs page, verify token scopes, and check if the bot account is a Group admin
-
-### Instagram Auto-Post (❌ Manual)
-- **Current state:** Video + caption are saved to GitHub Artifacts after each reel/short is generated
-- **Manual task:** Download artifact → Post to Instagram app within 24 hours
-- **Blocker:** Meta API restricts direct video upload for many account types
-- **Next step:** Decide between Meta Content Publishing API or a third-party bridge (Buffer, Make.com) — not yet decided
-
-### META_ACCESS_TOKEN Expiry
-- Token expires every **60 days**
-- Must be manually refreshed via Meta Developer Console
-- After refresh, update the `META_ACCESS_TOKEN` secret in GitHub Actions immediately
-- Set a calendar reminder when refreshing
-
-### yfinance Data Lag
-- **Wrong:** `yf.Ticker.history()` — returns previous day's close, not live price
-- **Correct:** `yf.Ticker.fast_info['last_price']` — returns real-time/near-live price
-- This fix is already applied in `generate_shorts.py`
-
----
-
-## 9. Data Flow Summary
+## 10. Full Data Flow
 
 ```
-market hours (Mon–Fri)
-    └── main.yml (every 5 min)
-            └── trading_bot.py → Dhan API → Buy/Sell signals → Google Sheets + Telegram
+Market hours (Mon–Fri, 9:15 AM–3:30 PM IST)
+└── main.yml (every 5 min)
+    └── trading_bot.py → Dhan API → Buy/Sell signals
+        └── → Google Sheets + Telegram (all 3 channels)
+
+7:30 AM / 9:30 AM daily
+└── daily-videos.yml
+    └── Detect mode → indian_holidays.py ✅
+    └── generate_analysis.py → Groq → 8-slide Part 1 video → YouTube ✅
+    └── generate_education.py → Groq → Part 2 video → YouTube ✅
+    └── Saves: output/analysis_video_id.txt
+    └── Posts: video links → Facebook Page ✅ | Group ❌
 
 11:30 AM / 1:30 PM daily
-    └── daily-shorts.yml
-            └── generate_shorts.py → yfinance (live price) → Short 2 + Short 3
-                    └── Upload: YouTube ✅ | Instagram: Artifact (manual) ✅
+└── daily-shorts.yml
+    └── Detect mode → indian_holidays.py ✅
+    └── generate_shorts.py
+        └── yfinance fast_info → live prices (market mode)
+        └── Groq → scripts for Short 2 + Short 3
+        └── Short 2 (Madhur) + Short 3 (Swara) → YouTube ✅
+        └── Facebook Page ✅ | Group ❌
 
 8:30 PM daily
-    └── daily_reel.yml
-            └── generate_reel.py → Groq (script) + PIL + MoviePy → ZENO Reel
-                    └── Upload: YouTube ✅ | Facebook Page ✅ | Instagram: Artifact (manual)
+└── daily_reel.yml
+    └── Detect mode → indian_holidays.py ✅
+    └── generate_reel.py → Groq script → ZENO reel
+    └── upload_youtube.py → YouTube ✅ → saves public_video_url to meta
+    └── upload_facebook.py → FB Page ✅ | Group ❌ → updates public_video_url in meta
+    └── upload_instagram.py → reads URL → Instagram API ⚠️
 
-Daily (scheduled)
-    └── daily-videos.yml
-            └── generate_analysis.py + generate_education.py → Groq → 2-part video
-                    └── Upload: YouTube ✅
-
-Daily (scheduled)
-    └── daily-articles.yml
-            └── generate_articles.py → Groq → 4 Jekyll posts → GitHub Pages ✅
-                    └── Google Search Console Indexing API → instant indexing ✅
+10:00 AM / 11:30 AM daily
+└── daily-articles.yml
+    └── Detect mode → indian_holidays.py ✅
+    └── generate_articles.py → Groq → 4 Jekyll articles
+    └── git commit → GitHub Pages ✅
+    └── GCP Indexing API → instant Google indexing ✅
+    └── Posts: article links → Facebook Page ✅ | Group ❌
 ```
 
 ---
 
-## 10. Website
+## 11. Website
 
 - **URL:** `ai360trading.in`
-- **Hosting:** GitHub Pages (Jekyll)
-- **Articles:** Auto-published to `_posts/` by `generate_articles.py`
-- **Indexing:** New posts submitted instantly to Google Search Console via GCP Indexing API (`GCP_SERVICE_ACCOUNT_JSON`)
+- **Hosting:** GitHub Pages (Jekyll, `master` branch `_posts/`)
+- **Publishing:** Auto-commit by `daily-articles.yml` (`admin@ai360trading.in`)
+- **SEO Indexing:** Instant via `GCP_SERVICE_ACCOUNT_JSON` after each publish
+- **Revenue:** Google AdSense (USA/UK English readers = highest CPM)
 
 ---
 
-*Documentation maintained by AI360Trading. Update this file whenever architecture, secrets, or platform status changes.*
+*Documentation maintained by AI360Trading automation.*
+*Full audit completed: March 28, 2026 — Claude Sonnet 4.6*
+*Update this file whenever architecture, secrets, platform status, or file logic changes.*
