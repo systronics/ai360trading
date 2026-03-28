@@ -13,15 +13,44 @@
 
 **AI360Trading** is a zero-cost, high-frequency automated content engine and trading signal system running entirely on **GitHub Actions** (Free Tier). It uses AI (Groq / Llama 3.3) and real-time financial data to maintain a consistent, human-feel presence across 5+ social platforms.
 
+### The Real Mission
+
+> This system is built to run forever — fully automated — so it generates income for the owner's family continuously, even without active involvement. The goal is financial freedom through zero-cost automation, targeting maximum ad revenue from the highest-paying countries globally.
+
 ### Core Goals
 
 | Goal | Detail |
 |---|---|
-| Daily Output | 9 unique content pieces (Videos, Shorts, Reels, Articles) |
-| Cost | ₹0 / $0 — Free API tiers + GitHub Free Tier |
-| Automation | 95% target (Instagram & Facebook Group still being resolved) |
+| Daily Output | Videos, Shorts, Reels, Articles — as many as the system can generate |
+| Cost | ₹0 / $0 — Free API tiers + GitHub Free Tier only |
+| Automation | 95%+ target — minimize all manual steps |
 | Strategy | "Value Buying" and "Fast Returns" for retail traders |
-| Language | Bilingual: Hindi + English |
+| Language | Bilingual: Hindi + English (maximises India + global reach) |
+| Long-term Goal | Self-sustaining passive income for family — system must work without human intervention |
+
+### Monetization Targets
+
+The system is designed to earn from **every possible revenue stream simultaneously:**
+
+| Stream | Platform | Target Countries (High CPM) |
+|---|---|---|
+| Video Ad Revenue | YouTube | USA, UK, Canada, Australia, UAE |
+| Reels / Shorts Bonus | YouTube, Facebook, Instagram | USA, UK, Brazil, India |
+| Website Ad Revenue | GitHub Pages (ai360trading.in) | USA, UK, Canada |
+| Telegram Paid Signals | Telegram (Premium/Advance channels) | India, UAE, Global |
+| Facebook In-Stream Ads | Facebook Page videos | USA, UK, Brazil, India |
+
+### High-Value Target Countries (by Ad CPM priority)
+
+1. 🇺🇸 USA — Highest CPM globally for finance content
+2. 🇬🇧 UK — Very high CPM, strong trading audience
+3. 🇦🇺 Australia — High CPM, growing retail trader base
+4. 🇦🇪 UAE — High CPM, large NRI + Gulf investor audience
+5. 🇨🇦 Canada — High CPM, similar to USA audience
+6. 🇧🇷 Brazil — Large audience, growing CPM for finance
+7. 🇮🇳 India — Largest volume audience, Nifty/stock focus
+
+> **AI Instruction:** When suggesting content topics, hooks, thumbnails, or posting times — always optimise for these countries first. USA/UK prime time matters as much as Indian market hours.
 
 ---
 
