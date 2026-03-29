@@ -108,7 +108,7 @@ def generate_edu_slides(topic, part1_url):
     today = datetime.now().strftime("%A, %d %B %Y")
 
     # ── Phase 2: human_touch hook for intro slide ────────────────────────────
-    ht_hook   = ht.get_hook(mode=CONTENT_MODE, lang="hi")
+    ht_hook   = ht.get_hook(mode=CONTENT_MODE)
     ht_phrase = ht.get_personal_phrase(lang="hi")
 
     # Mode-specific context
@@ -204,7 +204,7 @@ RULES:
 
 def _fallback_edu_slides(topic):
     """Build slides directly from content_calendar topic — guaranteed output."""
-    hook = ht.get_hook(mode=CONTENT_MODE, lang="hi")
+    hook = ht.get_hook(mode=CONTENT_MODE)
     fallback_slides = []
     for s in topic.get("slides", []):
         fallback_slides.append({
