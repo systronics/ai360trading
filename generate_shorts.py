@@ -403,7 +403,7 @@ def make_short3_frame(script_data, market):
 
 
 def generate_short3_script(market):
-    ht_hook = ht.get_hook(mode=CONTENT_MODE, lang="hi")
+    ht_hook = ht.get_hook(mode=CONTENT_MODE)
 
     if CONTENT_MODE == "holiday":
         context = (f"Today is {HOLIDAY_NAME} — Indian market holiday. "
@@ -438,7 +438,7 @@ Respond ONLY with valid JSON:
     print("  🤖 Generating Short 3 script (Swara voice) via ai_client...")
     try:
         data = ai.generate_json(prompt=prompt, system_prompt=system_prompt,
-                                content_mode=CONTENT_MODE, lang="hi")
+                                content_mode=CONTENT_MODE)
         if not data:
             raise ValueError("Empty response")
         print(f"  ✅ Short 3: {data.get('mood_summary')} | via {ai.active_provider}")
@@ -448,7 +448,7 @@ Respond ONLY with valid JSON:
         return {
             "mood_summary": "Seekho, grow karo, invest karo",
             "key_level":    "Financial Education",
-            "script":       ht.get_hook(mode=CONTENT_MODE, lang="hi") + " Subscribe karo ai360trading!",
+            "script":       ht.get_hook(mode=CONTENT_MODE) + " Subscribe karo ai360trading!",
         }
 
 # ─── YOUTUBE ─────────────────────────────────────────────────────────────────
@@ -561,7 +561,7 @@ async def main():
     market   = fetch_market_data()
 
     # ── Phase 2: SEO tags from human_touch ──────────────────────────────────
-    ht_tags   = seo.get_video_tags(mode=CONTENT_MODE, lang="hi")
+    ht_tags   = seo.get_video_tags(mode=CONTENT_MODE)
     base_tags = (["ai360trading", "Nifty", "StockMarket", "Investing", "Finance",
                   "GlobalInvesting", "USStocks", "UKInvesting", "BrazilMarket",
                   "IndiaInvesting", "UAEInvesting", "FinancialLiteracy", "Hinglish"]
