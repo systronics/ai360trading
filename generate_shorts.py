@@ -324,7 +324,7 @@ Respond ONLY with valid JSON:
             "entry": "Learn Investing", "target": "Build Wealth",
             "sl": "Start Today", "horizon": "Long Term",
             "insight": "Har din kuch seekho, financially grow karo.",
-            "script": ht.get_hook(mode=CONTENT_MODE, lang="hi") + " Subscribe karo ai360trading!"
+            "script": ht.get_hook(mode=CONTENT_MODE) + " Subscribe karo ai360trading!"
         }
 
 # ─── SHORT 3 — MARKET PULSE / WEEKEND WISDOM (Swara voice) ──────────────────
