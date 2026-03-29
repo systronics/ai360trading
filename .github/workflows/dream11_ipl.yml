@@ -1,0 +1,75 @@
+name: "Dream11 IPL Picks — AI360Trading"
+
+# ──────────────────────────────────────────────────────────
+# Runs daily during IPL 2026 season (Mar 22 – May 30)
+# Sends 5 fantasy teams to FREE Telegram channel
+# Does NOT touch any other workflow or channel
+# ──────────────────────────────────────────────────────────
+
+on:
+  workflow_dispatch:          # Manual trigger for testing
+  schedule:
+    # 1:00 PM IST daily (07:30 UTC)
+    # Gives ~6.5 hrs before typical 7:30 PM match
+    - cron: "30 7 * * *"
+
+    # Safety re-run at 4:00 PM IST (10:30 UTC)
+    # In case first run failed or match was announced late
+    - cron: "30 10 * * *"
+
+jobs:
+  dream11-picks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests pytz groq anthropic google-generativeai openai
+
+      - name: Check IPL season
+        id: ipl_check
+        run: |
+          python - <<'EOF'
+          from datetime import date
+          today = date.today()
+          ipl_start = date(2026, 3, 22)
+          ipl_end   = date(2026, 5, 30)
+          if ipl_start <= today <= ipl_end:
+              print("IPL_ACTIVE=true")
+              with open("ipl_active.txt", "w") as f: f.write("true")
+          else:
+              print(f"Outside IPL season: {today}")
+              with open("ipl_active.txt", "w") as f: f.write("false")
+          EOF
+          echo "IPL_ACTIVE=$(cat ipl_active.txt)" >> $GITHUB_ENV
+
+      - name: Generate & Send Dream11 Picks
+        if: env.IPL_ACTIVE == 'true'
+        env:
+          TELEGRAM_TOKEN:      ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID:    ${{ secrets.TELEGRAM_CHAT_ID }}
+          GROQ_API_KEY:        ${{ secrets.GROQ_API_KEY }}
+          GEMINI_API_KEY:      ${{ secrets.GEMINI_API_KEY }}
+          ANTHROPIC_API_KEY:   ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY:      ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          echo "🏏 Running Dream11 IPL picks generator..."
+          python dream11_ipl.py
+          echo "✅ Done"
+
+      - name: Skip if off-season
+        if: env.IPL_ACTIVE != 'true'
+        run: echo "⏭️ IPL season not active. Skipping today."
