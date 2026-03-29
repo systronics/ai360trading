@@ -52,7 +52,7 @@ def get_youtube_service():
 def generate_post_text():
     today     = now.strftime("%A, %d %B %Y")
     day_name  = now.strftime("%A")
-    ht_hook   = ht.get_hook(mode=CONTENT_MODE, lang="hi")
+    ht_hook   = ht.get_hook(mode=CONTENT_MODE)
     ht_phrase = ht.get_personal_phrase(lang="hi")
     emojis    = ht.get_emoji_set()  # day-seeded emoji rotation
 
