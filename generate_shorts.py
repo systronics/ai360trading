@@ -272,7 +272,7 @@ def make_short2_frame(script_data, market):
 
 
 def generate_short2_script(market):
-    ht_hook = ht.get_hook(mode=CONTENT_MODE, lang="hi")
+    ht_hook = ht.get_hook(mode=CONTENT_MODE)
 
     if CONTENT_MODE == "holiday":
         context = (f"Today is {HOLIDAY_NAME} — Indian market holiday. "
