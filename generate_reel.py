@@ -312,7 +312,7 @@ async def generate_reel():
     print(f"  ✅ Video saved: {output_file.name} + {reel_dated.name}")
 
     # ── Phase 2: SEO tags from human_touch ──────────────────────────────────
-    ht_tags   = seo.get_video_tags(mode=CONTENT_MODE, lang="hi")
+    ht_tags   = seo.get_video_tags(mode=CONTENT_MODE)
     tags_str  = " ".join([f"#{t}" for t in ht_tags[:10]])
 
     meta = {
