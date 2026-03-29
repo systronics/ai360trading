@@ -1,3 +1,14 @@
+"""
+generate_articles.py — AI360Trading Daily Article Generator
+============================================================
+Generates 4 SEO articles daily → Jekyll _posts/ → GitHub Pages
+Uses: ai_client (Groq→Gemini→Claude→OpenAI→Templates fallback)
+Uses: human_touch (anti-AI-penalty hooks, SEO tags, humanize)
+Mode-aware: market / weekend / holiday
+Author: AI360Trading Automation
+Last Updated: March 2026 — Phase 2 Upgrade
+"""
+
 import os
 import pytz
 import requests
@@ -6,15 +17,18 @@ import json
 import time
 import xml.etree.ElementTree as ET
 from datetime import datetime
-from groq import Groq
+
+# ─── Phase 2: ai_client + human_touch ────────────────────────────────────────
+from ai_client import ai
+from human_touch import ht, seo
 
 # ─── Content Mode ─────────────────────────────────────────────────────────────
-# "market"  → normal weekday — live market data + analysis articles
-# "weekend" → Saturday/Sunday — educational/beginner articles
-# "holiday" → Indian market holiday — motivational/savings/storytelling articles
 CONTENT_MODE = os.environ.get("CONTENT_MODE", "market").lower()
 HOLIDAY_NAME = os.environ.get("HOLIDAY_NAME", "Indian Market Holiday")
+LANG = os.environ.get("LANG_MODE", "en")  # articles are always English
+
 print(f"[MODE] generate_articles.py running in mode: {CONTENT_MODE.upper()}")
+print(f"[AI]   Using ai_client fallback chain: Groq→Gemini→Claude→OpenAI→Templates")
 
 # ─── Google Indexing API ─────────────────────────────────────────────────────
 def submit_urls_to_google(urls: list):
@@ -22,31 +36,25 @@ def submit_urls_to_google(urls: list):
         import json as _json
         sa_json = os.environ.get("GCP_SERVICE_ACCOUNT_JSON", "")
         if not sa_json:
-            print("  ⚠️  GCP_SERVICE_ACCOUNT_JSON not set — skipping indexing API")
+            print("  ⚠️ GCP_SERVICE_ACCOUNT_JSON not set — skipping indexing API")
             return
-
         sa = _json.loads(sa_json)
-
         import time as _time
         import base64
-
-        header  = base64.urlsafe_b64encode(
-            _json.dumps({"alg":"RS256","typ":"JWT"}).encode()
+        header = base64.urlsafe_b64encode(
+            _json.dumps({"alg": "RS256", "typ": "JWT"}).encode()
         ).rstrip(b'=').decode()
-
-        now_ts  = int(_time.time())
+        now_ts = int(_time.time())
         payload = base64.urlsafe_b64encode(_json.dumps({
-            "iss":   sa["client_email"],
+            "iss": sa["client_email"],
             "scope": "https://www.googleapis.com/auth/indexing",
-            "aud":   "https://oauth2.googleapis.com/token",
-            "exp":   now_ts + 3600,
-            "iat":   now_ts,
+            "aud": "https://oauth2.googleapis.com/token",
+            "exp": now_ts + 3600,
+            "iat": now_ts,
         }).encode()).rstrip(b'=').decode()
-
         try:
             from cryptography.hazmat.primitives import hashes, serialization
             from cryptography.hazmat.primitives.asymmetric import padding
-
             private_key = serialization.load_pem_private_key(
                 sa["private_key"].encode(), password=None
             )
@@ -55,29 +63,26 @@ def submit_urls_to_google(urls: list):
             sig_b64 = base64.urlsafe_b64encode(signature).rstrip(b'=').decode()
             jwt_token = f"{header}.{payload}.{sig_b64}"
         except ImportError:
-            print("  ⚠️  cryptography library not available — skipping indexing API")
+            print("  ⚠️ cryptography library not available — skipping indexing API")
             return
-
         token_resp = requests.post(
             "https://oauth2.googleapis.com/token",
             data={
                 "grant_type": "urn:ietf:params:oauth:grant-type:jwt-bearer",
-                "assertion":  jwt_token,
+                "assertion": jwt_token,
             },
             timeout=15
         )
         if not token_resp.ok:
-            print(f"  ⚠️  Token error: {token_resp.text[:100]}")
+            print(f"  ⚠️ Token error: {token_resp.text[:100]}")
             return
-
         access_token = token_resp.json().get("access_token", "")
         if not access_token:
-            print("  ⚠️  No access token received")
+            print("  ⚠️ No access token received")
             return
-
         headers = {
             "Authorization": f"Bearer {access_token}",
-            "Content-Type":  "application/json",
+            "Content-Type": "application/json",
         }
         success_count = 0
         for url in urls:
@@ -92,31 +97,26 @@ def submit_urls_to_google(urls: list):
                     print(f"  ✅ Indexed: {url}")
                     success_count += 1
                 else:
-                    print(f"  ⚠️  Index failed ({resp.status_code}): {url}")
+                    print(f"  ⚠️ Index failed ({resp.status_code}): {url}")
                 time.sleep(0.5)
             except Exception as e:
-                print(f"  ⚠️  Index error for {url}: {e}")
-
+                print(f"  ⚠️ Index error for {url}: {e}")
         print(f"  📡 Google Indexing API: {success_count}/{len(urls)} URLs submitted")
-
     except Exception as e:
-        print(f"  ⚠️  Indexing API error: {e} — articles still published normally")
+        print(f"  ⚠️ Indexing API error: {e} — articles still published normally")
 
 
 SITE_URL = "https://ai360trading.in"
-
-client       = Groq(api_key=os.environ.get("GROQ_API_KEY"))
-ist          = pytz.timezone('Asia/Kolkata')
-now          = datetime.now(ist)
-date_str     = now.strftime("%Y-%m-%d")
+ist = pytz.timezone('Asia/Kolkata')
+now = datetime.now(ist)
+date_str = now.strftime("%Y-%m-%d")
 date_display = now.strftime("%B %d, %Y")
-day_name     = now.strftime("%A")
-POSTS_DIR    = os.path.join(os.getcwd(), '_posts')
-MAX_POSTS    = 60
+day_name = now.strftime("%A")
+
+POSTS_DIR = os.path.join(os.getcwd(), '_posts')
+MAX_POSTS = 60
 
 # ─── HOLIDAY / WEEKEND ARTICLE PILLARS ───────────────────────────────────────
-# Used when CONTENT_MODE is "holiday" or "weekend"
-# These replace live market analysis with evergreen global-audience content
 HOLIDAY_PILLARS = [
     {
         "id": "stock-market",
@@ -145,7 +145,6 @@ Target: complete beginners in US, UK, Brazil and India""",
             "Stock Market Basics in 2026 — Everything a Beginner Needs to Know",
         ],
         "news_queries": ["stock+market+beginner+investing+2026", "index+fund+returns+2026", "how+to+invest+money+2026"],
-        "india_keywords": ["stock market India beginner", "NSE BSE guide 2026"],
     },
     {
         "id": "bitcoin",
@@ -236,7 +235,7 @@ Target: retail traders of all levels looking for an edge without paying""",
     },
 ]
 
-# ─── MARKET DAY PILLARS (unchanged from original) ────────────────────────────
+# ─── MARKET DAY PILLARS ───────────────────────────────────────────────────────
 MARKET_PILLARS = [
     {
         "id": "stock-market",
@@ -250,14 +249,10 @@ MARKET_PILLARS = [
         "brazil_keywords": ["IBOVESPA hoje", "bolsa de valores hoje", "mercado financeiro"],
         "india_keywords": ["nifty analysis today", "trading signals India", "nifty support resistance"],
         "news_queries": [
-            "S%26P+500+stock+market+today",
-            "NASDAQ+outlook+today",
-            "NIFTY+50+SENSEX+Indian+market",
-            "IBOVESPA+Brazil+stock+market",
-            "FTSE+100+UK+market+today",
-            "global+stock+market+rally+crash",
-            "Fed+interest+rate+stocks",
-            "FII+DII+India+flows+today",
+            "S%26P+500+stock+market+today", "NASDAQ+outlook+today",
+            "NIFTY+50+SENSEX+Indian+market", "IBOVESPA+Brazil+stock+market",
+            "FTSE+100+UK+market+today", "global+stock+market+rally+crash",
+            "Fed+interest+rate+stocks", "FII+DII+India+flows+today",
         ],
         "title_templates": [
             "NIFTY {direction} — Here Is What I Think Happens Next",
@@ -290,14 +285,10 @@ MARKET_PILLARS = [
         "brazil_keywords": ["bitcoin hoje", "criptomoedas hoje", "bitcoin real hoje"],
         "india_keywords": ["bitcoin price INR today", "crypto India today", "bitcoin rupees today"],
         "news_queries": [
-            "Bitcoin+price+today+2026",
-            "crypto+market+today+2026",
-            "Ethereum+price+today",
-            "Bitcoin+ETF+institutional+buying",
-            "crypto+regulation+SEC+2026",
-            "altcoin+rally+today",
-            "Bitcoin+price+prediction+2026",
-            "DeFi+blockchain+crypto+news",
+            "Bitcoin+price+today+2026", "crypto+market+today+2026",
+            "Ethereum+price+today", "Bitcoin+ETF+institutional+buying",
+            "crypto+regulation+SEC+2026", "altcoin+rally+today",
+            "Bitcoin+price+prediction+2026", "DeFi+blockchain+crypto+news",
         ],
         "title_templates": [
             "Bitcoin ${btc} — Crypto Market Analysis {date}",
@@ -331,14 +322,10 @@ MARKET_PILLARS = [
         "brazil_keywords": ["previdencia privada 2026", "seguro de vida Brasil", "melhores investimentos 2026"],
         "india_keywords": ["best term insurance India 2026", "SIP investment returns", "PPF vs ELSS 2026", "NPS pension India"],
         "news_queries": [
-            "best+term+life+insurance+2026",
-            "personal+finance+tips+2026",
-            "mortgage+rates+today+2026",
-            "401k+retirement+investing+2026",
-            "best+savings+account+interest+2026",
-            "income+tax+saving+India+2026",
-            "SIP+mutual+fund+returns+2026",
-            "health+insurance+comparison+2026",
+            "best+term+life+insurance+2026", "personal+finance+tips+2026",
+            "mortgage+rates+today+2026", "401k+retirement+investing+2026",
+            "best+savings+account+interest+2026", "income+tax+saving+India+2026",
+            "SIP+mutual+fund+returns+2026", "health+insurance+comparison+2026",
         ],
         "title_templates": [
             "Best Term Life Insurance 2026 — US, UK and India Complete Guide",
@@ -374,14 +361,10 @@ MARKET_PILLARS = [
         "brazil_keywords": ["trading automatizado Brasil", "inteligencia artificial investimentos", "fintech brasil 2026"],
         "india_keywords": ["algo trading India NSE", "AI trading bot India", "automated trading NSE BSE", "quant trading India"],
         "news_queries": [
-            "AI+trading+algorithm+2026",
-            "artificial+intelligence+stock+market+2026",
-            "Nvidia+AI+chips+stocks+2026",
-            "algorithmic+trading+India+NSE",
-            "machine+learning+finance+2026",
-            "AI+fintech+investment+2026",
-            "ChatGPT+finance+trading+2026",
-            "AI+hedge+fund+performance+2026",
+            "AI+trading+algorithm+2026", "artificial+intelligence+stock+market+2026",
+            "Nvidia+AI+chips+stocks+2026", "algorithmic+trading+India+NSE",
+            "machine+learning+finance+2026", "AI+fintech+investment+2026",
+            "ChatGPT+finance+trading+2026", "AI+hedge+fund+performance+2026",
         ],
         "title_templates": [
             "The AI Signal on NIFTY That I Almost Missed Today ({date})",
@@ -405,7 +388,7 @@ MARKET_PILLARS = [
     },
 ]
 
-# ─── Select correct pillar set based on mode ─────────────────────────────────
+# Select correct pillar set based on mode
 PILLARS = HOLIDAY_PILLARS if CONTENT_MODE in ("holiday", "weekend") else MARKET_PILLARS
 
 # ─── Writing Personas ─────────────────────────────────────────────────────────
@@ -413,119 +396,99 @@ PERSONAS = [
     {
         "name": "Senior Derivatives Trader",
         "tone": "confident and contrarian",
-        "style": "uses F&O terminology naturally, references open interest and PCR ratios, draws parallels with specific historical dates, references Wall Street desk conversations",
+        "style": "uses F&O terminology naturally, references open interest and PCR ratios, draws parallels with specific historical dates",
         "opening_hook": "leads with the most surprising data point of the day that mainstream financial press missed",
         "signature_phrase": "The options market never lies.",
     },
     {
         "name": "Macro Economist",
         "tone": "analytical and precise",
-        "style": "references RBI/Fed policy decisions, bond yield spreads, draws macro cycles from 2008, 2013, 2020, quotes Treasury data directly",
+        "style": "references RBI/Fed policy decisions, bond yield spreads, draws macro cycles from 2008, 2013, 2020",
         "opening_hook": "starts with a macro paradox hidden in today's data that challenges the consensus view",
         "signature_phrase": "The macro picture tells a different story than the headlines.",
     },
     {
         "name": "Quantitative Analyst",
         "tone": "methodical and number-heavy",
-        "style": "references standard deviation moves, beta correlations, volatility clustering, RSI/MACD readings, cites statistical anomalies with precise decimals",
+        "style": "references standard deviation moves, beta correlations, volatility clustering, RSI/MACD readings",
         "opening_hook": "opens with a striking statistical fact about today's market move that most retail traders will never see",
         "signature_phrase": "The numbers are telling us something the narrative is missing.",
     },
     {
         "name": "Veteran Market Commentator",
         "tone": "conversational and passionate",
-        "style": "uses vivid metaphors, explains complex concepts with everyday analogies, occasionally sarcastic about Fed or SEBI policy, deeply human voice",
+        "style": "uses vivid metaphors, explains complex concepts with everyday analogies, deeply human voice",
         "opening_hook": "opens with a relatable real-world analogy that immediately makes the market move feel personal and urgent",
         "signature_phrase": "This market is teaching us a lesson we should have already known.",
     },
     {
         "name": "Institutional Flow Analyst",
         "tone": "sharp and urgent",
-        "style": "focuses on FII/DII data, block deals, bulk trades, short punchy sentences mixed with detailed flow analysis, references specific sector rotations",
+        "style": "focuses on FII/DII data, block deals, bulk trades, short punchy sentences mixed with detailed flow analysis",
         "opening_hook": "opens with a specific institutional flow anomaly spotted today that retail traders are completely unaware of",
         "signature_phrase": "Follow the money, not the noise.",
     },
     {
         "name": "Technical Price Action Specialist",
         "tone": "bold and opinionated",
-        "style": "references candlestick patterns by name, Fibonacci levels, volume profile, market structure HH/HL/LH/LL, takes strong directional views",
-        "opening_hook": "opens with a specific chart pattern forming right now across multiple timeframes signaling a high-probability move",
+        "style": "references candlestick patterns by name, Fibonacci levels, volume profile, market structure HH/HL/LH/LL",
+        "opening_hook": "opens with a specific chart pattern forming right now across multiple timeframes",
         "signature_phrase": "Price is the only truth in this market.",
     },
     {
         "name": "Certified Financial Planner",
         "tone": "warm, practical and trustworthy",
-        "style": "speaks like a trusted advisor sitting across the table, uses real family finance examples, compares options with actual numbers and percentages, never condescending",
+        "style": "speaks like a trusted advisor sitting across the table, uses real family finance examples with actual numbers",
         "opening_hook": "opens with a relatable personal finance situation that thousands of families face right now",
         "signature_phrase": "The best financial plan is one you will actually follow.",
     },
     {
         "name": "AI and Technology Strategist",
         "tone": "sharp, forward-thinking and data-driven",
-        "style": "explains how AI algorithms actually work in simple language, references specific models and tools retail traders can use today",
+        "style": "explains how AI algorithms actually work in simple language, references specific models retail traders can use today",
         "opening_hook": "opens with a specific AI signal or algorithmic pattern that most traders are missing right now",
         "signature_phrase": "The algorithm already knows. The question is whether you're listening.",
     },
 ]
 
 PILLAR_PERSONA_MAP = {
-    "stock-market":     [0, 1, 2, 3, 4, 5],
-    "bitcoin":          [2, 3, 4, 5, 0, 1],
-    "personal-finance": [6, 1, 3, 6, 1, 3],
-    "ai-trading":       [7, 2, 5, 7, 2, 5],
+    "stock-market":    [0, 1, 2, 3, 4, 5],
+    "bitcoin":         [2, 3, 4, 5, 0, 1],
+    "personal-finance":[6, 1, 3, 6, 1, 3],
+    "ai-trading":      [7, 2, 5, 7, 2, 5],
 }
 
-# ─── Live Prices (market mode only) ──────────────────────────────────────────
+# ─── Live Prices ─────────────────────────────────────────────────────────────
 def get_live_prices():
     if CONTENT_MODE in ("holiday", "weekend"):
         print("  📅 Holiday/Weekend mode — skipping live price fetch")
         return {}
-
     symbols = {
-        "NIFTY 50":      "^NSEI",
-        "SENSEX":        "^BSESN",
-        "Bank Nifty":    "^NSEBANK",
-        "India VIX":     "^INDIAVIX",
-        "S&P 500":       "^GSPC",
-        "NASDAQ":        "^IXIC",
-        "Dow Jones":     "^DJI",
-        "US 10Y Yield":  "^TNX",
-        "FTSE 100":      "^FTSE",
-        "Nikkei 225":    "^N225",
-        "DAX":           "^GDAXI",
-        "IBOVESPA":      "^BVSP",
-        "Gold":          "GC=F",
-        "Silver":        "SI=F",
-        "Crude Oil WTI": "CL=F",
-        "Bitcoin":       "BTC-USD",
-        "Ethereum":      "ETH-USD",
-        "USD/INR":       "INR=X",
-        "USD/BRL":       "BRL=X",
-        "DXY (Dollar)":  "DX-Y.NYB",
-        "EUR/USD":       "EURUSD=X",
+        "NIFTY 50": "^NSEI", "SENSEX": "^BSESN", "Bank Nifty": "^NSEBANK",
+        "India VIX": "^INDIAVIX", "S&P 500": "^GSPC", "NASDAQ": "^IXIC",
+        "Dow Jones": "^DJI", "US 10Y Yield": "^TNX", "FTSE 100": "^FTSE",
+        "Nikkei 225": "^N225", "DAX": "^GDAXI", "IBOVESPA": "^BVSP",
+        "Gold": "GC=F", "Silver": "SI=F", "Crude Oil WTI": "CL=F",
+        "Bitcoin": "BTC-USD", "Ethereum": "ETH-USD", "USD/INR": "INR=X",
+        "USD/BRL": "BRL=X", "DXY (Dollar)": "DX-Y.NYB", "EUR/USD": "EURUSD=X",
     }
     prices = {}
     for name, symbol in symbols.items():
         try:
-            url     = f"https://query1.finance.yahoo.com/v8/finance/chart/{symbol}?interval=1d&range=2d"
-            headers = {"User-Agent": "Mozilla/5.0"}
-            r       = requests.get(url, headers=headers, timeout=8)
-            data    = r.json()
-            meta    = data['chart']['result'][0]['meta']
+            url = f"https://query1.finance.yahoo.com/v8/finance/chart/{symbol}?interval=1d&range=2d"
+            r = requests.get(url, headers={"User-Agent": "Mozilla/5.0"}, timeout=8)
+            meta = r.json()['chart']['result'][0]['meta']
             current = round(meta.get('regularMarketPrice', 0), 2)
-            prev    = round(meta.get('chartPreviousClose', current), 2)
-            change  = round(current - prev, 2)
-            pct     = round((change / prev) * 100, 2) if prev else 0
-            arrow   = "▲" if change >= 0 else "▼"
-            prices[name] = {
-                "price":   current,
-                "change":  change,
-                "pct":     pct,
-                "display": f"{current:,} {arrow} {abs(pct)}%"
-            }
-        except:
+            prev = round(meta.get('chartPreviousClose', current), 2)
+            change = round(current - prev, 2)
+            pct = round((change / prev) * 100, 2) if prev else 0
+            arrow = "▲" if change >= 0 else "▼"
+            prices[name] = {"price": current, "change": change, "pct": pct,
+                            "display": f"{current:,} {arrow} {abs(pct)}%"}
+        except Exception:
             prices[name] = {"price": 0, "change": 0, "pct": 0, "display": "N/A"}
     return prices
+
 
 def get_google_trends():
     all_trends = []
@@ -551,7 +514,7 @@ def get_google_trends():
                     query = item['title']['query']
                     if any(kw in query.lower() for kw in finance_keywords):
                         all_trends.append(query)
-        except:
+        except Exception:
             continue
     if len(all_trends) < 5:
         all_trends = [
@@ -568,26 +531,27 @@ def get_google_trends():
             unique.append(t)
     return unique[:15]
 
+
 def get_live_news(queries):
     all_headlines = []
     for query in queries:
         url = f"https://news.google.com/rss/search?q={query}&hl=en-US&gl=US&ceid=US:en"
         try:
-            r    = requests.get(url, timeout=8)
+            r = requests.get(url, timeout=8)
             root = ET.fromstring(r.content)
             for item in root.findall('.//item')[:2]:
-                title_el  = item.find('title')
-                pub_el    = item.find('pubDate')
+                title_el = item.find('title')
+                pub_el = item.find('pubDate')
                 source_el = item.find('source')
                 if title_el is not None:
-                    title     = title_el.text
                     date_text = pub_el.text[:16] if pub_el is not None else ""
-                    source    = source_el.text if source_el is not None else "News"
-                    all_headlines.append(f"[{date_text}] [{source}] {title}")
-        except:
+                    source = source_el.text if source_el is not None else "News"
+                    all_headlines.append(f"[{date_text}] [{source}] {title_el.text}")
+        except Exception:
             continue
     random.shuffle(all_headlines)
     return "\n".join(all_headlines[:20]) if all_headlines else "Educational content day — no live news needed."
+
 
 def get_fear_greed():
     if CONTENT_MODE in ("holiday", "weekend"):
@@ -596,8 +560,9 @@ def get_fear_greed():
         r = requests.get("https://api.alternative.me/fng/?limit=1", timeout=6)
         d = r.json()['data'][0]
         return f"{d['value']} — {d['value_classification']}"
-    except:
+    except Exception:
         return "50 — Neutral"
+
 
 def cleanup_old_posts():
     try:
@@ -608,6 +573,7 @@ def cleanup_old_posts():
                 print(f"  Removed: {fname}")
     except Exception as e:
         print(f"  Cleanup warning: {e}")
+
 
 def get_recent_posts(pillar_id, limit=3):
     try:
@@ -632,13 +598,14 @@ def get_recent_posts(pillar_id, limit=3):
                             break
                     if title and url_slug_match:
                         recent.append({"title": title, "slug": url_slug_match})
-                except:
+                except Exception:
                     pass
             if len(recent) >= limit:
                 break
         return recent
-    except:
+    except Exception:
         return []
+
 
 def generate_schema(title, description, pillar, url_slug):
     schema = {
@@ -650,19 +617,10 @@ def generate_schema(title, description, pillar, url_slug):
                 "description": description,
                 "datePublished": date_str,
                 "dateModified": date_str,
-                "author": {
-                    "@type": "Person",
-                    "name": "Amit Kumar",
-                    "url": "https://ai360trading.in/about/"
-                },
+                "author": {"@type": "Person", "name": "Amit Kumar", "url": "https://ai360trading.in/about/"},
                 "publisher": {
-                    "@type": "Organization",
-                    "name": "AI360Trading",
-                    "url": "https://ai360trading.in",
-                    "logo": {
-                        "@type": "ImageObject",
-                        "url": "https://ai360trading.in/public/image/header.webp"
-                    }
+                    "@type": "Organization", "name": "AI360Trading", "url": "https://ai360trading.in",
+                    "logo": {"@type": "ImageObject", "url": "https://ai360trading.in/public/image/header.webp"}
                 },
                 "mainEntityOfPage": f"https://ai360trading.in/{pillar['permalink_base']}/{url_slug}/",
                 "keywords": ", ".join(pillar['primary_keywords']),
@@ -681,37 +639,33 @@ def generate_schema(title, description, pillar, url_slug):
     }
     return json.dumps(schema, indent=2)
 
+
 def build_title(pillar, trends, prices, fear_greed):
-    # For holiday/weekend — use simple template from the pillar
     if CONTENT_MODE in ("holiday", "weekend"):
         template = pillar['title_templates'][now.day % len(pillar['title_templates'])]
-        title = template.format(date=date_display, trend="investing", direction="grows", nifty="N/A", sp500="N/A", btc="N/A", fg="N/A")
+        title = template.format(date=date_display, trend="investing", direction="grows",
+                                nifty="N/A", sp500="N/A", btc="N/A", fg="N/A")
         return title, "educational", "financial education"
 
     pillar_trend_keywords = {
-        "stock-market":     ['stock', 'nifty', 'sensex', 'nasdaq', 's&p', 'market', 'dow', 'ftse', 'ibovespa'],
-        "bitcoin":          ['bitcoin', 'crypto', 'btc', 'ethereum', 'defi', 'altcoin', 'blockchain'],
-        "personal-finance": ['insurance', 'loan', 'mortgage', 'retirement', 'savings', 'pension', 'invest', 'finance'],
-        "ai-trading":       ['ai', 'algo', 'fintech', 'nvidia', 'tech', 'algorithm', 'machine learning'],
+        "stock-market":    ['stock', 'nifty', 'sensex', 'nasdaq', 's&p', 'market', 'dow', 'ftse', 'ibovespa'],
+        "bitcoin":         ['bitcoin', 'crypto', 'btc', 'ethereum', 'defi', 'altcoin', 'blockchain'],
+        "personal-finance":['insurance', 'loan', 'mortgage', 'retirement', 'savings', 'pension', 'invest', 'finance'],
+        "ai-trading":      ['ai', 'algo', 'fintech', 'nvidia', 'tech', 'algorithm', 'machine learning'],
     }
     relevant_keywords = pillar_trend_keywords.get(pillar['id'], [])
     top_trend = next(
         (t for t in trends if any(kw in t.lower() for kw in relevant_keywords)),
         pillar['primary_keywords'][0]
     )
+    nifty_price  = prices.get("NIFTY 50", {}).get("price", 24000)
+    sp500_price  = prices.get("S&P 500", {}).get("price", 5500)
+    btc_price    = prices.get("Bitcoin", {}).get("price", 65000)
+    sp500_pct    = prices.get("S&P 500", {}).get("pct", 0)
+    nifty_pct    = prices.get("NIFTY 50", {}).get("pct", 0)
+    btc_pct      = prices.get("Bitcoin", {}).get("pct", 0)
 
-    nifty_price = prices.get("NIFTY 50", {}).get("price", 24000)
-    sp500_price = prices.get("S&P 500",  {}).get("price", 5500)
-    btc_price   = prices.get("Bitcoin",  {}).get("price", 65000)
-    sp500_pct   = prices.get("S&P 500",  {}).get("pct", 0)
-    nifty_pct   = prices.get("NIFTY 50", {}).get("pct", 0)
-    btc_pct     = prices.get("Bitcoin",  {}).get("pct", 0)
-
-    if pillar['id'] == 'bitcoin':
-        pct = btc_pct
-    else:
-        pct = sp500_pct if abs(sp500_pct) > abs(nifty_pct) else nifty_pct
-
+    pct = btc_pct if pillar['id'] == 'bitcoin' else (sp500_pct if abs(sp500_pct) > abs(nifty_pct) else nifty_pct)
     if pct > 1.0:
         direction = random.choice(["Surges", "Rallies", "Breaks Out", "Climbs"])
     elif pct < -1.0:
@@ -719,67 +673,54 @@ def build_title(pillar, trends, prices, fear_greed):
     else:
         direction = random.choice(["Mixed", "At Crossroads", "In Focus", "Holds Key Levels"])
 
-    pillar_offset = ["stock-market","bitcoin","personal-finance","ai-trading"].index(pillar['id']) if pillar['id'] in ["stock-market","bitcoin","personal-finance","ai-trading"] else 0
+    pillar_ids = ["stock-market", "bitcoin", "personal-finance", "ai-trading"]
+    pillar_offset = pillar_ids.index(pillar['id']) if pillar['id'] in pillar_ids else 0
     template = pillar['title_templates'][(now.day + pillar_offset * 2) % len(pillar['title_templates'])]
-    fg_short  = fear_greed.split(' — ')[1] if ' — ' in fear_greed else fear_greed
-
+    fg_short = fear_greed.split(' — ')[1] if ' — ' in fear_greed else fear_greed
     title = template.format(
-        trend=top_trend,
-        date=date_display,
-        direction=direction,
-        nifty=f"{nifty_price:,}",
-        sp500=f"{sp500_price:,}",
-        btc=f"{int(btc_price):,}",
-        fg=fg_short,
+        trend=top_trend, date=date_display, direction=direction,
+        nifty=f"{nifty_price:,}", sp500=f"{sp500_price:,}",
+        btc=f"{int(btc_price):,}", fg=fg_short,
     )
     return title, direction, top_trend
 
+
+# ─── CORE ARTICLE GENERATOR ──────────────────────────────────────────────────
 def generate_article(pillar, prices, trends, fear_greed, persona, article_index):
     print(f"\n  [{article_index}/4] Generating: {pillar['name']} [{CONTENT_MODE} mode]...")
 
     news = get_live_news(pillar['news_queries'])
 
-    # Build market context — empty on holiday/weekend
+    # Build market context
     if CONTENT_MODE in ("holiday", "weekend"):
         price_lines = "Market closed today — educational content mode"
-        mode_note   = f"This is a {'holiday' if CONTENT_MODE == 'holiday' else 'weekend'} article. Write educational, evergreen content. No live market data. Focus on timeless investment wisdom applicable to US, UK, Brazil and India readers."
+        mode_note = (
+            f"This is a {'holiday' if CONTENT_MODE == 'holiday' else 'weekend'} article. "
+            "Write educational, evergreen content. No live market data. "
+            "Focus on timeless investment wisdom applicable to US, UK, Brazil and India readers."
+        )
         if CONTENT_MODE == "holiday":
-            mode_note += f" Today is {HOLIDAY_NAME} — a market holiday. Content should be educational and globally appealing."
+            mode_note += f" Today is {HOLIDAY_NAME} — a market holiday."
     else:
-        nifty_price  = prices.get("NIFTY 50",    {}).get("price", 24000)
-        nifty_pct    = prices.get("NIFTY 50",    {}).get("pct", 0)
-        sp500_price  = prices.get("S&P 500",     {}).get("price", 5500)
-        sp500_pct    = prices.get("S&P 500",     {}).get("pct", 0)
-        btc_price    = prices.get("Bitcoin",     {}).get("price", 65000)
-        btc_pct      = prices.get("Bitcoin",     {}).get("pct", 0)
-        gold_price   = prices.get("Gold",        {}).get("price", 2200)
-        nasdaq_price = prices.get("NASDAQ",      {}).get("price", 17000)
-        ibov_display = prices.get("IBOVESPA",    {}).get("display", "N/A")
-        dxy_price    = prices.get("DXY (Dollar)",{}).get("price", 104)
-        vix_display  = prices.get("India VIX",   {}).get("display", "N/A")
-        eth_price    = prices.get("Ethereum",    {}).get("price", 3000)
-        price_lines  = "\n".join([f"  - {k}: {v['display']}" for k, v in prices.items()])
-        mode_note    = ""
+        price_lines = "\n".join([f" - {k}: {v['display']}" for k, v in prices.items()])
+        mode_note = ""
 
     article_title, direction, top_trend = build_title(pillar, trends, prices, fear_greed)
 
     import re as _re
     _title_clean = article_title.lower()
-    _title_clean = _title_clean.replace('s&p', 'sp').replace('s-and-p', 'sp')
-    _title_clean = _title_clean.replace('&', '-').replace('$', '').replace('/', '-')
+    _title_clean = _title_clean.replace('s&p', 'sp').replace('&', '-').replace('$', '').replace('/', '-')
     _title_clean = _title_clean.replace(' ', '-').replace('|', '-').replace(':', '-')
     _title_clean = _title_clean.replace('?', '').replace('!', '').replace("'", '')
     _title_clean = _title_clean.replace('"', '').replace(',', '').replace('(', '').replace(')', '')
     _title_clean = _title_clean.replace('₹', 'rs').replace('%', 'pct')
     _title_clean = _re.sub(r'[^a-z0-9\-]', '', _title_clean)
     _title_clean = _re.sub(r'-+', '-', _title_clean).strip('-')
-
     _stop = {'the','a','an','and','or','but','in','on','at','to','for','of',
              'with','is','are','was','were','its','this','that','i','my','we',
              'you','he','she','they','what','why','how','when','where','from',
              'by','as','so','if','just','vs','im','heres','thats','dont'}
     _words = [w for w in _title_clean.split('-') if w and w not in _stop]
-
     title_slug  = '-'.join(_words[:6])
     file_slug   = f"{date_str}-{pillar['id']}-{title_slug}"
     chosen_slug = title_slug
@@ -792,11 +733,9 @@ def generate_article(pillar, prices, trends, fear_greed, persona, article_index)
         for post in recent_posts:
             internal_links_text += f'- [{post["title"]}](/{pillar["permalink_base"]}/{post["slug"]}/)\n'
 
-    FORMAT_TYPES = [
-        "story_led", "contrarian", "trader_notebook",
-        "macro_driver", "chart_story", "question_led",
-    ]
-    _pillar_idx = ["stock-market","bitcoin","personal-finance","ai-trading"].index(pillar["id"]) if pillar["id"] in ["stock-market","bitcoin","personal-finance","ai-trading"] else 0
+    FORMAT_TYPES = ["story_led", "contrarian", "trader_notebook", "macro_driver", "chart_story", "question_led"]
+    pillar_ids = ["stock-market", "bitcoin", "personal-finance", "ai-trading"]
+    _pillar_idx = pillar_ids.index(pillar["id"]) if pillar["id"] in pillar_ids else 0
     fmt = FORMAT_TYPES[(now.day + article_index + _pillar_idx) % len(FORMAT_TYPES)]
 
     FORMAT_INSTRUCTIONS = {
@@ -807,7 +746,6 @@ def generate_article(pillar, prices, trends, fear_greed, persona, article_index)
         "chart_story":    "Describe what the data is telling you in plain language. Then connect to actionable advice.",
         "question_led":   "Open with the exact question your target reader is googling right now. Answer it directly in paragraph 1.",
     }
-
     SECTION_STRUCTURES = {
         "story_led":      ["The Setup", "What the Data Actually Says", "How This Affects Each Country", "Key Numbers to Know", "The Risk Nobody's Talking About", "My Take", "Quick Answers"],
         "contrarian":     ["The Consensus View (And Why It's Wrong)", "What the Data Shows Instead", "Country By Country Breakdown", "The Numbers That Actually Matter", "What Smart Investors Are Doing", "Bottom Line", "Reader Questions"],
@@ -816,9 +754,13 @@ def generate_article(pillar, prices, trends, fear_greed, persona, article_index)
         "chart_story":    ["What the Data Is Saying", "Confirming Signals", "Country By Country View", "The Numbers That Matter", "Best Case vs Worst Case", "My Recommendation", "Trader FAQs"],
         "question_led":   ["The Direct Answer", "The Deeper Context", "India View", "US, UK and Brazil View", "Numbers and Levels", "What Happens Next", "More Questions"],
     }
-
     sections = SECTION_STRUCTURES[fmt]
     opening_instruction = FORMAT_INSTRUCTIONS[fmt]
+
+    # ── Phase 2: Get hook from human_touch ──────────────────────────────────
+    ht_hook = ht.get_hook(mode=CONTENT_MODE, lang="en")
+    ht_phrase = ht.get_personal_phrase(lang="en")
+    video_tags = seo.get_video_tags(mode=CONTENT_MODE, lang="en")
 
     prompt = f"""You are Amit Kumar, founder of AI360Trading — independent market analyst from Haridwar, India.
 
@@ -828,6 +770,7 @@ WRITING STYLE: {persona['style']}
 Today is {day_name}, {date_display}.
 ARTICLE FORMAT TYPE: {fmt}
 OPENING INSTRUCTION: {opening_instruction}
+
 {mode_note}
 
 TOPIC: {pillar['name']}
@@ -841,6 +784,13 @@ NEWS TODAY (use as context only — write YOUR OWN analysis):
 {news}
 
 TRENDING SEARCHES: {', '.join(trends[:8])}
+
+NATURAL HOOK TO WEAVE IN (adapt naturally, do not copy verbatim):
+{ht_hook}
+
+PERSONAL PHRASE (inject naturally once):
+{ht_phrase}
+
 {internal_links_text}
 
 === HUMAN WRITING RULES (CRITICAL) ===
@@ -879,28 +829,27 @@ Target length: 2000-2200 words. Minimum 1800 words — never less.
 End with:
 *{date_display} | Educational content only. Not SEBI registered investment advice.*
 """
+
+    system_prompt = (
+        f"You are Amit Kumar of AI360Trading writing as a {persona['name']}. "
+        f"Tone: {persona['tone']}. Style: {persona['style']}. "
+        "Write 100% original human-sounding financial content. "
+        "Readers are in US, UK, Brazil and India — all four groups must find genuine value."
+    )
+
+    # ── Phase 2: Use ai_client instead of direct Groq call ──────────────────
     try:
-        completion = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
-            messages=[
-                {
-                    "role": "system",
-                    "content": (
-                        f"You are Amit Kumar of AI360Trading writing as a {persona['name']}. "
-                        f"Tone: {persona['tone']}. Style: {persona['style']}. "
-                        "Write 100% original human-sounding financial content. "
-                        "Readers are in US, UK, Brazil and India — all four groups must find genuine value."
-                    )
-                },
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.88,
+        raw_content = ai.generate(
+            prompt=prompt,
+            system_prompt=system_prompt,
+            content_mode=CONTENT_MODE,
+            lang="en",
             max_tokens=5500,
-            top_p=0.95,
-            frequency_penalty=0.40,
-            presence_penalty=0.30,
+            temperature=0.88,
         )
-        content = completion.choices[0].message.content
+
+        # ── Phase 2: humanize through human_touch ────────────────────────────
+        content = ht.humanize(raw_content, lang="en")
 
         meta_description = f"{article_title} | {pillar['name']} — {date_display}. Insights for US, UK, India and Brazil investors."[:155]
         cleaned_lines = []
@@ -923,13 +872,12 @@ End with:
 
         schema_json = generate_schema(article_title, meta_description, pillar, chosen_slug)
 
-        safe_title = (article_title
-            .replace('"', "'").replace('&', 'and').replace('<', '')
-            .replace('>', '').replace('₹', 'Rs.').replace('\n', ' ').strip())
-        safe_excerpt = (article_excerpt
-            .replace('"', "'").replace('&', 'and').replace('<', '').replace('>', '').strip())
-        safe_desc = (meta_description
-            .replace('"', "'").replace('&', 'and').replace('<', '').replace('>', '').strip())
+        safe_title   = article_title.replace('"', "'").replace('&', 'and').replace('<', '').replace('>', '').replace('₹', 'Rs.').replace('\n', ' ').strip()
+        safe_excerpt = article_excerpt.replace('"', "'").replace('&', 'and').replace('<', '').replace('>', '').strip()
+        safe_desc    = meta_description.replace('"', "'").replace('&', 'and').replace('<', '').replace('>', '').strip()
+
+        # ── Phase 2: SEO tags from human_touch ──────────────────────────────
+        extra_tags = ", ".join(video_tags[:8]) if video_tags else ""
 
         header = (
             "---\n"
@@ -947,6 +895,8 @@ End with:
             f"tags: [{pillar['tag']}]\n"
             f"fear_greed: \"{fear_greed}\"\n"
             f"trending: \"{', '.join(trends[:5])}\"\n"
+            f"seo_tags: \"{extra_tags}\"\n"
+            f"ai_provider: \"{ai.active_provider}\"\n"
             "---\n\n"
         )
 
@@ -954,12 +904,13 @@ End with:
 
         if not os.path.exists(POSTS_DIR):
             os.makedirs(POSTS_DIR)
+
         with open(file_path, "w", encoding="utf-8") as f:
             f.write(header + schema_block + content)
 
         article_url = f"{SITE_URL}/{pillar['permalink_base']}/{chosen_slug}/"
-        print(f"  ✅ /{pillar['permalink_base']}/{chosen_slug}/")
-        print(f"     {article_title[:70]}...")
+        print(f"  ✅ /{pillar['permalink_base']}/{chosen_slug}/ [via {ai.active_provider}]")
+        print(f"  {article_title[:70]}...")
         return True, article_url
 
     except Exception as e:
@@ -967,6 +918,7 @@ End with:
         return False, None
 
 
+# ─── MAIN ─────────────────────────────────────────────────────────────────────
 def generate_all_articles():
     print("=" * 60)
     print(f"  AI360Trading Daily Bot — {date_display}")
@@ -981,17 +933,18 @@ def generate_all_articles():
     fear_greed = get_fear_greed()
 
     if CONTENT_MODE == "market":
-        print(f"  S&P 500  : {prices.get('S&P 500',{}).get('display','N/A')}")
-        print(f"  NIFTY    : {prices.get('NIFTY 50',{}).get('display','N/A')}")
-        print(f"  Bitcoin  : {prices.get('Bitcoin',{}).get('display','N/A')}")
-        print(f"  Gold     : {prices.get('Gold',{}).get('display','N/A')}")
-        print(f"  F&G      : {fear_greed}")
-    print(f"  Trending : {', '.join(trends[:3])}")
+        print(f"  S&P 500 : {prices.get('S&P 500', {}).get('display', 'N/A')}")
+        print(f"  NIFTY   : {prices.get('NIFTY 50', {}).get('display', 'N/A')}")
+        print(f"  Bitcoin : {prices.get('Bitcoin', {}).get('display', 'N/A')}")
+        print(f"  Gold    : {prices.get('Gold', {}).get('display', 'N/A')}")
+        print(f"  F&G     : {fear_greed}")
+    print(f"  Trending: {', '.join(trends[:3])}")
 
-    results        = []
+    results       = []
     published_urls = []
 
     for i, pillar in enumerate(PILLARS):
+        # Skip if already generated today
         already_exists = False
         if os.path.exists(POSTS_DIR):
             pillar_today = [
@@ -999,39 +952,47 @@ def generate_all_articles():
                 if f.endswith('.md') and f.startswith(date_str) and pillar['id'] in f
             ]
             if pillar_today:
-                print(f"\n  [{i+1}/4] ⏭️  Skipping {pillar['name']} — already exists today")
-                results.append((pillar['name'], True))
+                print(f"\n  [SKIP] {pillar['name']} — already generated today ({pillar_today[0]})")
                 already_exists = True
 
-        if already_exists:
-            continue
+        if not already_exists:
+            persona_indices = PILLAR_PERSONA_MAP.get(pillar['id'], [0])
+            persona_idx     = persona_indices[(now.day + i) % len(persona_indices)]
+            persona         = PERSONAS[persona_idx]
+            success, url    = generate_article(pillar, prices, trends, fear_greed, persona, i + 1)
+            results.append((pillar['name'], success))
+            if success and url:
+                published_urls.append(url)
+            if i < len(PILLARS) - 1:
+                time.sleep(2)
 
-        persona_pool = PILLAR_PERSONA_MAP.get(pillar['id'], [0,1,2,3,4,5])
-        persona_idx  = persona_pool[now.weekday() % len(persona_pool)]
-        persona      = PERSONAS[persona_idx]
-        success, article_url = generate_article(
-            pillar, prices, trends, fear_greed, persona, i + 1
-        )
-        results.append((pillar['name'], success))
-        if success and article_url:
-            published_urls.append(article_url)
-        if i < len(PILLARS) - 1:
-            time.sleep(3)
+    # Cleanup old posts
+    cleanup_old_posts()
 
+    # Submit new URLs to Google Indexing API
+    if published_urls:
+        print(f"\n📡 Submitting {len(published_urls)} URLs to Google Indexing API...")
+        submit_urls_to_google(published_urls)
+
+    # Summary
     print("\n" + "=" * 60)
-    print("  DAILY PUBLISH SUMMARY")
+    print("  GENERATION SUMMARY")
     print("=" * 60)
     for name, success in results:
-        print(f"  {'✅' if success else '❌'} {name}")
+        status = "✅" if success else "❌"
+        print(f"  {status} {name}")
 
-    if published_urls:
-        print(f"\n📡 Submitting {len(published_urls)} new URLs to Google Indexing API...")
-        submit_urls_to_google(published_urls)
-    else:
-        print("\n  No new articles to submit to Google.")
+    total_ok  = sum(1 for _, s in results if s)
+    total_all = len(results)
+    print(f"\n  {total_ok}/{total_all} articles generated successfully")
+    print(f"  AI Provider Used: {ai.active_provider}")
+    print(f"  AI Stats: {ai.get_status()['stats']}")
 
-    cleanup_old_posts()
-    print(f"\n  Done. Mode was: {CONTENT_MODE.upper()}")
+    if total_ok == 0 and total_all > 0:
+        print("\n  ❌ ALL articles failed — check AI provider keys")
+        raise SystemExit(1)
+
+    return published_urls
 
 
 if __name__ == "__main__":
