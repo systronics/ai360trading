@@ -312,7 +312,7 @@ Respond ONLY with valid JSON:
     print("  🤖 Generating Short 2 script (Madhur voice) via ai_client...")
     try:
         data = ai.generate_json(prompt=prompt, system_prompt=system_prompt,
-                                content_mode=CONTENT_MODE, lang="hi")
+                                content_mode=CONTENT_MODE)
         if not data:
             raise ValueError("Empty response")
         print(f"  ✅ Short 2: {data.get('stock')} | via {ai.active_provider}")
