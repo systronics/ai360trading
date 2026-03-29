@@ -758,7 +758,7 @@ def generate_article(pillar, prices, trends, fear_greed, persona, article_index)
     opening_instruction = FORMAT_INSTRUCTIONS[fmt]
 
     # ── Phase 2: Get hook from human_touch ──────────────────────────────────
-    ht_hook = ht.get_hook(mode=CONTENT_MODE, lang="en")
+    ht_hook = ht.get_hook(mode=CONTENT_MODE)
     ht_phrase = ht.get_personal_phrase(lang="en")
     # FIX: removed unsupported lang="en" kwarg — get_video_tags() takes mode + is_short only
     video_tags = seo.get_video_tags(mode=CONTENT_MODE)
