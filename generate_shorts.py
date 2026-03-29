@@ -1,16 +1,19 @@
 """
 generate_shorts.py — AI360Trading
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Generates Short 2 (Trade Setup) + Short 3 (Global Market Pulse).
+Generates Short 2 (Hindi Trade Setup) + Short 3 (Hindi Market Pulse)
+         + Short 4 (English Global — NEW).
 
 Short 2: Madhur voice (authoritative male) — trade setup or education card
 Short 3: Swara voice  (energetic female)  — market pulse or weekend wisdom
+Short 4: Jenny voice  (English female)    — global audience USA/UK/Brazil/UAE
 
-Data source: yfinance fast_info['last_price'] — real-time, no 1-day lag
-Mode switching: market / weekend / holiday via CONTENT_MODE env var
-Platforms: YouTube Shorts (auto) + Facebook Page + Group (auto)
+AI: ai_client fallback chain (Groq→Gemini→Claude→OpenAI→Template)
+Human touch: human_touch.py — hooks, CTAs, TTS speed variation
+Data source: yfinance fast_info['last_price']
+Mode: market / weekend / holiday via CONTENT_MODE env var
+Platforms: YouTube Shorts + Facebook Page + Group
 
-Target countries for ads: India, USA, UK, Brazil, UAE, Canada, Australia
 Last updated: March 2026
 """
 
@@ -31,10 +34,13 @@ from moviepy.editor import (
     ImageClip, AudioFileClip, CompositeAudioClip,
     concatenate_audioclips
 )
-from groq import Groq
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 from google.oauth2.credentials import Credentials
+
+# ─── AI360Trading modules ─────────────────────────────────────────────────────
+from ai_client import ai
+from human_touch import ht, seo
 
 # ─── Content Mode ─────────────────────────────────────────────────────────────
 CONTENT_MODE = os.environ.get("CONTENT_MODE", "market").lower()
@@ -69,18 +75,8 @@ FONT_REG_PATHS = [
     "/usr/share/fonts/truetype/freefont/FreeSans.ttf",
 ]
 
-# ─── Global SEO tags — maximise CPM across all target countries ───────────────
-BASE_TAGS = [
-    "ai360trading", "StockMarket", "Investing", "Finance", "Shorts",
-    "GlobalInvesting", "USStocks", "UKInvesting", "BrazilMarket",
-    "IndiaInvesting", "UAEInvesting", "FinancialLiteracy", "Hinglish"
-]
-MARKET_TAGS  = BASE_TAGS + ["Nifty50", "TradingIndia", "TradeSetup", "TechnicalAnalysis", "PriceAction"]
-WEEKEND_TAGS = BASE_TAGS + ["WeekendLearning", "PersonalFinance", "WealthBuilding", "MoneyMindset"]
-HOLIDAY_TAGS = BASE_TAGS + ["HolidayLearning", "MarketHoliday", "InvestmentTips", "FinancialFreedom"]
-
 FB_RETRY      = 3
-FB_RETRY_WAIT = 8  # seconds
+FB_RETRY_WAIT = 8
 
 
 # ─── HELPERS ──────────────────────────────────────────────────────────────────
@@ -191,7 +187,6 @@ def fetch_market_data():
 
 
 def get_part1_url():
-    """Gets the Part 1 analysis video URL for linking in description."""
     id_path = OUT / "analysis_video_id.txt"
     if id_path.exists():
         vid_id = id_path.read_text(encoding="utf-8").strip()
@@ -204,8 +199,7 @@ def get_part1_url():
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# SHORT 2 — TRADE SETUP / EDUCATION CARD
-# Voice: Madhur (authoritative male)
+# SHORT 2 — HINDI TRADE SETUP (Madhur voice)
 # ══════════════════════════════════════════════════════════════════════════════
 def make_short2_frame(script_data, market):
     sentiment = script_data.get("sentiment", "bullish").lower()
@@ -298,7 +292,7 @@ def make_short2_frame(script_data, market):
     return path
 
 
-def generate_short2_script(client, market):
+def generate_short2_script(market):
     if CONTENT_MODE == "holiday":
         context = (f"Today is {HOLIDAY_NAME} — Indian market holiday. "
                    f"Create educational investment lesson. Global audience: India, US, UK, Brazil, UAE.")
@@ -309,42 +303,42 @@ def generate_short2_script(client, market):
                    f"BTC {market['btc']['val']}, Gold {market['gold']['val']}, "
                    f"S&P500 {market['sp500']['val']}, USD/INR {market['usdinr']['val']}")
 
+    hook = ht.get_hook(mode=CONTENT_MODE, lang="hi", holiday_name=HOLIDAY_NAME)
+
     if CONTENT_MODE in ("holiday", "weekend"):
         prompt = f"""Financial educator creating YouTube Shorts in Hinglish for ai360trading. Global audience: India, US, UK, Brazil.
 {context}
+Start the script with this hook: {hook}
 Respond ONLY with valid JSON:
-{{"stock":"FINANCIAL EDUCATION","sentiment":"positive","entry":"one key learning max 5 words","target":"what viewer gains max 5 words","sl":"one action max 5 words","horizon":"Long Term Wealth","insight":"inspiring Hinglish line max 15 words","script":"40-second Hinglish educational script. Hook. Lesson. CTA. Max 80 words."}}"""
+{{"stock":"FINANCIAL EDUCATION","sentiment":"positive","entry":"one key learning max 5 words","target":"what viewer gains max 5 words","sl":"one action max 5 words","horizon":"Long Term Wealth","insight":"inspiring Hinglish line max 15 words","script":"40-second Hinglish educational script. Hook already given. Lesson. CTA. Max 80 words."}}"""
     else:
         prompt = f"""Expert Indian stock market trader creating YouTube Shorts trade setup in Hinglish for ai360trading.
 {context}
+Start the script with this hook: {hook}
 Respond ONLY with valid JSON:
-{{"stock":"stock or index name","sentiment":"bullish or bearish or neutral","entry":"entry price","target":"target price","sl":"stop loss","horizon":"Intraday or Swing or Positional","insight":"one key Hinglish insight max 15 words","script":"40-second energetic Hinglish script. Hook. Setup. Subscribe CTA. Max 80 words."}}"""
+{{"stock":"stock or index name","sentiment":"bullish or bearish or neutral","entry":"entry price","target":"target price","sl":"stop loss","horizon":"Intraday or Swing or Positional","insight":"one key Hinglish insight max 15 words","script":"40-second energetic Hinglish script. Hook already given. Setup. Subscribe CTA. Max 80 words."}}"""
 
     print("🤖 Generating Short 2 script (Madhur voice)...")
     try:
-        resp = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
-            messages=[{"role": "user", "content": prompt}],
-            response_format={"type": "json_object"},
-            temperature=0.8, max_tokens=500
-        )
-        data = json.loads(resp.choices[0].message.content)
-        print(f"  ✅ Short 2: {data.get('stock')} — {data.get('sentiment')}")
-        return data
+        data = ai.generate_json(prompt=prompt, content_mode=CONTENT_MODE, lang="hi")
+        if data and "script" in data:
+            data["script"] = ht.humanize(data["script"], lang="hi")
+            print(f"  ✅ Short 2: {data.get('stock')} — {data.get('sentiment')} via {ai.active_provider}")
+            return data
+        raise ValueError("Empty response")
     except Exception as e:
-        print(f"  ⚠️ Groq error Short 2: {e}")
+        print(f"  ⚠️ AI error Short 2: {e}")
         return {
             "stock": "FINANCIAL EDUCATION", "sentiment": "positive",
             "entry": "Learn Investing", "target": "Build Wealth",
             "sl": "Start Today", "horizon": "Long Term",
             "insight": "Har din kuch seekho, financially grow karo.",
-            "script": "Bhaiyo! Aaj ka lesson — patience se wealth banao. Subscribe karo ai360trading!"
+            "script": f"{hook} Bhaiyo! Aaj ka lesson — patience se wealth banao. Subscribe karo ai360trading!"
         }
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# SHORT 3 — MARKET PULSE / WEEKEND WISDOM
-# Voice: Swara (energetic female)
+# SHORT 3 — HINDI MARKET PULSE (Swara voice)
 # ══════════════════════════════════════════════════════════════════════════════
 def make_short3_frame(script_data, market):
     overall_up = market["nifty"]["up"]
@@ -418,10 +412,10 @@ def make_short3_frame(script_data, market):
     return path
 
 
-def generate_short3_script(client, market):
+def generate_short3_script(market):
     if CONTENT_MODE == "holiday":
         context = (f"Today is {HOLIDAY_NAME} — Indian market holiday. "
-                   f"Educational overview short. What should investors do on holidays? Global audience: India, US, UK, Brazil, UAE.")
+                   f"Educational overview short. Global audience: India, US, UK, Brazil, UAE.")
     elif CONTENT_MODE == "weekend":
         context = "Weekend — market closed. What should traders prepare for next week? Global educational content."
     else:
@@ -444,17 +438,14 @@ Respond ONLY with valid JSON:
 
     print("🤖 Generating Short 3 script (Swara voice)...")
     try:
-        resp = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
-            messages=[{"role": "user", "content": prompt}],
-            response_format={"type": "json_object"},
-            temperature=0.8, max_tokens=400
-        )
-        data = json.loads(resp.choices[0].message.content)
-        print(f"  ✅ Short 3: {data.get('mood_summary')}")
-        return data
+        data = ai.generate_json(prompt=prompt, content_mode=CONTENT_MODE, lang="hi")
+        if data and "script" in data:
+            data["script"] = ht.humanize(data["script"], lang="hi")
+            print(f"  ✅ Short 3: {data.get('mood_summary')} via {ai.active_provider}")
+            return data
+        raise ValueError("Empty response")
     except Exception as e:
-        print(f"  ⚠️ Groq error Short 3: {e}")
+        print(f"  ⚠️ AI error Short 3: {e}")
         return {
             "mood_summary": "Seekho, grow karo, invest karo",
             "key_level":    "Financial Education",
@@ -462,15 +453,147 @@ Respond ONLY with valid JSON:
         }
 
 
-# ─── YOUTUBE AUTH ─────────────────────────────────────────────────────────────
-def get_youtube_service():
+# ══════════════════════════════════════════════════════════════════════════════
+# SHORT 4 — ENGLISH GLOBAL (Jenny voice) — NEW
+# Target: USA, UK, Brazil, UAE, Canada, Australia
+# ══════════════════════════════════════════════════════════════════════════════
+def make_short4_frame(script_data, market):
+    """English global short — clean, premium design for international audience."""
+    sentiment = script_data.get("sentiment", "bullish").lower()
+    accent    = (255, 180, 0) if CONTENT_MODE in ("holiday", "weekend") else (
+                (0, 200, 120) if sentiment == "bullish" else
+                (220, 60, 60) if sentiment == "bearish" else (60, 160, 255))
+
+    # Premium dark gradient for global audience
+    img  = gradient_bg((8, 8, 18), (18, 18, 40))
+    draw = ImageDraw.Draw(img, "RGBA")
+
+    # Clean top bar
+    draw.rectangle([(0, 0), (SW, 8)], fill=accent)
+
+    # Brand
+    draw_text_outlined(draw, "AI360TRADING", SW//2, 75, get_font(FONT_BOLD_PATHS, 58), accent, outline=2)
+    draw.text((SW//2, 135), "Global Market Intelligence", font=get_font(FONT_REG_PATHS, 34),
+              fill=(160, 180, 220), anchor="mm")
+    draw.text((SW//2, 185), now_ist.strftime("%d %b %Y"),
+              font=get_font(FONT_REG_PATHS, 30), fill=(120, 140, 180), anchor="mm")
+    draw.rectangle([(60, 210), (SW-60, 213)], fill=accent)
+
+    # Main topic
+    topic = script_data.get("topic", "GLOBAL MARKET UPDATE").upper()
+    draw_text_outlined(draw, topic[:20], SW//2, 300, get_font(FONT_BOLD_PATHS, 76), WHITE, outline=2)
+
+    # Market data panel
+    panel_y = 380
+    draw.rounded_rectangle([(60, panel_y), (SW-60, panel_y+460)], radius=25, fill=(255,255,255,10))
+
+    if CONTENT_MODE == "market":
+        market_items = [
+            ("🇮🇳 Nifty50",  market["nifty"]["val"],  market["nifty"]["chg"],  market["nifty"]["up"]),
+            ("🌍 S&P 500",   market["sp500"]["val"],  market["sp500"]["chg"],  market["sp500"]["up"]),
+            ("₿ Bitcoin",   market["btc"]["val"],    market["btc"]["chg"],    market["btc"]["up"]),
+            ("🥇 Gold",      market["gold"]["val"],   market["gold"]["chg"],   market["gold"]["up"]),
+        ]
+        item_y = panel_y + 60
+        for label, val, chg, up in market_items:
+            color = (0, 210, 100) if up else (220, 55, 55)
+            draw.text((120, item_y), label, font=get_font(FONT_BOLD_PATHS, 38), fill=(160,180,220), anchor="lm")
+            draw.text((SW-280, item_y), val, font=get_font(FONT_BOLD_PATHS, 40), fill=WHITE, anchor="rm")
+            draw.text((SW-100, item_y), chg, font=get_font(FONT_BOLD_PATHS, 36), fill=color, anchor="rm")
+            item_y += 100
+    else:
+        # Weekend/holiday — global audience focus message
+        msgs = [
+            ("🌍 Global Markets", "Closed for Weekend"),
+            ("📈 Learn Today", "Build Tomorrow"),
+            ("💡 Smart Investors", "Never Stop Learning"),
+            ("🎯 Your Goal", "Financial Freedom"),
+        ]
+        item_y = panel_y + 60
+        for label, val in msgs:
+            draw.text((120, item_y), label, font=get_font(FONT_BOLD_PATHS, 38), fill=(160,180,220), anchor="lm")
+            draw.text((SW-120, item_y), val, font=get_font(FONT_BOLD_PATHS, 36), fill=accent, anchor="rm")
+            item_y += 100
+
+    # Key insight
+    insight = script_data.get("insight", "Stay informed. Trade smart. Build wealth.")
+    insight_y = panel_y + 510
+    draw.rounded_rectangle([(60, insight_y), (SW-60, insight_y+90)], radius=15, fill=(*accent, 20))
+    draw.text((SW//2, insight_y+45), f'"{insight}"',
+              font=get_font(FONT_REG_PATHS, 34), fill=SOFT_WHITE, anchor="mm")
+
+    # Disclaimer
+    draw.text((SW//2, insight_y+140), "⚠️ Educational only. Not financial advice.",
+              font=get_font(FONT_REG_PATHS, 28), fill=(160, 150, 100), anchor="mm")
+
+    # Target countries flag row
+    draw.text((SW//2, insight_y+200), "🇺🇸 🇬🇧 🇦🇺 🇦🇪 🇨🇦 🇧🇷 🇮🇳",
+              font=get_font(FONT_REG_PATHS, 40), fill=SOFT_WHITE, anchor="mm")
+
+    # CTA button
+    draw.rounded_rectangle([(100, SH-350), (SW-100, SH-250)], radius=25, fill=accent)
+    draw_text_outlined(draw, "🔔 SUBSCRIBE FOR DAILY INSIGHTS", SW//2, SH-300,
+                       get_font(FONT_BOLD_PATHS, 34), (0,0,0), outline=1)
+
+    draw.text((SW//2, SH-190), "ai360trading.in  •  t.me/ai360trading",
+              font=get_font(FONT_REG_PATHS, 30), fill=(120, 150, 200), anchor="mm")
+
+    path = OUT / f"short4_{now_ist.strftime('%Y%m%d')}.png"
+    img.save(str(path), quality=95)
+    return path
+
+
+def generate_short4_script(market):
+    """Generate English script for global audience."""
+    hook = ht.get_hook(mode=CONTENT_MODE, lang="en")
+    cta  = ht.get_cta(lang="en")
+
+    if CONTENT_MODE in ("holiday", "weekend"):
+        context = "Markets are closed. Create an educational short for global investors."
+        topic_hint = "wealth mindset, trading psychology, or investment basics"
+    else:
+        context = (f"Live market: Nifty {market['nifty']['val']} ({market['nifty']['chg']}), "
+                   f"S&P500 {market['sp500']['val']}, BTC {market['btc']['val']}")
+        topic_hint = "today's most important market signal or trade setup"
+
+    prompt = f"""Professional financial educator creating a YouTube Short for AI360Trading.
+Target audience: USA, UK, Australia, UAE, Canada, Brazil investors.
+Language: Natural English — conversational, not robotic.
+{context}
+
+Create a short about: {topic_hint}
+Start with this hook (use exactly): {hook}
+
+Respond ONLY with valid JSON:
+{{"topic":"3-4 word topic title in CAPS","sentiment":"bullish or bearish or neutral or positive","insight":"one punchy insight max 12 words","script":"40-second English script. Hook given. Key insight. Global angle. CTA: {cta} Max 80 words."}}"""
+
+    print("🤖 Generating Short 4 script (English — Jenny voice)...")
     try:
-        creds_json = os.environ.get("YOUTUBE_CREDENTIALS")
+        data = ai.generate_json(prompt=prompt, content_mode=CONTENT_MODE, lang="en")
+        if data and "script" in data:
+            data["script"] = ht.humanize(data["script"], lang="en")
+            print(f"  ✅ Short 4 English: {data.get('topic')} via {ai.active_provider}")
+            return data
+        raise ValueError("Empty response")
+    except Exception as e:
+        print(f"  ⚠️ AI error Short 4: {e}")
+        return {
+            "topic": "GLOBAL MARKET UPDATE",
+            "sentiment": "neutral",
+            "insight": "Stay informed, trade smart, build wealth.",
+            "script": f"{hook} Today's market is sending a clear signal for global investors. Stay disciplined, manage your risk. {cta}"
+        }
+
+
+# ─── YOUTUBE AUTH ─────────────────────────────────────────────────────────────
+def get_youtube_service(credentials_env="YOUTUBE_CREDENTIALS"):
+    try:
+        creds_json = os.environ.get(credentials_env)
         if not creds_json:
             if os.path.exists("token.json"):
                 with open("token.json") as f: creds_json = f.read()
             else:
-                print("❌ No YouTube credentials"); return None
+                print(f"❌ No YouTube credentials ({credentials_env})"); return None
         creds = Credentials.from_authorized_user_info(json.loads(creds_json))
         return build("youtube", "v3", credentials=creds)
     except Exception as e:
@@ -484,7 +607,7 @@ def upload_short(youtube, video_path, title, description, tags):
             "title":       title[:100],
             "description": description,
             "tags":        tags[:30],
-            "categoryId":  "27"   # Education
+            "categoryId":  "27"
         },
         "status": {
             "privacyStatus":           "public",
@@ -507,12 +630,8 @@ def upload_short(youtube, video_path, title, description, tags):
         print(f"  ❌ YouTube upload failed: {e}"); return None
 
 
-# ─── FACEBOOK SHARE — with retry + error logging ──────────────────────────────
-def share_to_facebook(short2_url, short3_url, market):
-    """
-    Posts short links to Facebook Page + Group.
-    Uses retry logic with full error logging — no more silent fails.
-    """
+# ─── FACEBOOK SHARE ───────────────────────────────────────────────────────────
+def share_to_facebook(short2_url, short3_url, short4_url, market):
     token    = os.environ.get("META_ACCESS_TOKEN", "")
     page_id  = os.environ.get("FACEBOOK_PAGE_ID", "")
     group_id = os.environ.get("FACEBOOK_GROUP_ID", "")
@@ -537,22 +656,16 @@ def share_to_facebook(short2_url, short3_url, market):
             f"BTC: {market['btc']['val']} ({market['btc']['chg']})\n\n"
         )
 
-    if short2_url: msg += f"📊 Trade Setup Short:\n{short2_url}\n\n"
-    if short3_url: msg += f"💹 Market Pulse Short:\n{short3_url}\n\n"
+    if short2_url: msg += f"📊 Trade Setup (Hindi):\n{short2_url}\n\n"
+    if short3_url: msg += f"💹 Market Pulse (Hindi):\n{short3_url}\n\n"
+    if short4_url: msg += f"🌍 Global Update (English):\n{short4_url}\n\n"
 
-    if CONTENT_MODE in ("holiday", "weekend"):
-        msg += (
-            "💡 Best time to learn and plan your next investment!\n"
-            "🌍 For investors: India, US, UK, Brazil, UAE\n"
-            "🌐 https://ai360trading.in\n📱 https://t.me/ai360trading\n\n"
-            "#ai360trading #InvestmentEducation #GlobalInvesting #Shorts"
-        )
-    else:
-        msg += (
-            "Daily signals ke liye subscribe karo! 🔔\n"
-            "🌐 https://ai360trading.in\n📱 https://t.me/ai360trading\n\n"
-            "#ai360trading #Nifty #StockMarket #TradingIndia #Shorts"
-        )
+    msg += (
+        "💡 Subscribe for daily trading insights!\n"
+        "🌍 For investors: India, US, UK, Brazil, UAE\n"
+        "🌐 https://ai360trading.in\n📱 https://t.me/ai360trading\n\n"
+        "#ai360trading #StockMarket #Trading #GlobalInvesting #Shorts"
+    )
 
     targets = [("Page", page_id)]
     if group_id:
@@ -569,7 +682,7 @@ def share_to_facebook(short2_url, short3_url, market):
                 )
                 result = resp.json()
                 if "id" in result:
-                    print(f"  ✅ Facebook {label} shared [{CONTENT_MODE}] — Post ID: {result['id']}")
+                    print(f"  ✅ Facebook {label} shared — Post ID: {result['id']}")
                     success = True
                     break
                 else:
@@ -580,7 +693,7 @@ def share_to_facebook(short2_url, short3_url, market):
                     print(f"     Error {code}: {emsg}")
                     if code == 200:
                         print(f"     💡 FIX: Token needs 'publish_to_groups' permission scope.")
-                        break  # No point retrying permission errors
+                        break
             except Exception as e:
                 print(f"  ⚠️ Facebook {label} error (attempt {attempt}/{FB_RETRY}): {e}")
 
@@ -594,17 +707,21 @@ def share_to_facebook(short2_url, short3_url, market):
 # ─── MAIN ─────────────────────────────────────────────────────────────────────
 async def main():
     today     = now_ist.strftime("%Y%m%d")
-    client    = Groq(api_key=os.environ.get("GROQ_API_KEY", ""))
-    youtube   = get_youtube_service()
+    youtube   = get_youtube_service("YOUTUBE_CREDENTIALS")
     part1_url = get_part1_url()
     market    = fetch_market_data()
 
-    tags = HOLIDAY_TAGS if CONTENT_MODE == "holiday" else (
-           WEEKEND_TAGS if CONTENT_MODE == "weekend" else MARKET_TAGS)
+    tags_hi = seo.get_video_tags(CONTENT_MODE, is_short=True)
+    tags_en = seo.get_video_tags(CONTENT_MODE, is_short=True)
+    # Add global tags for English short
+    tags_en = ["USStocks", "UKInvesting", "GlobalInvesting", "Finance"] + tags_en
 
-    # ── SHORT 2 — Trade Setup (Madhur voice) ──────────────────────────────
-    print("\n─── SHORT 2 ─────────────────────────────")
-    s2_data       = generate_short2_script(client, market)
+    tts_speed = ht.get_tts_speed()
+    rate_str  = f"+{int((tts_speed - 1) * 100)}%" if tts_speed >= 1 else f"{int((tts_speed - 1) * 100)}%"
+
+    # ── SHORT 2 — Hindi Trade Setup (Madhur voice) ────────────────────────────
+    print("\n─── SHORT 2 (Hindi — Madhur) ─────────────────────────────")
+    s2_data       = generate_short2_script(market)
     s2_frame      = make_short2_frame(s2_data, market)
     s2_audio_path = OUT / f"short2_voice_{today}.mp3"
 
@@ -646,11 +763,11 @@ async def main():
             "⚠️ Educational only. Not financial advice.\n"
             "#Trading #Nifty #StockMarket #ai360trading #TradingIndia #Shorts"
         )
-    short2_url = upload_short(youtube, s2_video_path, s2_title, s2_desc, tags)
+    short2_url = upload_short(youtube, s2_video_path, s2_title, s2_desc, tags_hi)
 
-    # ── SHORT 3 — Market Pulse (Swara voice) ──────────────────────────────
-    print("\n─── SHORT 3 ─────────────────────────────")
-    s3_data       = generate_short3_script(client, market)
+    # ── SHORT 3 — Hindi Market Pulse (Swara voice) ────────────────────────────
+    print("\n─── SHORT 3 (Hindi — Swara) ─────────────────────────────")
+    s3_data       = generate_short3_script(market)
     s3_frame      = make_short3_frame(s3_data, market)
     s3_audio_path = OUT / f"short3_voice_{today}.mp3"
 
@@ -692,14 +809,55 @@ async def main():
             + "🌐 https://ai360trading.in\n📱 https://t.me/ai360trading\n"
             "#MarketPulse #Nifty #StockMarket #ai360trading #TradingIndia #Shorts"
         )
-    short3_url = upload_short(youtube, s3_video_path, s3_title, s3_desc, tags)
+    short3_url = upload_short(youtube, s3_video_path, s3_title, s3_desc, tags_hi)
 
-    share_to_facebook(short2_url, short3_url, market)
+    # ── SHORT 4 — English Global (Jenny voice) ────────────────────────────────
+    print("\n─── SHORT 4 (English — Jenny — Global) ─────────────────────────────")
+    s4_data       = generate_short4_script(market)
+    s4_frame      = make_short4_frame(s4_data, market)
+    s4_audio_path = OUT / f"short4_voice_{today}.mp3"
+
+    await edge_tts.Communicate(
+        s4_data.get("script", "Today's market has an important message for global investors."),
+        "en-US-JennyNeural", rate=rate_str
+    ).save(str(s4_audio_path))
+
+    s4_voice      = AudioFileClip(str(s4_audio_path))
+    s4_duration   = s4_voice.duration + 0.5
+    s4_audio      = mix_audio(s4_voice, s4_duration)
+    s4_video_path = OUT / f"short4_{today}.mp4"
+    (ImageClip(str(s4_frame))
+     .set_duration(s4_duration)
+     .set_audio(s4_audio)
+     .write_videofile(str(s4_video_path), fps=FPS, codec="libx264", audio_codec="aac", logger=None))
+    print(f"✅ Short 4 rendered: {s4_video_path.name}")
+
+    s4_title = (f"{'📈' if market.get('sp500', {}).get('up', True) else '📉'} "
+                f"Global Market Update — {s4_data.get('topic', 'TODAY')} | "
+                f"{now_ist.strftime('%d %b')} #Shorts")
+    s4_desc  = (
+        f"{s4_data.get('insight', 'Stay informed, trade smart.')}\n\n"
+        f"🌍 For investors: USA, UK, Australia, UAE, Canada, Brazil, India\n"
+        + (f"📊 Full Analysis: {part1_url}\n" if part1_url else "")
+        + "🌐 https://ai360trading.in\n📱 https://t.me/ai360trading\n"
+        "⚠️ Educational only. Not financial advice.\n"
+        "#GlobalInvesting #USStocks #UKInvesting #BrazilMarket #ai360trading #Shorts"
+    )
+
+    # English short uses same YouTube credentials for now
+    # When English channel ready: use get_youtube_service("YOUTUBE_CREDENTIALS_EN")
+    youtube_en = get_youtube_service("YOUTUBE_CREDENTIALS_EN") or youtube
+    short4_url = upload_short(youtube_en, s4_video_path, s4_title, s4_desc, tags_en)
+
+    # ── Facebook share ─────────────────────────────────────────────────────────
+    share_to_facebook(short2_url, short3_url, short4_url, market)
 
     print(f"\n{'='*50}")
-    print(f"✅ SHORTS DONE — {today} [{CONTENT_MODE.upper()}]")
-    print(f"   Short 2: {short2_url or 'upload failed'}")
-    print(f"   Short 3: {short3_url or 'upload failed'}")
+    print(f"✅ ALL SHORTS DONE — {today} [{CONTENT_MODE.upper()}]")
+    print(f"   Short 2 (Hindi):   {short2_url or 'upload failed'}")
+    print(f"   Short 3 (Hindi):   {short3_url or 'upload failed'}")
+    print(f"   Short 4 (English): {short4_url or 'upload failed'}")
+    print(f"   AI Provider: {ai.active_provider}")
     print(f"{'='*50}\n")
 
 
