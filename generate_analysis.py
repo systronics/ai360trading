@@ -377,7 +377,8 @@ async def run():
     vid_desc  = data.get("video_description", "Daily market analysis by ai360trading.in")
 
     # ── Phase 2: SEO tags from human_touch ──────────────────────────────────
-    ht_tags  = seo.get_video_tags(mode=CONTENT_MODE, lang="hi")
+    # FIX: removed unsupported lang="hi" kwarg — get_video_tags() takes mode + is_short only
+    ht_tags  = seo.get_video_tags(mode=CONTENT_MODE)
     base_tags = ["Nifty", "NiftyAnalysis", "Trading", "ai360trading",
                  "StockMarketIndia", "Hinglish", "TradingIndia", "NSE", "BSE"]
     all_tags  = list(dict.fromkeys(base_tags + ht_tags))  # deduplicated
