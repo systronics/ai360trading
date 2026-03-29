@@ -1,200 +1,160 @@
 """
-generate_community_post.py — YouTube Community Tab Daily Post
-=============================================================
-Posts a daily text + emoji community post to YouTube channel.
-Zero video rendering — just API call. Runs at 12:00 PM IST.
-
-Benefits:
-- YouTube algorithm boost (community posts = extra impressions)
-- Keeps channel active between video uploads
-- Builds audience engagement — polls, questions, insights
-- Zero cost, zero render time
-
-Post types (rotates by weekday):
-  Mon: Market preview + poll
-  Tue: Quick insight + question
-  Wed: Mid-week check-in + data
-  Thu: Educational tip
-  Fri: Weekend prep + poll
-  Sat: Motivational quote + question
-  Sun: Week ahead preview
-
+generate_community_post.py — AI360Trading YouTube Community Tab
+===============================================================
+Posts a daily text + emoji community post to YouTube Community Tab at 12:00 PM IST.
+Boosts algorithm by signalling active channel between video uploads.
+Uses: ai_client (Groq→Gemini→Claude→OpenAI→Templates fallback)
+Uses: human_touch (hooks, emojis, CTAs)
+Mode-aware: market / weekend / holiday
 Author: AI360Trading Automation
-Last Updated: March 2026
+Last Updated: March 2026 — Phase 2 Build
 """
 
 import os
-import sys
 import json
-import logging
-from datetime import datetime
-from pathlib import Path
 import pytz
+from datetime import datetime
 
 from googleapiclient.discovery import build
 from google.oauth2.credentials import Credentials
 
+# ─── Phase 2: ai_client + human_touch ────────────────────────────────────────
 from ai_client import ai
 from human_touch import ht, seo
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
-logger = logging.getLogger(__name__)
+# ─── Content Mode ─────────────────────────────────────────────────────────────
+CONTENT_MODE = os.environ.get("CONTENT_MODE", "market").lower()
+HOLIDAY_NAME = os.environ.get("HOLIDAY_NAME", "Indian Market Holiday")
 
 IST = pytz.timezone("Asia/Kolkata")
-now_ist = datetime.now(IST)
+now = datetime.now(IST)
 
-CONTENT_MODE = os.environ.get("CONTENT_MODE", "market").lower()
-HOLIDAY_NAME = os.environ.get("HOLIDAY_NAME", "")
+print(f"[MODE] generate_community_post.py running in mode: {CONTENT_MODE.upper()}")
+print(f"[AI]   Using ai_client fallback chain: Groq→Gemini→Claude→OpenAI→Templates")
 
-WEEKDAY = now_ist.weekday()
-WEEKDAY_NAME = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"][WEEKDAY]
-DATE_DISPLAY = now_ist.strftime("%d %B %Y")
-
-
-# ─────────────────────────────────────────────
-# POST TYPE BY DAY
-# ─────────────────────────────────────────────
-
-POST_CONFIGS = {
-    0: {  # Monday
-        "type": "market_preview",
-        "title": "Monday Market Preview",
-        "emoji": "📈",
-        "has_poll": True,
-        "poll_question": "What's your market outlook for this week?",
-        "poll_options": ["Bullish 📈", "Bearish 📉", "Sideways ↔️", "Wait and watch 🔍"],
-    },
-    1: {  # Tuesday
-        "type": "quick_insight",
-        "title": "Tuesday Trading Tip",
-        "emoji": "💡",
-        "has_poll": False,
-        "question": "What trading mistake have you made that taught you the most?",
-    },
-    2: {  # Wednesday
-        "type": "midweek_data",
-        "title": "Mid-Week Market Check",
-        "emoji": "📊",
-        "has_poll": True,
-        "poll_question": "How is your portfolio performing this week?",
-        "poll_options": ["Profit 💰", "Breakeven ↔️", "Small loss 📉", "Not trading yet 🎯"],
-    },
-    3: {  # Thursday
-        "type": "education_tip",
-        "title": "Thursday Finance Tip",
-        "emoji": "📚",
-        "has_poll": False,
-        "question": "Which trading concept do you want us to explain next?",
-    },
-    4: {  # Friday
-        "type": "weekend_prep",
-        "title": "Friday Weekend Prep",
-        "emoji": "🎯",
-        "has_poll": True,
-        "poll_question": "What will you do this weekend for trading?",
-        "poll_options": ["Chart review 📈", "Read/Learn 📚", "Rest completely 😴", "Plan next week 🗓️"],
-    },
-    5: {  # Saturday
-        "type": "motivation",
-        "title": "Saturday Motivation",
-        "emoji": "🌟",
-        "has_poll": False,
-        "question": "What's the one trading lesson you wish you knew earlier?",
-    },
-    6: {  # Sunday
-        "type": "week_preview",
-        "title": "Sunday — Week Ahead",
-        "emoji": "🗓️",
-        "has_poll": True,
-        "poll_question": "What's your strategy for next week?",
-        "poll_options": ["Aggressive buying 🚀", "Selective trades 🎯", "Mostly watching 👀", "Investing in SIP 💰"],
-    },
-}
-
-
-# ─────────────────────────────────────────────
-# GENERATE POST TEXT
-# ─────────────────────────────────────────────
-
-def generate_post_text() -> str:
-    config = POST_CONFIGS[WEEKDAY]
-    hook   = ht.get_hook(mode=CONTENT_MODE, lang="hi", holiday_name=HOLIDAY_NAME)
-    cta    = ht.get_cta(lang="hi")
-    emojis = ht.get_emoji_set(CONTENT_MODE)
-
-    if CONTENT_MODE == "holiday":
-        topic = f"short motivational message for {HOLIDAY_NAME} — market holiday, use this time to learn and plan investments"
-    elif CONTENT_MODE == "weekend":
-        topic = f"{config['title']} — educational investment wisdom, no live market data, global audience: India, US, UK, Brazil"
-    else:
-        topic = f"{config['title']} — {config['type']} for Indian traders and global investors"
-
-    prompt = f"""Write a YouTube Community post for AI360Trading channel.
-
-Day: {WEEKDAY_NAME}, {DATE_DISPLAY}
-Post type: {config['type']}
-Mode: {CONTENT_MODE}
-
-HOOK (use as first line): "{hook}"
-
-Requirements:
-- 150-250 words
-- Hinglish (natural Hindi+English mix)
-- 3-5 emojis max, used naturally
-- Conversational, like talking to a friend
-- One actionable insight or tip
-- End with an engaging question to boost comments
-- Sound like a REAL person named Amit who runs AI360Trading
-- NO hashtags in the post body (will be added separately)
-
-Topic: {topic}
-
-Write ONLY the post text, nothing else. No JSON, no labels."""
-
-    logger.info(f"🤖 Generating community post via ai_client ({WEEKDAY_NAME})...")
-    result = ai.generate(
-        prompt=prompt,
-        content_mode=CONTENT_MODE,
-        lang="hi",
-        max_tokens=600
-    )
-
-    text = ht.humanize(result, lang="hi")
-
-    # Add hashtags at the bottom
-    tags = seo.get_video_tags(CONTENT_MODE, is_short=False)
-    hashtags = " ".join([f"#{t}" for t in tags[:8]])
-    text += f"\n\n{hashtags}"
-
-    logger.info(f"✅ Post generated via {ai.active_provider} ({len(text)} chars)")
-    return text
-
-
-# ─────────────────────────────────────────────
-# YOUTUBE COMMUNITY POST API
-# ─────────────────────────────────────────────
-
+# ─── YOUTUBE SERVICE ─────────────────────────────────────────────────────────
 def get_youtube_service():
     try:
         creds_json = os.environ.get("YOUTUBE_CREDENTIALS")
+        if not creds_json and os.path.exists("token.json"):
+            with open("token.json") as f:
+                creds_json = f.read()
         if not creds_json:
-            logger.error("❌ No YOUTUBE_CREDENTIALS secret")
+            print("  ❌ No YouTube credentials found")
             return None
         creds = Credentials.from_authorized_user_info(json.loads(creds_json))
         return build("youtube", "v3", credentials=creds)
     except Exception as e:
-        logger.error(f"❌ YouTube auth error: {e}")
+        print(f"  ❌ YouTube auth error: {e}")
         return None
 
+# ─── POST GENERATION via ai_client ───────────────────────────────────────────
+def generate_post_text():
+    today     = now.strftime("%A, %d %B %Y")
+    day_name  = now.strftime("%A")
+    ht_hook   = ht.get_hook(mode=CONTENT_MODE, lang="hi")
+    ht_phrase = ht.get_personal_phrase(lang="hi")
+    emojis    = ht.get_emoji_set()  # day-seeded emoji rotation
 
-def post_community_text(youtube, text: str) -> bool:
-    """
-    Post a text-only community post.
-    Note: YouTube Data API v3 community posts require channel membership
-    in the YouTubePartner program OR use of the posts endpoint.
-    This uses the activities endpoint which works for all channels.
-    """
+    if CONTENT_MODE == "holiday":
+        context = (f"Today is {HOLIDAY_NAME}. Indian stock market is closed. "
+                   "Write a motivational community post about using market holidays productively — "
+                   "learning, reviewing trades, planning finances.")
+    elif CONTENT_MODE == "weekend":
+        context = (f"Today is {day_name}. Market is closed for the weekend. "
+                   "Write an educational/inspirational community post about weekend preparation "
+                   "for traders — chart study, journaling, mindset.")
+    else:
+        context = (f"Today is {day_name}. Indian market is open. "
+                   "Write an engaging community post with today's market vibe, "
+                   "a quick insight or question to boost engagement, "
+                   "and a teaser for today's videos.")
+
+    prompt = f"""You are Amit Kumar of AI360Trading writing a YouTube Community Tab post in Hinglish.
+
+Today: {today}
+Mode: {CONTENT_MODE.upper()}
+Context: {context}
+
+HOOK TO OPEN WITH (adapt naturally — do not copy verbatim):
+{ht_hook}
+
+PERSONAL PHRASE (inject naturally once):
+{ht_phrase}
+
+Write a community post that:
+1. Opens with a strong hook (use ht_hook inspiration)
+2. Gives one valuable insight or asks one engaging question
+3. Has a clear CTA — watch today's video OR join Telegram OR comment below
+4. Uses emojis naturally (these: {' '.join(emojis[:5])})
+5. Ends with: "📱 t.me/ai360trading | 🌐 ai360trading.in"
+6. Length: 80-120 words in Hinglish
+7. Feels human — NOT like a bot wrote it
+
+Return ONLY the post text. No JSON. No markdown. Just the raw community post text."""
+
+    system_prompt = (
+        "You are Amit Kumar, founder of AI360Trading — a real person from Haridwar, India. "
+        "Your community posts are warm, direct, and genuinely helpful. "
+        "Natural Hinglish. Never robotic. Never start with 'Certainly' or 'Here is your post'. "
+        "Return ONLY the post text — nothing else."
+    )
+
+    print("  🤖 Generating community post via ai_client...")
     try:
+        raw = ai.generate(
+            prompt=prompt,
+            system_prompt=system_prompt,
+            content_mode=CONTENT_MODE,
+            lang="hi",
+            max_tokens=400,
+            temperature=0.9,
+        )
+        # humanize through human_touch
+        post_text = ht.humanize(raw, lang="hi")
+        print(f"  ✅ Community post generated via {ai.active_provider} ({len(post_text)} chars)")
+        return post_text
+    except Exception as e:
+        print(f"  ⚠️ ai_client error: {e} — using fallback post")
+        return _fallback_post()
+
+
+def _fallback_post():
+    hook = ht.get_hook(mode=CONTENT_MODE, lang="hi")
+    posts = {
+        "market": (
+            f"{hook}\n\n"
+            "Aaj ke market mein ek important level hai jisko miss nahi karna chahiye. "
+            "Humara aaj ka video check karo — full analysis ke saath.\n\n"
+            "Comment karo: aap aaj bullish ho ya bearish? 👇\n\n"
+            "📱 t.me/ai360trading | 🌐 ai360trading.in"
+        ),
+        "weekend": (
+            f"{hook}\n\n"
+            "Weekend mein successful traders kya karte hain? Charts review karte hain, "
+            "journal update karte hain, aur next week ki strategy banate hain.\n\n"
+            "Aap kya prepare kar rahe ho aaj? Comment mein batao! 👇\n\n"
+            "📱 t.me/ai360trading | 🌐 ai360trading.in"
+        ),
+        "holiday": (
+            f"{hook}\n\n"
+            f"{HOLIDAY_NAME} ki shubhkamnayein! Market band hai, par learning nahi rukti. "
+            "Aaj apni trading journal review karo aur next plan banao.\n\n"
+            "Kya seekha aapne is mahine? Comment mein share karo! 👇\n\n"
+            "📱 t.me/ai360trading | 🌐 ai360trading.in"
+        ),
+    }
+    return posts.get(CONTENT_MODE, posts["market"])
+
+# ─── POST TO YOUTUBE COMMUNITY TAB ───────────────────────────────────────────
+def post_to_community(post_text):
+    youtube = get_youtube_service()
+    if not youtube:
+        print("  ❌ YouTube service unavailable — cannot post community update")
+        return False
+
+    try:
+        # YouTube Community posts use the activities endpoint
         body = {
             "snippet": {
                 "type": "bulletin",
@@ -208,105 +168,63 @@ def post_community_text(youtube, text: str) -> bool:
                 }
             }
         }
-
-        # Primary method: channel post via activities
+        # Note: YouTube Data API v3 community posts use activities.insert
+        # with kind = youtube#activity and type = bulletin
         request = youtube.activities().insert(
             part="snippet,contentDetails",
             body={
                 "snippet": {
-                    "type": "bulletin",
+                    "description": post_text,
+                    "type": "bulletin"
                 },
                 "contentDetails": {
-                    "bulletin": {
-                        "resourceId": {
-                            "kind": "youtube#channel"
-                        }
-                    }
+                    "bulletin": {}
                 }
             }
         )
-
-        # Note: Full community post API requires YouTube Partner status
-        # For channels without Partner status, we save to file as backup
-        logger.warning("⚠️ YouTube Community Posts API requires Partner status.")
-        logger.info("📝 Saving post to file for manual/scheduled posting.")
-        return False
-
+        response = request.execute()
+        print(f"  ✅ Community post published! Activity ID: {response.get('id', 'N/A')}")
+        return True
     except Exception as e:
-        logger.error(f"❌ Community post API error: {e}")
+        err_str = str(e)
+        if "bulletin" in err_str.lower() or "403" in err_str:
+            print(f"  ⚠️ Community Tab API restricted (channel may need 500+ subscribers or tab not enabled): {e}")
+            print("  💡 FIX: Enable Community Tab in YouTube Studio → Customization → Layout")
+        else:
+            print(f"  ❌ Community post failed: {e}")
         return False
 
+# ─── SAVE POST TEXT (fallback — for manual posting) ──────────────────────────
+def save_post_fallback(post_text, today_str):
+    out_path = f"output/community_post_{today_str}.txt"
+    os.makedirs("output", exist_ok=True)
+    with open(out_path, "w", encoding="utf-8") as f:
+        f.write(post_text)
+    print(f"  📄 Post text saved to {out_path} (manual fallback)")
 
-def save_post_to_file(text: str) -> str:
-    """Save community post text to output file for manual posting or future automation."""
-    OUT = Path("output")
-    OUT.mkdir(exist_ok=True)
-
-    today = now_ist.strftime("%Y%m%d")
-    post_path = OUT / f"community_post_{today}.txt"
-
-    config = POST_CONFIGS[WEEKDAY]
-
-    content = f"""=== AI360Trading Community Post ===
-Date: {DATE_DISPLAY}
-Day: {WEEKDAY_NAME}
-Type: {config['type']}
-Mode: {CONTENT_MODE.upper()}
-AI Provider: {ai.active_provider}
-=====================================
-
-{text}
-
-=====================================
-"""
-    if config.get("has_poll"):
-        content += f"""
-POLL (add manually if platform supports):
-Question: {config['poll_question']}
-Options:
-"""
-        for i, opt in enumerate(config.get("poll_options", []), 1):
-            content += f"  {i}. {opt}\n"
-
-    post_path.write_text(content, encoding="utf-8")
-    logger.info(f"✅ Community post saved: {post_path}")
-    return str(post_path)
-
-
-# ─────────────────────────────────────────────
-# MAIN
-# ─────────────────────────────────────────────
-
+# ─── MAIN ─────────────────────────────────────────────────────────────────────
 def main():
-    logger.info("=" * 60)
-    logger.info(f"AI360Trading — Community Post Generator")
-    logger.info(f"Day: {WEEKDAY_NAME} | Mode: {CONTENT_MODE.upper()}")
-    logger.info("=" * 60)
+    today_str = now.strftime("%Y%m%d")
+    print(f"\n{'=' * 50}")
+    print(f"  AI360Trading Community Post — {now.strftime('%d %B %Y')}")
+    print(f"  Mode: {CONTENT_MODE.upper()}")
+    print(f"{'=' * 50}")
 
-    # Generate post text
     post_text = generate_post_text()
+    print(f"\n  📝 POST PREVIEW:\n{'─' * 40}")
+    print(post_text)
+    print(f"{'─' * 40}\n")
 
-    logger.info(f"\n--- POST PREVIEW ---\n{post_text[:200]}...\n---")
+    success = post_to_community(post_text)
+    save_post_fallback(post_text, today_str)  # Always save — useful for logs
 
-    # Try YouTube API (requires Partner status)
-    youtube = get_youtube_service()
-    posted  = False
-
-    if youtube:
-        posted = post_community_text(youtube, post_text)
-
-    # Always save to file (upload as artifact + manual backup)
-    file_path = save_post_to_file(post_text)
-
-    logger.info("=" * 60)
-    if posted:
-        logger.info("✅ Community post published to YouTube!")
+    if success:
+        print(f"  ✅ Community post done | AI: {ai.active_provider}")
     else:
-        logger.info("📝 Community post saved to output (manual posting needed)")
-        logger.info(f"   File: {file_path}")
-        logger.info("   Note: YouTube Community Post API needs Partner/Monetised status")
-        logger.info("   Once monetised, this will auto-post. File ready to copy-paste.")
-    logger.info("=" * 60)
+        print(f"  ⚠️ Auto-post failed — text saved for manual posting")
+        print(f"  📄 Copy from: output/community_post_{today_str}.txt")
+
+    return success
 
 
 if __name__ == "__main__":
