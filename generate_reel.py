@@ -141,7 +141,7 @@ Respond ONLY with valid JSON — no markdown, no extra text:
 
 def _fallback_script():
     """Template fallback — guaranteed content when all AI providers fail."""
-    hook = ht.get_hook(mode=CONTENT_MODE, lang="hi")
+    hook = ht.get_hook(mode=CONTENT_MODE)
     scripts = {
         "market":  "Doston, trading mein sabse bada dushman market nahi — aapka darr hai. Patience rakho. Har loss ek lesson hai. Discipline rakho, success zaroor milegi. Subscribe karo ai360trading!",
         "weekend": "Doston, weekend mein bhi smart traders prepare karte hain. Apni journal review karo, charts study karo. Next week ready raho. ai360trading ke saath seekhte raho!",
