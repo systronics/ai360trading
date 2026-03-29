@@ -1,7 +1,7 @@
 # AI360Trading — Master System Documentation
 
-**Last Updated:** March 28, 2026 — Phase 2 Upgrade in Progress
-**Status:** Phase 1 Foundation Complete | Phase 2 Active Build
+**Last Updated:** March 29, 2026 — Phase 2 Complete
+**Status:** Phase 1 ✅ Complete | Phase 2 ✅ Complete | Phase 3 Planned
 **Primary Audience:** Bilingual Hindi + English — Indian retail traders + global investors
 
 > ⚠️ **Read this file completely before making ANY changes.**
@@ -45,14 +45,14 @@
 | Platform | Status | Notes |
 |---|---|---|
 | YouTube Hindi | ✅ Auto | Analysis + Education + Shorts + Reels working |
-| YouTube English | 🔄 Building | Phase 2 — auto-translated separate channel |
+| YouTube English | 🔄 Building | Phase 3 — auto-translated separate channel |
 | YouTube Shorts | ✅ Auto | Short 2 + Short 3 working |
-| YouTube Community Posts | 🔄 Building | Phase 2 — daily text post for algo boost |
+| YouTube Community Posts | ✅ Built | generate_community_post.py — 12:00 PM daily |
 | YouTube Reels | ✅ Auto | ZENO reel (8:30 PM) working |
-| YouTube Morning Reel | 🔄 Building | Phase 2 — 7:00 AM reel (generate_reel_morning.py) |
+| YouTube Morning Reel | ✅ Auto | 7:00 AM reel (generate_reel_morning.py) working |
 | Facebook Page | ✅ Auto | Posts, reels, article shares all working |
-| Facebook Group | ❌ Broken | Missing `publish_to_groups` token scope — see Section 8 |
-| Instagram | ⚠️ Partial | Upload chain built; needs `INSTAGRAM_ACCOUNT_ID` secret added |
+| Facebook Group | ❌ Broken | Missing `publish_to_groups` token scope — see Section 11 |
+| Instagram | ⚠️ Partial | Upload chain built; `INSTAGRAM_ACCOUNT_ID` secret needed |
 | GitHub Pages | ✅ Auto | 4 articles/day + instant Google indexing |
 | Telegram | ✅ Auto | Signal alerts to all 3 channels |
 
@@ -72,19 +72,19 @@ Mode is **auto-detected** by `indian_holidays.py` at the start of every workflow
 
 ---
 
-## 4. Daily Content Output (Target — Fully Automated)
+## 4. Daily Content Output (Fully Automated)
 
 | # | Content | Time (IST) | Platform | Status |
 |---|---|---|---|---|
-| 1 | Morning Reel (9:16) | 7:00 AM | YouTube + FB + Instagram | 🔄 Building |
+| 1 | Morning Reel (9:16) | 7:00 AM | YouTube + FB + Instagram | ✅ |
 | 2 | Part 1 Video (16:9) | 7:30 AM weekday / 9:30 AM weekend | YouTube | ✅ |
 | 3 | Part 2 Video (16:9) | 7:30 AM (same workflow) | YouTube | ✅ |
 | 4 | Short 2 Hindi (9:16) | 11:30 AM weekday / 1:30 PM weekend | YouTube Shorts | ✅ |
 | 5 | Short 3 Hindi (9:16) | 11:30 AM (same workflow) | YouTube Shorts | ✅ |
-| 6 | Short 4 English (9:16) | 11:30 AM (same workflow) | YouTube English Shorts | 🔄 Building |
+| 6 | Short 4 English (9:16) | 11:30 AM (same workflow) | YouTube English Shorts | 🔄 Phase 3 |
 | 7 | 4 SEO Articles | 10:00 AM weekday / 11:30 AM weekend | GitHub Pages + Facebook | ✅ |
 | 8 | ZENO Reel (9:16) | 8:30 PM | YouTube + FB + Instagram | ✅ |
-| 9 | YouTube Community Post | 12:00 PM | YouTube Community Tab | 🔄 Building |
+| 9 | YouTube Community Post | 12:00 PM | YouTube Community Tab | ✅ |
 | **Total** | **12 pieces/day** | — | — | — |
 
 > **USA/UK prime time content:** Videos uploaded at IST times but SEO-optimised for 11 PM–1 AM IST peak.
@@ -97,7 +97,7 @@ Mode is **auto-detected** by `indian_holidays.py` at the start of every workflow
 |---|---|---|---|
 | `main.yml` | Every 5 min (market hours, Mon–Fri) | `trading_bot.py` — Nifty200 signals | ✅ Auto-skips weekends/holidays |
 | `daily-videos.yml` | 7:30 AM Mon–Fri / 9:30 AM Sat–Sun | Part 1 (analysis) + Part 2 (education) | ✅ |
-| `daily-shorts.yml` | 11:30 AM Mon–Fri / 1:30 PM Sat–Sun | Short 2 + Short 3 + Short 4 (English) | ✅ |
+| `daily-shorts.yml` | 11:30 AM Mon–Fri / 1:30 PM Sat–Sun | Short 2 + Short 3 + Community Post | ✅ |
 | `daily_reel.yml` | 7:00 AM + 8:30 PM daily | Morning Reel + ZENO Reel | ✅ |
 | `daily-articles.yml` | 10:00 AM Mon–Fri / 11:30 AM Sat–Sun | 4 SEO articles → GitHub Pages | ✅ |
 | `token_refresh.yml` | Every 50 days (1st + 20th of month) | Auto META token refresh | N/A |
@@ -109,34 +109,33 @@ All workflows support `workflow_dispatch` with a `content_mode` dropdown to forc
 
 ## 6. Complete File Map
 
-### Core Infrastructure (Phase 1 — NEW)
+### Core Infrastructure (Phase 1 — Complete)
 
 | File | Role | Status |
 |---|---|---|
-| `ai_client.py` | Universal AI client — Groq→Gemini→Claude→OpenAI→Templates fallback | ✅ Built |
-| `human_touch.py` | Anti-AI-penalty layer — 50+ hooks, personal phrases, TTS variation, SEO tags | ✅ Built |
-| `token_refresh.py` | Auto META token exchange + GitHub Secret update + Telegram alert | ✅ Built |
+| `ai_client.py` | Universal AI client — Groq→Gemini→Claude→OpenAI→Templates fallback | ✅ |
+| `human_touch.py` | Anti-AI-penalty layer — 50+ hooks, personal phrases, TTS variation, SEO tags | ✅ |
+| `token_refresh.py` | Auto META token exchange + GitHub Secret update + Telegram alert | ✅ |
 
-### Core Content Generation
+### Core Content Generation (Phase 2 — All Upgraded)
 
 | File | Role | Key Tech | Status |
 |---|---|---|---|
 | `trading_bot.py` | Nifty200 buy/sell signal scanner | Dhan API, Google Sheets | ✅ |
-| `generate_shorts.py` | Short 2 + Short 3 + Short 4 (English) | ai_client, human_touch, Edge-TTS | 🔄 Upgrading |
-| `generate_reel.py` | ZENO 60s reel (8:30 PM) | ai_client, human_touch, MoviePy | 🔄 Upgrading |
-| `generate_reel_morning.py` | Morning reel (7:00 AM) — day/country aware | ai_client, human_touch, MoviePy | ✅ Built |
-| `generate_analysis.py` | 8-slide market analysis video (Part 1) | ai_client, human_touch, MoviePy | 🔄 Upgrading |
-| `generate_education.py` | Educational deep-dive video (Part 2) | ai_client, content_calendar.py | 🔄 Upgrading |
-| `generate_articles.py` | 4 SEO articles daily → Jekyll _posts | ai_client, human_touch | 🔄 Upgrading |
-| `generate_community_post.py` | YouTube daily community text post | ai_client, human_touch | 🔄 Building |
-| `generate_english.py` | English script generator for all content | ai_client, human_touch (en) | 🔄 Building |
+| `generate_shorts.py` | Short 2 (Madhur) + Short 3 (Swara) | ai_client, human_touch, Edge-TTS | ✅ Phase 2 |
+| `generate_reel.py` | ZENO 60s reel (8:30 PM) | ai_client, human_touch, MoviePy | ✅ Phase 2 |
+| `generate_reel_morning.py` | Morning reel (7:00 AM) — day/country aware | ai_client, human_touch, MoviePy | ✅ |
+| `generate_analysis.py` | 8-slide market analysis video (Part 1) | ai_client, human_touch, MoviePy | ✅ Phase 2 |
+| `generate_education.py` | Educational deep-dive video (Part 2) | ai_client, human_touch, content_calendar | ✅ Phase 2 |
+| `generate_articles.py` | 4 SEO articles daily → Jekyll _posts | ai_client, human_touch, Google Indexing | ✅ Phase 2 |
+| `generate_community_post.py` | YouTube daily community text post — 12:00 PM | ai_client, human_touch | ✅ Phase 2 |
 
 ### Upload & Distribution
 
 | File | Role | Status |
 |---|---|---|
 | `upload_youtube.py` | Uploads reel; saves `youtube_video_id` + `public_video_url` to meta | ✅ |
-| `upload_youtube_english.py` | Uploads to English channel (separate credentials) | 🔄 Building |
+| `upload_youtube_english.py` | Uploads to English channel (separate credentials) | 🔄 Phase 3 |
 | `upload_facebook.py` | Uploads reel to FB Page; shares to Group; posts articles | ✅ |
 | `upload_instagram.py` | Auto-uploads via Meta API using `public_video_url` from meta | ✅ |
 
@@ -172,10 +171,28 @@ OpenAI — gpt-4o-mini (quaternary — reliable fallback)
 Pre-generated templates in human_touch.py (always works — zero downtime)
 ```
 
-**Import pattern in ALL generators:**
+**Import pattern in ALL generators — no exceptions:**
 ```python
 from ai_client import ai, img_client
 from human_touch import ht, seo
+```
+
+**Usage pattern:**
+```python
+# Text generation
+response = ai.generate(prompt, content_mode=CONTENT_MODE, lang="hi")
+
+# JSON generation
+data = ai.generate_json(prompt, content_mode=CONTENT_MODE, lang="hi")
+
+# Humanize raw output
+clean = ht.humanize(raw_output, lang="hi")
+
+# Get rotating hook
+hook = ht.get_hook(mode=CONTENT_MODE, lang="hi")
+
+# Get SEO tags
+tags = seo.get_video_tags(mode=CONTENT_MODE, lang="hi")
 ```
 
 ---
@@ -188,7 +205,7 @@ Scripts must run in this exact order. Each one feeds data to the next:
 ```
 generate_reel.py
     └── output/reel_YYYYMMDD.mp4
-    └── output/meta_YYYYMMDD.json  ← created here
+    └── output/meta_YYYYMMDD.json  ← created here (public_video_url = "")
 
 upload_youtube.py
     └── Uploads reel to YouTube
@@ -216,6 +233,21 @@ upload_facebook.py (morning mode)
 upload_instagram.py (morning mode)
 ```
 
+### Daily Videos (7:30 AM)
+```
+generate_analysis.py
+    └── output/analysis_video.mp4
+    └── output/analysis_video_id.txt       ← Part 1 ID for Part 2 linking
+    └── output/analysis_meta_YYYYMMDD.json
+
+generate_education.py
+    └── Reads analysis_video_id.txt → links Part 1 in description
+    └── output/education_video.mp4
+    └── output/education_video_id.txt
+    └── output/education_meta_YYYYMMDD.json
+    └── Updates Part 1 YouTube description with Part 2 URL
+```
+
 > **Manual fallback for Instagram:** GitHub Actions → Run → Artifacts → download → post manually.
 
 ---
@@ -234,24 +266,24 @@ All stored in **GitHub Actions Secrets**. Never hardcode any of these values.
 | `DHAN_TOTP_KEY` | 2FA TOTP key |
 
 ### Social Platforms
-| Secret | Purpose | Critical Notes |
+| Secret | Purpose | Status |
 |---|---|---|
-| `META_ACCESS_TOKEN` | Facebook + Instagram API | **Auto-refreshed every 50 days by token_refresh.yml** |
-| `META_APP_ID` | Facebook App ID | **NEW — needed for auto token refresh** |
-| `META_APP_SECRET` | Facebook App Secret | **NEW — needed for auto token refresh** |
-| `FACEBOOK_PAGE_ID` | Target Facebook Page ID | |
-| `FACEBOOK_GROUP_ID` | Target Facebook Group ID | Group posting broken until token fixed |
-| `INSTAGRAM_ACCOUNT_ID` | Instagram Business/Creator numeric ID | **Not yet set — needed for auto-post** |
-| `YOUTUBE_CREDENTIALS` | YouTube OAuth JSON (Hindi channel) | |
-| `YOUTUBE_CREDENTIALS_EN` | YouTube OAuth JSON (English channel) | **NEW — needed for English channel** |
+| `META_ACCESS_TOKEN` | Facebook + Instagram API | ✅ Auto-refreshed every 50 days |
+| `META_APP_ID` | Facebook App ID — needed for auto token refresh | ✅ Added |
+| `META_APP_SECRET` | Facebook App Secret — needed for auto token refresh | ✅ Added |
+| `FACEBOOK_PAGE_ID` | Target Facebook Page ID | ✅ |
+| `FACEBOOK_GROUP_ID` | Target Facebook Group ID | ✅ (posting broken — token scope issue) |
+| `INSTAGRAM_ACCOUNT_ID` | Instagram Business/Creator numeric ID | ✅ Added |
+| `YOUTUBE_CREDENTIALS` | YouTube OAuth JSON (Hindi channel) | ✅ |
+| `YOUTUBE_CREDENTIALS_EN` | YouTube OAuth JSON (English channel) | ✅ Added |
 
 ### AI Providers (Fallback Chain)
-| Secret | Purpose | Priority |
-|---|---|---|
-| `GROQ_API_KEY` | Groq — Llama 3.3 70B | Primary |
-| `GEMINI_API_KEY` | Google Gemini 2.0 Flash | Secondary |
-| `ANTHROPIC_API_KEY` | Claude Haiku | Tertiary |
-| `OPENAI_API_KEY` | GPT-4o-mini | Quaternary |
+| Secret | Purpose | Priority | Status |
+|---|---|---|---|
+| `GROQ_API_KEY` | Groq — Llama 3.3 70B | Primary | ✅ |
+| `GEMINI_API_KEY` | Google Gemini 2.0 Flash | Secondary | ✅ Added |
+| `ANTHROPIC_API_KEY` | Claude Haiku | Tertiary | ✅ Added |
+| `OPENAI_API_KEY` | GPT-4o-mini | Quaternary | ✅ Added |
 
 ### Telegram
 | Secret | Purpose |
@@ -277,19 +309,20 @@ All stored in **GitHub Actions Secrets**. Never hardcode any of these values.
 
 All content uses `human_touch.py`. **Never use raw AI output directly.**
 
-| Technique | What It Does |
-|---|---|
-| 50+ rotating hooks | No two videos start the same — `ht.get_hook(mode, lang)` |
-| Personal phrases | "Maine dekha hai..." injected naturally — `ht.get_personal_phrase(lang)` |
-| TTS speed variation | 0.95–1.05x range — `ht.get_tts_speed()` |
-| Connector variation | "aur/lekin/kyunki" rotated to avoid repetition |
-| Robotic pattern removal | "Certainly!", "It's important to note" etc. stripped |
-| Emoji rotation | Day-seeded so each day's content has different emoji set |
-| Day-aware morning topics | 7 different morning reel topics by weekday |
+| Technique | Method | What It Does |
+|---|---|---|
+| 50+ rotating hooks | `ht.get_hook(mode, lang)` | No two videos start the same |
+| Personal phrases | `ht.get_personal_phrase(lang)` | "Maine dekha hai..." injected naturally |
+| TTS speed variation | `ht.get_tts_speed()` | 0.95–1.05x range — passed to edge_tts rate param |
+| Humanize output | `ht.humanize(text, lang)` | Strips robotic patterns, varies connectors |
+| Emoji rotation | `ht.get_emoji_set()` | Day-seeded — different emoji set each day |
+| SEO tags | `seo.get_video_tags(mode, lang)` | India + Global tags combined |
+| Connector variation | Internal to humanize() | "aur/lekin/kyunki" rotated |
+| Banned phrase removal | Internal to humanize() | "Certainly!", "It's important to note" stripped |
 
 ---
 
-## 11. Known Issues & How to Fix
+## 11. Known Issues & Fixes
 
 ### Facebook Group Posting ❌
 
@@ -300,32 +333,29 @@ All content uses `human_touch.py`. **Never use raw AI output directly.**
 4. App not approved for Groups API by Meta
 
 **Fix:** developers.facebook.com → App → Add `publish_to_groups` → regenerate token → update secret.
-**Token is now auto-refreshed** by `token_refresh.yml` — no more manual refresh needed.
+Token is auto-refreshed every 50 days by `token_refresh.yml` once scope is added.
 
 ### Instagram Auto-Post ⚠️
 
-**One missing secret:** Add `INSTAGRAM_ACCOUNT_ID` to GitHub Secrets.
+`INSTAGRAM_ACCOUNT_ID` is now added. If still failing:
 ```
 https://graph.facebook.com/me/accounts?access_token=YOUR_META_TOKEN
 ```
+Verify the numeric ID matches exactly. Upload chain: `upload_youtube.py` → `upload_facebook.py` → `upload_instagram.py` must run in order.
 
-### META_ACCESS_TOKEN Expiry — NOW AUTOMATED ✅
+### YouTube Community Tab ⚠️
 
-- `token_refresh.yml` runs every 50 days automatically
-- Refreshes token + updates GitHub Secret + sends Telegram alert
-- **New secrets needed:** `META_APP_ID` and `META_APP_SECRET` (find in developers.facebook.com)
-- If auto-refresh fails, Telegram alert sent with manual fix instructions
+Community Tab requires **500+ subscribers** to be enabled.
+If channel is below 500 subs, `generate_community_post.py` will:
+- Print a clear warning explaining why
+- Save post text to `output/community_post_YYYYMMDD.txt` for manual posting
+- Not crash the workflow
 
-### New Secrets Needed for Full System
-| Secret | Where to Find |
-|---|---|
-| `META_APP_ID` | developers.facebook.com → Your App → Settings → Basic |
-| `META_APP_SECRET` | developers.facebook.com → Your App → Settings → Basic |
-| `INSTAGRAM_ACCOUNT_ID` | Graph API: `/me/accounts?access_token=YOUR_TOKEN` |
-| `GEMINI_API_KEY` | aistudio.google.com → API Keys |
-| `ANTHROPIC_API_KEY` | console.anthropic.com → API Keys |
-| `OPENAI_API_KEY` | platform.openai.com → API Keys |
-| `YOUTUBE_CREDENTIALS_EN` | Google Cloud Console → OAuth → English channel |
+**Enable:** YouTube Studio → Customization → Layout → Community Tab → ON
+
+### META_ACCESS_TOKEN Expiry — Automated ✅
+
+`token_refresh.yml` runs every 50 days automatically. Refreshes token + updates GitHub Secret + sends Telegram alert. Requires `META_APP_ID` and `META_APP_SECRET` (both now added).
 
 ---
 
@@ -341,19 +371,22 @@ Task: [Your Task]
 Note: Provide the full code for any file you modify.
 ```
 
-### AI Client Usage Rule
+### AI Client Usage Rule — No Exceptions
 > **Never call AI APIs directly in generators.** Always use:
 ```python
 from ai_client import ai, img_client
 response = ai.generate(prompt, content_mode=CONTENT_MODE, lang=LANG)
+data = ai.generate_json(prompt, content_mode=CONTENT_MODE, lang=LANG)
 ```
 
-### Human Touch Usage Rule
+### Human Touch Usage Rule — No Exceptions
 > **Never use raw AI output.** Always pass through human_touch:
 ```python
 from human_touch import ht, seo
-hook = ht.get_hook(mode=CONTENT_MODE, lang=LANG)
-script = ht.humanize(raw_script, lang=LANG)
+hook   = ht.get_hook(mode=CONTENT_MODE, lang=LANG)
+clean  = ht.humanize(raw_script, lang=LANG)
+tags   = seo.get_video_tags(mode=CONTENT_MODE, lang=LANG)
+speed  = ht.get_tts_speed()  # pass to edge_tts rate param
 ```
 
 ### Dependency Pins
@@ -377,6 +410,14 @@ script = ht.humanize(raw_script, lang=LANG)
 | `hi-IN-SwaraNeural` | Female | Short 3, ZENO Reel, Morning Reel, Analysis, Education |
 | `en-US-JennyNeural` | Female | English channel — all English content |
 | `en-US-GuyNeural` | Male | English Short 2 alternative |
+
+### TTS Speed via human_touch
+```python
+tts_speed = ht.get_tts_speed()           # returns float 0.95–1.05
+rate_pct  = int((tts_speed - 1.0) * 100)
+rate_str  = f"+{rate_pct}%" if rate_pct >= 0 else f"{rate_pct}%"
+await edge_tts.Communicate(text, VOICE, rate=rate_str).save(path)
+```
 
 ### Video Formats
 
@@ -415,50 +456,105 @@ Market hours (Mon–Fri, 9:15 AM–3:30 PM IST)
     └── trading_bot.py → Dhan API → Buy/Sell signals
         └── → Google Sheets + Telegram (all 3 channels) ✅
 
-7:00 AM daily (NEW)
+7:00 AM daily
 └── daily_reel.yml (morning job)
     └── generate_reel_morning.py
         └── ai_client → Groq/Gemini/Claude/OpenAI/Template
-        └── human_touch → day-aware topic + hook
+        └── human_touch → day-aware topic + hook + TTS speed
         └── Morning reel video (9:16)
         └── Upload: YouTube ✅ | Facebook ✅ | Instagram ⚠️
 
 7:30 AM / 9:30 AM daily
 └── daily-videos.yml
-    └── generate_analysis.py → ai_client → Part 1 video → YouTube ✅
-    └── generate_education.py → ai_client → Part 2 video → YouTube ✅
-    └── Posts: links → Facebook Page ✅ | Group ❌
+    └── generate_analysis.py
+        └── ai_client → generate_json() → 8 slides
+        └── human_touch → hook + TTS speed + SEO tags
+        └── Part 1 video → YouTube ✅
+        └── Saves analysis_video_id.txt + analysis_meta_YYYYMMDD.json
+    └── generate_education.py
+        └── Reads analysis_video_id.txt → links Part 1
+        └── ai_client → generate_json() → edu slides
+        └── human_touch → hook + personal phrase + TTS speed
+        └── Part 2 video → YouTube ✅
+        └── Updates Part 1 description with Part 2 URL
+        └── Posts: links → Facebook Page ✅ | Group ❌
+
+10:00 AM / 11:30 AM daily
+└── daily-articles.yml
+    └── generate_articles.py
+        └── ai_client → generate() → 4 articles
+        └── human_touch → hook + humanize() + seo.get_video_tags()
+        └── git commit → GitHub Pages ✅
+        └── GCP Indexing API → instant Google indexing ✅
+        └── Posts: links → Facebook Page ✅ | Group ❌
 
 11:30 AM / 1:30 PM daily
 └── daily-shorts.yml
     └── generate_shorts.py
+        └── ai_client → generate_json() → Short 2 + Short 3
+        └── human_touch → hooks + TTS speed + SEO tags
         └── Short 2 (Hindi, Madhur) → YouTube ✅
         └── Short 3 (Hindi, Swara) → YouTube ✅
-        └── Short 4 (English, Jenny) → YouTube English ✅ (🔄 building)
         └── Facebook Page ✅ | Group ❌
-
-12:00 PM daily (NEW)
-└── daily-shorts.yml (community post step)
-    └── generate_community_post.py → YouTube Community Tab 🔄
+    └── generate_community_post.py
+        └── ai_client → generate() → community post text
+        └── human_touch → hook + personal phrase + emojis
+        └── YouTube Community Tab ✅ (requires 500+ subs)
+        └── Fallback: saves to output/community_post_YYYYMMDD.txt
 
 8:30 PM daily
 └── daily_reel.yml (evening job)
-    └── generate_reel.py → ai_client → ZENO reel
+    └── generate_reel.py
+        └── ai_client → generate_json() → ZENO script
+        └── human_touch → hook + humanize + TTS speed + SEO tags
+        └── ZENO reel video (9:16)
     └── upload_youtube.py → YouTube ✅ → saves public_video_url
     └── upload_facebook.py → FB Page ✅ | Group ❌ → updates URL
     └── upload_instagram.py → Instagram ⚠️
-
-10:00 AM / 11:30 AM daily
-└── daily-articles.yml
-    └── generate_articles.py → ai_client → 4 Jekyll articles
-    └── git commit → GitHub Pages ✅
-    └── GCP Indexing API → instant Google indexing ✅
-    └── Posts: links → Facebook Page ✅ | Group ❌
 ```
 
 ---
 
-## 15. Website
+## 15. How to Test Everything
+
+### Test a workflow manually
+GitHub Actions → select workflow → **Run workflow** → set `content_mode` dropdown → watch logs.
+
+### Verify ai_client fallback chain
+In logs, look for lines like:
+```
+[AI]   Using ai_client fallback chain: Groq→Gemini→Claude→OpenAI→Templates
+✅ AI generated via groq
+```
+If Groq is down, you'll see: `⚠️ groq failed` → `✅ AI generated via gemini`
+
+### Verify human_touch is active
+In logs, look for:
+```
+✅ ZENO script ready — emotion: thinking | via groq
+✅ Community post generated via groq (112 chars)
+```
+
+### Verify articles upgrade
+After `daily-articles.yml` runs → open any `_posts/*.md` file → look for:
+```yaml
+ai_provider: "groq"
+seo_tags: "Nifty50, TradingIndia, ..."
+```
+
+### Force each mode
+```
+workflow_dispatch → content_mode = market   # weekday content
+workflow_dispatch → content_mode = weekend  # weekend content
+workflow_dispatch → content_mode = holiday  # holiday content
+```
+
+### Check community post fallback
+If YouTube Community Tab not enabled → check `output/community_post_YYYYMMDD.txt` in workflow artifacts for the post text to copy manually.
+
+---
+
+## 16. Website
 
 - **URL:** `ai360trading.in`
 - **Hosting:** GitHub Pages (Jekyll, `master` branch `_posts/`)
@@ -468,8 +564,21 @@ Market hours (Mon–Fri, 9:15 AM–3:30 PM IST)
 
 ---
 
+## 17. Phase 3 — Remaining Builds
+
+| Item | File | Priority |
+|---|---|---|
+| English channel shorts | `generate_english.py` | 🟡 Medium |
+| English channel upload | `upload_youtube_english.py` | 🟡 Medium |
+| Fix Facebook Group token | Manual config task | 🔴 High |
+| Instagram verify live | Test after `INSTAGRAM_ACCOUNT_ID` added | 🔴 High |
+| Disney 3D reel upgrade | `ai_client.py` img_client Phase 2 | 🔵 Future |
+
+---
+
 *Documentation maintained by AI360Trading automation.*
-*Full audit: March 28, 2026 — Claude Sonnet 4.6*
-*Phase 1 complete: ai_client.py, human_touch.py, token_refresh.py, token_refresh.yml, generate_reel_morning.py*
-*Phase 2 in progress: generate_community_post.py, generate_english.py, upgraded generators*
+*Full audit: March 29, 2026 — Claude Sonnet 4.6*
+*Phase 1 complete: ai_client.py, human_touch.py, token_refresh.py, generate_reel_morning.py*
+*Phase 2 complete: generate_articles.py, generate_analysis.py, generate_education.py, generate_reel.py, generate_shorts.py, generate_community_post.py — all upgraded to ai_client + human_touch*
+*Phase 3 remaining: generate_english.py, upload_youtube_english.py, Facebook Group fix, Instagram verify*
 *Update this file whenever architecture, secrets, platform status, or file logic changes.*
