@@ -760,7 +760,8 @@ def generate_article(pillar, prices, trends, fear_greed, persona, article_index)
     # ── Phase 2: Get hook from human_touch ──────────────────────────────────
     ht_hook = ht.get_hook(mode=CONTENT_MODE, lang="en")
     ht_phrase = ht.get_personal_phrase(lang="en")
-    video_tags = seo.get_video_tags(mode=CONTENT_MODE, lang="en")
+    # FIX: removed unsupported lang="en" kwarg — get_video_tags() takes mode + is_short only
+    video_tags = seo.get_video_tags(mode=CONTENT_MODE)
 
     prompt = f"""You are Amit Kumar, founder of AI360Trading — independent market analyst from Haridwar, India.
 
@@ -940,7 +941,7 @@ def generate_all_articles():
         print(f"  F&G     : {fear_greed}")
     print(f"  Trending: {', '.join(trends[:3])}")
 
-    results       = []
+    results        = []
     published_urls = []
 
     for i, pillar in enumerate(PILLARS):
