@@ -66,7 +66,7 @@ def get_bg_music():
 # ─── SCRIPT GENERATION via ai_client ─────────────────────────────────────────
 def generate_script():
     today    = datetime.now(IST).strftime("%A, %d %B %Y")
-    ht_hook  = ht.get_hook(mode=CONTENT_MODE, lang="hi")
+    ht_hook  = ht.get_hook(mode=CONTENT_MODE)
     ht_phrase = ht.get_personal_phrase(lang="hi")
 
     if CONTENT_MODE == "holiday":
