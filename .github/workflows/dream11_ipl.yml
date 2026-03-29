@@ -1,20 +1,39 @@
 name: "Dream11 IPL Picks — AI360Trading"
-
 # ──────────────────────────────────────────────────────────
 # Runs daily during IPL 2026 season (Mar 22 – May 30)
-# Sends 5 fantasy teams to FREE Telegram channel
-# Does NOT touch any other workflow or channel
+# Sends 5 fantasy teams to FREE Telegram channel only
+#
+# HOW TO USE AFTER TOSS / XI ANNOUNCEMENT:
+# 1. Go to Actions → Dream11 IPL Picks → Run workflow
+# 2. Fill in PLAYING_XI_T1 and PLAYING_XI_T2 with today's XI
+# 3. Click Run — teams will use CONFIRMED XI (most accurate)
+#
+# If you run without XI inputs, it uses CricAPI (if key set)
+# or best-11 squad filter as last resort.
 # ──────────────────────────────────────────────────────────
-
 on:
-  workflow_dispatch:          # Manual trigger for testing
-  schedule:
-    # 1:00 PM IST daily (07:30 UTC)
-    # Gives ~6.5 hrs before typical 7:30 PM match
-    - cron: "30 7 * * *"
+  workflow_dispatch:
+    inputs:
+      playing_xi_t1:
+        description: "Team 1 Playing XI — comma-separated exact names (fill after toss)"
+        required: false
+        default: ""
+        type: string
+      playing_xi_t2:
+        description: "Team 2 Playing XI — comma-separated exact names (fill after toss)"
+        required: false
+        default: ""
+        type: string
+      force_date:
+        description: "Override date (YYYY-MM-DD) for testing old matches"
+        required: false
+        default: ""
+        type: string
 
-    # Safety re-run at 4:00 PM IST (10:30 UTC)
-    # In case first run failed or match was announced late
+  schedule:
+    # 1:00 PM IST daily (07:30 UTC) — before XI is announced, uses CricAPI/squad filter
+    - cron: "30 7 * * *"
+    # 4:00 PM IST (10:30 UTC) — after most XI announcements, re-runs with fresh data
     - cron: "30 10 * * *"
 
 jobs:
@@ -47,29 +66,41 @@ jobs:
           today = date.today()
           ipl_start = date(2026, 3, 22)
           ipl_end   = date(2026, 5, 30)
-          if ipl_start <= today <= ipl_end:
-              print("IPL_ACTIVE=true")
-              with open("ipl_active.txt", "w") as f: f.write("true")
-          else:
-              print(f"Outside IPL season: {today}")
-              with open("ipl_active.txt", "w") as f: f.write("false")
+          active = "true" if ipl_start <= today <= ipl_end else "false"
+          print(f"IPL_ACTIVE={active} (today={today})")
+          with open("ipl_active.txt", "w") as f:
+              f.write(active)
           EOF
           echo "IPL_ACTIVE=$(cat ipl_active.txt)" >> $GITHUB_ENV
 
       - name: Generate & Send Dream11 Picks
         if: env.IPL_ACTIVE == 'true'
         env:
-          TELEGRAM_TOKEN:      ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID:    ${{ secrets.TELEGRAM_CHAT_ID }}
-          GROQ_API_KEY:        ${{ secrets.GROQ_API_KEY }}
-          GEMINI_API_KEY:      ${{ secrets.GEMINI_API_KEY }}
-          ANTHROPIC_API_KEY:   ${{ secrets.ANTHROPIC_API_KEY }}
-          OPENAI_API_KEY:      ${{ secrets.OPENAI_API_KEY }}
+          TELEGRAM_TOKEN:     ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID:   ${{ secrets.TELEGRAM_CHAT_ID }}
+          GROQ_API_KEY:       ${{ secrets.GROQ_API_KEY }}
+          GEMINI_API_KEY:     ${{ secrets.GEMINI_API_KEY }}
+          ANTHROPIC_API_KEY:  ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY:     ${{ secrets.OPENAI_API_KEY }}
+          CRICAPI_KEY:        ${{ secrets.CRICAPI_KEY }}
+          # Manual XI override — most accurate when filled after toss
+          PLAYING_XI_T1:      ${{ github.event.inputs.playing_xi_t1 }}
+          PLAYING_XI_T2:      ${{ github.event.inputs.playing_xi_t2 }}
         run: |
           echo "🏏 Running Dream11 IPL picks generator..."
+          if [ -n "$PLAYING_XI_T1" ]; then
+            echo "✅ Manual XI provided for Team 1: $PLAYING_XI_T1"
+          else
+            echo "ℹ️ No manual XI for Team 1 — using CricAPI/squad filter"
+          fi
+          if [ -n "$PLAYING_XI_T2" ]; then
+            echo "✅ Manual XI provided for Team 2: $PLAYING_XI_T2"
+          else
+            echo "ℹ️ No manual XI for Team 2 — using CricAPI/squad filter"
+          fi
           python dream11_ipl.py
           echo "✅ Done"
 
       - name: Skip if off-season
         if: env.IPL_ACTIVE != 'true'
-        run: echo "⏭️ IPL season not active. Skipping today."
+        run: echo "⏭️ IPL season not active today. Skipping."
