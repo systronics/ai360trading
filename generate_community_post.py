@@ -120,7 +120,7 @@ Return ONLY the post text. No JSON. No markdown. Just the raw community post tex
 
 
 def _fallback_post():
-    hook = ht.get_hook(mode=CONTENT_MODE, lang="hi")
+    hook = ht.get_hook(mode=CONTENT_MODE)
     posts = {
         "market": (
             f"{hook}\n\n"
