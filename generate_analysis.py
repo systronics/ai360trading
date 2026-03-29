@@ -150,7 +150,7 @@ def generate_slides():
     live_data  = fetch_market_data()
 
     # ── Phase 2: human_touch hook for intro slide ────────────────────────────
-    ht_hook = ht.get_hook(mode=CONTENT_MODE, lang="hi")
+    ht_hook = ht.get_hook(mode=CONTENT_MODE)
 
     if CONTENT_MODE == "holiday":
         market_context = (
@@ -234,7 +234,7 @@ RULES:
 def _fallback_slides():
     """Template fallback — guaranteed content when all AI providers fail."""
     # Uses human_touch fallback hooks
-    hook = ht.get_hook(mode=CONTENT_MODE, lang="hi")
+    hook = ht.get_hook(mode=CONTENT_MODE)
     mode_label = {"market": "Market Analysis", "weekend": "Weekend Education", "holiday": "Holiday Special"}.get(CONTENT_MODE, "Market Analysis")
     return {
         "video_title": f"Aaj Ka {mode_label} — {datetime.now().strftime('%d %B %Y')}",
