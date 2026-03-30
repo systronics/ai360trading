@@ -3,6 +3,8 @@ layout: default
 title: "Legal Disclaimer | AI360Trading"
 description: "Legal disclaimer for AI360Trading. All content is for educational purposes only. Not SEBI, SEC or FCA registered. Trading involves risk of loss."
 permalink: /disclaimer/
+redirect_from:
+  - /disclaimer.html
 ---
 
 <div class="disclaimer-container">
