@@ -40,6 +40,7 @@ plugins:
   - jekyll-seo-tag
   - jekyll-feed
   - jekyll-sitemap
+  - jekyll-redirect-from
 
 # Pagination Settings
 paginate: 10
