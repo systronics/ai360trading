@@ -3,6 +3,8 @@ layout: default
 title: "Contact AI360Trading | Support"
 description: "Contact AI360Trading for membership queries, technical support, editorial feedback or partnership inquiries. Email admin@ai360trading.in"
 permalink: /contact/
+redirect_from:
+  - /contact.html
 ---
 
 <div class="contact-card">
