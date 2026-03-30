@@ -4,12 +4,10 @@ dream11_ipl.py — Dream11 / My11Circle IPL Fantasy Team Generator
 Auto-generates 5 fantasy teams for every IPL 2026 match.
 Sends to FREE Telegram channel (TELEGRAM_CHAT_ID only).
 
-KEY FIX (March 2026):
-  Playing XI is now CONFIRMED before team generation via:
-  1. CricAPI live match data (primary — fetches actual announced XI)
-  2. PLAYING_XI env var override (manual input after toss)
-  3. Smart squad filtering (only top 11 by pts from each team as last resort)
-  Never picks benched/rested players again.
+PLAYING XI RESOLUTION (3-layer priority):
+  1. ENV vars PLAYING_XI_T1 / PLAYING_XI_T2 (manual input after toss — most accurate)
+  2. CricAPI /match_info lineup field (auto, only populated POST-TOSS)
+  3. Smart squad filter — best 11 by role/pts from squad (pre-toss fallback)
 
 Author: AI360Trading Automation
 IPL Season: 2026 (BCCI IPL)
@@ -39,17 +37,9 @@ IST = pytz.timezone("Asia/Kolkata")
 TELEGRAM_TOKEN   = os.environ.get("TELEGRAM_TOKEN") or os.environ.get("TELEGRAM_BOT_TOKEN")
 TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID")
 CRICAPI_KEY      = os.environ.get("CRICAPI_KEY", "")
-RAPIDAPI_KEY     = os.environ.get("RAPIDAPI_KEY", "")
 
-# ── MANUAL PLAYING XI OVERRIDE ──────────────────────────────────────────────
-# Set this env var in GitHub Actions workflow_dispatch inputs OR
-# in your local shell before running manually after toss:
-#
-# Format: "PlayerA,PlayerB,PlayerC,..." (comma-separated, exact names)
-# Example: PLAYING_XI_T1="Rohit Sharma,Quinton de Kock,Tilak Varma,..."
-#          PLAYING_XI_T2="Virat Kohli,Faf du Plessis,Glenn Maxwell,..."
-#
-# When set, these override everything — most accurate method.
+# Manual XI override — set in GitHub Actions workflow_dispatch after toss
+# Format: "PlayerA,PlayerB,..." (comma-separated, 11 exact names)
 PLAYING_XI_T1_ENV = os.environ.get("PLAYING_XI_T1", "").strip()
 PLAYING_XI_T2_ENV = os.environ.get("PLAYING_XI_T2", "").strip()
 
@@ -64,6 +54,20 @@ TEAM_EMOJI = {
     "MI": "💙", "KKR": "💜", "CSK": "💛", "RCB": "❤️",
     "DC": "🔵", "SRH": "🟠", "RR": "🩷", "PBKS": "🔴",
     "LSG": "🩵", "GT": "🔷",
+}
+
+# Full name lookup for CricAPI matching
+TEAM_FULL_NAMES = {
+    "MI":   "mumbai indians",
+    "KKR":  "kolkata knight riders",
+    "CSK":  "chennai super kings",
+    "RCB":  "royal challengers",
+    "DC":   "delhi capitals",
+    "SRH":  "sunrisers hyderabad",
+    "RR":   "rajasthan royals",
+    "PBKS": "punjab kings",
+    "LSG":  "lucknow super giants",
+    "GT":   "gujarat titans",
 }
 
 # ─────────────────────────────────────────────
@@ -170,7 +174,6 @@ VENUE_PROFILES = {
 
 # ─────────────────────────────────────────────
 # FULL SQUAD DATABASE (15-man squads)
-# Only used to FILTER confirmed playing XI — never to generate teams directly
 # ─────────────────────────────────────────────
 
 IPL_PLAYERS = {
@@ -238,7 +241,7 @@ IPL_PLAYERS = {
         {"name": "Yuzvendra Chahal",    "role": "BOWL", "batting_pos": "No.9",    "pts": 52, "form": "Good"},
         {"name": "Tom Curran",          "role": "AR",   "batting_pos": "No.8",    "pts": 40, "form": "Average"},
         {"name": "Cameron Green",       "role": "AR",   "batting_pos": "No.4",    "pts": 50, "form": "Good"},
-        {"name": "Suyash Prabhudessai","role": "BAT",  "batting_pos": "No.5",    "pts": 42, "form": "Average"},
+        {"name": "Suyash Prabhudessai", "role": "BAT",  "batting_pos": "No.5",    "pts": 42, "form": "Average"},
         {"name": "Reece Topley",        "role": "BOWL", "batting_pos": "No.11",   "pts": 44, "form": "Good"},
         {"name": "Karn Sharma",         "role": "BOWL", "batting_pos": "No.9",    "pts": 40, "form": "Average"},
     ],
@@ -348,50 +351,210 @@ IPL_PLAYERS = {
 
 
 # ─────────────────────────────────────────────
-# PLAYING XI RESOLUTION — THE KEY FIX
-# Priority: ENV override > CricAPI > Smart squad filter
+# CRICAPI — MATCH FINDER + XI FETCHER
 # ─────────────────────────────────────────────
 
-def resolve_playing_xi(team1: str, team2: str) -> tuple:
+def _cricapi_get(endpoint: str, params: dict) -> dict | None:
     """
-    Returns (xi_team1, xi_team2) — lists of confirmed playing players.
-    Tries 3 methods in order:
-      1. PLAYING_XI_T1 / PLAYING_XI_T2 env vars (manual input — most accurate)
-      2. CricAPI live match data (auto fetch)
-      3. Smart squad filter — best 11 from squad by role balance + pts
+    Single GET to CricAPI with error handling.
+    Returns parsed JSON data dict or None on failure.
+    """
+    params["apikey"] = CRICAPI_KEY
+    params.setdefault("offset", 0)
+    try:
+        r = requests.get(
+            f"https://api.cricapi.com/v1/{endpoint}",
+            params=params,
+            timeout=10,
+        )
+        if not r.ok:
+            logger.warning(f"CricAPI /{endpoint} HTTP {r.status_code}")
+            return None
+        body = r.json()
+        if body.get("status") != "success":
+            logger.warning(f"CricAPI /{endpoint} non-success: {body.get('status')} — {body.get('reason','')}")
+            return None
+        return body
+    except Exception as e:
+        logger.warning(f"CricAPI /{endpoint} error: {e}")
+        return None
+
+
+def _team_name_matches(api_name: str, short_code: str) -> bool:
+    """
+    Check whether a CricAPI team name matches a short code like 'CSK'.
+    Uses substring matching on full name — handles variations in CricAPI naming.
+    """
+    full = TEAM_FULL_NAMES.get(short_code.upper(), short_code.lower())
+    api_lower = api_name.lower().strip()
+    # Match if our known full name appears in their name OR vice versa
+    return full in api_lower or api_lower in full
+
+
+def _find_match_id(team1: str, team2: str) -> str | None:
+    """
+    Search /currentMatches for today's IPL match between team1 and team2.
+    Returns CricAPI match ID string or None.
+
+    FIX from original: uses teamInfo[].name (full team name) for matching,
+    and checks ALL items in teamInfo — not just the first two.
+    Also falls back to /matches endpoint if not found in current.
+    """
+    today_str = date.today().strftime("%Y-%m-%d")
+
+    for endpoint in ["currentMatches", "matches"]:
+        body = _cricapi_get(endpoint, {})
+        if not body:
+            continue
+        for m in body.get("data", []):
+            # Must be today
+            m_date = (m.get("date") or m.get("dateTimeGMT") or "")[:10]
+            if m_date != today_str:
+                continue
+            # Must be IPL / T20
+            series = (m.get("series") or m.get("seriesName") or "").lower()
+            m_type = (m.get("matchType") or "").lower()
+            if "ipl" not in series and m_type not in ("t20", "ipl"):
+                continue
+            # Check both teams appear
+            team_names = [
+                t.get("name", "") for t in m.get("teamInfo", [])
+            ] or m.get("teams", [])
+            t1_found = any(_team_name_matches(n, team1) for n in team_names)
+            t2_found = any(_team_name_matches(n, team2) for n in team_names)
+            if t1_found and t2_found:
+                match_id = m.get("id", "")
+                logger.info(f"✅ CricAPI match found: '{m.get('name','')}' | id={match_id}")
+                return match_id
+
+    logger.info(f"CricAPI: no today match found for {team1} vs {team2}")
+    return None
+
+
+def _fetch_xi_from_match_info(match_id: str, team1: str, team2: str) -> tuple[list, list]:
+    """
+    Fetch /match_info for the given match ID and extract Playing XI.
+
+    CricAPI free tier behaviour:
+    - Pre-toss:  lineup key is absent or empty → return [], []
+    - Post-toss: lineup key has two team entries each with 11 player names
+    - In-match:  scorecard available but lineup also present
+
+    Returns (xi1, xi2) as lists of player name strings,
+    or ([], []) if XI not yet announced.
+    """
+    body = _cricapi_get("match_info", {"id": match_id})
+    if not body:
+        return [], []
+
+    match_data = body.get("data", {})
+
+    # ── Try lineup field (post-toss) ─────────────────────────────────────
+    lineup = match_data.get("lineup") or {}
+    if isinstance(lineup, dict) and len(lineup) >= 2:
+        entries = list(lineup.values())
+        # Each entry is a list of player name strings or dicts
+        xi1_raw = entries[0] if len(entries) > 0 else []
+        xi2_raw = entries[1] if len(entries) > 1 else []
+
+        def extract_names(raw):
+            names = []
+            for p in raw:
+                if isinstance(p, dict):
+                    names.append(p.get("name") or p.get("player") or "")
+                else:
+                    names.append(str(p))
+            return [n for n in names if n]
+
+        xi1_names = extract_names(xi1_raw)
+        xi2_names = extract_names(xi2_raw)
+
+        if len(xi1_names) >= 10 and len(xi2_names) >= 10:
+            logger.info(f"✅ CricAPI lineup found: {len(xi1_names)} + {len(xi2_names)} players")
+            return xi1_names, xi2_names
+
+    # ── Try squad per team from teamInfo (15-man squad) ──────────────────
+    # This is the fallback when lineup not yet posted — returns squad, not XI
+    squad1, squad2 = [], []
+    for team_obj in match_data.get("teamInfo", []):
+        t_name = team_obj.get("name", "")
+        players = team_obj.get("players", [])
+        if not players:
+            continue
+        names = [
+            p.get("name", p) if isinstance(p, dict) else str(p)
+            for p in players
+        ]
+        names = [n for n in names if n]
+        if _team_name_matches(t_name, team1):
+            squad1 = names
+        elif _team_name_matches(t_name, team2):
+            squad2 = names
+
+    if squad1 or squad2:
+        logger.info(f"CricAPI squad (not XI) found: {len(squad1)} + {len(squad2)} players")
+        # Return empty — caller will fall back to smart squad filter from IPL_PLAYERS
+        # We don't want squad of 15 masquerading as playing XI of 11
+
+    logger.info("CricAPI: Playing XI not yet announced (pre-toss)")
+    return [], []
+
+
+# ─────────────────────────────────────────────
+# PLAYING XI RESOLUTION
+# ─────────────────────────────────────────────
+
+def resolve_playing_xi(team1: str, team2: str) -> tuple[list, list, str]:
+    """
+    Returns (xi_team1, xi_team2, xi_source) where xi_source is one of:
+      "env_manual"        — from PLAYING_XI_T1/T2 env vars (most accurate)
+      "cricapi_confirmed" — from CricAPI /match_info lineup (post-toss)
+      "squad_estimated"   — smart filter of 15-man squad (pre-toss fallback)
+
+    FIX from original:
+    - xi_source is now returned directly from this function (no guessing later)
+    - CricAPI squad of 15 is NO LONGER returned as if it were a playing XI
     """
 
-    # ── Method 1: Manual env var override ──────────────────────────────────
+    # ── Method 1: Manual env var override ────────────────────────────────
     if PLAYING_XI_T1_ENV and PLAYING_XI_T2_ENV:
         xi1_names = [n.strip() for n in PLAYING_XI_T1_ENV.split(",") if n.strip()]
         xi2_names = [n.strip() for n in PLAYING_XI_T2_ENV.split(",") if n.strip()]
         if len(xi1_names) >= 10 and len(xi2_names) >= 10:
             xi1 = _names_to_player_objects(xi1_names, team1)
             xi2 = _names_to_player_objects(xi2_names, team2)
-            logger.info(f"✅ Playing XI from ENV vars: {team1}={len(xi1)}, {team2}={len(xi2)}")
-            return xi1, xi2
-        logger.warning("ENV vars set but insufficient players — falling through to CricAPI")
+            logger.info(f"✅ XI from ENV (manual): {team1}={len(xi1)}, {team2}={len(xi2)}")
+            return xi1, xi2, "env_manual"
+        logger.warning("PLAYING_XI env vars set but < 10 players each — ignoring")
 
-    # ── Method 2: CricAPI live XI fetch ────────────────────────────────────
+    # ── Method 2: CricAPI confirmed lineup (post-toss only) ───────────────
     if CRICAPI_KEY:
-        xi1, xi2 = _fetch_cricapi_xi(team1, team2)
-        if xi1 and xi2 and len(xi1) >= 10 and len(xi2) >= 10:
-            logger.info(f"✅ Playing XI from CricAPI: {team1}={len(xi1)}, {team2}={len(xi2)}")
-            return xi1, xi2
-        logger.warning("CricAPI XI fetch failed or incomplete — using smart squad filter")
+        match_id = _find_match_id(team1, team2)
+        if match_id:
+            xi1_names, xi2_names = _fetch_xi_from_match_info(match_id, team1, team2)
+            if xi1_names and xi2_names and len(xi1_names) >= 10 and len(xi2_names) >= 10:
+                xi1 = _names_to_player_objects(xi1_names, team1)
+                xi2 = _names_to_player_objects(xi2_names, team2)
+                logger.info(f"✅ XI from CricAPI (confirmed): {team1}={len(xi1)}, {team2}={len(xi2)}")
+                return xi1, xi2, "cricapi_confirmed"
+            logger.info("CricAPI match found but XI not announced yet — using squad filter")
+        else:
+            logger.warning("CricAPI match lookup failed — using squad filter")
+    else:
+        logger.info("No CRICAPI_KEY set — using squad filter")
 
-    # ── Method 3: Smart squad filter (fallback) ─────────────────────────────
+    # ── Method 3: Smart squad filter (pre-toss fallback) ──────────────────
     logger.warning(
-        f"⚠️ USING SQUAD FILTER — XI not confirmed. "
-        f"For accurate picks, set PLAYING_XI_T1 and PLAYING_XI_T2 env vars after toss."
+        "⚠️ XI not confirmed — using best-11 squad filter. "
+        "For accurate picks: set PLAYING_XI_T1 and PLAYING_XI_T2 after toss."
     )
     xi1 = _smart_squad_filter(team1)
     xi2 = _smart_squad_filter(team2)
-    return xi1, xi2
+    return xi1, xi2, "squad_estimated"
 
 
 def _names_to_player_objects(names: list, team: str) -> list:
-    """Convert list of player names to player objects, enriching with squad data."""
+    """Convert list of player name strings to enriched player dicts using squad DB."""
     squad = IPL_PLAYERS.get(team, [])
     squad_map = {p["name"].lower(): p for p in squad}
     result = []
@@ -400,130 +563,51 @@ def _names_to_player_objects(names: list, team: str) -> list:
         if found:
             result.append(found)
         else:
-            # Player not in our DB — create a basic entry
-            # Try to guess role from name patterns
+            # Not in squad DB — create basic entry so teams can still be built
             result.append({
-                "name": name, "role": "BAT", "batting_pos": "Unknown",
-                "pts": 45, "form": "Unknown"
+                "name": name,
+                "role": "BAT",
+                "batting_pos": "Unknown",
+                "pts": 45,
+                "form": "Unknown",
             })
-            logger.warning(f"  Player '{name}' not in squad DB — added as BAT with default pts")
+            logger.warning(f"  Player '{name}' not in squad DB for {team} — added with defaults")
     return result
-
-
-def _fetch_cricapi_xi(team1: str, team2: str) -> tuple:
-    """Fetch confirmed playing XI from CricAPI for today's match."""
-    try:
-        # Step 1: Get today's matches
-        r = requests.get(
-            "https://api.cricapi.com/v1/currentMatches",
-            params={"apikey": CRICAPI_KEY, "offset": 0},
-            timeout=10
-        )
-        if not r.ok:
-            logger.warning(f"CricAPI matches failed: {r.status_code}")
-            return [], []
-
-        data = r.json()
-        matches = data.get("data", [])
-
-        # Step 2: Find today's IPL match between team1 and team2
-        target_match = None
-        team1_lower  = team1.lower()
-        team2_lower  = team2.lower()
-
-        # Full team name lookup
-        TEAM_FULL_NAMES = {
-            "MI": "mumbai indians",  "KKR": "kolkata knight riders",
-            "CSK": "chennai super kings", "RCB": "royal challengers",
-            "DC": "delhi capitals", "SRH": "sunrisers hyderabad",
-            "RR": "rajasthan royals", "PBKS": "punjab kings",
-            "LSG": "lucknow super giants", "GT": "gujarat titans",
-        }
-        t1_full = TEAM_FULL_NAMES.get(team1, team1_lower)
-        t2_full = TEAM_FULL_NAMES.get(team2, team2_lower)
-
-        for m in matches:
-            teams_in_match = [t.get("name", "").lower() for t in m.get("teamInfo", [])]
-            if any(t1_full in t for t in teams_in_match) and any(t2_full in t for t in teams_in_match):
-                target_match = m
-                break
-
-        if not target_match:
-            logger.info("CricAPI: No matching IPL match found for today")
-            return [], []
-
-        match_id = target_match.get("id")
-        if not match_id:
-            return [], []
-
-        # Step 3: Fetch match info with playing XI
-        r2 = requests.get(
-            "https://api.cricapi.com/v1/match_info",
-            params={"apikey": CRICAPI_KEY, "id": match_id},
-            timeout=10
-        )
-        if not r2.ok:
-            return [], []
-
-        match_data = r2.json().get("data", {})
-        team_info  = match_data.get("teamInfo", [])
-
-        xi1, xi2 = [], []
-        for team_obj in team_info:
-            team_name  = team_obj.get("name", "").lower()
-            players_xi = team_obj.get("players", []) or match_data.get("squad", {}).get(team_obj.get("shortname", ""), [])
-
-            if not players_xi:
-                continue
-
-            player_names = [p.get("name", p) if isinstance(p, dict) else str(p) for p in players_xi]
-
-            if any(t1_full in team_name for _ in [1]):
-                xi1 = _names_to_player_objects(player_names, team1)
-            elif any(t2_full in team_name for _ in [1]):
-                xi2 = _names_to_player_objects(player_names, team2)
-
-        return xi1, xi2
-
-    except Exception as e:
-        logger.warning(f"CricAPI fetch error: {e}")
-        return [], []
 
 
 def _smart_squad_filter(team: str) -> list:
     """
-    Select best 11 from squad ensuring role balance.
-    WK: 1, BAT: 3-4, AR: 2-3, BOWL: 3-4
-    Prioritises by pts + form, excludes injury_doubt players.
+    Select best 11 from squad ensuring valid role balance.
+    WK: 1-2, BAT: 3-4, AR: 2-3, BOWL: 3-4
+    Sorted by pts descending within each role group.
     """
-    squad = [p for p in IPL_PLAYERS.get(team, []) if not p.get("injury_doubt")]
-    squad_sorted = sorted(squad, key=lambda x: x["pts"], reverse=True)
-
+    squad = sorted(
+        [p for p in IPL_PLAYERS.get(team, []) if not p.get("injury_doubt")],
+        key=lambda x: x["pts"],
+        reverse=True,
+    )
     selected   = []
-    role_caps  = {"WK": 2, "BAT": 5, "AR": 4, "BOWL": 5}  # max per role
-    role_mins  = {"WK": 1, "BAT": 3, "AR": 2, "BOWL": 3}  # min per role
     role_count = {"WK": 0, "BAT": 0, "AR": 0, "BOWL": 0}
+    role_min   = {"WK": 1, "BAT": 3, "AR": 2, "BOWL": 3}
+    role_max   = {"WK": 2, "BAT": 5, "AR": 4, "BOWL": 5}
 
-    # First pass: fill minimums
+    # Pass 1: fill minimums per role
     for role in ["WK", "BAT", "AR", "BOWL"]:
-        needed = role_mins[role]
-        for p in squad_sorted:
-            if len(selected) == 11:
+        for p in squad:
+            if p in selected or len(selected) == 11:
                 break
-            if p in selected:
-                continue
-            if p["role"] == role and role_count[role] < needed:
+            if p["role"] == role and role_count[role] < role_min[role]:
                 selected.append(p)
                 role_count[role] += 1
 
-    # Second pass: fill remaining by pts
-    for p in squad_sorted:
+    # Pass 2: fill remaining 11 by pts
+    for p in squad:
         if len(selected) == 11:
             break
         if p in selected:
             continue
         role = p["role"]
-        if role_count.get(role, 0) < role_caps.get(role, 99):
+        if role_count.get(role, 0) < role_max.get(role, 99):
             selected.append(p)
             role_count[role] += 1
 
@@ -535,10 +619,10 @@ def _smart_squad_filter(team: str) -> list:
 # ─────────────────────────────────────────────
 
 def get_today_match():
-    today = date.today()
-    today_str = today.strftime("%Y-%m-%d")
+    today_str = date.today().strftime("%Y-%m-%d")
+    today     = date.today()
     if today < IPL_START or today > IPL_END:
-        logger.info(f"Outside IPL 2026 season. Today: {today_str}")
+        logger.info(f"Outside IPL 2026 season (today={today_str})")
         return None
     matches = [m for m in IPL_2026_SCHEDULE if m["date"] == today_str]
     return matches if matches else None
@@ -548,88 +632,88 @@ def get_venue_profile(venue: str) -> dict:
     for key, profile in VENUE_PROFILES.items():
         if key.lower() in venue.lower():
             return profile
-    return {"type": "Balanced", "avg_score": 162, "dew": "Medium",
-            "toss": "Field", "notes": "Standard pitch conditions."}
+    return {
+        "type": "Balanced", "avg_score": 162, "dew": "Medium",
+        "toss": "Field", "notes": "Standard pitch conditions.",
+    }
 
 
 # ─────────────────────────────────────────────
-# AI TEAM GENERATOR — uses confirmed XI only
+# AI TEAM GENERATOR
 # ─────────────────────────────────────────────
 
 def generate_5_teams_ai(team1: str, team2: str, venue: str, match_time: str,
-                         xi1: list, xi2: list, xi_source: str) -> dict:
-    """Generate 5 fantasy teams using ONLY confirmed playing XI players."""
-
+                         xi1: list, xi2: list, xi_source: str) -> dict | None:
+    """Generate 5 fantasy teams using AI — only from confirmed playing XI."""
     pitch = get_venue_profile(venue)
 
-    # Build player list from confirmed XI only
+    xi_label = {
+        "env_manual":        "✅ CONFIRMED (manual input after toss)",
+        "cricapi_confirmed": "✅ CONFIRMED (CricAPI live lineup)",
+        "squad_estimated":   "⚠️ ESTIMATED (squad filter — verify after toss)",
+    }.get(xi_source, xi_source)
+
     player_list = "\n".join([
-        f"  {p['role']} | {p['name']} ({t}) | Pos: {p.get('batting_pos','?')} | Avg Pts: {p.get('pts',45)} | Form: {p.get('form','Good')}"
+        f"  {p['role']} | {p['name']} ({t}) | Pos: {p.get('batting_pos','?')} "
+        f"| Avg Pts: {p.get('pts',45)} | Form: {p.get('form','Good')}"
         for t, xi in [(team1, xi1), (team2, xi2)]
         for p in xi
     ])
-
-    total_players = len(xi1) + len(xi2)
 
     prompt = f"""IPL 2026 Fantasy Cricket — Generate 5 Dream11/My11Circle teams.
 
 MATCH: {team1} vs {team2}
 VENUE: {venue}
 TIME: {match_time} IST
-XI SOURCE: {xi_source} ({'CONFIRMED playing XI' if 'env' in xi_source.lower() or 'cricapi' in xi_source.lower() else 'estimated — verify after toss'})
+XI STATUS: {xi_label}
 
 PITCH: {pitch['type']} | Avg Score: {pitch['avg_score']} | Dew: {pitch['dew']} | Toss Tip: {pitch['toss']} first
 PITCH NOTES: {pitch['notes']}
 
-CONFIRMED PLAYING XI ({total_players} players total — ONLY pick from these):
+CONFIRMED PLAYING XI ({len(xi1)+len(xi2)} players — ONLY pick from these):
 {player_list}
 
 DREAM11 RULES (STRICT):
 - Exactly 11 players per team — ONLY from the list above
-- Max 7 players from one team ({team1} or {team2})
+- Max 7 players from one team
 - Min 4 players from each team
 - Must have: min 1 WK, min 1 BAT, min 1 AR, min 1 BOWL
 - 1 Captain (2x points) + 1 Vice-Captain (1.5x)
+- Do NOT add any player NOT in the list above
 
-CRITICAL: Do NOT add any player not in the list above. No exceptions.
-
-Generate exactly 5 teams in JSON:
+Return ONLY valid JSON, no markdown:
 {{
   "match": "{team1} vs {team2}",
   "venue": "{venue}",
   "pitch_type": "{pitch['type']}",
-  "toss_tip": "Chase/Bat first based on conditions",
+  "toss_tip": "Chase/Bat first recommendation",
   "xi_source": "{xi_source}",
-  "key_insights": ["pitch insight", "player form insight", "toss/dew insight"],
+  "key_insights": ["insight1", "insight2", "insight3"],
   "teams": [
     {{
       "name": "Team N – Creative Name",
       "strategy": "Safe/Grand League/Balanced/Differential/Captain Swap",
       "risk": "Low/Medium/High",
-      "captain": "Exact Player Name from list",
-      "vice_captain": "Exact Player Name from list",
+      "captain": "Exact Player Name",
+      "vice_captain": "Exact Player Name",
       "players": [
-        {{"name": "Exact Player Name", "role": "WK/BAT/AR/BOWL", "team": "{team1} or {team2}"}}
+        {{"name": "Exact Name", "role": "WK/BAT/AR/BOWL", "team": "{team1} or {team2}"}}
       ],
       "why": "1-line strategy explanation"
     }}
   ],
-  "must_pick": ["top 3 players from XI"],
-  "avoid": ["any player to avoid and why"],
-  "disclaimer": "Playing XI source: {xi_source}. Always verify final XI before locking."
+  "must_pick": ["top 3 players"],
+  "avoid": ["player to avoid — reason"],
+  "disclaimer": "XI source: {xi_source}. Verify before locking."
 }}
 
-Team strategy variety:
-- Team 1: Safe Bet XI (low risk, high-pts players, safe C/VC)
-- Team 2: Bowling Blitz (bowling heavy, wicket-takers as C/VC)
-- Team 3: All-Rounder Army (AR-heavy, balanced)
-- Team 4: Differential Dare (low-ownership surprise picks, different C)
-- Team 5: Captain Swap (same core as T1 but different C/VC)"""
+Team strategies: Safe Bet / Bowling Blitz / All-Rounder Army / Differential Dare / Captain Swap"""
 
-    system = """You are an expert Dream11/My11Circle fantasy cricket analyst.
-CRITICAL RULE: Only pick players explicitly listed in the CONFIRMED PLAYING XI.
-Never invent or add players. Never pick benched or non-playing players.
-Return ONLY valid JSON. No markdown."""
+    system = (
+        "You are an expert Dream11/My11Circle analyst. "
+        "CRITICAL: Only pick players from the provided playing XI list. "
+        "Never invent or add players. Return ONLY valid JSON."
+    )
 
     client = AIClient()
     try:
@@ -640,94 +724,85 @@ Return ONLY valid JSON. No markdown."""
             lang="en",
         )
         if result and result.get("teams") and len(result["teams"]) > 0:
-            # Validate: remove any player not in XI
-            result = _validate_and_clean_teams(result, xi1, xi2, team1, team2)
+            result = _validate_teams(result, xi1, xi2)
             return result
     except Exception as e:
         logger.warning(f"AI generation error: {e}")
-
     return None
 
 
-def _validate_and_clean_teams(data: dict, xi1: list, xi2: list, team1: str, team2: str) -> dict:
-    """Remove any player from AI output that isn't in the confirmed XI."""
-    valid_names = {p["name"].lower() for p in xi1 + xi2}
-
+def _validate_teams(data: dict, xi1: list, xi2: list) -> dict:
+    """Strip any AI-hallucinated player not in the confirmed XI."""
+    valid = {p["name"].lower() for p in xi1 + xi2}
     for team in data.get("teams", []):
         original = team.get("players", [])
-        cleaned  = [p for p in original if p["name"].lower() in valid_names]
-
-        removed = [p["name"] for p in original if p["name"].lower() not in valid_names]
+        cleaned  = [p for p in original if p["name"].lower() in valid]
+        removed  = [p["name"] for p in original if p["name"].lower() not in valid]
         if removed:
-            logger.warning(f"  Removed non-XI players from {team['name']}: {removed}")
-
-        # Validate captain/VC are still in cleaned list
+            logger.warning(f"  Removed hallucinated players from '{team['name']}': {removed}")
         cap_names = {p["name"] for p in cleaned}
         if team.get("captain") not in cap_names and cleaned:
             team["captain"] = cleaned[0]["name"]
         if team.get("vice_captain") not in cap_names and len(cleaned) > 1:
             team["vice_captain"] = cleaned[1]["name"]
-
         team["players"] = cleaned
-
     return data
 
 
 # ─────────────────────────────────────────────
-# FALLBACK RULE-BASED TEAMS (uses confirmed XI)
+# FALLBACK RULE-BASED TEAMS
 # ─────────────────────────────────────────────
 
 def build_fallback_teams(team1: str, team2: str, venue: str,
                           xi1: list, xi2: list, xi_source: str) -> dict:
-    """Rule-based 5 teams from confirmed XI when AI fails."""
-    pitch   = get_venue_profile(venue)
-    p1      = sorted(xi1, key=lambda x: x.get("pts", 45), reverse=True)
-    p2      = sorted(xi2, key=lambda x: x.get("pts", 45), reverse=True)
-    all_xi  = sorted(p1 + p2, key=lambda x: x.get("pts", 45), reverse=True)
+    """Rule-based 5 teams when AI fails — always uses confirmed XI."""
+    pitch  = get_venue_profile(venue)
+    p1     = sorted(xi1, key=lambda x: x.get("pts", 45), reverse=True)
+    p2     = sorted(xi2, key=lambda x: x.get("pts", 45), reverse=True)
+    all_xi = sorted(p1 + p2, key=lambda x: x.get("pts", 45), reverse=True)
 
-    def pick_team(t1_count=6, bowling_boost=False):
-        team  = []
-        roles = {"WK": 1, "BAT": 3, "AR": 2, "BOWL": 3}
-        t1c, t2c = 0, 0
-        pool = sorted(all_xi, key=lambda x: -x.get("pts", 45) * (1.3 if bowling_boost and x["role"] == "BOWL" else 1.0))
+    def pick_team(t1_max=6, bowling_boost=False):
+        team_out = []
+        role_count = {"WK": 0, "BAT": 0, "AR": 0, "BOWL": 0}
+        role_min   = {"WK": 1, "BAT": 3, "AR": 2, "BOWL": 3}
+        role_max   = {"WK": 2, "BAT": 5, "AR": 4, "BOWL": 5}
+        t1c = t2c = 0
+
+        pool = sorted(
+            all_xi,
+            key=lambda x: -x.get("pts", 45) * (1.3 if bowling_boost and x["role"] == "BOWL" else 1.0),
+        )
 
         # Fill minimums first
-        for role, minimum in roles.items():
-            filled = 0
+        for role in ["WK", "BAT", "AR", "BOWL"]:
             for p in pool:
-                if filled >= minimum or len(team) >= 11:
+                if role_count[role] >= role_min[role] or len(team_out) == 11:
                     break
-                if p in team:
+                if p in team_out:
                     continue
                 is_t1 = p in p1
-                if is_t1 and t1c >= 7:
-                    continue
-                if not is_t1 and t2c >= 7:
-                    continue
-                if is_t1 and t1c >= t1_count:
+                if (is_t1 and (t1c >= 7 or t1c >= t1_max)) or (not is_t1 and t2c >= 7):
                     continue
                 if p["role"] == role:
-                    team.append(p)
-                    t1c += is_t1
-                    t2c += (not is_t1)
-                    filled += 1
+                    team_out.append(p)
+                    role_count[role] += 1
+                    t1c += is_t1; t2c += (not is_t1)
 
-        # Fill remaining spots
+        # Fill remaining by pts
         for p in pool:
-            if len(team) >= 11:
+            if len(team_out) == 11:
                 break
-            if p in team:
+            if p in team_out:
                 continue
             is_t1 = p in p1
-            if (is_t1 and t1c >= 7) or (not is_t1 and t2c >= 7):
+            if (is_t1 and (t1c >= 7 or t1c >= t1_max)) or (not is_t1 and t2c >= 7):
                 continue
-            if is_t1 and t1c >= t1_count:
-                continue
-            team.append(p)
-            t1c += is_t1
-            t2c += (not is_t1)
+            if role_count.get(p["role"], 0) < role_max.get(p["role"], 99):
+                team_out.append(p)
+                role_count[p["role"]] += 1
+                t1c += is_t1; t2c += (not is_t1)
 
-        return team[:11]
+        return team_out[:11]
 
     def fmt(players, name, strategy, risk, ci=0, vi=1, why=""):
         cap = players[ci]["name"] if ci < len(players) else players[0]["name"]
@@ -735,9 +810,12 @@ def build_fallback_teams(team1: str, team2: str, venue: str,
         return {
             "name": name, "strategy": strategy, "risk": risk,
             "captain": cap, "vice_captain": vc,
-            "players": [{"name": p["name"], "role": p["role"],
-                         "team": team1 if p in p1 else team2} for p in players],
-            "why": why
+            "players": [
+                {"name": p["name"], "role": p["role"],
+                 "team": team1 if p in p1 else team2}
+                for p in players
+            ],
+            "why": why,
         }
 
     top3 = [p["name"] for p in all_xi[:3]]
@@ -750,19 +828,19 @@ def build_fallback_teams(team1: str, team2: str, venue: str,
         "xi_source": xi_source,
         "key_insights": [
             f"Pitch: {pitch['type']} — avg {pitch['avg_score']}",
-            f"Dew: {pitch['dew']} — {pitch['notes']}",
-            f"Top picks: {', '.join(top3)}"
+            f"Dew factor: {pitch['dew']} — {pitch['notes']}",
+            f"Top picks: {', '.join(top3)}",
         ],
         "teams": [
-            fmt(pick_team(6),                    "Team 1 – Safe Bet XI",         "Safe",         "Low",    0, 1, "Best XI, safest picks."),
-            fmt(pick_team(6, bowling_boost=True), "Team 2 – Bowling Blitz",       "Grand League", "Medium", 2, 0, "Wicket-takers as C/VC."),
-            fmt(pick_team(5),                    "Team 3 – Balanced Attack",     "Balanced",     "Medium", 1, 2, "Even team split."),
-            fmt(pick_team(4),                    "Team 4 – Differential Dare",   "Differential", "High",   3, 1, "Low-ownership for grand leagues."),
-            fmt(pick_team(7),                    "Team 5 – Captain Swap",        "Grand League", "High",   2, 0, "Different C from safe team."),
+            fmt(pick_team(6),                    "Team 1 – Safe Bet XI",       "Safe",         "Low",    0, 1, "Best XI, safest C/VC."),
+            fmt(pick_team(6, bowling_boost=True), "Team 2 – Bowling Blitz",     "Grand League", "Medium", 2, 0, "Wicket-takers as C/VC."),
+            fmt(pick_team(5),                    "Team 3 – Balanced Attack",   "Balanced",     "Medium", 1, 2, "Even team split."),
+            fmt(pick_team(4),                    "Team 4 – Differential Dare", "Differential", "High",   3, 1, "Low-ownership for grand leagues."),
+            fmt(pick_team(7),                    "Team 5 – Captain Swap",      "Grand League", "High",   2, 0, "Different captain from T1."),
         ],
         "must_pick": top3,
         "avoid": [],
-        "disclaimer": f"XI from: {xi_source}. Verify after toss."
+        "disclaimer": f"XI from: {xi_source}. Verify final XI before locking.",
     }
 
 
@@ -775,26 +853,25 @@ def format_telegram_message(data: dict, team1: str, team2: str, xi_source: str) 
     e2 = TEAM_EMOJI.get(team2, "🏏")
 
     xi_badge = {
-        "env":     "✅ CONFIRMED XI (manual input)",
-        "cricapi": "✅ CONFIRMED XI (CricAPI live)",
-        "squad":   "⚠️ ESTIMATED XI — verify after toss!",
-    }.get(xi_source.split("_")[0], f"ℹ️ {xi_source}")
+        "env_manual":        "✅ CONFIRMED XI (manual input after toss)",
+        "cricapi_confirmed": "✅ CONFIRMED XI (CricAPI live)",
+        "squad_estimated":   "⚠️ ESTIMATED XI — verify after toss!",
+    }.get(xi_source, f"ℹ️ {xi_source}")
 
-    header = f"""🏏 <b>IPL 2026 — DREAM11 PICKS</b> 🏏
-{e1} <b>{team1}</b> vs <b>{team2}</b> {e2}
+    insights = "".join([f"• {i}\n" for i in data.get("key_insights", [])])
 
-📍 <i>{data.get('venue', '')}</i>
-{xi_badge}
-
-<b>Pitch:</b> {data.get('pitch_type', 'Balanced')}
-<b>Toss Tip:</b> {data.get('toss_tip', 'Field first')}
-
-<b>📊 Key Insights:</b>
-{"".join([f"• {i}" + chr(10) for i in data.get('key_insights', [])])}
-<b>🌟 Must-Picks:</b> {', '.join(data.get('must_pick', []))}
-
-<i>5 teams below — use for Dream11 / My11Circle</i>
-──────────────────────────────"""
+    header = (
+        f"🏏 <b>IPL 2026 — DREAM11 PICKS</b> 🏏\n"
+        f"{e1} <b>{team1}</b> vs <b>{team2}</b> {e2}\n\n"
+        f"📍 <i>{data.get('venue', '')}</i>\n"
+        f"{xi_badge}\n\n"
+        f"<b>Pitch:</b> {data.get('pitch_type', 'Balanced')}\n"
+        f"<b>Toss Tip:</b> {data.get('toss_tip', 'Field first')}\n\n"
+        f"<b>📊 Key Insights:</b>\n{insights}"
+        f"<b>🌟 Must-Picks:</b> {', '.join(data.get('must_pick', []))}\n\n"
+        f"<i>5 teams below — use for Dream11 / My11Circle</i>\n"
+        f"──────────────────────────────"
+    )
 
     messages = [header]
     risk_emoji = {"Low": "🟢", "Medium": "🟡", "High": "🔴"}
@@ -805,37 +882,36 @@ def format_telegram_message(data: dict, team1: str, team2: str, xi_source: str) 
         cap     = team.get("captain", "")
         vc      = team.get("vice_captain", "")
 
-        wk    = [p for p in players if p["role"] == "WK"]
-        bats  = [p for p in players if p["role"] == "BAT"]
-        ars   = [p for p in players if p["role"] == "AR"]
-        bowls = [p for p in players if p["role"] == "BOWL"]
+        wk_list   = [p for p in players if p["role"] == "WK"]
+        bat_list  = [p for p in players if p["role"] == "BAT"]
+        ar_list   = [p for p in players if p["role"] == "AR"]
+        bowl_list = [p for p in players if p["role"] == "BOWL"]
 
         def fmt_p(p):
-            name   = p["name"]
-            suffix = " 🅒" if name == cap else (" 🅥" if name == vc else "")
-            pill   = f"[{p.get('team','')}]"
-            return f"  {name}{suffix} <i>{pill}</i>"
+            suffix = " 🅒" if p["name"] == cap else (" 🅥" if p["name"] == vc else "")
+            return f"  {p['name']}{suffix} <i>[{p.get('team','')}]</i>"
 
-        team_name_short = team.get('name', '').split('–')[-1].strip()
-        msg = f"""{risk_emoji.get(risk,'🟡')} <b>TEAM {i} — {team_name_short}</b>
-<i>{team.get('strategy','')} · {risk} Risk · {len(players)} players</i>
-
-🧤 WK: {chr(10).join([fmt_p(p) for p in wk]) or '  —'}
-🏏 BAT: {chr(10).join([fmt_p(p) for p in bats]) or '  —'}
-🔄 ALL-ROUNDER: {chr(10).join([fmt_p(p) for p in ars]) or '  —'}
-⚡ BOWLER: {chr(10).join([fmt_p(p) for p in bowls]) or '  —'}
-
-🅒 C: <b>{cap}</b>  |  🅥 VC: <b>{vc}</b>
-💡 <i>{team.get('why','')}</i>
-──────────────────────────────"""
+        team_label = team.get("name", "").split("–")[-1].strip()
+        msg = (
+            f"{risk_emoji.get(risk, '🟡')} <b>TEAM {i} — {team_label}</b>\n"
+            f"<i>{team.get('strategy','')} · {risk} Risk · {len(players)} players</i>\n\n"
+            f"🧤 WK:\n{chr(10).join([fmt_p(p) for p in wk_list]) or '  —'}\n"
+            f"🏏 BAT:\n{chr(10).join([fmt_p(p) for p in bat_list]) or '  —'}\n"
+            f"🔄 ALL-ROUNDER:\n{chr(10).join([fmt_p(p) for p in ar_list]) or '  —'}\n"
+            f"⚡ BOWLER:\n{chr(10).join([fmt_p(p) for p in bowl_list]) or '  —'}\n\n"
+            f"🅒 C: <b>{cap}</b>  |  🅥 VC: <b>{vc}</b>\n"
+            f"💡 <i>{team.get('why','')}</i>\n"
+            f"──────────────────────────────"
+        )
         messages.append(msg)
 
-    footer = f"""⚠️ <b>DISCLAIMER</b>
-{data.get('disclaimer','Verify XI after toss.')}
-Never lock teams before confirmed playing 11 is announced.
-
-📲 <b>AI360Trading</b> | Free IPL Fantasy Picks
-@ai360trading | 🌐 ai360trading.in"""
+    footer = (
+        f"⚠️ <b>DISCLAIMER</b>\n"
+        f"{data.get('disclaimer', 'Verify XI after toss.')}\n"
+        f"Never lock teams before confirmed playing 11 is announced.\n\n"
+        f"📲 <b>AI360Trading</b> | Free IPL Fantasy Picks\n"
+        f"@ai360trading | 🌐 ai360trading.in"
+    )
     messages.append(footer)
     return messages
 
@@ -853,18 +929,22 @@ def send_to_free_channel(messages: list) -> bool:
         try:
             r = requests.post(
                 f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage",
-                json={"chat_id": TELEGRAM_CHAT_ID, "text": msg,
-                      "parse_mode": "HTML", "disable_web_page_preview": True},
+                json={
+                    "chat_id": TELEGRAM_CHAT_ID,
+                    "text": msg,
+                    "parse_mode": "HTML",
+                    "disable_web_page_preview": True,
+                },
                 timeout=15,
             )
             if r.status_code != 200:
-                logger.error(f"TG send failed part {i+1}: {r.status_code} {r.text[:100]}")
+                logger.error(f"Telegram part {i+1} failed: {r.status_code} {r.text[:120]}")
                 success = False
             else:
                 logger.info(f"✅ Sent part {i+1}/{len(messages)}")
             time.sleep(1.5)
         except Exception as e:
-            logger.error(f"TG error part {i+1}: {e}")
+            logger.error(f"Telegram error part {i+1}: {e}")
             success = False
     return success
 
@@ -879,7 +959,7 @@ def run():
 
     matches = get_today_match()
     if not matches:
-        logger.info("No IPL match today. Skipping.")
+        logger.info("No IPL match scheduled today. Skipping.")
         return
 
     for match in matches:
@@ -890,23 +970,17 @@ def run():
 
         logger.info(f"Match: {team1} vs {team2} at {venue}")
 
-        # 1. Resolve confirmed playing XI (THE KEY FIX)
-        xi1, xi2 = resolve_playing_xi(team1, team2)
-        if PLAYING_XI_T1_ENV and PLAYING_XI_T2_ENV:
-            xi_source = "env_manual"
-        elif CRICAPI_KEY and xi1 and len(xi1) >= 10:
-            xi_source = "cricapi_live"
-        else:
-            xi_source = "squad_estimated"
+        # 1. Resolve Playing XI — xi_source comes directly from this function
+        xi1, xi2, xi_source = resolve_playing_xi(team1, team2)
 
-        logger.info(f"XI source: {xi_source} | {team1}: {len(xi1)} players | {team2}: {len(xi2)} players")
+        logger.info(f"XI source: {xi_source} | {team1}: {len(xi1)} | {team2}: {len(xi2)}")
         logger.info(f"  {team1} XI: {[p['name'] for p in xi1]}")
         logger.info(f"  {team2} XI: {[p['name'] for p in xi2]}")
 
         # 2. Generate teams (AI first, rule-based fallback)
         data = generate_5_teams_ai(team1, team2, venue, match_time, xi1, xi2, xi_source)
         if not data or not data.get("teams"):
-            logger.warning("AI failed — using rule-based fallback")
+            logger.warning("AI generation failed — using rule-based fallback")
             data = build_fallback_teams(team1, team2, venue, xi1, xi2, xi_source)
 
         # 3. Format + send
@@ -914,7 +988,7 @@ def run():
         ok = send_to_free_channel(messages)
 
         if ok:
-            logger.info(f"✅ Sent for {team1} vs {team2} | XI source: {xi_source}")
+            logger.info(f"✅ Sent for {team1} vs {team2} | source: {xi_source}")
         else:
             logger.error(f"❌ Send failed for {team1} vs {team2}")
 
