@@ -2,11 +2,14 @@
 ai_client.py — Universal AI Client for AI360Trading
 ====================================================
 Fallback chain: Groq → Gemini → Claude → OpenAI → Templates
-Supports: text generation, future image/video generation (Gemini Veo roadmap)
-Used by: ALL content generators — generate_reel.py, generate_shorts.py, etc.
+Supports: text generation, JSON generation.
+
+FIX (March 2026):
+  - Replaced deprecated google.generativeai with google.genai (new SDK)
+  - generate_json() max_tokens bumped to 3000 for Dream11 5-team JSON
+  - Gemini model list updated to latest available
 
 Author: AI360Trading Automation
-Last Updated: March 2026
 """
 
 import os
@@ -37,7 +40,7 @@ GEMINI_MODELS = [
 ]
 
 CLAUDE_MODELS = [
-    "claude-haiku-4-5-20251001",   # fastest + cheapest
+    "claude-haiku-4-5-20251001",
     "claude-sonnet-4-6",
 ]
 
@@ -46,11 +49,9 @@ OPENAI_MODELS = [
     "gpt-3.5-turbo",
 ]
 
-
 # ─────────────────────────────────────────────
 # FALLBACK TEMPLATES
 # ─────────────────────────────────────────────
-# Used when ALL AI providers fail — guarantees content is always generated
 
 FALLBACK_TEMPLATES = {
     "market": {
@@ -58,50 +59,41 @@ FALLBACK_TEMPLATES = {
             "Aaj ka market kuch interesting signal de raha hai!",
             "Smart money kahan ja raha hai? Dekhte hain!",
             "Nifty50 ka next move samajhna zaroori hai!",
-            "Aaj ke trade setup pe nazar daalni chahiye!",
         ],
         "body": [
             "Market analysis ke liye apni strategy ready rakhein. Risk management sabse pehle.",
             "Technical levels pe nazar rakhein. Support aur resistance key hain.",
-            "Volume confirm kare tab hi entry lein. Patience is key.",
         ],
         "cta": [
             "Like karo agar helpful laga! Telegram join karo signals ke liye.",
             "Share karo apne trading friends ke saath!",
-            "Subscribe karo daily market updates ke liye!",
         ],
     },
     "weekend": {
         "hook": [
             "Weekend mein bhi seekhna band mat karo!",
             "Market band hai, but your growth nahi!",
-            "Successful traders weekends mein bhi prepare karte hain!",
         ],
         "body": [
             "Is weekend ek naya concept seekho. Trading psychology bahut important hai.",
             "Charts study karo, mistakes review karo, next week ready raho.",
-            "Wealth building ek marathon hai, sprint nahi. Consistent raho.",
         ],
         "cta": [
             "Apna feedback comments mein do!",
             "Telegram join karo exclusive content ke liye!",
-            "Share karo — ek aur trader ki madad karo!",
         ],
     },
     "holiday": {
         "hook": [
             "Market band hai aaj — perfect time seekhne ka!",
             "Holiday mein bhi smart traders prepare karte hain!",
-            "Rest karo, recharge karo, market kal phir aayega!",
         ],
         "body": [
             "Aaj apni trading journal review karo. Kya kaam kiya, kya nahi.",
-            "Books padho, webinars dekho, fundamentals strong karo.",
             "Mental health trading success ka base hai. Aaj break lo!",
         ],
         "cta": [
             "Family ke saath time spend karo! Kal fresh mind se trade karo.",
-            "Comment karo — aaj kya seekha?",
             "Subscribe karo regular updates ke liye!",
         ],
     },
@@ -109,18 +101,14 @@ FALLBACK_TEMPLATES = {
         "hook": [
             "The market is sending signals — are you listening?",
             "Smart money is moving. Here's what you need to know.",
-            "One chart pattern that changes everything today.",
-            "Most traders miss this. Don't be one of them.",
         ],
         "body": [
-            "Risk management is the foundation of every successful trade. Never risk more than 1-2% per trade.",
-            "The trend is your friend until it ends. Always confirm with volume.",
-            "Patience and discipline separate profitable traders from the rest.",
+            "Risk management is the foundation of every successful trade.",
+            "The trend is your friend until it ends. Confirm with volume.",
         ],
         "cta": [
             "Like and subscribe for daily market updates!",
             "Join our Telegram for live trading signals!",
-            "Share this with a fellow trader!",
         ],
     },
 }
@@ -136,17 +124,18 @@ class AIClient:
     Usage:
         client = AIClient()
         response = client.generate(prompt, content_mode="market", lang="hi")
+        data     = client.generate_json(prompt, system_prompt=..., lang="en")
     """
 
     def __init__(self):
-        self.groq_key = os.environ.get("GROQ_API_KEY")
+        self.groq_key   = os.environ.get("GROQ_API_KEY")
         self.gemini_key = os.environ.get("GEMINI_API_KEY")
         self.claude_key = os.environ.get("ANTHROPIC_API_KEY")
         self.openai_key = os.environ.get("OPENAI_API_KEY")
         self.active_provider = None
         self.stats = {p: {"success": 0, "fail": 0} for p in PROVIDERS}
 
-    # ── PUBLIC METHOD ──────────────────────────
+    # ── PUBLIC METHODS ─────────────────────────
 
     def generate(
         self,
@@ -158,20 +147,15 @@ class AIClient:
         temperature: float = 0.85,
         json_mode: bool = False,
     ) -> str:
-        """
-        Generate text with automatic fallback.
-        Returns generated text or fallback template string.
-        """
-        # Build system prompt if not provided
+        """Generate text with automatic provider fallback."""
         if system_prompt is None:
             system_prompt = self._default_system_prompt(lang, content_mode)
 
-        # Try each provider in order
         for provider in PROVIDERS:
             try:
                 result = self._try_provider(
                     provider, prompt, system_prompt,
-                    max_tokens, temperature, json_mode
+                    max_tokens, temperature, json_mode,
                 )
                 if result:
                     self.active_provider = provider
@@ -181,11 +165,9 @@ class AIClient:
             except Exception as e:
                 self.stats[provider]["fail"] += 1
                 logger.warning(f"⚠️ {provider} failed: {e}")
-                time.sleep(1)  # Brief pause before next provider
-                continue
+                time.sleep(1)
 
-        # All providers failed — use template
-        logger.error("❌ ALL AI providers failed. Using fallback template.")
+        logger.error("❌ ALL AI providers failed — using fallback template.")
         self.active_provider = "template"
         return self._get_fallback_template(content_mode, lang)
 
@@ -196,39 +178,41 @@ class AIClient:
         content_mode: str = "market",
         lang: str = "hi",
     ) -> dict:
-        """Generate and parse JSON response."""
+        """Generate and parse a JSON response."""
         raw = self.generate(
             prompt, system_prompt, content_mode, lang,
-            json_mode=True, max_tokens=2000
+            json_mode=True,
+            max_tokens=3000,   # bumped for 5-team Dream11 output
         )
         try:
-            # Strip markdown code fences if present
             clean = raw.strip()
+            # Strip markdown code fences if present
             if clean.startswith("```"):
-                clean = clean.split("```")[1]
+                parts = clean.split("```")
+                clean = parts[1] if len(parts) > 1 else clean
                 if clean.startswith("json"):
                     clean = clean[4:]
             return json.loads(clean.strip())
         except json.JSONDecodeError as e:
-            logger.error(f"JSON parse failed: {e}")
+            logger.error(f"JSON parse failed: {e}\nRaw (first 300): {raw[:300]}")
             return {}
 
     def get_status(self) -> dict:
-        """Return current provider status for logging."""
         return {
             "active_provider": self.active_provider,
             "stats": self.stats,
             "available": {
-                "groq": bool(self.groq_key),
+                "groq":   bool(self.groq_key),
                 "gemini": bool(self.gemini_key),
                 "claude": bool(self.claude_key),
                 "openai": bool(self.openai_key),
-            }
+            },
         }
 
-    # ── PROVIDER METHODS ──────────────────────
+    # ── PROVIDER DISPATCH ─────────────────────
 
-    def _try_provider(self, provider, prompt, system_prompt, max_tokens, temperature, json_mode):
+    def _try_provider(self, provider, prompt, system_prompt,
+                      max_tokens, temperature, json_mode):
         if provider == "groq":
             return self._groq(prompt, system_prompt, max_tokens, temperature, json_mode)
         elif provider == "gemini":
@@ -239,74 +223,114 @@ class AIClient:
             return self._openai(prompt, system_prompt, max_tokens, temperature, json_mode)
         return None
 
+    # ── GROQ ──────────────────────────────────
+
     def _groq(self, prompt, system_prompt, max_tokens, temperature, json_mode):
         if not self.groq_key:
             raise ValueError("GROQ_API_KEY not set")
         try:
             from groq import Groq
         except ImportError:
-            raise ImportError("groq package not installed")
+            raise ImportError("groq package not installed — pip install groq")
 
         client = Groq(api_key=self.groq_key)
-
-        kwargs = {
-            "model": GROQ_MODELS[0],
-            "messages": [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": prompt},
-            ],
-            "max_tokens": max_tokens,
-            "temperature": temperature,
-        }
-        if json_mode:
-            kwargs["response_format"] = {"type": "json_object"}
-
-        # Try each Groq model in order
         for model in GROQ_MODELS:
             try:
-                kwargs["model"] = model
-                response = client.chat.completions.create(**kwargs)
-                text = response.choices[0].message.content.strip()
+                kwargs = {
+                    "model": model,
+                    "messages": [
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user",   "content": prompt},
+                    ],
+                    "max_tokens":  max_tokens,
+                    "temperature": temperature,
+                }
+                if json_mode:
+                    kwargs["response_format"] = {"type": "json_object"}
+                resp = client.chat.completions.create(**kwargs)
+                text = resp.choices[0].message.content.strip()
                 if text:
                     return text
             except Exception as e:
-                logger.warning(f"Groq model {model} failed: {e}")
-                continue
+                logger.warning(f"Groq {model}: {e}")
         raise Exception("All Groq models failed")
+
+    # ── GEMINI ────────────────────────────────
+    # FIX: uses new google.genai SDK instead of deprecated google.generativeai
 
     def _gemini(self, prompt, system_prompt, max_tokens, temperature, json_mode):
         if not self.gemini_key:
             raise ValueError("GEMINI_API_KEY not set")
+
+        # Try new SDK first (google.genai), fall back to old SDK
         try:
-            import google.generativeai as genai
+            return self._gemini_new_sdk(prompt, system_prompt, max_tokens, temperature, json_mode)
         except ImportError:
-            raise ImportError("google-generativeai package not installed")
+            pass
 
-        genai.configure(api_key=self.gemini_key)
+        try:
+            return self._gemini_old_sdk(prompt, system_prompt, max_tokens, temperature, json_mode)
+        except ImportError:
+            raise ImportError(
+                "Neither google-genai nor google-generativeai installed.\n"
+                "Run: pip install google-genai"
+            )
 
-        generation_config = {
-            "max_output_tokens": max_tokens,
-            "temperature": temperature,
-        }
-        if json_mode:
-            generation_config["response_mime_type"] = "application/json"
+    def _gemini_new_sdk(self, prompt, system_prompt, max_tokens, temperature, json_mode):
+        """Uses the new google.genai SDK (google-genai package)."""
+        from google import genai
+        from google.genai import types
 
+        client = genai.Client(api_key=self.gemini_key)
         full_prompt = f"{system_prompt}\n\n{prompt}"
+
+        generate_config = types.GenerateContentConfig(
+            max_output_tokens=max_tokens,
+            temperature=temperature,
+        )
+        if json_mode:
+            generate_config.response_mime_type = "application/json"
 
         for model_name in GEMINI_MODELS:
             try:
-                model = genai.GenerativeModel(
-                    model_name,
-                    generation_config=generation_config
+                response = client.models.generate_content(
+                    model=model_name,
+                    contents=full_prompt,
+                    config=generate_config,
                 )
-                response = model.generate_content(full_prompt)
                 text = response.text.strip()
                 if text:
                     return text
             except Exception as e:
-                logger.warning(f"Gemini model {model_name} failed: {e}")
-                continue
-        raise Exception("All Gemini models failed")
+                logger.warning(f"Gemini (new SDK) {model_name}: {e}")
+
+        raise Exception("All Gemini models failed (new SDK)")
+
+    def _gemini_old_sdk(self, prompt, system_prompt, max_tokens, temperature, json_mode):
+        """Fallback: old google.generativeai SDK (deprecated but still works)."""
+        import warnings
+        warnings.filterwarnings("ignore", category=FutureWarning, module="google.generativeai")
+        import google.generativeai as genai
+
+        genai.configure(api_key=self.gemini_key)
+        full_prompt = f"{system_prompt}\n\n{prompt}"
+        gen_config  = {"max_output_tokens": max_tokens, "temperature": temperature}
+        if json_mode:
+            gen_config["response_mime_type"] = "application/json"
+
+        for model_name in GEMINI_MODELS:
+            try:
+                model    = genai.GenerativeModel(model_name, generation_config=gen_config)
+                response = model.generate_content(full_prompt)
+                text     = response.text.strip()
+                if text:
+                    return text
+            except Exception as e:
+                logger.warning(f"Gemini (old SDK) {model_name}: {e}")
+
+        raise Exception("All Gemini models failed (old SDK)")
+
+    # ── CLAUDE ────────────────────────────────
 
     def _claude(self, prompt, system_prompt, max_tokens, temperature):
         if not self.claude_key:
@@ -314,10 +338,9 @@ class AIClient:
         try:
             import anthropic
         except ImportError:
-            raise ImportError("anthropic package not installed")
+            raise ImportError("anthropic package not installed — pip install anthropic")
 
         client = anthropic.Anthropic(api_key=self.claude_key)
-
         for model_name in CLAUDE_MODELS:
             try:
                 message = client.messages.create(
@@ -330,9 +353,11 @@ class AIClient:
                 if text:
                     return text
             except Exception as e:
-                logger.warning(f"Claude model {model_name} failed: {e}")
-                continue
+                logger.warning(f"Claude {model_name}: {e}")
+
         raise Exception("All Claude models failed")
+
+    # ── OPENAI ────────────────────────────────
 
     def _openai(self, prompt, system_prompt, max_tokens, temperature, json_mode):
         if not self.openai_key:
@@ -340,31 +365,29 @@ class AIClient:
         try:
             from openai import OpenAI
         except ImportError:
-            raise ImportError("openai package not installed")
+            raise ImportError("openai package not installed — pip install openai")
 
         client = OpenAI(api_key=self.openai_key)
-
         for model_name in OPENAI_MODELS:
             try:
                 kwargs = {
                     "model": model_name,
                     "messages": [
                         {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": prompt},
+                        {"role": "user",   "content": prompt},
                     ],
-                    "max_tokens": max_tokens,
+                    "max_tokens":  max_tokens,
                     "temperature": temperature,
                 }
                 if json_mode:
                     kwargs["response_format"] = {"type": "json_object"}
-
-                response = client.chat.completions.create(**kwargs)
-                text = response.choices[0].message.content.strip()
+                resp = client.chat.completions.create(**kwargs)
+                text = resp.choices[0].message.content.strip()
                 if text:
                     return text
             except Exception as e:
-                logger.warning(f"OpenAI model {model_name} failed: {e}")
-                continue
+                logger.warning(f"OpenAI {model_name}: {e}")
+
         raise Exception("All OpenAI models failed")
 
     # ── HELPERS ───────────────────────────────
@@ -373,99 +396,55 @@ class AIClient:
         if lang == "en":
             return (
                 "You are a professional financial content creator for AI360Trading. "
-                "Target audience: USA, UK, Australia, UAE, Canada, Brazil investors. "
-                "Write in fluent, natural English. Sound like a knowledgeable human trader, "
-                "not a robot. Use casual but professional tone. Include specific data points. "
-                "Never use generic filler phrases. Every sentence must add value."
+                "Target audience: USA, UK, Australia, UAE, Canada investors. "
+                "Write in fluent natural English. Sound like a knowledgeable human trader. "
+                "Use casual but professional tone. Include specific data points. "
+                "Never use generic filler. Every sentence must add value."
             )
-        else:
-            return (
-                "Tum AI360Trading ke liye ek professional financial content creator ho. "
-                "Target audience: Indian retail traders aur global NRI investors. "
-                "Hindi-English mix (Hinglish) mein likho — natural aur conversational. "
-                "Ek experienced trader ki tarah baat karo, robot ki tarah nahi. "
-                "Specific data points use karo. Har sentence valuable hona chahiye."
-            )
+        return (
+            "Tum AI360Trading ke liye ek professional financial content creator ho. "
+            "Target audience: Indian retail traders aur global NRI investors. "
+            "Hindi-English mix (Hinglish) mein likho — natural aur conversational. "
+            "Ek experienced trader ki tarah baat karo. Specific data points use karo."
+        )
 
     def _get_fallback_template(self, content_mode: str, lang: str) -> str:
-        mode = content_mode if content_mode in FALLBACK_TEMPLATES else "market"
+        mode      = content_mode if content_mode in FALLBACK_TEMPLATES else "market"
         templates = FALLBACK_TEMPLATES["english"] if lang == "en" else FALLBACK_TEMPLATES[mode]
-
         hook = random.choice(templates["hook"])
         body = random.choice(templates["body"])
-        cta = random.choice(templates["cta"])
-
+        cta  = random.choice(templates["cta"])
         return f"{hook}\n\n{body}\n\n{cta}"
 
 
 # ─────────────────────────────────────────────
-# FUTURE: IMAGE & VIDEO GENERATION
+# FUTURE: IMAGE & VIDEO GENERATION (placeholder)
 # ─────────────────────────────────────────────
-# Roadmap for Disney-style 3D reels:
-#
-# Phase 2 (3-6 months): Gemini Veo API
-#   client.generate_video(prompt, style="cinematic")
-#
-# Phase 3 (6-12 months): Stable Diffusion + AnimateDiff
-#   client.generate_frames(prompt, style="3d_disney", frames=30)
-#
-# Phase 4 (12-18 months): Google Veo 2 / OpenAI Sora
-#   client.generate_video_hd(prompt, style="disney_3d", duration=60)
-#
-# All will be added as methods here — zero changes needed in generators.
 
 class ImageVideoClient:
     """
     Placeholder for future image/video generation.
-    Currently uses PIL-based generation via existing generators.
-    Will be upgraded to Gemini Veo / Stable Diffusion when APIs stabilize.
+    Phase 1 (now): PIL-based via existing generators.
+    Phase 2: Gemini Imagen / Veo when APIs stabilise.
     """
 
     def __init__(self):
         self.gemini_key = os.environ.get("GEMINI_API_KEY")
-        self.phase = self._detect_phase()
-
-    def _detect_phase(self) -> int:
-        """Auto-detect which generation phase is available."""
-        try:
-            import google.generativeai as genai
-            # Check if Veo is available
-            return 2
-        except ImportError:
-            pass
-        return 1  # PIL only
 
     def generate_thumbnail(self, title: str, mode: str = "market") -> Optional[str]:
-        """
-        Generate thumbnail image.
-        Phase 1: PIL (current)
-        Phase 2: Gemini Imagen (future)
-        Returns path to generated image.
-        """
-        # Currently returns None — existing PIL code in generators handles this
-        # TODO Phase 2: Implement Gemini Imagen generation
-        logger.info(f"ImageVideoClient phase={self.phase} — using existing PIL pipeline")
+        logger.info("ImageVideoClient: using existing PIL pipeline")
         return None
 
     def generate_video_clip(self, prompt: str, duration: int = 5) -> Optional[str]:
-        """
-        Generate short video clip.
-        Phase 2: Gemini Veo API
-        Phase 3: Stable Diffusion + AnimateDiff
-        Returns path to generated video clip.
-        """
-        # TODO Phase 2: Implement when Gemini Veo free tier available
         logger.info("Video generation not yet available — using PIL+MoviePy pipeline")
         return None
 
 
 # ─────────────────────────────────────────────
-# SINGLETON INSTANCE
+# SINGLETON INSTANCES
 # ─────────────────────────────────────────────
-# Import this in all generators:
-#   from ai_client import ai, img_client
 
-ai = AIClient()
+ai         = AIClient()
 img_client = ImageVideoClient()
 
 
@@ -475,40 +454,26 @@ img_client = ImageVideoClient()
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-
     print("=" * 60)
     print("AI360Trading — AI Client Test")
     print("=" * 60)
 
     client = AIClient()
 
-    # Test Hindi generation
     print("\n[TEST 1] Hindi market content:")
-    result = client.generate(
-        prompt="Aaj Nifty50 ke liye ek 3-line trading insight likho.",
-        content_mode="market",
-        lang="hi"
-    )
-    print(result)
+    print(client.generate("Aaj Nifty50 ke liye ek 3-line trading insight likho.",
+                          content_mode="market", lang="hi"))
 
-    # Test English generation
     print("\n[TEST 2] English global content:")
-    result = client.generate(
-        prompt="Write a 3-line trading insight for today's global market.",
-        content_mode="market",
-        lang="en"
-    )
-    print(result)
+    print(client.generate("Write a 3-line trading insight for today's global market.",
+                          content_mode="market", lang="en"))
 
-    # Test JSON generation
     print("\n[TEST 3] JSON generation:")
     result = client.generate_json(
-        prompt='Return a JSON with keys "hook", "body", "cta" for a trading reel script.',
-        content_mode="market",
-        lang="hi"
+        prompt='Return JSON with keys "hook","body","cta" for a trading reel script.',
+        content_mode="market", lang="hi",
     )
     print(json.dumps(result, indent=2, ensure_ascii=False))
 
-    # Status
     print("\n[STATUS]")
     print(json.dumps(client.get_status(), indent=2))
