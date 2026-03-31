@@ -5,6 +5,8 @@ date: 2026-03-18
 author: "Amit Kumar"
 pillar: "personal-finance"
 permalink: /personal-finance/ran-numbers-sip-lump-sum-answer/
+redirect_from:
+  - /personal-finance/2026-03-18-personal-finance-i-ran-the-numbers-on-sip-vs-lump-sum-the-answ/
 excerpt: "I Ran the Numbers on SIP vs Lump Sum — The Answer Surprised Me — Personal Finance analysis for March 18, 2026. Live term life insurance data, key support resistance levels, actionable insights for US,"
 description: "NIFTY at 23,777.8, SandP 500 at 6,716.09 on March 18, 2026, as investors weigh term life insurance, SIP, and retirement planning. | Personal Finance analysis Marc"
 keywords: "term life insurance, best investment 2026, retirement planning, tax saving, personal finance, best term life insurance USA 2026, 401k investing 2026, best term insurance India 2026, SIP investment returns"
