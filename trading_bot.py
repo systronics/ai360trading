@@ -1,42 +1,21 @@
 """
-AI360 TRADING BOT — v13.2
+AI360 TRADING BOT — v13.3
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-v13.2 CHANGES vs previous:
+v13.3 CHANGES vs v13.2 (1 change only):
 
-1. TSL MODE SYSTEM
-   AppScript stores _MODE=VCP/MOM/STD in T4 memory per stock.
-   Python reads mode at entry and uses different TSL thresholds:
-     VCP  → breakeven 3%, lock 5%, trail 8%, ATR mult 2.0×
-            (tight base breakout — needs room to run)
-     MOM  → breakeven 2.5%, lock 4.5%, trail 7%, ATR mult 1.8×
-            (strong momentum — give breathing room)
-     STD  → breakeven 2%, lock 4%, trail 6%, ATR mult 1.5×
-            (standard — unchanged from v13.1)
+1. STD TSL PARAMS WIDENED — let swing trades run longer
+   trail : 6.0  → 10.0  (was cutting rides too early)
+   atr_mult: 1.5 → 2.5   (wider ATR trail = more breathing room)
+   breakeven and lock1 unchanged — entry protection same as before.
 
-2. CAPITAL TIER SYSTEM
-   AppScript stores _CAP=13000/10000/7000 per stock in T4 memory.
-   Python reads actual capital at entry instead of flat 10k.
-   Tiers:
-     High conviction (MasterScore≥28 + AF≥10): ₹13,000
-     Medium conviction (MasterScore≥22 OR FII Accumulation): ₹10,000
-     Standard: ₹7,000
+   VCP and MOM params completely unchanged.
 
-3. HISTORY CAPITAL BUG FIXED
-   Both exit paths (normal + hard loss) now log actual trade_capital
-   instead of hardcoded CAPITAL_PER_TRADE (was always 10000).
+   Rationale: All trades are swing (STD mode in bear market).
+   Tight 6% trail was stopping out swing trades before they could
+   move. With 10% trail threshold and 2.5× ATR, a stock needs to
+   meaningfully reverse before TSL triggers — supports full-ride vision.
 
-4. GOOD MORNING — SECTOR ROTATION CONTEXT
-   Reads sector distribution of WAITING stocks.
-   Shows which sectors are active: "🔄 Sectors: Defence (2), Pharma (1)"
-
-5. get_position_capital() ALIGNED WITH APPSCRIPT TIERS
-   Now reads from memory (_CAP key set by AppScript).
-   Falls back to priority-based tier if key not found.
-
-6. TRADE MODE STORED IN MEMORY AT ENTRY
-   _MODE key read from T4 memory when stock moves WAITING→TRADED.
-   TSL width applied for entire trade lifetime.
-
+ALL OTHER CODE IDENTICAL TO v13.2.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ALERTLOG COLUMN MAP (0-based):
   A=0  Signal Time       B=1  Symbol
@@ -92,32 +71,32 @@ C_TRAIL_SL    = 14
 C_PNL         = 15
 
 # Capital config
-CAPITAL_PER_TRADE = 10000   # fallback only
+CAPITAL_PER_TRADE = 10000
 MAX_TRADES        = 5
 MAX_WAITING       = 10
 
-# ── TSL mode parameters (v13.2) ───────────────────────────────────────────────
+# ── TSL mode parameters ───────────────────────────────────────────────────────
 TSL_PARAMS = {
-    "VCP": {                  # Tight base pre-breakout — needs room to run
+    "VCP": {                  # Tight base pre-breakout — unchanged
         "breakeven": 3.0,
         "lock1"    : 5.0,
         "trail"    : 8.0,
         "atr_mult" : 2.0,
         "gap_lock" : 9.0,
     },
-    "MOM": {                  # Strong momentum — give breathing room
+    "MOM": {                  # Strong momentum — unchanged
         "breakeven": 2.5,
         "lock1"    : 4.5,
         "trail"    : 7.0,
         "atr_mult" : 1.8,
         "gap_lock" : 8.0,
     },
-    "STD": {                  # Standard — unchanged from v13.1
-        "breakeven": 2.0,
-        "lock1"    : 4.0,
-        "trail"    : 6.0,
-        "atr_mult" : 1.5,
-        "gap_lock" : 8.0,
+    "STD": {                  # ← v13.3: trail 6→10, atr_mult 1.5→2.5
+        "breakeven": 2.0,     # unchanged — entry protection same
+        "lock1"    : 4.0,     # unchanged — breakeven lock same
+        "trail"    : 10.0,    # was 6.0 — let swing run longer
+        "atr_mult" : 2.5,     # was 1.5 — wider ATR trail
+        "gap_lock" : 8.0,     # unchanged
     },
 }
 
@@ -336,24 +315,18 @@ def set_exit_date(mem: str, key: str, date_str: str) -> str:
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# v13.2: TRADE MODE + CAPITAL FROM MEMORY
+# TRADE MODE + CAPITAL FROM MEMORY
 # ══════════════════════════════════════════════════════════════════════════════
 
 def get_trade_mode(mem: str, key: str) -> str:
-    """Read trade mode set by AppScript: VCP / MOM / STD"""
     val = _mem_get(mem, f"{key}_MODE")
     return val if val in ("VCP", "MOM", "STD") else "STD"
 
 def get_tsl_params(mem: str, key: str) -> dict:
-    """Return TSL threshold dict based on trade mode."""
     mode = get_trade_mode(mem, key)
     return TSL_PARAMS[mode]
 
 def get_capital_from_mem(mem: str, key: str) -> int:
-    """
-    Read capital set by AppScript (_CAP key).
-    Falls back to priority-based tier if not set.
-    """
     cap_str = _mem_get(mem, f"{key}_CAP")
     if cap_str:
         try:
@@ -368,15 +341,11 @@ def save_capital_to_mem(mem: str, key: str, capital: int) -> str:
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# v13.2: TSL CALCULATION — mode-aware
+# TSL CALCULATION — mode-aware, unchanged from v13.2
 # ══════════════════════════════════════════════════════════════════════════════
 
 def calc_new_tsl(cp: float, ent: float, init_sl: float, atr: float,
                  ttype: str = "", params: dict = None) -> float:
-    """
-    Calculate new trailing SL based on trade mode parameters.
-    params = TSL_PARAMS["VCP"/"MOM"/"STD"] — defaults to STD.
-    """
     if params is None:
         params = TSL_PARAMS["STD"]
 
@@ -385,7 +354,6 @@ def calc_new_tsl(cp: float, ent: float, init_sl: float, atr: float,
     gain_pct  = ((cp - ent) / ent) * 100
     gap_lock_at = params["gap_lock"]
 
-    # Gap-up protection: lock in 50% of gap
     if gain_pct >= gap_lock_at:
         gap_lock  = round(ent + (cp - ent) * TSL_GAP_LOCK_FRAC, 2)
         atr_trail = round(cp - (params["atr_mult"] * atr), 2)
@@ -394,16 +362,16 @@ def calc_new_tsl(cp: float, ent: float, init_sl: float, atr: float,
     if gain_pct < params["breakeven"]:
         return init_sl
     elif gain_pct < params["lock1"]:
-        return round(ent, 2)                          # breakeven lock
+        return round(ent, 2)
     elif gain_pct < params["trail"]:
-        return round(ent * 1.02, 2)                   # +2% lock
+        return round(ent * 1.02, 2)
     else:
         atr_trail = round(cp - (params["atr_mult"] * atr), 2)
-        return max(atr_trail, round(ent * 1.02, 2))   # ATR trail
+        return max(atr_trail, round(ent * 1.02, 2))
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# MESSAGE BUILDERS
+# MESSAGE BUILDERS — unchanged from v13.2
 # ══════════════════════════════════════════════════════════════════════════════
 
 def build_gm_basic(today: str, trade_count: int, waiting_count: int,
@@ -536,15 +504,10 @@ def get_market_regime(nifty_sheet) -> bool:
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# v13.2: SECTOR ROTATION CONTEXT
-# Returns a one-line summary of which sectors have WAITING candidates.
+# SECTOR ROTATION CONTEXT — now works because AppScript writes _SEC key
 # ══════════════════════════════════════════════════════════════════════════════
 
 def get_sector_context(all_data: list, mem: str) -> str:
-    """
-    Read WAITING rows from AlertLog and group by sector using Nifty200 data.
-    Returns string like "🔄 Sectors: Defence (2), Pharma (1)"
-    """
     sector_counts = {}
     for r in all_data[1:16]:
         r = pad(list(r))
@@ -553,7 +516,6 @@ def get_sector_context(all_data: list, mem: str) -> str:
         sym = str(r[C_SYMBOL]).strip()
         if not sym:
             continue
-        # Try to get sector from memory tag (AppScript stores _SEC key)
         key = sym_key(sym)
         sec = _mem_get(mem, f"{key}_SEC") or "Mixed"
         sector_counts[sec] = sector_counts.get(sec, 0) + 1
@@ -565,7 +527,7 @@ def get_sector_context(all_data: list, mem: str) -> str:
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# MAIN TRADING CYCLE
+# MAIN TRADING CYCLE — unchanged from v13.2
 # ══════════════════════════════════════════════════════════════════════════════
 
 def run_trading_cycle():
@@ -611,7 +573,6 @@ def run_trading_cycle():
             1 for r in [pad(list(x)) for x in all_data[1:16]]
             if "WAITING" in str(r[C_STATUS]).upper()
         )
-        # v13.2: sector context
         sector_line = get_sector_context(all_data, mem)
 
         lines = []
@@ -629,7 +590,7 @@ def run_trading_cycle():
             if cp > 0 and ent > 0:
                 pnl   = (cp - ent) / ent * 100
                 key   = sym_key(sym)
-                cap   = get_capital_from_mem(mem, key)  # v13.2: actual capital
+                cap   = get_capital_from_mem(mem, key)
                 pl_rs = round((cp - ent) / ent * cap)
                 to_tgt = ((tgt - cp) / cp * 100) if cp > 0 else 0
                 to_sl  = ((cp - sl) / cp * 100) if cp > 0 else 0
@@ -718,7 +679,6 @@ def run_trading_cycle():
                 print(f"[SKIP] {sym}: CMP ₹{cp:,.0f} too high")
                 continue
 
-            # v13.2: read capital and mode set by AppScript
             capital    = get_capital_from_mem(mem, key)
             trade_mode = get_trade_mode(mem, key)
             tsl_params = TSL_PARAMS[trade_mode]
@@ -798,11 +758,10 @@ def run_trading_cycle():
                 atr   = (tgt - ent) / _mult if tgt > ent else ent * 0.02
 
             days_held  = calc_hold_days(etime, now)
-            trade_mode = get_trade_mode(mem, key)   # v13.2: mode-aware TSL
+            trade_mode = get_trade_mode(mem, key)
             tsl_params = TSL_PARAMS[trade_mode]
-            capital    = get_capital_from_mem(mem, key)  # v13.2: actual capital
+            capital    = get_capital_from_mem(mem, key)
 
-            # TSL update
             new_tsl = calc_new_tsl(cp, ent, init_sl, atr, ttype, tsl_params)
             new_tsl = max(new_tsl, get_tsl(mem, key), cur_tsl)
 
@@ -819,7 +778,6 @@ def run_trading_cycle():
                 mem = set_tsl(mem, key, new_tsl)
                 print(f"[TSL] {sym} [{trade_mode}]: ₹{cur_tsl:.2f}→₹{new_tsl:.2f}")
 
-            # Exit logic
             entry_date_key = etime[:10].replace('-', '') if etime else "0"
             ex_flag    = f"{key}_EX_{entry_date_key}"
             tsl_hit    = (new_tsl > 0 and cp <= new_tsl)
@@ -828,7 +786,7 @@ def run_trading_cycle():
 
             # ── Hard loss exit ────────────────────────────────────────────────
             if hard_loss and ex_flag not in mem:
-                pl_rupees = round((cp - ent) / ent * capital, 2)  # v13.2: actual capital
+                pl_rupees = round((cp - ent) / ent * capital, 2)
                 hold_str  = calc_hold_str(etime, now)
                 max_price = get_max_price(mem, key)
 
@@ -849,7 +807,7 @@ def run_trading_cycle():
                     "🚨 HARD LOSS EXIT", ttype, init_sl, new_tsl,
                     max_price if max_price > 0 else cp,
                     round(atr, 2), days_held,
-                    capital,        # v13.2: actual capital, not hardcoded
+                    capital,
                     pl_rupees, "—",
                 ])
                 log_sheet.update_cell(sheet_row, C_STATUS + 1, "EXITED")
@@ -876,7 +834,7 @@ def run_trading_cycle():
                 result_sym    = "WIN ✅" if (target_hit or pnl_pct > 0) else "LOSS 🔴"
                 hold_str      = calc_hold_str(etime, now)
                 max_price     = get_max_price(mem, key)
-                pl_rupees     = round((cp - ent) / ent * capital, 2)  # v13.2: actual capital
+                pl_rupees     = round((cp - ent) / ent * capital, 2)
                 o_note        = (options_hint(sym, ent, atr, ttype)
                                  .replace('\n\n📊 <b>OPTIONS ADVISORY</b>', '')
                                  .strip() if atr > 0 else "")
@@ -894,7 +852,7 @@ def run_trading_cycle():
                     exit_reason, ttype, init_sl, new_tsl,
                     max_price if max_price > 0 else cp,
                     round(atr, 2), days_held,
-                    capital,        # v13.2: actual capital, not hardcoded
+                    capital,
                     pl_rupees,
                     o_note[:100] if o_note else "—",
                 ])
@@ -1052,7 +1010,7 @@ def run_trading_cycle():
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# WEEKLY SUMMARY
+# WEEKLY SUMMARY — unchanged from v13.2
 # ══════════════════════════════════════════════════════════════════════════════
 
 def run_weekly_summary():
@@ -1123,7 +1081,7 @@ def run_weekly_summary():
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# DAILY SUMMARY
+# DAILY SUMMARY — unchanged from v13.2
 # ══════════════════════════════════════════════════════════════════════════════
 
 def run_daily_summary():
@@ -1203,7 +1161,7 @@ def run_daily_summary():
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# TEST TELEGRAM
+# TEST TELEGRAM — unchanged from v13.2
 # ══════════════════════════════════════════════════════════════════════════════
 
 def run_test_telegram():
@@ -1211,7 +1169,7 @@ def run_test_telegram():
     print("[TEST] Sending Telegram test messages to all 3 channels...")
     test_msg = (
         f"✅ <b>TELEGRAM TEST — OK</b>\n━━━━━━━━━━━━━━━━━━━━\n"
-        f"🤖 Bot: AI360 Trading v13.2\n"
+        f"🤖 Bot: AI360 Trading v13.3\n"
         f"🕐 Time: {now.strftime('%Y-%m-%d %H:%M:%S')} IST\n"
         f"🔑 Token: Connected ✅\n💬 Chat: Connected ✅\n\n"
     )
