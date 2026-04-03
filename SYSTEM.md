@@ -1,7 +1,7 @@
 # AI360Trading — Master System Documentation
 
-**Last Updated:** March 29, 2026 — Phase 2 Complete
-**Status:** Phase 1 ✅ Complete | Phase 2 ✅ Complete | Phase 3 Planned
+**Last Updated:** April 3, 2026 — Trading Bot v13.4 + AppScript v13.3
+**Status:** Phase 1 ✅ Complete | Phase 2 ✅ Complete | Phase 3 Planned | Phase 4 (Dhan Live) Planned
 **Primary Audience:** Bilingual Hindi + English — Indian retail traders + global investors
 
 > ⚠️ **Read this file completely before making ANY changes.**
@@ -54,7 +54,7 @@
 | Facebook Group | ❌ Broken | Missing `publish_to_groups` token scope — see Section 11 |
 | Instagram | ⚠️ Partial | Upload chain built; `INSTAGRAM_ACCOUNT_ID` secret needed |
 | GitHub Pages | ✅ Auto | 4 articles/day + instant Google indexing |
-| Telegram | ✅ Auto | Signal alerts to all 3 channels |
+| Telegram | ✅ Auto | Signal alerts to all 3 channels (paper trading — followers take manual entry) |
 
 ---
 
@@ -121,7 +121,7 @@ All workflows support `workflow_dispatch` with a `content_mode` dropdown to forc
 
 | File | Role | Key Tech | Status |
 |---|---|---|---|
-| `trading_bot.py` | Nifty200 buy/sell signal scanner | Dhan API, Google Sheets | ✅ |
+| `trading_bot.py` | Nifty200 signal monitor + TSL manager + Telegram alerts | gspread + Google Sheets + Telegram Bot API | ✅ v13.4 |
 | `generate_shorts.py` | Short 2 (Madhur) + Short 3 (Swara) | ai_client, human_touch, Edge-TTS | ✅ Phase 2 |
 | `generate_reel.py` | ZENO 60s reel (8:30 PM) | ai_client, human_touch, MoviePy | ✅ Phase 2 |
 | `generate_reel_morning.py` | Morning reel (7:00 AM) — day/country aware | ai_client, human_touch, MoviePy | ✅ |
@@ -197,7 +197,160 @@ tags = seo.get_video_tags(mode=CONTENT_MODE, lang="hi")
 
 ---
 
-## 8. Critical Upload Chain
+## 8. Trading Bot Architecture
+
+### Overview
+
+The trading system is split across two components that work together:
+
+| Component | File | Role |
+|---|---|---|
+| AppScript v13.3 | Google Sheets bound script | Scans Nifty200 sheet, applies filters, writes WAITING candidates to AlertLog, stores memory in T4 |
+| Python Bot v13.4 | `trading_bot.py` | Monitors AlertLog every 5 min, manages WAITING→TRADED transition, TSL updates, exit logic, Telegram alerts |
+
+**Current status:** Paper trading. Followers receive Telegram signals and take manual entry. Dhan API integration planned for Phase 4 after backtest validation.
+
+### Google Sheets Structure
+
+| Sheet | Purpose |
+|---|---|
+| `Nifty200` | Live data for all 200 stocks — CMP, DMAs, FII data, signals, scores (34 cols) |
+| `AlertLog` | Active + waiting trades — 15 rows, 19 cols. T2=YES/NO automation switch. T4=memory string |
+| `History` | Closed trade log — 18 cols A–R |
+
+### AlertLog Column Map (0-based)
+
+```
+A=0  Signal Time    B=1  Symbol        C=2  Live Price     D=3  Priority Score
+E=4  Trade Type     F=5  Strategy      G=6  Breakout Stage H=7  Initial SL
+I=8  Target         J=9  RR Ratio      K=10 Trade Status   L=11 Entry Price
+M=12 Entry Time     N=13 Days in Trade O=14 Trailing SL    P=15 P/L%
+Q=16 ATH Warning    R=17 Risk ₹        S=18 Position Size  T=19 SYSTEM CONTROL
+```
+
+**T2** = automation on/off switch (set YES to enable)
+**T4** = memory string (key=value pairs, comma separated — stores TSL, MAX, ATR, CAP, MODE, SEC, exit dates, daily flags)
+
+### Nifty200 Column Map (0-based, used by AppScript)
+
+```
+r[0]  NSE_SYMBOL          r[1]  SECTOR
+r[2]  CMP                 r[3]  %Change (D)
+r[4]  20_DMA              r[5]  50_DMA
+r[6]  200_DMA             r[7]  SMA_Structure (H)
+r[8]  52W_Low             r[9]  52W_High (J)
+r[10] %up_52W_Low         r[11] %down_52W_High
+r[12] %dist_20DMA (M)     r[13] Avg_Volume_20D
+r[14] Volume_vs_Avg% (O)  r[15] FII_Buy_Zone (P)
+r[16] FII_Rating (Q)      r[17] Leader_Type (R)
+r[18] Signal_Score (S)    r[19] FINAL_ACTION (T)
+r[20] RS (U)              r[21] Sector_Trend (V)
+r[22] Breakout_Stage (W)  r[23] Retest% (X)
+r[24] Trade_Type (Y)      r[25] Priority_Score (Z)
+r[26] Pivot_Resistance(AA) r[27] VCP_Status (AB)
+r[28] ATR14 (AC)          r[29] Days_Since_Low (AD)
+r[30] 52W_Breakout_Score  r[31] Sector_Rotation_Score (AF)
+r[32] FII_Buying_Signal(AG) r[33] Master_Score (AH)
+```
+
+### AppScript v13.3 — Key Logic
+
+**Market Regime:** Nifty50 CMP vs 20DMA → Bullish or Bearish. Controls which filter gate applies.
+
+**Bearish gate (4 conditions all required):**
+- Leader_Type = "Sector Leader"
+- AF ≥ 5 (RS≥2.5 with sector tailwind)
+- Master_Score ≥ 22
+- FII signal ≠ "FII CAUTION" or "FII SELLING"
+
+**10 scan gates (in order):**
+1. FII SELLING → skip always
+2. Market regime filter (bullish vs bearish path)
+3. Late entry block (BREAKOUT CONFIRMED needs RS≥7)
+4. Price validity (CMP>0, ATR>0, CMP≤₹5000)
+5. Extension filter (>8% above 20DMA → skip)
+6. Pivot resistance buffer (within 2% below pivot → skip)
+7. Volume filter (bullish market only — vol<120% → skip)
+8. ATH buffer (within 3% of 52W high → skip)
+9. Trade type (AVOID/NO TRADE → skip)
+10. Sector concentration (max 2 per sector)
+
+**Capital tiers:**
+- ₹13,000 — MasterScore≥28 AND AF≥10 (high conviction)
+- ₹10,000 — MasterScore≥22 OR Accumulation Zone (medium conviction)
+- ₹7,000 — standard
+
+**Trade modes (stored as _MODE in T4 memory):**
+- VCP — AB<0.04 + pre-breakout stage
+- MOM — Strong Bull + RS≥6
+- STD — everything else (default in bear market)
+
+**Memory keys written per stock:**
+- `{sym}_CAP` — capital tier (7000/10000/13000)
+- `{sym}_MODE` — trade mode (VCP/MOM/STD)
+- `{sym}_SEC` — sector name (for Good Morning sector context)
+
+**Sort order:** finalScore DESC, then ATR% ASC as tiebreaker within ±2 score points (minimum SL preference).
+
+### Python Bot v13.4 — Key Logic
+
+**TSL Parameters (mode-aware):**
+
+```python
+TSL_PARAMS = {
+    "VCP": { "breakeven": 3.0, "lock1": 5.0, "trail": 8.0,  "atr_mult": 2.0, "gap_lock": 9.0 },
+    "MOM": { "breakeven": 2.5, "lock1": 4.5, "trail": 7.0,  "atr_mult": 1.8, "gap_lock": 8.0 },
+    "STD": { "breakeven": 2.0, "lock1": 4.0, "trail": 10.0, "atr_mult": 2.5, "gap_lock": 8.0 },
+}
+```
+
+STD trail widened in v13.3 (6→10, atr_mult 1.5→2.5) to support full-ride vision on swing trades.
+
+**TSL progression (STD example):**
+- Gain < 2% → hold initial SL
+- Gain 2–4% → move to breakeven
+- Gain 4–10% → lock at entry +2%
+- Gain > 10% → ATR trail (2.5× ATR below CMP)
+- Gain > 8% gap-up → lock 50% of gap
+
+**Daily message schedule:**
+- 08:45–09:15 → Good Morning (open trades P/L + waiting count + sector context)
+- 09:15–15:30 → Market hours (entry alerts, TSL updates, exit alerts)
+- 12:28–12:38 → Mid-day pulse
+- 15:15–15:45 → Market close summary
+
+**Telegram channels:**
+- Basic (free) → market mood, signal closed result only
+- Advance (₹499/mo) → full entry/exit details, TSL updates, mid-day pulse
+- Premium (bundle) → same as Advance + options CE candidate flag
+
+**CE candidate flag (v13.4 — informational only):**
+Fires when market is bullish AND stock ATR% > 1.5%. Shows in Advance + Premium entry alerts only. Uses existing ATR14 (col AC) and CMP — no new data needed. Currently informational — Dhan API connection needed for live CE execution.
+
+```
+ATR% < 1.5%    → no flag (premium decay risk)
+ATR% 1.5–2.5%  → normal mover: target +65%, SL -40% on premium
+ATR% > 2.5%    → fast mover: target +50%, SL -35% on premium
+```
+
+**Hard exit rules:**
+- Loss > 5% → hard loss exit (immediate, no min-hold check)
+- Min hold: 2 days swing, 3 days positional (prevents TSL whipsaw on day 1)
+- 5 trading day cooldown after exit before same stock re-enters
+
+### History Sheet Columns (A–R)
+
+```
+A  Symbol      B  Entry Date   C  Entry Price  D  Exit Date
+E  Exit Price  F  P/L%         G  Result        H  Strategy
+I  Exit Reason J  Trade Type   K  Initial SL    L  TSL at Exit
+M  Max Price   N  ATR at Entry O  Days Held     P  Capital ₹
+Q  Profit/Loss ₹               R  Options Note
+```
+
+---
+
+## 9. Critical Upload Chain
 
 Scripts must run in this exact order. Each one feeds data to the next:
 
@@ -252,18 +405,20 @@ generate_education.py
 
 ---
 
-## 9. Environment Variables & Secrets
+## 10. Environment Variables & Secrets
 
 All stored in **GitHub Actions Secrets**. Never hardcode any of these values.
 
-### Dhan Trading API
-| Secret | Purpose |
-|---|---|
-| `DHAN_API_KEY` | API key |
-| `DHAN_API_SECRET` | API secret |
-| `DHAN_CLIENT_ID` | Client ID |
-| `DHAN_PIN` | Account PIN |
-| `DHAN_TOTP_KEY` | 2FA TOTP key |
+### Dhan Trading API (added — Phase 4 live trading)
+| Secret | Purpose | Status |
+|---|---|---|
+| `DHAN_API_KEY` | API key | ✅ Added — not connected yet |
+| `DHAN_API_SECRET` | API secret | ✅ Added — not connected yet |
+| `DHAN_CLIENT_ID` | Client ID | ✅ Added — not connected yet |
+| `DHAN_PIN` | Account PIN | ✅ Added — not connected yet |
+| `DHAN_TOTP_KEY` | 2FA TOTP key | ✅ Added — not connected yet |
+
+> Dhan integration planned for Phase 4 after backtest validation. Currently all trading is paper-mode via Google Sheets + AppScript. Followers take manual entry from Telegram signals.
 
 ### Social Platforms
 | Secret | Purpose | Status |
@@ -289,14 +444,14 @@ All stored in **GitHub Actions Secrets**. Never hardcode any of these values.
 | Secret | Purpose |
 |---|---|
 | `TELEGRAM_BOT_TOKEN` | Bot authentication token |
-| `TELEGRAM_CHAT_ID` | Default channel ID |
-| `CHAT_ID_ADVANCE` | Advance signals channel |
-| `CHAT_ID_PREMIUM` | Premium signals channel |
+| `TELEGRAM_CHAT_ID` | Free channel (ai360trading) |
+| `CHAT_ID_ADVANCE` | Advance signals channel (₹499/month) |
+| `CHAT_ID_PREMIUM` | Premium signals channel (bundle) |
 
 ### Google / GCP
 | Secret | Purpose |
 |---|---|
-| `GCP_SERVICE_ACCOUNT_JSON` | Search Console Indexing API + Google Sheets |
+| `GCP_SERVICE_ACCOUNT_JSON` | Search Console Indexing API + Google Sheets (gspread) |
 
 ### General
 | Secret | Purpose |
@@ -305,7 +460,7 @@ All stored in **GitHub Actions Secrets**. Never hardcode any of these values.
 
 ---
 
-## 10. Human Touch System (Anti-AI-Penalty)
+## 11. Human Touch System (Anti-AI-Penalty)
 
 All content uses `human_touch.py`. **Never use raw AI output directly.**
 
@@ -322,7 +477,7 @@ All content uses `human_touch.py`. **Never use raw AI output directly.**
 
 ---
 
-## 11. Known Issues & Fixes
+## 12. Known Issues & Fixes
 
 ### Facebook Group Posting ❌
 
@@ -359,7 +514,7 @@ If channel is below 500 subs, `generate_community_post.py` will:
 
 ---
 
-## 12. Technical Standards
+## 13. Technical Standards
 
 ### The "Full Code" Rule
 > AI assistants **must always provide the complete content** of any modified file. Partial snippets or diffs are strictly prohibited.
@@ -401,6 +556,9 @@ speed  = ht.get_tts_speed()  # pass to edge_tts rate param
 | `google-generativeai` | Latest | Gemini fallback in ai_client.py |
 | `anthropic` | Latest | Claude fallback in ai_client.py |
 | `openai` | Latest | OpenAI fallback in ai_client.py |
+| `gspread` | Latest | Google Sheets access in trading_bot.py |
+| `oauth2client` | Latest | GCP service account auth for gspread |
+| `pytz` | Latest | IST timezone handling in trading_bot.py |
 
 ### Voice Assignments
 
@@ -435,7 +593,7 @@ Every video includes both India-specific AND global tags via `seo.get_video_tags
 
 ---
 
-## 13. Disney 3D Reel Roadmap
+## 14. Disney 3D Reel Roadmap
 
 | Phase | Tool | Quality | Timeline | Status |
 |---|---|---|---|---|
@@ -448,74 +606,112 @@ Every video includes both India-specific AND global tags via `seo.get_video_tags
 
 ---
 
-## 14. Full Data Flow
+## 15. Full Data Flow
 
 ```
 Market hours (Mon–Fri, 9:15 AM–3:30 PM IST)
 └── main.yml (every 5 min)
-    └── trading_bot.py → Dhan API → Buy/Sell signals
-        └── → Google Sheets + Telegram (all 3 channels) ✅
+    └── trading_bot.py v13.4
+        └── get_sheets() → gspread → AlertLog + History + Nifty200
+        └── get_market_regime() → Nifty CMP vs 20DMA → bullish/bearish
+        └── Step A: WAITING→TRADED (entry alert → all 3 channels)
+        └── Step B: Monitor TRADED (TSL update → Advance+Premium)
+        └── Exit logic (TSL hit / target hit / hard loss)
+        └── CE candidate flag in entry alert (bullish + ATR%>1.5%)
+        └── History sheet append on exit
+        └── T4 memory string updated each run
+
+AppScript v13.3 (Google Sheets bound — triggered manually or on schedule)
+└── Nifty200 sheet scan (batched 60 rows per run)
+└── 10-gate filter → bearish or bullish path
+└── Conviction bonus + capital tier + trade mode
+└── ATR% tiebreaker sort (min SL preference)
+└── Write WAITING rows to AlertLog
+└── Write _CAP, _MODE, _SEC keys to T4 memory
+└── Bearish alert with top sector context → Telegram
 
 7:00 AM daily
 └── daily_reel.yml (morning job)
-    └── generate_reel_morning.py
-        └── ai_client → Groq/Gemini/Claude/OpenAI/Template
-        └── human_touch → day-aware topic + hook + TTS speed
-        └── Morning reel video (9:16)
-        └── Upload: YouTube ✅ | Facebook ✅ | Instagram ⚠️
+    └── generate_reel_morning.py → upload chain ✅
 
 7:30 AM / 9:30 AM daily
 └── daily-videos.yml
-    └── generate_analysis.py
-        └── ai_client → generate_json() → 8 slides
-        └── human_touch → hook + TTS speed + SEO tags
-        └── Part 1 video → YouTube ✅
-        └── Saves analysis_video_id.txt + analysis_meta_YYYYMMDD.json
-    └── generate_education.py
-        └── Reads analysis_video_id.txt → links Part 1
-        └── ai_client → generate_json() → edu slides
-        └── human_touch → hook + personal phrase + TTS speed
-        └── Part 2 video → YouTube ✅
-        └── Updates Part 1 description with Part 2 URL
-        └── Posts: links → Facebook Page ✅ | Group ❌
+    └── generate_analysis.py → Part 1 → YouTube ✅
+    └── generate_education.py → Part 2 → YouTube ✅
 
 10:00 AM / 11:30 AM daily
 └── daily-articles.yml
-    └── generate_articles.py
-        └── ai_client → generate() → 4 articles
-        └── human_touch → hook + humanize() + seo.get_video_tags()
-        └── git commit → GitHub Pages ✅
-        └── GCP Indexing API → instant Google indexing ✅
-        └── Posts: links → Facebook Page ✅ | Group ❌
+    └── generate_articles.py → 4 articles → GitHub Pages ✅ → Facebook ✅
 
 11:30 AM / 1:30 PM daily
 └── daily-shorts.yml
-    └── generate_shorts.py
-        └── ai_client → generate_json() → Short 2 + Short 3
-        └── human_touch → hooks + TTS speed + SEO tags
-        └── Short 2 (Hindi, Madhur) → YouTube ✅
-        └── Short 3 (Hindi, Swara) → YouTube ✅
-        └── Facebook Page ✅ | Group ❌
-    └── generate_community_post.py
-        └── ai_client → generate() → community post text
-        └── human_touch → hook + personal phrase + emojis
-        └── YouTube Community Tab ✅ (requires 500+ subs)
-        └── Fallback: saves to output/community_post_YYYYMMDD.txt
+    └── generate_shorts.py → Short 2 + Short 3 → YouTube ✅
+    └── generate_community_post.py → Community Tab ✅
 
 8:30 PM daily
 └── daily_reel.yml (evening job)
-    └── generate_reel.py
-        └── ai_client → generate_json() → ZENO script
-        └── human_touch → hook + humanize + TTS speed + SEO tags
-        └── ZENO reel video (9:16)
-    └── upload_youtube.py → YouTube ✅ → saves public_video_url
-    └── upload_facebook.py → FB Page ✅ | Group ❌ → updates URL
-    └── upload_instagram.py → Instagram ⚠️
+    └── generate_reel.py → ZENO reel
+    └── upload_youtube.py ✅ → upload_facebook.py ✅ → upload_instagram.py ⚠️
 ```
 
 ---
 
-## 15. How to Test Everything
+## 16. Website
+
+- **URL:** `ai360trading.in`
+- **Hosting:** GitHub Pages (Jekyll, `master` branch `_posts/`)
+- **Publishing:** Auto-commit by `daily-articles.yml`
+- **SEO Indexing:** Instant via `GCP_SERVICE_ACCOUNT_JSON`
+- **Revenue:** Google AdSense (USA/UK English readers = highest CPM)
+- **Content pillars:** Stock Market, Bitcoin/Crypto, Personal Finance, AI Trading
+- **Market coverage:** India (Nifty50, BankNifty), USA (S&P500, NASDAQ), UK (FTSE100), Brazil (IBOVESPA), Crypto (BTC, ETH)
+
+---
+
+## 17. Social Media Links
+
+| Platform | Handle/Link |
+|---|---|
+| 🌐 Website | ai360trading.in |
+| 📣 Telegram (Free) | @ai360trading |
+| 📣 Telegram (Advance) | ai360trading_Advance — ₹499/month |
+| 📣 Telegram (Premium) | ai360trading_Premium — bundle |
+| ▶️ YouTube | @ai360trading |
+| 📸 Instagram | @ai360trading |
+| 👥 Facebook Group | facebook.com/groups/ai360trading |
+| 📘 Facebook Page | facebook.com/ai360trading |
+| 🐦 Twitter/X | @ai360trading |
+
+---
+
+## 18. Phase Roadmap
+
+### Phase 1 ✅ Complete
+`ai_client.py`, `human_touch.py`, `token_refresh.py`, `generate_reel_morning.py`
+
+### Phase 2 ✅ Complete
+`generate_articles.py`, `generate_analysis.py`, `generate_education.py`, `generate_reel.py`, `generate_shorts.py`, `generate_community_post.py` — all upgraded to ai_client + human_touch
+
+### Phase 3 🔄 In Progress
+| Item | File | Priority |
+|---|---|---|
+| English channel shorts | `generate_english.py` | 🟡 Medium |
+| English channel upload | `upload_youtube_english.py` | 🟡 Medium |
+| Fix Facebook Group token | Manual config task | 🔴 High |
+| Instagram verify live | Test after `INSTAGRAM_ACCOUNT_ID` added | 🔴 High |
+| Disney 3D reel upgrade | `ai_client.py` img_client Phase 2 | 🔵 Future |
+
+### Phase 4 📋 Planned — Dhan Live Trading
+| Item | Dependency | Notes |
+|---|---|---|
+| Backtest validation | 30–40 live paper trades, win rate >35% | Currently running paper trades |
+| Dhan API connection | `DHAN_API_KEY` secrets already added | Auto-execute on WAITING→TRADED |
+| Options CE execution | Dhan API + lot size data | CE flag already in alerts (informational) |
+| Live capital deployment | After backtest confirms system | ₹45,000 max deployed (₹5k buffer) |
+
+---
+
+## 19. How to Test Everything
 
 ### Test a workflow manually
 GitHub Actions → select workflow → **Run workflow** → set `content_mode` dropdown → watch logs.
@@ -535,50 +731,40 @@ In logs, look for:
 ✅ Community post generated via groq (112 chars)
 ```
 
-### Verify articles upgrade
-After `daily-articles.yml` runs → open any `_posts/*.md` file → look for:
-```yaml
-ai_provider: "groq"
-seo_tags: "Nifty50, TradingIndia, ..."
+### Verify trading bot
+In logs (`main.yml`), look for:
+```
+[REGIME] Nifty CMP ₹22679 vs 20DMA ₹23547 → BEARISH
+[INFO] Active trades: 4/5
+[TSL] NSE:ONGC [STD]: ₹280.60→₹285.20
+[DONE] 15:20:01 IST | mem=842 chars
 ```
 
-### Force each mode
+### Verify AppScript
+Open Google Sheet → AI360 TRADING menu → MANUAL SYNC → check Logger output:
+```
+[REGIME] CMP=22679 20DMA=23547 Bullish=false
+[CAND] NSE:ADANIPOWER | Score=24 | ATR%=2.1 | ₹10000 | STD | AF=8.2 | Qty=64
+[DONE] Traded=4 | Waiting=3 | Bullish=false
+```
+
+### Force each content mode
 ```
 workflow_dispatch → content_mode = market   # weekday content
 workflow_dispatch → content_mode = weekend  # weekend content
 workflow_dispatch → content_mode = holiday  # holiday content
 ```
 
-### Check community post fallback
-If YouTube Community Tab not enabled → check `output/community_post_YYYYMMDD.txt` in workflow artifacts for the post text to copy manually.
-
----
-
-## 16. Website
-
-- **URL:** `ai360trading.in`
-- **Hosting:** GitHub Pages (Jekyll, `master` branch `_posts/`)
-- **Publishing:** Auto-commit by `daily-articles.yml`
-- **SEO Indexing:** Instant via `GCP_SERVICE_ACCOUNT_JSON`
-- **Revenue:** Google AdSense (USA/UK English readers = highest CPM)
-
----
-
-## 17. Phase 3 — Remaining Builds
-
-| Item | File | Priority |
-|---|---|---|
-| English channel shorts | `generate_english.py` | 🟡 Medium |
-| English channel upload | `upload_youtube_english.py` | 🟡 Medium |
-| Fix Facebook Group token | Manual config task | 🔴 High |
-| Instagram verify live | Test after `INSTAGRAM_ACCOUNT_ID` added | 🔴 High |
-| Disney 3D reel upgrade | `ai_client.py` img_client Phase 2 | 🔵 Future |
+### Automation on/off switch
+Google Sheet → AlertLog → cell T2 → set "YES" to enable, anything else to disable.
 
 ---
 
 *Documentation maintained by AI360Trading automation.*
-*Full audit: March 29, 2026 — Claude Sonnet 4.6*
+*Full audit: April 3, 2026 — Claude Sonnet 4.6*
 *Phase 1 complete: ai_client.py, human_touch.py, token_refresh.py, generate_reel_morning.py*
-*Phase 2 complete: generate_articles.py, generate_analysis.py, generate_education.py, generate_reel.py, generate_shorts.py, generate_community_post.py — all upgraded to ai_client + human_touch*
+*Phase 2 complete: generate_articles.py, generate_analysis.py, generate_education.py, generate_reel.py, generate_shorts.py, generate_community_post.py*
+*Trading bot: AppScript v13.3 + Python v13.4 — paper trading, Google Sheets, Dhan Phase 4*
 *Phase 3 remaining: generate_english.py, upload_youtube_english.py, Facebook Group fix, Instagram verify*
+*Phase 4 planned: Dhan live trading after backtest validation*
 *Update this file whenever architecture, secrets, platform status, or file logic changes.*
