@@ -1,21 +1,28 @@
 """
-AI360 TRADING BOT — v13.3
+AI360 TRADING BOT — v13.4
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-v13.3 CHANGES vs v13.2 (1 change only):
+v13.4 CHANGES vs v13.3 (1 change only):
 
-1. STD TSL PARAMS WIDENED — let swing trades run longer
-   trail : 6.0  → 10.0  (was cutting rides too early)
-   atr_mult: 1.5 → 2.5   (wider ATR trail = more breathing room)
-   breakeven and lock1 unchanged — entry protection same as before.
+1. CE CANDIDATE FLAG in entry alert
+   When market is bullish AND stock ATR% > 1.5%, entry alert
+   shows a CE candidate line for advance/premium channels.
+   No new columns, no new APIs, no new dependencies.
+   Uses existing ATR14 (col AC) and CMP (col C) only.
 
-   VCP and MOM params completely unchanged.
+   Logic:
+     ATR% > 1.5% + bullish market  → show CE flag
+     ATR% > 2.5%                   → fast mover tag added
+     ATR% < 1.5%                   → no flag (premium decay risk)
 
-   Rationale: All trades are swing (STD mode in bear market).
-   Tight 6% trail was stopping out swing trades before they could
-   move. With 10% trail threshold and 2.5× ATR, a stock needs to
-   meaningfully reverse before TSL triggers — supports full-ride vision.
+   Alert addition (advance/premium only):
+     📊 CE CANDIDATE
+        ATR%: 2.1% | Strike: 155 CE or 160 CE
+        Target: +65% on premium | SL: -40%
+        Check actual premium on Zerodha option chain
 
-ALL OTHER CODE IDENTICAL TO v13.2.
+   Free subscribers (basic channel) see no options info.
+
+ALL OTHER CODE IDENTICAL TO v13.3.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ALERTLOG COLUMN MAP (0-based):
   A=0  Signal Time       B=1  Symbol
@@ -227,6 +234,54 @@ def options_hint(sym: str, cp: float, atr: float, trade_type: str) -> str:
         f"   ⚠️ Options are leveraged — size carefully"
     )
 
+def ce_candidate_flag(cp: float, atr: float, stage: str, is_bullish: bool) -> str:
+    """
+    CE candidate flag — added to advance/premium entry alerts only.
+    Uses existing ATR14 (col AC) and CMP (col C). No new data needed.
+
+    Rules (from discussion):
+      ATR% < 1.5%  → skip (premium decay exceeds stock movement)
+      ATR% 1.5-2.5% → normal mover, target 65%, SL 40%
+      ATR% > 2.5%  → fast mover, target 50%, SL 35%
+      Not bullish  → no CE flag (bear market CE buying = high risk)
+    """
+    if not is_bullish: return ""
+    if cp <= 0 or atr <= 0: return ""
+
+    atr_pct = (atr / cp) * 100
+    if atr_pct < 1.5: return ""
+
+    # Strike selection based on stage
+    # Near Breakout / Building Momentum → ATM strike
+    # BREAKOUT CONFIRMED → ATM+1 (slightly OTM, more leverage)
+    gap = 5 if cp < 200 else (10 if cp < 500 else (20 if cp < 1000 else 50))
+    atm_strike  = round(cp / gap) * gap
+    otm_strike  = atm_strike + gap
+
+    if "BREAKOUT CONFIRMED" in stage:
+        strike_str = f"{int(otm_strike)} CE (OTM — breakout in progress)"
+    else:
+        strike_str = f"{int(atm_strike)} CE or {int(otm_strike)} CE"
+
+    # Target and SL based on ATR% and speed
+    if atr_pct >= 2.5:
+        target_pct = 50
+        sl_pct     = 35
+        speed_tag  = "⚡ Fast mover"
+    else:
+        target_pct = 65
+        sl_pct     = 40
+        speed_tag  = "📈 Normal mover"
+
+    return (
+        f"\n\n📊 <b>CE CANDIDATE</b> ({speed_tag})\n"
+        f"   ATR%: {atr_pct:.1f}% | Strike: {strike_str}\n"
+        f"   Target: +{target_pct}% on premium | SL: -{sl_pct}% on premium\n"
+        f"   Entry: Only above ₹{cp + atr * 0.3:.1f} (breakout confirm)\n"
+        f"   ⚠️ Check actual premium on Zerodha option chain\n"
+        f"   ⚠️ Wednesday entry → prefer monthly expiry"
+    )
+
 
 # ══════════════════════════════════════════════════════════════════════════════
 # MEMORY HELPERS
@@ -407,9 +462,9 @@ def build_gm_advance(today: str, lines: list, deployed: int,
 
 def build_entry_advance(sym, cp, ent, init_sl, target, ttype, strat, stage,
                         priority, pos_size, capital, risk_rs, reward_rs,
-                        rr_num, trade_mode) -> str:
+                        rr_num, trade_mode, ce_flag="") -> str:
     mode_tag = {"VCP": "🎯 VCP Breakout", "MOM": "🚀 Momentum", "STD": "📊 Swing"}.get(trade_mode, "📊 Swing")
-    return (
+    msg = (
         f"🚀 <b>TRADE ENTERED</b>\n\n"
         f"<b>Stock:</b> {sym}\n"
         f"<b>Type:</b> {ttype} [{mode_tag}]\n"
@@ -421,13 +476,17 @@ def build_entry_advance(sym, cp, ent, init_sl, target, ttype, strat, stage,
         f"<b>RR Ratio:</b> 1:{rr_num:.1f}\n"
         f"<b>Priority:</b> {priority}/30"
     )
+    # v13.4: CE candidate flag (advance channel sees this)
+    if ce_flag:
+        msg += ce_flag
+    return msg
 
 def build_entry_premium(sym, cp, ent, init_sl, target, ttype, strat, stage,
                         priority, pos_size, capital, risk_rs, reward_rs,
-                        rr_num, o_hint, trade_mode) -> str:
+                        rr_num, o_hint, trade_mode, ce_flag="") -> str:
     base = build_entry_advance(sym, cp, ent, init_sl, target, ttype, strat,
                                stage, priority, pos_size, capital, risk_rs,
-                               reward_rs, rr_num, trade_mode)
+                               reward_rs, rr_num, trade_mode, ce_flag)
     return base + (o_hint if o_hint else "")
 
 def build_exit_advance(sym, ttype, ent, cp, pnl_pct, pl_rupees, hold_str,
@@ -712,6 +771,8 @@ def run_trading_cycle():
 
             atr       = atr_est
             o_hint    = options_hint(sym, cp, atr, ttype)
+            # v13.4: CE candidate flag — uses existing ATR, no new data
+            c_flag    = ce_candidate_flag(cp, atr, stage, is_bullish)
             entry_key = f"{key}_ENTRY"
             mem      += f",{entry_key}"
 
@@ -722,12 +783,12 @@ def run_trading_cycle():
             entry_alerts_advance.append(
                 build_entry_advance(sym, cp, cp, init_sl, target, ttype, strat, stage,
                                     priority, pos_size, capital, risk_rs, reward_rs,
-                                    rr_num, trade_mode)
+                                    rr_num, trade_mode, c_flag)
             )
             entry_alerts_premium.append(
                 build_entry_premium(sym, cp, cp, init_sl, target, ttype, strat, stage,
                                     priority, pos_size, capital, risk_rs, reward_rs,
-                                    rr_num, o_hint, trade_mode)
+                                    rr_num, o_hint, trade_mode, c_flag)
             )
             print(f"[ENTRY] {sym} @ ₹{cp} | ₹{capital:,} | {pos_size}sh | {ttype} | {trade_mode} | SL ₹{init_sl} | T ₹{target}")
 
