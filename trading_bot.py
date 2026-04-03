@@ -1,28 +1,35 @@
 """
-AI360 TRADING BOT — v13.4
+AI360 TRADING BOT — v13.5
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-v13.4 CHANGES vs v13.3 (1 change only):
+v13.5 CHANGES vs v13.4 (3 surgical fixes only):
 
-1. CE CANDIDATE FLAG in entry alert
-   When market is bullish AND stock ATR% > 1.5%, entry alert
-   shows a CE candidate line for advance/premium channels.
-   No new columns, no new APIs, no new dependencies.
-   Uses existing ATR14 (col AC) and CMP (col C) only.
+1. clean_mem() — orphaned key cleanup [FIX: T4 memory cell growth]
+   Previous: only pruned date-prefixed entries older than 30 days.
+   Symbols exited >30 days ago still kept _CAP, _MODE, _SEC, _ATR,
+   _LP, _MAX, _TSL keys forever → T4 growing unboundedly toward
+   Google Sheets' 50,000 char cell limit.
+   Fix: after identifying symbols with _EXDT_ older than 30 days,
+   prune ALL keys for those symbols (any key starting with
+   NSE_SYM_ or NSE_SYM=).
 
-   Logic:
-     ATR% > 1.5% + bullish market  → show CE flag
-     ATR% > 2.5%                   → fast mover tag added
-     ATR% < 1.5%                   → no flag (premium decay risk)
+2. ATR read directly from Nifty200 sheet at entry [FIX: wrong TSL]
+   Previous: atr_est = (target - cp) / mult — backwards derivation.
+   If AppScript set an unusual target, TSL calculations used wrong ATR.
+   Fix: in Step A, read ATR14 from Nifty200 col AC (0-based index 28)
+   for the symbol at entry time. Falls back to old formula only if
+   Nifty200 lookup fails or returns 0.
+   Requires: nifty_sheet already available in run_trading_cycle().
+   No signature changes.
 
-   Alert addition (advance/premium only):
-     📊 CE CANDIDATE
-        ATR%: 2.1% | Strike: 155 CE or 160 CE
-        Target: +65% on premium | SL: -40%
-        Check actual premium on Zerodha option chain
+3. RR re-validation on WAITING → TRADED promotion [FIX: stale candidates]
+   Previous: old WAITING rows written before v13.3 (MIN_RR=1.3) could
+   still be promoted. v13.3 raised MIN_RR to 1.8 but Step A never
+   re-validated existing rows.
+   Fix: in Step A, parse RR from col J (C_RR). If RR is present and
+   < MIN_RR (1.8), skip with log. Rows with no RR value pass through
+   (AppScript will have set it correctly).
 
-   Free subscribers (basic channel) see no options info.
-
-ALL OTHER CODE IDENTICAL TO v13.3.
+ALL OTHER CODE IDENTICAL TO v13.4.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ALERTLOG COLUMN MAP (0-based):
   A=0  Signal Time       B=1  Symbol
@@ -81,6 +88,9 @@ C_PNL         = 15
 CAPITAL_PER_TRADE = 10000
 MAX_TRADES        = 5
 MAX_WAITING       = 10
+
+# ── v13.5: MIN_RR for re-validation of stale WAITING rows ────────────────────
+MIN_RR = 1.8
 
 # ── TSL mode parameters ───────────────────────────────────────────────────────
 TSL_PARAMS = {
@@ -184,17 +194,59 @@ def calc_hold_str(entry_str: str, exit_dt: datetime) -> str:
     except:
         return "—"
 
+# ── v13.5 FIX 1: clean_mem — also prunes orphaned symbol keys ────────────────
 def clean_mem(mem: str) -> str:
+    """
+    Prune T4 memory to prevent hitting Google Sheets' 50,000 char cell limit.
+
+    Two-pass cleanup:
+      Pass 1 — collect symbols whose _EXDT_ date is older than 30 days.
+      Pass 2 — drop:
+        (a) any date-prefixed entry (YYYY-MM-DD...) older than 30 days
+        (b) any key belonging to a symbol exited >30 days ago
+            i.e. any entry where key starts with "{sym_prefix}_" or "{sym_prefix}="
+    """
     cutoff = (datetime.now(IST) - timedelta(days=30)).strftime('%Y-%m-%d')
+
+    # Pass 1: find symbols with old exit dates
+    exited_old_prefixes = set()
+    for p in mem.split(','):
+        p = p.strip()
+        if not p:
+            continue
+        if '_EXDT_' in p:
+            parts = p.split('=', 1)
+            if len(parts) == 2:
+                key_part, val = parts
+                if val < cutoff:
+                    # key_part looks like "NSE_ONGC_EXDT_" → strip _EXDT_ suffix
+                    sym_prefix = key_part.replace('_EXDT_', '')
+                    exited_old_prefixes.add(sym_prefix)
+
+    # Pass 2: rebuild keeping only valid entries
     kept = []
     for p in mem.split(','):
         p = p.strip()
-        if not p: continue
+        if not p:
+            continue
+
+        # (a) drop old date-prefixed flags (e.g. "2026-02-01_AM")
         if len(p) > 10 and p[4] == '-' and p[7] == '-':
-            if p[:10] >= cutoff: kept.append(p)
-        else:
+            if p[:10] >= cutoff:
+                kept.append(p)
+            continue
+
+        # (b) drop all keys for symbols exited >30 days ago
+        skip = False
+        for sym_prefix in exited_old_prefixes:
+            if p.startswith(sym_prefix + '_') or p.startswith(sym_prefix + '='):
+                skip = True
+                break
+        if not skip:
             kept.append(p)
+
     return ','.join(kept)
+# ── end FIX 1 ─────────────────────────────────────────────────────────────────
 
 def is_market_hours(now: datetime) -> bool:
     if now.weekday() >= 5: return False
@@ -586,7 +638,31 @@ def get_sector_context(all_data: list, mem: str) -> str:
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# MAIN TRADING CYCLE — unchanged from v13.2
+# v13.5 FIX 2 HELPER: Read ATR14 from Nifty200 sheet for a given symbol
+# ══════════════════════════════════════════════════════════════════════════════
+
+def _read_atr_from_nifty200(nifty_sheet, sym: str) -> float:
+    """
+    Read ATR14 directly from Nifty200 col AC (0-based index 28) for sym.
+    sym format expected: 'NSE:ONGC' — matches col A of Nifty200.
+    Returns float ATR value, or 0.0 if not found / error.
+    """
+    try:
+        nifty_data = nifty_sheet.get_all_values()
+        for row in nifty_data[1:]:
+            if str(row[0]).strip() == sym.strip():
+                if len(row) > 28:
+                    val = to_f(row[28])
+                    if val > 0:
+                        return val
+                break
+    except Exception as e:
+        print(f"[ATR] Nifty200 lookup failed for {sym}: {e}")
+    return 0.0
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# MAIN TRADING CYCLE
 # ══════════════════════════════════════════════════════════════════════════════
 
 def run_trading_cycle():
@@ -717,6 +793,20 @@ def run_trading_cycle():
 
             if cp <= 0: continue
 
+            # ── v13.5 FIX 3: RR re-validation — reject stale pre-v13.3 rows ──
+            rr_raw = str(r[C_RR]).strip()
+            if rr_raw:
+                # RR stored as "1:2.3" — extract the number after the colon
+                rr_val = 0.0
+                try:
+                    rr_val = to_f(rr_raw.split(':')[-1])
+                except Exception:
+                    rr_val = 0.0
+                if rr_val > 0 and rr_val < MIN_RR:
+                    print(f"[SKIP] {sym}: RR 1:{rr_val:.1f} below MIN_RR {MIN_RR} — stale pre-v13.3 candidate")
+                    continue
+            # ── end FIX 3 ─────────────────────────────────────────────────────
+
             key       = sym_key(sym)
             sheet_row = i + 2
 
@@ -753,8 +843,16 @@ def run_trading_cycle():
             rr_num = (reward / risk) if risk > 0 else 0
             log_sheet.update_cell(sheet_row, C_RR + 1, f"1:{rr_num:.1f}")
 
-            atr_tgt_mult = (2 if "Intraday" in ttype else 4 if "Positional" in ttype else 3)
-            atr_est = (target - cp) / atr_tgt_mult if target > cp else 0
+            # ── v13.5 FIX 2: Read ATR14 from Nifty200 col AC at entry ─────────
+            atr_est = _read_atr_from_nifty200(nifty_sheet, sym)
+            if atr_est <= 0:
+                # Fallback: backwards derivation (pre-v13.5 behaviour)
+                atr_tgt_mult = (2 if "Intraday" in ttype else 4 if "Positional" in ttype else 3)
+                atr_est = (target - cp) / atr_tgt_mult if target > cp else 0
+                print(f"[ATR] {sym}: Nifty200 lookup returned 0, using fallback atr_est={atr_est:.2f}")
+            else:
+                print(f"[ATR] {sym}: read ATR14={atr_est:.2f} from Nifty200")
+            # ── end FIX 2 ─────────────────────────────────────────────────────
 
             mem = save_atr_to_mem(mem, key, atr_est)
             mem = set_tsl(mem, key, init_sl)
@@ -1230,7 +1328,7 @@ def run_test_telegram():
     print("[TEST] Sending Telegram test messages to all 3 channels...")
     test_msg = (
         f"✅ <b>TELEGRAM TEST — OK</b>\n━━━━━━━━━━━━━━━━━━━━\n"
-        f"🤖 Bot: AI360 Trading v13.3\n"
+        f"🤖 Bot: AI360 Trading v13.5\n"
         f"🕐 Time: {now.strftime('%Y-%m-%d %H:%M:%S')} IST\n"
         f"🔑 Token: Connected ✅\n💬 Chat: Connected ✅\n\n"
     )
