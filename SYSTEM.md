@@ -1,6 +1,6 @@
 # AI360Trading — Master System Documentation
 
-**Last Updated:** April 3, 2026 — Trading Bot v13.4 + AppScript v13.3
+**Last Updated:** April 4, 2026 — Trading Bot v13.5 + AppScript v13.3
 **Status:** Phase 1 ✅ Complete | Phase 2 ✅ Complete | Phase 3 Planned | Phase 4 (Dhan Live) Planned
 **Primary Audience:** Bilingual Hindi + English — Indian retail traders + global investors
 
@@ -51,7 +51,7 @@
 | YouTube Reels | ✅ Auto | ZENO reel (8:30 PM) working |
 | YouTube Morning Reel | ✅ Auto | 7:00 AM reel (generate_reel_morning.py) working |
 | Facebook Page | ✅ Auto | Posts, reels, article shares all working |
-| Facebook Group | ❌ Broken | Missing `publish_to_groups` token scope — see Section 11 |
+| Facebook Group | ❌ Broken | Missing `publish_to_groups` token scope — see Section 12 |
 | Instagram | ⚠️ Partial | Upload chain built; `INSTAGRAM_ACCOUNT_ID` secret needed |
 | GitHub Pages | ✅ Auto | 4 articles/day + instant Google indexing |
 | Telegram | ✅ Auto | Signal alerts to all 3 channels (paper trading — followers take manual entry) |
@@ -121,7 +121,7 @@ All workflows support `workflow_dispatch` with a `content_mode` dropdown to forc
 
 | File | Role | Key Tech | Status |
 |---|---|---|---|
-| `trading_bot.py` | Nifty200 signal monitor + TSL manager + Telegram alerts | gspread + Google Sheets + Telegram Bot API | ✅ v13.4 |
+| `trading_bot.py` | Nifty200 signal monitor + TSL manager + Telegram alerts | gspread + Google Sheets + Telegram Bot API | ✅ v13.5 |
 | `generate_shorts.py` | Short 2 (Madhur) + Short 3 (Swara) | ai_client, human_touch, Edge-TTS | ✅ Phase 2 |
 | `generate_reel.py` | ZENO 60s reel (8:30 PM) | ai_client, human_touch, MoviePy | ✅ Phase 2 |
 | `generate_reel_morning.py` | Morning reel (7:00 AM) — day/country aware | ai_client, human_touch, MoviePy | ✅ |
@@ -203,10 +203,10 @@ tags = seo.get_video_tags(mode=CONTENT_MODE, lang="hi")
 
 The trading system is split across two components that work together:
 
-| Component | File | Role |
-|---|---|---|
-| AppScript v13.3 | Google Sheets bound script | Scans Nifty200 sheet, applies filters, writes WAITING candidates to AlertLog, stores memory in T4 |
-| Python Bot v13.4 | `trading_bot.py` | Monitors AlertLog every 5 min, manages WAITING→TRADED transition, TSL updates, exit logic, Telegram alerts |
+| Component | File | Version | Role |
+|---|---|---|---|
+| AppScript | Google Sheets bound script | v13.3 | Scans Nifty200, applies 10 gates, writes WAITING candidates to AlertLog, stores memory in T4 |
+| Python Bot | `trading_bot.py` | **v13.5** | Monitors AlertLog every 5 min, manages WAITING→TRADED, TSL updates, exit logic, Telegram alerts |
 
 **Current status:** Paper trading. Followers receive Telegram signals and take manual entry. Dhan API integration planned for Phase 4 after backtest validation.
 
@@ -214,9 +214,14 @@ The trading system is split across two components that work together:
 
 | Sheet | Purpose |
 |---|---|
-| `Nifty200` | Live data for all 200 stocks — CMP, DMAs, FII data, signals, scores (34 cols) |
-| `AlertLog` | Active + waiting trades — 15 rows, 19 cols. T2=YES/NO automation switch. T4=memory string |
+| `Nifty200` | Live data for all 200 stocks — CMP, DMAs, FII data, signals, scores (34 cols A–AH) |
+| `AlertLog` | Active + waiting trades — 15 rows max (rows 2–16), 20 cols. T2=YES/NO switch. T4=memory string |
 | `History` | Closed trade log — 18 cols A–R |
+| `PriceCache` | Helper sheet — Symbol, Date, Close, High, Low, Volume, LastUpdate |
+| `TempPriceCalc` | Scratch sheet for intermediate GOOGLEFINANCE calculations |
+| `Corporate_Action` | Dividend/split events — NSE Symbol, Action Type, Ex-Date, Amount, Face Value |
+
+> ⚠️ **Corporate_Action sheet is currently unpopulated.** If a dividend ex-date passes on an open trade, the system will not adjust the SL or flag it. Manual monitoring required until Phase 4.
 
 ### AlertLog Column Map (0-based)
 
@@ -228,8 +233,30 @@ M=12 Entry Time     N=13 Days in Trade O=14 Trailing SL    P=15 P/L%
 Q=16 ATH Warning    R=17 Risk ₹        S=18 Position Size  T=19 SYSTEM CONTROL
 ```
 
-**T2** = automation on/off switch (set YES to enable)
-**T4** = memory string (key=value pairs, comma separated — stores TSL, MAX, ATR, CAP, MODE, SEC, exit dates, daily flags)
+**T2** = automation on/off switch (set "YES" to enable — anything else disables)
+**T4** = memory string (comma-separated key=value pairs — stores TSL, MAX, ATR, CAP, MODE, SEC, EXDT, daily flags)
+
+> ⚠️ **Known live issue (as of April 4, 2026):** NSE:ONGC and NSE:ADANIPOWER in AlertLog show RR=1:1.5, written before v13.3 raised MIN_RR to 1.8. The v13.5 bot FIX 3 will skip these rows when they are WAITING. However both are already in TRADED status, so they will continue to be monitored normally until exit. The RR column will be recalculated correctly on next entry.
+
+### Live AlertLog State (April 4, 2026)
+
+| Symbol | Status | Entry | SL | Target | RR | Mode | Capital |
+|---|---|---|---|---|---|---|---|
+| NSE:ONGC | 🟢 TRADED (PAPER) | ₹275.10 | ₹232.35 | ₹339.35 | 1:1.5* | VCP | ₹13,000 |
+| NSE:ADANIPOWER | 🟢 TRADED (PAPER) | ₹150.30 | ₹143.48 | ₹160.53 | 1:1.5* | MOM | ₹13,000 |
+
+*Pre-v13.3 entries — RR below current MIN_RR 1.8 but actively monitored since already TRADED.
+
+### T4 Memory — Current State
+
+```
+Length: ~5,056 chars (248 parts) as of April 4, 2026
+After v13.5 clean_mem runs: ~4,788 chars (233 parts)
+Symbols cleaned (>30 days exited): NSE_ONGC (March exit), NSE_PNB
+Market regime flags: BEARISH every day since 2026-03-05 onwards
+```
+
+> ⚠️ T4 is approaching the Google Sheets 50,000 char cell limit over time. v13.5 `clean_mem()` now does two-pass cleanup — first finding symbols with `_EXDT_` dates older than 30 days, then pruning ALL their keys. This resolves the growth issue identified in v13.4. Monitor `mem=N chars` in GitHub Actions logs.
 
 ### Nifty200 Column Map (0-based, used by AppScript)
 
@@ -253,13 +280,18 @@ r[30] 52W_Breakout_Score  r[31] Sector_Rotation_Score (AF)
 r[32] FII_Buying_Signal(AG) r[33] Master_Score (AH)
 ```
 
+> **ATR14 (col AC, r[28]):** This is GOOGLEFINANCE-derived — 14-day average of (daily high − daily low). Cached static value stored alongside formula using `IFERROR(__xludf.DUMMYFUNCTION(...), cached_val)` pattern. The v13.5 bot reads this column directly via `_read_atr_from_nifty200()` at entry time, which is the correct source. Sample values verified: ONGC ≈ ₹7.65, ADANIPOWER ≈ ₹8.60, ADANIENSOL ≈ ₹44.40, ADANIENT ≈ ₹48.20.
+
+> ⚠️ **ATR memory vs Nifty200 discrepancy:** The pre-v13.5 bot estimated ATR backwards from `(target - cmp) / mult`. For ONGC: memory shows ATR ₹21.42, but Nifty200 col AC shows ₹7.65 (correct). For ADANIPOWER: memory shows ₹3.41, Nifty200 shows ₹8.60 (correct). Existing open trades use the wrong ATR for TSL calculations until they exit. New entries from v13.5 onward use the correct value.
+
 ### AppScript v13.3 — Key Logic
 
 **Market Regime:** Nifty50 CMP vs 20DMA → Bullish or Bearish. Controls which filter gate applies.
+Current state: Bearish continuously since March 5, 2026.
 
 **Bearish gate (4 conditions all required):**
 - Leader_Type = "Sector Leader"
-- AF ≥ 5 (RS≥2.5 with sector tailwind)
+- AF ≥ 5 (Sector_Rotation_Score ≥ 5)
 - Master_Score ≥ 22
 - FII signal ≠ "FII CAUTION" or "FII SELLING"
 
@@ -267,34 +299,63 @@ r[32] FII_Buying_Signal(AG) r[33] Master_Score (AH)
 1. FII SELLING → skip always
 2. Market regime filter (bullish vs bearish path)
 3. Late entry block (BREAKOUT CONFIRMED needs RS≥7)
-4. Price validity (CMP>0, ATR>0, CMP≤₹5000)
+4. Price validity (CMP>0, ATR>0, CMP≤₹5,000)
 5. Extension filter (>8% above 20DMA → skip)
 6. Pivot resistance buffer (within 2% below pivot → skip)
 7. Volume filter (bullish market only — vol<120% → skip)
 8. ATH buffer (within 3% of 52W high → skip)
 9. Trade type (AVOID/NO TRADE → skip)
-10. Sector concentration (max 2 per sector)
+10. Sector concentration (max 2 stocks per sector)
 
 **Capital tiers:**
 - ₹13,000 — MasterScore≥28 AND AF≥10 (high conviction)
 - ₹10,000 — MasterScore≥22 OR Accumulation Zone (medium conviction)
 - ₹7,000 — standard
+- Max deployed: ₹45,000 (₹5,000 always held as buffer)
 
-**Trade modes (stored as _MODE in T4 memory):**
-- VCP — AB<0.04 + pre-breakout stage
-- MOM — Strong Bull + RS≥6
-- STD — everything else (default in bear market)
+**Trade modes (stored as `{sym}_MODE` in T4 memory):**
+- `VCP` — VCP_Status (AB) < 0.04 + pre-breakout stage
+- `MOM` — SMA_Structure = "Strong Bull" + RS ≥ 6
+- `STD` — everything else (default in bear market)
 
-**Memory keys written per stock:**
-- `{sym}_CAP` — capital tier (7000/10000/13000)
-- `{sym}_MODE` — trade mode (VCP/MOM/STD)
-- `{sym}_SEC` — sector name (for Good Morning sector context)
+**Memory keys written per stock (by AppScript):**
+- `{sym}_CAP` = capital tier (7000/10000/13000)
+- `{sym}_MODE` = trade mode (VCP/MOM/STD)
+- `{sym}_SEC` = sector name (for Good Morning sector context)
 
 **Sort order:** finalScore DESC, then ATR% ASC as tiebreaker within ±2 score points (minimum SL preference).
 
-### Python Bot v13.4 — Key Logic
+**Batched scanner:** Processes 60 rows per 5-min time trigger, stores intermediate candidates in `_BATCH_CANDS` key (URL-encoded JSON). Full scan on manual SYNC.
 
-**TSL Parameters (mode-aware):**
+### Python Bot v13.5 — Key Logic + All Changes
+
+#### v13.5 Changes (3 surgical fixes)
+
+**Fix 1 — `clean_mem()` two-pass orphan cleanup:**
+
+Previous version only pruned date-prefixed flags older than 30 days. Symbol keys (_CAP, _MODE, _SEC, _ATR, _LP, _MAX, _TSL) for exited symbols grew forever.
+
+New logic:
+- Pass 1: scan all parts for `_EXDT_` entries (no `=` sign, format `NSE_ONGC_EXDT_2026-01-15`). Build set of symbols exited >30 days ago.
+- Pass 2: drop (a) old date flags AND (b) ALL keys starting with `{sym}_` or `{sym}=` for old symbols.
+
+Key detail: `_EXDT_` entries have NO `=` sign. The date is embedded directly in the key: `NSE_ONGC_EXDT_2026-03-04`. Split on `_EXDT_` not `=`.
+
+**Fix 2 — ATR read directly from Nifty200 at entry:**
+
+Previous: `atr_est = (target - cp) / mult` — backwards derivation, systematically wrong.
+
+New: `_read_atr_from_nifty200(nifty_sheet, sym)` scans Nifty200 for the row where col A matches `sym`, reads col AC (index 28). Falls back to old formula only if lookup returns 0.
+
+This fixes TSL calculations for all new entries. Existing open trades (ONGC, ADANIPOWER) continue using the memory-cached (wrong) ATR until they exit.
+
+**Fix 3 — RR re-validation on WAITING→TRADED:**
+
+Previous: pre-v13.3 WAITING rows with RR 1:1.5 could be promoted to TRADED.
+
+New: Step A parses `r[C_RR]` (col J), splits on `:`, takes the last part as `rr_val`. If `rr_val > 0 and rr_val < MIN_RR (1.8)` → skip with log message. Rows with empty RR pass through (AppScript sets correctly for new candidates).
+
+#### TSL Parameters (mode-aware, unchanged from v13.3)
 
 ```python
 TSL_PARAMS = {
@@ -302,41 +363,69 @@ TSL_PARAMS = {
     "MOM": { "breakeven": 2.5, "lock1": 4.5, "trail": 7.0,  "atr_mult": 1.8, "gap_lock": 8.0 },
     "STD": { "breakeven": 2.0, "lock1": 4.0, "trail": 10.0, "atr_mult": 2.5, "gap_lock": 8.0 },
 }
+TSL_GAP_LOCK_FRAC = 0.5
 ```
-
-STD trail widened in v13.3 (6→10, atr_mult 1.5→2.5) to support full-ride vision on swing trades.
 
 **TSL progression (STD example):**
 - Gain < 2% → hold initial SL
-- Gain 2–4% → move to breakeven
+- Gain 2–4% → move to breakeven (entry price)
 - Gain 4–10% → lock at entry +2%
 - Gain > 10% → ATR trail (2.5× ATR below CMP)
-- Gain > 8% gap-up → lock 50% of gap
+- Gain > 8% gap-up → lock 50% of gap + ATR trail (whichever higher)
 
-**Daily message schedule:**
-- 08:45–09:15 → Good Morning (open trades P/L + waiting count + sector context)
-- 09:15–15:30 → Market hours (entry alerts, TSL updates, exit alerts)
-- 12:28–12:38 → Mid-day pulse
-- 15:15–15:45 → Market close summary
+**STD trail widened in v13.3** (trail 6→10%, atr_mult 1.5→2.5) to let swing trades run longer before trailing kicks in.
 
-**Telegram channels:**
-- Basic (free) → market mood, signal closed result only
-- Advance (₹499/mo) → full entry/exit details, TSL updates, mid-day pulse
-- Premium (bundle) → same as Advance + options CE candidate flag
+#### Daily Message Schedule
 
-**CE candidate flag (v13.4 — informational only):**
-Fires when market is bullish AND stock ATR% > 1.5%. Shows in Advance + Premium entry alerts only. Uses existing ATR14 (col AC) and CMP — no new data needed. Currently informational — Dhan API connection needed for live CE execution.
+| Time (IST) | Trigger | Channels |
+|---|---|---|
+| 08:45–09:15 | Good Morning | All 3 |
+| 09:15–15:30 | Market hours — entry/exit/TSL | Basic: exits only; Advance+Premium: full |
+| 12:28–12:38 | Mid-day pulse | All 3 |
+| 15:15–15:45 | Market close summary | All 3 |
+| Friday 15:15 | Weekly summary (via AppScript) | Basic: win rate only; Advance+Premium: full ₹ |
+
+#### Good Morning — Sector Context
+
+Reads `{sym}_SEC` key from T4 memory for each WAITING row. Groups by sector. Sends top 4 sectors with count to Advance+Premium. Example: `🔄 Active Sectors: Power (2), Pharma (1), FMCG (1)`.
+
+#### Telegram Channel Tiers
+
+| Channel | Content |
+|---|---|
+| Basic (free, @ai360trading) | Market mood, signal closed (WIN/LOSS only, no ₹), membership CTA |
+| Advance (₹499/mo) | Full entry/exit with ₹ P/L, TSL updates, mid-day pulse, CE candidate flag |
+| Premium (bundle) | Same as Advance + Options Advisory (for "Options Alert" trade type) |
+
+#### CE Candidate Flag (v13.4, unchanged in v13.5)
+
+Added to Advance+Premium entry alerts when market is bullish AND stock ATR% > 1.5%.
+Uses ATR14 from Nifty200 (same value read by Fix 2) — no new data needed.
 
 ```
-ATR% < 1.5%    → no flag (premium decay risk)
-ATR% 1.5–2.5%  → normal mover: target +65%, SL -40% on premium
-ATR% > 2.5%    → fast mover: target +50%, SL -35% on premium
+ATR% < 1.5%    → no flag (premium decay exceeds stock move)
+ATR% 1.5–2.5%  → normal mover: Strike ATM, Target +65%, SL -40% on premium
+ATR% > 2.5%    → fast mover: Strike ATM+1, Target +50%, SL -35% on premium
+BREAKOUT CONFIRMED stage → use OTM strike (ATM+1)
 ```
 
-**Hard exit rules:**
+Currently informational only. Dhan API needed for live CE execution (Phase 4).
+
+#### Hard Exit Rules
+
 - Loss > 5% → hard loss exit (immediate, no min-hold check)
-- Min hold: 2 days swing, 3 days positional (prevents TSL whipsaw on day 1)
-- 5 trading day cooldown after exit before same stock re-enters
+- Min hold: 2 trading days swing, 3 days positional (prevents TSL whipsaw on day 1)
+- Near hard loss (<−4%) in bearish market → skip min-hold, allow early exit
+- 5 trading day cooldown per symbol after exit before re-entry
+
+#### BOT_MODE Entry Points
+
+```python
+if mode == "test_telegram":    run_test_telegram()
+elif mode == "daily_summary":  run_daily_summary()
+elif mode == "weekly_summary": run_weekly_summary()
+else:                          run_trading_cycle()   # default
+```
 
 ### History Sheet Columns (A–R)
 
@@ -348,9 +437,52 @@ M  Max Price   N  ATR at Entry O  Days Held     P  Capital ₹
 Q  Profit/Loss ₹               R  Options Note
 ```
 
+### All-Time Performance (as of April 4, 2026)
+
+```
+Total closed trades: 25
+Wins: 2 | Losses: 23 | Win rate: 8%
+Total P/L: ₹−7,013
+Period: All trades since Feb 27, 2026 — bear market conditions throughout
+Market was in BEARISH regime from March 5, 2026 onwards
+```
+
+> **Context:** All 25 trades occurred during a sustained bearish Nifty regime (CMP below 20DMA). The bearish filter is now active and restricts entries to Sector Leaders with high conviction scores only. This is expected to improve win rate in Phase 4 once market turns bullish or Dhan live execution tightens entries.
+
 ---
 
-## 9. Critical Upload Chain
+## 9. Cross-System Consistency (v13.5 Audit — April 4, 2026)
+
+This section documents confirmed alignment and known gaps between AppScript v13.3, trading_bot.py v13.5, and the Google Sheet.
+
+### ✅ Aligned
+
+| Item | AppScript | Bot | Sheet |
+|---|---|---|---|
+| MIN_RR | 1.8 | 1.8 (FIX 3) | RR column written correctly for new entries |
+| Capital tiers | ₹7k/₹10k/₹13k | reads from memory | memory holds correct values |
+| Trade modes | VCP/MOM/STD | reads from memory | memory holds correct values |
+| Market regime | Nifty CMP vs 20DMA | same logic | Nifty200 row 2 = NIFTY50 |
+| ATR source | r[28] = col AC | Nifty200 col 28 (FIX 2) | GOOGLEFINANCE AVERAGE high-low 14d |
+| Memory key format | `{sym}_CAP/MODE/SEC` | reads `{sym}_CAP/MODE/SEC` | T4 cell |
+| EXDT format | `{sym}_EXDT_{date}` (no =) | split on `_EXDT_` (FIX 1) | T4 cell |
+| Sector context | writes `{sym}_SEC` | reads `{sym}_SEC` for GM | T4 cell |
+| Max trades | 5 | 5 | T2 switch controls |
+| Max waiting | 10 | 10 | 15 rows total (rows 2–16) |
+
+### ⚠️ Known Gaps (not bugs — by design or pending fix)
+
+| Gap | Detail | Impact | Resolution |
+|---|---|---|---|
+| Trade Type col Y vs bot `_mapTradeType` | Nifty200 col Y formula still uses old intraday logic (BREAKOUT CONFIRMED + RS>7). AppScript v13.3 overrides this with correct intraday detection (vol>200% + green + Bull). Two are out of sync. | Low — AppScript output is correct, col Y is only a reference | Update col Y formula to match AppScript logic in next sheet revision |
+| ATR in memory for existing open trades | ONGC memory ATR=₹21.42, Nifty200 actual=₹7.65. ADANIPOWER memory ATR=₹3.41, Nifty200 actual=₹8.60. TSL calculations for these trades use wrong ATR. | Medium — TSL trails may be too wide (ONGC) or too narrow (ADANIPOWER) | Exit and re-enter. FIX 2 prevents this for all future entries. |
+| RR on existing open trades | ONGC and ADANIPOWER show RR=1:1.5 (pre-v13.3). Both are already TRADED so FIX 3 does not affect them. | Low — trades are already active and being monitored | No action needed — will resolve on exit |
+| Corporate_Action sheet empty | Dividend ex-dates not tracked. | Low for now — no open trades have known upcoming dividends | Manual monitoring until Phase 4 |
+| AppScript weekly summary vs bot weekly summary | AppScript `sendWeeklySummary()` sends only to the single `CHAT_ID` (basic channel). Bot `run_weekly_summary()` sends to all 3 channels with full ₹ breakdown. Two separate weekly messages fire. | Low — subscribers see richer report from bot; AppScript report is redundant | Consider disabling AppScript weekly summary since bot covers it |
+
+---
+
+## 10. Critical Upload Chain
 
 Scripts must run in this exact order. Each one feeds data to the next:
 
@@ -405,7 +537,7 @@ generate_education.py
 
 ---
 
-## 10. Environment Variables & Secrets
+## 11. Environment Variables & Secrets
 
 All stored in **GitHub Actions Secrets**. Never hardcode any of these values.
 
@@ -418,14 +550,14 @@ All stored in **GitHub Actions Secrets**. Never hardcode any of these values.
 | `DHAN_PIN` | Account PIN | ✅ Added — not connected yet |
 | `DHAN_TOTP_KEY` | 2FA TOTP key | ✅ Added — not connected yet |
 
-> Dhan integration planned for Phase 4 after backtest validation. Currently all trading is paper-mode via Google Sheets + AppScript. Followers take manual entry from Telegram signals.
+> Dhan integration planned for Phase 4 after backtest validation. Currently all trading is paper-mode via Google Sheets + AppScript.
 
 ### Social Platforms
 | Secret | Purpose | Status |
 |---|---|---|
 | `META_ACCESS_TOKEN` | Facebook + Instagram API | ✅ Auto-refreshed every 50 days |
-| `META_APP_ID` | Facebook App ID — needed for auto token refresh | ✅ Added |
-| `META_APP_SECRET` | Facebook App Secret — needed for auto token refresh | ✅ Added |
+| `META_APP_ID` | Facebook App ID | ✅ Added |
+| `META_APP_SECRET` | Facebook App Secret | ✅ Added |
 | `FACEBOOK_PAGE_ID` | Target Facebook Page ID | ✅ |
 | `FACEBOOK_GROUP_ID` | Target Facebook Group ID | ✅ (posting broken — token scope issue) |
 | `INSTAGRAM_ACCOUNT_ID` | Instagram Business/Creator numeric ID | ✅ Added |
@@ -443,10 +575,13 @@ All stored in **GitHub Actions Secrets**. Never hardcode any of these values.
 ### Telegram
 | Secret | Purpose |
 |---|---|
-| `TELEGRAM_BOT_TOKEN` | Bot authentication token |
-| `TELEGRAM_CHAT_ID` | Free channel (ai360trading) |
-| `CHAT_ID_ADVANCE` | Advance signals channel (₹499/month) |
-| `CHAT_ID_PREMIUM` | Premium signals channel (bundle) |
+| `TELEGRAM_TOKEN` | Bot authentication token (used by trading_bot.py) |
+| `TELEGRAM_BOT_TOKEN` | Same token (used by some generators — keep in sync) |
+| `TELEGRAM_CHAT_ID` | Free channel — `CHAT_BASIC` in bot |
+| `CHAT_ID_ADVANCE` | Advance signals channel — ₹499/month |
+| `CHAT_ID_PREMIUM` | Premium signals channel — bundle |
+
+> ⚠️ **Channel ID swap note:** In trading_bot.py, `CHAT_ADVANCE = os.environ.get('CHAT_ID_PREMIUM')` and `CHAT_PREMIUM = os.environ.get('CHAT_ID_ADVANCE')`. The env var names are intentionally swapped. Do NOT "fix" this without verifying which channel ID is which in your Telegram setup.
 
 ### Google / GCP
 | Secret | Purpose |
@@ -460,7 +595,48 @@ All stored in **GitHub Actions Secrets**. Never hardcode any of these values.
 
 ---
 
-## 11. Human Touch System (Anti-AI-Penalty)
+## 12. Known Issues & Fixes
+
+### Facebook Group Posting ❌
+
+**Root causes (check in order):**
+1. `META_ACCESS_TOKEN` missing `publish_to_groups` scope
+2. Bot account not **Admin** of the group
+3. Group Settings → Advanced → "Allow content from apps" OFF
+4. App not approved for Groups API by Meta
+
+**Fix:** developers.facebook.com → App → Add `publish_to_groups` → regenerate token → update secret.
+
+### Instagram Auto-Post ⚠️
+
+`INSTAGRAM_ACCOUNT_ID` is now added. If still failing:
+```
+https://graph.facebook.com/me/accounts?access_token=YOUR_META_TOKEN
+```
+Verify the numeric ID matches exactly.
+
+### YouTube Community Tab ⚠️
+
+Requires **500+ subscribers**. If below threshold:
+- `generate_community_post.py` saves post to `output/community_post_YYYYMMDD.txt` for manual posting
+- Does not crash the workflow
+
+### META_ACCESS_TOKEN Expiry — Automated ✅
+
+`token_refresh.yml` runs every 50 days. Requires `META_APP_ID` and `META_APP_SECRET`.
+
+### T4 Memory Growth — Fixed in v13.5 ✅
+
+Two-pass `clean_mem()` now prunes ALL keys for symbols exited >30 days ago.
+Monitor `mem=N chars` in GitHub Actions logs. Alert if approaching 40,000 chars.
+
+### AppScript Duplicate Weekly Summary
+
+AppScript `sendWeeklySummary()` fires on Fridays to one channel. Bot `run_weekly_summary()` also fires with richer content to all 3 channels. The AppScript version is redundant. Consider commenting out `sendWeeklySummary()` from `_runUnifiedManager()` and relying on the bot's weekly summary exclusively. Bot version is significantly better (includes monthly + all-time stats, best/worst trade, open count).
+
+---
+
+## 13. Human Touch System (Anti-AI-Penalty)
 
 All content uses `human_touch.py`. **Never use raw AI output directly.**
 
@@ -477,44 +653,7 @@ All content uses `human_touch.py`. **Never use raw AI output directly.**
 
 ---
 
-## 12. Known Issues & Fixes
-
-### Facebook Group Posting ❌
-
-**Root causes (check in order):**
-1. `META_ACCESS_TOKEN` missing `publish_to_groups` scope
-2. Bot account not **Admin** of the group
-3. Group Settings → Advanced → "Allow content from apps" OFF
-4. App not approved for Groups API by Meta
-
-**Fix:** developers.facebook.com → App → Add `publish_to_groups` → regenerate token → update secret.
-Token is auto-refreshed every 50 days by `token_refresh.yml` once scope is added.
-
-### Instagram Auto-Post ⚠️
-
-`INSTAGRAM_ACCOUNT_ID` is now added. If still failing:
-```
-https://graph.facebook.com/me/accounts?access_token=YOUR_META_TOKEN
-```
-Verify the numeric ID matches exactly. Upload chain: `upload_youtube.py` → `upload_facebook.py` → `upload_instagram.py` must run in order.
-
-### YouTube Community Tab ⚠️
-
-Community Tab requires **500+ subscribers** to be enabled.
-If channel is below 500 subs, `generate_community_post.py` will:
-- Print a clear warning explaining why
-- Save post text to `output/community_post_YYYYMMDD.txt` for manual posting
-- Not crash the workflow
-
-**Enable:** YouTube Studio → Customization → Layout → Community Tab → ON
-
-### META_ACCESS_TOKEN Expiry — Automated ✅
-
-`token_refresh.yml` runs every 50 days automatically. Refreshes token + updates GitHub Secret + sends Telegram alert. Requires `META_APP_ID` and `META_APP_SECRET` (both now added).
-
----
-
-## 13. Technical Standards
+## 14. Technical Standards
 
 ### The "Full Code" Rule
 > AI assistants **must always provide the complete content** of any modified file. Partial snippets or diffs are strictly prohibited.
@@ -593,7 +732,7 @@ Every video includes both India-specific AND global tags via `seo.get_video_tags
 
 ---
 
-## 14. Disney 3D Reel Roadmap
+## 15. Disney 3D Reel Roadmap
 
 | Phase | Tool | Quality | Timeline | Status |
 |---|---|---|---|---|
@@ -606,29 +745,34 @@ Every video includes both India-specific AND global tags via `seo.get_video_tags
 
 ---
 
-## 15. Full Data Flow
+## 16. Full Data Flow
 
 ```
 Market hours (Mon–Fri, 9:15 AM–3:30 PM IST)
 └── main.yml (every 5 min)
-    └── trading_bot.py v13.4
+    └── trading_bot.py v13.5
+        └── clean_mem() → two-pass orphan cleanup (FIX 1)
         └── get_sheets() → gspread → AlertLog + History + Nifty200
         └── get_market_regime() → Nifty CMP vs 20DMA → bullish/bearish
-        └── Step A: WAITING→TRADED (entry alert → all 3 channels)
+        └── Step A: WAITING→TRADED
+            └── FIX 3: RR re-validation (skip if rr_val > 0 and rr_val < 1.8)
+            └── FIX 2: _read_atr_from_nifty200() → col AC (index 28)
+            └── Entry alert → Advance+Premium (with CE candidate flag if bullish + ATR%>1.5%)
         └── Step B: Monitor TRADED (TSL update → Advance+Premium)
-        └── Exit logic (TSL hit / target hit / hard loss)
-        └── CE candidate flag in entry alert (bullish + ATR%>1.5%)
+        └── Exit logic (TSL hit / target hit / hard loss / min-hold)
         └── History sheet append on exit
-        └── T4 memory string updated each run
+        └── T4 memory string saved each run
 
-AppScript v13.3 (Google Sheets bound — triggered manually or on schedule)
+AppScript v13.3 (Google Sheets bound — triggered on schedule or manually)
 └── Nifty200 sheet scan (batched 60 rows per run)
 └── 10-gate filter → bearish or bullish path
 └── Conviction bonus + capital tier + trade mode
-└── ATR% tiebreaker sort (min SL preference)
+└── ATR% tiebreaker sort (min SL preference within ±2 score)
 └── Write WAITING rows to AlertLog
 └── Write _CAP, _MODE, _SEC keys to T4 memory
-└── Bearish alert with top sector context → Telegram
+└── Bearish alert with top sector context → Telegram (1 channel)
+└── Morning cleanup 9:05–9:15: clear WAITING rows, keep TRADED
+└── Friday 15:15: weekly summary → Telegram (1 channel — redundant with bot)
 
 7:00 AM daily
 └── daily_reel.yml (morning job)
@@ -656,7 +800,7 @@ AppScript v13.3 (Google Sheets bound — triggered manually or on schedule)
 
 ---
 
-## 16. Website
+## 17. Website
 
 - **URL:** `ai360trading.in`
 - **Hosting:** GitHub Pages (Jekyll, `master` branch `_posts/`)
@@ -668,7 +812,7 @@ AppScript v13.3 (Google Sheets bound — triggered manually or on schedule)
 
 ---
 
-## 17. Social Media Links
+## 18. Social Media Links
 
 | Platform | Handle/Link |
 |---|---|
@@ -684,7 +828,7 @@ AppScript v13.3 (Google Sheets bound — triggered manually or on schedule)
 
 ---
 
-## 18. Phase Roadmap
+## 19. Phase Roadmap
 
 ### Phase 1 ✅ Complete
 `ai_client.py`, `human_touch.py`, `token_refresh.py`, `generate_reel_morning.py`
@@ -700,53 +844,48 @@ AppScript v13.3 (Google Sheets bound — triggered manually or on schedule)
 | Fix Facebook Group token | Manual config task | 🔴 High |
 | Instagram verify live | Test after `INSTAGRAM_ACCOUNT_ID` added | 🔴 High |
 | Disney 3D reel upgrade | `ai_client.py` img_client Phase 2 | 🔵 Future |
+| Update Nifty200 col Y formula | Match AppScript v13.3 intraday logic | 🟡 Medium |
 
 ### Phase 4 📋 Planned — Dhan Live Trading
 | Item | Dependency | Notes |
 |---|---|---|
-| Backtest validation | 30–40 live paper trades, win rate >35% | Currently running paper trades |
+| Backtest validation | 30–40 paper trades at ≥35% win rate | Currently 8% in bear market — wait for regime change |
 | Dhan API connection | `DHAN_API_KEY` secrets already added | Auto-execute on WAITING→TRADED |
-| Options CE execution | Dhan API + lot size data | CE flag already in alerts (informational) |
+| Options CE execution | Dhan API + lot size data | CE flag already in alerts (informational only) |
 | Live capital deployment | After backtest confirms system | ₹45,000 max deployed (₹5k buffer) |
+| Fix ATR for existing trades | Manual re-entry or wait for exit | ONGC and ADANIPOWER using pre-v13.5 ATR |
 
 ---
 
-## 19. How to Test Everything
+## 20. How to Test Everything
 
 ### Test a workflow manually
 GitHub Actions → select workflow → **Run workflow** → set `content_mode` dropdown → watch logs.
-
-### Verify ai_client fallback chain
-In logs, look for lines like:
-```
-[AI]   Using ai_client fallback chain: Groq→Gemini→Claude→OpenAI→Templates
-✅ AI generated via groq
-```
-If Groq is down, you'll see: `⚠️ groq failed` → `✅ AI generated via gemini`
-
-### Verify human_touch is active
-In logs, look for:
-```
-✅ ZENO script ready — emotion: thinking | via groq
-✅ Community post generated via groq (112 chars)
-```
 
 ### Verify trading bot
 In logs (`main.yml`), look for:
 ```
 [REGIME] Nifty CMP ₹22679 vs 20DMA ₹23547 → BEARISH
-[INFO] Active trades: 4/5
-[TSL] NSE:ONGC [STD]: ₹280.60→₹285.20
-[DONE] 15:20:01 IST | mem=842 chars
+[INFO] Active trades: 2/5
+[ATR] NSE:ONGC: read ATR14=7.65 from Nifty200
+[TSL] NSE:ONGC [VCP]: ₹232.35→₹235.00
+[DONE] 15:20:01 IST | mem=4788 chars
 ```
+
+If FIX 2 active: `[ATR] {sym}: read ATR14=X.XX from Nifty200`
+If FIX 2 fallback: `[ATR] {sym}: Nifty200 lookup returned 0, fallback atr_est=X.XX`
+If FIX 3 active: `[SKIP] {sym}: RR 1:1.5 below MIN_RR 1.8 — stale pre-v13.3 candidate`
 
 ### Verify AppScript
 Open Google Sheet → AI360 TRADING menu → MANUAL SYNC → check Logger output:
 ```
 [REGIME] CMP=22679 20DMA=23547 Bullish=false
 [CAND] NSE:ADANIPOWER | Score=24 | ATR%=2.1 | ₹10000 | STD | AF=8.2 | Qty=64
-[DONE] Traded=4 | Waiting=3 | Bullish=false
+[DONE] Traded=2 | Waiting=3 | Bullish=false
 ```
+
+### Automation on/off switch
+Google Sheet → AlertLog → cell T2 → set "YES" to enable, anything else to disable.
 
 ### Force each content mode
 ```
@@ -755,16 +894,21 @@ workflow_dispatch → content_mode = weekend  # weekend content
 workflow_dispatch → content_mode = holiday  # holiday content
 ```
 
-### Automation on/off switch
-Google Sheet → AlertLog → cell T2 → set "YES" to enable, anything else to disable.
+### Verify ai_client fallback chain
+In logs, look for:
+```
+✅ AI generated via groq
+```
+If Groq is down: `⚠️ groq failed` → `✅ AI generated via gemini`
 
 ---
 
 *Documentation maintained by AI360Trading automation.*
-*Full audit: April 3, 2026 — Claude Sonnet 4.6*
+*Full audit: April 4, 2026 — Claude Sonnet 4.6*
+*v13.5 changes: clean_mem() two-pass orphan cleanup, ATR direct from Nifty200 col AC, RR re-validation on WAITING→TRADED*
 *Phase 1 complete: ai_client.py, human_touch.py, token_refresh.py, generate_reel_morning.py*
 *Phase 2 complete: generate_articles.py, generate_analysis.py, generate_education.py, generate_reel.py, generate_shorts.py, generate_community_post.py*
-*Trading bot: AppScript v13.3 + Python v13.4 — paper trading, Google Sheets, Dhan Phase 4*
-*Phase 3 remaining: generate_english.py, upload_youtube_english.py, Facebook Group fix, Instagram verify*
-*Phase 4 planned: Dhan live trading after backtest validation*
+*Trading bot: AppScript v13.3 + Python v13.5 — paper trading, 25 trades, 2W/23L in sustained bear market*
+*Phase 3 remaining: generate_english.py, upload_youtube_english.py, Facebook Group fix, Instagram verify, Nifty200 col Y formula update*
+*Phase 4 planned: Dhan live trading after backtest validation with ≥35% win rate in mixed market conditions*
 *Update this file whenever architecture, secrets, platform status, or file logic changes.*
