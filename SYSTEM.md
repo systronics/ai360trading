@@ -330,7 +330,7 @@ generate_analysis.py → generate_education.py (links Part 1 in description)
 | `INSTAGRAM_ACCOUNT_ID` | Instagram Business numeric ID | ✅ |
 | `YOUTUBE_CREDENTIALS` | YouTube OAuth JSON (Hindi channel) | ✅ |
 | `YOUTUBE_CREDENTIALS_EN` | YouTube OAuth JSON (English channel) | ✅ |
-| `YOUTUBE_CREDENTIALS_KIDS` | YouTube OAuth JSON (HerooQuest kids channel) | ❌ Pending OAuth |
+| `YOUTUBE_CREDENTIALS_KIDS` | YouTube OAuth JSON (HerooQuest kids channel) | ✅ |
 
 ### AI Providers
 | Secret | Priority | Status |
@@ -696,7 +696,7 @@ If video is too short — increase scenes from 7 to 10, or increase `SCENE_DURAT
 
 | Secret | Purpose | Status |
 |---|---|---|
-| `YOUTUBE_CREDENTIALS_KIDS` | OAuth token for HerooQuest channel | ❌ Pending — need OAuth |
+| `YOUTUBE_CREDENTIALS_KIDS` | OAuth token for HerooQuest channel | ✅ Already exists |
 | `FACEBOOK_KIDS_PAGE_ID` | Kids Facebook Page ID | ❌ Pending — create page |
 | `META_ACCESS_TOKEN` | Same as main channel — reuse | ✅ Already exists |
 | `GEMINI_API_KEY` | Scene image generation | ✅ Already exists |
