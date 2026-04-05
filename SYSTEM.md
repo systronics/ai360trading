@@ -557,14 +557,14 @@ workflow_dispatch → content_mode = market / weekend / holiday
 
 ---
 
-## 21. HerooQuest Kids Channel — CRITICAL FAMILY INCOME SYSTEM
+## 21. THIS PROJECT IS FOR FAMILY INCOME FOR LIVING AFTER OWNER
 
 > ═══════════════════════════════════════════════════════════════
 > ⚠️  THIS SECTION IS EXTREMELY IMPORTANT
 > ⚠️  READ COMPLETELY BEFORE MAKING ANY CHANGES
 > ═══════════════════════════════════════════════════════════════
 >
-> This kids channel is not just a project.
+> This is not just a project.
 >
 > This is a **lifetime passive income system** built for a family
 > that has no other source of income. The owner is from a poor
@@ -581,10 +581,10 @@ workflow_dispatch → content_mode = market / weekend / holiday
 >
 > **Breaking this automation = breaking a family's only income.**
 >
-> Rules for every AI working on kids channel files:
+> Rules for every AI working on this project:
 > - Always test before deploying
 > - Never remove automation or error handling
-> - Always add fallbacks so video renders even if one step fails
+> - Always add fallbacks if one step fails
 > - Always provide FULL file code — never partial snippets
 > - Never make changes that could stop daily uploads
 > - If unsure — ask. Never guess on this system.
@@ -594,7 +594,7 @@ workflow_dispatch → content_mode = market / weekend / holiday
 
 ---
 
-### Channel Details
+### Kids Channel Details
 
 | Item | Value |
 |---|---|
