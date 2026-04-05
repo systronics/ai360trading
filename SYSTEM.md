@@ -339,6 +339,7 @@ generate_analysis.py → generate_education.py (links Part 1 in description)
 | `GEMINI_API_KEY` | Secondary | ✅ |
 | `ANTHROPIC_API_KEY` | Tertiary | ✅ |
 | `OPENAI_API_KEY` | Quaternary | ✅ |
+| `HF_TOKEN` | HuggingFace FLUX.1-schnell | ✅ |
 
 ### Telegram
 | Secret | Purpose |
