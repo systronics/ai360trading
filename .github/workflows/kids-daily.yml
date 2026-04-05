@@ -3,21 +3,32 @@ on:
   schedule:
     - cron: '30 2 * * *'
   workflow_dispatch:
+    inputs:
+      lang:
+        description: 'Language (hi / en / both)'
+        default: 'both'
+        required: false
 
 jobs:
   generate-and-upload:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with: { python-version: '3.11' }
 
-      - name: Install dependencies
+      - name: Install system deps
+        run: sudo apt-get install -y ffmpeg          # ← fixes ffprobe not found
+
+      - name: Install Python deps
         run: |
           pip install --upgrade pip
-          pip install moviepy==1.0.3 imageio==2.9.0 Pillow>=10.3.0
-          pip install edge-tts google-generativeai anthropic openai groq pytz
+          pip install Pillow edge-tts pytz
+          pip install google-genai                   # ← replaces google-generativeai
+          pip install anthropic openai groq
           pip install google-api-python-client google-auth
+          # moviepy removed — using ffmpeg directly now
 
       - name: Generate kids video
         env:
