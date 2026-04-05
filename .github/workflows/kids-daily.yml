@@ -1,9 +1,9 @@
 name: Kids Channel — Daily Video
 on:
+  workflow_dispatch:
   schedule:
     - cron: '30 2 * * *'
-  workflow_dispatch:
-    
+      
 jobs:
   generate-and-upload:
     runs-on: ubuntu-latest
