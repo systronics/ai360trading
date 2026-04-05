@@ -15,6 +15,7 @@ from kids_content_calendar import get_today_topic
 try:
     from moviepy.editor import (ImageClip, AudioFileClip, concatenate_videoclips,
                                   CompositeVideoClip, TextClip, CompositeAudioClip)
+    from moviepy.video.VideoClip import VideoClip
     import moviepy.editor as mpe
 except ImportError:
     raise SystemExit("pip install moviepy==1.0.3 imageio==2.9.0")
@@ -25,7 +26,7 @@ OUTPUT_DIR.mkdir(exist_ok=True)
 
 # ── VOICES ──────────────────────────────────────────────────────────────
 VOICES = {
-    "hi": "hi-IN-SwaraNeural",    # warm female Hindi — same as ZENO reel
+    "hi": "hi-IN-SwaraNeural",    # warm female Hindi
     "en": "en-US-JennyNeural",    # warm female English
 }
 SCENE_DURATION = 7  # seconds per scene image
@@ -74,7 +75,7 @@ Create 7 scenes. Keep language very simple for children. Make it magical and emo
     data = ai.generate_json(prompt, content_mode=CONTENT_MODE, lang="hi")
     return data
 
-# ── STEP 3: Generate scene images (Gemini free tier) ─────────────────────
+# ── STEP 3: Generate scene images (Gemini) ───────────────────────────────
 def generate_scene_image(prompt: str, scene_id: int, lang: str = "hi") -> Path:
     img_path = OUTPUT_DIR / f"kids_scene_{scene_id:02d}.png"
     if img_path.exists():
@@ -100,11 +101,10 @@ def generate_scene_image(prompt: str, scene_id: int, lang: str = "hi") -> Path:
 
     # Fallback: colored placeholder with text (always works)
     colors = {
-        "happy":    "#FFD700", "excited": "#FF6B35",
-        "sad":      "#6B8DD6", "curious": "#4ECDC4",
-        "brave":    "#FF4757", "wonder":  "#A29BFE"
+        "happy":   "#FFD700", "excited": "#FF6B35",
+        "sad":     "#6B8DD6", "curious": "#4ECDC4",
+        "brave":   "#FF4757", "wonder":  "#A29BFE"
     }
-    from PIL import Image, ImageDraw
     img = Image.new("RGB", (1920, 1080), color=colors.get("happy", "#FFD700"))
     draw = ImageDraw.Draw(img)
     draw.rectangle([40, 40, 1880, 1040], outline="#FFFFFF", width=8)
@@ -114,11 +114,10 @@ def generate_scene_image(prompt: str, scene_id: int, lang: str = "hi") -> Path:
     return img_path
 
 # ── STEP 4: Ken Burns pan/zoom effect ────────────────────────────────────
-def make_scene_clip(img_path: Path, duration: float, zoom_dir: str = "in") -> ImageClip:
+def make_scene_clip(img_path: Path, duration: float, zoom_dir: str = "in"):
     img = Image.open(img_path).convert("RGB")
     W, H = 1920, 1080  # 16:9
 
-    # Resize and crop to exact 16:9
     iw, ih = img.size
     scale = max(W / iw, H / ih) * 1.12  # 12% extra for zoom travel
     new_w, new_h = int(iw * scale), int(ih * scale)
@@ -131,11 +130,11 @@ def make_scene_clip(img_path: Path, duration: float, zoom_dir: str = "in") -> Im
     for i in range(n_frames):
         t = i / max(n_frames - 1, 1)
         if zoom_dir == "in":
-            z = 1.0 + 0.08 * t          # gentle zoom in
+            z = 1.0 + 0.08 * t
             x_off = int((new_w - W * z) / 2)
             y_off = int((new_h - H * z) / 2)
         else:
-            z = 1.08 - 0.08 * t         # gentle zoom out
+            z = 1.08 - 0.08 * t
             x_off = int((new_w - W) * t * 0.5)
             y_off = int((new_h - H) * t * 0.3)
 
@@ -146,15 +145,13 @@ def make_scene_clip(img_path: Path, duration: float, zoom_dir: str = "in") -> Im
         frame = cropped.resize((W, H), Image.LANCZOS)
         frames.append(np.array(frame))
 
-    clip = ImageClip(np.array(frames[0]))  # placeholder
-    # Use make_frame for memory efficiency
     frames_list = frames
     def make_frame(t):
         idx = min(int(t * fps), len(frames_list) - 1)
         return frames_list[idx]
-    import moviepy.video.VideoClip as vc
-clip = vc.VideoClip(make_frame=make_frame, duration=duration)
-return clip.set_fps(fps)
+
+    clip = VideoClip(make_frame=make_frame, duration=duration)
+    return clip.set_fps(fps)
 
 # ── STEP 5: TTS audio generation ─────────────────────────────────────────
 async def generate_tts(text: str, lang: str, out_path: Path):
@@ -170,7 +167,7 @@ async def generate_tts(text: str, lang: str, out_path: Path):
 # ── STEP 6: Build subtitles overlay ──────────────────────────────────────
 def add_subtitle_overlay(clip, text: str, lang: str) -> CompositeVideoClip:
     try:
-        font = "Arial-Bold" if lang == "en" else "Arial-Bold"
+        font = "Arial-Bold"
         txt = TextClip(
             textwrap.fill(text, width=45),
             fontsize=48, color="white",
@@ -184,13 +181,13 @@ def add_subtitle_overlay(clip, text: str, lang: str) -> CompositeVideoClip:
         return clip  # subtitles optional — never crash
 
 # ── STEP 7: Background music ──────────────────────────────────────────────
-def get_bg_music(duration: float) -> AudioFileClip:
+def get_bg_music(duration: float):
     today_num = date.today().weekday()
     music_files = sorted(BG_MUSIC_DIR.glob("*.mp3"))
     if not music_files:
         return None
     music_path = music_files[today_num % len(music_files)]
-    music = AudioFileClip(str(music_path)).volumex(0.12)  # very low for kids TTS clarity
+    music = AudioFileClip(str(music_path)).volumex(0.12)
     if music.duration < duration:
         loops = int(duration / music.duration) + 1
         music = concatenate_videoclips([music] * loops).subclip(0, duration)
@@ -199,7 +196,7 @@ def get_bg_music(duration: float) -> AudioFileClip:
 # ── MAIN ──────────────────────────────────────────────────────────────────
 def main():
     today = date.today().isoformat()
-    lang = os.environ.get("KIDS_LANG", "hi")  # "hi" or "en" or "both"
+    lang = os.environ.get("KIDS_LANG", "both")
 
     print("[SCRIPT] Generating story script...")
     script = generate_script(topic)
@@ -227,8 +224,16 @@ def main():
         img_path = generate_scene_image(img_prompt, sid)
 
         # TTS for this scene
-        narr_text = narr_hi if lang == "hi" else narr_en
-        tts_lang = "hi" if lang == "hi" else "en"
+        if lang == "both":
+            narr_text = narr_hi + " " + narr_en
+            tts_lang = "hi"
+        elif lang == "en":
+            narr_text = narr_en
+            tts_lang = "en"
+        else:
+            narr_text = narr_hi
+            tts_lang = "hi"
+
         tts_path = OUTPUT_DIR / f"kids_tts_{sid}_{tts_lang}.mp3"
         asyncio.run(generate_tts(narr_text, tts_lang, tts_path))
 
@@ -265,7 +270,6 @@ def main():
     # Save short (9:16) — first 60 seconds, cropped center
     short_path = OUTPUT_DIR / f"kids_short_{today}.mp4"
     short_clip = final.subclip(0, min(60, final.duration))
-    # Crop to 9:16 (center 608px of 1080p)
     short_clip = short_clip.crop(x_center=960, width=608).resize((1080, 1920))
     short_clip.write_videofile(
         str(short_path), fps=24, codec="libx264",
@@ -281,7 +285,7 @@ def main():
         "description_en": script.get("seo_description_en", ""),
         "moral_hi": script.get("moral_hi", ""),
         "moral_en": script.get("moral_en", ""),
-        "seo_tags": topic["seo_tags"] + ["kids","children","animation","Pixar","cartoon"],
+        "seo_tags": topic["seo_tags"] + ["kids", "children", "animation", "Pixar", "cartoon"],
         "target_countries": topic["target_countries"],
         "video_path": str(video_path),
         "short_path": str(short_path),
