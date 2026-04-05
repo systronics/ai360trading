@@ -22,7 +22,7 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install moviepy==1.0.3 imageio==2.9.0 Pillow>=10.3.0
-          pip install edge-tts google-generativeai anthropic openai groq
+          pip install edge-tts google-generativeai anthropic openai groq pytz
           pip install google-api-python-client google-auth
 
       - name: Generate kids video
