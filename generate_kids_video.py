@@ -72,21 +72,21 @@ def generate_scene_image(prompt: str, scene_id: int) -> Path:
         print(f"  [CACHE] Scene {scene_id}")
         return img_path
     try:
-        import google.generativeai as genai
-        import base64
-        genai.configure(api_key=os.environ["GEMINI_API_KEY"])
-        model = genai.GenerativeModel("gemini-2.0-flash-preview-image-generation")
-        response = model.generate_content(
-            f"Generate single image: {prompt}",
-            generation_config={"response_modalities": ["IMAGE"]}
+        # ← CHANGED: google-genai SDK replaces deprecated google-generativeai
+        from google import genai
+        from google.genai import types
+        client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
+        response = client.models.generate_images(
+            model="imagen-3.0-generate-002",
+            prompt=prompt,
+            config=types.GenerateImagesConfig(number_of_images=1)
         )
-        for part in response.candidates[0].content.parts:
-            if hasattr(part, "inline_data") and part.inline_data:
-                img_path.write_bytes(base64.b64decode(part.inline_data.data))
-                print(f"  [IMG] Scene {scene_id} via Gemini")
-                return img_path
+        img_bytes = response.generated_images[0].image.image_bytes
+        img_path.write_bytes(img_bytes)
+        print(f"  [IMG] Scene {scene_id} via Imagen 3")
+        return img_path
     except Exception as e:
-        print(f"  [WARN] Gemini failed scene {scene_id}: {e}")
+        print(f"  [WARN] Imagen failed scene {scene_id}: {e}")
 
     # Fallback placeholder
     colors = ["#FFD700","#FF6B35","#6B8DD6","#4ECDC4","#FF4757","#A29BFE"]
