@@ -3,12 +3,7 @@ on:
   schedule:
     - cron: '30 2 * * *'
   workflow_dispatch:
-    inputs:
-      lang:
-        description: 'Language (hi / en / both)'
-        default: 'both'
-        required: false
-
+    
 jobs:
   generate-and-upload:
     runs-on: ubuntu-latest
