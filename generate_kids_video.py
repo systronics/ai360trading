@@ -85,7 +85,7 @@ def generate_scene_image(prompt: str, scene_id: int, lang: str = "hi") -> Path:
         import google.generativeai as genai
         import base64
         genai.configure(api_key=os.environ["GEMINI_API_KEY"])
-        model = genai.GenerativeModel("gemini-2.0-flash-exp-image-generation")
+        model = genai.GenerativeModel("gemini-2.0-flash-preview-image-generation")
         response = model.generate_content(
             f"Generate single image: {prompt}",
             generation_config={"response_modalities": ["IMAGE"]}
@@ -152,9 +152,9 @@ def make_scene_clip(img_path: Path, duration: float, zoom_dir: str = "in") -> Im
     def make_frame(t):
         idx = min(int(t * fps), len(frames_list) - 1)
         return frames_list[idx]
-    return (ImageClip(make_frame=make_frame, duration=duration)
-            .set_fps(fps)
-            .set_duration(duration))
+    import moviepy.video.VideoClip as vc
+clip = vc.VideoClip(make_frame=make_frame, duration=duration)
+return clip.set_fps(fps)
 
 # ── STEP 5: TTS audio generation ─────────────────────────────────────────
 async def generate_tts(text: str, lang: str, out_path: Path):
