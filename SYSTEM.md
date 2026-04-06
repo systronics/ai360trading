@@ -892,6 +892,51 @@ Success logs:
 ╚══════════════════════════════════════════════════════════════════════════╝
 ```
 
+========================================my notes-
+current time is 06-04-2026 15:50-
+What Was Built — Full Summary
+File 1: content_calendar.py — Completely Rebuilt
+Old version problems:
+
+Topic titles were video slide headings — not SEO keywords
+Broad topics like "Options Trading" that Bloomberg dominates
+No keyword guidance for article generator
+No country-specific targeting per topic
+No insurance or high-CPC personal finance topics on weekdays
+
+New version — what changed:
+
+Every topic now has a seo_seed — a specific long-tail Google search phrase
+Every topic has long_tail_keywords — exact questions real people type into Google
+Thursday now dedicated to high-CPC personal finance: term insurance India, SIP vs lump sum, NPS vs PPF, debt payoff, health insurance, USA term insurance, UK savings
+Friday now includes insurance comparisons for USA and UK alongside psychology
+New get_article_seo_seeds() function that feeds directly into generate_articles.py
+All rotations use day_of_year — never repeats within a full year
+
+File 2: generate_articles.py — Updated
+Added on top of everything from the previous session:
+
+Now imports get_article_seo_seeds() from content_calendar.py
+Each article now receives a specific long-tail keyword seed in the prompt
+AI is explicitly told to write about specific questions people search — not broad topics Bloomberg already dominates
+Graceful fallback: if content_calendar.py missing, article still generates normally
+
+
+Your Complete Step-by-Step Action List
+This week — 30 minutes total:
+Step 1 — Replace both files in your repo. content_calendar.py and generate_articles.py both go into the root of your repo.
+Step 2 — Sign up for free affiliates:
+
+India: partners.policybazaar.com
+USA: policygenius.com/partners
+UK: comparethemarket.com/affiliates
+
+Step 3 — Add these GitHub Secrets:
+AFFILIATE_INSURANCE_IN  = your PolicyBazaar tracking link
+AFFILIATE_INSURANCE_US  = your Policygenius tracking link
+AFFILIATE_INSURANCE_UK  = your CompareTheMarket tracking link
+Step 4 — Test once: GitHub Actions → daily-articles.yml → Run workflow → check logs for [TITLE-AI] and [SEO-SEED]
+=========================================================
 ---
 
 *Documentation maintained by AI360Trading automation.*
