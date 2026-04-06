@@ -1,58 +1,90 @@
 name: Kids Channel — Daily Video
+
 on:
   workflow_dispatch:
+    inputs:
+      lang:
+        description: "Language mode"
+        required: false
+        default: "both"
+        type: choice
+        options:
+          - both
+          - hi
+          - en
   schedule:
-    - cron: '30 2 * * *'
-      
+    - cron: '30 2 * * *'   # 8:00 AM IST every day
+
 jobs:
   generate-and-upload:
     runs-on: ubuntu-latest
+    timeout-minutes: 60
+
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-python@v5
-        with: { python-version: '3.11' }
+        with:
+          python-version: '3.11'
 
       - name: Install system deps
-        run: sudo apt-get install -y ffmpeg          # ← fixes ffprobe not found
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg fonts-dejavu fonts-liberation
 
       - name: Install Python deps
         run: |
           pip install --upgrade pip
           pip install Pillow edge-tts pytz
-          pip install google-genai                   # ← replaces google-generativeai
+          pip install google-genai
           pip install huggingface-hub requests
           pip install anthropic openai groq
           pip install google-api-python-client google-auth
-          # moviepy removed — using ffmpeg directly now
 
+      - name: Prepare workspace
+        run: mkdir -p output
+
+      # ── Generate kids video ────────────────────────────────────────────────
       - name: Generate kids video
         env:
           GEMINI_API_KEY:    ${{ secrets.GEMINI_API_KEY }}
-          HuggingFace FLUX.1-schnell:    ${{ secrets.HF_TOKEN }}
+          HF_TOKEN:          ${{ secrets.HF_TOKEN }}
           GROQ_API_KEY:      ${{ secrets.GROQ_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           OPENAI_API_KEY:    ${{ secrets.OPENAI_API_KEY }}
           KIDS_LANG:         ${{ inputs.lang || 'both' }}
         run: python generate_kids_video.py
 
+      # ── Upload to YouTube Kids (HerooQuest) ───────────────────────────────
       - name: Upload to YouTube Kids channel
         env:
           YOUTUBE_CREDENTIALS_KIDS: ${{ secrets.YOUTUBE_CREDENTIALS_KIDS }}
         run: python upload_kids_youtube.py
 
-      - name: Upload to Facebook + Instagram
+      # ── Upload to Facebook Kids Page ──────────────────────────────────────
+      # Instagram permanently removed — upload manually from phone after YouTube goes live
+      - name: Upload to Facebook Kids Page (HerooQuest — ID 1021152881090398)
         env:
-          META_ACCESS_TOKEN:    ${{ secrets.META_ACCESS_TOKEN }}
-          FACEBOOK_PAGE_ID:     ${{ secrets.FACEBOOK_PAGE_ID }}
-          INSTAGRAM_ACCOUNT_ID: ${{ secrets.INSTAGRAM_ACCOUNT_ID }}
-        run: |
-          python upload_facebook.py --meta-prefix kids
-          python upload_instagram.py --meta-prefix kids
+          META_ACCESS_TOKEN:     ${{ secrets.META_ACCESS_TOKEN }}
+          FACEBOOK_KIDS_PAGE_ID: ${{ secrets.FACEBOOK_KIDS_PAGE_ID }}
+        run: python upload_facebook.py --meta-prefix kids
 
+      # ── Save artifacts on failure for debugging ───────────────────────────
       - name: Save artifacts on failure
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: kids-debug-${{ github.run_id }}
           path: output/
+
+      # ── Summary ───────────────────────────────────────────────────────────
+      - name: Job summary
+        if: always()
+        run: |
+          echo "## 🦸 HerooQuest Kids — Run Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Field | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          echo "| Lang | \`${{ inputs.lang || 'both' }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Run # | ${{ github.run_number }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Triggered by | ${{ github.event_name }} |" >> $GITHUB_STEP_SUMMARY
