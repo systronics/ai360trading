@@ -2,8 +2,8 @@ name: "Daily Global Markets Video — AI360Trading"
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 2 * * 1-5"    # 7:30 AM IST Mon-Fri
-    - cron: "0 4 * * 6,0"    # 9:30 AM IST Sat-Sun
+    - cron: "0 2 * * 1-5"   # 7:30 AM IST Mon-Fri
+    - cron: "0 4 * * 6,0"   # 9:30 AM IST Sat-Sun
 
 jobs:
   generate-video:
@@ -69,33 +69,48 @@ jobs:
           EOF
           echo "✅ Mode detected: $CONTENT_MODE"
 
-      - name: Generate Part 1 — Market Analysis / Holiday Education Video + Upload to YouTube
+      # ── Part 1: Generate + Upload Analysis Video → PLAYLIST_NIFTY_ANALYSIS ─
+      - name: Generate Part 1 — Market Analysis Video
         env:
-          GROQ_API_KEY:          ${{ secrets.GROQ_API_KEY }}
-          YOUTUBE_CREDENTIALS:   ${{ secrets.YOUTUBE_CREDENTIALS }}
-          CONTENT_MODE:          ${{ env.CONTENT_MODE }}
-          HOLIDAY_NAME:          ${{ env.HOLIDAY_NAME }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          CONTENT_MODE: ${{ env.CONTENT_MODE }}
+          HOLIDAY_NAME: ${{ env.HOLIDAY_NAME }}
         run: |
           echo "[VIDEO] Running generate_analysis.py in mode: $CONTENT_MODE"
           python generate_analysis.py
-          echo "✅ Part 1 complete"
+          echo "✅ Part 1 generated"
 
-      - name: Generate Part 2 — Education Video + Upload to YouTube
+      - name: Upload Part 1 to YouTube (PLAYLIST_NIFTY_ANALYSIS)
         env:
-          GROQ_API_KEY:          ${{ secrets.GROQ_API_KEY }}
-          YOUTUBE_CREDENTIALS:   ${{ secrets.YOUTUBE_CREDENTIALS }}
-          CONTENT_MODE:          ${{ env.CONTENT_MODE }}
-          HOLIDAY_NAME:          ${{ env.HOLIDAY_NAME }}
+          YOUTUBE_CREDENTIALS:      ${{ secrets.YOUTUBE_CREDENTIALS }}
+          PLAYLIST_NIFTY_ANALYSIS:  ${{ secrets.PLAYLIST_NIFTY_ANALYSIS }}
+          CONTENT_MODE:             ${{ env.CONTENT_MODE }}
+        run: python upload_youtube.py --type analysis
+
+      # ── Part 2: Generate + Upload Education Video → PLAYLIST_WEEKLY_OUTLOOK ─
+      - name: Generate Part 2 — Education Video
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          CONTENT_MODE: ${{ env.CONTENT_MODE }}
+          HOLIDAY_NAME: ${{ env.HOLIDAY_NAME }}
         run: |
           echo "[VIDEO] Running generate_education.py in mode: $CONTENT_MODE"
           python generate_education.py
-          echo "✅ Part 2 complete"
+          echo "✅ Part 2 generated"
 
-      - name: Share both video links to Facebook Page + Group
+      - name: Upload Part 2 to YouTube (PLAYLIST_WEEKLY_OUTLOOK)
+        env:
+          YOUTUBE_CREDENTIALS:      ${{ secrets.YOUTUBE_CREDENTIALS }}
+          PLAYLIST_WEEKLY_OUTLOOK:  ${{ secrets.PLAYLIST_WEEKLY_OUTLOOK }}
+          CONTENT_MODE:             ${{ env.CONTENT_MODE }}
+        run: python upload_youtube.py --type education
+
+      # ── Share both video links to Facebook Page ────────────────────────────
+      # Facebook Group permanently removed — requires Meta App Review, zero ad revenue
+      - name: Share both video links to Facebook Page
         env:
           META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
           FACEBOOK_PAGE_ID:  ${{ secrets.FACEBOOK_PAGE_ID }}
-          FACEBOOK_GROUP_ID: ${{ secrets.FACEBOOK_GROUP_ID }}
           CONTENT_MODE:      ${{ env.CONTENT_MODE }}
           HOLIDAY_NAME:      ${{ env.HOLIDAY_NAME }}
         run: |
@@ -106,7 +121,6 @@ jobs:
 
           META_ACCESS_TOKEN = os.environ.get("META_ACCESS_TOKEN", "")
           FACEBOOK_PAGE_ID  = os.environ.get("FACEBOOK_PAGE_ID", "")
-          FACEBOOK_GROUP_ID = os.environ.get("FACEBOOK_GROUP_ID", "")
           GRAPH_BASE        = "https://graph.facebook.com/v21.0"
           OUT               = Path("output")
           today             = datetime.now().strftime("%Y%m%d")
@@ -123,7 +137,7 @@ jobs:
           p1_meta     = OUT / f"analysis_meta_{today}.json"
           if p1_meta.exists():
               d           = json.loads(p1_meta.read_text(encoding="utf-8"))
-              part1_url   = d.get("video_url", "")
+              part1_url   = d.get("video_url", d.get("youtube_video_url", ""))
               part1_title = d.get("title", "Market Analysis")
 
           # Read Part 2 meta
@@ -132,20 +146,17 @@ jobs:
           p2_meta     = OUT / f"education_meta_{today}.json"
           if p2_meta.exists():
               d           = json.loads(p2_meta.read_text(encoding="utf-8"))
-              part2_url   = d.get("video_url", "")
+              part2_url   = d.get("video_url", d.get("youtube_video_url", ""))
               part2_title = d.get("title", "Education Video")
 
           if not part1_url and not part2_url:
-              print("⚠️ No video URLs found — skipping Facebook share")
+              print("⚠️ No video URLs found in meta — skipping Facebook share")
               exit(0)
 
-          # Build post message based on mode
+          # Build post message
           if mode == "holiday":
               label = f"🎉 {holiday_name} Special" if holiday_name else "🎉 Market Holiday Special"
-              msg = (
-                  f"📚 {label} — Aaj market band hai, lekin learning band nahi!\n\n"
-                  f"Is holiday pe do powerful videos:\n\n"
-              )
+              msg = f"📚 {label} — Aaj market band hai, lekin learning band nahi!\n\n"
           elif mode == "weekend":
               msg = "📚 Weekend Learning Special — Market se zyada important hai financial education!\n\n"
           else:
@@ -156,49 +167,29 @@ jobs:
           if part2_url:
               msg += f"📚 Part 2:\n{part2_title}\n🔗 {part2_url}\n\n"
 
-          if mode in ("holiday", "weekend"):
-              msg += (
-                  "💡 Markets closed = best time to learn and plan!\n\n"
-                  "🌍 For investors worldwide: US, UK, Brazil, India\n"
-                  "🌐 https://ai360trading.in\n"
-                  "📱 https://t.me/ai360trading\n\n"
-                  "#InvestmentEducation #StockMarket #ai360trading #GlobalInvesting"
-              )
-          else:
-              msg += (
-                  "Daily market analysis aur education ke liye subscribe karo! 🔔\n\n"
-                  "🌐 https://ai360trading.in\n"
-                  "📱 https://t.me/ai360trading\n\n"
-                  "#ai360trading #StockMarket #Nifty #TradingIndia #MarketAnalysis"
-              )
+          msg += (
+              "Daily market analysis ke liye subscribe karo! 🔔\n\n"
+              "🌐 https://ai360trading.in\n"
+              "📱 https://t.me/ai360trading\n\n"
+              "#ai360trading #StockMarket #Nifty50 #TradingIndia #MarketAnalysis"
+          )
 
-          # Post to Facebook Page
           try:
               resp = requests.post(
                   f"{GRAPH_BASE}/{FACEBOOK_PAGE_ID}/feed",
                   data={"message": msg, "access_token": META_ACCESS_TOKEN},
                   timeout=30
               )
-              resp.raise_for_status()
-              print(f"✅ Posted to Facebook Page [{mode} mode]")
+              result = resp.json()
+              if "id" in result:
+                  print(f"✅ Posted to Facebook Page — Post ID: {result['id']}")
+              else:
+                  print(f"⚠️ Facebook Page post failed: {result}")
           except Exception as e:
               print(f"⚠️ Facebook Page post failed: {e}")
-
-          # Post to Facebook Group
-          if FACEBOOK_GROUP_ID:
-              try:
-                  resp = requests.post(
-                      f"{GRAPH_BASE}/{FACEBOOK_GROUP_ID}/feed",
-                      data={"message": msg, "access_token": META_ACCESS_TOKEN},
-                      timeout=30
-                  )
-                  resp.raise_for_status()
-                  print(f"✅ Posted to Facebook Group [{mode} mode]")
-              except Exception as e:
-                  print(f"⚠️ Facebook Group post failed: {e}")
           EOF
 
-      - name: Cleanup temp files only — keep output for shorts workflow
+      - name: Cleanup temp files — keep output for shorts workflow
         if: always()
         run: |
           rm -f output/analysis_*.png
