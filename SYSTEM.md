@@ -829,7 +829,39 @@ Look for: [FB-KIDS] Posted to page 1021152881090398
 ║                                                                          ║
 ╚══════════════════════════════════════════════════════════════════════════╝
 ```
+=========================================
+i updated this at 06-04-2026 17:59, so I am writing here, update this part properly in this system.md file-
+What Changed & Why
+daily_reel.yml (ZENO 8:30 PM)
 
+python upload_youtube.py → python upload_youtube.py --type reel + added PLAYLIST_ZENO_WISDOM secret
+Removed FACEBOOK_GROUP_ID from FB step env vars entirely
+Removed upload_instagram.py step entirely
+Kept artifact save — you still download manually for Instagram
+
+daily-videos.yml (Part 1 + Part 2)
+
+Added separate upload steps: upload_youtube.py --type analysis and upload_youtube.py --type education with their playlist secrets
+Removed FACEBOOK_GROUP_ID from inline Python FB post code entirely
+No other logic changed
+
+daily-shorts.yml (Short 2 + Short 3)
+
+Added python upload_youtube.py --type short with PLAYLIST_SWING_TRADE secret
+Removed FACEBOOK_GROUP_ID and META_ACCESS_TOKEN from generate_shorts.py env (shorts don't need FB posting separately)
+
+kids-daily.yml (HerooQuest)
+
+Fixed broken secret name HuggingFace FLUX.1-schnell: → HF_TOKEN: (this was a bug in your original)
+Removed upload_instagram.py --meta-prefix kids step entirely
+upload_facebook.py --meta-prefix kids now only gets META_ACCESS_TOKEN + FACEBOOK_KIDS_PAGE_ID — clean
+
+daily-morning-reel.yml ⚠️ NEW FILE
+
+Your daily_reel.yml only had the 8:30 PM cron — the morning reel had no workflow at all
+This new file runs at 7:00 AM IST, calls generate_reel_morning.py, uploads with --type morning_reel to PLAYLIST_ZENO_WISDOM, posts to FB with --meta-prefix morning
+
+===================================================================================
 ---
 
 *Created: April 4, 2026 — Claude Sonnet 4.6*
