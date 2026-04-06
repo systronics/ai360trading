@@ -1,7 +1,8 @@
 # AI360Trading — Master System Documentation
 
-**Last Updated:** April 6, 2026 — 16:10 IST
+**Last Updated:** April 6, 2026 — 18:00 IST
 **Trading Bot:** v13.5 | **AppScript:** v13.3 | **content_calendar.py:** v2.0 | **generate_articles.py:** v2.0
+**upload_youtube.py:** v2.0 | **upload_facebook.py:** v2.0
 **Status:** Phase 1 ✅ | Phase 2 ✅ | Phase 3 🔄 | Phase 4 (Dhan Live) 📋
 **Primary Audience:** Bilingual Hindi + English — Indian retail traders + global investors
 
@@ -42,18 +43,20 @@ is no longer alive or able to work.
 
 ---
 
-## ⚡ QUICK STATUS SNAPSHOT (April 6, 2026 — 16:10 IST)
+## ⚡ QUICK STATUS SNAPSHOT (April 6, 2026 — 18:00 IST)
 
 | System | Status |
 |---|---|
 | Trading Bot | ✅ v13.5 — paper trading, running every 5 min |
-| Main YouTube (Hindi) | ✅ Fully automated |
+| Main YouTube (Hindi) | ✅ Fully automated + playlist assignment fixed |
 | HerooQuest Kids YouTube | ✅ Uploading daily — Phase 1 (colour cards + zoom) |
 | Facebook Main Page | ✅ Auto-posting |
-| Facebook Kids Page (HerooQuest) | ✅ Page created + `FACEBOOK_KIDS_PAGE_ID` saved — ID: 1021152881090398 |
-| Facebook Group | ❌ Broken — missing `publish_to_groups` token scope |
+| Facebook Kids Page (HerooQuest) | ✅ ID: 1021152881090398 — auto-posting |
+| Facebook Group | ❌ **PERMANENTLY REMOVED** — same as Instagram |
 | Instagram (All channels) | 📱 Manual only — API permanently removed |
-| content_calendar.py | ✅ v2.0 — SEO seeds, long-tail keywords, high-CPC Thursday/Friday |
+| upload_youtube.py | ✅ v2.0 — --type flag + playlist assignment |
+| upload_facebook.py | ✅ v2.0 — Group removed, kids/morning/main modes |
+| content_calendar.py | ✅ v2.0 — SEO seeds, long-tail keywords, high-CPC Thu/Fri |
 | generate_articles.py | ✅ v2.0 — uses SEO seeds from content_calendar |
 | Affiliate links | ❌ Pending — sign up + add 3 secrets to GitHub |
 | English Channel | 🔄 Phase 3 — not started |
@@ -134,16 +137,16 @@ Never upgrade moviepy, imageio, or Pillow without testing the full render pipeli
 
 | Platform | Status | Notes |
 |---|---|---|
-| YouTube Hindi | ✅ Auto | Analysis + Education + Shorts + Reels |
+| YouTube Hindi | ✅ Auto | Analysis + Education + Shorts + Reels — playlists assigned |
 | YouTube English | 🔄 Building | Phase 3 |
-| YouTube Shorts | ✅ Auto | Short 2 + Short 3 |
+| YouTube Shorts | ✅ Auto | Short 2 + Short 3 → PLAYLIST_SWING_TRADE |
 | YouTube Community Posts | ✅ Auto | 12:00 PM daily |
-| YouTube Reels | ✅ Auto | ZENO 8:30 PM |
-| YouTube Morning Reel | ✅ Auto | 7:00 AM |
+| YouTube Reels | ✅ Auto | ZENO 8:30 PM → PLAYLIST_ZENO_WISDOM |
+| YouTube Morning Reel | ✅ Auto | 7:00 AM → PLAYLIST_ZENO_WISDOM |
 | YouTube Kids (HerooQuest) | ✅ Uploading | Phase 1 — colour cards + Ken Burns zoom |
 | Facebook Page (Main) | ✅ Auto | Posts, reels, articles |
-| Facebook Kids Page (HerooQuest) | ✅ Ready | ID: 1021152881090398 — secret saved April 6 |
-| Facebook Group | ❌ Broken | Missing `publish_to_groups` token |
+| Facebook Kids Page (HerooQuest) | ✅ Auto | ID: 1021152881090398 |
+| Facebook Group | ❌ **PERMANENTLY REMOVED** | Requires App Review — not worth it |
 | Instagram (All channels) | 📱 Manual only | API permanently removed |
 | GitHub Pages | ✅ Auto | 4 articles/day + Google indexing |
 | Telegram | ✅ Auto | All 3 channels — paper trading |
@@ -196,7 +199,7 @@ Never upgrade moviepy, imageio, or Pillow without testing the full render pipeli
 | 9 | Community Post | 12:00 PM | YouTube | ✅ |
 | 10 | Kids Story Video (16:9) 8–10 min | 8:00 AM | YouTube Kids (HerooQuest) | ✅ |
 | 11 | Kids Short (9:16) 60 sec | 8:01 AM | YouTube Kids Shorts | ✅ |
-| 12 | Same Story Video | 9:00 AM | Facebook Kids Page | ✅ Ready — secret saved |
+| 12 | Same Story Video | 9:00 AM | Facebook Kids Page | ✅ |
 | **Total** | **15 pieces/day** | — | — | **14 live, 1 pending (English shorts)** |
 
 > Instagram: manual upload from phone after each YouTube video goes live.
@@ -216,6 +219,40 @@ Never upgrade moviepy, imageio, or Pillow without testing the full render pipeli
 | `token_refresh.yml` | Every 50 days | Auto META token refresh | ✅ |
 | `keepalive.yml` | Periodic | Prevents GitHub disabling workflows | ✅ |
 
+### ⚠️ WORKFLOW UPDATE REQUIRED — Add --type flag to upload_youtube.py calls
+
+After deploying upload_youtube.py v2.0, update each workflow yaml:
+
+```yaml
+# daily_reel.yml — ZENO 8:30 PM reel (default, no change needed)
+python upload_youtube.py
+
+# daily_reel.yml — Morning reel 7:00 AM
+python upload_youtube.py --type morning_reel
+
+# daily-videos.yml — Part 1 analysis
+python upload_youtube.py --type analysis
+
+# daily-videos.yml — Part 2 education
+python upload_youtube.py --type education
+
+# daily-shorts.yml — Shorts
+python upload_youtube.py --type short
+```
+
+And update upload_facebook.py calls:
+
+```yaml
+# daily_reel.yml — Morning reel
+python upload_facebook.py --meta-prefix morning
+
+# kids-daily.yml — Kids video
+python upload_facebook.py --meta-prefix kids
+
+# daily_reel.yml — ZENO reel (default, no change needed)
+python upload_facebook.py
+```
+
 ---
 
 ## 7. Complete File Map
@@ -233,8 +270,8 @@ Never upgrade moviepy, imageio, or Pillow without testing the full render pipeli
 | File | Role | Version | Status |
 |---|---|---|---|
 | `trading_bot.py` | Nifty200 signals + TSL + Telegram | v13.5 | ✅ |
-| `content_calendar.py` | Topic rotation + SEO seeds + long-tail keywords | **v2.0** | ✅ April 6 |
-| `generate_articles.py` | 4 SEO articles → Jekyll _posts | **v2.0** | ✅ April 6 |
+| `content_calendar.py` | Topic rotation + SEO seeds + long-tail keywords | v2.0 | ✅ |
+| `generate_articles.py` | 4 SEO articles → Jekyll _posts | v2.0 | ✅ |
 | `generate_shorts.py` | Short 2 (Madhur) + Short 3 (Swara) | — | ✅ |
 | `generate_reel.py` | ZENO 60s reel 8:30 PM | — | ✅ |
 | `generate_reel_morning.py` | Morning reel 7:00 AM | — | ✅ |
@@ -246,13 +283,13 @@ Never upgrade moviepy, imageio, or Pillow without testing the full render pipeli
 
 ### Upload & Distribution
 
-| File | Role | Status |
-|---|---|---|
-| `upload_youtube.py` | Uploads video; saves IDs to meta | ✅ |
-| `upload_youtube_english.py` | English channel upload | 🔄 Phase 3 |
-| `upload_kids_youtube.py` | HerooQuest full video + short | ✅ |
-| `upload_facebook.py` | FB Page posts + articles + kids page | ✅ |
-| ~~`upload_instagram.py`~~ | ~~Meta API~~ | ❌ Removed permanently |
+| File | Role | Version | Status |
+|---|---|---|---|
+| `upload_youtube.py` | All YouTube uploads — --type flag + playlist assignment | **v2.0** | ✅ April 6 |
+| `upload_youtube_english.py` | English channel upload | — | 🔄 Phase 3 |
+| `upload_kids_youtube.py` | HerooQuest full video + short | — | ✅ |
+| `upload_facebook.py` | FB Main Page + Kids Page — Group removed | **v2.0** | ✅ April 6 |
+| ~~`upload_instagram.py`~~ | ~~Meta API~~ | — | ❌ Removed permanently |
 
 ### Infrastructure
 
@@ -269,13 +306,60 @@ Never upgrade moviepy, imageio, or Pillow without testing the full render pipeli
 
 ---
 
-## 8. content_calendar.py v2.0 (Updated April 6, 2026)
+## 8. upload_youtube.py v2.0 (Updated April 6, 2026)
 
 ### What Was Wrong with Old Version
-- Topics were slide headings — not SEO keywords
-- Broad topics Bloomberg already dominates in Google
-- No keyword guidance for article generator
-- No country-specific targeting, no high-CPC insurance/finance topics
+- Only looked for `meta_*.json` — missed morning reel, analysis, education, shorts meta files
+- Only looked for `reel_*.mp4` — missed all other video types
+- Zero playlist assignment — `playlistItems().insert()` never called
+- No `--type` flag — one script serving all content types with no differentiation
+
+### What's New
+
+| Feature | Detail |
+|---|---|
+| `--type` flag | Routes to correct meta file, video file, and playlist per content type |
+| Playlist assignment | `playlistItems().insert()` called after every successful upload |
+| Playlist failure safe | Wrapped in try/except — never crashes the upload chain |
+| Multi-type meta search | Finds `morning_reel_meta_*`, `analysis_meta_*`, `education_meta_*`, `short_meta_*` |
+| Backward compatible | Default `--type reel` works exactly like the old script |
+
+### Playlist Mapping
+
+| --type | Meta prefix | Video pattern | Playlist secret |
+|---|---|---|---|
+| `reel` (default) | `meta_` | `reel_*.mp4` | `PLAYLIST_ZENO_WISDOM` |
+| `morning_reel` | `morning_reel_meta_` | `morning_reel_*.mp4` | `PLAYLIST_ZENO_WISDOM` |
+| `analysis` | `analysis_meta_` | `analysis_*.mp4` | `PLAYLIST_NIFTY_ANALYSIS` |
+| `education` | `education_meta_` | `education_*.mp4` | `PLAYLIST_WEEKLY_OUTLOOK` |
+| `short` | `short_meta_` | `short_*.mp4` | `PLAYLIST_SWING_TRADE` |
+
+---
+
+## 9. upload_facebook.py v2.0 (Updated April 6, 2026)
+
+### What Was Wrong with Old Version
+- Facebook Group posting was broken (missing `publish_to_groups` permission)
+- Group code was still present causing error noise in every workflow run
+- Morning reel meta file (`morning_reel_meta_*`) was never found — always fell back to ZENO meta
+- No separation between kids page and main page routing
+
+### What's New
+
+| Feature | Detail |
+|---|---|
+| FB Group **permanently removed** | Same decision as Instagram — not worth App Review |
+| `--meta-prefix` flag | `''` = ZENO reel, `morning` = morning reel, `kids` = HerooQuest Kids Page |
+| Kids page routing | `--meta-prefix kids` uploads to `FACEBOOK_KIDS_PAGE_ID` with kids caption |
+| Morning reel routing | `--meta-prefix morning` finds `morning_reel_meta_*` + `morning_reel_*.mp4` |
+| Cleaner error logging | Full error code + message logged — no silent failures |
+
+### Why FB Group Was Removed (Not Just Disabled)
+Meta requires `publish_to_groups` App Review which involves manual submission, review wait time, and ongoing compliance. The group has zero monetisation value (no in-stream ads in groups). The Main Page already reaches the same audience. Removing it eliminates daily error noise and workflow complexity with zero revenue loss.
+
+---
+
+## 10. content_calendar.py v2.0 (Updated April 6, 2026)
 
 ### What's New
 
@@ -293,7 +377,7 @@ Insurance + personal finance = ₹50–200 per click India, $5–20 per click US
 
 ---
 
-## 9. generate_articles.py v2.0 (Updated April 6, 2026)
+## 11. generate_articles.py v2.0 (Updated April 6, 2026)
 
 | Feature | Detail |
 |---|---|
@@ -302,15 +386,9 @@ Insurance + personal finance = ₹50–200 per click India, $5–20 per click US
 | AI explicitly told | Write about questions people search — not broad topics |
 | Graceful fallback | If content_calendar.py missing → article still generates normally |
 
-### Verify It's Working
-```
-GitHub Actions → daily-articles.yml → Run workflow
-Look for: [SEO-SEED] best term insurance plan India 2026 under 30 lakhs
-```
-
 ---
 
-## 10. Affiliate Revenue Stream (Pending Setup)
+## 12. Affiliate Revenue Stream (Pending Setup)
 
 Articles target insurance + personal finance every Thursday and Friday — perfect for affiliate links on top of AdSense.
 
@@ -332,7 +410,7 @@ Articles target insurance + personal finance every Thursday and Friday — perfe
 
 ---
 
-## 11. AI Fallback Chain
+## 13. AI Fallback Chain
 
 **Never call AI APIs directly. Always use `ai_client.py`.**
 
@@ -348,14 +426,9 @@ OpenAI — gpt-4o-mini (quaternary)
 Templates in human_touch.py (always works)
 ```
 
-```python
-from ai_client import ai, img_client
-from human_touch import ht, seo
-```
-
 ---
 
-## 12. Trading Bot Architecture
+## 14. Trading Bot Architecture
 
 | Component | Version | Role |
 |---|---|---|
@@ -391,13 +464,21 @@ TSL_PARAMS = {
 
 ---
 
-## 13. Known Issues & Pending Actions
+## 15. Known Issues & Pending Actions
 
-### ❌ Facebook Group Posting Broken
-Fix: developers.facebook.com → App → Add `publish_to_groups` → regenerate token → update `META_ACCESS_TOKEN`.
+### ✅ RESOLVED — April 6, 2026
+- YouTube playlist assignment — fixed in upload_youtube.py v2.0
+- Morning reel meta not found — fixed in upload_youtube.py v2.0 + upload_facebook.py v2.0
+- Facebook Group error noise — permanently removed in upload_facebook.py v2.0
+- Kids FB page routing — fixed in upload_facebook.py v2.0
+
+### ⚠️ ACTION REQUIRED — Workflow YAML Updates
+Add `--type` flag to `upload_youtube.py` calls in all workflow files.
+Add `--meta-prefix` flag to `upload_facebook.py` calls in all workflow files.
+See Section 6 for exact commands.
 
 ### ❌ Affiliate Secrets Not Added
-Only remaining action for new income stream. See Section 10. 30 minutes total.
+Only remaining action for new income stream. See Section 12. 30 minutes total.
 
 ### 📱 Instagram — Manual Forever
 Upload from phone after each YouTube video. Do not rebuild API.
@@ -407,9 +488,13 @@ Upload from phone after each YouTube video. Do not rebuild API.
 ### ⚠️ YouTube Community Tab
 Requires 500+ subscribers. Below threshold → saves to `output/community_post_YYYYMMDD.txt`.
 
+### ❌ Facebook Group — PERMANENTLY REMOVED
+No App Review. No `publish_to_groups`. Same as Instagram.
+`FACEBOOK_GROUP_ID` secret can remain in GitHub — it is simply unused now.
+
 ---
 
-## 14. Environment Variables & Secrets
+## 16. Environment Variables & Secrets
 
 ### Social Platforms
 
@@ -419,11 +504,20 @@ Requires 500+ subscribers. Below threshold → saves to `output/community_post_Y
 | `META_APP_ID` | Facebook App ID | ✅ |
 | `META_APP_SECRET` | Facebook App Secret | ✅ |
 | `FACEBOOK_PAGE_ID` | Main ai360trading page | ✅ |
-| `FACEBOOK_GROUP_ID` | Facebook Group | ✅ (posting broken) |
+| `FACEBOOK_GROUP_ID` | Facebook Group — **UNUSED, kept harmless** | ✅ (unused) |
 | `FACEBOOK_KIDS_PAGE_ID` | HerooQuest Kids Page — **1021152881090398** | ✅ Saved April 6 |
 | `YOUTUBE_CREDENTIALS` | YouTube OAuth (Hindi main) | ✅ |
 | `YOUTUBE_CREDENTIALS_EN` | YouTube OAuth (English) | ✅ |
 | `YOUTUBE_CREDENTIALS_KIDS` | YouTube OAuth (HerooQuest) | ✅ |
+
+### YouTube Playlists
+
+| Secret | Purpose | Status |
+|---|---|---|
+| `PLAYLIST_ZENO_WISDOM` | ZENO reel + Morning reel | ✅ Saved |
+| `PLAYLIST_NIFTY_ANALYSIS` | Part 1 market analysis videos | ✅ Saved |
+| `PLAYLIST_WEEKLY_OUTLOOK` | Part 2 educational videos | ✅ Saved |
+| `PLAYLIST_SWING_TRADE` | Shorts (Short 2 + Short 3) | ✅ Saved |
 
 ### Affiliate (Pending)
 
@@ -473,10 +567,11 @@ Requires 500+ subscribers. Below threshold → saves to `output/community_post_Y
 | `GH_TOKEN` | GitHub API |
 
 > Instagram secrets removed permanently.
+> Facebook Group secrets kept but unused — harmless.
 
 ---
 
-## 15. Technical Standards
+## 17. Technical Standards
 
 ### Dependency Pins
 
@@ -508,7 +603,7 @@ Requires 500+ subscribers. Below threshold → saves to `output/community_post_Y
 
 ---
 
-## 16. HerooQuest Kids Channel
+## 18. HerooQuest Kids Channel
 
 ### Channel Details
 
@@ -550,15 +645,6 @@ Requires 500+ subscribers. Below threshold → saves to `output/community_post_Y
 
 > Phase 1 colour card must always remain as fallback in every future phase.
 
-### Why 8–10 Minutes Is Critical
-
-| Length | Mid-Roll Ads | Revenue |
-|---|---|---|
-| Under 4 min | None | Very low |
-| 4–8 min | 1 break | Medium |
-| 8–10 min | 2–3 breaks | **High ← always target** |
-| 10+ min | Maximum | Highest |
-
 ### Strict Rules for Kids Files
 
 1. Never remove fallback colour card
@@ -580,18 +666,7 @@ Requires 500+ subscribers. Below threshold → saves to `output/community_post_Y
 
 ---
 
-## 17. Disney 3D Reel Roadmap (Main Channel)
-
-| Phase | Tool | Status |
-|---|---|---|
-| 1 | PIL + MoviePy + ZENO PNG — 2D slides | ✅ Active |
-| 2 | Gemini Veo API free tier — AI clips | Hooks in ai_client.py |
-| 3 | Stable Diffusion + AnimateDiff — 3D frames | Planned |
-| 4 | Veo 2 / Sora when free — Disney-style 3D | Future |
-
----
-
-## 18. Content Mode System
+## 19. Content Mode System
 
 | Mode | When | Strategy |
 |---|---|---|
@@ -603,7 +678,7 @@ Detection: `indian_holidays.py` → NSE API → hardcoded fallback
 
 ---
 
-## 19. Phase Roadmap
+## 20. Phase Roadmap
 
 ### Phase 1 ✅ Complete
 ### Phase 2 ✅ Complete
@@ -617,19 +692,22 @@ Detection: `indian_holidays.py` → NSE API → hardcoded fallback
 | content_calendar.py v2.0 | 🔴 | ✅ Done April 6 |
 | generate_articles.py v2.0 | 🔴 | ✅ Done April 6 |
 | Facebook Kids Page secret saved | 🔴 | ✅ Done April 6 — ID: 1021152881090398 |
-| Join affiliate programs + add 3 secrets | 🔴 | ❌ Only remaining critical action |
-| Fix Facebook Group token | 🔴 | ❌ Pending |
+| upload_youtube.py v2.0 — playlists + --type | 🔴 | ✅ Done April 6 |
+| upload_facebook.py v2.0 — Group removed + routing | 🔴 | ✅ Done April 6 |
+| **Workflow YAML updates** — add --type and --meta-prefix flags | 🔴 | ❌ **NEXT ACTION** |
+| Join affiliate programs + add 3 secrets | 🔴 | ❌ Pending |
 | Kids video Phase 2 — Gemini images | 🟡 | 🔄 Planned |
 | Kids video Phase 3 — Pixar/Disney 3D | 🟡 | 📋 Future |
 | English channel shorts | 🟡 | 🔄 Building |
 | Instagram | ✅ | 📱 Manual forever |
+| Facebook Group | ✅ | ❌ Permanently removed |
 
 ### Phase 4 📋 — Dhan Live Trading
 After backtest ≥35% win rate.
 
 ---
 
-## 20. Full Data Flow
+## 21. Full Data Flow
 
 ```
 8:00 AM daily — kids-daily.yml
@@ -638,20 +716,26 @@ After backtest ≥35% win rate.
 └── Instagram ← Manual phone upload
 
 7:00 AM daily — daily_reel.yml
-└── generate_reel_morning.py → upload_youtube.py → upload_facebook.py
+└── generate_reel_morning.py
+└── upload_youtube.py --type morning_reel → PLAYLIST_ZENO_WISDOM
+└── upload_facebook.py --meta-prefix morning → Main FB Page
 └── Instagram ← Manual
 
 7:30 / 9:30 AM — daily-videos.yml
-└── generate_analysis.py + generate_education.py → YouTube
+└── generate_analysis.py → upload_youtube.py --type analysis → PLAYLIST_NIFTY_ANALYSIS
+└── generate_education.py → upload_youtube.py --type education → PLAYLIST_WEEKLY_OUTLOOK
 
 10:00 / 11:30 AM — daily-articles.yml
 └── generate_articles.py v2.0 (SEO seeds) → GitHub Pages + Facebook
 
 11:30 AM / 1:30 PM — daily-shorts.yml
-└── generate_shorts.py + generate_community_post.py → YouTube
+└── generate_shorts.py → upload_youtube.py --type short → PLAYLIST_SWING_TRADE
+└── generate_community_post.py → YouTube
 
 8:30 PM — daily_reel.yml
-└── generate_reel.py → upload_youtube.py → upload_facebook.py
+└── generate_reel.py
+└── upload_youtube.py (default --type reel) → PLAYLIST_ZENO_WISDOM
+└── upload_facebook.py → Main FB Page
 └── Instagram ← Manual
 
 Mon–Fri 9:15–3:30 PM — main.yml every 5 min
@@ -660,7 +744,7 @@ Mon–Fri 9:15–3:30 PM — main.yml every 5 min
 
 ---
 
-## 21. Social Media Links
+## 22. Social Media Links
 
 | Platform | Link | Status |
 |---|---|---|
@@ -671,16 +755,29 @@ Mon–Fri 9:15–3:30 PM — main.yml every 5 min
 | ▶️ YouTube | @ai360trading | ✅ |
 | 📺 YouTube Kids | HerooQuest | ✅ |
 | 📸 Instagram | @ai360trading — manual only | 📱 |
-| 👥 Facebook Group | facebook.com/groups/ai360trading | ❌ Posting broken |
+| 👥 Facebook Group | **PERMANENTLY REMOVED from automation** | ❌ |
 | 📘 Facebook Page | facebook.com/ai360trading | ✅ |
 | 📘 Facebook Kids | HerooQuest — ID: 1021152881090398 | ✅ |
 | 🐦 Twitter/X | @ai360trading | — |
 
 ---
 
-## 22. How to Test
+## 23. How to Test
 
 ```bash
+# Verify YouTube playlist assignment
+daily_reel.yml → Run workflow
+Look for: ✅ Added to playlist: PLxxxxxxx
+
+# Verify morning reel routing
+daily_reel.yml → Run workflow (7AM step)
+Look for: morning_reel_meta_*.json found
+Look for: morning_reel_*.mp4 found
+
+# Verify FB Group is gone
+upload_facebook.py → Run any workflow
+Look for: NO "Facebook Group" lines anywhere in logs
+
 # Verify articles v2.0
 daily-articles.yml → Run workflow
 Look for: [SEO-SEED] best term insurance plan India 2026
@@ -698,7 +795,7 @@ Look for: [FB-KIDS] Posted to page 1021152881090398
 
 ---
 
-## 23. THE WEIGHT OF THIS SYSTEM
+## 24. THE WEIGHT OF THIS SYSTEM
 
 ```
 ╔══════════════════════════════════════════════════════════════════════════╗
@@ -736,13 +833,19 @@ Look for: [FB-KIDS] Posted to page 1021152881090398
 ---
 
 *Created: April 4, 2026 — Claude Sonnet 4.6*
-*Last Updated: April 6, 2026 16:10 IST — Claude Sonnet 4.6*
+*Last Updated: April 6, 2026 18:00 IST — Claude Sonnet 4.6*
 
-*April 6 changes:*
-*- 16:10: FACEBOOK_KIDS_PAGE_ID = 1021152881090398 saved as GitHub secret — kids FB auto-posting fully ready*
-*- 15:50: content_calendar.py v2.0 + generate_articles.py v2.0 deployed*
-*- 15:50: Affiliate revenue stream documented — PolicyBazaar, Policygenius, CompareTheMarket*
+*April 6 changes (16:10):*
+*- FACEBOOK_KIDS_PAGE_ID = 1021152881090398 saved as GitHub secret*
+*- content_calendar.py v2.0 + generate_articles.py v2.0 deployed*
+*- Affiliate revenue stream documented*
 *- Instagram permanently removed from all automation*
-*- HerooQuest OAuth done — uploading daily*
-*- 14 of 15 daily pieces now live — only English shorts pending (Phase 3)*
+
+*April 6 changes (18:00):*
+*- upload_youtube.py v2.0 — --type flag, playlist assignment, multi-type meta/video routing*
+*- upload_facebook.py v2.0 — FB Group permanently removed, --meta-prefix routing, kids/morning/main modes*
+*- SYSTEM.md updated to reflect all changes*
+*- Playlist secrets documented: PLAYLIST_ZENO_WISDOM, PLAYLIST_NIFTY_ANALYSIS, PLAYLIST_WEEKLY_OUTLOOK, PLAYLIST_SWING_TRADE*
+*- Next action: Update workflow YAML files to add --type and --meta-prefix flags*
+
 *Update this file whenever architecture, secrets, platform status, or file logic changes.*
