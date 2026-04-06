@@ -39,7 +39,6 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq ffmpeg imagemagick
-          # Fix ImageMagick policy for MoviePy high-quality text rendering
           sudo sed -i 's/rights="none" pattern="@\*"/rights="read|write" pattern="@\*"/g' /etc/ImageMagick-6/policy.xml || true
 
       # ── 4. Python dependencies ─────────────────────────────────────────────
@@ -54,9 +53,6 @@ jobs:
         run: mkdir -p output
 
       # ── 6. AUTO-DETECT CONTENT MODE ────────────────────────────────────────
-      # This is the critical step. It runs indian_holidays.py to get the
-      # correct mode (market / weekend / holiday) and exports it to
-      # GITHUB_ENV so ALL subsequent steps can use it automatically.
       - name: Detect content mode
         id: detect_mode
         env:
@@ -95,37 +91,31 @@ jobs:
       # ── 7. Generate ZENO Reel ──────────────────────────────────────────────
       - name: Generate ZENO Viral Reel
         env:
-          GROQ_API_KEY:  ${{ secrets.GROQ_API_KEY }}
-          CONTENT_MODE:  ${{ env.CONTENT_MODE }}
-          HOLIDAY_NAME:  ${{ env.HOLIDAY_NAME }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          CONTENT_MODE: ${{ env.CONTENT_MODE }}
+          HOLIDAY_NAME: ${{ env.HOLIDAY_NAME }}
         run: python generate_reel.py
 
-      # ── 8. Upload to YouTube ───────────────────────────────────────────────
-      - name: Upload to YouTube Shorts (SEO Optimized)
+      # ── 8. Upload to YouTube — PLAYLIST_ZENO_WISDOM ───────────────────────
+      - name: Upload ZENO Reel to YouTube (PLAYLIST_ZENO_WISDOM)
         env:
-          YOUTUBE_CREDENTIALS: ${{ secrets.YOUTUBE_CREDENTIALS }}
-          CONTENT_MODE:        ${{ env.CONTENT_MODE }}
-        run: python upload_youtube.py
+          YOUTUBE_CREDENTIALS:  ${{ secrets.YOUTUBE_CREDENTIALS }}
+          PLAYLIST_ZENO_WISDOM: ${{ secrets.PLAYLIST_ZENO_WISDOM }}
+          CONTENT_MODE:         ${{ env.CONTENT_MODE }}
+        run: python upload_youtube.py --type reel
 
-      # ── 9. Post to Facebook Page & Group ──────────────────────────────────
-      - name: Post to Facebook (Page & Group)
+      # ── 9. Post to Facebook Page ───────────────────────────────────────────
+      # Facebook Group permanently removed — requires Meta App Review, zero ad revenue
+      - name: Post ZENO Reel to Facebook Page
         env:
           META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
           FACEBOOK_PAGE_ID:  ${{ secrets.FACEBOOK_PAGE_ID }}
-          FACEBOOK_GROUP_ID: ${{ secrets.FACEBOOK_GROUP_ID }}
           CONTENT_MODE:      ${{ env.CONTENT_MODE }}
+          HOLIDAY_NAME:      ${{ env.HOLIDAY_NAME }}
         run: python upload_facebook.py
 
-      # ── 10. Instagram — artifact saved for manual post ────────────────────
-      # Meta API does not allow direct video upload for most account types.
-      # Video + caption are saved as artifact. Download and post manually.
-      - name: Prepare Instagram artifact
-        env:
-          META_ACCESS_TOKEN:    ${{ secrets.META_ACCESS_TOKEN }}
-          INSTAGRAM_ACCOUNT_ID: ${{ secrets.INSTAGRAM_ACCOUNT_ID }}
-          CONTENT_MODE:         ${{ env.CONTENT_MODE }}
-        run: python upload_instagram.py
-        continue-on-error: true   # Never crash the whole workflow if Instagram fails
+      # ── 10. Instagram — manual only ───────────────────────────────────────
+      # API permanently removed. Download artifact and post manually from phone.
 
       # ── 11. Save artifacts ─────────────────────────────────────────────────
       - name: Upload reel artifact (for Instagram manual post)
