@@ -1,620 +1,1730 @@
 """
-AI360Trading — Global Content Calendar
+AI360Trading — Content Calendar v2.0
+======================================
 Smart topic rotation covering ALL markets and ALL audiences worldwide.
 
-Monday    = Options & Derivatives (universal — works for US, India, UK, Brazil)
-Tuesday   = Technical Analysis (universal charts — any market)
-Wednesday = Fundamental + Macro + Global Events
-Thursday  = Strategies (intraday, swing, positional — universal)
-Friday    = Psychology + Risk Management (universal)
-Holiday   = Rotates: Motivational | Savings & Investment | Market Emotions | Storytelling
+KEY UPGRADE from v1:
+- Every topic now has SEO-optimised long-tail keyword seeds
+- High-CPC topics (insurance, investment comparison, debt, retirement) added throughout
+- Country-specific keyword variants for India, USA, UK — each gets targeted content
+- Article focus is specific, not broad — "LIC vs HDFC" not "term insurance"
+- Monday = Options & Derivatives
+- Tuesday = Technical Analysis
+- Wednesday = Fundamental + Macro + Global Events
+- Thursday = Strategies + High-CPC Personal Finance
+- Friday = Psychology + Risk + Insurance/Investment Comparisons
+- Holiday = Motivational | Savings | Market Emotions | Storytelling
+- Weekend = Evergreen education + personal finance with affiliate angles
+
+Target countries: India, USA, UK, UAE, Canada, Australia, Brazil
+China: EXCLUDED — closed market, no foreign finance platforms work there
+
+Author: AI360Trading Automation
+Last Updated: April 2026
 """
 
 from datetime import datetime
 
-# ══════════════════════════════════════════════════════════
-# MONDAY — OPTIONS & DERIVATIVES (Global)
-# ══════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════════════════
+# MONDAY — OPTIONS & DERIVATIVES
+# High-CPC because options traders are active buyers of courses/platforms
+# ══════════════════════════════════════════════════════════════════════
+
 MONDAY_TOPICS = [
     {
         "title": "Options Trading Complete Beginner Guide",
         "category": "Options",
         "level": "Beginner",
-        "target_audience": "US, India, UK, Brazil — universal",
+        "target_primary": "India",
+        "target_secondary": ["USA", "UK", "Brazil"],
+        "seo_seed": "options trading for beginners India 2026 step by step",
+        "long_tail_keywords": [
+            "how to start options trading in India with 10000 rupees",
+            "Nifty options buying strategy for beginners",
+            "what happens if I buy a call option and it expires",
+            "options trading vs stock trading which is better for beginners India",
+        ],
+        "affiliate_angle": "open trading account to start options — Zerodha, Dhan",
         "slides": [
             {"heading": "What is an Option Contract?",
-             "points": ["Right but not obligation to buy or sell","Call option = right to BUY","Put option = right to SELL","Premium = price you pay for this right","Works for stocks, indices, crypto — any market worldwide"]},
+             "points": [
+                 "Right but not obligation to buy or sell",
+                 "Call option = right to BUY at a fixed price",
+                 "Put option = right to SELL at a fixed price",
+                 "Premium = price you pay for this right",
+                 "Maximum loss always limited to premium paid — this is your safety net",
+             ]},
             {"heading": "How Call Options Make Money",
-             "points": ["Buy call when you think price will rise","Example: Apple at 180, buy 185 call","If Apple rises to 200 — your call explodes in value","If Apple stays below 185 — you lose only the premium","Maximum loss is always just the premium paid"]},
+             "points": [
+                 "Buy call when you think price will rise",
+                 "Example: Nifty at 22000, buy 22200 call at ₹50 premium",
+                 "If Nifty rises to 22500 — your call may be worth ₹300 — 6x return",
+                 "If Nifty stays below 22200 — you lose only the ₹50 premium",
+                 "This is why options give leverage without borrowing money",
+             ]},
             {"heading": "How Put Options Make Money",
-             "points": ["Buy put when you think price will fall","Used to profit from crashes","Used to protect your stock portfolio","Example: S&P 500 drops 10% — your put 5x","Every big investor uses puts as insurance"]},
-            {"heading": "Why Options Beat Stocks for Returns",
-             "points": ["Control 100 shares for fraction of the cost","10% stock move can mean 100% option return","Risk is always capped at premium paid","Leverage without borrowing money","Why hedge funds and institutions love options"]},
+             "points": [
+                 "Buy put when you think price will fall",
+                 "Used to profit from market crashes",
+                 "Used to protect your stock portfolio — like insurance",
+                 "Example: Nifty falls 500 points — your put may 5x in value",
+                 "Every big investor uses puts as portfolio insurance",
+             ]},
             {"heading": "The 3 Rules Every Option Buyer Must Know",
-             "points": ["Time is your enemy — options lose value daily","Buy options with at least 30 days to expiry","Always set a stop loss at 40% of premium","Exit winners at 50-100% profit — do not be greedy","Weekly options = highest risk, highest reward"]},
-            {"heading": "Options in Different Markets",
-             "points": ["US: SPY QQQ Apple Tesla options most liquid","India: Nifty Bank Nifty weekly options most popular","UK: FTSE options available on spread betting platforms","Brazil: Bovespa options very actively traded","Crypto: Bitcoin Ethereum options on Deribit and Bybit"]},
-        ]
+             "points": [
+                 "Time decay is your enemy — options lose value every day",
+                 "Always buy options with at least 15-20 days to expiry",
+                 "Exit winners at 50-100% profit — greed kills options trades",
+                 "Stop loss at 40-50% of premium — no exceptions ever",
+                 "Weekly options have highest risk and highest theta decay",
+             ]},
+            {"heading": "How to Start Options Trading in India — Step by Step",
+             "points": [
+                 "Open a Zerodha or Dhan account — takes 10 minutes online",
+                 "Complete your F&O activation — needs income proof",
+                 "Start with Nifty weekly options — most liquid in India",
+                 "Paper trade for one month before using real money",
+                 "Start with maximum ₹5000 per trade — protect capital first",
+             ]},
+        ],
     },
     {
-        "title": "Option Selling — How to Collect Premium Like a Bank",
+        "title": "Option Selling — Collect Premium Like Insurance Companies Do",
         "category": "Options",
         "level": "Intermediate",
-        "target_audience": "Global",
+        "target_primary": "India",
+        "target_secondary": ["USA", "UK"],
+        "seo_seed": "option selling strategy India monthly income 2026",
+        "long_tail_keywords": [
+            "how to earn monthly income from option selling Nifty",
+            "covered call strategy India step by step 2026",
+            "iron condor Nifty strategy explained in Hindi",
+            "how option sellers make consistent profit India",
+        ],
+        "affiliate_angle": "Zerodha Sensibull for option strategy builder — free plan available",
         "slides": [
             {"heading": "Why Option Sellers Win Long Term",
-             "points": ["80% of options expire worthless","Sellers collect that premium every expiry","Time decay works FOR sellers, AGAINST buyers","Like being the casino — house always wins over time","Warren Buffett sold options to buy Coca-Cola cheaper"]},
-            {"heading": "Covered Call — Generate Monthly Income",
-             "points": ["Own 100 shares of a stock you like","Sell a call option every month against those shares","Collect premium whether stock goes up, down, or sideways","Example: Own Apple, sell monthly call, collect 1-2% every month","This is how retirees in US generate income from stocks"]},
-            {"heading": "Cash Secured Put — Buy Stocks at a Discount",
-             "points": ["Pick a stock you want to own","Sell a put below current price and collect premium","If stock falls to your strike — you buy it at a discount","If stock stays up — keep the premium and repeat","Warren Buffett used this to buy Coca-Cola in the 1990s"]},
-            {"heading": "Iron Condor — Profit When Market Does Nothing",
-             "points": ["Sell both a call spread and a put spread","Profit when market stays in a range","Perfect for sideways markets and low volatility periods","Maximum profit if market closes between your short strikes","Used widely on SPX, Nifty, FTSE during consolidation"]},
-            {"heading": "Risk Management for Option Sellers",
-             "points": ["Always buy a further out option to cap your loss","Never sell naked options without a hedge","Exit when loss equals 2x the premium collected","Avoid holding through major news events","Position size: never risk more than 5% of account on one trade"]},
-        ]
+             "points": [
+                 "80% of options expire worthless — sellers collect that premium",
+                 "Time decay works FOR sellers every single day",
+                 "Like being the casino — house wins over time with proper risk management",
+                 "Warren Buffett sold put options to buy Coca-Cola at a lower price",
+                 "Indian market: Bank Nifty weekly options — huge premium available",
+             ]},
+            {"heading": "Covered Call — Generate Monthly Income From Stocks You Own",
+             "points": [
+                 "Own shares of a stock you like long term",
+                 "Sell a call option every month against those shares",
+                 "Collect premium whether stock goes up, down, or sideways",
+                 "Example: own Reliance, sell monthly call, collect 1-2% every month",
+                 "Annual return boost: 12-20% extra on top of stock appreciation",
+             ]},
+            {"heading": "Cash Secured Put — Buy Great Stocks at a Discount",
+             "points": [
+                 "Pick a stock you genuinely want to own at a lower price",
+                 "Sell a put below current price and collect premium today",
+                 "If stock falls to your strike — you buy it at discount",
+                 "If stock stays up — keep the full premium and repeat next month",
+                 "Warren Buffett used exactly this strategy for Coca-Cola in the 1990s",
+             ]},
+            {"heading": "Risk Management for Option Sellers — Non-Negotiable Rules",
+             "points": [
+                 "Always buy a further OTM option to cap your maximum loss",
+                 "Never sell naked options without a protective hedge",
+                 "Exit when loss equals 2x the premium collected — no second thoughts",
+                 "Avoid holding through RBI policy day, budget day, or US CPI day",
+                 "Position size: never risk more than 5% of total account on one spread",
+             ]},
+        ],
     },
     {
-        "title": "Understanding Greeks — Delta Theta Vega Gamma",
+        "title": "Weekly Expiry Strategy — How to Trade Every Thursday in India",
+        "category": "Options",
+        "level": "Intermediate",
+        "target_primary": "India",
+        "target_secondary": ["Global"],
+        "seo_seed": "Nifty weekly expiry trading strategy Thursday 2026",
+        "long_tail_keywords": [
+            "Nifty Thursday expiry strategy for 2026 beginners",
+            "Bank Nifty expiry day option buying strategy",
+            "how to trade on Nifty expiry day and not lose money",
+            "max pain Nifty Bank Nifty how to use it for expiry trading",
+        ],
+        "affiliate_angle": "Sensibull for max pain data — free at sensibull.com",
+        "slides": [
+            {"heading": "Why Thursday Is the Most Traded Day in India",
+             "points": [
+                 "Nifty weekly options expire every Thursday",
+                 "Bank Nifty: every Wednesday",
+                 "Theta decay is maximum in last 24-48 hours before expiry",
+                 "Highest volume day of the week — huge opportunities",
+                 "Most options traders in India trade only on expiry days",
+             ]},
+            {"heading": "Expiry Day Strategy for Option Buyers",
+             "points": [
+                 "Buy ATM options only after clear direction is confirmed",
+                 "First 30 minutes — wait and watch, absolutely no trading",
+                 "Enter only after 10 AM when direction is clear from price action",
+                 "Target 50-100% return in hours — exit same day always",
+                 "Stop loss at 50% of premium — no exceptions on expiry day",
+             ]},
+            {"heading": "Max Pain — The Free Tool Most Traders Ignore",
+             "points": [
+                 "Max pain is the price where most option buyers lose money",
+                 "Market often gravitates toward max pain before expiry",
+                 "Check every Thursday morning at NSE website — free data",
+                 "If Nifty is far from max pain at 10 AM — expect move toward it",
+                 "Available free at sensibull.com and opstra.definedge.com",
+             ]},
+            {"heading": "The One Rule That Saves Expiry Day Traders",
+             "points": [
+                 "Do not hold any option position into the last 30 minutes",
+                 "Last 30 minutes: extreme volatility, spreads widen, fills are bad",
+                 "Either take profit before 3 PM or cut loss — never hold to close",
+                 "This one rule has saved more trading accounts than any strategy",
+                 "Discipline on expiry day separates professionals from gamblers",
+             ]},
+        ],
+    },
+    {
+        "title": "Understanding Greeks — Delta Theta Vega Gamma Made Simple",
         "category": "Options",
         "level": "Advanced",
-        "target_audience": "Global",
+        "target_primary": "Global",
+        "target_secondary": ["India", "USA"],
+        "seo_seed": "options Greeks explained simply delta theta vega India 2026",
+        "long_tail_keywords": [
+            "what is delta in options trading explained in Hindi",
+            "theta decay options how much do I lose per day",
+            "vega options what is implied volatility India",
+            "how to use options Greeks for better trades",
+        ],
+        "affiliate_angle": "Sensibull Greeks calculator — free for basic, ₹399/month for advanced",
         "slides": [
             {"heading": "Why Greeks Are the Secret Language of Options",
-             "points": ["Greeks tell you exactly how your option will behave","Without Greeks you are flying blind","Professional traders think in Greeks not prices","Master these and you trade like an institution","Same Greeks apply to US, India, UK, crypto options"]},
-            {"heading": "Delta — Your Directional Exposure",
-             "points": ["Delta 0.5 means option moves 50 cents per $1 stock move","Deep ITM option delta approaches 1.0","Far OTM option delta approaches 0","Total portfolio delta tells you your net market exposure","Use delta to size positions correctly"]},
-            {"heading": "Theta — Time is Money, Literally",
-             "points": ["Theta is how much premium you lose per day","ATM weekly option loses 20-30% of value in last 3 days","Sellers love theta — they earn it every night","Buyers must be fast or theta destroys them","Why selling options before weekends is popular"]},
-            {"heading": "Vega — Volatility Is Your Hidden Risk",
-             "points": ["High VIX means expensive options — good to sell","Low VIX means cheap options — good to buy","Buy options before big events when VIX is low","Sell options after fear spike when VIX is elevated","This applies identically in US, India, and crypto markets"]},
-        ]
-    },
-    {
-        "title": "Weekly Options Expiry Strategy — Thursday Friday Plays",
-        "category": "Options",
-        "level": "Intermediate",
-        "target_audience": "India + Global",
-        "slides": [
-            {"heading": "Weekly Options — The Fastest Money in Markets",
-             "points": ["Weekly options expire every Thursday in India","Every Friday for US SPX and SPY","Theta decay is maximum in last 48 hours","Huge volatility on expiry day = big opportunities","Most traded financial instrument in the world by volume"]},
-            {"heading": "Expiry Day Strategy for Option Buyers",
-             "points": ["Buy ATM options only after clear direction is established","First 30 minutes — wait and watch, do not trade","Enter after 10 AM when direction is clear","Target 50-100% in hours — exit same day","Stop loss at 50% of premium — no exceptions"]},
-            {"heading": "Expiry Day Strategy for Option Sellers",
-             "points": ["Sell OTM options at open on expiry morning","Collect premium from rapid theta decay","Most profitable strategy statistically on expiry day","Exit by 2 PM — do not hold into last 30 minutes","Risk: sudden big move can wipe out sellers fast"]},
-            {"heading": "Max Pain Theory on Expiry",
-             "points": ["Max pain is the price where most option buyers lose money","Market gravitates toward max pain as expiry approaches","Check max pain every Thursday morning before trading","Available on NSE website for Nifty Bank Nifty","For US: available on optionstrat.com and unusualwhales.com"]},
-        ]
+             "points": [
+                 "Greeks tell you exactly how your option will behave before it moves",
+                 "Without Greeks you are guessing — with Greeks you are calculating",
+                 "Professional traders think in Greeks, not just prices",
+                 "Same Greeks apply to US SPY options and India Nifty options identically",
+                 "Master these four numbers and you will trade options like an institution",
+             ]},
+            {"heading": "Delta — Your Directional Exposure Number",
+             "points": [
+                 "Delta 0.5 means option moves ₹50 for every ₹100 stock move",
+                 "Deep ITM option delta approaches 1.0 — moves almost like owning stock",
+                 "Far OTM option delta approaches 0 — barely moves, very cheap",
+                 "Your total portfolio delta tells you your net market direction bet",
+                 "ATM option delta is always approximately 0.5 — remember this",
+             ]},
+            {"heading": "Theta — How Much You Lose While Doing Nothing",
+             "points": [
+                 "Theta is how much premium value you lose per day",
+                 "ATM weekly option loses 20-30% of value in the last 3 days",
+                 "Option sellers earn theta every night — it works while they sleep",
+                 "Option buyers must be directionally right AND fast — or theta kills them",
+                 "This is the single most important Greek for anyone buying options",
+             ]},
+            {"heading": "Vega — Why Options Get Expensive Before Big Events",
+             "points": [
+                 "Vega measures how much option price changes with volatility",
+                 "India VIX high means options are expensive — good time to sell",
+                 "India VIX low means options are cheap — good time to buy",
+                 "Buy options before RBI policy or budget when VIX is still low",
+                 "Sell options after VIX spikes from fear — collect inflated premium",
+             ]},
+        ],
     },
 ]
 
-# ══════════════════════════════════════════════════════════
-# TUESDAY — TECHNICAL ANALYSIS (Universal — any market)
-# ══════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════════════════
+# TUESDAY — TECHNICAL ANALYSIS
+# Universal content — same charts work everywhere
+# ══════════════════════════════════════════════════════════════════════
+
 TUESDAY_TOPICS = [
     {
-        "title": "Candlestick Patterns — The Language of Price",
+        "title": "Candlestick Patterns — The 5 That Actually Make Money",
         "category": "Technical Analysis",
         "level": "Beginner",
-        "target_audience": "Global",
+        "target_primary": "Global",
+        "target_secondary": ["India", "USA", "UK"],
+        "seo_seed": "candlestick patterns that work best stocks crypto Nifty 2026",
+        "long_tail_keywords": [
+            "which candlestick pattern is most reliable for Nifty trading",
+            "bullish engulfing pattern how to trade it correctly",
+            "pin bar candlestick strategy for stocks India and USA",
+            "candlestick patterns that actually work on crypto Bitcoin 2026",
+        ],
+        "affiliate_angle": "TradingView free plan for chart analysis — tradingview.com",
         "slides": [
-            {"heading": "Candlesticks Work in Every Market on Earth",
-             "points": ["Invented in Japan 300 years ago for rice trading","Now used on stocks, crypto, forex, commodities","Same patterns on Nifty, S&P 500, Bitcoin, Gold","Learn once — trade any market anywhere in the world","Most powerful visual tool in all of trading"]},
-            {"heading": "The Doji — Markets Most Honest Signal",
-             "points": ["Open and close at almost the same price","The market is perfectly balanced between buyers and sellers","After a strong trend this means reversal is coming","Dragonfly doji after downtrend = powerful buy signal","Gravestone doji after uptrend = powerful sell signal"]},
-            {"heading": "Engulfing Candles — Institutional Footprint",
-             "points": ["The second candle completely swallows the first","Bullish engulfing: institutions stepped in and bought hard","Bearish engulfing: institutions distributed and sold hard","Works on all timeframes from 5-minute to weekly","Most reliable when it appears at key support or resistance"]},
-            {"heading": "Hammer and Shooting Star",
-             "points": ["Long wick shows the market rejected that price level violently","Hammer at bottom: sellers pushed down but buyers overwhelmed them","Shooting Star at top: buyers pushed up but sellers crushed them","The longer the wick the stronger the rejection","Works identically on Bitcoin, Apple, Nifty, Gold"]},
-            {"heading": "How to Use Candlesticks Correctly",
-             "points": ["Never trade a single candle in isolation","Always look at the trend before the candle","Confirmation from the next candle is essential","Combine with support and resistance for 80% accuracy","Volume should increase on reversal candles"]},
-        ]
+            {"heading": "The 5 Candlestick Patterns Worth Your Time",
+             "points": [
+                 "Most traders memorise 50 patterns — professionals focus on 5",
+                 "These 5 work consistently on Nifty, S&P 500, Bitcoin, and Forex",
+                 "A pattern is only useful when combined with support, resistance, and volume",
+                 "Single candle analysis without context loses money — always wait for confirmation",
+                 "These patterns have worked across 300 years of price data across all markets",
+             ]},
+            {"heading": "Bullish Engulfing — Institutions Stepping In",
+             "points": [
+                 "Second candle completely swallows the first red candle",
+                 "Means: buyers overwhelmed sellers completely in one session",
+                 "Most powerful at major support levels or after a strong downtrend",
+                 "High volume on the engulfing candle confirms institutional buying",
+                 "Works identically on Nifty daily chart, Apple weekly chart, Bitcoin 4-hour",
+             ]},
+            {"heading": "Pin Bar — The Market Screaming Rejection",
+             "points": [
+                 "Long wick with small body — price was violently rejected",
+                 "Hammer at support: bulls stepped in and crushed sellers",
+                 "Shooting star at resistance: bears stepped in and crushed buyers",
+                 "Rule: wick must be at least 2.5x the size of the candle body",
+                 "Stop loss just beyond the tip of the wick — tightest stop in trading",
+             ]},
+            {"heading": "Doji — The Market at a Crossroads",
+             "points": [
+                 "Open and close at almost exactly the same price",
+                 "Bulls and bears perfectly balanced — decision point coming",
+                 "After a strong downtrend: potential reversal forming",
+                 "After a strong uptrend: distribution may be beginning",
+                 "Dragonfly doji is the most bullish variant — long lower wick, no upper wick",
+             ]},
+            {"heading": "Inside Bar — The Coiled Spring Before the Move",
+             "points": [
+                 "Entire second candle fits inside the range of the first candle",
+                 "Market is consolidating after a big move — building energy",
+                 "Breakout above inside bar high: buy with stop at inside bar low",
+                 "Breakout below inside bar low: sell with stop at inside bar high",
+                 "Best used on daily chart after trend move — high win rate setup",
+             ]},
+        ],
     },
     {
-        "title": "Support and Resistance — The Foundation of All Trading",
+        "title": "Support and Resistance — How to Draw Levels That Actually Work",
         "category": "Technical Analysis",
         "level": "Beginner",
-        "target_audience": "Global",
+        "target_primary": "Global",
+        "target_secondary": ["India", "USA"],
+        "seo_seed": "how to draw support and resistance correctly for stocks India",
+        "long_tail_keywords": [
+            "why do support and resistance levels fail sometimes",
+            "how to find strong support resistance levels Nifty 50",
+            "role reversal support becomes resistance explained with examples",
+            "how to trade support and resistance breakout stocks India 2026",
+        ],
+        "affiliate_angle": "TradingView free charts — tradingview.com",
         "slides": [
-            {"heading": "What Support and Resistance Really Means",
-             "points": ["Support: price level where buyers are stronger than sellers","Resistance: price level where sellers are stronger than buyers","These levels exist because traders have memory","Same levels work on Apple, Bitcoin, EUR/USD, Gold, Nifty","The most universal concept in all of trading worldwide"]},
-            {"heading": "How to Draw Support and Resistance",
-             "points": ["Connect at least 2-3 price touches at the same level","More touches = stronger the level","Round numbers are always strong: 50000 Bitcoin, 20000 Nifty, 400 SPY","Use the body of candles not the wicks for cleaner levels","Weekly and monthly levels are strongest of all"]},
-            {"heading": "Role Reversal — The Most Powerful Concept",
-             "points": ["When price breaks above resistance it BECOMES support","When price breaks below support it BECOMES resistance","This is one of the most reliable setups in all markets","Example: Bitcoin 20000 was resistance for years, then became support","Trade the retest of the broken level for high-probability entries"]},
-            {"heading": "How Institutions Use Support and Resistance",
-             "points": ["Banks and hedge funds place huge orders at key levels","This is why the same levels hold again and again","They buy at support, sell at resistance, always","Retail traders who understand this trade WITH institutions","The levels on your chart represent real money, real orders"]},
-            {"heading": "Trading Support and Resistance Step by Step",
-             "points": ["Identify the key level on daily or weekly chart first","Wait for price to come back to that level","Watch for a reversal candlestick pattern at the level","Enter with tight stop just beyond the level","Target the next major support or resistance level"]},
-        ]
+            {"heading": "Support and Resistance — The Foundation Everything Else Builds On",
+             "points": [
+                 "Support: zone where buyers have proven they are stronger than sellers",
+                 "Resistance: zone where sellers have proven they are stronger than buyers",
+                 "These levels exist because traders have memory and orders sit at key prices",
+                 "Round numbers are always major levels: 22000 Nifty, 50000 Bitcoin, 500 SPY",
+                 "Weekly and monthly chart levels are far stronger than daily levels",
+             ]},
+            {"heading": "How to Draw Levels That Actually Hold",
+             "points": [
+                 "Use weekly chart first — find the 3 most obvious price turning points",
+                 "A level needs at least 2-3 touches to be considered valid",
+                 "More touches across longer time = stronger the level — quality beats quantity",
+                 "Use candle bodies for the level, not wicks — body shows where price settled",
+                 "Draw zones, not lines — price rarely turns at an exact number",
+             ]},
+            {"heading": "Role Reversal — The Most Powerful Concept in All of Trading",
+             "points": [
+                 "When price breaks ABOVE resistance — that level becomes support",
+                 "When price breaks BELOW support — that level becomes resistance",
+                 "This retest of the broken level is one of the highest-probability trades",
+                 "Bitcoin 20000: was resistance for years, broke above, became perfect support",
+                 "Nifty 18000: was resistance in 2022, broke above, held as support in 2023",
+             ]},
+            {"heading": "Trading Support and Resistance — The Exact Entry Method",
+             "points": [
+                 "Step 1: Mark the key level on weekly chart — do this first",
+                 "Step 2: Wait for price to come back to that exact level",
+                 "Step 3: Watch for a rejection candle — pin bar, engulfing, doji",
+                 "Step 4: Enter on next candle with stop just beyond the level",
+                 "Step 5: Target the next major level — this is your take profit zone",
+             ]},
+        ],
     },
     {
-        "title": "RSI — The Complete Masterclass",
+        "title": "RSI Complete Guide — How to Actually Use It Profitably",
         "category": "Technical Analysis",
         "level": "Intermediate",
-        "target_audience": "Global",
+        "target_primary": "Global",
+        "target_secondary": ["India", "USA", "Brazil"],
+        "seo_seed": "RSI indicator how to use correctly stocks crypto Nifty 2026",
+        "long_tail_keywords": [
+            "RSI divergence how to spot and trade it on Nifty",
+            "RSI overbought oversold does it really work for trading",
+            "how to use RSI with support and resistance for better entries",
+            "RSI hidden divergence strategy stocks India explained",
+        ],
+        "affiliate_angle": "TradingView free RSI and indicator setup",
         "slides": [
-            {"heading": "RSI Works the Same on Every Asset on Earth",
-             "points": ["Relative Strength Index — measures momentum","Range 0 to 100, same on stocks, crypto, forex, commodities","Above 70 = overbought, below 30 = oversold","Created by J. Welles Wilder in 1978 — still the most used indicator","Same settings work on Bitcoin, S&P 500, Nifty, Gold, EUR/USD"]},
-            {"heading": "RSI Divergence — The Signal Professionals Watch",
-             "points": ["Price makes new high but RSI makes lower high = hidden weakness","Price makes new low but RSI makes higher low = hidden strength","This divergence predicted every major crash in history","Bitcoin 2021 top: price at 69000, RSI divergence was screaming sell","Nifty tops: RSI divergence visible weeks before crashes"]},
-            {"heading": "RSI in Bull and Bear Markets",
-             "points": ["In a bull market RSI rarely goes below 40","In a bear market RSI rarely goes above 60","RSI below 40 in a bull market = golden buy opportunity","RSI above 60 in a bear market = golden sell opportunity","First step: identify the trend, then use RSI correctly"]},
-            {"heading": "RSI Hidden Divergence — Trend Continuation",
-             "points": ["Price makes higher low but RSI makes lower low = buy signal in uptrend","Price makes lower high but RSI makes higher high = sell signal in downtrend","Used by professional traders to add to winning positions","Much more reliable than regular divergence in trending markets","Works beautifully on crypto which has strong sustained trends"]},
-        ]
+            {"heading": "The Most Common RSI Mistake That Costs Traders Money",
+             "points": [
+                 "Most traders sell when RSI hits 70 and buy when it hits 30",
+                 "This is wrong — in strong trends RSI stays above 70 for months",
+                 "In a bull market RSI below 40 is the buy signal — not 30",
+                 "In a bear market RSI above 60 is the sell signal — not 70",
+                 "First identify the trend — then use RSI in the right direction",
+             ]},
+            {"heading": "RSI Divergence — The Signal Professionals Actually Watch",
+             "points": [
+                 "Price makes new high but RSI makes a lower high = hidden weakness",
+                 "Price makes new low but RSI makes a higher low = hidden strength",
+                 "Bitcoin 2021: price at 69000, RSI divergence was clearly visible for weeks",
+                 "Nifty tops: RSI divergence visible 2-4 weeks before every major correction",
+                 "This single signal has more predictive value than any other on the chart",
+             ]},
+            {"heading": "RSI in Different Market Regimes",
+             "points": [
+                 "Bull market: RSI bounces between 40 and 80 — buy at 40 zone",
+                 "Bear market: RSI bounces between 20 and 60 — sell at 55-60 zone",
+                 "Sideways market: 30 and 70 as normal overbought/oversold levels",
+                 "Identifying market regime first makes RSI dramatically more accurate",
+                 "This applies the same way to Nifty, S&P 500, Bitcoin, and EUR/USD",
+             ]},
+            {"heading": "The RSI Setup That Has the Highest Win Rate",
+             "points": [
+                 "Trend up on weekly chart confirmed",
+                 "RSI on daily chart pulls back to 40-50 zone",
+                 "Price simultaneously at a key support level",
+                 "Enter when RSI turns back up from this zone with a bullish candle",
+                 "Stop below the support level — target the previous high or next resistance",
+             ]},
+        ],
     },
     {
-        "title": "MACD — How to Read Market Momentum",
+        "title": "Chart Patterns — Head and Shoulders, Flags, and Triangles Explained",
         "category": "Technical Analysis",
         "level": "Intermediate",
-        "target_audience": "Global",
+        "target_primary": "Global",
+        "target_secondary": ["India", "USA"],
+        "seo_seed": "chart patterns that work best for trading stocks India USA 2026",
+        "long_tail_keywords": [
+            "head and shoulders pattern Nifty how to trade it correctly",
+            "bull flag pattern stocks how to identify and trade",
+            "ascending triangle breakout strategy India stocks 2026",
+            "which chart pattern has highest success rate in stock trading",
+        ],
+        "affiliate_angle": "TradingView for chart pattern scanning",
         "slides": [
-            {"heading": "What MACD is Really Telling You",
-             "points": ["Moving Average Convergence Divergence","Measures the relationship between two moving averages","MACD line above signal line = bullish momentum","MACD line below signal line = bearish momentum","Same indicator, same settings — works on all global markets"]},
-            {"heading": "MACD Histogram — The Real Secret",
-             "points": ["Bars above zero line = buyers in control","Bars below zero line = sellers in control","Histogram shrinking while above zero = momentum weakening","Histogram expanding above zero = momentum strengthening","This is how you see institutional momentum shifts early"]},
-            {"heading": "MACD Zero Line Crossover",
-             "points": ["MACD crossing above zero = major bullish shift","MACD crossing below zero = major bearish shift","Strongest signal MACD gives on any market","Works best on daily and weekly charts","Used widely on S&P 500, Bitcoin, Nifty, Crude Oil"]},
-            {"heading": "Combining MACD with Other Indicators",
-             "points": ["MACD crossover + RSI above 50 = strongest buy signal","MACD crossover + price above 200 EMA = confirmed uptrend","MACD + volume surge = institutional accumulation","MACD divergence + resistance level = high probability short","This combination works on any stock in any country"]},
-        ]
-    },
-    {
-        "title": "Chart Patterns — Head Shoulders Triangle Flag",
-        "category": "Technical Analysis",
-        "level": "Intermediate",
-        "target_audience": "Global",
-        "slides": [
-            {"heading": "Why Chart Patterns Work in Every Market",
-             "points": ["Patterns form because human psychology never changes","Fear and greed look the same in India, USA, Brazil, UK","Same patterns on Apple, Tata Motors, Bitcoin, Gold","Learned once — applied everywhere for your entire career","The most timeless skill in all of financial trading"]},
-            {"heading": "Head and Shoulders — Most Reliable Reversal",
-             "points": ["Three peaks: left shoulder, head (highest), right shoulder","Neckline connects the two lows between the peaks","Break below neckline = strong sell signal with a specific target","Target = height of head projected down from neckline","Appeared before the 2008 crash, 2021 Bitcoin top, many more"]},
-            {"heading": "Bull Flag — The Momentum Trader Favourite",
-             "points": ["Strong vertical move up (the flagpole)","Then tight sideways or slightly downward consolidation (the flag)","Breakout above flag = continuation of the original move","Target = flagpole height added to breakout point","One of highest win-rate patterns in trending markets"]},
-            {"heading": "Ascending Triangle — Institutional Accumulation",
-             "points": ["Flat top resistance with rising lows","Institutions buying quietly, pushing lows higher each time","They have a target and they keep buying every dip","Breakout above flat top = explosive move begins","Seen on Bitcoin before every major bull run, and on growth stocks"]},
-            {"heading": "How to Trade Patterns Correctly",
-             "points": ["Never buy the pattern — wait for the breakout","Breakout must be accompanied by above average volume","Place stop loss just below the breakout level","Target is the measured move from the pattern","If breakout fails and price comes back inside — exit immediately"]},
-        ]
+            {"heading": "Why Chart Patterns Work in Every Market on Earth",
+             "points": [
+                 "Patterns form because human psychology never changes across cultures",
+                 "Fear and greed look identical on an Indian Nifty chart and a US Bitcoin chart",
+                 "These patterns have appeared consistently for over 100 years in all markets",
+                 "Learned once — applied to any stock, index, or crypto forever",
+                 "The most timeless technical skill you will ever develop as a trader",
+             ]},
+            {"heading": "Head and Shoulders — The Most Reliable Reversal in Trading",
+             "points": [
+                 "Three peaks: left shoulder, head (highest), right shoulder",
+                 "Neckline connects the two lows between the peaks",
+                 "Break below neckline with high volume = confirmed sell signal",
+                 "Target = height of head measured downward from neckline — specific number",
+                 "This pattern appeared before 2008 crash, 2021 Bitcoin top, every major reversal",
+             ]},
+            {"heading": "Bull Flag — The Momentum Continuation Trade",
+             "points": [
+                 "Strong vertical move up — the flagpole — on high volume",
+                 "Tight sideways or slightly downward consolidation — the flag — on low volume",
+                 "Breakout above the flag on high volume = trend resumes",
+                 "Target = flagpole height added to breakout point — mathematical",
+                 "One of the highest win-rate patterns in trending bull markets globally",
+             ]},
+            {"heading": "Ascending Triangle — Institutions Quietly Accumulating",
+             "points": [
+                 "Flat resistance at top — sellers have a specific target price",
+                 "Rising lows on each pullback — buyers stepping in at higher prices each time",
+                 "Institutions are building a large position — they keep absorbing every dip",
+                 "Breakout above the flat resistance on volume = explosive move begins",
+                 "Seen before every major Bitcoin bull run and before quality stock breakouts",
+             ]},
+        ],
     },
 ]
 
-# ══════════════════════════════════════════════════════════
-# WEDNESDAY — GLOBAL MACRO + FUNDAMENTALS + EVENTS
-# ══════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════════════════
+# WEDNESDAY — GLOBAL MACRO + FUNDAMENTALS
+# Unique angle: connect global events to Indian investor decisions
+# ══════════════════════════════════════════════════════════════════════
+
 WEDNESDAY_TOPICS = [
     {
-        "title": "How US Federal Reserve Moves Every Market on Earth",
+        "title": "How US Federal Reserve Decisions Affect Your Indian Portfolio",
         "category": "Global Macro",
         "level": "Beginner",
-        "target_audience": "US, India, Brazil, UK — everyone",
+        "target_primary": "India",
+        "target_secondary": ["USA", "UK", "Brazil"],
+        "seo_seed": "how US Fed rate decision affects Nifty Indian stocks rupee 2026",
+        "long_tail_keywords": [
+            "why does Nifty fall when US Fed raises interest rates India",
+            "how to protect Indian portfolio during Fed rate hike cycle",
+            "FII outflow India US Fed rate hike what to do as investor",
+            "which Indian stocks benefit when US dollar strengthens",
+        ],
+        "affiliate_angle": "Zerodha blog and Varsity for Fed calendar education",
         "slides": [
-            {"heading": "Why the Fed Controls All Global Markets",
-             "points": ["US Federal Reserve sets interest rates for the world's reserve currency","When Fed raises rates: global money flows back to USA","Stocks fall, emerging markets crash, dollar strengthens","When Fed cuts rates: money floods into stocks and emerging markets","India, Brazil, UK — all affected immediately by Fed decisions"]},
-            {"heading": "How Fed Decisions Affect Indian Markets",
-             "points": ["Fed rate hike: FII pull money out of India and return to US","Nifty often falls 2-5% within days of Fed hike","Rupee weakens: USDINR rises, imports become expensive","IT stocks benefit: they earn in USD","Every Indian investor must watch Fed calendar, not just RBI"]},
-            {"heading": "How to Trade Fed Announcement Days",
-             "points": ["Fed announces 8 times per year — mark all dates now","Markets are highly volatile 30 minutes before and after","Professional strategy: sell options 2 days before (collect VIX premium)","After announcement: trade the direction of the initial reaction","Second move after 30 minutes is often more reliable than first"]},
-            {"heading": "Fed Dot Plot — What It Really Means",
-             "points": ["Dot plot shows where Fed members expect rates to go","More dots at higher levels = hawkish = bad for stocks","More dots at lower levels = dovish = good for stocks","Stocks often move more on dot plot than on actual rate decision","Released 4 times per year — more important than the rate decision itself"]},
-            {"heading": "Central Banks Around the World",
-             "points": ["RBI: India — watch every 6 weeks","ECB: Europe — affects EUR/USD and European stocks","Bank of England: UK — affects GBP and FTSE","Bank of Japan: huge impact on global markets through Yen carry trade","All follow the Fed — Fed moves first, everyone else follows within months"]},
-        ]
+            {"heading": "Why the Fed in America Controls Your Nifty Portfolio in India",
+             "points": [
+                 "US dollar is the world's reserve currency — Fed controls its price",
+                 "When Fed raises rates: higher US returns pull global money back to USA",
+                 "FIIs sell Indian stocks and return that money to USA for higher rates",
+                 "Result: Nifty falls, rupee weakens against dollar, imports become expensive",
+                 "This connection means every Indian investor must watch the Fed calendar",
+             ]},
+            {"heading": "Exactly How Fed Rate Hikes Hit India",
+             "points": [
+                 "FII selling: direct outflow from Indian equity markets",
+                 "Rupee weakens: every imported item from oil to electronics costs more",
+                 "RBI forced to match rate hikes: EMIs on home loans rise",
+                 "IT stocks often benefit: they earn in USD, rupee weakness increases rupee profit",
+                 "FMCG and consumer stocks hurt: input costs rise with weaker rupee",
+             ]},
+            {"heading": "Which Indian Sectors Win and Lose During Fed Hike Cycles",
+             "points": [
+                 "Winners: IT (TCS, Infosys, Wipro) — earn in USD",
+                 "Winners: Pharma exporters — revenue in USD",
+                 "Losers: Real estate — higher interest rates reduce demand",
+                 "Losers: Auto sector — EMI costs rise, demand falls",
+                 "Neutral to winner: Oil companies — complex but higher global prices sometimes help",
+             ]},
+            {"heading": "How to Protect and Position Your Portfolio Around Fed Decisions",
+             "points": [
+                 "Mark all 8 Fed announcement dates in your calendar at start of year",
+                 "Reduce equity exposure 2-3 days before uncertain Fed meetings",
+                 "Increase IT and pharma weight when Fed hike cycle is expected",
+                 "After Fed pivots to rate cuts: aggressively add mid and small cap India",
+                 "Keep 20-25% in liquid funds or short-term FDs as tactical reserve",
+             ]},
+        ],
     },
     {
-        "title": "Bitcoin and Crypto — Technical Analysis Guide",
-        "category": "Crypto",
-        "level": "Beginner",
-        "target_audience": "Global — huge Brazil, US, India audience",
-        "slides": [
-            {"heading": "Why Crypto is the Best Market for Technical Analysis",
-             "points": ["Crypto trades 24/7 — no gaps, pure price action","Retail dominated — patterns work extremely well","No earnings reports to blindside you","Same support resistance RSI MACD work perfectly","Highest volatility = highest potential returns for traders"]},
-            {"heading": "Bitcoin Halving Cycle — The Most Predictable Pattern",
-             "points": ["Bitcoin supply cuts in half every 4 years — called the halving","After every halving Bitcoin has made all-time highs within 12-18 months","2012 halving: Bitcoin went from 12 to 1000 dollars","2016 halving: Bitcoin went from 650 to 20000 dollars","2020 halving: Bitcoin went from 9000 to 69000 dollars"]},
-            {"heading": "Key Bitcoin Levels Every Trader Watches",
-             "points": ["200 week moving average: most important support in all of crypto","Previous all time high always becomes support after being broken","Round numbers: 50000, 100000, 200000 are massive psychological levels","4 year cycle low: historically the best time to buy Bitcoin","On-chain data confirms these technical levels every single cycle"]},
-            {"heading": "How to Apply Technical Analysis to Crypto",
-             "points": ["Use daily and weekly charts for trend direction","Use 4-hour chart for entry timing","RSI below 30 on weekly chart = generational buy opportunity","RSI above 80 on weekly chart = take significant profits","Bitcoin dominance chart tells you when altcoins will outperform"]},
-            {"heading": "Crypto Risk Management — Critical Rules",
-             "points": ["Never invest more than you can afford to lose completely","Crypto can fall 80-90% in bear markets — this is normal","Dollar cost averaging beats trying to time the market","Cold wallet storage for anything you hold long term","Do not trade crypto with leverage unless you are very experienced"]},
-        ]
-    },
-    {
-        "title": "How to Read Economic Data — Jobs CPI GDP",
+        "title": "How to Read Economic Data — Jobs CPI GDP and What They Mean for You",
         "category": "Global Macro",
         "level": "Intermediate",
-        "target_audience": "Global",
+        "target_primary": "Global",
+        "target_secondary": ["India", "USA", "UK"],
+        "seo_seed": "how economic data affects stock market India US UK explained simply",
+        "long_tail_keywords": [
+            "what is CPI data and how does it affect Indian stock market",
+            "US non farm payrolls what does it mean for Nifty India",
+            "India GDP data how does it affect Nifty 50 stocks",
+            "economic calendar how to use for trading India and US markets",
+        ],
+        "affiliate_angle": "Investing.com free economic calendar — no signup needed",
         "slides": [
-            {"heading": "The Economic Calendar — Your Most Important Tool",
-             "points": ["Economic data moves markets more than any chart pattern","Three reports move US markets most: NFP, CPI, GDP","NFP: Non-Farm Payrolls — released first Friday every month","CPI: Consumer Price Index — inflation data, moves everything","GDP: economic growth data — quarterly, big picture signal"]},
-            {"heading": "Non-Farm Payrolls — The Most Watched Number on Earth",
-             "points": ["Released every first Friday of the month at 8:30 AM US Eastern","Strong jobs report: economy healthy, Fed may raise rates, stocks mixed","Weak jobs report: Fed may cut rates, stocks often rally","Gold and bonds move opposite to stocks on this data","Indian markets react indirectly through FII flow changes"]},
-            {"heading": "CPI — Inflation Data That Controls Fed Policy",
-             "points": ["CPI above expectations: inflation hot, Fed stays hawkish, stocks fall","CPI below expectations: inflation cooling, Fed turns dovish, stocks rally","Core CPI excludes food and energy — Fed focuses on core","This single number has caused 3-5% market moves in recent years","Watch this more than any technical indicator on release day"]},
-            {"heading": "How India's Economic Data Moves Markets",
-             "points": ["India GDP growth rate: 7%+ is bullish for Nifty long term","India CPI: RBI targets 4%, above 6% means rate hikes coming","India PMI Manufacturing: above 50 = expansion, bullish","Current Account Deficit: high CAD weakens rupee","Foreign Exchange Reserves: RBI uses to stabilise rupee — watch monthly"]},
-        ]
+            {"heading": "The 3 Economic Reports That Move Markets More Than Any Chart",
+             "points": [
+                 "No technical pattern beats a surprise economic data release",
+                 "US Non-Farm Payrolls: first Friday every month, 8:30 PM IST",
+                 "US CPI inflation data: mid-month, 8:30 PM IST — biggest mover right now",
+                 "India GDP: quarterly release from Ministry of Statistics",
+                 "Mark these in your calendar — they override all technical levels",
+             ]},
+            {"heading": "CPI — The Number That Controls the Fed and Therefore Your Portfolio",
+             "points": [
+                 "CPI above expectations: inflation hot, Fed stays hawkish, stocks fall globally",
+                 "CPI below expectations: inflation cooling, Fed turns dovish, stocks rally",
+                 "This single number caused 3-5% single-day moves multiple times recently",
+                 "Indian markets react within 30 minutes through FII positioning",
+                 "Strategy: reduce position size the day before CPI release — always",
+             ]},
+            {"heading": "India-Specific Data That Every Indian Investor Must Watch",
+             "points": [
+                 "India CPI: RBI targets 4% — above 6% means rate hikes coming",
+                 "India PMI Manufacturing: above 50 = expansion, bullish for industrials",
+                 "India FII data: daily on NSE website — net buying or selling",
+                 "India Forex reserves: RBI uses to stabilise rupee — monthly release",
+                 "Current Account Deficit: high CAD weakens rupee — quarterly data",
+             ]},
+        ],
     },
     {
-        "title": "Gold and Oil — How Commodities Affect Your Stocks",
+        "title": "Gold and Oil — Why Every Indian Investor Must Watch Commodities",
         "category": "Commodities",
         "level": "Intermediate",
-        "target_audience": "Global",
+        "target_primary": "India",
+        "target_secondary": ["USA", "UK", "Brazil"],
+        "seo_seed": "gold oil price effect on Indian stock market Nifty 2026",
+        "long_tail_keywords": [
+            "why does crude oil price affect Indian stock market Nifty",
+            "gold price rising what does it mean for Indian investors",
+            "best gold ETF to buy in India 2026 sovereign gold bond vs ETF",
+            "how to invest in gold in India cheapest way 2026",
+        ],
+        "affiliate_angle": "Sovereign Gold Bond through Zerodha — free to buy, 2.5% interest",
         "slides": [
-            {"heading": "Why Every Stock Trader Must Watch Gold and Oil",
-             "points": ["Commodities signal inflation before it shows in economic data","Rising oil = higher inflation = Fed hawks = stock market pressure","Rising gold = fear in markets = risk-off = stocks often fall","Falling oil = good for India — we import 80% of our oil","These relationships have worked for 50+ years across all countries"]},
-            {"heading": "Gold — The Fear Gauge of Global Markets",
-             "points": ["Gold rises when investors fear: war, recession, banking crisis","Gold falls when confidence returns and risk appetite is high","Key levels: 2000, 2500, 3000 USD per ounce are psychological","Gold in rupees: USDINR × gold USD price — affects Indian buyers","Central banks are buying gold at record pace — very bullish signal"]},
-            {"heading": "Crude Oil — The Lifeblood of the Global Economy",
-             "points": ["Brent crude affects petrol prices in every country","High oil = higher inflation globally = central banks raise rates","India imports 85% of oil: high oil = higher CAD = weaker rupee","Oil company stocks (ONGC, Reliance, Saudi Aramco) benefit from high oil","OPEC decisions on production cuts move oil price immediately"]},
-            {"heading": "How to Trade Commodity Correlations",
-             "points": ["Oil rises: buy oil companies, sell airlines and paint companies","Gold rises: buy gold ETFs, gold mining stocks","Copper rises: strong global economic growth signal — buy industrial stocks","Falling commodities: buy consumer companies whose costs are falling","These sector rotation plays work the same in India, USA, and UK"]},
-        ]
+            {"heading": "India Imports 85% of Its Oil — This Changes Everything",
+             "points": [
+                 "High crude oil = India's import bill explodes = fiscal deficit widens",
+                 "Rupee weakens when oil is high — every import becomes more expensive",
+                 "FMCG companies hurt: packaging, transport, raw material costs all rise",
+                 "Airlines sector crushed by high fuel prices — avoid during oil spikes",
+                 "Oil company stocks (ONGC, Oil India) benefit from higher crude prices",
+             ]},
+            {"heading": "Gold — What It Is Really Telling You About Markets",
+             "points": [
+                 "Gold rises during genuine fear: wars, banking crises, recession fears",
+                 "Gold rises when real interest rates turn negative",
+                 "Gold falls when confidence returns and equities rally strongly",
+                 "Central banks buying gold at record pace in 2024-2026 — very bullish signal",
+                 "Indian investors: Sovereign Gold Bond gives 2.5% interest PLUS price gain",
+             ]},
+            {"heading": "How to Use Gold and Oil to Predict Market Moves",
+             "points": [
+                 "Sudden oil spike: sell airlines, paint companies, logistics before market reacts",
+                 "Sustained gold rally: reduce equity exposure, buy gold ETF or SGB",
+                 "Copper rising strongly: global economy healthy, buy infrastructure stocks",
+                 "Oil falling sharply: buy FMCG, paints, airlines as cost pressure reduces",
+                 "These sector rotation plays work identically in India, USA, and UK",
+             ]},
+        ],
+    },
+    {
+        "title": "Bitcoin Technical Analysis — How to Read Crypto Charts Correctly",
+        "category": "Crypto",
+        "level": "Beginner",
+        "target_primary": "Global",
+        "target_secondary": ["India", "USA", "Brazil"],
+        "seo_seed": "Bitcoin technical analysis how to read crypto charts 2026 beginners",
+        "long_tail_keywords": [
+            "Bitcoin chart analysis for beginners step by step 2026",
+            "how to trade Bitcoin using technical analysis India",
+            "Bitcoin support resistance levels 2026 what are they",
+            "crypto trading strategy for beginners India that actually works",
+        ],
+        "affiliate_angle": "TradingView for crypto charts — free plan is sufficient for beginners",
+        "slides": [
+            {"heading": "Why Bitcoin Is the Best Market to Learn Technical Analysis",
+             "points": [
+                 "Crypto trades 24/7 — more data, more pattern exposure",
+                 "Retail dominated — patterns work extremely reliably",
+                 "No earnings surprises or management changes to blindside you",
+                 "Same support, resistance, RSI, MACD setups work perfectly",
+                 "Highest volatility = patterns resolve faster and more clearly",
+             ]},
+            {"heading": "The Most Important Bitcoin Levels in 2026",
+             "points": [
+                 "200-week moving average: most important support in all of crypto history",
+                 "Previous all-time high always becomes major support after being broken",
+                 "Round numbers: 50000, 100000, 200000 are massive psychological levels",
+                 "Bitcoin halving cycle: every 4 years, supply halves, historically drives major rally",
+                 "On-chain data from glassnode.com confirms when these levels will hold",
+             ]},
+            {"heading": "Bitcoin vs Stock Market Correlation — What It Means",
+             "points": [
+                 "When S&P 500 falls sharply: Bitcoin usually falls harder initially",
+                 "When risk appetite returns: Bitcoin often leads the recovery",
+                 "Bitcoin dominance rising: money rotating into Bitcoin, altcoins underperform",
+                 "Bitcoin dominance falling: altcoin season beginning, higher risk/reward",
+                 "India: crypto gains taxed at 30% flat rate — factor this into your calculations",
+             ]},
+        ],
     },
 ]
 
-# ══════════════════════════════════════════════════════════
-# THURSDAY — STRATEGIES (Universal)
-# ══════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════════════════
+# THURSDAY — STRATEGIES + HIGH-CPC PERSONAL FINANCE
+# Thursday is specifically designed for high-CPC content
+# Insurance, investment comparison, debt, retirement = highest AdSense CPC
+# ══════════════════════════════════════════════════════════════════════
+
 THURSDAY_TOPICS = [
     {
-        "title": "Price Action Trading — No Indicators Needed",
-        "category": "Trading Strategy",
-        "level": "Intermediate",
-        "target_audience": "Global",
-        "slides": [
-            {"heading": "What is Price Action Trading?",
-             "points": ["Trade using only raw price movement — no indicators","Candlestick patterns, support resistance, trend lines","Used by most professional traders worldwide","Works on stocks, forex, crypto, commodities, indices","Cleaner charts mean cleaner thinking and better decisions"]},
-            {"heading": "The Pin Bar — Most Powerful Price Action Signal",
-             "points": ["Long wick with small body = strong rejection","Pin bar at support = institutional buying signal","Pin bar at resistance = institutional selling signal","The longer the wick relative to body the stronger the signal","Works on 5-minute charts for day traders and weekly charts for investors"]},
-            {"heading": "Inside Bar — Coiled Spring Setup",
-             "points": ["Entire second candle fits inside the first candle","Market consolidating, about to make a big move","Break above inside bar high = buy","Break below inside bar low = sell","Tightest stop loss of any price action setup"]},
-            {"heading": "Trend Line Trading",
-             "points": ["Draw trend line connecting swing lows in uptrend","Third touch of trend line = highest probability entry","Break of trend line = trend is changing — reduce long positions","Trend lines become stronger with every successful touch","Same trend lines visible on Bitcoin, S&P 500, Nifty, Gold"]},
-            {"heading": "How to Build a Price Action System",
-             "points": ["Identify trend on weekly chart first","Find key levels of support and resistance","Wait for price to reach those levels","Look for a rejection candle — pin bar or engulfing","Enter on next candle open with tight stop — simple and powerful"]},
-        ]
-    },
-    {
-        "title": "Swing Trading — The Perfect Strategy for Working People",
-        "category": "Trading Strategy",
-        "level": "Intermediate",
-        "target_audience": "Global",
-        "slides": [
-            {"heading": "Why Swing Trading Beats Intraday for Most People",
-             "points": ["Hold trades for 2 to 10 days — check once per day","No need to stare at screen all day","Works while you have a full-time job","Better risk to reward ratios than intraday","Used successfully on US stocks, Indian stocks, crypto, forex"]},
-            {"heading": "The Perfect Swing Trade Setup",
-             "points": ["Stock in strong uptrend: above 20, 50, and 200 EMA","Price pulls back to 20 EMA — this is the entry zone","RSI pulls back to 40-50 during the pullback","Volume decreasing on pullback — sellers not aggressive","Enter when first green candle appears at the 20 EMA"]},
-            {"heading": "Finding the Best Stocks to Swing Trade",
-             "points": ["Screen for stocks making 52-week highs — these have momentum","Look for high relative strength vs the index","Avoid stocks below their 200 EMA — only trade the trend","In US: use Finviz.com screener for this","In India: use Screener.in or TradingView screener"]},
-            {"heading": "Swing Trading Crypto",
-             "points": ["Crypto perfect for swing trading — moves 10-30% in days","Apply exact same setup: pullback to 20 EMA in uptrend","Bitcoin and Ethereum most liquid — tightest spreads","Altcoins: higher reward but higher risk — smaller position size","Set alerts so you don't need to watch 24/7"]},
-            {"heading": "Exit Strategy That Maximises Profits",
-             "points": ["Sell half at first target — usually 5-8% profit","Move stop to breakeven on remaining position","Trail stop below each new swing low as price rises","If stock gaps up strongly — sell entire position into strength","Never let a good profit turn into a loss — always move stops up"]},
-        ]
-    },
-    {
-        "title": "How to Build a Complete Trading System",
-        "category": "Trading Strategy",
-        "level": "All Levels",
-        "target_audience": "Global",
-        "slides": [
-            {"heading": "Why Most Traders Fail — The Real Reason",
-             "points": ["Not lack of a strategy — lack of a COMPLETE system","A system has: entry rules, exit rules, position sizing, risk rules","Without all four, emotion takes over every trade","Professional traders follow systems even when it feels wrong","Your system is your edge — protect it and follow it always"]},
-            {"heading": "Step 1 — Define Your Market and Timeframe",
-             "points": ["Pick ONE market to master first: Nifty, S&P 500, or Bitcoin","Pick ONE primary timeframe: daily chart is best for beginners","Use one higher timeframe (weekly) for trend direction","Use one lower timeframe (4 hour) for entry timing","Do not jump between markets — depth beats breadth always"]},
-            {"heading": "Step 2 — Your Entry Rules",
-             "points": ["Write down exactly what conditions must be true to enter","Example: Price above 200 EMA AND RSI above 50 AND bullish engulfing candle","If all three not present — no trade, period","Having rules removes 90% of emotional trading mistakes","Test your rules on at least 50 historical setups before trading live"]},
-            {"heading": "Step 3 — Position Sizing Formula",
-             "points": ["Risk per trade = 1% of your total account","Account is 10 lakh rupees or 10000 USD: max risk per trade = 10000 Rs or 100 USD","Calculate shares from your stop loss distance","This formula keeps you alive through any losing streak","Consistent position sizing is more important than your entry strategy"]},
-            {"heading": "Step 4 — Review and Improve Weekly",
-             "points": ["Every Sunday review all trades of the past week","Calculate win rate and average risk to reward","Identify which setups are working and which are not","Remove or adjust rules that consistently lose","This weekly review process is how good traders become great traders"]},
-        ]
-    },
-    {
-        "title": "Fibonacci Retracement — How Professionals Find Entries",
-        "category": "Trading Strategy",
-        "level": "Intermediate",
-        "target_audience": "Global",
-        "slides": [
-            {"heading": "Why Fibonacci Works on Every Market on Earth",
-             "points": ["Based on the golden ratio found throughout nature","Used by millions of traders worldwide simultaneously","Self-fulfilling prophecy — works because everyone watches the same levels","61.8% retracement is the golden zone in any market","Same levels work on Apple, Bitcoin, EUR/USD, Gold, Nifty"]},
-            {"heading": "How to Draw Fibonacci Correctly",
-             "points": ["In uptrend: drag from the significant swing low to swing high","In downtrend: drag from swing high to swing low","The tool automatically draws 38.2%, 50%, 61.8% levels","Most important levels: 38.2% for strong trends, 61.8% for normal trends","Use the wick extremes — not candle bodies — for accuracy"]},
-            {"heading": "The Golden Zone — 61.8% Strategy",
-             "points": ["Price retraces to 61.8% after a strong move","RSI reaches 40-50 at the same time = confluence","This confluence gives you a very high probability entry","Stop loss just below 78.6% level — minimal risk","Target: return to the previous high = typically 2:1 to 4:1 reward"]},
-            {"heading": "Fibonacci Extensions — Finding Profit Targets",
-             "points": ["After a breakout, where will price go next?","161.8% extension is the most common first target","261.8% extension is the target for strong trending markets","Draw from swing low to swing high to retracement low","This gives you a mathematical price target in any market"]},
-        ]
-    },
-]
-
-# ══════════════════════════════════════════════════════════
-# FRIDAY — PSYCHOLOGY + RISK (Universal)
-# ══════════════════════════════════════════════════════════
-FRIDAY_TOPICS = [
-    {
-        "title": "Trading Psychology — Why Smart People Lose Money",
-        "category": "Psychology",
-        "level": "All Levels",
-        "target_audience": "Global",
-        "slides": [
-            {"heading": "The Dirty Secret of the Trading Industry",
-             "points": ["90% of traders lose money — this is a documented fact worldwide","The problem is never the strategy — it is always psychology","A perfect strategy fails if you cannot follow it under pressure","The same psychological traps destroy traders in India, USA, UK, Brazil","Understanding your enemy is the first step to defeating it"]},
-            {"heading": "Loss Aversion — Why Losses Hurt More Than Gains Feel Good",
-             "points": ["Losing 1000 rupees feels twice as bad as gaining 1000 feels good","This is hardwired into human DNA for survival","In trading this makes you hold losers too long hoping to break even","And cut winners too early to lock in the safe profit","This single bias is responsible for most trading losses worldwide"]},
-            {"heading": "The Revenge Trade — Account Killer",
-             "points": ["You take a loss. Now you feel angry and need to recover it immediately","You trade bigger — sometimes 3x or 5x your normal size","You lose again — now the account is seriously damaged","This sequence destroys accounts in hours across all countries","Rule: after any loss exceeding your daily limit — turn off your screen and walk away"]},
-            {"heading": "Overconfidence — The Bull Market Trap",
-             "points": ["After 5 consecutive wins traders feel invincible","They increase position size to 3x or 5x their normal size","The inevitable losing trade wipes out all previous profits","Bull markets make everyone look like a genius","Keep position size consistent regardless of recent wins or losses"]},
-            {"heading": "Building Unbreakable Mental Discipline",
-             "points": ["Write your trading rules in a physical notebook — not just on screen","Read them before every trading session — make it a ritual","Accept that every loss is simply the cost of doing business","Professional traders aim for consistency — not big wins","Your goal is to be in the game for 10 years — one trade never matters"]},
-        ]
-    },
-    {
-        "title": "Risk Management — The Only Thing That Guarantees Survival",
-        "category": "Risk Management",
-        "level": "All Levels",
-        "target_audience": "Global",
-        "slides": [
-            {"heading": "The Mathematics of Ruin — Why Small Losses Compound",
-             "points": ["Lose 10%: need 11% to recover","Lose 25%: need 33% to recover","Lose 50%: need 100% to recover","Lose 75%: need 300% to recover","This is why protecting capital is more important than making money"]},
-            {"heading": "The 1% Rule — Professional Risk Management",
-             "points": ["Never risk more than 1-2% of your account on any single trade","With 1 lakh rupees: max risk per trade is 1000-2000 rupees","With 10000 USD: max risk per trade is 100-200 USD","This means you can have 50 consecutive losing trades before account is gone","No strategy has a 50-trade losing streak — this gives you complete safety"]},
-            {"heading": "Stop Loss — Your Insurance Policy",
-             "points": ["Every trade needs a stop loss placed in the system before entry","A stop loss in your head does not exist — the market will find your weakness","Move stop to breakeven once profit equals your risk","Trailing stop lock in profits as price moves in your favour","Traders who remove stop losses eventually blow up — no exceptions"]},
-            {"heading": "Portfolio Risk — Not Just Per Trade",
-             "points": ["Maximum 20-25% of portfolio in any single stock","Maximum 10-15% in any single sector","Keep 20-30% in cash at all times for opportunities","If total portfolio is down 10% — reduce all positions by 50%","Diversification across markets: stocks, gold, a little crypto is smart"]},
-            {"heading": "Your Personal Risk Management Plan",
-             "points": ["Daily loss limit: stop trading when down 3% in one day","Weekly loss limit: review strategy when down 6% in one week","Monthly loss limit: take a break when down 10% in one month","These limits prevent small losses becoming catastrophic ones","Write this plan now — before your next trade, not after your next loss"]},
-        ]
-    },
-    {
-        "title": "How to Invest for Long Term Wealth — SIP Index Fund Strategy",
+        "title": "Term Insurance India — LIC vs HDFC vs ICICI vs Max Life Compared",
         "category": "Personal Finance",
         "level": "Beginner",
-        "target_audience": "Global — huge audience",
+        "target_primary": "India",
+        "target_secondary": ["USA", "UK"],
+        "seo_seed": "best term insurance India 2026 LIC HDFC ICICI comparison",
+        "long_tail_keywords": [
+            "LIC Tech Term vs HDFC Click 2 Protect 2026 which is better",
+            "best term insurance for 30 year old India 1 crore cover premium",
+            "online term insurance India cheapest plan 2026 comparison",
+            "how much term insurance do I need India salary calculator",
+            "term insurance for salaried employee India tax benefit 80C",
+        ],
+        "affiliate_angle": "PolicyBazaar India — compare and buy term insurance",
         "slides": [
-            {"heading": "The Simplest Path to Wealth That Works in Any Country",
-             "points": ["Invest a fixed amount every month into an index fund","Do not try to time the market — just keep buying","This strategy has made millions of ordinary people wealthy","Warren Buffett recommends this for everyone who is not a professional","Works whether you are in India, USA, UK, Brazil, or anywhere"]},
-            {"heading": "Why Index Funds Beat 80% of Professional Fund Managers",
-             "points": ["S&P 500 index fund: average 10-12% per year for 100 years","Nifty 50 index fund: average 12-14% per year over 20 years","80% of actively managed funds underperform the index over 10 years","Index fund fees: 0.1% per year vs active funds 1-2% per year","This fee difference alone costs you 20-30% of your wealth over 30 years"]},
-            {"heading": "The Magic of Compound Interest — Numbers That Will Shock You",
-             "points": ["5000 rupees per month from age 25 to 60 at 12% = 3.2 crore rupees","Same from age 35: only 90 lakhs — the 10 year delay costs 2.4 crore","200 USD per month from age 25 in S&P 500 index = over 1 million USD by retirement","Starting 10 years late reduces your final wealth by 70%","Time in the market beats timing the market — always"]},
-            {"heading": "Dollar Cost Averaging — Why Market Crashes Are Your Friend",
-             "points": ["When market falls 20%: your monthly investment buys more shares","When market recovers: all those extra shares are now worth much more","This is why you must NEVER stop your SIP during a crash","2020 COVID crash: people who kept their SIP running made the most money","Every crash in history has been followed by new all-time highs"]},
-            {"heading": "Getting Started Today — The Action Plan",
-             "points": ["India: open Zerodha or Groww, start Nifty 50 index fund SIP with as little as 500 rupees","USA: open Vanguard or Fidelity, invest in VOO or SPY — zero fees","UK: open Vanguard UK, invest in FTSE All-World index","Brazil: invest in BOVA11 ETF which tracks Ibovespa index","Start today with whatever amount you have — the amount matters far less than starting"]},
-        ]
+            {"heading": "Why 80% of Indian Families Are Dangerously Underinsured",
+             "points": [
+                 "Only 3.2% of Indians have adequate life insurance coverage",
+                 "Most people have either no term cover or only employer group insurance",
+                 "Employer insurance ends the day you resign — you are exposed immediately",
+                 "Rule: life cover should be 10-15x your annual income minimum",
+                 "30 year old earning ₹8 lakh per year needs ₹80-120 lakh cover",
+             ]},
+            {"heading": "LIC Tech Term vs HDFC Click 2 Protect — 2026 Numbers",
+             "points": [
+                 "₹1 crore cover, 30-year male non-smoker, 30-year policy term",
+                 "LIC Tech Term: approximately ₹10,000-12,000 per year premium",
+                 "HDFC Click 2 Protect: approximately ₹8,000-10,000 per year premium",
+                 "ICICI Pru iProtect Smart: approximately ₹7,500-9,500 per year premium",
+                 "Max Life Smart Secure Plus: approximately ₹7,000-9,000 per year premium",
+             ]},
+            {"heading": "Claim Settlement Ratio — The Number That Actually Matters",
+             "points": [
+                 "Lowest premium means nothing if company rejects your family's claim",
+                 "LIC: 98.7% claim settlement ratio — highest trust, government backed",
+                 "HDFC Life: 99.4% — highest private sector ratio in 2024-25",
+                 "ICICI Pru: 99.1% — consistently strong year after year",
+                 "Max Life: 99.6% — best claim ratio overall including 2025 data",
+             ]},
+            {"heading": "How to Buy Term Insurance Online — Step by Step",
+             "points": [
+                 "Go to PolicyBazaar — compare actual premiums from all companies",
+                 "Always choose a reputed insurer — do not just choose lowest premium",
+                 "Disclose all medical conditions honestly — hiding them voids the claim",
+                 "Choose return of premium option only if you can afford 30-40% higher premium",
+                 "Set premium payment to annual — cheapest option, best commitment",
+             ]},
+            {"heading": "Critical Add-Ons Worth Buying",
+             "points": [
+                 "Critical illness rider: pays lump sum on cancer, heart attack diagnosis",
+                 "Accidental death benefit: doubles payout for accidents",
+                 "Waiver of premium: policy continues free if you become disabled",
+                 "Income benefit rider: pays monthly income to family instead of lump sum",
+                 "Skip TROP (Return of Premium) — the extra cost rarely justifies the return",
+             ]},
+        ],
     },
     {
-        "title": "How to Read a Stock — Fundamental Analysis for Everyone",
-        "category": "Fundamental Analysis",
+        "title": "SIP vs Lump Sum — The Real Answer with 20 Years of Data",
+        "category": "Personal Finance",
         "level": "Beginner",
-        "target_audience": "Global",
+        "target_primary": "India",
+        "target_secondary": ["USA", "UK"],
+        "seo_seed": "SIP vs lump sum investment which is better India 2026 data",
+        "long_tail_keywords": [
+            "SIP vs lump sum Nifty 50 returns comparison 20 years data",
+            "should I start SIP now or wait for market to fall India",
+            "how much SIP per month to become crorepati in India calculator",
+            "best SIP amount to invest monthly for 10 crore corpus India",
+        ],
+        "affiliate_angle": "Zerodha Coin for direct mutual fund SIP — zero commission",
         "slides": [
-            {"heading": "What Makes a Stock Worth Owning Long Term",
-             "points": ["A business that grows revenue and profits every year","Low or no debt — financial strength to survive downturns","High return on equity — management uses money efficiently","Strong brand or competitive moat — hard for competitors to copy","Consistent dividend growth for income investors"]},
-            {"heading": "The P/E Ratio — Most Used Valuation Metric",
-             "points": ["Price per share divided by earnings per share","P/E of 20 means paying 20 years of earnings upfront","Compare P/E to industry average — not to the entire market","Growth stocks command high P/E: Apple 30, Reliance 25, Infosys 24","Value stocks have low P/E: banks, energy companies often below 15"]},
-            {"heading": "Revenue and Profit Growth — The Most Important Numbers",
-             "points": ["Revenue growing 15%+ per year = fast growing company","Net profit growing faster than revenue = improving margins","Check 5 years of data — one good year means nothing","Consistent growth beats spectacular but inconsistent growth","This works whether you are analysing Apple, TCS, or a Brazilian bank"]},
-            {"heading": "Finding Great Stocks Using Free Tools",
-             "points": ["Screener.in: best free tool for Indian stock analysis","Finviz.com: best free screener for US stocks","Simply Wall St: visual fundamental analysis for global stocks","Set filters: ROE above 15%, debt below 0.5, revenue growth above 15%","This takes 10 minutes per week and beats most paid research"]},
-        ]
+            {"heading": "The Data on SIP vs Lump Sum — Not Opinions, Numbers",
+             "points": [
+                 "Question: what if you had invested ₹1 lakh in Nifty 50 in Jan 2004?",
+                 "Lump sum in Jan 2004: ₹1 lakh → approximately ₹14 lakh today",
+                 "₹5000 SIP started Jan 2004: invested ₹12 lakh → approximately ₹18 lakh today",
+                 "SIP won — because you kept buying through the 2008 crash at low prices",
+                 "The crash that terrified everyone was the best gift to SIP investors",
+             ]},
+            {"heading": "Why You Should Never Stop Your SIP During a Market Fall",
+             "points": [
+                 "When market falls 20%: your SIP buys 25% more units for the same money",
+                 "When market recovers: those extra units multiply your return significantly",
+                 "2020 COVID crash: investors who stopped SIP missed the fastest recovery ever",
+                 "Nifty went from 7500 to 18000 in 18 months — SIP runners made the most",
+                 "The worst time to stop SIP is exactly when your brain says to stop",
+             ]},
+            {"heading": "The SIP Amount That Creates Real Wealth",
+             "points": [
+                 "₹5,000/month for 25 years at 12% CAGR = approximately ₹94 lakh",
+                 "₹10,000/month for 25 years at 12% CAGR = approximately ₹1.88 crore",
+                 "₹20,000/month for 25 years at 12% CAGR = approximately ₹3.76 crore",
+                 "Starting at 25 vs starting at 35: the 10 year delay costs you 70% of final wealth",
+                 "The amount matters far less than the consistency — start with whatever you have",
+             ]},
+            {"heading": "Best Index Funds for SIP in India — 2026",
+             "points": [
+                 "Nifty 50 index fund: UTI Nifty 50 or HDFC Nifty 50 — expense ratio 0.1%",
+                 "Nifty Next 50: adds mid-large caps — higher growth, slightly more risk",
+                 "S&P 500 international fund: Motilal Oswal S&P 500 — dollar diversification",
+                 "Small cap index: for long term investors with 10+ year horizon",
+                 "Avoid actively managed funds — 80% underperform index over 10 years in India",
+             ]},
+        ],
+    },
+    {
+        "title": "NPS vs PPF vs EPF — Which Retirement Account Should You Focus On?",
+        "category": "Personal Finance",
+        "level": "Intermediate",
+        "target_primary": "India",
+        "target_secondary": ["USA", "UK"],
+        "seo_seed": "NPS vs PPF vs EPF which is best for retirement India 2026",
+        "long_tail_keywords": [
+            "NPS vs PPF 2026 which gives better returns for retirement India",
+            "is NPS worth it for salaried employees India tax benefit",
+            "how to open NPS account online India step by step 2026",
+            "PPF vs ELSS which is better for tax saving 80C India 2026",
+        ],
+        "affiliate_angle": "Zerodha for ELSS and NPS account opening",
+        "slides": [
+            {"heading": "The Three Retirement Accounts Every Salaried Indian Has",
+             "points": [
+                 "EPF: mandatory if salaried — employer contributes 12% of basic salary",
+                 "PPF: voluntary, 15-year lock-in, currently 7.1% interest, fully tax-free",
+                 "NPS: voluntary, market-linked, tax benefit up to ₹2 lakh under 80C+80CCD",
+                 "Most Indians only have EPF — and it is often not enough for retirement",
+                 "Understanding all three and using them together is the correct strategy",
+             ]},
+            {"heading": "PPF — The Safest Long-Term Wealth Builder",
+             "points": [
+                 "Government backed — zero risk, cannot lose principal ever",
+                 "Interest rate currently 7.1% — reviewed quarterly by government",
+                 "Fully EEE tax status: contribution deductible, growth tax-free, maturity tax-free",
+                 "₹1.5 lakh per year maximum contribution — plan your 80C around this",
+                 "Best for: conservative investors who want guaranteed returns",
+             ]},
+            {"heading": "NPS — Higher Returns, Less Flexibility",
+             "points": [
+                 "Market-linked — equity allocation up to 75% for under 50 years age",
+                 "Historical NPS equity returns: 10-13% CAGR over 10+ years",
+                 "Additional ₹50,000 deduction under 80CCD(1B) — above the ₹1.5 lakh 80C limit",
+                 "Drawback: 40% of corpus must be annuitised at retirement — monthly pension",
+                 "Best for: those who want higher long-term returns and are comfortable with market exposure",
+             ]},
+            {"heading": "The Optimal Strategy — Use All Three Together",
+             "points": [
+                 "EPF: let employer continue — do not opt out, it is forced savings",
+                 "PPF: contribute ₹1.5 lakh per year — maximise 80C benefit",
+                 "NPS: additional ₹50,000 per year — claim the extra 80CCD deduction",
+                 "Above these: invest in Nifty 50 index fund SIP for flexible wealth building",
+                 "This combined approach beats any single-product retirement strategy",
+             ]},
+        ],
+    },
+    {
+        "title": "How to Get Out of Debt in India — EMI Trap and the Way Out",
+        "category": "Personal Finance",
+        "level": "Beginner",
+        "target_primary": "India",
+        "target_secondary": ["USA", "UK"],
+        "seo_seed": "how to get out of personal loan credit card debt India 2026",
+        "long_tail_keywords": [
+            "how to pay off credit card debt fast India 2026 step by step",
+            "personal loan debt trap how to get out India strategy",
+            "EMI burden too high what to do India debt consolidation",
+            "which loan to pay off first personal loan or credit card India",
+        ],
+        "affiliate_angle": "Paisabazaar for loan comparison and lower interest rate options",
+        "slides": [
+            {"heading": "India's Hidden Debt Crisis — Numbers Nobody Talks About",
+             "points": [
+                 "Personal loan disbursements in India grew 25% in 2024 — fastest ever",
+                 "Average credit card interest rate in India: 36-42% per year",
+                 "Personal loan rates: 12-24% per year from banks",
+                 "If you are paying 36% on credit card and earning 12% on FD — you are losing 24%",
+                 "No investment in the world earns more than the interest you pay on debt",
+             ]},
+            {"heading": "Debt Avalanche vs Debt Snowball — Which Works Faster",
+             "points": [
+                 "Debt Avalanche: pay off highest interest rate debt first — mathematically optimal",
+                 "Debt Snowball: pay off smallest balance first — psychologically powerful",
+                 "For India: always avalanche method — credit cards at 36% must die first",
+                 "Step 1: List every debt with balance and interest rate",
+                 "Step 2: Minimum payments on all, extra money on highest interest first",
+             ]},
+            {"heading": "How to Free Up Money to Pay Debt Faster",
+             "points": [
+                 "Balance transfer: move high-interest credit card to lower-rate card or loan",
+                 "Top-up home loan: if you own property, personal loan at home loan rates",
+                 "Sell any investments earning less than your debt interest rate",
+                 "Pause SIP temporarily only if debt interest exceeds 15% — otherwise keep SIP",
+                 "Cut discretionary expenses by 30% for 12 months — focused debt payoff period",
+             ]},
+            {"heading": "The Plan to Be Debt-Free in 24 Months",
+             "points": [
+                 "Month 1: emergency fund of ₹25,000-50,000 in savings account first",
+                 "Months 2-24: every extra rupee goes to highest interest debt",
+                 "When a debt is fully paid: redirect that EMI to next highest debt",
+                 "Do not take any new loans until existing debt is below 20% of income",
+                 "After debt-free: all former EMI money immediately goes into index fund SIP",
+             ]},
+        ],
+    },
+    {
+        "title": "Best Health Insurance for Family in India 2026 — Complete Comparison",
+        "category": "Personal Finance",
+        "level": "Beginner",
+        "target_primary": "India",
+        "target_secondary": ["USA", "UK"],
+        "seo_seed": "best family health insurance India 2026 comparison Star Niva Care",
+        "long_tail_keywords": [
+            "best health insurance for family of 4 India 2026 under 20000 premium",
+            "Star health insurance vs Niva Bupa which is better 2026",
+            "how much health insurance cover is enough for family India",
+            "cashless health insurance India best hospitals network comparison",
+        ],
+        "affiliate_angle": "PolicyBazaar for health insurance comparison and purchase",
+        "slides": [
+            {"heading": "Why ₹5 Lakh Health Cover Is No Longer Enough in India",
+             "points": [
+                 "Average hospital bill in tier-1 city for 5-day stay: ₹3-8 lakh now",
+                 "Cancer treatment: ₹10-50 lakh per year depending on type",
+                 "Cardiac surgery: ₹3-12 lakh for a single procedure",
+                 "Medical inflation in India: 14-18% per year — fastest of any cost category",
+                 "Recommended minimum: ₹10-20 lakh family floater for a family of 4",
+             ]},
+            {"heading": "Top Health Insurance Plans India 2026",
+             "points": [
+                 "Star Health Comprehensive: ₹10 lakh cover family of 4 — approx ₹18,000-22,000/year",
+                 "Niva Bupa ReAssure: ₹10 lakh — approx ₹16,000-20,000/year, good restoration benefit",
+                 "HDFC ERGO Optima Restore: ₹10 lakh — sum insured restored once used in a year",
+                 "Care Supreme: affordable, wide hospital network, no room rent capping",
+                 "Aditya Birla Activ Health: wellness benefits, return of premium if no claims",
+             ]},
+            {"heading": "The Features That Actually Matter — Not Just the Premium",
+             "points": [
+                 "Hospital network: more cashless hospitals = less paperwork during emergency",
+                 "Room rent capping: avoid plans with room rent limit — choose no-capping plans",
+                 "Co-payment clause: avoid policies with 20-30% co-payment requirement",
+                 "Restoration benefit: sum insured gets restored if used — critical for family floater",
+                 "Pre-existing disease waiting period: best plans have 1-2 year waiting, others have 4",
+             ]},
+            {"heading": "How to Buy Health Insurance — Step by Step",
+             "points": [
+                 "Go to PolicyBazaar — compare actual premium for your family age and city",
+                 "Choose minimum ₹10 lakh cover for family of 4 in metro city",
+                 "Add a super top-up of ₹20-40 lakh — covers catastrophic claims cheaply",
+                 "Disclose all existing conditions — non-disclosure leads to claim rejection",
+                 "Buy online direct or through PolicyBazaar — same premium, better documentation",
+             ]},
+        ],
+    },
+    {
+        "title": "Price Action Trading — How to Trade Without Any Indicator",
+        "category": "Trading Strategy",
+        "level": "Intermediate",
+        "target_primary": "Global",
+        "target_secondary": ["India", "USA"],
+        "seo_seed": "price action trading strategy without indicators stocks India 2026",
+        "long_tail_keywords": [
+            "how to trade price action only no indicators Nifty stocks",
+            "price action vs indicator trading which is more profitable",
+            "pure price action system for swing trading India stocks 2026",
+            "how professional traders use price action for entries and exits",
+        ],
+        "affiliate_angle": "TradingView — best for clean price action charts",
+        "slides": [
+            {"heading": "Why Professional Traders Remove Most Indicators",
+             "points": [
+                 "Indicators are all derived from price — they lag behind what price already shows",
+                 "Too many indicators cause analysis paralysis and missed entries",
+                 "Price itself is the only leading information — everything else follows it",
+                 "Most institutional traders use price action with 1-2 indicators maximum",
+                 "Clean chart = cleaner thinking = better decisions under pressure",
+             ]},
+            {"heading": "The Pin Bar at Support — Highest Probability Trade Setup",
+             "points": [
+                 "Step 1: identify major support level on daily or weekly chart",
+                 "Step 2: wait for price to return to that level",
+                 "Step 3: watch for a pin bar — long wick rejection at the level",
+                 "Step 4: enter at the open of the next candle",
+                 "Step 5: stop just below the tip of the pin bar wick — tight and precise",
+             ]},
+            {"heading": "The Inside Bar Breakout — Catch the Move Before It Happens",
+             "points": [
+                 "Find inside bar after a strong trending move",
+                 "This is the market pausing and coiling for the next move",
+                 "Place buy stop above inside bar high",
+                 "Place sell stop below inside bar low",
+                 "Whichever triggers first — take that trade with the trend direction",
+             ]},
+            {"heading": "Building a Complete Price Action System",
+             "points": [
+                 "Use weekly chart for trend direction only",
+                 "Use daily chart for key level identification",
+                 "Use 4-hour chart for entry pattern confirmation",
+                 "No more than one support/resistance level and one trend line on chart",
+                 "This simplicity consistently outperforms complex indicator systems",
+             ]},
+        ],
+    },
+    {
+        "title": "Swing Trading — The Perfect Strategy for Working Professionals",
+        "category": "Trading Strategy",
+        "level": "Intermediate",
+        "target_primary": "Global",
+        "target_secondary": ["India", "USA"],
+        "seo_seed": "swing trading strategy for working professionals India stocks 2026",
+        "long_tail_keywords": [
+            "how to swing trade Indian stocks with a full-time job 2026",
+            "best swing trading stocks India to watch in 2026",
+            "swing trading setup 20 EMA pullback strategy Nifty stocks",
+            "how much money do I need to start swing trading in India",
+        ],
+        "affiliate_angle": "Zerodha or Dhan — best for swing trading in India",
+        "slides": [
+            {"heading": "Why Swing Trading Is Perfect If You Have a Job",
+             "points": [
+                 "Hold trades for 3 to 10 days — check chart once per day maximum",
+                 "No need to watch screen during market hours — check in evening",
+                 "Better risk to reward ratios than intraday trading",
+                 "Lower stress, lower brokerage costs, higher quality decisions",
+                 "Works successfully on Indian stocks, US stocks, and crypto",
+             ]},
+            {"heading": "The Perfect Swing Trade Setup — Step by Step",
+             "points": [
+                 "Step 1: stock in strong uptrend — above 20, 50, and 200 EMA on daily chart",
+                 "Step 2: price pulls back to the 20 EMA — this is the entry zone",
+                 "Step 3: RSI pulls back to 40-50 during the pullback confirmation",
+                 "Step 4: volume decreasing on the pullback — sellers not aggressive",
+                 "Step 5: enter when first green candle forms at the 20 EMA",
+             ]},
+            {"heading": "How to Find the Best Swing Trade Stocks in India",
+             "points": [
+                 "Use Screener.in: filter for stocks above 200 EMA, RSI 40-60, near 52-week high",
+                 "Focus on sector leaders — they move first and strongest in uptrends",
+                 "Avoid stocks below 200 EMA — never fight the long-term trend",
+                 "Look for stocks in sectors that have strong FII buying recently",
+                 "Start with Nifty 200 stocks only — most liquid, best charts, clean moves",
+             ]},
+        ],
     },
 ]
 
-# ══════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════════════════
+# FRIDAY — PSYCHOLOGY + RISK + INSURANCE COMPARISONS
+# Friday = highest engagement day + highest-CPC insurance content
+# ══════════════════════════════════════════════════════════════════════
+
+FRIDAY_TOPICS = [
+    {
+        "title": "Trading Psychology — Why Smart People Consistently Lose Money",
+        "category": "Psychology",
+        "level": "All Levels",
+        "target_primary": "Global",
+        "target_secondary": ["India", "USA", "UK"],
+        "seo_seed": "why traders lose money psychology mistakes India USA 2026",
+        "long_tail_keywords": [
+            "why do I keep losing money in stock market India psychology",
+            "how to stop emotional trading and follow trading plan India",
+            "trading discipline how to stick to stop loss India",
+            "trading psychology books that actually helped traders India",
+        ],
+        "affiliate_angle": "None — pure value content, builds trust for Telegram conversions",
+        "slides": [
+            {"heading": "The Real Reason 90% of Traders Lose — It Is Not the Strategy",
+             "points": [
+                 "Studies show 90% of traders lose money — in India, USA, Brazil, UK — everywhere",
+                 "The losing traders are not stupid — many are engineers, doctors, MBAs",
+                 "The problem is never the strategy — it is the emotional execution",
+                 "A profitable strategy in the hands of an emotional trader becomes unprofitable",
+                 "This video is about the real enemy — the one inside your head",
+             ]},
+            {"heading": "Loss Aversion — The Bias Hardwired Into Every Human Brain",
+             "points": [
+                 "Losing ₹1000 feels psychologically twice as painful as gaining ₹1000 feels good",
+                 "This is proven neuroscience — identical across all cultures worldwide",
+                 "In trading: you hold losers hoping to recover, and cut winners too early",
+                 "Result: losses run large, profits run small — the exact opposite of what works",
+                 "The fix: written rules for exactly when to exit — decided before emotions appear",
+             ]},
+            {"heading": "The Revenge Trade — The Account Killer Every Trader Knows",
+             "points": [
+                 "You take a ₹5000 loss. Anger rises. You need to recover it right now.",
+                 "You trade 3x bigger than normal — now the risk is completely wrong",
+                 "You lose ₹15,000 more — account is seriously damaged in one session",
+                 "This sequence destroys trading accounts in hours — across all countries",
+                 "Rule: after any loss hitting your daily limit — close platform, walk away",
+             ]},
+            {"heading": "How to Build Discipline That Actually Holds Under Pressure",
+             "points": [
+                 "Write your trading rules in a physical notebook — makes them more real",
+                 "Read them aloud before every trading session — this is a proven technique",
+                 "The goal is consistency of process — not the outcome of any one trade",
+                 "Professional traders accept each loss as the cost of doing business",
+                 "Your target is to be profitably trading 5 years from now — one trade never matters",
+             ]},
+        ],
+    },
+    {
+        "title": "Risk Management — The Complete System That Keeps You in the Game",
+        "category": "Risk Management",
+        "level": "All Levels",
+        "target_primary": "Global",
+        "target_secondary": ["India", "USA"],
+        "seo_seed": "trading risk management system position sizing India 2026",
+        "long_tail_keywords": [
+            "how much to risk per trade in stock market India percentage",
+            "position sizing formula for Indian stock market beginners",
+            "stop loss strategy for swing trading India that actually works",
+            "how to survive a 10 trade losing streak without blowing account",
+        ],
+        "affiliate_angle": "Zerodha for stop loss GTT orders — free feature",
+        "slides": [
+            {"heading": "The Mathematics of Account Destruction — Why Small Losses Compound",
+             "points": [
+                 "Lose 10%: need 11% gain to recover",
+                 "Lose 25%: need 33% gain to recover",
+                 "Lose 50%: need 100% gain to recover — one year of gains to break even",
+                 "Lose 75%: need 300% gain — nearly impossible to recover",
+                 "This mathematics explains why protecting capital beats making profits",
+             ]},
+            {"heading": "The 1% Rule — How Professional Traders Size Every Position",
+             "points": [
+                 "Never risk more than 1% of your total account on any single trade",
+                 "Account: ₹2 lakh — maximum risk per trade: ₹2000",
+                 "Account: ₹5 lakh — maximum risk per trade: ₹5000",
+                 "This means even 50 consecutive losing trades cannot destroy you",
+                 "No trading strategy has a 50-trade losing streak — this gives complete safety",
+             ]},
+            {"heading": "Stop Loss — Your Insurance Policy That Most Traders Remove",
+             "points": [
+                 "Every trade needs a stop loss placed in the system BEFORE entry",
+                 "A stop loss in your head does not exist — emotions remove it when needed",
+                 "Zerodha GTT orders: set stop loss that stays active even if you close platform",
+                 "Move stop to breakeven once profit equals 1.5x your risk",
+                 "Traders who remove stop losses eventually blow up — with zero exceptions",
+             ]},
+            {"heading": "Your Personal Risk Management Plan — Write This Today",
+             "points": [
+                 "Daily loss limit: stop all trading when down 3% in one day",
+                 "Weekly loss limit: review entire strategy when down 6% in one week",
+                 "Monthly loss limit: take 2-week break when down 10% in one month",
+                 "These limits prevent a bad week from becoming a career-ending event",
+                 "Write this now — before your next trade, not after your next big loss",
+             ]},
+        ],
+    },
+    {
+        "title": "How to Invest for Long-Term Wealth — The SIP Index Fund Guide",
+        "category": "Personal Finance",
+        "level": "Beginner",
+        "target_primary": "Global",
+        "target_secondary": ["India", "USA", "UK"],
+        "seo_seed": "how to invest for long term wealth SIP index fund India USA UK 2026",
+        "long_tail_keywords": [
+            "index fund vs mutual fund which is better India 2026",
+            "how to start investing in index fund India step by step",
+            "Vanguard VOO vs Nifty 50 index fund comparison 2026",
+            "how to become crorepati in India starting from zero investment",
+        ],
+        "affiliate_angle": "Zerodha Coin India / Vanguard USA / Vanguard UK",
+        "slides": [
+            {"heading": "The Simplest Wealth-Building System That Works in Any Country",
+             "points": [
+                 "Invest a fixed amount monthly into a low-cost index fund — automated",
+                 "Do not try to time the market or predict which stocks will rise",
+                 "This system has made millions of ordinary people wealthy worldwide",
+                 "Warren Buffett publicly recommends index funds for 99% of investors",
+                 "Works identically in India (Nifty 50), USA (S&P 500), and UK (FTSE 100)",
+             ]},
+            {"heading": "The Compound Interest Numbers That Will Change Your Mind",
+             "points": [
+                 "₹10,000/month SIP for 20 years at 12% CAGR = ₹99 lakh",
+                 "₹10,000/month SIP for 30 years at 12% CAGR = ₹3.5 crore",
+                 "Starting at 25 vs 35: 10 year delay costs you ₹2.5 crore of final wealth",
+                 "200 USD/month in S&P 500 from age 25 = over 1 million USD at retirement",
+                 "Time is the only ingredient you cannot buy more of — start today",
+             ]},
+            {"heading": "Best Index Funds by Country — 2026",
+             "points": [
+                 "India: UTI Nifty 50 Index Fund or HDFC Nifty 50 — expense ratio 0.1%",
+                 "India: Motilal Oswal S&P 500 for international diversification",
+                 "USA: Vanguard VOO (S&P 500) or VTI (total market) — 0.03% expense",
+                 "UK: Vanguard FTSE All-World Index Fund — excellent global coverage",
+                 "Brazil: BOVA11 ETF tracking Ibovespa — available on B3 exchange",
+             ]},
+        ],
+    },
+    {
+        "title": "Term Insurance USA — Complete 2026 Guide for American Families",
+        "category": "Personal Finance",
+        "level": "Beginner",
+        "target_primary": "USA",
+        "target_secondary": ["UK", "India"],
+        "seo_seed": "best term life insurance USA 2026 comparison Policygenius guide",
+        "long_tail_keywords": [
+            "best term life insurance companies USA 2026 cheapest rates",
+            "how much life insurance do I need USA calculator 2026",
+            "term life insurance vs whole life insurance USA which is better",
+            "Policygenius vs Ladder life insurance USA review 2026",
+        ],
+        "affiliate_angle": "Policygenius USA — compare and apply for term insurance",
+        "slides": [
+            {"heading": "Why Most American Families Are Dangerously Underinsured",
+             "points": [
+                 "LIMRA survey: 41% of Americans have no life insurance at all",
+                 "Average American family needs 10-12x annual income in coverage",
+                 "Household earning $80,000/year needs $800,000-960,000 in cover",
+                 "Employer group life is 1-2x salary — completely inadequate for most families",
+                 "Term life is the answer — pure protection, no investment gimmick attached",
+             ]},
+            {"heading": "Top Term Life Insurance Companies USA 2026",
+             "points": [
+                 "Haven Life: best online experience, competitive rates, backed by MassMutual",
+                 "Banner Life: excellent rates for healthy non-smokers, strong financial ratings",
+                 "Pacific Life: best for high coverage amounts over $1 million",
+                 "Protective Life: lowest premiums in most age categories for standard health",
+                 "All rated A or A+ by AM Best — financial strength to pay your family's claim",
+             ]},
+            {"heading": "How Much Coverage Do You Actually Need",
+             "points": [
+                 "Rule 1: DIME formula — Debt + Income (10x) + Mortgage + Education",
+                 "Example: $50k debt + $600k income replacement + $300k mortgage + $200k education = $1.15M",
+                 "Single income family: coverage must replace all income for 15-20 years",
+                 "Dual income family: each person covers their own income contribution",
+                 "Always round up — underinsurance is far more costly than slightly extra premium",
+             ]},
+            {"heading": "How to Get the Best Rate — Practical Steps",
+             "points": [
+                 "Compare on Policygenius — see rates from multiple carriers in minutes",
+                 "Non-smoker rates are 50-60% lower — quit at least 12 months before applying",
+                 "Level term 20 or 30 years — lock in low rate now while young and healthy",
+                 "Apply young: a 30-year-old pays half of what a 40-year-old pays",
+                 "Disclose all health conditions honestly — any misrepresentation voids the claim",
+             ]},
+        ],
+    },
+    {
+        "title": "Best Savings Accounts UK and India 2026 — Get More From Your Money",
+        "category": "Personal Finance",
+        "level": "Beginner",
+        "target_primary": "UK",
+        "target_secondary": ["India", "USA"],
+        "seo_seed": "best savings account UK India 2026 highest interest rate comparison",
+        "long_tail_keywords": [
+            "best high yield savings account UK 2026 comparison",
+            "best savings account India 2026 higher than FD interest rate",
+            "ISA vs savings account UK which is better 2026",
+            "Stocks and Shares ISA UK how to start investing 2026 beginners",
+        ],
+        "affiliate_angle": "CompareTheMarket UK for savings account comparison",
+        "slides": [
+            {"heading": "Why Most People Are Earning Far Less Than They Should on Savings",
+             "points": [
+                 "UK high street bank savings rates: 1.5-2.5% in many cases still",
+                 "Best easy access savings accounts UK 2026: 4.5-5.2% AER available",
+                 "India savings accounts: 2.7-4% typically, but liquid funds pay 6.5-7%",
+                 "The difference on ₹5 lakh savings: ₹18,000 per year vs ₹33,000 per year",
+                 "Moving your savings takes 15 minutes online and earns you thousands more",
+             ]},
+            {"heading": "UK: Best Options for Your Savings in 2026",
+             "points": [
+                 "Cash ISA: up to £20,000 per year tax-free, best for non-taxpayers",
+                 "Stocks and Shares ISA: invest up to £20,000 tax-free per year — superior long term",
+                 "Premium Bonds: NS&I backed, tax-free prizes, approximately 4.4% effective rate",
+                 "Easy access savings: Marcus, Chase UK, Atom Bank paying 4.5-5%+",
+                 "Fixed rate bond: lock in for 1-2 years at higher rate if you do not need access",
+             ]},
+            {"heading": "India: Beat the FD Rate Legally",
+             "points": [
+                 "Liquid mutual funds: 6.5-7.5% returns, withdraw in 1 business day",
+                 "Arbitrage funds: 6.5-7%, taxed as equity after 3 years — tax efficient",
+                 "Flexi deposits: link FD to savings, auto-sweep excess — combines liquidity with rate",
+                 "Small finance bank FDs: 7.5-9% for 1-3 years — DICGC insured up to ₹5 lakh",
+                 "Sovereign Gold Bond: 7.1% interest + gold price appreciation — tax-free at maturity",
+             ]},
+        ],
+    },
+]
+
+# ══════════════════════════════════════════════════════════════════════
 # HOLIDAY TOPICS — Motivational + Savings + Market Emotions + Storytelling
-# Rotates every holiday — worldwide audience appeal
-# ══════════════════════════════════════════════════════════
+# Globally appealing evergreen content — high search volume all year
+# ══════════════════════════════════════════════════════════════════════
+
 HOLIDAY_TOPICS = [
-    # ── MOTIVATIONAL ─────────────────────────────────────
     {
         "title": "The Trader Who Lost Everything — And Then Built It All Back",
         "category": "Motivational",
         "level": "All Levels",
-        "target_audience": "Global — universal human story",
+        "target_primary": "Global",
+        "target_secondary": ["India", "USA", "UK"],
+        "seo_seed": "how to recover from big trading loss and start again India",
+        "long_tail_keywords": [
+            "how to recover from big stock market loss India motivation",
+            "trading account blowup how to come back stronger",
+            "famous traders who lost everything and became successful again",
+        ],
+        "affiliate_angle": "Telegram channel join for support and signals community",
         "slides": [
             {"heading": "Every Great Trader Has a Breaking Point Story",
-             "points": ["The traders you admire most have all hit rock bottom","Jesse Livermore lost everything multiple times before his greatest wins","George Soros was a refugee with nothing before becoming a billionaire","Your worst trading loss is not the end — it is the beginning of real learning","The market teaches you through pain what books never could"]},
-            {"heading": "What Losing Teaches You That Winning Never Can",
-             "points": ["Losses reveal your psychology in a way no win ever does","You discover your true risk tolerance only when you are losing","The rules you break under pressure are the rules that matter most","Every successful trader has a specific loss that changed everything","That loss becomes the foundation of all their future discipline"]},
-            {"heading": "The Rebuilding Process — Step by Step",
-             "points": ["Step 1: Stop trading completely for at least 2 weeks","Step 2: Write down every mistake from memory — be brutally honest","Step 3: Start again with 10% of your normal position size","Step 4: Do not increase size until you are profitable for 3 months straight","Step 5: Your rebuilt account will be stronger than the original"]},
-            {"heading": "Why Holidays Are the Best Time to Restart",
-             "points": ["Markets are closed — no pressure, no temptation","Perfect time to read, reflect, and reset your mindset","Review your last 3 months of trades with fresh eyes today","Write down the ONE thing you will change when markets reopen","The best traders use every holiday as a performance review day"]},
+             "points": [
+                 "Jesse Livermore lost everything multiple times before his greatest wins",
+                 "George Soros was a refugee with nothing before becoming a billionaire",
+                 "Your worst trading loss is the beginning of real learning — not the end",
+                 "The market teaches you through pain what books never could",
+                 "The traders who survived their worst loss became the best traders",
+             ]},
+            {"heading": "The Rebuilding Process — Exact Steps",
+             "points": [
+                 "Step 1: Stop trading completely for minimum 2 weeks — no exceptions",
+                 "Step 2: Write every mistake from memory — be brutally honest with yourself",
+                 "Step 3: Return with 10% of your normal position size",
+                 "Step 4: Do not increase size until profitable for 3 consecutive months",
+                 "Step 5: The rebuilt version of you will be a far better trader",
+             ]},
             {"heading": "The One Mindset Shift That Changes Everything",
-             "points": ["Stop measuring success by profit and loss — measure by process quality","Did you follow your rules? That is the only question that matters","A good trade following rules that lost money is better than a bad trade that won","Consistency of process creates consistency of results over time","This is the mindset of every trader who survived more than 5 years"]},
-        ]
+             "points": [
+                 "Stop measuring success by profit and loss — measure by process quality",
+                 "Did you follow your rules? That is the only question that matters",
+                 "A good trade following rules that lost money beats a bad trade that won",
+                 "Consistency of process creates consistency of results over time",
+                 "This mindset is shared by every professional trader who survived 10+ years",
+             ]},
+        ],
     },
-    # ── SAVINGS & INVESTMENT ─────────────────────────────
     {
-        "title": "Holiday Special — Your Complete Savings and Investment Roadmap",
+        "title": "Holiday Special — Your Complete Money Roadmap for This Year",
         "category": "Savings and Investment",
         "level": "Beginner",
-        "target_audience": "Global — India, US, UK, Brazil",
+        "target_primary": "Global",
+        "target_secondary": ["India", "USA", "UK"],
+        "seo_seed": "personal finance roadmap how to manage money India USA UK 2026",
+        "long_tail_keywords": [
+            "personal finance checklist for 2026 India what to do with money",
+            "50 30 20 rule India how does it work with examples",
+            "how to build emergency fund India USA UK from scratch",
+        ],
+        "affiliate_angle": "PolicyBazaar, Zerodha, Policygenius, CompareTheMarket by country",
         "slides": [
-            {"heading": "Why Holidays Are the Perfect Time to Plan Your Finances",
-             "points": ["Markets are closed — no distractions, pure planning time","The biggest financial decisions are made with a clear head, not during market hours","Most people spend holidays spending money — smart people spend them planning","One hour of financial planning today can change the next 10 years","Use this market holiday to build your wealth foundation"]},
-            {"heading": "The 50-30-20 Rule — Simple Formula for Every Income Level",
-             "points": ["50% of income: needs — rent, food, utilities, EMIs","30% of income: wants — entertainment, dining, travel","20% of income: savings and investments — non-negotiable","This rule works whether you earn 20,000 or 2,00,000 rupees per month","Start with whatever percentage you can — 5% is better than 0%"]},
-            {"heading": "Emergency Fund — Build This Before Anything Else",
-             "points": ["Keep 6 months of expenses in a liquid savings account","This is your financial shock absorber — job loss, medical, car repair","Without emergency fund: every crisis forces you to sell investments at wrong time","India: keep in high-interest savings account or liquid mutual fund","US/UK: high-yield savings account currently paying 4-5% — use it"]},
-            {"heading": "Where to Invest in 2026 — Simple Allocation",
-             "points": ["60% in equity index funds — Nifty 50 or S&P 500","20% in gold — physical or sovereign gold bonds or gold ETF","10% in debt/bonds — FD or government bonds for stability","10% in direct stocks — only if you understand the companies","This allocation works for 90% of investors in any country"]},
-            {"heading": "The One Financial Decision to Make Before Markets Reopen",
-             "points": ["Set up an automatic monthly SIP if you do not have one already","India: Zerodha Coin or Groww — Nifty 50 index fund, even 1000 rupees","USA: Vanguard VOO or Fidelity ZERO — set up auto-invest today","The best time to start was 10 years ago — the second best time is today","Automation removes emotion: money invested before you can spend it"]},
-        ]
+            {"heading": "Markets Are Closed — The Best Time for the Most Important Work",
+             "points": [
+                 "The biggest financial decisions are made with a clear head, not during market hours",
+                 "Most people spend holidays spending money — smart people spend them planning",
+                 "One hour of financial planning today can change the next 10 years completely",
+                 "You cannot control the market — you can control your financial foundation",
+                 "Use this holiday for the money conversation you keep postponing",
+             ]},
+            {"heading": "The Emergency Fund — Build This Before Anything Else",
+             "points": [
+                 "Keep 6 months of total expenses in a liquid, accessible account",
+                 "Without this: every financial crisis forces you to sell investments at the worst time",
+                 "India: high-yield savings or liquid mutual fund — 6.5-7% while staying liquid",
+                 "USA: high-yield savings account — currently 4.5-5% from Marcus, Ally, etc",
+                 "UK: easy access savings account or Cash ISA — 4.5-5.2% AER available",
+             ]},
+            {"heading": "The Three Investments to Set Up Before Next Market Open",
+             "points": [
+                 "India: Nifty 50 index fund SIP — even ₹1000/month is a real start",
+                 "USA: Vanguard VOO in a Roth IRA — tax-free growth for retirement",
+                 "UK: Stocks and Shares ISA in FTSE All-World — £20,000 annual allowance",
+                 "All three: add term insurance if you have dependents — do this first",
+                 "Automation: set up auto-investment so money goes before you can spend it",
+             ]},
+        ],
     },
-    # ── MARKET EMOTIONS ──────────────────────────────────
     {
-        "title": "Fear and Greed — Understanding the Two Emotions That Control Markets",
+        "title": "Fear and Greed — How to Read Market Emotions and Profit From Them",
         "category": "Market Emotions",
         "level": "All Levels",
-        "target_audience": "Global — universal appeal",
+        "target_primary": "Global",
+        "target_secondary": ["India", "USA"],
+        "seo_seed": "fear and greed index how to use for trading stocks India USA 2026",
+        "long_tail_keywords": [
+            "how to use CNN fear and greed index for stock market timing",
+            "India VIX how to use for trading Nifty India 2026",
+            "buy when fear sell when greed strategy does it work evidence",
+        ],
+        "affiliate_angle": "Telegram join for daily Fear and Greed updates — free channel",
         "slides": [
-            {"heading": "Markets Are Just Millions of Human Emotions Aggregated",
-             "points": ["Every price on every chart is the result of human emotion","Fear pushes prices below fair value — creating opportunities","Greed pushes prices above fair value — creating danger","The market is the world's largest psychology experiment running 24/7","Understanding this gives you an edge no algorithm fully captures"]},
-            {"heading": "What Extreme Fear Looks Like — And How to Use It",
-             "points": ["Fear and Greed Index below 20 = extreme fear in the market","Everyone is selling, headlines are catastrophic, social media is panicking","This is historically the best time to buy — not sell","March 2020 COVID crash: extreme fear, S&P 500 fell 35% — then rose 100%","India VIX above 30: extreme fear in Indian market = buy zone for patient investors"]},
-            {"heading": "What Extreme Greed Looks Like — And How to Protect Yourself",
-             "points": ["Fear and Greed Index above 80 = extreme greed","Everyone is buying, tips flowing freely, even non-traders are investing","This is when risk is highest — not when market is falling","2021 crypto bubble: extreme greed, Bitcoin 69000 — then fell 75%","When everyone around you is talking about stocks — reduce your exposure"]},
-            {"heading": "The Emotional Cycle Every Market Goes Through",
-             "points": ["Disbelief: market rises but people do not trust it","Hope: more people start to believe the trend","Optimism: everyone is bullish and happy","Euphoria: maximum risk point — top of the market","Anxiety, denial, fear, panic: the crash — maximum opportunity point","Understanding where we are in this cycle is more valuable than any indicator"]},
-            {"heading": "How to Stay Emotionally Neutral in Any Market",
-             "points": ["Check the Fear and Greed Index every morning — takes 10 seconds","When index is extreme: do the OPPOSITE of what you feel like doing","Build a pre-trade checklist that takes emotion out of entry decisions","Never check your portfolio more than once per day — more checks = more emotion","The best traders feel the fear and greed but act according to their system anyway"]},
-        ]
+            {"heading": "Markets Are Just Millions of Human Emotions Aggregated Into a Price",
+             "points": [
+                 "Fear pushes prices below fair value — creating real buying opportunities",
+                 "Greed pushes prices above fair value — creating real danger for new buyers",
+                 "The Fear and Greed Index measures this on a scale of 0 to 100",
+                 "India equivalent: India VIX — fear index for Indian markets",
+                 "Check both before any major investment or trading decision",
+             ]},
+            {"heading": "Extreme Fear — Historically the Best Buying Opportunity",
+             "points": [
+                 "CNN Fear and Greed below 20 = extreme fear in US markets",
+                 "India VIX above 25-30 = extreme fear in Indian markets",
+                 "March 2020 COVID crash: extreme fear everywhere — S&P 500 rose 100% after",
+                 "October 2022: extreme fear — best entry point of the decade for US stocks",
+                 "Nifty 7500 in 2020: extreme fear — best Indian stock market buying point in years",
+             ]},
+            {"heading": "Extreme Greed — When Risk Is Highest for New Buyers",
+             "points": [
+                 "Fear and Greed above 80 = extreme greed — danger zone for new positions",
+                 "India VIX below 12 = complacency — markets often correct when VIX is this low",
+                 "2021 crypto bubble: extreme greed for months — Bitcoin fell 75% after",
+                 "When everyone around you is talking about stocks: it is time to be cautious",
+                 "Reduce new position sizing when both indices show extreme greed together",
+             ]},
+        ],
     },
-    # ── STORYTELLING ─────────────────────────────────────
     {
-        "title": "The Story of Warren Buffett — Lessons Every Indian Investor Must Know",
+        "title": "Warren Buffett — 5 Lessons Every Indian Investor Must Apply Today",
         "category": "Storytelling",
         "level": "All Levels",
-        "target_audience": "Global — huge appeal",
+        "target_primary": "Global",
+        "target_secondary": ["India", "USA"],
+        "seo_seed": "Warren Buffett investing lessons for Indian investors 2026",
+        "long_tail_keywords": [
+            "Warren Buffett rules for investing Indian stock market apply",
+            "how to invest like Warren Buffett in India with small amount",
+            "Warren Buffett on index funds what he said about SIP India",
+        ],
+        "affiliate_angle": "Zerodha for long-term stock investing India",
         "slides": [
-            {"heading": "The Boy Who Started With 114 Dollars",
-             "points": ["Warren Buffett bought his first stock at age 11 — Cities Service Preferred","He invested 114 dollars — his entire savings from delivering newspapers","The stock fell first, he panicked and sold at a small profit","It then rose to 200 dollars — his first lesson in patience","He has never forgotten that lesson in 80 years of investing"]},
-            {"heading": "The Rule That Made Him the Richest Investor in History",
-             "points": ["Rule 1: Never lose money","Rule 2: Never forget Rule 1","This is not about avoiding losses — every investor has losses","It means never risk capital you cannot afford to lose","It means never invest in something you do not deeply understand"]},
-            {"heading": "How Buffett Thinks About Buying Stocks",
-             "points": ["He buys businesses — not stocks","Would he be happy owning this company if the stock market closed for 10 years?","He only buys companies with durable competitive advantages — moats","Coca-Cola: same product, same formula, 100 years of dominance","Apply this to Indian stocks: HDFC Bank, Asian Paints, TCS — all have moats"]},
-            {"heading": "The Lessons That Apply to Every Indian Investor Today",
-             "points": ["Time in the market beats timing the market — Buffett held Coca-Cola since 1988","Invest in what you understand — do not chase unfamiliar stocks","Be fearful when others are greedy — and greedy when others are fearful","The stock market transfers money from the impatient to the patient","You do not need 100 great ideas — you need 5 to 10 really great ones"]},
-            {"heading": "What Buffett Would Tell a Young Indian Investor Today",
-             "points": ["Start a SIP in Nifty 50 index fund immediately and never stop","Read one annual report per week — not Twitter, not Telegram tips","Your biggest financial asset is your ability to earn — invest in your skills first","Avoid debt for consumption — use debt only for assets that produce income","The best investment you can ever make is in yourself — Buffett said this at 93"]},
-        ]
+            {"heading": "The Boy Who Started With $114 and Died With $130 Billion",
+             "points": [
+                 "Bought his first stock at age 11 — Cities Service Preferred",
+                 "Invested $114 — his entire savings from delivering newspapers",
+                 "Stock fell first, he panicked and sold at a small profit",
+                 "It then rose to $200 — his first and most important lesson in patience",
+                 "He built the rest of his $130 billion fortune on this one lesson",
+             ]},
+            {"heading": "The 5 Lessons That Apply to Every Indian Investor",
+             "points": [
+                 "Rule 1: Never lose money — never risk capital you cannot afford to lose",
+                 "Rule 2: Invest in what you understand — ignore what you cannot explain",
+                 "Rule 3: Be fearful when others are greedy — be greedy when others are fearful",
+                 "Rule 4: Time in the market beats timing the market — he held Coca-Cola since 1988",
+                 "Rule 5: Index funds for the rest of us — he said this publicly at 93 years old",
+             ]},
+            {"heading": "Applying Buffett Thinking to Indian Markets",
+             "points": [
+                 "Look for Indian businesses with economic moats: HDFC Bank, Asian Paints, TCS",
+                 "Would you own this company if the market closed for 10 years? If no — do not buy",
+                 "High return on equity consistently: ROE above 15% for 5+ years minimum",
+                 "Low debt companies survive crises — high debt companies get wiped out",
+                 "Buy during fear, hold during greed — this simple reversal beats most strategies",
+             ]},
+        ],
     },
-    # ── MOTIVATIONAL 2 ───────────────────────────────────
     {
-        "title": "Why Most People Never Build Wealth — And the Simple Fix",
+        "title": "Gold vs Stocks vs Real Estate vs Bitcoin — Where to Invest in 2026?",
+        "category": "Savings and Investment",
+        "level": "Beginner",
+        "target_primary": "Global",
+        "target_secondary": ["India", "USA", "UK"],
+        "seo_seed": "gold vs stocks vs real estate vs bitcoin best investment 2026 comparison",
+        "long_tail_keywords": [
+            "is real estate better than stocks India 2026 data comparison",
+            "should I buy gold or invest in Nifty 50 India 2026",
+            "Bitcoin vs S&P 500 returns comparison last 10 years",
+            "best investment for Indian middle class 2026 with small amount",
+        ],
+        "affiliate_angle": "Zerodha for stocks and gold ETF, PolicyBazaar SGB",
+        "slides": [
+            {"heading": "The Data on All Four Asset Classes — No Bias, Just Numbers",
+             "points": [
+                 "Nifty 50 India: 14% CAGR over 20 years — best long-term return",
+                 "Gold in India: 10% CAGR over 20 years — strong, tax-free via SGB",
+                 "Real estate India metros: 5-8% CAGR after costs and taxes — often overstated",
+                 "Bitcoin: highest return AND highest risk — only for those who can handle 70-80% drops",
+                 "Conclusion: diversify across stocks, gold, and keep real estate optional",
+             ]},
+            {"heading": "Real Estate India — Why the Returns Are Not What People Think",
+             "points": [
+                 "Gross appreciation looks good — but subtract maintenance, vacancy, taxes",
+                 "Actual net return after costs: often 3-5% per year in most Indian cities",
+                 "Nifty 50 has beaten real estate in every 10-year rolling period since 2000",
+                 "Advantage of real estate: forced savings, rental income, emotional satisfaction",
+                 "For investment returns alone: equity index funds consistently win the comparison",
+             ]},
+            {"heading": "The Simple Portfolio That Works for 90% of Indian Investors",
+             "points": [
+                 "60% Nifty 50 index fund SIP monthly — long-term wealth engine",
+                 "20% Sovereign Gold Bond — 2.5% interest plus gold price, tax-free at maturity",
+                 "10% liquid fund or FD — emergency reserve and short-term needs",
+                 "10% international index fund — S&P 500 via Motilal Oswal for USD diversification",
+                 "Review once per year — do not react to market movements in between",
+             ]},
+        ],
+    },
+    {
+        "title": "How the Biggest Market Crashes Changed Investing Forever",
+        "category": "Storytelling",
+        "level": "All Levels",
+        "target_primary": "Global",
+        "target_secondary": ["India", "USA", "UK"],
+        "seo_seed": "biggest stock market crashes history lessons for investors 2026",
+        "long_tail_keywords": [
+            "2008 financial crisis lessons for Indian investors today",
+            "COVID crash 2020 what happened to Indian stock market recovery",
+            "market crashes history what happens after every crash always",
+        ],
+        "affiliate_angle": "Telegram join — free channel for market updates during next crash",
+        "slides": [
+            {"heading": "2008 — The Crisis That Almost Ended Modern Finance",
+             "points": [
+                 "S&P 500 fell 57% — Nifty fell 60% from peak to bottom",
+                 "Lehman Brothers: 158 years old, gone in one weekend in September 2008",
+                 "Caused by mortgage-backed securities nobody truly understood or stress-tested",
+                 "RBI and Indian banks were stronger — India recovered faster than US",
+                 "Lesson: when everyone says the risk is managed — that is exactly when risk is highest",
+             ]},
+            {"heading": "2020 — The Fastest Crash and Fastest Recovery in History",
+             "points": [
+                 "S&P 500 fell 34% in just 33 days — fastest crash ever recorded in history",
+                 "Nifty fell from 12000 to 7500 in weeks — complete panic in markets",
+                 "Recovered everything in only 6 months and made new all-time highs",
+                 "Investors who sold in March 2020 missed the greatest recovery of their lifetime",
+                 "Lesson: the worst moment of fear is almost always the best moment to buy more",
+             ]},
+            {"heading": "What Every Crash in History Has in Common",
+             "points": [
+                 "Every single crash felt like the permanent end of financial markets — none were",
+                 "Every crash was preceded by excessive optimism and leverage building up",
+                 "Every crash created the greatest buying opportunities of the following decade",
+                 "Every crash rewarded patient investors who did not panic sell at the bottom",
+                 "Your only job is to be prepared for the next one — not to predict when it comes",
+             ]},
+        ],
+    },
+    {
+        "title": "How to Stay Calm When Markets Are Crashing — Practical Guide",
+        "category": "Market Emotions",
+        "level": "All Levels",
+        "target_primary": "Global",
+        "target_secondary": ["India", "USA"],
+        "seo_seed": "how to handle stock market crash anxiety India USA stay calm invest",
+        "long_tail_keywords": [
+            "what to do when stock market is crashing India panic selling",
+            "should I sell my mutual funds when market falls India 2026",
+            "how to buy stocks during market crash India practical guide",
+        ],
+        "affiliate_angle": "Telegram free channel for crash alerts and buy signals",
+        "slides": [
+            {"heading": "Your Brain Lies to You During a Market Crash",
+             "points": [
+                 "The amygdala triggers fight-or-flight — identical response to physical danger",
+                 "Financial loss and physical threat feel the same to your nervous system",
+                 "This is why selling during crashes feels like rational survival — it is not",
+                 "The investors who stay rational during crashes have trained this response",
+                 "Preparation before the crash is the only real solution — not willpower during it",
+             ]},
+            {"heading": "The Exact 5-Step Crash Protocol to Build Today",
+             "points": [
+                 "Step 1: Write your Investment Policy Statement — before the next crash",
+                 "Step 2: State: I will not sell unless company fundamentals change, not just price",
+                 "Step 3: Set the specific levels where you will BUY MORE — write them down now",
+                 "Step 4: Turn off financial news completely during crashes — it amplifies panic",
+                 "Step 5: Check portfolio maximum once per week during volatile periods",
+             ]},
+            {"heading": "What to Actually Do When Nifty Falls 20%",
+             "points": [
+                 "Step 1: Do not sell anything — this is the most important step",
+                 "Step 2: Check your emergency fund — is 6 months of expenses safe?",
+                 "Step 3: Keep your SIP running — you are buying more units cheaply",
+                 "Step 4: If you have extra cash: deploy it in tranches — not all at once",
+                 "Step 5: Come back to your written plan — remember why you invested",
+             ]},
+        ],
+    },
+    {
+        "title": "Why Most People Never Build Wealth — The Simple Fix That Works",
         "category": "Motivational",
         "level": "All Levels",
-        "target_audience": "Global",
+        "target_primary": "Global",
+        "target_secondary": ["India", "USA", "UK"],
+        "seo_seed": "why do people not build wealth despite earning well India solution",
+        "long_tail_keywords": [
+            "why am I not building wealth despite good salary India",
+            "middle class India how to break out and build wealth 2026",
+            "lifestyle inflation trap India how to avoid and invest more",
+        ],
+        "affiliate_angle": "Zerodha, PolicyBazaar by country context",
         "slides": [
-            {"heading": "The Uncomfortable Truth About Why People Stay Poor",
-             "points": ["It is not income — doctors and engineers go broke too","It is not intelligence — the smartest people make terrible financial decisions","It is one thing: financial habits practiced consistently over years","Wealth is not built in bull markets — it is built in boring, consistent routines","The person investing 5000 rupees every month for 20 years beats the person who gets lucky once"]},
-            {"heading": "The 5 Habits of People Who Build Wealth Quietly",
-             "points": ["They spend less than they earn — always, without exception","They invest before they spend — automatic, not optional","They never try to get rich quickly — they trust the process","They learn about money consistently — 30 minutes per day minimum","They ignore what others think about their lifestyle choices"]},
-            {"heading": "The Comparison Trap — Why Social Media Is Destroying Your Finances",
-             "points": ["Social media shows you everyone's highlights — not their debt","The person with the fancy car often has zero investments","The person with the modest lifestyle often has a crore in index funds","Lifestyle inflation is the silent killer of wealth for the middle class","Every rupee spent on status is a rupee not working for your future"]},
-            {"heading": "Your Financial Life 10 Years From Now",
-             "points": ["If you invest 10,000 per month for 10 years at 12%: 23 lakhs","If you invest 10,000 per month for 20 years at 12%: 1 crore","If you invest 10,000 per month for 30 years at 12%: 3.5 crore","The difference between 10 and 30 years is just time — not more money","The only question is: will you start today, or will you wait another year?"]},
-            {"heading": "The One Action to Take Before This Holiday Ends",
-             "points": ["Open your bank app right now — check your balance","Calculate: how much did you invest last month? Be honest","If the answer is zero or less than 10% of income — set up a SIP today","It takes 10 minutes — and it is the most important 10 minutes of this holiday","Your future self will remember this day as the day everything changed"]},
-        ]
-    },
-    # ── SAVINGS & INVESTMENT 2 ───────────────────────────
-    {
-        "title": "Gold vs Stocks vs Real Estate vs Bitcoin — Where Should You Invest in 2026?",
-        "category": "Savings and Investment",
-        "level": "Beginner",
-        "target_audience": "Global",
-        "slides": [
-            {"heading": "The Great Investment Debate — Which Asset Class Wins?",
-             "points": ["Every asset class has had its decade of dominance","2000s: Gold and real estate beat stocks","2010s: US stocks crushed everything","2020s: Crypto burst onto the scene then crashed","The answer is never one asset — it is always diversification across all"]},
-            {"heading": "Stocks — The Wealth-Building Champion Long Term",
-             "points": ["Nifty 50: 14% average annual return over 20 years","S&P 500: 10-12% average annual return over 100 years","Best for: long term wealth building, 10+ year horizon","Risk: can fall 30-50% in bear markets — you must stay invested","Suitable for: anyone under 50 who can handle short term volatility"]},
-            {"heading": "Gold — The Insurance Policy Every Portfolio Needs",
-             "points": ["Gold has preserved wealth for 5000 years — no other asset matches this","Rises when stocks fall, when currencies weaken, when war breaks out","Target allocation: 10-20% of portfolio at all times","India: Sovereign Gold Bonds give 2.5% interest plus price appreciation","Not for growth — for protection when everything else falls"]},
-            {"heading": "Real Estate — The Most Understood But Most Overvalued Asset in India",
-             "points": ["Real estate in India: average 5-8% annual appreciation historically","After costs, taxes, maintenance: real returns often only 3-4%","Nifty 50 returns 14% — real estate rarely beats this on real returns","Advantage: rental income, forced savings, emotional satisfaction","Disadvantage: illiquid, high transaction costs, concentrated risk"]},
-            {"heading": "The Simple Portfolio That Works for 90% of Indians",
-             "points": ["60% Nifty 50 index fund via monthly SIP","20% Sovereign Gold Bond — buy on dips","10% liquid fund or FD — emergency reserve","10% international index fund — S&P 500 via Motilal Oswal","Review once per year — do not touch otherwise — let compound interest work"]},
-        ]
-    },
-    # ── MARKET EMOTIONS 2 ────────────────────────────────
-    {
-        "title": "How to Stay Calm When the Market is Crashing — A Practical Guide",
-        "category": "Market Emotions",
-        "level": "All Levels",
-        "target_audience": "Global",
-        "slides": [
-            {"heading": "Market Crashes Are Normal — The Data Proves It",
-             "points": ["S&P 500 has fallen 10% or more 38 times since 1950","Nifty 50 has fallen 20%+ at least 8 times since 2000","Every single crash has been followed by new all-time highs","The average time to recover from a crash: 18-24 months","Knowing this turns panic into patience — data over emotion always"]},
-            {"heading": "What Your Brain Does During a Crash — And Why It Lies to You",
-             "points": ["Amygdala activates: fight or flight response for financial pain","Your brain genuinely cannot distinguish market loss from physical danger","This is why selling during crashes feels like survival — it is wired in","The traders who stay rational during crashes have trained this response","Preparation before the crash is the only solution — not willpower during it"]},
-            {"heading": "The 5-Step Crash Protocol — Do This Before the Next Crash",
-             "points": ["Write your Investment Policy Statement today — before the next crash","State: I will not sell unless fundamentals change — not just price","Set a specific level where you will BUY MORE — not sell","Turn off financial news during market crashes — it makes panic worse","Check portfolio only once per week during volatile periods"]},
-            {"heading": "How the Wealthy Use Crashes Differently",
-             "points": ["Average investor: panics, sells at the bottom, misses recovery","Wealthy investor: already has cash ready, buys aggressively at lows","The 2020 COVID crash: billionaires bought billions in stocks at the bottom","They were not smarter — they were more prepared and less emotional","Build a crash watchlist now: the 5 stocks you want to buy when they fall 30%"]},
-            {"heading": "The Most Important Thing to Do During This Market Holiday",
-             "points": ["Markets are closed — use this peace to build your crash plan","Write down: at what portfolio loss percentage will I buy more? (answer: 20%)","Write down: which 3 funds will I add to during the next crash?","Write down: how many months of expenses do I have in emergency fund?","Review this plan every 6 months — and NEVER deviate from it during a crash"]},
-        ]
-    },
-    # ── STORYTELLING 2 ───────────────────────────────────
-    {
-        "title": "The Biggest Market Crashes in History — And What They Taught Us",
-        "category": "Storytelling",
-        "level": "All Levels",
-        "target_audience": "Global",
-        "slides": [
-            {"heading": "1929 — The Great Crash That Changed Everything",
-             "points": ["US stock market fell 89% from peak — the worst crash in recorded history","Took 25 years to recover to previous highs — an entire generation","Caused by excessive leverage, speculation, and zero regulation","Created the SEC, deposit insurance, and modern financial regulation","Lesson: leverage and speculation without regulation always ends in catastrophe"]},
-            {"heading": "2000 — The Dot-Com Bubble — When Story Beats Profit",
-             "points": ["NASDAQ fell 78% — tech stocks lost 8 trillion USD in 2 years","Companies with zero revenue were worth billions — pure speculation","Pets.com raised 82 million USD and shut down in 9 months","The companies that survived — Amazon, Google — became the greatest ever","Lesson: business fundamentals always win over narrative — eventually"]},
-            {"heading": "2008 — The Global Financial Crisis — Risk Nobody Understood",
-             "points": ["S&P 500 fell 57% — Nifty fell 60% from peak to trough","Caused by mortgage-backed securities nobody truly understood","Banks were leveraged 30:1 — one bad asset class brought the system down","Lehman Brothers: 150 years old, gone in a weekend","Lesson: when everyone says the risk is managed — that is when risk is highest"]},
-            {"heading": "2020 — COVID Crash — The Fastest Recovery in History",
-             "points": ["S&P 500 fell 34% in 33 days — fastest crash ever recorded","Nifty fell from 12000 to 7500 in weeks — pure panic","Then recovered everything in 6 months and made new all-time highs","People who sold in March 2020 missed the greatest recovery in history","Lesson: the best time to buy is when the fear is most extreme — if fundamentals are intact"]},
-            {"heading": "What Every Crash Has in Common — The Pattern That Never Changes",
-             "points": ["Every crash felt like the end of the financial world — and was not","Every crash was caused by excessive optimism and leverage before it","Every crash created the greatest buying opportunities of the decade","Every crash rewarded patient investors who did not panic sell","Your job is not to predict the crash — it is to be prepared when it comes"]},
-        ]
+            {"heading": "The Uncomfortable Truth About Why Intelligent People Stay Poor",
+             "points": [
+                 "It is not income — doctors and engineers with ₹20 lakh salary go broke too",
+                 "It is not intelligence — many brilliant people make terrible financial decisions",
+                 "It is one thing only: financial habits practiced or not practiced consistently",
+                 "Wealth is built during boring, consistent monthly routines — not bull markets",
+                 "The person investing ₹5000 every month for 25 years beats the lucky guesser",
+             ]},
+            {"heading": "The Comparison Trap — How Social Media Destroys Indian Middle Class Wealth",
+             "points": [
+                 "Social media shows everyone's highlights and possessions — not their EMI burden",
+                 "The person with the new car often has ₹0 in investments and ₹8 lakh in loans",
+                 "The person with modest lifestyle in a smaller car often has ₹50 lakh in index funds",
+                 "Lifestyle inflation: every salary hike spent on lifestyle instead of invested",
+                 "Every rupee spent on status is a rupee not compounding for your family's future",
+             ]},
+            {"heading": "The Action That Changes Everything — Take It Before This Holiday Ends",
+             "points": [
+                 "Open your bank app right now — check what you actually invested last month",
+                 "If less than 20% of income: find one expense to cut starting this month",
+                 "Set up automatic SIP for whatever amount you can — ₹500 is a real start",
+                 "Automate: salary arrives, SIP goes out before you see the money",
+                 "Your future self will remember this specific day as when everything changed",
+             ]},
+        ],
     },
 ]
 
-# ══════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════════════════
+# WEEKEND TOPICS — Evergreen education + personal finance
+# Saturday = global audience, educational, long-form content
+# Sunday = prep for next week + personal finance with high-CPC angles
+# ══════════════════════════════════════════════════════════════════════
+
+WEEKEND_TOPICS = [
+    {
+        "title": "Complete Beginner Guide to Investing in India 2026",
+        "category": "Investing Education",
+        "level": "Beginner",
+        "target_primary": "India",
+        "target_secondary": ["Global"],
+        "seo_seed": "how to start investing in India 2026 complete beginner guide stocks mutual funds",
+        "long_tail_keywords": [
+            "how to invest money in India for beginners 2026 step by step",
+            "where to invest 10000 rupees per month India 2026 best options",
+            "best investment options for salaried employees India 2026",
+            "how to open demat account and start investing India 2026",
+        ],
+        "affiliate_angle": "Zerodha account opening for demat + mutual funds + gold",
+        "slides": [
+            {"heading": "The First 5 Steps Every Indian Beginner Must Take",
+             "points": [
+                 "Step 1: Build emergency fund of 3-6 months expenses first — non-negotiable",
+                 "Step 2: Buy term life insurance if you have dependents — today, not tomorrow",
+                 "Step 3: Buy health insurance minimum ₹10 lakh family cover",
+                 "Step 4: Only then start investing — in that exact order",
+                 "Step 5: Open a demat account — Zerodha, Groww, or Dhan — takes 10 minutes",
+             ]},
+            {"heading": "Where to Put Your First ₹10,000 per Month",
+             "points": [
+                 "₹5000: Nifty 50 index fund SIP — UTI or HDFC, direct plan",
+                 "₹2000: PPF contribution — ₹24,000/year toward the ₹1.5 lakh 80C limit",
+                 "₹2000: small cap index fund — higher growth for long-term portion",
+                 "₹1000: liquid fund — building your emergency fund",
+                 "Add gold SIP once emergency fund and insurance are in place",
+             ]},
+        ],
+    },
+    {
+        "title": "How to Reduce Tax Legally in India — Complete 80C to 80U Guide",
+        "category": "Tax Planning",
+        "level": "Intermediate",
+        "target_primary": "India",
+        "target_secondary": [],
+        "seo_seed": "how to save income tax India 2026 80C investments complete guide",
+        "long_tail_keywords": [
+            "best tax saving investments India 80C 2026 ELSS vs PPF",
+            "how to save maximum tax India salaried employee 2026",
+            "section 80C investments list best options India 2026",
+            "ELSS tax saving mutual fund how does it work India 2026",
+        ],
+        "affiliate_angle": "Zerodha for ELSS, PolicyBazaar for term insurance 80C",
+        "slides": [
+            {"heading": "The Tax Deductions Every Salaried Indian Is Missing",
+             "points": [
+                 "Most employees only use basic 80C — leaving thousands of deductions unclaimed",
+                 "Total possible deductions for salaried person: ₹4-5 lakh per year if used fully",
+                 "Tax saved on ₹4 lakh deductions at 30% bracket: ₹1.2 lakh per year",
+                 "This is ₹1.2 lakh you keep — or lose by not planning",
+                 "Takes 2 hours per year — highest hourly return of any financial activity",
+             ]},
+            {"heading": "Section 80C — Maximise the ₹1.5 Lakh Limit First",
+             "points": [
+                 "ELSS mutual fund: 3-year lock-in, market returns, best option in 80C",
+                 "PPF: 15-year lock-in, guaranteed 7.1%, fully tax-free",
+                 "Life insurance premium: term insurance premium qualifies",
+                 "Home loan principal repayment: qualifies under 80C",
+                 "Children's school tuition fees: qualifies — often missed",
+             ]},
+        ],
+    },
+]
+
+# ══════════════════════════════════════════════════════════════════════
 # MASTER MAPPING
-# ══════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════════════════
+
 WEEKDAY_TOPICS = {
-    0: MONDAY_TOPICS,
-    1: TUESDAY_TOPICS,
-    2: WEDNESDAY_TOPICS,
-    3: THURSDAY_TOPICS,
-    4: FRIDAY_TOPICS,
+    0: MONDAY_TOPICS,    # Options
+    1: TUESDAY_TOPICS,   # Technical Analysis
+    2: WEDNESDAY_TOPICS, # Global Macro
+    3: THURSDAY_TOPICS,  # Strategies + High-CPC Personal Finance
+    4: FRIDAY_TOPICS,    # Psychology + Risk + Insurance
 }
 
 
 def get_todays_education_topic():
     """
     Smart rotation — returns today's education topic.
-    Weekends fall back to Monday topics.
+    Uses day_of_year (1-365) for rotation — never repeats within a year.
+    Weekends fall back to weekend-specific topics.
     """
     now     = datetime.now()
     weekday = now.weekday()
+    day_of_year = now.timetuple().tm_yday
+
     if weekday >= 5:
-        weekday = 0
-    topics   = WEEKDAY_TOPICS[weekday]
-    week_num = now.isocalendar()[1]
-    return topics[week_num % len(topics)]
+        # Weekend: rotate through weekend topics by day_of_year
+        return WEEKEND_TOPICS[day_of_year % len(WEEKEND_TOPICS)]
+
+    topics = WEEKDAY_TOPICS[weekday]
+    return topics[day_of_year % len(topics)]
 
 
 def get_holiday_topic():
     """
-    Returns a holiday topic rotating across all 8 holiday topics.
-    Rotates by day of year so each holiday gets different content.
+    Returns a holiday topic rotating across all holiday topics.
+    Uses day_of_year so each holiday in the year gets different content.
+    Never repeats within a year.
     """
-    now     = datetime.now()
-    day_num = now.timetuple().tm_yday   # 1-365
-    return HOLIDAY_TOPICS[day_num % len(HOLIDAY_TOPICS)]
+    now = datetime.now()
+    day_of_year = now.timetuple().tm_yday
+    return HOLIDAY_TOPICS[day_of_year % len(HOLIDAY_TOPICS)]
 
 
 def get_todays_topic():
     """
     Master function — returns correct topic for today.
-    Automatically detects weekend vs holiday vs market day.
-    Import indian_holidays separately to use this correctly.
+    Import indian_holidays separately to detect holiday vs market day.
     """
     return get_todays_education_topic()
 
 
+def get_article_seo_seeds(mode="market"):
+    """
+    Returns SEO keyword seeds for the article generator.
+    These seeds bias the AI toward specific long-tail, high-CPC keywords
+    that actually rank on Google vs broad generic terms.
+
+    Usage in generate_articles.py:
+        from content_calendar import get_article_seo_seeds
+        seeds = get_article_seo_seeds(CONTENT_MODE)
+        # Pass seeds into generate_article prompt as keyword guidance
+    """
+    now = datetime.now()
+    day_of_year = now.timetuple().tm_yday
+
+    if mode in ("holiday", "weekend"):
+        topics = HOLIDAY_TOPICS + WEEKEND_TOPICS
+    else:
+        # Mix of all weekday topics for market days
+        all_topics = []
+        for day_topics in WEEKDAY_TOPICS.values():
+            all_topics.extend(day_topics)
+        topics = all_topics
+
+    # Pick 4 different topics across the available set, spaced apart
+    seeds = []
+    for i in range(4):
+        idx   = (day_of_year + i * 23) % len(topics)
+        topic = topics[idx]
+        seeds.append({
+            "pillar_hint":    topic["category"],
+            "seo_seed":       topic["seo_seed"],
+            "long_tail":      topic["long_tail_keywords"][:2],
+            "primary_target": topic["target_primary"],
+            "affiliate_hint": topic.get("affiliate_angle", ""),
+        })
+    return seeds
+
+
 if __name__ == "__main__":
     topic = get_todays_education_topic()
-    print(f"Today market topic: {topic['title']}")
+    print(f"Today's video topic: {topic['title']}")
     print(f"Category: {topic['category']} | Level: {topic['level']}")
+    print(f"SEO Seed: {topic.get('seo_seed', 'N/A')}")
+    print(f"Target: {topic['target_primary']}")
 
     holiday_topic = get_holiday_topic()
     print(f"\nHoliday topic: {holiday_topic['title']}")
-    print(f"Category: {holiday_topic['category']} | Level: {holiday_topic['level']}")
+    print(f"Category: {holiday_topic['category']}")
+
+    print("\nArticle SEO Seeds for today:")
+    seeds = get_article_seo_seeds("market")
+    for i, s in enumerate(seeds):
+        print(f"  [{i+1}] {s['pillar_hint']}: {s['seo_seed']}")
+        print(f"       Long-tail: {s['long_tail'][0]}")
+        print(f"       Target: {s['primary_target']}")
