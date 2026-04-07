@@ -190,59 +190,61 @@ def calc_hold_str(entry_str: str, exit_dt: datetime) -> str:
         return "—"
 
 def clean_mem(mem: str) -> str:
-    """
-    Prune T4 memory to prevent hitting Google Sheets' 50,000 char cell limit.
+    cutoff = (datetime.now(IST) - timedelta(days=14)).strftime('%Y-%m-%d')
 
-    Two-pass cleanup:
-      Pass 1 — find symbols whose _EXDT_ date is older than 30 days.
-               NOTE: _EXDT_ entries have NO = sign. Format is:
-               "NSE_ONGC_EXDT_2026-01-15" (date embedded in key itself).
-               Must check for '_EXDT_' substring and split on that,
-               NOT on '=' which doesn't exist in these entries.
-      Pass 2 — drop:
-               (a) date-prefixed flags (YYYY-MM-DD...) older than 30 days
-               (b) all keys for symbols exited >30 days ago
-    """
-    cutoff = (datetime.now(IST) - timedelta(days=30)).strftime('%Y-%m-%d')
-
-    # Pass 1: find symbols with old exit dates
-    # _EXDT_ entry format: "NSE_ONGC_EXDT_2026-01-15" (no = sign)
+    # PASS 1: find old exited symbols
     exited_old_prefixes = set()
     for p in mem.split(','):
         p = p.strip()
-        if not p:
-            continue
         if '_EXDT_' in p and '=' not in p:
-            # format: "{sym_key}_EXDT_{date}"
-            exdt_idx   = p.index('_EXDT_')
-            sym_prefix = p[:exdt_idx]           # e.g. "NSE_ONGC"
-            date_val   = p[exdt_idx + 6:]       # len('_EXDT_') = 6
-            if date_val < cutoff:
-                exited_old_prefixes.add(sym_prefix)
+            try:
+                exdt_idx   = p.index('_EXDT_')
+                sym_prefix = p[:exdt_idx]
+                date_val   = p[exdt_idx + 6:]
+                if len(date_val) >= 10 and date_val[:10] < cutoff:
+                    exited_old_prefixes.add(sym_prefix)
+            except:
+                continue
 
-    # Pass 2: rebuild keeping only valid entries
+    # PASS 2: clean entries
     kept = []
     for p in mem.split(','):
         p = p.strip()
         if not p:
             continue
 
-        # (a) drop old date-prefixed daily flags (e.g. "2026-02-01_AM")
-        if len(p) > 10 and p[4] == '-' and p[7] == '-':
+        # remove old date flags
+        if len(p) >= 10 and p[4] == '-' and p[7] == '-':
             if p[:10] >= cutoff:
                 kept.append(p)
             continue
 
-        # (b) drop all keys belonging to symbols exited >30 days ago
+        # remove old exited symbol keys
         skip = False
         for sym_prefix in exited_old_prefixes:
             if p.startswith(sym_prefix + '_') or p.startswith(sym_prefix + '='):
                 skip = True
                 break
+
         if not skip:
             kept.append(p)
 
-    return ','.join(kept)
+    # remove duplicates
+    kept = list(dict.fromkeys(kept))
+
+    result = ','.join(kept)
+
+    # hard cap
+    if len(result) > 20000:
+        parts = [p for p in result.split(',') if p.strip()]
+        result = ','.join(parts[-100:])
+        print(f"[MEM] ⚠️ Hard cap applied ({len(result)} chars)")
+
+    # warning
+    if len(result) > 15000:
+        print(f"[MEM WARNING] T4 size: {len(result)} chars")
+
+    return result
 
 def is_market_hours(now: datetime) -> bool:
     if now.weekday() >= 5: return False
@@ -672,7 +674,8 @@ def run_trading_cycle():
     print(f"[START] {now.strftime('%Y-%m-%d %H:%M:%S')} IST")
 
     log_sheet, hist_sheet, nifty_sheet = get_sheets()
-    mem        = clean_mem(str(log_sheet.acell("T4").value or ""))
+    mem = clean_mem(str(log_sheet.acell("T4").value or ""))
+print(f"[MEM] T4 size: {len(mem)} chars")
     is_bullish = get_market_regime(nifty_sheet)
 
     if str(log_sheet.acell("T2").value or "").strip().upper() != "YES":
@@ -1240,7 +1243,8 @@ def run_daily_summary():
     print("[SUMMARY] Fetching portfolio summary...")
 
     log_sheet, hist_sheet, _ = get_sheets()
-    mem      = clean_mem(str(log_sheet.acell("T4").value or ""))
+    mem = clean_mem(str(log_sheet.acell("T4").value or ""))
+print(f"[MEM] T4 size: {len(mem)} chars")
     all_data = log_sheet.get_all_values()
 
     open_rows = [
