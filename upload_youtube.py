@@ -11,22 +11,22 @@ After upload, this script:
   2. Saves output/youtube_video_id.txt (used by other scripts if needed)
 
 --type argument controls which meta + video file to target:
-  reel        → meta_YYYYMMDD.json       + reel_YYYYMMDD.mp4
-  analysis    → analysis_meta_YYYYMMDD.json + analysis_video.mp4
-  education   → education_meta_YYYYMMDD.json + education_video.mp4
+  reel        → meta_YYYYMMDD.json              + reel_YYYYMMDD.mp4
+  analysis    → analysis_meta_YYYYMMDD.json     + analysis_video.mp4
+  education   → education_meta_YYYYMMDD.json    + education_video.mp4
   morning     → morning_reel_meta_YYYYMMDD.json + morning_reel_YYYYMMDD.mp4
 
-FIX — Playlist 403 Error:
-  Added youtube.force-ssl to OAuth scopes so playlist assignment works.
-  Token must be regenerated after adding this scope (delete token.json locally
-  or re-run the OAuth flow via GitHub Actions token_refresh.yml).
+PLAYLIST NOTE:
+  assign_to_playlist() is kept here for Phase 3 but NOT called.
+  Needs youtube.force-ssl OAuth scope + re-auth + playlist secrets.
+  Enable when channel reaches 1000+ subscribers.
 
 SEO strategy:
   - Tags cover India, USA, UK, Brazil, UAE for maximum CPM
   - Category 27 = Education (best for finance content monetisation)
   - Titles are mode-aware (market / weekend / holiday)
 
-Last updated: April 6, 2026 17:59 IST
+Last updated: April 7, 2026
 """
 
 import os
@@ -46,13 +46,15 @@ CONTENT_MODE = os.environ.get("CONTENT_MODE", "market").lower()
 HOLIDAY_NAME = os.environ.get("HOLIDAY_NAME", "")
 OUTPUT_DIR   = Path("output")
 
-# FIX: Added youtube.force-ssl scope — required for playlist assignment (was 403)
+# upload only — no force-ssl needed until Phase 3 playlist activation
 SCOPES = [
     "https://www.googleapis.com/auth/youtube.upload",
-    "https://www.googleapis.com/auth/youtube.force-ssl",
 ]
 
-# ─── Playlist IDs per type (set your real playlist IDs here) ─────────────────
+# ─── Playlist IDs — Phase 3, NOT ACTIVE YET ───────────────────────────────────
+# Add these GitHub Secrets when ready:
+#   YOUTUBE_PLAYLIST_REEL, YOUTUBE_PLAYLIST_ANALYSIS,
+#   YOUTUBE_PLAYLIST_EDUCATION, YOUTUBE_PLAYLIST_MORNING
 PLAYLIST_IDS = {
     "reel":      os.environ.get("YOUTUBE_PLAYLIST_REEL", ""),
     "analysis":  os.environ.get("YOUTUBE_PLAYLIST_ANALYSIS", ""),
@@ -60,7 +62,7 @@ PLAYLIST_IDS = {
     "morning":   os.environ.get("YOUTUBE_PLAYLIST_MORNING", ""),
 }
 
-# ─── Global SEO tags — covers all high-CPM target countries ──────────────────
+# ─── Global SEO tags ──────────────────────────────────────────────────────────
 
 BASE_TAGS = [
     "ai360trading", "ZenoKiBaat", "StockMarketIndia", "TradingWisdom",
@@ -99,10 +101,7 @@ def get_service():
                 print("❌ No YouTube credentials found")
                 return None
 
-        creds = Credentials.from_authorized_user_info(
-            json.loads(creds_json),
-            scopes=SCOPES  # FIX: pass scopes so force-ssl is respected
-        )
+        creds   = Credentials.from_authorized_user_info(json.loads(creds_json))
         service = build("youtube", "v3", credentials=creds)
         print("✅ YouTube authenticated")
         return service
@@ -125,13 +124,13 @@ def upload_video(video_path: Path, title: str, description: str, tags: list):
 
     body = {
         "snippet": {
-            "title": title[:100],
+            "title":       title[:100],
             "description": description,
-            "tags": tags[:30],      # YouTube max 30 tags
-            "categoryId": "27"      # Education — best for finance monetisation
+            "tags":        tags[:30],
+            "categoryId":  "27"         # Education — best for finance monetisation
         },
         "status": {
-            "privacyStatus": "public",
+            "privacyStatus":           "public",
             "selfDeclaredMadeForKids": False
         }
     }
@@ -159,16 +158,24 @@ def upload_video(video_path: Path, title: str, description: str, tags: list):
         return None, None
 
 
-# ─── PLAYLIST ─────────────────────────────────────────────────────────────────
+# ─── PLAYLIST (Phase 3 — NOT CALLED) ─────────────────────────────────────────
 
 def assign_to_playlist(video_id: str, video_type: str):
     """
-    Assigns video to playlist.
-    Requires youtube.force-ssl scope — now included in SCOPES above.
+    Assigns video to a YouTube playlist.
+
+    ⚠️  NOT called in main() — Phase 3 feature.
+
+    To activate in Phase 3:
+      1. Add youtube.force-ssl to SCOPES above
+      2. Delete token.json and re-run OAuth flow to get new token
+      3. Update YOUTUBE_CREDENTIALS GitHub Secret with new token
+      4. Add YOUTUBE_PLAYLIST_* secrets for each type
+      5. Uncomment assign_to_playlist() call in main() below
     """
     playlist_id = PLAYLIST_IDS.get(video_type, "")
     if not playlist_id:
-        print(f"📋 Playlist: skipped (no playlist ID configured for type '{video_type}')")
+        print(f"📋 Playlist: skipped (no playlist ID for '{video_type}')")
         return
 
     youtube = get_service()
@@ -181,10 +188,7 @@ def assign_to_playlist(video_id: str, video_type: str):
             body={
                 "snippet": {
                     "playlistId": playlist_id,
-                    "resourceId": {
-                        "kind": "youtube#video",
-                        "videoId": video_id
-                    }
+                    "resourceId": {"kind": "youtube#video", "videoId": video_id}
                 }
             }
         ).execute()
@@ -193,13 +197,10 @@ def assign_to_playlist(video_id: str, video_type: str):
         print(f"📋 Playlist: ⚠️  Skipped (non-critical): {e}")
 
 
-# ─── META + VIDEO FILE RESOLUTION ────────────────────────────────────────────
+# ─── META + VIDEO FILE RESOLUTION ─────────────────────────────────────────────
 
 def resolve_files(video_type: str, today: str):
-    """
-    Returns (meta_path, video_path) for the given upload type.
-    Supports: reel, analysis, education, morning
-    """
+    """Returns (meta_path, video_path) for the given upload type."""
     patterns = {
         "reel":      (f"meta_{today}.json",                f"reel_{today}.mp4"),
         "analysis":  (f"analysis_meta_{today}.json",       "analysis_video.mp4"),
@@ -209,17 +210,14 @@ def resolve_files(video_type: str, today: str):
 
     meta_name, video_name = patterns.get(video_type, patterns["reel"])
 
-    # Meta file
     meta_path = OUTPUT_DIR / meta_name
     if not meta_path.exists():
-        # Fallback: latest matching meta
         candidates = sorted(
             OUTPUT_DIR.glob(meta_name.replace(today, "*")),
             key=os.path.getmtime, reverse=True
         )
         meta_path = candidates[0] if candidates else None
 
-    # Video file
     video_path = OUTPUT_DIR / video_name
     if not video_path.exists():
         candidates = sorted(
@@ -236,7 +234,6 @@ def resolve_files(video_type: str, today: str):
 def build_metadata(meta: dict, today: str, video_type: str) -> tuple:
     """Returns (title, description, tags) based on CONTENT_MODE and video_type."""
 
-    # For analysis/education types, use whatever title/description is in meta
     if video_type in ("analysis", "education"):
         title = meta.get("title", f"AI360Trading — {video_type.capitalize()} {today}")
         desc  = meta.get("description", "Daily market insight by AI360Trading.")
@@ -245,12 +242,9 @@ def build_metadata(meta: dict, today: str, video_type: str) -> tuple:
         print(f"🏷️  Tags: {len(tags)} tags")
         return title, desc, tags
 
-    # For reel / morning — build mode-aware title
-    base_title = meta.get("title", f"ZENO Ki Baat — {today}")
     base_desc  = meta.get("description", "Daily trading wisdom by ZENO.")
     desc_clean = base_desc.split("#")[0].strip()
-
-    prefix = "🌅 Morning Brief" if video_type == "morning" else "🎯 ZENO Ki Baat"
+    prefix     = "🌅 Morning Brief" if video_type == "morning" else "🎯 ZENO Ki Baat"
 
     if CONTENT_MODE == "holiday":
         label = f"🎉 {HOLIDAY_NAME}" if HOLIDAY_NAME else "🎉 Market Holiday"
@@ -277,7 +271,7 @@ def build_metadata(meta: dict, today: str, video_type: str) -> tuple:
         )
         tags = WEEKEND_TAGS
 
-    else:  # market
+    else:
         title = f"{prefix} — Trading Wisdom #{today[-4:]} #Shorts"
         desc  = (
             f"🎯 Daily Trading Wisdom by ZENO\n\n"
@@ -306,7 +300,7 @@ def main():
         default="reel",
         help="Which video type to upload"
     )
-    args = parser.parse_args()
+    args       = parser.parse_args()
     video_type = args.type
 
     print("\n" + "=" * 60)
@@ -338,10 +332,11 @@ def main():
     video_id, video_url = upload_video(video_path, title, description, tags)
 
     if video_id:
-        # ── Playlist assignment (now works — force-ssl scope added) ───────────
-        assign_to_playlist(video_id, video_type)
+        # Playlist — Phase 3 (uncomment when ready, see assign_to_playlist() docs)
+        # assign_to_playlist(video_id, video_type)
+        print(f"📋 Playlist: deferred to Phase 3")
 
-        # ── Save video_id to meta — CRITICAL for Instagram upload chain ───────
+        # ── Save to meta — CRITICAL for Instagram upload chain ────────────────
         if meta_path and meta_path.exists():
             meta["youtube_video_id"]  = video_id
             meta["youtube_video_url"] = video_url
@@ -352,7 +347,7 @@ def main():
             )
             print(f"💾 Saved youtube_video_id to meta: {video_id}")
 
-        # ── Save video_id to txt — used by daily-shorts workflow ──────────────
+        # ── Save to txt — used by daily-shorts workflow ────────────────────────
         id_path = OUTPUT_DIR / "youtube_video_id.txt"
         id_path.write_text(video_id, encoding="utf-8")
         print(f"💾 Saved video ID to: {id_path.name}")
