@@ -25,6 +25,30 @@ import yfinance as yf
 from PIL import Image, ImageDraw, ImageFont
 import edge_tts
 from moviepy.editor import ImageClip, AudioFileClip, CompositeAudioClip, concatenate_audioclips
+# ─── SHORTS AUDIO SAFETY (≤58s) ────────────────────────────────────────────
+MAX_SHORT_SECS = 58  # Safe limit for YouTube Shorts
+MIN_SHORT_SECS = 5   # sanity check
+
+def load_and_trim_audio(audio_path, label="Short"):
+    from pathlib import Path
+    
+    if not Path(audio_path).exists():
+        raise FileNotFoundError(f"[{label}] Audio file not found: {audio_path}")
+    
+    print(f"🎧 Loading [{label}] audio...")
+    voice_clip = AudioFileClip(str(audio_path))
+
+    if voice_clip.duration > MAX_SHORT_SECS:
+        print(f"⚠️ [{label}] Too long ({voice_clip.duration:.1f}s) → trimming to {MAX_SHORT_SECS}s")
+        trimmed = voice_clip.subclip(0, MAX_SHORT_SECS)
+        voice_clip.close()
+        return trimmed
+
+    if voice_clip.duration < MIN_SHORT_SECS:
+        print(f"⚠️ [{label}] Too short ({voice_clip.duration:.1f}s) — check TTS")
+
+    print(f"✅ [{label}] Duration OK: {voice_clip.duration:.1f}s")
+    return voice_clip
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 from google.oauth2.credentials import Credentials
@@ -587,7 +611,7 @@ async def main():
         await edge_tts.Communicate(s2_data.get("script", "Aaj ka lesson dekhte hain!"),
                                    "hi-IN-MadhurNeural").save(str(s2_audio_path))
 
-    s2_voice      = AudioFileClip(str(s2_audio_path))
+    s2_voice = load_and_trim_audio(s2_audio_path, label="Short2-Madhur")
     s2_duration   = s2_voice.duration + 0.5
     s2_audio      = mix_audio(s2_voice, s2_duration)
     s2_video_path = OUT / f"short2_{today}.mp4"
@@ -629,7 +653,7 @@ async def main():
         await edge_tts.Communicate(s3_data.get("script", "Bhaiyo! Aaj ka update!"),
                                    "hi-IN-SwaraNeural").save(str(s3_audio_path))
 
-    s3_voice      = AudioFileClip(str(s3_audio_path))
+    s3_voice = load_and_trim_audio(s3_audio_path, label="Short3-Swara")
     s3_duration   = s3_voice.duration + 0.5
     s3_audio      = mix_audio(s3_voice, s3_duration)
     s3_video_path = OUT / f"short3_{today}.mp4"
