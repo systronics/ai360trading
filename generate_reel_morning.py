@@ -91,7 +91,7 @@ def generate_morning_script() -> dict:
     topic_data = MORNING_REEL_TOPICS[WEEKDAY]
     topic = topic_data["topic"]
     angle = topic_data["angle"]
-    target_countries = topic_data["target_country"]
+    target_countries = topic_data["target_country"]  # key is "target_country" in MORNING_REEL_TOPICS
 
     hook = topic_data["hook_hi"] if LANG == "hi" else topic_data["hook_en"]
     cta = ht.get_cta(LANG)
@@ -450,9 +450,14 @@ def save_meta(script: dict, video_path: str) -> str:
     """Save metadata for upload scripts."""
     meta_path = OUTPUT_DIR / f"morning_reel_meta_{DATE_STR}.json"
 
-    topic_data = MORNING_REEL_TOPICS[WEEKDAY]
     tags = seo.get_video_tags(CONTENT_MODE, is_short=True)
-    global_tag = ht.get_posting_time_tag(topic_data["target_countries"])
+
+    # FIX: Use target_countries from the already-built script dict (populated by
+    # generate_morning_script from topic_data["target_country"]).
+    # This avoids the KeyError caused by the mismatched key name in MORNING_REEL_TOPICS
+    # ("target_country" singular vs "target_countries" plural used here previously).
+    target_countries = script.get("target_countries", [])
+    global_tag = ht.get_posting_time_tag(target_countries)
 
     meta = {
         "date": DATE_STR,
@@ -468,7 +473,7 @@ def save_meta(script: dict, video_path: str) -> str:
         ),
         "tags": tags,
         "topic": script.get("topic"),
-        "target_countries": topic_data["target_countries"],
+        "target_countries": target_countries,
         "ai_provider": ai.active_provider,
         "lang": LANG,
         "palette": TODAY_PALETTE["name"],
