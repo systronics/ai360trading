@@ -1,6 +1,6 @@
 # AI360Trading — Master System Documentation
 
-**Last Updated:** April 6, 2026 17:59 IST — upload_youtube.py playlist fix + multi-type support
+**Last Updated:** April 6, 2026 17:59 IST — upload_youtube.py multi-type support; playlist deferred to Phase 3
 **Status:** Phase 1 ✅ Complete | Phase 2 ✅ Complete | Phase 3 Planned | Phase 4 (Dhan Live) Planned
 **Primary Audience:** Bilingual Hindi + English — Indian retail traders + global investors
 
@@ -50,9 +50,9 @@
 | YouTube Community Posts | ✅ Built | generate_community_post.py — 12:00 PM daily |
 | YouTube Reels | ✅ Auto | ZENO reel (8:30 PM) working |
 | YouTube Morning Reel | ✅ Auto | 7:00 AM reel (generate_reel_morning.py) working |
-| YouTube Playlist Assignment | ✅ Fixed | Added youtube.force-ssl scope — was 403 Insufficient Permission |
+| YouTube Playlist Assignment | 🔄 Phase 3 | Deferred — not needed until 1000+ subscribers |
 | Facebook Page | ✅ Auto | Posts, reels, article shares all working |
-| Facebook Group | ❌ Broken | Missing `publish_to_groups` token scope — see Section 11 |
+| Facebook Group | ❌ Broken | Missing `publish_to_groups` token scope — see Section 12 |
 | Instagram | ⚠️ Partial | Upload chain built; `INSTAGRAM_ACCOUNT_ID` secret needed |
 | GitHub Pages | ✅ Auto | 4 articles/day + instant Google indexing |
 | Telegram | ✅ Auto | Signal alerts to all 3 channels (paper trading — followers take manual entry) |
@@ -135,7 +135,7 @@ All workflows support `workflow_dispatch` with a `content_mode` dropdown to forc
 
 | File | Role | Status |
 | --- | --- | --- |
-| `upload_youtube.py` | Uploads reel/analysis/education/morning; saves `youtube_video_id` + `public_video_url` to meta | ✅ Fixed Apr 6 17:59 |
+| `upload_youtube.py` | Uploads reel/analysis/education/morning via --type flag; saves video_id to meta | ✅ Updated Apr 6 17:59 |
 | `upload_youtube_english.py` | Uploads to English channel (separate credentials) | 🔄 Phase 3 |
 | `upload_facebook.py` | Uploads reel to FB Page; shares to Group; posts articles | ✅ |
 | `upload_instagram.py` | Auto-uploads via Meta API using `public_video_url` from meta | ✅ |
@@ -204,8 +204,6 @@ tags = seo.get_video_tags(mode=CONTENT_MODE, lang="hi")
 
 ### Overview
 
-The trading system is split across two components that work together:
-
 | Component | File | Role |
 | --- | --- | --- |
 | AppScript v13.3 | Google Sheets bound script | Scans Nifty200 sheet, applies filters, writes WAITING candidates to AlertLog, stores memory in T4 |
@@ -232,7 +230,7 @@ Q=16 ATH Warning    R=17 Risk ₹        S=18 Position Size  T=19 SYSTEM CONTROL
 ```
 
 **T2** = automation on/off switch (set YES to enable)
-**T4** = memory string (key=value pairs, comma separated — stores TSL, MAX, ATR, CAP, MODE, SEC, exit dates, daily flags)
+**T4** = memory string (key=value pairs, comma separated)
 
 ### Nifty200 Column Map (0-based, used by AppScript)
 
@@ -258,17 +256,15 @@ r[32] FII_Buying_Signal(AG) r[33] Master_Score (AH)
 
 ### AppScript v13.3 — Key Logic
 
-**Market Regime:** Nifty50 CMP vs 20DMA → Bullish or Bearish. Controls which filter gate applies.
+**Market Regime:** Nifty50 CMP vs 20DMA → Bullish or Bearish.
 
 **Bearish gate (4 conditions all required):**
-
 * Leader_Type = "Sector Leader"
 * AF ≥ 5 (RS≥2.5 with sector tailwind)
 * Master_Score ≥ 22
 * FII signal ≠ "FII CAUTION" or "FII SELLING"
 
 **10 scan gates (in order):**
-
 1. FII SELLING → skip always
 2. Market regime filter (bullish vs bearish path)
 3. Late entry block (BREAKOUT CONFIRMED needs RS≥7)
@@ -281,24 +277,14 @@ r[32] FII_Buying_Signal(AG) r[33] Master_Score (AH)
 10. Sector concentration (max 2 per sector)
 
 **Capital tiers:**
-
-* ₹13,000 — MasterScore≥28 AND AF≥10 (high conviction)
-* ₹10,000 — MasterScore≥22 OR Accumulation Zone (medium conviction)
+* ₹13,000 — MasterScore≥28 AND AF≥10
+* ₹10,000 — MasterScore≥22 OR Accumulation Zone
 * ₹7,000 — standard
 
-**Trade modes (stored as _MODE in T4 memory):**
-
+**Trade modes:**
 * VCP — AB<0.04 + pre-breakout stage
 * MOM — Strong Bull + RS≥6
 * STD — everything else (default in bear market)
-
-**Memory keys written per stock:**
-
-* `{sym}_CAP` — capital tier (7000/10000/13000)
-* `{sym}_MODE` — trade mode (VCP/MOM/STD)
-* `{sym}_SEC` — sector name (for Good Morning sector context)
-
-**Sort order:** finalScore DESC, then ATR% ASC as tiebreaker within ±2 score points (minimum SL preference).
 
 ### Python Bot v13.4 — Key Logic
 
@@ -312,10 +298,7 @@ TSL_PARAMS = {
 }
 ```
 
-STD trail widened in v13.3 (6→10, atr_mult 1.5→2.5) to support full-ride vision on swing trades.
-
 **TSL progression (STD example):**
-
 * Gain < 2% → hold initial SL
 * Gain 2–4% → move to breakeven
 * Gain 4–10% → lock at entry +2%
@@ -323,31 +306,26 @@ STD trail widened in v13.3 (6→10, atr_mult 1.5→2.5) to support full-ride vis
 * Gain > 8% gap-up → lock 50% of gap
 
 **Daily message schedule:**
-
-* 08:45–09:15 → Good Morning (open trades P/L + waiting count + sector context)
-* 09:15–15:30 → Market hours (entry alerts, TSL updates, exit alerts)
+* 08:45–09:15 → Good Morning
+* 09:15–15:30 → Market hours alerts
 * 12:28–12:38 → Mid-day pulse
 * 15:15–15:45 → Market close summary
 
 **Telegram channels:**
-
 * Basic (free) → market mood, signal closed result only
 * Advance (₹499/mo) → full entry/exit details, TSL updates, mid-day pulse
 * Premium (bundle) → same as Advance + options CE candidate flag
 
 **CE candidate flag (v13.4 — informational only):**
-Fires when market is bullish AND stock ATR% > 1.5%. Shows in Advance + Premium entry alerts only. Uses existing ATR14 (col AC) and CMP — no new data needed. Currently informational — Dhan API connection needed for live CE execution.
-
 ```
-ATR% < 1.5%    → no flag (premium decay risk)
+ATR% < 1.5%    → no flag
 ATR% 1.5–2.5%  → normal mover: target +65%, SL -40% on premium
 ATR% > 2.5%    → fast mover: target +50%, SL -35% on premium
 ```
 
 **Hard exit rules:**
-
-* Loss > 5% → hard loss exit (immediate, no min-hold check)
-* Min hold: 2 days swing, 3 days positional (prevents TSL whipsaw on day 1)
+* Loss > 5% → hard loss exit
+* Min hold: 2 days swing, 3 days positional
 * 5 trading day cooldown after exit before same stock re-enters
 
 ### History Sheet Columns (A–R)
@@ -364,29 +342,34 @@ Q  Profit/Loss ₹               R  Options Note
 
 ## 9. Critical Upload Chain
 
-Scripts must run in this exact order. Each one feeds data to the next:
+Scripts must run in this exact order. Each one feeds data to the next.
+
+### upload_youtube.py — Always Pass --type Flag
+
+```bash
+python upload_youtube.py --type reel       # ZENO reel
+python upload_youtube.py --type morning    # morning reel
+python upload_youtube.py --type analysis   # Part 1
+python upload_youtube.py --type education  # Part 2
+```
 
 ### Evening ZENO Reel (8:30 PM)
 
 ```
 generate_reel.py
     └── output/reel_YYYYMMDD.mp4
-    └── output/meta_YYYYMMDD.json  ← created here (public_video_url = "")
+    └── output/meta_YYYYMMDD.json
 
 upload_youtube.py --type reel
-    └── Uploads reel to YouTube
-    └── Writes to meta → youtube_video_id, youtube_video_url, public_video_url
-    └── Assigns to YOUTUBE_PLAYLIST_REEL playlist (requires force-ssl scope)
+    └── Uploads to YouTube
+    └── Writes youtube_video_id + public_video_url to meta
 
 upload_facebook.py
-    └── Uploads reel to Facebook Page
-    └── Posts link to Facebook Group (when fixed)
-    └── Overwrites meta → public_video_url (Facebook watch URL)
-    └── Posts articles from RSS feed to Page + Group
+    └── Uploads to Facebook Page
+    └── Overwrites public_video_url in meta (FB watch URL)
 
 upload_instagram.py
-    └── Reads public_video_url from meta
-    └── Submits to Instagram API → polls until FINISHED → publishes
+    └── Reads public_video_url from meta → publishes
 ```
 
 ### Morning Reel (7:00 AM)
@@ -397,8 +380,8 @@ generate_reel_morning.py
     └── output/morning_reel_meta_YYYYMMDD.json
 
 upload_youtube.py --type morning
-upload_facebook.py (morning mode)
-upload_instagram.py (morning mode)
+upload_facebook.py
+upload_instagram.py
 ```
 
 ### Daily Videos (7:30 AM)
@@ -406,17 +389,13 @@ upload_instagram.py (morning mode)
 ```
 generate_analysis.py
     └── output/analysis_video.mp4
-    └── output/analysis_video_id.txt       ← Part 1 ID for Part 2 linking
     └── output/analysis_meta_YYYYMMDD.json
 
 upload_youtube.py --type analysis
 
 generate_education.py
-    └── Reads analysis_video_id.txt → links Part 1 in description
     └── output/education_video.mp4
-    └── output/education_video_id.txt
     └── output/education_meta_YYYYMMDD.json
-    └── Updates Part 1 YouTube description with Part 2 URL
 
 upload_youtube.py --type education
 ```
@@ -429,19 +408,19 @@ upload_youtube.py --type education
 
 All stored in **GitHub Actions Secrets**. Never hardcode any of these values.
 
-### YouTube Playlist IDs (new — add these secrets)
+### YouTube Playlist Secrets (Phase 3 — NOT needed yet)
 
 | Secret | Purpose | Status |
 | --- | --- | --- |
-| `YOUTUBE_PLAYLIST_REEL` | Playlist ID for ZENO reels | Add when playlist created |
-| `YOUTUBE_PLAYLIST_ANALYSIS` | Playlist ID for analysis videos | Add when playlist created |
-| `YOUTUBE_PLAYLIST_EDUCATION` | Playlist ID for education videos | Add when playlist created |
-| `YOUTUBE_PLAYLIST_MORNING` | Playlist ID for morning reels | Add when playlist created |
+| `YOUTUBE_PLAYLIST_REEL` | Playlist ID for ZENO reels | ⏳ Add in Phase 3 |
+| `YOUTUBE_PLAYLIST_ANALYSIS` | Playlist ID for analysis videos | ⏳ Add in Phase 3 |
+| `YOUTUBE_PLAYLIST_EDUCATION` | Playlist ID for education videos | ⏳ Add in Phase 3 |
+| `YOUTUBE_PLAYLIST_MORNING` | Playlist ID for morning reels | ⏳ Add in Phase 3 |
 
-> Playlist assignment now works after adding `youtube.force-ssl` scope to OAuth credentials.
-> **Action required:** Delete existing `token.json` / `YOUTUBE_CREDENTIALS` and re-run OAuth flow to get new token with force-ssl scope.
+> Playlist assignment also requires re-generating `YOUTUBE_CREDENTIALS` with `youtube.force-ssl` scope.
+> Do this in Phase 3 when channel reaches 1000+ subscribers. No action needed now.
 
-### Dhan Trading API (added — Phase 4 live trading)
+### Dhan Trading API (Phase 4)
 
 | Secret | Purpose | Status |
 | --- | --- | --- |
@@ -451,20 +430,18 @@ All stored in **GitHub Actions Secrets**. Never hardcode any of these values.
 | `DHAN_PIN` | Account PIN | ✅ Added — not connected yet |
 | `DHAN_TOTP_KEY` | 2FA TOTP key | ✅ Added — not connected yet |
 
-> Dhan integration planned for Phase 4 after backtest validation. Currently all trading is paper-mode via Google Sheets + AppScript. Followers take manual entry from Telegram signals.
-
 ### Social Platforms
 
 | Secret | Purpose | Status |
 | --- | --- | --- |
 | `META_ACCESS_TOKEN` | Facebook + Instagram API | ✅ Auto-refreshed every 50 days |
-| `META_APP_ID` | Facebook App ID — needed for auto token refresh | ✅ Added |
-| `META_APP_SECRET` | Facebook App Secret — needed for auto token refresh | ✅ Added |
+| `META_APP_ID` | Facebook App ID | ✅ Added |
+| `META_APP_SECRET` | Facebook App Secret | ✅ Added |
 | `FACEBOOK_PAGE_ID` | Target Facebook Page ID | ✅ |
-| `FACEBOOK_GROUP_ID` | Target Facebook Group ID | ✅ (posting broken — token scope issue) |
+| `FACEBOOK_GROUP_ID` | Target Facebook Group ID | ✅ (posting broken — scope issue) |
 | `INSTAGRAM_ACCOUNT_ID` | Instagram Business/Creator numeric ID | ✅ Added |
-| `YOUTUBE_CREDENTIALS` | YouTube OAuth JSON (Hindi channel) — must include force-ssl scope | ✅ Needs re-auth |
-| `YOUTUBE_CREDENTIALS_EN` | YouTube OAuth JSON (English channel) | ✅ Added |
+| `YOUTUBE_CREDENTIALS` | YouTube OAuth JSON (Hindi channel) | ✅ Active — upload scope only |
+| `YOUTUBE_CREDENTIALS_EN` | YouTube OAuth JSON (English channel) | ✅ Added — Phase 3 |
 
 ### AI Providers (Fallback Chain)
 
@@ -517,78 +494,58 @@ All content uses `human_touch.py`. **Never use raw AI output directly.**
 
 ## 12. Known Issues & Fixes
 
-### YouTube Playlist 403 — FIXED ✅ (April 6, 2026 17:59)
-
-**Root cause:** OAuth token was missing `youtube.force-ssl` scope required for playlist write access.
-
-**Fix applied in `upload_youtube.py`:**
-```python
-SCOPES = [
-    "https://www.googleapis.com/auth/youtube.upload",
-    "https://www.googleapis.com/auth/youtube.force-ssl",  # ← added
-]
-```
-
-**Action required:** Re-generate `YOUTUBE_CREDENTIALS` token (delete old token.json and re-run OAuth flow) so new scope is included.
-
 ### generate_reel_morning.py KeyError: 'target_countries' — FIXED ✅ (April 7, 2026)
 
 **Root cause:** `save_meta()` used `topic_data["target_countries"]` but key in `MORNING_REEL_TOPICS` is `"target_country"` (singular).
-
-**Fix applied:** `save_meta()` now reads from `script.get("target_countries", [])` instead of going back to `MORNING_REEL_TOPICS` with wrong key.
+**Fix:** `save_meta()` now reads `script.get("target_countries", [])` instead.
 
 ### upload_youtube.py --type flag — ADDED ✅ (April 6, 2026 17:59)
 
-**Previous issue:** Script only handled ZENO reel meta/video pattern. Running `--type analysis` or `--type education` would pick wrong files.
+**Previous issue:** Script only matched ZENO reel file patterns — wrong files picked for analysis/education.
+**Fix:** Added `--type` argument with correct file resolution per type. All workflows must pass `--type`.
 
-**Fix applied:** Added `--type` argument (`reel`, `analysis`, `education`, `morning`) with correct file resolution per type. All workflows updated to pass `--type` flag.
+### YouTube Playlist 403 — DEFERRED to Phase 3
+
+**Not a blocking issue.** Playlist assignment is non-critical at current channel size.
+The `assign_to_playlist()` function exists in `upload_youtube.py` but is not called.
+To enable in Phase 3: add `youtube.force-ssl` scope, re-auth token, add playlist secrets, uncomment the call.
 
 ### Facebook Group Posting ❌
 
 **Root causes (check in order):**
-
 1. `META_ACCESS_TOKEN` missing `publish_to_groups` scope
 2. Bot account not **Admin** of the group
 3. Group Settings → Advanced → "Allow content from apps" OFF
 4. App not approved for Groups API by Meta
 
 **Fix:** developers.facebook.com → App → Add `publish_to_groups` → regenerate token → update secret.
-Token is auto-refreshed every 50 days by `token_refresh.yml` once scope is added.
 
 ### Instagram Auto-Post ⚠️
 
 `INSTAGRAM_ACCOUNT_ID` is now added. If still failing:
-
 ```
 https://graph.facebook.com/me/accounts?access_token=YOUR_META_TOKEN
 ```
+Verify numeric ID matches. Upload chain order: `upload_youtube.py` → `upload_facebook.py` → `upload_instagram.py`.
 
-Verify the numeric ID matches exactly. Upload chain: `upload_youtube.py` → `upload_facebook.py` → `upload_instagram.py` must run in order.
+### Facebook share "No video URLs found in meta" ⚠️
+
+`upload_facebook.py` reads `public_video_url` from meta — only written by `upload_youtube.py`.
+**Fix:** Always run `upload_youtube.py --type <type>` BEFORE `upload_facebook.py` in every workflow.
 
 ### YouTube Community Tab ⚠️
 
-Community Tab requires **500+ subscribers** to be enabled.
-If channel is below 500 subs, `generate_community_post.py` will:
-
-* Print a clear warning explaining why
-* Save post text to `output/community_post_YYYYMMDD.txt` for manual posting
-* Not crash the workflow
-
-**Enable:** YouTube Studio → Customization → Layout → Community Tab → ON
+Requires 500+ subscribers. Below that, `generate_community_post.py` saves text to
+`output/community_post_YYYYMMDD.txt` for manual posting — won't crash workflow.
 
 ### Education Video Under 8 Minutes ⚠️
 
-Current education video = ~2.3 min → mid-roll ads will NOT activate (requires 8+ min).
-To fix: expand slide count from 12 to 20+ or add intro/outro segments in `generate_education.py`.
+Current ~2.3 min → mid-roll ads won't activate (needs 8+ min).
+Fix: expand slide count from 12 to 20+ in `generate_education.py`.
 
 ### META_ACCESS_TOKEN Expiry — Automated ✅
 
-`token_refresh.yml` runs every 50 days automatically. Refreshes token + updates GitHub Secret + sends Telegram alert. Requires `META_APP_ID` and `META_APP_SECRET` (both now added).
-
-### Facebook share skips with "No video URLs found in meta" ⚠️
-
-`upload_facebook.py` reads `public_video_url` from meta. This is only written by `upload_youtube.py`.
-**Fix:** Ensure `upload_youtube.py --type <type>` runs BEFORE `upload_facebook.py` in every workflow.
+`token_refresh.yml` runs every 50 days. Requires `META_APP_ID` + `META_APP_SECRET` (both added).
 
 ---
 
@@ -599,7 +556,6 @@ To fix: expand slide count from 12 to 20+ or add intro/outro segments in `genera
 > AI assistants **must always provide the complete content** of any modified file. Partial snippets or diffs are strictly prohibited.
 
 **Standard AI task prompt:**
-
 ```
 Context: I am working on the ai360trading system. Refer to SYSTEM.md for architecture.
 Task: [Your Task]
@@ -607,8 +563,6 @@ Note: Provide the full code for any file you modify.
 ```
 
 ### AI Client Usage Rule — No Exceptions
-
-> **Never call AI APIs directly in generators.** Always use:
 
 ```python
 from ai_client import ai, img_client
@@ -618,24 +572,12 @@ data = ai.generate_json(prompt, content_mode=CONTENT_MODE, lang=LANG)
 
 ### Human Touch Usage Rule — No Exceptions
 
-> **Never use raw AI output.** Always pass through human_touch:
-
 ```python
 from human_touch import ht, seo
 hook   = ht.get_hook(mode=CONTENT_MODE, lang=LANG)
 clean  = ht.humanize(raw_script, lang=LANG)
 tags   = seo.get_video_tags(mode=CONTENT_MODE, lang=LANG)
-speed  = ht.get_tts_speed()  # pass to edge_tts rate param
-```
-
-### upload_youtube.py — Always Pass --type Flag
-
-```yaml
-# In GitHub Actions workflow
-- run: python upload_youtube.py --type reel       # ZENO reel
-- run: python upload_youtube.py --type morning    # morning reel
-- run: python upload_youtube.py --type analysis   # Part 1
-- run: python upload_youtube.py --type education  # Part 2
+speed  = ht.get_tts_speed()
 ```
 
 ### Dependency Pins
@@ -666,7 +608,7 @@ speed  = ht.get_tts_speed()  # pass to edge_tts rate param
 ### TTS Speed via human_touch
 
 ```python
-tts_speed = ht.get_tts_speed()           # returns float 0.95–1.05
+tts_speed = ht.get_tts_speed()
 rate_pct  = int((tts_speed - 1.0) * 100)
 rate_str  = f"+{rate_pct}%" if rate_pct >= 0 else f"{rate_pct}%"
 await edge_tts.Communicate(text, VOICE, rate=rate_str).save(path)
@@ -681,8 +623,7 @@ await edge_tts.Communicate(text, VOICE, rate=rate_str).save(path)
 
 ### SEO Tags Strategy
 
-Every video includes both India-specific AND global tags via `seo.get_video_tags()`:
-
+Every video includes India-specific AND global tags via `seo.get_video_tags()`:
 * India: `Nifty50`, `TradingIndia`, `StockMarketIndia`, `BankNifty`
 * Global: `USStocks`, `UKInvesting`, `BrazilMarket`, `UAEInvesting`, `GlobalInvesting`
 * Universal: `Finance`, `Investing`, `FinancialLiteracy`, `Shorts`
@@ -698,8 +639,6 @@ Every video includes both India-specific AND global tags via `seo.get_video_tags
 | 3 | Stable Diffusion + AnimateDiff | 3D style frames | 6–12 months | Planned |
 | 4 | Google Veo 2 / Sora (when free) | True Disney-style 3D | 12–18 months | Planned |
 
-> `img_client` in `ai_client.py` is the upgrade hook — swap in Phase 2 generation with zero changes to generators.
-
 ---
 
 ## 15. Full Data Flow
@@ -708,50 +647,43 @@ Every video includes both India-specific AND global tags via `seo.get_video_tags
 Market hours (Mon–Fri, 9:15 AM–3:30 PM IST)
 └── main.yml (every 5 min)
     └── trading_bot.py v13.4
-        └── get_sheets() → gspread → AlertLog + History + Nifty200
-        └── get_market_regime() → Nifty CMP vs 20DMA → bullish/bearish
-        └── Step A: WAITING→TRADED (entry alert → all 3 channels)
-        └── Step B: Monitor TRADED (TSL update → Advance+Premium)
-        └── Exit logic (TSL hit / target hit / hard loss)
-        └── CE candidate flag in entry alert (bullish + ATR%>1.5%)
-        └── History sheet append on exit
-        └── T4 memory string updated each run
+        └── AlertLog + History + Nifty200 via gspread
+        └── get_market_regime() → Nifty CMP vs 20DMA
+        └── WAITING→TRADED → entry alert → all 3 channels
+        └── TSL updates → Advance + Premium
+        └── Exit logic + History append + T4 memory update
 
-AppScript v13.3 (Google Sheets bound — triggered manually or on schedule)
-└── Nifty200 sheet scan (batched 60 rows per run)
+AppScript v13.3 (Google Sheets bound)
 └── 10-gate filter → bearish or bullish path
-└── Conviction bonus + capital tier + trade mode
-└── ATR% tiebreaker sort (min SL preference)
 └── Write WAITING rows to AlertLog
-└── Write _CAP, _MODE, _SEC keys to T4 memory
-└── Bearish alert with top sector context → Telegram
+└── Write _CAP, _MODE, _SEC to T4 memory
 
 7:00 AM daily
 └── daily_reel.yml (morning job)
-    └── generate_reel_morning.py → output/morning_reel_YYYYMMDD.mp4
+    └── generate_reel_morning.py
     └── upload_youtube.py --type morning ✅
-    └── upload_facebook.py (morning mode) ✅
-    └── upload_instagram.py (morning mode) ⚠️
+    └── upload_facebook.py ✅
+    └── upload_instagram.py ⚠️
 
 7:30 AM / 9:30 AM daily
 └── daily-videos.yml
-    └── generate_analysis.py → output/analysis_video.mp4
+    └── generate_analysis.py
     └── upload_youtube.py --type analysis ✅
-    └── generate_education.py → output/education_video.mp4
+    └── generate_education.py
     └── upload_youtube.py --type education ✅
 
 10:00 AM / 11:30 AM daily
 └── daily-articles.yml
-    └── generate_articles.py → 4 articles → GitHub Pages ✅ → Facebook ✅
+    └── generate_articles.py → GitHub Pages ✅ → Facebook ✅
 
 11:30 AM / 1:30 PM daily
 └── daily-shorts.yml
-    └── generate_shorts.py → Short 2 + Short 3 → YouTube ✅
-    └── generate_community_post.py → Community Tab ✅
+    └── generate_shorts.py → Short 2 + Short 3 ✅
+    └── generate_community_post.py ✅
 
 8:30 PM daily
 └── daily_reel.yml (evening job)
-    └── generate_reel.py → output/reel_YYYYMMDD.mp4
+    └── generate_reel.py
     └── upload_youtube.py --type reel ✅
     └── upload_facebook.py ✅
     └── upload_instagram.py ⚠️
@@ -790,12 +722,10 @@ AppScript v13.3 (Google Sheets bound — triggered manually or on schedule)
 ## 18. Phase Roadmap
 
 ### Phase 1 ✅ Complete
-
 `ai_client.py`, `human_touch.py`, `token_refresh.py`, `generate_reel_morning.py`
 
 ### Phase 2 ✅ Complete
-
-`generate_articles.py`, `generate_analysis.py`, `generate_education.py`, `generate_reel.py`, `generate_shorts.py`, `generate_community_post.py` — all upgraded to ai_client + human_touch
+`generate_articles.py`, `generate_analysis.py`, `generate_education.py`, `generate_reel.py`, `generate_shorts.py`, `generate_community_post.py`
 
 ### Phase 3 🔄 In Progress
 
@@ -805,51 +735,33 @@ AppScript v13.3 (Google Sheets bound — triggered manually or on schedule)
 | English channel upload | `upload_youtube_english.py` | 🟡 Medium |
 | Fix Facebook Group token | Manual config task | 🔴 High |
 | Instagram verify live | Test after `INSTAGRAM_ACCOUNT_ID` added | 🔴 High |
-| Re-auth YouTube credentials | Add force-ssl scope to token | 🔴 High |
 | Education video length | Expand to 8+ min for mid-roll ads | 🟡 Medium |
+| YouTube Playlist setup | Re-auth token + add secrets + uncomment call | 🔵 Low — after 1000 subs |
 | Disney 3D reel upgrade | `ai_client.py` img_client Phase 2 | 🔵 Future |
 
 ### Phase 4 📋 Planned — Dhan Live Trading
 
 | Item | Dependency | Notes |
 | --- | --- | --- |
-| Backtest validation | 30–40 live paper trades, win rate >35% | Currently running paper trades |
-| Dhan API connection | `DHAN_API_KEY` secrets already added | Auto-execute on WAITING→TRADED |
-| Options CE execution | Dhan API + lot size data | CE flag already in alerts (informational) |
-| Live capital deployment | After backtest confirms system | ₹45,000 max deployed (₹5k buffer) |
+| Backtest validation | 30–40 paper trades, win rate >35% | Currently running |
+| Dhan API connection | Secrets already added | Auto-execute on WAITING→TRADED |
+| Options CE execution | Dhan API + lot size data | CE flag already in alerts |
+| Live capital deployment | After backtest confirms system | ₹45,000 max deployed |
 
 ---
 
 ## 19. How to Test Everything
 
 ### Test a workflow manually
-
-GitHub Actions → select workflow → **Run workflow** → set `content_mode` dropdown → watch logs.
+GitHub Actions → select workflow → **Run workflow** → set `content_mode` dropdown.
 
 ### Verify ai_client fallback chain
-
-In logs, look for lines like:
-
 ```
-[AI]   Using ai_client fallback chain: Groq→Gemini→Claude→OpenAI→Templates
 ✅ AI generated via groq
-```
-
-If Groq is down, you'll see: `⚠️ groq failed` → `✅ AI generated via gemini`
-
-### Verify human_touch is active
-
-In logs, look for:
-
-```
-✅ ZENO script ready — emotion: thinking | via groq
-✅ Community post generated via groq (112 chars)
+⚠️ groq failed → ✅ AI generated via gemini
 ```
 
 ### Verify trading bot
-
-In logs (`main.yml`), look for:
-
 ```
 [REGIME] Nifty CMP ₹22679 vs 20DMA ₹23547 → BEARISH
 [INFO] Active trades: 4/5
@@ -857,36 +769,24 @@ In logs (`main.yml`), look for:
 [DONE] 15:20:01 IST | mem=842 chars
 ```
 
-### Verify AppScript
-
-Open Google Sheet → AI360 TRADING menu → MANUAL SYNC → check Logger output:
-
-```
-[REGIME] CMP=22679 20DMA=23547 Bullish=false
-[CAND] NSE:ADANIPOWER | Score=24 | ATR%=2.1 | ₹10000 | STD | AF=8.2 | Qty=64
-[DONE] Traded=4 | Waiting=3 | Bullish=false
-```
-
 ### Force each content mode
-
 ```
-workflow_dispatch → content_mode = market   # weekday content
-workflow_dispatch → content_mode = weekend  # weekend content
-workflow_dispatch → content_mode = holiday  # holiday content
+workflow_dispatch → content_mode = market
+workflow_dispatch → content_mode = weekend
+workflow_dispatch → content_mode = holiday
 ```
 
 ### Automation on/off switch
-
-Google Sheet → AlertLog → cell T2 → set "YES" to enable, anything else to disable.
+Google Sheet → AlertLog → cell T2 → "YES" to enable.
 
 ---
 
 *Documentation maintained by AI360Trading automation.*
 *Full audit: April 3, 2026 — Claude Sonnet 4.6*
-*Updated: April 6, 2026 17:59 IST — upload_youtube.py playlist scope fix + multi-type support; generate_reel_morning.py target_countries KeyError fix*
+*Updated: April 6, 2026 17:59 IST — upload_youtube.py multi-type support; playlist deferred to Phase 3; generate_reel_morning.py target_countries KeyError fix*
 *Phase 1 complete: ai_client.py, human_touch.py, token_refresh.py, generate_reel_morning.py*
 *Phase 2 complete: generate_articles.py, generate_analysis.py, generate_education.py, generate_reel.py, generate_shorts.py, generate_community_post.py*
 *Trading bot: AppScript v13.3 + Python v13.4 — paper trading, Google Sheets, Dhan Phase 4*
-*Phase 3 remaining: generate_english.py, upload_youtube_english.py, Facebook Group fix, Instagram verify, YouTube re-auth (force-ssl), education video length*
+*Phase 3 remaining: English channel, Facebook Group fix, Instagram verify, education video length, playlists (after 1000 subs)*
 *Phase 4 planned: Dhan live trading after backtest validation*
 *Update this file whenever architecture, secrets, platform status, or file logic changes.*
