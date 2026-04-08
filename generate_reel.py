@@ -264,7 +264,7 @@ async def generate_reel():
     print(f"✅ Reel video: {video_path} ({duration:.1f}s)")
 
     # ✅ SEO tags from human_touch
-    tags = seo.get_video_tags(mode=CONTENT_MODE, lang="hi")
+    tags = seo.get_video_tags(mode=CONTENT_MODE)
 
     # Save metadata
     meta = {
