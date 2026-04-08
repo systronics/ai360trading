@@ -446,7 +446,7 @@ async def run():
     vid_desc  = data.get("video_description", f"Learn {topic['title']} with ai360trading.in")
 
     # ✅ SEO tags from human_touch — India + Global combined
-    seo_tags   = seo.get_video_tags(mode=CONTENT_MODE, lang="hi")
+    seo_tags   = seo.get_video_tags(mode=CONTENT_MODE)
     extra_tags = [
         topic["title"], topic["category"], "Trading Education", "ai360trading",
         "Stock Market India", "Learn Trading", "NSE", "BSE", "Hinglish", topic["level"]
