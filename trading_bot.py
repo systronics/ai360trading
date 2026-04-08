@@ -197,7 +197,7 @@ def clean_mem(mem: str) -> str:
     """
     cutoff = (datetime.now(IST) - timedelta(days=14)).strftime("%Y-%m-%d")
     kept   = []
- 
+
     for p in mem.split(","):
         p = p.strip()
         if not p:
@@ -210,15 +210,15 @@ def clean_mem(mem: str) -> str:
             # else: older than 14 days — drop it
         else:
             kept.append(p)
- 
+
     result = ",".join(kept)
- 
+
     # Hard cap: if still over 20,000 chars after date pruning, keep last 100 entries
     if len(result) > 20000:
         parts  = [p for p in result.split(",") if p.strip()]
         result = ",".join(parts[-100:])
         print(f"[MEM] ⚠️  Hard cap applied — trimmed to last 100 entries ({len(result)} chars)")
- 
+
     # Size monitoring — visible in GitHub Actions logs
     size = len(result)
     if size > 15000:
@@ -227,8 +227,9 @@ def clean_mem(mem: str) -> str:
         print(f"[MEM] 🟡 NOTICE: T4 is {size:,} chars — monitor growth")
     else:
         print(f"[MEM] ✅ T4 size: {size:,} chars — OK")
- 
+
     return result
+
 def is_market_hours(now: datetime) -> bool:
     if now.weekday() >= 5: return False
     mins = now.hour * 60 + now.minute
@@ -640,7 +641,7 @@ def get_sector_context(all_data: list, mem: str) -> str:
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# MAIN TRADING CYCLE — unchanged from v13.2
+# MAIN TRADING CYCLE
 # ══════════════════════════════════════════════════════════════════════════════
 
 def run_trading_cycle():
@@ -658,7 +659,7 @@ def run_trading_cycle():
 
     log_sheet, hist_sheet, nifty_sheet = get_sheets()
     mem = clean_mem(str(log_sheet.acell("T4").value or ""))
-print(f"[MEM] T4 size: {len(mem)} chars")
+    print(f"[MEM] T4 size: {len(mem)} chars")  # ← FIXED: was missing 4 spaces
     is_bullish = get_market_regime(nifty_sheet)
 
     if str(log_sheet.acell("T2").value or "").strip().upper() != "YES":
@@ -1227,7 +1228,7 @@ def run_daily_summary():
 
     log_sheet, hist_sheet, _ = get_sheets()
     mem = clean_mem(str(log_sheet.acell("T4").value or ""))
-print(f"[MEM] T4 size: {len(mem)} chars")
+    print(f"[MEM] T4 size: {len(mem)} chars")  # ← FIXED: was missing 4 spaces
     all_data = log_sheet.get_all_values()
 
     open_rows = [
