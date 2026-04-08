@@ -105,7 +105,7 @@ jobs:
           YOUTUBE_CREDENTIALS:  ${{ secrets.YOUTUBE_CREDENTIALS }}
           PLAYLIST_ZENO_WISDOM: ${{ secrets.PLAYLIST_ZENO_WISDOM }}
           CONTENT_MODE:         ${{ env.CONTENT_MODE }}
-        run: python upload_youtube.py --type morning_reel
+        run: python upload_youtube.py --type morning
 
       # ── 9. Post to Facebook Page ───────────────────────────────────────────
       # Facebook Group permanently removed — requires Meta App Review, zero ad revenue
