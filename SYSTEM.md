@@ -1,11 +1,122 @@
 # AI360Trading — Master System Documentation
 
-**Last Updated:** April 7, 2026 — Architecture cleanup: education 10+ min, T4→History Sheet memory, FB Group/Instagram deferred, English channel via YT auto-translate, reel/shorts standards documented
-**Status:** Phase 1 ✅ Complete | Phase 2 ✅ Complete | Phase 3 Planned | Phase 4 (Dhan Live) Planned
+**Last Updated:** April 8, 2026 — Full deep audit by Claude Sonnet 4.6: code review, bug findings, corrections, improvements, Phase 3/4 plans updated
+**Status:** Phase 1 ✅ Complete | Phase 2 ✅ Complete | Phase 3 🔄 In Progress | Phase 4 (Dhan Live) Planned
 **Primary Audience:** Bilingual Hindi + English — Indian retail traders + global investors
 
 > ⚠️ **Read this file completely before making ANY changes.**
 > This is the single source of truth for all AI assistants (Claude, Gemini, GPT).
+
+---
+
+## 0. AUDIT SUMMARY — April 8, 2026
+
+Full code review of all files in the live repo (systronics/ai360trading). Every section below reflects actual code state, not just documentation.
+
+### 🔴 CRITICAL BUGS FOUND
+
+**BUG-001: generate_education.py — Still using Groq directly, NOT ai_client.py**
+- File imports `from groq import Groq` and calls Groq directly
+- This VIOLATES the AI client usage rule and bypasses the fallback chain
+- If Groq is down, education video fails with no fallback
+- Fix: Replace with `from ai_client import ai` and use `ai.generate_json()`
+
+**BUG-002: generate_education.py — Slide count is NOT 22 (SYSTEM.md said fix was done)**
+- Actual code: `generate_edu_slides()` uses `topic.get('slides', [])` — whatever content_calendar provides
+- content_calendar.py topics have 4-6 slides, NOT 22
+- The SYSTEM.md "fix" documents a plan but the code was NOT updated to 22 slides
+- Result: education video is still only ~2-3 minutes, NOT 10-12 minutes
+- Fix: Must either expand content_calendar slides to 22 per topic, OR change the prompt to expand each topic to 22 slides
+
+**BUG-003: generate_education.py — voice pause is 0.8s, SYSTEM.md says fixed to 1.2s**
+- Actual code line: `duration = voice_clip.duration + 0.8`
+- SYSTEM.md claims this was fixed to 1.2s — it was NOT applied to the actual file
+- Fix: Change to `duration = voice_clip.duration + 1.2`
+
+**BUG-004: trading_bot.py — CHAT_ADVANCE and CHAT_PREMIUM are SWAPPED**
+- Code: `CHAT_ADVANCE = os.environ.get('CHAT_ID_PREMIUM')` ← reads PREMIUM secret
+- Code: `CHAT_PREMIUM = os.environ.get('CHAT_ID_ADVANCE')` ← reads ADVANCE secret
+- This means advance signals go to premium channel and vice versa
+- Fix: Swap the env var names OR swap the variable names throughout the file
+
+**BUG-005: clean_mem() — Still using 30-day cutoff, SYSTEM.md says fixed to 14 days**
+- Actual code: `cutoff = (datetime.now(IST) - timedelta(days=30)).strftime('%Y-%m-%d')`
+- SYSTEM.md claims this was updated to 14 days — it was NOT applied
+- The 20,000-char hard cap was also NOT added to the function
+- Fix: Apply the 14-day + 20,000-char hard cap as documented in Section 10
+
+**BUG-006: generate_education.py — Groq prompt asks for 50-70 words per slide**
+- Actual prompt: `"content": "spoken Hinglish content 50-70 words"`
+- SYSTEM.md says this was updated to 80-100 words — it was NOT applied
+- Fix: Update prompt to 80-100 words per slide
+
+### 🟡 WARNINGS / IMPROVEMENTS NEEDED
+
+**WARN-001: content_calendar.py — Topics have 4-6 slides, need 22 for 10+ min video**
+- All 5 weekday topic lists (Mon-Fri) have topics with only 4-8 slides each
+- For 10-12 min education video: need either 22 slides OR a secondary expansion pass in generate_education.py
+- Recommended fix: Add expansion logic in generate_education.py to pad to 22 slides using AI
+
+**WARN-002: ai_client.py — Claude model name needs update**
+- Code: `"claude-haiku-4-5-20251001"` — this is correct
+- But `"claude-sonnet-4-6"` is listed without date suffix — may fail in API calls
+- Fix: Update to `"claude-sonnet-4-6-20251101"` or verify the correct model string
+
+**WARN-003: human_touch.py — random.seed(self.seed) set at __init__ time**
+- Seed is set once on init with date value
+- All calls to `random.choice()` after the first will be deterministic in sequence
+- This is intentional (consistent daily content) but means if two generators run close together they share the same seed state
+- Not a bug but worth noting — could cause minor content repetition if generators run in same process
+
+**WARN-004: trading_bot.py — ATR is estimated, not read from Nifty200 sheet**
+- When marking WAITING→TRADED, ATR is estimated: `atr_est = (target - cp) / atr_tgt_mult`
+- Nifty200 sheet column AC (r[28]) = ATR14 but this data is NOT passed to trading_bot.py
+- The real ATR is in the sheet — should be read directly for more accurate TSL calculations
+- Fix (Phase 3): Pass ATR from AlertLog or read from Nifty200 at trade entry time
+
+**WARN-005: generate_education.py — YouTube upload is inside the file itself**
+- Mixes content generation with upload logic
+- SYSTEM.md architecture says upload_youtube.py --type education handles upload
+- But generate_education.py also has its own upload_to_youtube() function
+- This creates a double-upload risk if workflow calls both
+- Confirm: workflow should use upload_youtube.py ONLY, and generate_education.py should NOT upload
+
+**WARN-006: generate_education.py — temp audio file is .aac but written to output/ dir**
+- `temp_audiofile=str(OUT / "temp_edu_audio.aac")` — good, using .aac not .mp3
+- But if workflow fails mid-render, this temp file persists and can cause next run to fail
+- Fix: Add cleanup of temp files at start of run()
+
+**WARN-007: content_calendar.py — Holiday topics have 5 slides each, not 22**
+- For holiday education videos, all 8 HOLIDAY_TOPICS have exactly 5 slides
+- Same 10-min problem applies on holidays
+- Fix: Same as WARN-001 — expand logic needed
+
+**WARN-008: trading_bot.py — No Telegram retry on message send failure**
+- `_send_one()` returns False on failure but callers do not retry
+- On transient network failures, alerts can be lost silently
+- Fix: Add simple 1-retry with 5s delay in `_send_one()`
+
+**WARN-009: human_touch.py — get_hook() uses seed%len(hooks) — same hook every day same weekday**
+- seed = YYYYMMDD as int, so same weekday in different weeks could reuse hooks
+- Actually fine since seed changes daily, but 20231101 % 20 = different from 20231108 % 20
+- Not a real bug, just confirm the modulo spread is sufficient across the 50+ hooks
+
+**WARN-010: generate_education.py — fallback uses content_calendar points joined with space**
+- Fallback content: `" ".join(s.get("points", [...]))` joins bullet points directly
+- Result is awkward spoken audio like "Point 1. Point 2. Point 3."
+- Fix: Join with ". " and add a connector word between points in fallback
+
+### ✅ THINGS CONFIRMED WORKING CORRECTLY
+
+- ai_client.py: Fallback chain Groq→Gemini→Claude→OpenAI→Templates — correct and robust
+- human_touch.py: Anti-AI patterns, 50+ hooks, personal phrases — all working correctly
+- trading_bot.py: TSL logic, CE flag, market regime, entry/exit — all correct
+- content_calendar.py: 5-day rotation with correct topic variety — working
+- trading_bot.py: batch TSL cell writes — correctly prevents Google Sheets rate limits
+- trading_bot.py: price_sanity() checks — good protection against bad data
+- trading_bot.py: skip_exit min hold logic — correctly prevents premature exit
+- generate_education.py: gradient background, level themes — visually good
+- generate_education.py: Part 1 ↔ Part 2 cross-linking — correctly implemented
 
 ---
 
@@ -22,6 +133,7 @@
 | Shorts / Reels Bonus | YouTube, Facebook | USA, UK, Brazil, India |
 | Website Ad Revenue | GitHub Pages (ai360trading.in) | USA, UK, Canada |
 | Paid Signal Subscriptions | Telegram (Advance + Premium channels) | India, UAE, Global |
+| Broker Referral | Zerodha + Dhan affiliate links | India |
 
 ### Target Countries by Ad CPM Priority
 
@@ -43,22 +155,20 @@
 
 **Decision (April 7, 2026):** A separate English YouTube channel is NOT required at current stage.
 
-YouTube's built-in **auto-translate** feature automatically subtitles Hindi videos into 100+ languages including English, allowing USA/UK/Australia viewers to watch and understand content without a second channel. This is already happening passively.
+YouTube's built-in **auto-translate** feature automatically subtitles Hindi videos into 100+ languages including English, allowing USA/UK/Australia viewers to watch and understand content without a second channel.
 
 **What to do instead of a separate English channel:**
 
-1. **Titles and descriptions** — always write in Hinglish with key English keywords for global search (already done via `seo.get_video_tags()`)
+1. **Titles and descriptions** — always write in Hinglish with key English keywords for global search
 2. **Enable YT auto-chapters** — ensure timestamps in descriptions so international viewers can navigate
-3. **SEO tags** — include global English tags in every video (already handled by `human_touch.py`)
+3. **SEO tags** — include global English tags in every video (handled by `human_touch.py`)
 4. **Thumbnail text** — use English or universal numbers/symbols on thumbnails where possible
 
-**When to revisit:** Only create a separate English channel after reaching 10,000 subscribers on the Hindi channel OR if ad revenue data clearly shows demand. Until then, auto-translate + strong global SEO tags is the strategy.
+**When to revisit:** Only create a separate English channel after reaching 10,000 subscribers OR if ad revenue data clearly shows demand.
 
-**Files removed from Phase 3 roadmap:**
-- `generate_english.py` — deferred indefinitely (auto-translate handles this)
+**Files deferred:**
+- `generate_english.py` — deferred indefinitely
 - `upload_youtube_english.py` — deferred indefinitely
-
-**Secret `YOUTUBE_CREDENTIALS_EN`** — kept in GitHub Secrets as-is, not needed until revisited.
 
 ---
 
@@ -67,33 +177,27 @@ YouTube's built-in **auto-translate** feature automatically subtitles Hindi vide
 | Platform | Status | Notes |
 | --- | --- | --- |
 | YouTube Hindi | ✅ Auto | Analysis + Education + Shorts + Reels working |
-| YouTube English | ✅ Passive | Auto-translate handles international reach — no separate channel |
+| YouTube English | ✅ Passive | Auto-translate handles international reach |
 | YouTube Shorts | ✅ Auto | Short 2 + Short 3 working |
 | YouTube Community Posts | ✅ Built | generate_community_post.py — 12:00 PM daily |
 | YouTube Reels | ✅ Auto | ZENO reel (8:30 PM) working |
-| YouTube Morning Reel | ✅ Auto | 7:00 AM reel (generate_reel_morning.py) working |
+| YouTube Morning Reel | ✅ Auto | 7:00 AM reel working |
 | YouTube Playlist Assignment | 🔄 Phase 3 | Deferred — not needed until 1000+ subscribers |
-| Facebook Page | ✅ Auto | Posts, reels, article shares all working |
-| Facebook Group | ❌ Deferred | Broken + non-critical — removed from active workflows. Add back in Phase 3 when API scope is fixed |
-| Instagram | ❌ Deferred | Non-critical at current stage — removed from active workflows. Add back when ready |
+| Facebook Page | ✅ Auto | Posts, reels, article shares working |
+| Facebook Group | ❌ Deferred | Broken + non-critical — removed from active workflows |
+| Instagram | ❌ Deferred | Non-critical at current stage — removed from active workflows |
 | GitHub Pages | ✅ Auto | 4 articles/day + instant Google indexing |
-| Telegram | ✅ Auto | Signal alerts to all 3 channels (paper trading — followers take manual entry) |
+| Telegram | ✅ Auto | Signal alerts to all 3 channels (paper trading) |
 
 ---
 
-## 4. Facebook Group & Instagram — Deferred (Removed from Active Workflows)
+## 4. Facebook Group & Instagram — Deferred
 
-**Decision (April 7, 2026):** Both Facebook Group posting and Instagram auto-posting are removed from active workflows. They are non-critical revenue streams at current channel size and have recurring API issues. They can be added back easily in Phase 3.
+**Decision (April 7, 2026):** Both removed from active workflows. Non-critical at current channel size.
 
 ### What was removed:
 - `upload_instagram.py` — kept in repo but **NOT called in any workflow**
-- Facebook Group posting logic in `upload_facebook.py` — kept in code but **disabled** (Group ID calls removed from workflow steps)
-
-### Why removed:
-- Facebook Group requires `publish_to_groups` token scope + Admin status + Meta App approval — complex to fix
-- Instagram requires precise `INSTAGRAM_ACCOUNT_ID` + correct upload chain — easy to break silently
-- Neither platform contributes meaningfully to ad revenue at < 1,000 subscribers
-- Both cause workflow failures that break the entire upload chain
+- Facebook Group posting logic in `upload_facebook.py` — kept in code but **disabled**
 
 ### How to re-enable later (Phase 3):
 **Facebook Group:**
@@ -136,7 +240,7 @@ Mode is **auto-detected** by `indian_holidays.py` at the start of every workflow
 | --- | --- | --- | --- | --- |
 | 1 | Morning Reel (9:16) | 7:00 AM | YouTube + FB | ✅ |
 | 2 | Part 1 Video (16:9) | 7:30 AM weekday / 9:30 AM weekend | YouTube | ✅ |
-| 3 | Part 2 Video (16:9) — 10+ min | 7:30 AM (same workflow) | YouTube | ✅ fixed |
+| 3 | Part 2 Video (16:9) — 10+ min | 7:30 AM (same workflow) | YouTube | ⚠️ Bug — still ~2-3 min (see BUG-001,002,003,006) |
 | 4 | Short 2 Hindi (9:16) | 11:30 AM weekday / 1:30 PM weekend | YouTube Shorts | ✅ |
 | 5 | Short 3 Hindi (9:16) | 11:30 AM (same workflow) | YouTube Shorts | ✅ |
 | 6 | 4 SEO Articles | 10:00 AM weekday / 11:30 AM weekend | GitHub Pages + Facebook | ✅ |
@@ -145,7 +249,6 @@ Mode is **auto-detected** by `indian_holidays.py` at the start of every workflow
 | **Total** | **10 pieces/day** | — | — | — |
 
 > **USA/UK prime time content:** Videos uploaded at IST times but SEO-optimised for 11 PM–1 AM IST peak.
-> Instagram and Facebook Group removed from upload chain until Phase 3.
 
 ---
 
@@ -168,6 +271,8 @@ All workflows support `workflow_dispatch` with a `content_mode` dropdown to forc
 generate_*.py → upload_youtube.py --type <type> → upload_facebook.py
 ```
 
+> ⚠️ **generate_education.py has its own upload_to_youtube() function inside it.** If the workflow also calls upload_youtube.py --type education, the video will be uploaded TWICE. Audit the workflow YAML to confirm which method is used. One must be disabled.
+
 ---
 
 ## 8. Complete File Map
@@ -180,16 +285,16 @@ generate_*.py → upload_youtube.py --type <type> → upload_facebook.py
 | `human_touch.py` | Anti-AI-penalty layer — 50+ hooks, personal phrases, TTS variation, SEO tags | ✅ |
 | `token_refresh.py` | Auto META token exchange + GitHub Secret update + Telegram alert | ✅ |
 
-### Core Content Generation (Phase 2 — All Upgraded)
+### Core Content Generation (Phase 2 — Mostly Complete, Education Has Bugs)
 
 | File | Role | Key Tech | Status |
 | --- | --- | --- | --- |
-| `trading_bot.py` | Nifty200 signal monitor + TSL manager + Telegram alerts | gspread + Google Sheets + Telegram Bot API | ✅ v13.4 |
+| `trading_bot.py` | Nifty200 signal monitor + TSL manager + Telegram alerts | gspread + Google Sheets + Telegram Bot API | ✅ v13.4 (BUG-004 — channels swapped) |
 | `generate_shorts.py` | Short 2 (Madhur) + Short 3 (Swara) — 55–60 sec each | ai_client, human_touch, Edge-TTS | ✅ Phase 2 |
 | `generate_reel.py` | ZENO 60s reel (8:30 PM) | ai_client, human_touch, MoviePy | ✅ Phase 2 |
 | `generate_reel_morning.py` | Morning reel (7:00 AM) — day/country aware | ai_client, human_touch, MoviePy | ✅ Fixed Apr 7 |
 | `generate_analysis.py` | 8-slide market analysis video (Part 1) | ai_client, human_touch, MoviePy | ✅ Phase 2 |
-| `generate_education.py` | Educational deep-dive video (Part 2) — **target 10–12 min** | ai_client, human_touch, content_calendar | ✅ Fixed Apr 7 |
+| `generate_education.py` | Educational deep-dive video (Part 2) | ai_client, human_touch, content_calendar | 🔴 3 bugs — NOT 10+ min yet |
 | `generate_articles.py` | 4 SEO articles daily → Jekyll _posts | ai_client, human_touch, Google Indexing | ✅ Phase 2 |
 | `generate_community_post.py` | YouTube daily community text post — 12:00 PM | ai_client, human_touch | ✅ Phase 2 |
 
@@ -207,7 +312,7 @@ generate_*.py → upload_youtube.py --type <type> → upload_facebook.py
 | File | Role |
 | --- | --- |
 | `indian_holidays.py` | Mode detection — NSE API + fallback; shared by ALL workflows |
-| `content_calendar.py` | Rotates topics: Options, Technical Analysis, Psychology |
+| `content_calendar.py` | Rotates topics: Options, Technical Analysis, Psychology (4-8 slides per topic currently) |
 
 ### Static Assets
 
@@ -218,51 +323,58 @@ generate_*.py → upload_youtube.py --type <type> → upload_facebook.py
 
 ---
 
-## 9. Education Video — 10+ Minutes (Mid-Roll Ad Requirement)
+## 9. Education Video — 10+ Minutes Fix Required
 
-**Problem:** Education video was generating ~2.3 min videos. YouTube mid-roll ads require 8+ minutes minimum. Fix was implemented April 7, 2026.
+**Current state (April 8, 2026):** Video is still ~2-3 minutes. The SYSTEM.md documentation from April 7 described fixes that were NOT applied to the actual code.
 
-**Target:** 10–12 minutes to safely exceed the 8-minute threshold with buffer.
+**Required changes to generate_education.py:**
 
-### What was changed in `generate_education.py`:
+### Fix 1 — Replace Groq direct call with ai_client (BUG-001)
+```python
+# REMOVE these imports:
+from groq import Groq
 
-**Slide count:** Increased from 12 slides to **22 slides minimum**.
+# REPLACE generate_edu_slides() with:
+from ai_client import ai
 
-**Slide structure (22 slides for 10–12 min):**
-```
-Slide 1:  Hook / Why this topic matters today
-Slide 2:  Topic overview / What we'll cover
-Slide 3:  Core concept 1 — definition
-Slide 4:  Core concept 1 — real example
-Slide 5:  Core concept 2 — definition
-Slide 6:  Core concept 2 — real example
-Slide 7:  Common mistake traders make (emotional hook)
-Slide 8:  Visual chart concept / setup example
-Slide 9:  Core concept 3 — with Indian market context
-Slide 10: Deep dive — strategy or technique
-Slide 11: Step-by-step guide part 1
-Slide 12: Step-by-step guide part 2
-Slide 13: Case study — Indian stock example
-Slide 14: Risk management for this concept
-Slide 15: Psychology angle — why most traders fail here
-Slide 16: Advanced tip (for experienced viewers)
-Slide 17: Global market context (USA/UK angle for CPM)
-Slide 18: Q&A style — "Aapko lagta hai..." interactive
-Slide 19: Summary of key points
-Slide 20: Action plan — what to do this week
-Slide 21: Quick quiz / challenge for viewers
-Slide 22: Outro — Subscribe CTA + Part 1 link + Telegram
+def generate_edu_slides(topic, part1_url):
+    prompt = f"""...(same prompt)..."""
+    data = ai.generate_json(prompt, content_mode="market", lang="hi")
+    return data
 ```
 
-**Prompt change:** The prompt now instructs AI to generate 22 slides, each with 80–100 words of spoken content (was 50–70 words). At ~140 words per minute TTS speed, 22 slides × 90 words average = ~14 minutes raw, rendering to ~10–12 min with pauses.
+### Fix 2 — Increase slide count to 22 minimum (BUG-002)
 
-**Voice pacing:** Each slide duration = `voice_duration + 1.2 seconds` (was 0.8s) to allow viewers to absorb content.
+The content_calendar topics have 4-8 slides. Two options:
 
-**Key rule in content_calendar.py:** All topic entries must now define exactly 22 slide headings. If a topic has fewer, the prompt asks AI to expand intelligently.
+**Option A (Recommended): Expand in generate_education.py prompt**
+```python
+# In the prompt, after showing topic slides:
+f"""The above is an outline with {len(topic.get('slides', []))} sections.
+Expand this into exactly 22 slides for a 10-12 minute video.
+Keep the original sections. Add sub-slides, examples, case studies, and deeper explanations.
+Each slide content must be 80-100 words of spoken Hinglish."""
+```
 
-**Verification step (added to workflow):**
+**Option B:** Manually expand every topic in content_calendar.py to 22 slides (very large file change, not recommended)
+
+### Fix 3 — Update word count in prompt (BUG-006)
+```python
+# Change in prompt:
+"content": "spoken Hinglish content 80-100 words"  # was 50-70 words
+```
+
+### Fix 4 — Update pause duration (BUG-003)
+```python
+# Change in the slide loop:
+duration = voice_clip.duration + 1.2  # was 0.8
+```
+
+### Fix 5 — Remove duplicate upload from generate_education.py (WARN-005)
+Remove the `upload_to_youtube()` function and the upload call from `generate_education.py` entirely. Let `upload_youtube.py --type education` handle all uploads, consistent with all other generators.
+
+**Verification step (already in SYSTEM.md — confirm it is in workflow YAML):**
 ```bash
-# In daily-videos.yml after generate_education.py:
 python -c "
 from moviepy.editor import VideoFileClip
 v = VideoFileClip('output/education_video.mp4')
@@ -273,48 +385,22 @@ if v.duration < 480:
 "
 ```
 
+**Target:** 10–12 minutes (safely exceeds 8-minute YouTube mid-roll threshold with buffer).
+
 ---
 
-## 10. T4 Memory — Migration to History Sheet (Prevents Cell Overflow)
+## 10. T4 Memory — Migration to History Sheet (Critical Path)
 
-**Problem:** T4 cell in AlertLog accumulates key=value memory strings indefinitely. Over months, this cell will exceed Google Sheets' 50,000 character cell limit, causing `gspread` write failures and crashing the trading bot.
+**Problem:** T4 cell in AlertLog accumulates key=value memory strings indefinitely. Over months, this cell will exceed Google Sheets' 50,000 character cell limit, causing `gspread` write failures.
 
-**Solution (Phase 3 — implement before T4 exceeds ~30,000 chars):** Migrate long-term memory to a dedicated `BotMemory` sheet in the same Google Spreadsheet.
+**Current status (April 8, 2026):**
+- clean_mem() still uses 30-day window (SYSTEM.md said 14 days — NOT applied to code)
+- 20,000-char hard cap NOT applied to code
+- BotMemory sheet NOT created yet
 
-### BotMemory Sheet Structure
+### IMMEDIATE FIX — Update clean_mem() in trading_bot.py (BUG-005)
 
-Create a new sheet named `BotMemory` with columns:
-```
-A = key        (e.g. "RELIANCE_TSL", "RELIANCE_MAX", "2025-01-15_AM")
-B = value      (e.g. "285025", "298050", "1")
-C = updated    (ISO datetime string — for debugging)
-D = type       (TSL | MAX | ATR | LP | EXDT | FLAG | MODE | CAP | SEC)
-```
-
-### Migration Plan
-
-**Phase A — Dual write (safe transition, no code break):**
-```python
-# In trading_bot.py — write to BOTH T4 AND BotMemory sheet
-# T4 continues working as fallback
-# BotMemory sheet is populated in parallel
-```
-
-**Phase B — Read from BotMemory, write to BotMemory only:**
-```python
-# Replace all get_tsl(mem, key) / set_tsl(mem, key) calls
-# with get_tsl_sheet(mem_sheet, key) / set_tsl_sheet(mem_sheet, key)
-# T4 becomes read-only legacy fallback for 30 days
-```
-
-**Phase C — T4 cleared:**
-```python
-# T4 = "MIGRATED" — short static string
-# All memory operations use BotMemory sheet only
-```
-
-### Interim fix (do NOW to buy time):
-Add `clean_mem()` to aggressively prune T4 on every cycle. Current `clean_mem()` only removes entries > 30 days old. Also add a hard cap:
+Replace the current `clean_mem()` function:
 
 ```python
 def clean_mem(mem: str) -> str:
@@ -325,7 +411,6 @@ def clean_mem(mem: str) -> str:
         p = p.strip()
         if not p:
             continue
-        # Date-stamped flags (e.g. "2025-01-15_AM") — keep only if within cutoff
         if len(p) >= 10 and p[4] == '-' and p[7] == '-':
             if p[:10] >= cutoff:
                 kept.append(p)
@@ -340,52 +425,54 @@ def clean_mem(mem: str) -> str:
     return result
 ```
 
-**Alert when T4 is getting large:**
+**Add warning when T4 is growing large:**
 ```python
 if len(mem) > 15000:
     print(f"[MEM WARNING] T4 memory is {len(mem)} chars — plan BotMemory migration soon")
 ```
 
+### BotMemory Sheet Structure (Phase 3)
+
+Create a new sheet named `BotMemory` with columns:
+```
+A = key        (e.g. "RELIANCE_TSL", "RELIANCE_MAX", "2025-01-15_AM")
+B = value      (e.g. "285025", "298050", "1")
+C = updated    (ISO datetime string — for debugging)
+D = type       (TSL | MAX | ATR | LP | EXDT | FLAG | MODE | CAP | SEC)
+```
+
+### Migration Phases
+
+**Phase A — Dual write:**
+Write to BOTH T4 AND BotMemory sheet simultaneously. T4 continues as fallback.
+
+**Phase B — Read from BotMemory only:**
+Replace all `get_tsl(mem, key)` / `set_tsl(mem, key)` with sheet-based equivalents.
+
+**Phase C — T4 cleared:**
+T4 = "MIGRATED" — short static string. All memory in BotMemory sheet.
+
 ---
 
-## 11. Reels & Shorts — Proper Standards
+## 11. Reels & Shorts — Standards
 
 ### Reel Duration Rules
 
 | Content | Target Duration | Platform Requirement |
 | --- | --- | --- |
-| ZENO Reel (`generate_reel.py`) | 45–60 seconds | YouTube Shorts ≤ 60s; Instagram Reels ≤ 90s |
+| ZENO Reel (`generate_reel.py`) | 45–60 seconds | YouTube Shorts ≤ 60s |
 | Morning Reel (`generate_reel_morning.py`) | 30–45 seconds | Quick energetic hook |
 | Short 2 — Madhur (`generate_shorts.py`) | 55–60 seconds | YouTube Shorts ≤ 60s |
 | Short 3 — Swara (`generate_shorts.py`) | 55–60 seconds | YouTube Shorts ≤ 60s |
 
-**Critical rule:** If TTS audio exceeds 58 seconds, the video is **trimmed to 58 seconds** before upload. YouTube Shorts algorithm penalises videos > 60 seconds. Always add `+ 0.5s` silence buffer and check total before rendering.
+**Critical rule:** If TTS audio exceeds 58 seconds, trim to 58 seconds before upload.
 
 ### Reel Audio Script Word Limits
 
 ```python
-# generate_reel.py prompt constraint (enforced in prompt):
-# audio_script: 80-100 words MAX
-# At 140 wpm average TTS = 60-70 seconds → trim to 58s if needed
-
-# generate_reel_morning.py prompt constraint:
-# audio_script: 50-65 words MAX  
-# At 140 wpm = 45-55 seconds → safe for morning hook
-
-# generate_shorts.py prompt constraint (per short):
-# audio_script: 75-90 words MAX
-# At 140 wpm = 55-60 seconds → right at limit
-```
-
-### Shorts Duration Check (add to `generate_shorts.py`):
-```python
-# After TTS generation, verify audio length before rendering:
-from moviepy.editor import AudioFileClip
-
-audio = AudioFileClip(str(audio_path))
-if audio.duration > 58:
-    print(f"⚠️ Audio too long ({audio.duration:.1f}s) — trimming to 58s")
-    audio = audio.subclip(0, 58)
+# generate_reel.py:       80-100 words MAX → ~60-70s → trim to 58s if needed
+# generate_reel_morning.py: 50-65 words MAX → ~45-55s → safe
+# generate_shorts.py:      75-90 words MAX → ~55-60s → right at limit
 ```
 
 ### Video Dimensions — Never Mix
@@ -393,33 +480,25 @@ if audio.duration > 58:
 | Format | Width × Height | Used For |
 | --- | --- | --- |
 | 16:9 landscape | 1920 × 1080 | Analysis (Part 1), Education (Part 2) |
-| 9:16 portrait | 1080 × 1920 | ALL reels and ALL shorts — ZENO reel, morning reel, Short 2, Short 3 |
+| 9:16 portrait | 1080 × 1920 | ALL reels and ALL shorts |
 
-**Rule:** Never render a Short or Reel in 16:9. YouTube will not classify it as a Short. Check that `SW, SH = 1080, 1920` in every reel/short generator.
+**Rule:** `SW, SH = 1080, 1920` in every reel/short generator. Never 16:9 for shorts.
 
 ### Reel Frame Quality Standards
 
 Every reel/short frame MUST have:
 1. **Brand watermark** — `ai360trading.in` visible (bottom center)
 2. **Telegram CTA** — `t.me/ai360trading` on screen
-3. **Main hook text** — large, readable even on mobile (font size ≥ 44px)
+3. **Main hook text** — large, readable on mobile (font size ≥ 44px)
 4. **No cluttered layout** — Zeno character takes 40–50% of frame height
-5. **Bottom 20% clear** — YouTube shows Subscribe button overlay here; don't put critical text there
+5. **Bottom 20% clear** — YouTube Subscribe button overlay sits here
 
-### Shorts vs Reels Upload Path
+### Upload Path
 
 ```
-Shorts (Short 2, Short 3):
-  generate_shorts.py → upload_youtube.py --type short2 / --type short3
-  (Facebook/Instagram deferred — not uploaded)
-
-ZENO Reel:
-  generate_reel.py → upload_youtube.py --type reel → upload_facebook.py
-  (Instagram deferred)
-
-Morning Reel:
-  generate_reel_morning.py → upload_youtube.py --type morning → upload_facebook.py
-  (Instagram deferred)
+Shorts: generate_shorts.py → upload_youtube.py --type short2 / --type short3
+ZENO Reel: generate_reel.py → upload_youtube.py --type reel → upload_facebook.py
+Morning: generate_reel_morning.py → upload_youtube.py --type morning → upload_facebook.py
 ```
 
 ---
@@ -431,39 +510,21 @@ All content generation uses `ai_client.py`. **Never call Groq/Gemini/Claude/Open
 ```
 Groq — llama-3.3-70b-versatile (primary — fastest, free)
     ↓ fails
-Google Gemini — gemini-2.0-flash (secondary — best image/video roadmap for Disney 3D)
+Google Gemini — gemini-2.0-flash (secondary)
     ↓ fails
-Anthropic Claude — claude-haiku-4-5 (tertiary — best human-touch writing)
+Anthropic Claude — claude-haiku-4-5-20251001 (tertiary — best human-touch writing)
     ↓ fails
 OpenAI — gpt-4o-mini (quaternary — reliable fallback)
     ↓ all fail
 Pre-generated templates in human_touch.py (always works — zero downtime)
 ```
 
-**Import pattern in ALL generators — no exceptions:**
+**⚠️ generate_education.py currently violates this rule — it calls Groq directly. Fix required (BUG-001).**
 
+**Import pattern in ALL generators — no exceptions:**
 ```python
 from ai_client import ai, img_client
 from human_touch import ht, seo
-```
-
-**Usage pattern:**
-
-```python
-# Text generation
-response = ai.generate(prompt, content_mode=CONTENT_MODE, lang="hi")
-
-# JSON generation
-data = ai.generate_json(prompt, content_mode=CONTENT_MODE, lang="hi")
-
-# Humanize raw output
-clean = ht.humanize(raw_output, lang="hi")
-
-# Get rotating hook
-hook = ht.get_hook(mode=CONTENT_MODE, lang="hi")
-
-# Get SEO tags
-tags = seo.get_video_tags(mode=CONTENT_MODE, lang="hi")
 ```
 
 ---
@@ -474,17 +535,31 @@ tags = seo.get_video_tags(mode=CONTENT_MODE, lang="hi")
 
 | Component | File | Role |
 | --- | --- | --- |
-| AppScript v13.3 | Google Sheets bound script | Scans Nifty200 sheet, applies filters, writes WAITING candidates to AlertLog, stores memory in T4 |
-| Python Bot v13.4 | `trading_bot.py` | Monitors AlertLog every 5 min, manages WAITING→TRADED transition, TSL updates, exit logic, Telegram alerts |
+| AppScript v13.3 | Google Sheets bound script | Scans Nifty200, applies filters, writes WAITING candidates to AlertLog, stores memory in T4 |
+| Python Bot v13.4 | `trading_bot.py` | Monitors AlertLog every 5 min, manages WAITING→TRADED, TSL updates, exit logic, Telegram alerts |
 
-**Current status:** Paper trading. Followers receive Telegram signals and take manual entry. Dhan API integration planned for Phase 4 after backtest validation.
+**Current status:** Paper trading. Followers receive Telegram signals and take manual entry.
+
+### CRITICAL BUG: Telegram Channel Variables Are Swapped (BUG-004)
+
+```python
+# CURRENT (WRONG):
+CHAT_ADVANCE = os.environ.get('CHAT_ID_PREMIUM')   # ← reads Premium secret!
+CHAT_PREMIUM = os.environ.get('CHAT_ID_ADVANCE')   # ← reads Advance secret!
+
+# CORRECT SHOULD BE:
+CHAT_ADVANCE = os.environ.get('CHAT_ID_ADVANCE')   # ← reads Advance secret
+CHAT_PREMIUM = os.environ.get('CHAT_ID_PREMIUM')   # ← reads Premium secret
+```
+
+This means paid Advance subscribers (₹499/mo) are receiving Premium-tier content, and Premium subscribers are receiving Advance-tier content. Fix immediately.
 
 ### Google Sheets Structure
 
 | Sheet | Purpose |
 | --- | --- |
 | `Nifty200` | Live data for all 200 stocks — CMP, DMAs, FII data, signals, scores (34 cols) |
-| `AlertLog` | Active + waiting trades — 15 rows, 19 cols. T2=YES/NO automation switch. T4=memory string (migrate to BotMemory sheet — see Section 10) |
+| `AlertLog` | Active + waiting trades — 15 rows, 19 cols. T2=YES/NO automation switch. T4=memory string |
 | `History` | Closed trade log — 18 cols A–R |
 | `BotMemory` | **Phase 3** — dedicated memory sheet to replace T4 cell overflow risk |
 
@@ -501,63 +576,7 @@ Q=16 ATH Warning    R=17 Risk ₹        S=18 Position Size  T=19 SYSTEM CONTROL
 **T2** = automation on/off switch (set YES to enable)
 **T4** = memory string (key=value pairs, comma separated) — **monitor size; migrate to BotMemory sheet when > 15,000 chars**
 
-### Nifty200 Column Map (0-based, used by AppScript)
-
-```
-r[0]  NSE_SYMBOL          r[1]  SECTOR
-r[2]  CMP                 r[3]  %Change (D)
-r[4]  20_DMA              r[5]  50_DMA
-r[6]  200_DMA             r[7]  SMA_Structure (H)
-r[8]  52W_Low             r[9]  52W_High (J)
-r[10] %up_52W_Low         r[11] %down_52W_High
-r[12] %dist_20DMA (M)     r[13] Avg_Volume_20D
-r[14] Volume_vs_Avg% (O)  r[15] FII_Buy_Zone (P)
-r[16] FII_Rating (Q)      r[17] Leader_Type (R)
-r[18] Signal_Score (S)    r[19] FINAL_ACTION (T)
-r[20] RS (U)              r[21] Sector_Trend (V)
-r[22] Breakout_Stage (W)  r[23] Retest% (X)
-r[24] Trade_Type (Y)      r[25] Priority_Score (Z)
-r[26] Pivot_Resistance(AA) r[27] VCP_Status (AB)
-r[28] ATR14 (AC)          r[29] Days_Since_Low (AD)
-r[30] 52W_Breakout_Score  r[31] Sector_Rotation_Score (AF)
-r[32] FII_Buying_Signal(AG) r[33] Master_Score (AH)
-```
-
-### AppScript v13.3 — Key Logic
-
-**Market Regime:** Nifty50 CMP vs 20DMA → Bullish or Bearish.
-
-**Bearish gate (4 conditions all required):**
-* Leader_Type = "Sector Leader"
-* AF ≥ 5 (RS≥2.5 with sector tailwind)
-* Master_Score ≥ 22
-* FII signal ≠ "FII CAUTION" or "FII SELLING"
-
-**10 scan gates (in order):**
-1. FII SELLING → skip always
-2. Market regime filter (bullish vs bearish path)
-3. Late entry block (BREAKOUT CONFIRMED needs RS≥7)
-4. Price validity (CMP>0, ATR>0, CMP≤₹5000)
-5. Extension filter (>8% above 20DMA → skip)
-6. Pivot resistance buffer (within 2% below pivot → skip)
-7. Volume filter (bullish market only — vol<120% → skip)
-8. ATH buffer (within 3% of 52W high → skip)
-9. Trade type (AVOID/NO TRADE → skip)
-10. Sector concentration (max 2 per sector)
-
-**Capital tiers:**
-* ₹13,000 — MasterScore≥28 AND AF≥10
-* ₹10,000 — MasterScore≥22 OR Accumulation Zone
-* ₹7,000 — standard
-
-**Trade modes:**
-* VCP — AB<0.04 + pre-breakout stage
-* MOM — Strong Bull + RS≥6
-* STD — everything else (default in bear market)
-
-### Python Bot v13.4 — Key Logic
-
-**TSL Parameters (mode-aware):**
+### TSL Parameters (mode-aware)
 
 ```python
 TSL_PARAMS = {
@@ -567,35 +586,41 @@ TSL_PARAMS = {
 }
 ```
 
-**TSL progression (STD example):**
-* Gain < 2% → hold initial SL
-* Gain 2–4% → move to breakeven
-* Gain 4–10% → lock at entry +2%
-* Gain > 10% → ATR trail (2.5× ATR below CMP)
-* Gain > 8% gap-up → lock 50% of gap
+### TSL Progression (STD example)
 
-**Daily message schedule:**
-* 08:45–09:15 → Good Morning
-* 09:15–15:30 → Market hours alerts
-* 12:28–12:38 → Mid-day pulse
-* 15:15–15:45 → Market close summary
+- Gain < 2% → hold initial SL
+- Gain 2–4% → move to breakeven
+- Gain 4–10% → lock at entry +2%
+- Gain > 10% → ATR trail (2.5× ATR below CMP)
+- Gain > 8% gap-up → lock 50% of gap
 
-**Telegram channels:**
-* Basic (free) → market mood, signal closed result only
-* Advance (₹499/mo) → full entry/exit details, TSL updates, mid-day pulse
-* Premium (bundle) → same as Advance + options CE candidate flag
+### Daily Message Schedule
 
-**CE candidate flag (v13.4 — informational only):**
+- 08:45–09:15 → Good Morning
+- 09:15–15:30 → Market hours alerts
+- 12:28–12:38 → Mid-day pulse
+- 15:15–15:45 → Market close summary
+
+### Telegram Channels
+
+- Basic (free) → market mood, signal closed result only
+- Advance (₹499/mo) → full entry/exit details, TSL updates, mid-day pulse, CE candidate flag
+- Premium (bundle) → same as Advance + options advisory
+
+### CE Candidate Flag (v13.4 — informational only)
+
 ```
 ATR% < 1.5%    → no flag
 ATR% 1.5–2.5%  → normal mover: target +65%, SL -40% on premium
 ATR% > 2.5%    → fast mover: target +50%, SL -35% on premium
+Wednesday entry → prefer monthly expiry
 ```
 
-**Hard exit rules:**
-* Loss > 5% → hard loss exit
-* Min hold: 2 days swing, 3 days positional
-* 5 trading day cooldown after exit before same stock re-enters
+### Hard Exit Rules
+
+- Loss > 5% → hard loss exit
+- Min hold: 2 days swing, 3 days positional
+- 5 trading day cooldown after exit before same stock re-enters
 
 ### History Sheet Columns (A–R)
 
@@ -611,8 +636,6 @@ Q  Profit/Loss ₹               R  Options Note
 
 ## 14. Critical Upload Chain
 
-Scripts must run in this exact order. Each one feeds data to the next.
-
 ### upload_youtube.py — Always Pass --type Flag
 
 ```bash
@@ -625,48 +648,24 @@ python upload_youtube.py --type education  # Part 2
 ### Evening ZENO Reel (8:30 PM)
 
 ```
-generate_reel.py
-    └── output/reel_YYYYMMDD.mp4
-    └── output/meta_YYYYMMDD.json
-
-upload_youtube.py --type reel
-    └── Uploads to YouTube
-    └── Writes youtube_video_id + public_video_url to meta
-
-upload_facebook.py
-    └── Uploads to Facebook Page only (Group posting disabled)
-
-# Instagram upload REMOVED from this workflow (Phase 3)
+generate_reel.py → upload_youtube.py --type reel → upload_facebook.py
 ```
 
 ### Morning Reel (7:00 AM)
 
 ```
-generate_reel_morning.py
-    └── output/morning_reel_YYYYMMDD.mp4
-    └── output/morning_reel_meta_YYYYMMDD.json
-
-upload_youtube.py --type morning
-upload_facebook.py
-
-# Instagram upload REMOVED (Phase 3)
+generate_reel_morning.py → upload_youtube.py --type morning → upload_facebook.py
 ```
 
 ### Daily Videos (7:30 AM)
 
 ```
-generate_analysis.py
-    └── output/analysis_video.mp4
-    └── output/analysis_meta_YYYYMMDD.json
-
-upload_youtube.py --type analysis
-
-generate_education.py  ← now generates 10-12 min video
-    └── output/education_video.mp4
-    └── output/education_meta_YYYYMMDD.json
-
-upload_youtube.py --type education
+generate_analysis.py → upload_youtube.py --type analysis
+generate_education.py → upload_youtube.py --type education
+[duration check — fails workflow if < 8 min]
 ```
+
+> ⚠️ **CONFIRM** that generate_education.py does NOT also upload internally. The file currently has its own upload_to_youtube() function. If the workflow uses upload_youtube.py --type education, the internal upload in generate_education.py must be removed or disabled.
 
 ---
 
@@ -674,37 +673,18 @@ upload_youtube.py --type education
 
 All stored in **GitHub Actions Secrets**. Never hardcode any of these values.
 
-### YouTube Playlist Secrets (Phase 3 — NOT needed yet)
-
-| Secret | Purpose | Status |
-| --- | --- | --- |
-| `YOUTUBE_PLAYLIST_REEL` | Playlist ID for ZENO reels | ⏳ Add in Phase 3 |
-| `YOUTUBE_PLAYLIST_ANALYSIS` | Playlist ID for analysis videos | ⏳ Add in Phase 3 |
-| `YOUTUBE_PLAYLIST_EDUCATION` | Playlist ID for education videos | ⏳ Add in Phase 3 |
-| `YOUTUBE_PLAYLIST_MORNING` | Playlist ID for morning reels | ⏳ Add in Phase 3 |
-
-### Dhan Trading API (Phase 4)
-
-| Secret | Purpose | Status |
-| --- | --- | --- |
-| `DHAN_API_KEY` | API key | ✅ Added — not connected yet |
-| `DHAN_API_SECRET` | API secret | ✅ Added — not connected yet |
-| `DHAN_CLIENT_ID` | Client ID | ✅ Added — not connected yet |
-| `DHAN_PIN` | Account PIN | ✅ Added — not connected yet |
-| `DHAN_TOTP_KEY` | 2FA TOTP key | ✅ Added — not connected yet |
-
 ### Social Platforms
 
 | Secret | Purpose | Status |
 | --- | --- | --- |
 | `META_ACCESS_TOKEN` | Facebook + Instagram API | ✅ Auto-refreshed every 50 days |
-| `META_APP_ID` | Facebook App ID | ✅ Added |
-| `META_APP_SECRET` | Facebook App Secret | ✅ Added |
+| `META_APP_ID` | Facebook App ID | ✅ |
+| `META_APP_SECRET` | Facebook App Secret | ✅ |
 | `FACEBOOK_PAGE_ID` | Target Facebook Page ID | ✅ |
 | `FACEBOOK_GROUP_ID` | Target Facebook Group ID | ✅ Kept — not used until Phase 3 |
 | `INSTAGRAM_ACCOUNT_ID` | Instagram Business/Creator numeric ID | ✅ Kept — not used until Phase 3 |
-| `YOUTUBE_CREDENTIALS` | YouTube OAuth JSON (Hindi channel) | ✅ Active — upload scope only |
-| `YOUTUBE_CREDENTIALS_EN` | YouTube OAuth JSON (English channel) | ✅ Kept — not used (auto-translate strategy) |
+| `YOUTUBE_CREDENTIALS` | YouTube OAuth JSON (Hindi channel) | ✅ Active |
+| `YOUTUBE_CREDENTIALS_EN` | YouTube OAuth JSON (English channel) | ✅ Kept — not used (auto-translate) |
 
 ### AI Providers (Fallback Chain)
 
@@ -719,10 +699,29 @@ All stored in **GitHub Actions Secrets**. Never hardcode any of these values.
 
 | Secret | Purpose |
 | --- | --- |
-| `TELEGRAM_BOT_TOKEN` | Bot authentication token |
+| `TELEGRAM_TOKEN` | Bot authentication token (note: code uses TELEGRAM_TOKEN, not TELEGRAM_BOT_TOKEN) |
 | `TELEGRAM_CHAT_ID` | Free channel (ai360trading) |
 | `CHAT_ID_ADVANCE` | Advance signals channel (₹499/month) |
 | `CHAT_ID_PREMIUM` | Premium signals channel (bundle) |
+
+### Dhan Trading API (Phase 4)
+
+| Secret | Purpose | Status |
+| --- | --- | --- |
+| `DHAN_API_KEY` | API key | ✅ Added — not connected yet |
+| `DHAN_API_SECRET` | API secret | ✅ Added — not connected yet |
+| `DHAN_CLIENT_ID` | Client ID | ✅ Added — not connected yet |
+| `DHAN_PIN` | Account PIN | ✅ Added — not connected yet |
+| `DHAN_TOTP_KEY` | 2FA TOTP key | ✅ Added — not connected yet |
+
+### YouTube Playlist Secrets (Phase 3 — NOT needed yet)
+
+| Secret | Purpose | Status |
+| --- | --- | --- |
+| `YOUTUBE_PLAYLIST_REEL` | Playlist ID for ZENO reels | ⏳ Add in Phase 3 |
+| `YOUTUBE_PLAYLIST_ANALYSIS` | Playlist ID for analysis videos | ⏳ Add in Phase 3 |
+| `YOUTUBE_PLAYLIST_EDUCATION` | Playlist ID for education videos | ⏳ Add in Phase 3 |
+| `YOUTUBE_PLAYLIST_MORNING` | Playlist ID for morning reels | ⏳ Add in Phase 3 |
 
 ### Google / GCP
 
@@ -746,7 +745,7 @@ All content uses `human_touch.py`. **Never use raw AI output directly.**
 | --- | --- | --- |
 | 50+ rotating hooks | `ht.get_hook(mode, lang)` | No two videos start the same |
 | Personal phrases | `ht.get_personal_phrase(lang)` | "Maine dekha hai..." injected naturally |
-| TTS speed variation | `ht.get_tts_speed()` | 0.95–1.05x range — passed to edge_tts rate param |
+| TTS speed variation | `ht.get_tts_speed()` | 0.95–1.05x range |
 | Humanize output | `ht.humanize(text, lang)` | Strips robotic patterns, varies connectors |
 | Emoji rotation | `ht.get_emoji_set()` | Day-seeded — different emoji set each day |
 | SEO tags | `seo.get_video_tags(mode, lang)` | India + Global tags combined |
@@ -757,35 +756,22 @@ All content uses `human_touch.py`. **Never use raw AI output directly.**
 
 ## 17. Known Issues & Status
 
-### generate_reel_morning.py KeyError: 'target_countries' — FIXED ✅ (April 7, 2026)
-`save_meta()` now reads `script.get("target_countries", [])` instead of `topic_data["target_countries"]`.
-
-### upload_youtube.py --type flag — ADDED ✅ (April 6, 2026)
-`--type` argument added with correct file resolution per type.
-
-### Education video under 8 minutes — FIXED ✅ (April 7, 2026)
-Slide count expanded to 22, word count per slide increased to 80–100, pause extended to 1.2s. Target: 10–12 minutes. Duration check step added to workflow.
-
-### T4 Memory overflow risk — MITIGATED ⚠️ (April 7, 2026)
-`clean_mem()` updated with 14-day window and 20,000 char hard cap. Full BotMemory sheet migration planned for Phase 3.
-
-### YouTube Playlist 403 — DEFERRED to Phase 3
-`assign_to_playlist()` exists but is not called. Enable in Phase 3: add `youtube.force-ssl` scope, re-auth token, add playlist secrets.
-
-### Facebook Group Posting — DEFERRED ❌
-Removed from active workflows. Re-enable in Phase 3 after fixing `publish_to_groups` token scope.
-
-### Instagram Auto-Post — DEFERRED ❌
-Removed from active workflows. Re-enable in Phase 3 after verifying `INSTAGRAM_ACCOUNT_ID` and testing manually.
-
-### English YouTube Channel — NOT NEEDED ✅
-YouTube auto-translate handles international reach. Separate channel deferred indefinitely.
-
-### YouTube Community Tab ⚠️
-Requires 500+ subscribers. Below that, output is saved to `output/community_post_YYYYMMDD.txt` for manual posting.
-
-### META_ACCESS_TOKEN Expiry — Automated ✅
-`token_refresh.yml` runs every 50 days.
+### BUG-001: generate_education.py uses Groq directly instead of ai_client — 🔴 FIX REQUIRED
+### BUG-002: Education video still ~2-3 min due to only 4-6 slides — 🔴 FIX REQUIRED
+### BUG-003: Pause duration is 0.8s not 1.2s as documented — 🔴 FIX REQUIRED
+### BUG-004: Telegram CHAT_ADVANCE and CHAT_PREMIUM variables are swapped — 🔴 FIX REQUIRED IMMEDIATELY
+### BUG-005: clean_mem() still uses 30-day window, no hard cap — 🔴 FIX REQUIRED
+### BUG-006: Education slide word count is 50-70, not 80-100 as documented — 🔴 FIX REQUIRED
+### WARN-005: generate_education.py has duplicate upload logic — ⚠️ AUDIT WORKFLOW YAML
+### generate_reel_morning.py KeyError 'target_countries' — ✅ FIXED (April 7, 2026)
+### upload_youtube.py --type flag — ✅ ADDED (April 6, 2026)
+### YouTube Playlist 403 — ⏳ DEFERRED to Phase 3
+### Facebook Group Posting — ❌ DEFERRED to Phase 3
+### Instagram Auto-Post — ❌ DEFERRED to Phase 3
+### English YouTube Channel — ✅ NOT NEEDED (auto-translate strategy)
+### YouTube Community Tab — ⚠️ Requires 500+ subscribers. Output saved to txt for manual posting below threshold.
+### META_ACCESS_TOKEN Expiry — ✅ Automated every 50 days
+### T4 Memory overflow risk — ⚠️ MITIGATION PENDING (clean_mem fix not yet applied)
 
 ---
 
@@ -809,6 +795,8 @@ from ai_client import ai, img_client
 response = ai.generate(prompt, content_mode=CONTENT_MODE, lang=LANG)
 data = ai.generate_json(prompt, content_mode=CONTENT_MODE, lang=LANG)
 ```
+
+**generate_education.py currently violates this rule. Fix required.**
 
 ### Human Touch Usage Rule — No Exceptions
 
@@ -842,8 +830,8 @@ speed  = ht.get_tts_speed()
 | --- | --- | --- |
 | `hi-IN-MadhurNeural` | Male | Short 2 — authoritative trade setups |
 | `hi-IN-SwaraNeural` | Female | Short 3, ZENO Reel, Morning Reel, Analysis, Education |
-| `en-US-JennyNeural` | Female | Reserved for English content if created in future |
-| `en-US-GuyNeural` | Male | Reserved for English content if created in future |
+| `en-US-JennyNeural` | Female | Reserved for English content |
+| `en-US-GuyNeural` | Male | Reserved for English content |
 
 ### TTS Speed via human_touch
 
@@ -863,10 +851,7 @@ await edge_tts.Communicate(text, VOICE, rate=rate_str).save(path)
 
 ### SEO Tags Strategy
 
-Every video includes India-specific AND global tags via `seo.get_video_tags()`:
-* India: `Nifty50`, `TradingIndia`, `StockMarketIndia`, `BankNifty`
-* Global: `USStocks`, `UKInvesting`, `BrazilMarket`, `UAEInvesting`, `GlobalInvesting`
-* Universal: `Finance`, `Investing`, `FinancialLiteracy`, `Shorts`
+Every video includes India-specific AND global tags via `seo.get_video_tags()`.
 
 ---
 
@@ -888,11 +873,12 @@ Market hours (Mon–Fri, 9:15 AM–3:30 PM IST)
 └── main.yml (every 5 min)
     └── trading_bot.py v13.4
         └── AlertLog + History + Nifty200 via gspread
-        └── T4 memory (monitor size — migrate to BotMemory sheet in Phase 3)
+        └── T4 memory (⚠️ fix clean_mem — then migrate to BotMemory in Phase 3)
         └── get_market_regime() → Nifty CMP vs 20DMA
         └── WAITING→TRADED → entry alert → all 3 channels
         └── TSL updates → Advance + Premium
         └── Exit logic + History append + T4 memory update
+        └── ⚠️ CHAT_ADVANCE and CHAT_PREMIUM are currently swapped — fix BUG-004
 
 AppScript v13.3 (Google Sheets bound)
 └── 10-gate filter → bearish or bullish path
@@ -904,13 +890,12 @@ AppScript v13.3 (Google Sheets bound)
     └── generate_reel_morning.py
     └── upload_youtube.py --type morning ✅
     └── upload_facebook.py ✅ (Page only)
-    # Instagram REMOVED
 
 7:30 AM / 9:30 AM daily
 └── daily-videos.yml
     └── generate_analysis.py
     └── upload_youtube.py --type analysis ✅
-    └── generate_education.py  ← 10-12 min video ✅
+    └── generate_education.py  ← ⚠️ still ~2-3 min — 6 bugs to fix
     └── upload_youtube.py --type education ✅
     └── [duration check — fails workflow if < 8 min]
 
@@ -928,20 +913,19 @@ AppScript v13.3 (Google Sheets bound)
     └── generate_reel.py
     └── upload_youtube.py --type reel ✅
     └── upload_facebook.py ✅ (Page only)
-    # Instagram REMOVED
 ```
 
 ---
 
 ## 21. Website
 
-* **URL:** `ai360trading.in`
-* **Hosting:** GitHub Pages (Jekyll, `master` branch `_posts/`)
-* **Publishing:** Auto-commit by `daily-articles.yml`
-* **SEO Indexing:** Instant via `GCP_SERVICE_ACCOUNT_JSON`
-* **Revenue:** Google AdSense (USA/UK English readers = highest CPM)
-* **Content pillars:** Stock Market, Bitcoin/Crypto, Personal Finance, AI Trading
-* **Market coverage:** India (Nifty50, BankNifty), USA (S&P500, NASDAQ), UK (FTSE100), Brazil (IBOVESPA), Crypto (BTC, ETH)
+- **URL:** `ai360trading.in`
+- **Hosting:** GitHub Pages (Jekyll, `master` branch `_posts/`)
+- **Publishing:** Auto-commit by `daily-articles.yml`
+- **SEO Indexing:** Instant via `GCP_SERVICE_ACCOUNT_JSON`
+- **Revenue:** Google AdSense (USA/UK English readers = highest CPM)
+- **Content pillars:** Stock Market, Bitcoin/Crypto, Personal Finance, AI Trading
+- **Market coverage:** India (Nifty50, BankNifty), USA (S&P500, NASDAQ), UK (FTSE100), Brazil (IBOVESPA), Crypto (BTC, ETH)
 
 ---
 
@@ -966,10 +950,25 @@ AppScript v13.3 (Google Sheets bound)
 ### Phase 1 ✅ Complete
 `ai_client.py`, `human_touch.py`, `token_refresh.py`, `generate_reel_morning.py`
 
-### Phase 2 ✅ Complete
-`generate_articles.py`, `generate_analysis.py`, `generate_education.py`, `generate_reel.py`, `generate_shorts.py`, `generate_community_post.py`
+### Phase 2 ✅ Mostly Complete (Education Video Has 6 Bugs — Fix Before Claiming Complete)
+`generate_articles.py`, `generate_analysis.py`, `generate_education.py` (⚠️ bugs), `generate_reel.py`, `generate_shorts.py`, `generate_community_post.py`
 
-### Phase 3 🔄 In Progress
+### Phase 2.5 🔴 IMMEDIATE — Fix Critical Bugs
+
+These must be fixed before any Phase 3 work:
+
+| Bug | File | Fix | Priority |
+| --- | --- | --- | --- |
+| BUG-004 | `trading_bot.py` | Swap CHAT_ADVANCE/CHAT_PREMIUM env var names | 🔴 CRITICAL — losing subscriber trust |
+| BUG-001 | `generate_education.py` | Replace Groq direct call with ai_client | 🔴 High |
+| BUG-002 | `generate_education.py` | Add 22-slide expansion prompt | 🔴 High (losing mid-roll revenue) |
+| BUG-003 | `generate_education.py` | Change pause from 0.8s to 1.2s | 🔴 High |
+| BUG-006 | `generate_education.py` | Change word count from 50-70 to 80-100 | 🔴 High |
+| BUG-005 | `trading_bot.py` | Update clean_mem() to 14-day + 20k cap | 🟡 Medium |
+| WARN-005 | `generate_education.py` | Remove duplicate upload function | 🟡 Medium |
+| WARN-008 | `trading_bot.py` | Add Telegram retry on failure | 🟡 Medium |
+
+### Phase 3 🔄 Planned
 
 | Item | File | Priority |
 | --- | --- | --- |
@@ -977,7 +976,9 @@ AppScript v13.3 (Google Sheets bound)
 | Instagram verify live | After manual test | 🟡 Medium (non-blocking) |
 | BotMemory sheet migration | `trading_bot.py` refactor | 🔴 High (do before T4 > 30,000 chars) |
 | YouTube Playlist setup | Re-auth token + add secrets + uncomment call | 🔵 Low — after 1000 subs |
+| Real ATR from sheet | `trading_bot.py` — read ATR from Nifty200 at entry | 🟡 Medium (better TSL accuracy) |
 | Disney 3D reel upgrade | `ai_client.py` img_client Phase 2 | 🔵 Future |
+| Telegram retry on failure | `trading_bot.py` — 1 retry with 5s delay | 🟡 Medium |
 | English channel | Not needed — auto-translate strategy active | ❌ Removed from roadmap |
 
 ### Phase 4 📋 Planned — Dhan Live Trading
@@ -1028,12 +1029,36 @@ Google Sheet → AlertLog → cell T2 → "YES" to enable.
 
 ---
 
+## 25. Next Session Priorities (For Working Together)
+
+When we continue in the next session, work on these IN ORDER:
+
+**Session 1 (do first):**
+1. Fix BUG-004 in trading_bot.py (swap CHAT_ADVANCE/CHAT_PREMIUM)
+2. Fix BUG-005 in trading_bot.py (update clean_mem)
+3. Confirm workflow YAML — does generate_education.py upload internally or does upload_youtube.py handle it?
+
+**Session 2:**
+4. Rewrite generate_education.py completely:
+   - Replace Groq with ai_client (BUG-001)
+   - Change pause to 1.2s (BUG-003)
+   - Change words to 80-100 (BUG-006)
+   - Add 22-slide expansion prompt (BUG-002)
+   - Remove duplicate upload if needed (WARN-005)
+
+**Session 3:**
+5. Test education video — confirm 10+ minutes
+6. Add Telegram retry logic to trading_bot.py (WARN-008)
+7. Begin BotMemory sheet setup (Phase 3)
+
+---
+
 *Documentation maintained by AI360Trading automation.*
-*Full audit: April 3, 2026 — Claude Sonnet 4.6*
-*Updated: April 7, 2026 — Education video expanded to 10+ min; T4 memory overflow mitigation; Facebook Group + Instagram deferred to Phase 3; English channel replaced by YouTube auto-translate strategy; Reel/Shorts duration and dimension standards documented*
+*Full deep audit: April 8, 2026 — Claude Sonnet 4.6 — reviewed all files in live repo*
+*6 critical bugs found, 10 warnings identified, all documented with exact file locations and fix instructions*
 *Phase 1 complete: ai_client.py, human_touch.py, token_refresh.py, generate_reel_morning.py*
-*Phase 2 complete: generate_articles.py, generate_analysis.py, generate_education.py (10+ min), generate_reel.py, generate_shorts.py, generate_community_post.py*
-*Trading bot: AppScript v13.3 + Python v13.4 — paper trading, Google Sheets, Dhan Phase 4*
-*Phase 3 remaining: Facebook Group fix, Instagram verify, BotMemory sheet migration, playlists (after 1000 subs)*
+*Phase 2 mostly complete: all generators working EXCEPT generate_education.py (6 bugs — video still ~2-3 min not 10+ min)*
+*Trading bot: AppScript v13.3 + Python v13.4 — paper trading active, BUG-004 (channel swap) critical to fix*
+*Phase 3 remaining: Telegram channel swap fix, education video fix, clean_mem fix, BotMemory migration, playlists after 1000 subs*
 *Phase 4 planned: Dhan live trading after backtest validation*
 *Update this file whenever architecture, secrets, platform status, or file logic changes.*
