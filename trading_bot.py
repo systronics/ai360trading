@@ -190,62 +190,45 @@ def calc_hold_str(entry_str: str, exit_dt: datetime) -> str:
         return "—"
 
 def clean_mem(mem: str) -> str:
-    cutoff = (datetime.now(IST) - timedelta(days=14)).strftime('%Y-%m-%d')
-
-    # PASS 1: find old exited symbols
-    exited_old_prefixes = set()
-    for p in mem.split(','):
-        p = p.strip()
-        if '_EXDT_' in p and '=' not in p:
-            try:
-                exdt_idx   = p.index('_EXDT_')
-                sym_prefix = p[:exdt_idx]
-                date_val   = p[exdt_idx + 6:]
-                if len(date_val) >= 10 and date_val[:10] < cutoff:
-                    exited_old_prefixes.add(sym_prefix)
-            except:
-                continue
-
-    # PASS 2: clean entries
-    kept = []
-    for p in mem.split(','):
+    """
+    Remove T4 memory entries older than 14 days.
+    Hard cap at 20,000 chars — keeps last 100 entries if exceeded.
+    Logs size every call so GitHub Actions logs show T4 health.
+    """
+    cutoff = (datetime.now(IST) - timedelta(days=14)).strftime("%Y-%m-%d")
+    kept   = []
+ 
+    for p in mem.split(","):
         p = p.strip()
         if not p:
             continue
-
-        # remove old date flags
-        if len(p) >= 10 and p[4] == '-' and p[7] == '-':
+        # Date-stamped entries look like "2025-01-15_AM" or "2025-01-15_ONGC"
+        # Keep only those within the 14-day window; keep all non-dated entries
+        if len(p) >= 10 and p[4] == "-" and p[7] == "-":
             if p[:10] >= cutoff:
                 kept.append(p)
-            continue
-
-        # remove old exited symbol keys
-        skip = False
-        for sym_prefix in exited_old_prefixes:
-            if p.startswith(sym_prefix + '_') or p.startswith(sym_prefix + '='):
-                skip = True
-                break
-
-        if not skip:
+            # else: older than 14 days — drop it
+        else:
             kept.append(p)
-
-    # remove duplicates
-    kept = list(dict.fromkeys(kept))
-
-    result = ','.join(kept)
-
-    # hard cap
+ 
+    result = ",".join(kept)
+ 
+    # Hard cap: if still over 20,000 chars after date pruning, keep last 100 entries
     if len(result) > 20000:
-        parts = [p for p in result.split(',') if p.strip()]
-        result = ','.join(parts[-100:])
-        print(f"[MEM] ⚠️ Hard cap applied ({len(result)} chars)")
-
-    # warning
-    if len(result) > 15000:
-        print(f"[MEM WARNING] T4 size: {len(result)} chars")
-
+        parts  = [p for p in result.split(",") if p.strip()]
+        result = ",".join(parts[-100:])
+        print(f"[MEM] ⚠️  Hard cap applied — trimmed to last 100 entries ({len(result)} chars)")
+ 
+    # Size monitoring — visible in GitHub Actions logs
+    size = len(result)
+    if size > 15000:
+        print(f"[MEM] 🔴 WARNING: T4 is {size:,} chars — plan BotMemory sheet migration soon (see SYSTEM.md Section 10)")
+    elif size > 10000:
+        print(f"[MEM] 🟡 NOTICE: T4 is {size:,} chars — monitor growth")
+    else:
+        print(f"[MEM] ✅ T4 size: {size:,} chars — OK")
+ 
     return result
-
 def is_market_hours(now: datetime) -> bool:
     if now.weekday() >= 5: return False
     mins = now.hour * 60 + now.minute
