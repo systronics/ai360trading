@@ -45,7 +45,7 @@ VOICE     = "hi-IN-SwaraNeural"
 
 # ✅ KEY FIX: 22 slides minimum, 80-100 words each = 10-12 min
 MIN_SLIDES   = 22
-WORDS_TARGET = "80-100"
+WORDS_TARGET = "110-130"
 
 os.makedirs(OUT, exist_ok=True)
 
@@ -161,7 +161,7 @@ Generate EXACTLY {MIN_SLIDES} slides using these headings in order:
 {json.dumps(slide_headings, ensure_ascii=False)}
 
 IMPORTANT RULES:
-- Each slide content MUST be {WORDS_TARGET} words of spoken Hinglish — this is required for a 10+ minute video
+- Each slide content MUST be EXACTLY {WORDS_TARGET} words of spoken Hinglish. Count every word carefully before writing. Slides under 100 words are REJECTED. This is non-negotiable — the video must be 10+ minutes.
 - Natural conversational Hinglish — Hindi + English mix like a real trader speaks
 - Include real Indian stock/market examples where relevant
 - Slide 17 must include USA/UK/global market context for international viewers
