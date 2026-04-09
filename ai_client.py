@@ -182,7 +182,7 @@ class AIClient:
         raw = self.generate(
             prompt, system_prompt, content_mode, lang,
             json_mode=True,
-            max_tokens=3000,   # bumped for 5-team Dream11 output
+            max_tokens=4000,   # education: 22 slides × 130 words needs headroom
         )
         try:
             clean = raw.strip()
