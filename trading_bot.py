@@ -659,8 +659,15 @@ def run_trading_cycle():
 
     log_sheet, hist_sheet, nifty_sheet = get_sheets()
     mem = clean_mem(str(log_sheet.acell("T4").value or ""))
-    print(f"[MEM] T4 size: {len(mem)} chars")  # ← FIXED: was missing 4 spaces
+    print(f"[MEM] T4 size: {len(mem)} chars")
     is_bullish = get_market_regime(nifty_sheet)
+
+    # ── DEBUG: Good Morning window check ──────────────────────
+    am_key = f"{today}_AM"
+    print(f"[GM CHECK] time={now.strftime('%H:%M')} IST | "
+          f"window={'YES' if (now.hour==8 and now.minute>=45) or (now.hour==9 and now.minute<=15) else 'NO'} | "
+          f"AM_already_sent={am_key in mem}")
+    # ──────────────────────────────────────────────────────────
 
     if str(log_sheet.acell("T2").value or "").strip().upper() != "YES":
         print("[SKIP] Automation OFF (T2 != YES)")
@@ -682,8 +689,8 @@ def run_trading_cycle():
     # 1. GOOD MORNING  08:45–09:15 IST
     # ─────────────────────────────────────────────────────────────────────────
     if ((now.hour == 8 and now.minute >= 45) or
-            (now.hour == 9 and now.minute <= 15)) and f"{today}_AM" not in mem:
-
+            (now.hour == 9 and now.minute <= 29)) and f"{today}_AM" not in mem:
+               
         waiting_count = sum(
             1 for r in [pad(list(x)) for x in all_data[1:16]]
             if "WAITING" in str(r[C_STATUS]).upper()
