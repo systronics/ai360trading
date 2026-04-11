@@ -1,7 +1,7 @@
 # AI360Trading — Master System Documentation
 
 **Last Updated:** April 11, 2026 — Trading Bot v13.4 + AppScript v13.3
-**Status:** Phase 1 ✅ Complete | Phase 2 ✅ Complete | Phase 3 🔄 In Progress | Phase 4 (Dhan Live) Planned
+**Status:** Phase 1 ✅ Complete | Phase 2 ✅ Complete | Phase 3 Planned | Phase 4 (Dhan Live) Planned
 **Primary Audience:** Bilingual Hindi + English — Indian retail traders + global investors
 
 > ⚠️ **Read this file completely before making ANY changes.**
@@ -17,18 +17,17 @@
 
 | Stream | Platform | High-CPM Target Countries |
 | --- | --- | --- |
-| Video Ad Revenue | YouTube (Hindi — @ai360trading) | USA, UK, Canada, Australia, UAE |
+| Video Ad Revenue | YouTube (Hindi) | USA, UK, Canada, Australia, UAE |
 | Video Ad Revenue | YouTube (English) | USA, UK, Canada, Australia — 3–5x higher CPM |
-| Video Ad Revenue | YouTube Kids (HerooQuest) | USA, UK, Canada, Australia — kids CPM growing |
 | Shorts / Reels Bonus | YouTube, Facebook, Instagram | USA, UK, Brazil, India |
 | Website Ad Revenue | GitHub Pages (ai360trading.in) | USA, UK, Canada |
-| In-Stream Video Ads | Facebook Page + Facebook Kids Page (HerooQuest) | USA, UK, Brazil, India |
+| In-Stream Video Ads | Facebook Page | USA, UK, Brazil, India |
 | Paid Signal Subscriptions | Telegram (Advance + Premium channels) | India, UAE, Global |
 
 ### Target Countries by Ad CPM Priority
 
-1. 🇺🇸 USA — Highest CPM globally for finance + kids content
-2. 🇬🇧 UK — Very high CPM, strong trading + kids audience
+1. 🇺🇸 USA — Highest CPM globally for finance content
+2. 🇬🇧 UK — Very high CPM, strong trading audience
 3. 🇦🇺 Australia — High CPM, growing retail base
 4. 🇦🇪 UAE — High CPM, large NRI + Gulf investor audience
 5. 🇨🇦 Canada — High CPM, similar to USA
@@ -45,20 +44,20 @@
 
 | Platform | Status | Notes |
 | --- | --- | --- |
-| YouTube Hindi (@ai360trading) | ✅ Auto | Analysis + Education + Shorts + Reels working |
-| YouTube English | 🔄 Building | Phase 3 — auto-translated separate channel |
-| YouTube Kids (HerooQuest) | ✅ Auto | `kids-daily.yml` → `generate_kids_video.py` — 8:00 AM daily |
+| YouTube Hindi | ✅ Auto | Analysis + Education + Shorts + Reels working |
+| YouTube English | 🔄 Building | Phase 3 — English scripts from scratch (not translated) |
 | YouTube Shorts | ✅ Auto | Short 2 + Short 3 working |
-| YouTube Community Posts | ✅ Built | `generate_community_post.py` — 12:00 PM daily |
-| YouTube Reels (ZENO) | ✅ Auto | 8:30 PM reel working |
-| YouTube Morning Reel | ✅ Auto | 7:00 AM reel — **separate workflow** `daily-morning-reel.yml` |
-| Facebook Page (@ai360trading) | ✅ Auto | Posts, reels, article shares all working |
-| Facebook Kids Page (HerooQuest — ID 1021152881090398) | ✅ Auto | `upload_facebook.py --meta-prefix kids` |
-| Facebook Group | ❌ Broken | Missing `publish_to_groups` token scope — see Section 13 |
-| Instagram (@ai360trading) | ⚠️ Partial | Upload chain built; verify `INSTAGRAM_ACCOUNT_ID` is live |
-| Instagram Kids | ❌ Manual | Permanently removed from `kids-daily.yml` — upload manually from phone |
+| YouTube Community Posts | ✅ Built | generate\_community\_post.py — 12:00 PM daily |
+| YouTube Reels | ✅ Auto | ZENO reel (8:30 PM) working |
+| YouTube Morning Reel | ✅ Auto | 7:00 AM reel (generate\_reel\_morning.py) working |
+| Facebook Page | ✅ Auto | Reels + article shares working. Group posting = manual for now. |
+| Facebook Group | 🤚 Manual | Owner posts manually. Auto-posting deferred to future phase. |
+| Instagram | 🤚 Manual | Owner posts manually. Auto-posting deferred to future phase. |
 | GitHub Pages | ✅ Auto | 4 articles/day + instant Google indexing |
 | Telegram | ✅ Auto | Signal alerts to all 3 channels (paper trading — followers take manual entry) |
+
+> **Manual posting note:** Facebook Group and Instagram are intentionally manual until automation is re-prioritised.
+> `upload_facebook.py` posts to FB Page only. `upload_instagram.py` is not called in any workflow until re-enabled.
 
 ---
 
@@ -74,48 +73,42 @@ Mode is **auto-detected** by `indian_holidays.py` at the start of every workflow
 
 **Detection logic:** `indian_holidays.py` → NSE API (primary) → hardcoded fallback dates
 
-> **Kids channel** runs every day regardless of market mode. `kids_content_calendar.py` drives topic selection independently.
-
 ---
 
 ## 4. Daily Content Output (Fully Automated)
 
 | # | Content | Time (IST) | Platform | Status |
 | --- | --- | --- | --- | --- |
-| 1 | Morning Reel (9:16) | 7:00 AM | YouTube + FB + Instagram | ✅ |
-| 2 | HerooQuest Video (16:9) + Short (9:16) + Reel (9:16) | 8:00 AM | YouTube Kids + FB Kids Page | ✅ NEW |
-| 3 | Part 1 Video (16:9) | 7:30 AM weekday / 9:30 AM weekend | YouTube Hindi | ✅ |
-| 4 | Part 2 Video (16:9) | 7:30 AM (same workflow) | YouTube Hindi | ✅ |
-| 5 | Short 2 Hindi (9:16) | 11:30 AM weekday / 1:30 PM weekend | YouTube Shorts | ✅ |
-| 6 | Short 3 Hindi (9:16) | 11:30 AM (same workflow) | YouTube Shorts | ✅ |
-| 7 | Short 4 English (9:16) | 11:30 AM (same workflow) | YouTube English Shorts | 🔄 Phase 3 |
-| 8 | 4 SEO Articles | 10:00 AM weekday / 11:30 AM weekend | GitHub Pages + Facebook | ✅ |
-| 9 | ZENO Reel (9:16) | 8:30 PM | YouTube + FB + Instagram | ✅ |
-| 10 | YouTube Community Post | 12:00 PM | YouTube Community Tab | ✅ |
-| **Total** | **~16+ pieces/day** | — | — | — |
+| 1 | Morning Reel (9:16) | 7:00 AM | YouTube + FB Page | ✅ |
+| 2 | Part 1 Video (16:9) | 7:30 AM weekday / 9:30 AM weekend | YouTube | ✅ |
+| 3 | Part 2 Video (16:9) | 7:30 AM (same workflow) | YouTube | ✅ |
+| 4 | Short 2 Hindi (9:16) | 11:30 AM weekday / 1:30 PM weekend | YouTube Shorts | ✅ |
+| 5 | Short 3 Hindi (9:16) | 11:30 AM (same workflow) | YouTube Shorts | ✅ |
+| 6 | Short 4 English (9:16) | 11:30 AM (same workflow) | YouTube English Shorts | 🔄 Phase 3 |
+| 7 | 4 SEO Articles | 10:00 AM weekday / 11:30 AM weekend | GitHub Pages + Facebook Page | ✅ |
+| 8 | ZENO Reel (9:16) | 8:30 PM | YouTube + FB Page | ✅ |
+| 9 | YouTube Community Post | 12:00 PM | YouTube Community Tab | ✅ |
+| **Total** | **12 pieces/day** | — | — | — |
+
+> **USA/UK prime time content:** Videos uploaded at IST times but SEO-optimised for 11 PM–1 AM IST peak.
 
 ---
 
 ## 5. GitHub Actions Workflows
 
-> **Live status confirmed from GitHub Actions page — April 11, 2026. All 10 workflows healthy.**
+| File | Trigger (IST) | Purpose | Mode-Aware |
+| --- | --- | --- | --- |
+| `main.yml` | Every 5 min (market hours, Mon–Fri) | `trading_bot.py` — Nifty200 signals | ✅ Auto-skips weekends/holidays |
+| `daily-videos.yml` | 7:30 AM Mon–Fri / 9:30 AM Sat–Sun | Part 1 (analysis) + Part 2 (education) | ✅ |
+| `daily-shorts.yml` | 11:30 AM Mon–Fri / 1:30 PM Sat–Sun | Short 2 + Short 3 + Community Post | ✅ |
+| `daily_reel.yml` | 7:00 AM + 8:30 PM daily | Morning Reel + ZENO Reel | ✅ |
+| `daily-articles.yml` | 10:00 AM Mon–Fri / 11:30 AM Sat–Sun | 4 SEO articles → GitHub Pages | ✅ |
+| `token_refresh.yml` | Every 50 days (1st + 20th of month) | Auto META token refresh | N/A |
+| `keepalive.yml` | Periodic | Prevents GitHub disabling inactive workflows | N/A |
 
-| File | Name in Actions | Trigger (IST) | Purpose | Status |
-| --- | --- | --- | --- | --- |
-| `main.yml` | AlgoTradeBot | Every 5 min (Mon–Fri) | `trading_bot.py` — Nifty200 signals | ✅ Running (#1241+) |
-| `daily-videos.yml` | Daily Videos | 7:30 AM weekday / 9:30 AM weekend | Part 1 + Part 2 videos | ✅ Running (#74) |
-| `daily-shorts.yml` | Daily Shorts | 11:30 AM weekday / 1:30 PM weekend | Short 2 + Short 3 + Community Post | ✅ Running (#41) |
-| `daily-morning-reel.yml` | AI360 Daily Morning Reel (7:00 AM IST) | 7:00 AM daily | Morning Reel only | ✅ Running (#6) |
-| `daily_reel.yml` | AI360 Daily ZENO Reel + Social Posting | 8:30 PM daily | ZENO Reel + FB + Instagram | ✅ Running (#47) |
-| `daily-articles.yml` | Daily AI Market Intelligence Report | 10:00 AM weekday / 11:30 AM weekend | 4 SEO articles → GitHub Pages | ✅ Running (#46) |
-| `kids-daily.yml` | Kids Channel — Daily Video | 8:00 AM daily (`cron: 30 2 * * *`) | HerooQuest video → YouTube Kids + FB Kids Page | ✅ Running (#14) |
-| `token_refresh.yml` | Auto Token Refresh | Every 50 days | Auto META token refresh | ✅ Scheduled |
-| `keepalive.yml` | KeepAlive | Periodic | Prevents GitHub disabling workflows | ✅ Active |
-| `pages-build-deployment` | pages-build-deployment | On push to master | GitHub Pages deploy | ✅ Auto (#1626) |
+**Failure alerting (to be added — see Section 20, Item 4):** All workflows should send a Telegram alert on failure. Not yet implemented.
 
-> **`kids-daily.yml` lang input:** `both` (default — Hindi + English combined), `hi`, `en`.
-> On failure, debug artifacts saved as `kids-debug-{run_id}` from `output/`.
-> All workflows support `workflow_dispatch`. Kids has `lang` dropdown; others have `content_mode`.
+All workflows support `workflow_dispatch` with a `content_mode` dropdown to force any mode for testing.
 
 ---
 
@@ -133,33 +126,32 @@ Mode is **auto-detected** by `indian_holidays.py` at the start of every workflow
 
 | File | Role | Key Tech | Status |
 | --- | --- | --- | --- |
-| `trading_bot.py` | Nifty200 signal monitor + TSL manager + Telegram alerts | gspread + Sheets + Telegram Bot API | ✅ v13.4 |
-| `generate_shorts.py` | Short 2 (Madhur) + Short 3 (Swara) | ai\_client, human\_touch, Edge-TTS | ✅ |
-| `generate_reel.py` | ZENO 60s reel (8:30 PM) | ai\_client, human\_touch, MoviePy | ✅ |
+| `trading_bot.py` | Nifty200 signal monitor + TSL manager + Telegram alerts | gspread + Google Sheets + Telegram Bot API | ✅ v13.4 |
+| `generate_shorts.py` | Short 2 (Madhur) + Short 3 (Swara) | ai\_client, human\_touch, Edge-TTS | ✅ Phase 2 |
+| `generate_reel.py` | ZENO 60s reel (8:30 PM) | ai\_client, human\_touch, MoviePy | ✅ Phase 2 |
 | `generate_reel_morning.py` | Morning reel (7:00 AM) — day/country aware | ai\_client, human\_touch, MoviePy | ✅ |
-| `generate_analysis.py` | 8-slide market analysis video (Part 1) | ai\_client, human\_touch, MoviePy | ✅ |
-| `generate_education.py` | Educational deep-dive video (Part 2) | ai\_client, human\_touch, content\_calendar | ✅ |
-| `generate_articles.py` | 4 SEO articles daily → Jekyll \_posts | ai\_client, human\_touch, Google Indexing | ✅ |
-| `generate_community_post.py` | YouTube daily community text post — 12:00 PM | ai\_client, human\_touch | ✅ |
-| `generate_kids_video.py` | HerooQuest full video + Short + Reel — 8:00 AM daily | ai\_client, kids\_content\_calendar, Edge-TTS, ffmpeg, 5-layer image chain | ✅ NEW |
+| `generate_analysis.py` | 8-slide market analysis video (Part 1) | ai\_client, human\_touch, MoviePy | ✅ Phase 2 |
+| `generate_education.py` | Educational deep-dive video (Part 2) | ai\_client, human\_touch, content\_calendar | ✅ Phase 2 |
+| `generate_articles.py` | 4 SEO articles daily → Jekyll \_posts | ai\_client, human\_touch, Google Indexing | ✅ Phase 2 |
+| `generate_community_post.py` | YouTube daily community text post — 12:00 PM | ai\_client, human\_touch | ✅ Phase 2 |
+
+> ⚠️ **Verify:** `generate_community_post.py` must exist in repo root. If missing, `daily-shorts.yml` will fail silently. Check and add if absent — see Section 20, Item 3.
 
 ### Upload & Distribution
 
 | File | Role | Status |
 | --- | --- | --- |
-| `upload_youtube.py` | Uploads to Hindi channel; saves `youtube_video_id` + `public_video_url` to meta | ✅ |
-| `upload_kids_youtube.py` | Uploads to HerooQuest YouTube Kids channel using `YOUTUBE_CREDENTIALS_KIDS` | ✅ NEW |
+| `upload_youtube.py` | Uploads reel; saves `youtube_video_id` + `public_video_url` to meta | ✅ |
 | `upload_youtube_english.py` | Uploads to English channel (separate credentials) | 🔄 Phase 3 |
-| `upload_facebook.py` | Main FB upload. Accepts `--meta-prefix kids` to target FB Kids Page | ✅ |
-| `upload_instagram.py` | Auto-uploads via Meta API using `public_video_url` from meta | ✅ |
+| `upload_facebook.py` | Uploads reel to FB Page + posts articles to FB Page only. Group posting removed. | ✅ |
+| `upload_instagram.py` | Built but NOT called in any workflow. Manual posting only until re-enabled. | 🤚 Manual |
 
 ### Infrastructure
 
 | File | Role |
 | --- | --- |
 | `indian_holidays.py` | Mode detection — NSE API + fallback; shared by ALL workflows |
-| `content_calendar.py` | Rotates Hindi channel topics: Options, Technical Analysis, Psychology |
-| `kids_content_calendar.py` | Rotates HerooQuest topics — returns `hindi_title`, `english_title`, `category`, `seo_tags`, `target_countries` |
+| `content_calendar.py` | Rotates topics: Options, Technical Analysis, Psychology |
 
 ### Static Assets
 
@@ -177,11 +169,11 @@ All content generation uses `ai_client.py`. **Never call Groq/Gemini/Claude/Open
 ```
 Groq — llama-3.3-70b-versatile (primary — fastest, free)
     ↓ fails
-Google Gemini — gemini-2.0-flash (secondary)
+Google Gemini — gemini-2.0-flash (secondary — best image/video roadmap for Disney 3D)
     ↓ fails
-Anthropic Claude — claude-haiku-4-5 (tertiary)
+Anthropic Claude — claude-haiku-4-5 (tertiary — best human-touch writing)
     ↓ fails
-OpenAI — gpt-4o-mini (quaternary)
+OpenAI — gpt-4o-mini (quaternary — reliable fallback)
     ↓ all fail
 Pre-generated templates in human_touch.py (always works — zero downtime)
 ```
@@ -196,144 +188,44 @@ from human_touch import ht, seo
 **Usage pattern:**
 
 ```python
+# Text generation
 response = ai.generate(prompt, content_mode=CONTENT_MODE, lang="hi")
-data     = ai.generate_json(prompt, content_mode=CONTENT_MODE, lang="hi")
-clean    = ht.humanize(raw_output, lang="hi")
-hook     = ht.get_hook(mode=CONTENT_MODE, lang="hi")
-tags     = seo.get_video_tags(mode=CONTENT_MODE, lang="hi")
+
+# JSON generation
+data = ai.generate_json(prompt, content_mode=CONTENT_MODE, lang="hi")
+
+# Humanize raw output
+clean = ht.humanize(raw_output, lang="hi")
+
+# Get rotating hook
+hook = ht.get_hook(mode=CONTENT_MODE, lang="hi")
+
+# Get SEO tags
+tags = seo.get_video_tags(mode=CONTENT_MODE, lang="hi")
 ```
 
 ---
 
-## 8. HerooQuest Kids Channel — Full Architecture
-
-### Characters
-
-| Character | Description |
-| --- | --- |
-| **Heroo** | Brave, confident 10-year-old Indian boy. Spiky jet-black hair, warm brown skin, big expressive brown eyes, bright red and blue superhero suit with golden **H** emblem on chest, golden flowing cape. Always smiling or curious. **Must be centered in EVERY scene — main character, no exceptions.** |
-| **Arya** | Cheerful 8-year-old Indian girl. Big curious brown eyes, dark hair in two braids with golden star clips, bright orange kurta. Supporting character — she asks questions, Heroo explains. |
-
-### Visual Style (applied to every image prompt)
-
-```
-3D CGI animation render, Pixar and Disney quality,
-volumetric cinematic lighting, subsurface scattering skin,
-ray-traced shadows, photorealistic textures, depth of field,
-ultra-detailed background, vibrant saturated colors,
-child-friendly magical atmosphere, 16:9 cinematic wide shot
-```
-
-### Script Structure
-
-Generated as JSON with exactly **6 scenes**. Each scene:
-
-```json
-{
-  "id": 1,
-  "narration_hi": "4 simple Hindi sentences. ~15-20 seconds.",
-  "narration_en": "4 simple English sentences. ~15-20 seconds.",
-  "image_prompt": "Specific Heroo + Arya poses, expressions, background.",
-  "emotion": "excited"
-}
-```
-
-Also: `title_hi`, `title_en`, `moral_hi`, `moral_en`, `seo_description_en`
-
-### Language Modes (`KIDS_LANG`)
-
-| Mode | Narration | TTS Voice |
-| --- | --- | --- |
-| `hi` | Hindi only | `hi-IN-SwaraNeural` |
-| `en` | English only | `en-US-JennyNeural` |
-| `both` (default) | Hindi + English combined per scene | `hi-IN-SwaraNeural` |
-
-### Image Generation — 5-Layer Fallback
-
-```
-Layer 1: Gemini 2.5 Flash Image     — 500 free/day
-    ↓ fail (8s wait)
-Layer 2: Gemini 2.0 Flash Exp       — older free model
-    ↓ fail (8s wait)
-Layer 3: Hugging Face FLUX.1-schnell → SDXL → SD-v1-5
-         (requires HF_TOKEN secret — free at huggingface.co)
-    ↓ fail (2s wait)
-Layer 4: DALL-E 3 via OPENAI_API_KEY — paid, already available
-    ↓ all fail
-Layer 5: Heroo branded placeholder   — colored card + golden H
-         NEVER crashes. Always produces output.
-```
-
-> Scene images are **cached** — if `output/kids_scene_NN.png` exists, generation is skipped. Safe to re-run after partial failures.
-
-### Video Pipeline (Ken Burns + ffmpeg)
-
-```
-Per scene:
-  ffprobe → measure TTS audio duration (min 15s enforced)
-  ffmpeg  → Ken Burns zoom (1.05x→1.001x) + libx264 ultrafast CRF 28
-
-Concat all clips → final 16:9 MP4 (kids_video_{date}.mp4)
-
-Derivatives:
-  kids_short_{date}.mp4  → crop 405:720@x=437, scale 1080×1920, max 60s
-  kids_reel_{date}.mp4   → crop 405:720@x=437, scale 1080×1920, max 90s, 44.1kHz
-```
-
-### Output Files
-
-```
-output/
-  kids_script_{date}.json
-  kids_scene_01.png … 06.png        ← AI images (cached between runs)
-  kids_tts_1.mp3 … 6.mp3           ← Edge-TTS per scene
-  clip_00.mp4 … 05.mp4             ← individual clips
-  kids_video_{date}.mp4             ← final 16:9 (YouTube Kids)
-  kids_short_{date}.mp4             ← 9:16 YouTube Short
-  kids_reel_{date}.mp4              ← 9:16 Instagram Reel (manual upload)
-  kids_meta_{date}.json             ← metadata + IDs
-```
-
-### Kids Upload Chain
-
-```
-generate_kids_video.py → kids_video + short + reel + meta
-
-upload_kids_youtube.py
-    └── YOUTUBE_CREDENTIALS_KIDS → HerooQuest YouTube channel
-
-upload_facebook.py --meta-prefix kids
-    └── META_ACCESS_TOKEN + FACEBOOK_KIDS_PAGE_ID (1021152881090398)
-
-Instagram → MANUAL from phone (permanently removed from workflow)
-    └── Download kids_reel_{date}.mp4 from GitHub Actions → Artifacts
-```
-
-### Phase 2 Upgrade Path
-
-Current: PIL + ffmpeg Ken Burns (still images with zoom)
-Next: swap `make_scene_clip()` in `generate_kids_video.py` for **Wan2.2 Colab clips** (real AI animation). No other files need changes — the function boundary is the upgrade point.
-
----
-
-## 9. Trading Bot Architecture
+## 8. Trading Bot Architecture
 
 ### Overview
 
+The trading system is split across two components that work together:
+
 | Component | File | Role |
 | --- | --- | --- |
-| AppScript v13.3 | Google Sheets bound script | Scans Nifty200, applies 10-gate filter, writes WAITING to AlertLog, stores memory in T4 |
-| Python Bot v13.4 | `trading_bot.py` | Monitors AlertLog every 5 min, WAITING→TRADED, TSL updates, exit logic, Telegram alerts |
+| AppScript v13.3 | Google Sheets bound script | Scans Nifty200 sheet, applies filters, writes WAITING candidates to AlertLog, stores memory in T4 |
+| Python Bot v13.4 | `trading_bot.py` | Monitors AlertLog every 5 min, manages WAITING→TRADED transition, TSL updates, exit logic, Telegram alerts |
 
-**Status:** Paper trading. Dhan live integration planned for Phase 4.
+**Current status:** Paper trading. Followers receive Telegram signals and take manual entry. Dhan API integration planned for Phase 4 after backtest validation.
 
 ### Google Sheets Structure
 
 | Sheet | Purpose |
 | --- | --- |
-| `Nifty200` | Live data — CMP, DMAs, FII, signals, scores (34 cols) |
-| `AlertLog` | Active + waiting trades (15 rows, 19 cols). T2=YES/NO switch. T4=memory |
-| `History` | Closed trade log (18 cols A–R) |
+| `Nifty200` | Live data for all 200 stocks — CMP, DMAs, FII data, signals, scores (34 cols) |
+| `AlertLog` | Active + waiting trades — 15 rows, 19 cols. T2=YES/NO automation switch. T4=memory string |
+| `History` | Closed trade log — 18 cols A–R |
 
 ### AlertLog Column Map (0-based)
 
@@ -345,10 +237,20 @@ M=12 Entry Time     N=13 Days in Trade O=14 Trailing SL    P=15 P/L%
 Q=16 ATH Warning    R=17 Risk ₹        S=18 Position Size  T=19 SYSTEM CONTROL
 ```
 
-**T2** = automation on/off (YES = enabled)
-**T4** = memory string (key=value comma-separated — TSL, MAX, ATR, CAP, MODE, SEC, exit dates, daily flags)
+**T2** = automation on/off switch (set YES to enable)
+**T4** = memory string
 
-### Nifty200 Column Map (0-based)
+> ⚠️ **Known fragility:** T4 currently stores raw `key=value,key=value` CSV in a single cell. This breaks if a value contains a comma or equals sign. Migration to JSON planned — see Section 20, Item 2.
+
+**Current T4 memory keys per stock:**
+- `{sym}_TSL` — current trailing SL price
+- `{sym}_MAX` — max price seen since entry
+- `{sym}_ATR` — ATR at entry
+- `{sym}_CAP` — capital tier (7000/10000/13000)
+- `{sym}_MODE` — trade mode (VCP/MOM/STD)
+- `{sym}_SEC` — sector name
+
+### Nifty200 Column Map (0-based, used by AppScript)
 
 ```
 r[0]  NSE_SYMBOL          r[1]  SECTOR
@@ -372,23 +274,47 @@ r[32] FII_Buying_Signal(AG) r[33] Master_Score (AH)
 
 ### AppScript v13.3 — Key Logic
 
-**Market Regime:** Nifty50 CMP vs 20DMA → Bullish or Bearish
+**Market Regime:** Nifty50 CMP vs 20DMA → Bullish or Bearish. Controls which filter gate applies.
 
-**Bearish gate (all 4 required):** Leader\_Type="Sector Leader", AF≥5, Master\_Score≥22, FII≠CAUTION/SELLING
+**Bearish gate (4 conditions all required):**
 
-**10 scan gates:** FII SELLING skip → regime filter → late entry block → price validity → extension filter → pivot buffer → volume filter → ATH buffer → trade type → sector concentration (max 2/sector)
+* Leader\_Type = "Sector Leader"
+* AF ≥ 5 (RS≥2.5 with sector tailwind)
+* Master\_Score ≥ 22
+* FII signal ≠ "FII CAUTION" or "FII SELLING"
 
-**Capital tiers:** ₹13,000 (Score≥28 AND AF≥10) / ₹10,000 (Score≥22 OR Accumulation) / ₹7,000 (standard)
+**10 scan gates (in order):**
 
-**Trade modes:** VCP (AB<0.04 + pre-breakout) / MOM (Bull + RS≥6) / STD (default)
+1. FII SELLING → skip always
+2. Market regime filter (bullish vs bearish path)
+3. Late entry block (BREAKOUT CONFIRMED needs RS≥7)
+4. Price validity (CMP>0, ATR>0, CMP≤₹5000)
+5. Extension filter (>8% above 20DMA → skip)
+6. Pivot resistance buffer (within 2% below pivot → skip)
+7. Volume filter (bullish market only — vol<120% → skip)
+8. ATH buffer (within 3% of 52W high → skip)
+9. Trade type (AVOID/NO TRADE → skip)
+10. Sector concentration (max 2 per sector)
 
-**Memory keys per stock:** `{sym}_CAP`, `{sym}_MODE`, `{sym}_SEC`
+**Capital tiers:**
 
-**Sort:** finalScore DESC, ATR% ASC tiebreaker within ±2 score (min SL preference)
+* ₹13,000 — MasterScore≥28 AND AF≥10 (high conviction)
+* ₹10,000 — MasterScore≥22 OR Accumulation Zone (medium conviction)
+* ₹7,000 — standard
+
+**Trade modes (stored as \_MODE in T4 memory):**
+
+* VCP — AB<0.04 + pre-breakout stage
+* MOM — Strong Bull + RS≥6
+* STD — everything else (default in bear market)
+
+**Sort order:** finalScore DESC, then ATR% ASC as tiebreaker within ±2 score points (minimum SL preference).
 
 ### Python Bot v13.4 — Key Logic
 
-**TSL Parameters:**
+**Circuit breaker (to be added — see Section 20, Item 1):** No automatic halt exists today. T2="YES/NO" is the only stop.
+
+**TSL Parameters (mode-aware):**
 
 ```python
 TSL_PARAMS = {
@@ -398,154 +324,217 @@ TSL_PARAMS = {
 }
 ```
 
-**TSL progression (STD):** <2% hold → 2–4% breakeven → 4–10% lock +2% → >10% ATR trail (2.5×) → >8% gap-up lock 50%
+STD trail widened in v13.3 (6→10, atr\_mult 1.5→2.5) to support full-ride vision on swing trades.
 
-**Daily schedule:** 08:45 Good Morning → 09:15 Market open → 12:28 Mid-day pulse → 15:15 Close summary
+**TSL progression (STD example):**
 
-**CE flag (v13.4):** Bullish + ATR%>1.5% → shown in Advance+Premium alerts (informational only — Dhan needed for execution)
+* Gain < 2% → hold initial SL
+* Gain 2–4% → move to breakeven
+* Gain 4–10% → lock at entry +2%
+* Gain > 10% → ATR trail (2.5× ATR below CMP)
+* Gain > 8% gap-up → lock 50% of gap
 
-**Hard exits:** Loss>5% immediate / min hold 2d swing 3d positional / 5-day cooldown same stock
+**Daily message schedule:**
 
-### History Sheet (A–R)
+* 08:45–09:15 → Good Morning (open trades P/L + waiting count + sector context)
+* 09:15–15:30 → Market hours (entry alerts, TSL updates, exit alerts)
+* 12:28–12:38 → Mid-day pulse
+* 15:15–15:45 → Market close summary
+
+**Telegram channels:**
+
+* Basic (free) → market mood, signal closed result only
+* Advance (₹499/mo) → full entry/exit details, TSL updates, mid-day pulse
+* Premium (bundle) → same as Advance + options CE candidate flag
+
+**CE candidate flag (v13.4 — informational only):**
+Fires when market is bullish AND stock ATR% > 1.5%. Shows in Advance + Premium entry alerts only. Uses existing ATR14 (col AC) and CMP — no new data needed. Currently informational — Dhan API connection needed for live CE execution.
 
 ```
-A Symbol  B Entry Date  C Entry Price  D Exit Date  E Exit Price  F P/L%
-G Result  H Strategy    I Exit Reason  J Trade Type K Initial SL  L TSL at Exit
-M Max Price  N ATR at Entry  O Days Held  P Capital ₹  Q Profit/Loss ₹  R Options Note
+ATR% < 1.5%    → no flag (premium decay risk)
+ATR% 1.5–2.5%  → normal mover: target +65%, SL -40% on premium
+ATR% > 2.5%    → fast mover: target +50%, SL -35% on premium
+```
+
+**Hard exit rules:**
+
+* Loss > 5% → hard loss exit (immediate, no min-hold check)
+* Min hold: 2 days swing, 3 days positional (prevents TSL whipsaw on day 1)
+* 5 trading day cooldown after exit before same stock re-enters
+
+### History Sheet Columns (A–R)
+
+```
+A  Symbol      B  Entry Date   C  Entry Price  D  Exit Date
+E  Exit Price  F  P/L%         G  Result        H  Strategy
+I  Exit Reason J  Trade Type   K  Initial SL    L  TSL at Exit
+M  Max Price   N  ATR at Entry O  Days Held     P  Capital ₹
+Q  Profit/Loss ₹               R  Options Note
 ```
 
 ---
 
-## 10. Critical Upload Chains
+## 9. Critical Upload Chain
 
-### Evening ZENO Reel (8:30 PM) — `daily_reel.yml`
+Scripts must run in this exact order. Each one feeds data to the next:
 
-```
-generate_reel.py → upload_youtube.py → upload_facebook.py → upload_instagram.py
-```
-
-### Morning Reel (7:00 AM) — `daily-morning-reel.yml` ← SEPARATE WORKFLOW
+### Evening ZENO Reel (8:30 PM)
 
 ```
-generate_reel_morning.py → upload_youtube.py → upload_facebook.py → upload_instagram.py
+generate_reel.py
+    └── output/reel_YYYYMMDD.mp4
+    └── output/meta_YYYYMMDD.json  ← created here (public_video_url = "")
+
+upload_youtube.py
+    └── Uploads reel to YouTube
+    └── Writes to meta → youtube_video_id, youtube_video_url, public_video_url
+
+upload_facebook.py
+    └── Uploads reel to Facebook Page only
+    └── Posts articles from RSS feed to Page
+    └── NOTE: Group posting removed — manual only
+    └── NOTE: public_video_url in meta is NOT overwritten (FB URL no longer needed for Instagram)
 ```
 
-### Daily Videos (7:30 AM) — `daily-videos.yml`
+> **Instagram:** `upload_instagram.py` is NOT called in this chain. Post manually from the downloaded reel artifact.
+> GitHub Actions → Run → Artifacts → download → post to Instagram manually.
+
+### Morning Reel (7:00 AM)
 
 ```
-generate_analysis.py (Part 1 → saves analysis_video_id.txt)
-generate_education.py (Part 2 → reads Part 1 ID → links both)
+generate_reel_morning.py
+    └── output/morning_reel_YYYYMMDD.mp4
+    └── output/morning_reel_meta_YYYYMMDD.json
+
+upload_youtube.py (morning mode)
+upload_facebook.py (morning mode — FB Page only)
 ```
 
-### Kids HerooQuest (8:00 AM) — `kids-daily.yml`
+### Daily Videos (7:30 AM)
 
 ```
-generate_kids_video.py → upload_kids_youtube.py → upload_facebook.py --meta-prefix kids
-(Instagram → MANUAL from phone)
+generate_analysis.py
+    └── output/analysis_video.mp4
+    └── output/analysis_video_id.txt       ← Part 1 ID for Part 2 linking
+    └── output/analysis_meta_YYYYMMDD.json
+
+generate_education.py
+    └── Reads analysis_video_id.txt → links Part 1 in description
+    └── output/education_video.mp4
+    └── output/education_video_id.txt
+    └── output/education_meta_YYYYMMDD.json
+    └── Updates Part 1 YouTube description with Part 2 URL
 ```
 
 ---
 
-## 11. Environment Variables & Secrets
+## 10. Environment Variables & Secrets
 
-### Dhan Trading API (Phase 4 — not connected yet)
+All stored in **GitHub Actions Secrets**. Never hardcode any of these values.
 
-| Secret | Status |
-| --- | --- |
-| `DHAN_API_KEY`, `DHAN_API_SECRET`, `DHAN_CLIENT_ID`, `DHAN_PIN`, `DHAN_TOTP_KEY` | ✅ Added — awaiting Phase 4 |
+### Dhan Trading API (added — Phase 4 live trading)
+
+| Secret | Purpose | Status |
+| --- | --- | --- |
+| `DHAN_API_KEY` | API key | ✅ Added — not connected yet |
+| `DHAN_API_SECRET` | API secret | ✅ Added — not connected yet |
+| `DHAN_CLIENT_ID` | Client ID | ✅ Added — not connected yet |
+| `DHAN_PIN` | Account PIN | ✅ Added — not connected yet |
+| `DHAN_TOTP_KEY` | 2FA TOTP key | ✅ Added — not connected yet |
+
+> Dhan integration planned for Phase 4 after backtest validation. Needs full spec before connecting — see Section 20, Item 9.
 
 ### Social Platforms
 
 | Secret | Purpose | Status |
 | --- | --- | --- |
-| `META_ACCESS_TOKEN` | Facebook + Instagram (all pages) | ✅ Auto-refreshed every 50 days |
-| `META_APP_ID` / `META_APP_SECRET` | Token refresh | ✅ |
-| `FACEBOOK_PAGE_ID` | Main trading FB Page | ✅ |
-| `FACEBOOK_GROUP_ID` | FB Group (posting broken) | ✅ |
-| `FACEBOOK_KIDS_PAGE_ID` | HerooQuest FB Page (1021152881090398) | ✅ NEW |
-| `INSTAGRAM_ACCOUNT_ID` | Instagram Business numeric ID | ✅ |
-| `YOUTUBE_CREDENTIALS` | Hindi channel (@ai360trading) | ✅ |
-| `YOUTUBE_CREDENTIALS_EN` | English channel | ✅ |
-| `YOUTUBE_CREDENTIALS_KIDS` | HerooQuest Kids channel | ✅ NEW |
+| `META_ACCESS_TOKEN` | Facebook Page API | ✅ Auto-refreshed every 50 days |
+| `META_APP_ID` | Facebook App ID — needed for auto token refresh | ✅ Added |
+| `META_APP_SECRET` | Facebook App Secret — needed for auto token refresh | ✅ Added |
+| `FACEBOOK_PAGE_ID` | Target Facebook Page ID | ✅ |
+| `FACEBOOK_GROUP_ID` | Facebook Group ID — kept for future use | ✅ (not used currently) |
+| `INSTAGRAM_ACCOUNT_ID` | Instagram Business/Creator numeric ID — kept for future use | ✅ (not used currently) |
+| `YOUTUBE_CREDENTIALS` | YouTube OAuth JSON (Hindi channel) | ✅ |
+| `YOUTUBE_CREDENTIALS_EN` | YouTube OAuth JSON (English channel) | ✅ Added |
 
-### AI Providers
+### AI Providers (Fallback Chain)
 
-| Secret | Role | Priority | Status |
+| Secret | Purpose | Priority | Status |
 | --- | --- | --- | --- |
-| `GROQ_API_KEY` | Llama 3.3 70B | Primary | ✅ |
-| `GEMINI_API_KEY` | Gemini 2.5/2.0 Flash + Image | Secondary + Kids Layer 1&2 | ✅ |
-| `ANTHROPIC_API_KEY` | Claude Haiku | Tertiary | ✅ |
-| `OPENAI_API_KEY` | GPT-4o-mini + DALL-E 3 (Kids Layer 4) | Quaternary | ✅ |
-| `HF_TOKEN` | HuggingFace FLUX.1 (Kids Layer 3) | Kids only | ⚠️ Add if missing |
+| `GROQ_API_KEY` | Groq — Llama 3.3 70B | Primary | ✅ |
+| `GEMINI_API_KEY` | Google Gemini 2.0 Flash | Secondary | ✅ Added |
+| `ANTHROPIC_API_KEY` | Claude Haiku | Tertiary | ✅ Added |
+| `OPENAI_API_KEY` | GPT-4o-mini | Quaternary | ✅ Added |
 
-### Other
+### Telegram
 
 | Secret | Purpose |
 | --- | --- |
-| `TELEGRAM_BOT_TOKEN` | Bot auth |
-| `TELEGRAM_CHAT_ID` | Free channel |
-| `CHAT_ID_ADVANCE` | Advance (₹499/mo) |
-| `CHAT_ID_PREMIUM` | Premium (bundle) |
-| `GCP_SERVICE_ACCOUNT_JSON` | Search Console + gspread |
-| `GH_TOKEN` | GitHub API |
+| `TELEGRAM_BOT_TOKEN` | Bot authentication token |
+| `TELEGRAM_CHAT_ID` | Free channel (ai360trading) |
+| `CHAT_ID_ADVANCE` | Advance signals channel (₹499/month) |
+| `CHAT_ID_PREMIUM` | Premium signals channel (bundle) |
 
----
+### Google / GCP
 
-## 12. Human Touch System (Anti-AI-Penalty)
-
-All **trading/finance** content must pass through `human_touch.py`. **Never use raw AI output.**
-
-| Technique | Method |
+| Secret | Purpose |
 | --- | --- |
-| 50+ rotating hooks | `ht.get_hook(mode, lang)` |
-| Personal phrases | `ht.get_personal_phrase(lang)` |
-| TTS speed variation | `ht.get_tts_speed()` — 0.95–1.05x |
-| Humanize output | `ht.humanize(text, lang)` |
-| Emoji rotation | `ht.get_emoji_set()` — day-seeded |
-| SEO tags | `seo.get_video_tags(mode, lang)` |
-| Connector variation + banned phrase removal | Internal to `humanize()` |
+| `GCP_SERVICE_ACCOUNT_JSON` | Search Console Indexing API + Google Sheets (gspread) |
 
-> **Kids channel exception:** `generate_kids_video.py` calls `ai.generate_json()` directly for structured script. TTS rate is fixed at `-10%` (slower for children) — `ht.get_tts_speed()` is NOT applied to kids narration.
+### General
+
+| Secret | Purpose |
+| --- | --- |
+| `GH_TOKEN` | GitHub API token |
 
 ---
 
-## 13. Known Issues & Fixes
+## 11. Human Touch System (Anti-AI-Penalty)
 
-### Facebook Group Posting ❌
+All content uses `human_touch.py`. **Never use raw AI output directly.**
 
-Missing `publish_to_groups` scope on `META_ACCESS_TOKEN`. Fix: developers.facebook.com → App → add scope → regenerate token → update secret. `token_refresh.yml` will then auto-maintain it.
+| Technique | Method | What It Does |
+| --- | --- | --- |
+| 50+ rotating hooks | `ht.get_hook(mode, lang)` | No two videos start the same |
+| Personal phrases | `ht.get_personal_phrase(lang)` | "Maine dekha hai..." injected naturally |
+| TTS speed variation | `ht.get_tts_speed()` | 0.95–1.05x range — passed to edge\_tts rate param |
+| Humanize output | `ht.humanize(text, lang)` | Strips robotic patterns, varies connectors |
+| Emoji rotation | `ht.get_emoji_set()` | Day-seeded — different emoji set each day |
+| SEO tags | `seo.get_video_tags(mode, lang)` | India + Global tags combined |
+| Connector variation | Internal to humanize() | "aur/lekin/kyunki" rotated |
+| Banned phrase removal | Internal to humanize() | "Certainly!", "It's important to note" stripped |
 
-### Instagram — Main Channel ⚠️
+---
 
-Verify `INSTAGRAM_ACCOUNT_ID` via:
-```
-https://graph.facebook.com/me/accounts?access_token=YOUR_META_TOKEN
-```
-Upload order is critical: YouTube → Facebook → Instagram.
+## 12. Known Issues & Current Status
 
-### Instagram — Kids Channel ❌ Permanent
+### Facebook Group Posting — Manual (by choice)
+Auto-posting to Facebook Group is intentionally deferred. Owner posts manually. `upload_facebook.py` posts to FB Page only. When ready to re-enable, see Section 20 for the token scope fix steps.
 
-Permanently removed from `kids-daily.yml`. Always download `kids_reel_{date}.mp4` from GitHub Actions → Artifacts → upload manually from phone.
+### Instagram — Manual (by choice)
+Auto-posting to Instagram is intentionally deferred. Owner posts manually using downloaded artifacts from GitHub Actions runs. `upload_instagram.py` exists but is not called in any workflow.
+
+### META\_ACCESS\_TOKEN Expiry — Automated ✅
+`token_refresh.yml` runs every 50 days automatically. Refreshes token + updates GitHub Secret + sends Telegram alert. Requires `META_APP_ID` and `META_APP_SECRET` (both added).
 
 ### YouTube Community Tab ⚠️
+Community Tab requires **500+ subscribers** to be enabled.
+If channel is below 500 subs, `generate_community_post.py` will:
+* Print a clear warning explaining why
+* Save post text to `output/community_post_YYYYMMDD.txt` for manual posting
+* Not crash the workflow
 
-Requires 500+ subscribers. Below threshold: post text saved to `output/community_post_YYYYMMDD.txt`, workflow does not crash.
-
-### HF\_TOKEN — Not Yet Added ⚠️
-
-Kids image Layer 3 (FLUX.1) is skipped until `HF_TOKEN` is added. Get free token: huggingface.co → Settings → Access Tokens.
-
-### Kids Scene Image Caching ✅
-
-Existing `output/kids_scene_NN.png` files are reused. Safe to re-run after partial failure — only missing scenes regenerate.
+**Enable:** YouTube Studio → Customization → Layout → Community Tab → ON
 
 ---
 
-## 14. Technical Standards
+## 13. Technical Standards
 
 ### The "Full Code" Rule
 
 > AI assistants **must always provide the complete content** of any modified file. Partial snippets or diffs are strictly prohibited.
+
+**Standard AI task prompt:**
 
 ```
 Context: I am working on the ai360trading system. Refer to SYSTEM.md for architecture.
@@ -553,149 +542,159 @@ Task: [Your Task]
 Note: Provide the full code for any file you modify.
 ```
 
-### AI Client Usage — No Exceptions
+### AI Client Usage Rule — No Exceptions
+
+> **Never call AI APIs directly in generators.** Always use:
 
 ```python
 from ai_client import ai, img_client
 response = ai.generate(prompt, content_mode=CONTENT_MODE, lang=LANG)
-data     = ai.generate_json(prompt, content_mode=CONTENT_MODE, lang=LANG)
+data = ai.generate_json(prompt, content_mode=CONTENT_MODE, lang=LANG)
 ```
 
-> **Kids image exception:** `generate_kids_video.py` uses its own 5-layer image chain directly. Phase 2 will consolidate via `img_client`.
+### Human Touch Usage Rule — No Exceptions
 
-### Human Touch — No Exceptions (finance generators)
+> **Never use raw AI output.** Always pass through human\_touch:
 
 ```python
 from human_touch import ht, seo
-hook  = ht.get_hook(mode=CONTENT_MODE, lang=LANG)
-clean = ht.humanize(raw_script, lang=LANG)
-tags  = seo.get_video_tags(mode=CONTENT_MODE, lang=LANG)
-speed = ht.get_tts_speed()   # NOT used in kids generator
+hook   = ht.get_hook(mode=CONTENT_MODE, lang=LANG)
+clean  = ht.humanize(raw_script, lang=LANG)
+tags   = seo.get_video_tags(mode=CONTENT_MODE, lang=LANG)
+speed  = ht.get_tts_speed()  # pass to edge_tts rate param
 ```
 
 ### Dependency Pins
 
 | Package | Version | Reason |
 | --- | --- | --- |
-| `Pillow` | `>=10.3.0` | LANCZOS resampling |
-| `imageio` | `==2.9.0` | Prevents MoviePy crashes |
-| `moviepy` | `==1.0.3` | Newer versions break audio |
-| `yfinance` | Latest | Use `fast_info['last_price']` only |
-| `PyNaCl` | Latest | GitHub Secret encryption |
-| `google-genai` | Latest | Gemini 2.5/2.0 Flash Image (kids + fallback) |
-| `anthropic` | Latest | Claude fallback |
-| `openai` | Latest | GPT-4o-mini + DALL-E 3 (kids layer 4) |
-| `gspread` | Latest | Google Sheets |
-| `oauth2client` | Latest | GCP service account |
-| `pytz` | Latest | IST timezone |
-| `huggingface-hub` + `requests` | Latest | Kids HF image layer 3 |
+| `Pillow` | `>=10.3.0` | Required for LANCZOS resampling |
+| `imageio` | `==2.9.0` | Prevents MoviePy rendering crashes |
+| `moviepy` | `==1.0.3` | Force reinstall — newer versions break audio |
+| `yfinance` | Latest | Use `fast_info['last_price']` only — not `.history()` |
+| `PyNaCl` | Latest | Required for GitHub Secret encryption in token\_refresh.py |
+| `google-generativeai` | Latest | Gemini fallback in ai\_client.py |
+| `anthropic` | Latest | Claude fallback in ai\_client.py |
+| `openai` | Latest | OpenAI fallback in ai\_client.py |
+| `gspread` | Latest | Google Sheets access in trading\_bot.py |
+| `oauth2client` | Latest | GCP service account auth for gspread |
+| `pytz` | Latest | IST timezone handling in trading\_bot.py |
 
-> **Kids system deps (apt-get):** `ffmpeg`, `fonts-dejavu`, `fonts-liberation`
+> ⚠️ **Pin all packages** — "Latest" on CI can silently break on a new release. Pinning requirements.txt is a pending improvement — see Section 20, Item 7.
 
 ### Voice Assignments
 
-| Voice | Gender | Used For |
+| Voice ID | Gender | Used For |
 | --- | --- | --- |
 | `hi-IN-MadhurNeural` | Male | Short 2 — authoritative trade setups |
-| `hi-IN-SwaraNeural` | Female | Short 3, ZENO Reel, Morning Reel, Analysis, Education, Kids (hi/both) |
-| `en-US-JennyNeural` | Female | English channel, Kids (en mode) |
+| `hi-IN-SwaraNeural` | Female | Short 3, ZENO Reel, Morning Reel, Analysis, Education |
+| `en-US-JennyNeural` | Female | English channel — all English content |
 | `en-US-GuyNeural` | Male | English Short 2 alternative |
 
-### TTS Rate
+### TTS Speed via human\_touch
 
 ```python
-# Finance generators — variable via human_touch
-rate_str = f"+{rate_pct}%" if rate_pct >= 0 else f"{rate_pct}%"
+tts_speed = ht.get_tts_speed()           # returns float 0.95–1.05
+rate_pct  = int((tts_speed - 1.0) * 100)
+rate_str  = f"+{rate_pct}%" if rate_pct >= 0 else f"{rate_pct}%"
 await edge_tts.Communicate(text, VOICE, rate=rate_str).save(path)
-
-# Kids generator — fixed slower rate
-await edge_tts.Communicate(text, voice, rate="-10%").save(str(out_path))
 ```
 
 ### Video Formats
 
-| Content | Ratio | Resolution | Platform |
-| --- | --- | --- | --- |
-| Analysis + Education | 16:9 | Standard | YouTube Hindi |
-| Kids HerooQuest | 16:9 | 1280×720 | YouTube Kids |
-| Kids Short | 9:16 | 1080×1920 (crop 405:720@x=437) | YouTube Shorts |
-| Kids Reel | 9:16 | 1080×1920 (crop 405:720@x=437), 44.1kHz | Instagram (manual) |
-| Short 2, Short 3, Morning Reel, ZENO Reel | 9:16 | Standard | YouTube Shorts / Reels / Instagram |
+| Content | Ratio | Platform |
+| --- | --- | --- |
+| Analysis + Education | 16:9 | YouTube |
+| Short 2, Short 3, Short 4, Morning Reel, ZENO Reel | 9:16 | YouTube Shorts / Reels / Instagram |
+
+### SEO Tags Strategy
+
+Every video includes both India-specific AND global tags via `seo.get_video_tags()`:
+
+* India: `Nifty50`, `TradingIndia`, `StockMarketIndia`, `BankNifty`
+* Global: `USStocks`, `UKInvesting`, `BrazilMarket`, `UAEInvesting`, `GlobalInvesting`
+* Universal: `Finance`, `Investing`, `FinancialLiteracy`, `Shorts`
 
 ---
 
-## 15. Disney 3D Reel Roadmap
+## 14. Disney 3D Reel Roadmap
 
-### Main Channel (@ai360trading)
+| Phase | Tool | Quality | Timeline | Status |
+| --- | --- | --- | --- | --- |
+| 1 (Now) | PIL + MoviePy + ZENO PNG | 2D animated slides | Current | ✅ Active |
+| 2 | Gemini Veo API (free tier) | AI video clips | 3–6 months | Hooks in ai\_client.py |
+| 3 | Stable Diffusion + AnimateDiff | 3D style frames | 6–12 months | Planned |
+| 4 | Google Veo 2 / Sora (when free) | True Disney-style 3D | 12–18 months | Planned |
 
-| Phase | Tool | Status |
-| --- | --- | --- |
-| 1 (Now) | PIL + MoviePy + ZENO PNG | ✅ Active |
-| 2 | Gemini Veo API | Hooks in `img_client` |
-| 3 | Stable Diffusion + AnimateDiff | Planned |
-| 4 | Google Veo 2 / Sora | Planned |
-
-### Kids Channel (HerooQuest)
-
-| Phase | Tool | Status |
-| --- | --- | --- |
-| 1 (Now) | PIL + ffmpeg + Ken Burns zoom | ✅ Active |
-| 2 | Wan2.2 Colab clips | Swap `make_scene_clip()` — no other changes |
+> `img_client` in `ai_client.py` is the upgrade hook — swap in Phase 2 generation with zero changes to generators.
 
 ---
 
-## 16. Full Data Flow
+## 15. Full Data Flow
 
 ```
-Market hours Mon–Fri 9:15–3:30 IST
-└── main.yml every 5 min → trading_bot.py → Sheets → TSL → Telegram
+Market hours (Mon–Fri, 9:15 AM–3:30 PM IST)
+└── main.yml (every 5 min)
+    └── trading_bot.py v13.4
+        └── get_sheets() → gspread → AlertLog + History + Nifty200
+        └── get_market_regime() → Nifty CMP vs 20DMA → bullish/bearish
+        └── Step A: WAITING→TRADED (entry alert → all 3 channels)
+        └── Step B: Monitor TRADED (TSL update → Advance+Premium)
+        └── Exit logic (TSL hit / target hit / hard loss)
+        └── CE candidate flag in entry alert (bullish + ATR%>1.5%)
+        └── History sheet append on exit
+        └── T4 memory string updated each run
 
-AppScript v13.3 (manual or scheduled)
-└── 10-gate scan → AlertLog → T4 memory → Telegram bearish alert
+AppScript v13.3 (Google Sheets bound — triggered manually or on schedule)
+└── Nifty200 sheet scan (batched 60 rows per run)
+└── 10-gate filter → bearish or bullish path
+└── Conviction bonus + capital tier + trade mode
+└── ATR% tiebreaker sort (min SL preference)
+└── Write WAITING rows to AlertLog
+└── Write _CAP, _MODE, _SEC keys to T4 memory
+└── Bearish alert with top sector context → Telegram
 
-7:00 AM daily — daily-morning-reel.yml (SEPARATE workflow)
-└── generate_reel_morning.py → upload chain
+7:00 AM daily
+└── daily_reel.yml (morning job)
+    └── generate_reel_morning.py → upload_youtube.py → upload_facebook.py (Page only) ✅
 
-8:00 AM daily — kids-daily.yml
-└── generate_kids_video.py
-    └── kids_content_calendar.get_today_topic()
-    └── ai.generate_json() → 6-scene script
-    └── 5-layer image chain (Gemini 2.5 → 2.0 → HF → DALL-E → placeholder)
-    └── edge_tts rate="-10%" per scene (8s delay between API calls)
-    └── ffmpeg Ken Burns → clips → concat → video + short + reel
-└── upload_kids_youtube.py (YOUTUBE_CREDENTIALS_KIDS)
-└── upload_facebook.py --meta-prefix kids (FACEBOOK_KIDS_PAGE_ID)
-└── Instagram → MANUAL from phone
+7:30 AM / 9:30 AM daily
+└── daily-videos.yml
+    └── generate_analysis.py → Part 1 → YouTube ✅
+    └── generate_education.py → Part 2 → YouTube ✅
 
-7:30 AM / 9:30 AM — daily-videos.yml
-└── generate_analysis.py (Part 1) → generate_education.py (Part 2) → YouTube
+10:00 AM / 11:30 AM daily
+└── daily-articles.yml
+    └── generate_articles.py → 4 articles → GitHub Pages ✅ → Facebook Page ✅
 
-10:00 AM / 11:30 AM — daily-articles.yml
-└── generate_articles.py → 4 articles → GitHub Pages + Facebook
+11:30 AM / 1:30 PM daily
+└── daily-shorts.yml
+    └── generate_shorts.py → Short 2 + Short 3 → YouTube ✅
+    └── generate_community_post.py → Community Tab ✅
 
-11:30 AM / 1:30 PM — daily-shorts.yml
-└── generate_shorts.py → Short 2 + Short 3
-└── generate_community_post.py → Community Tab
-
-8:30 PM — daily_reel.yml
-└── generate_reel.py → ZENO reel
-└── upload_youtube.py → upload_facebook.py → upload_instagram.py
+8:30 PM daily
+└── daily_reel.yml (evening job)
+    └── generate_reel.py → ZENO reel
+    └── upload_youtube.py ✅ → upload_facebook.py (Page only) ✅
 ```
 
 ---
 
-## 17. Website
+## 16. Website
 
-* **URL:** `ai360trading.in` — GitHub Pages (Jekyll, `master` / `_posts/`)
+* **URL:** `ai360trading.in`
+* **Hosting:** GitHub Pages (Jekyll, `master` branch `_posts/`)
 * **Publishing:** Auto-commit by `daily-articles.yml`
-* **SEO:** Instant indexing via `GCP_SERVICE_ACCOUNT_JSON`
-* **Revenue:** Google AdSense (USA/UK = highest CPM)
-* **Pillars:** Stock Market, Bitcoin/Crypto, Personal Finance, AI Trading
-* **Markets:** India (Nifty50, BankNifty), USA (S&P500, NASDAQ), UK (FTSE100), Brazil (IBOVESPA), Crypto
+* **SEO Indexing:** Instant via `GCP_SERVICE_ACCOUNT_JSON`
+* **Revenue:** Google AdSense (USA/UK English readers = highest CPM)
+* **Content pillars:** Stock Market, Bitcoin/Crypto, Personal Finance, AI Trading
+* **Market coverage:** India (Nifty50, BankNifty), USA (S&P500, NASDAQ), UK (FTSE100), Brazil (IBOVESPA), Crypto (BTC, ETH)
+
+> **SEO improvement (pending):** Internal linking between articles is not yet implemented. See Section 20, Item 5.
 
 ---
 
-## 18. Social Media Links
+## 17. Social Media Links
 
 | Platform | Handle/Link |
 | --- | --- |
@@ -703,112 +702,464 @@ AppScript v13.3 (manual or scheduled)
 | 📣 Telegram (Free) | @ai360trading |
 | 📣 Telegram (Advance) | ai360trading\_Advance — ₹499/month |
 | 📣 Telegram (Premium) | ai360trading\_Premium — bundle |
-| ▶️ YouTube (Trading) | @ai360trading |
-| ▶️ YouTube (Kids) | HerooQuest channel |
-| 📸 Instagram | @ai360trading |
-| 👥 Facebook Group | facebook.com/groups/ai360trading |
-| 📘 Facebook Page (Trading) | facebook.com/ai360trading |
-| 📘 Facebook Page (Kids) | HerooQuest — ID 1021152881090398 |
+| ▶️ YouTube | @ai360trading |
+| 📸 Instagram | @ai360trading (manual posting) |
+| 👥 Facebook Group | facebook.com/groups/ai360trading (manual posting) |
+| 📘 Facebook Page | facebook.com/ai360trading (auto) |
 | 🐦 Twitter/X | @ai360trading |
 
 ---
 
-## 19. Phase Roadmap
+## 18. Phase Roadmap
 
 ### Phase 1 ✅ Complete
-
 `ai_client.py`, `human_touch.py`, `token_refresh.py`, `generate_reel_morning.py`
 
 ### Phase 2 ✅ Complete
-
-All `generate_*.py` + `kids_content_calendar.py` + `upload_kids_youtube.py` — upgraded to ai\_client + human\_touch. HerooQuest Kids channel fully live.
+`generate_articles.py`, `generate_analysis.py`, `generate_education.py`, `generate_reel.py`, `generate_shorts.py`, `generate_community_post.py` — all upgraded to ai\_client + human\_touch
 
 ### Phase 3 🔄 In Progress
 
-| Item | Priority |
-| --- | --- |
-| Fix Facebook Group token (`publish_to_groups` scope) | 🔴 High |
-| Verify Instagram main channel live end-to-end | 🔴 High |
-| Add `HF_TOKEN` secret for Kids image Layer 3 | 🟡 Medium |
-| English channel — `generate_english.py` + `upload_youtube_english.py` | 🟡 Medium |
-| Kids Phase 2 — Wan2.2 animation (swap `make_scene_clip()`) | 🔵 Future |
-| Disney 3D main reel — `img_client` Phase 2 | 🔵 Future |
+| Item | File | Priority |
+| --- | --- | --- |
+| English channel shorts (written from scratch, not translated) | `generate_english.py` | 🟡 Medium |
+| English channel upload | `upload_youtube_english.py` | 🟡 Medium |
+| Instagram auto-post re-enable | `upload_instagram.py` + workflow | 🔵 Deferred |
+| Facebook Group auto-post re-enable | `upload_facebook.py` scope fix | 🔵 Deferred |
+| Disney 3D reel upgrade | `ai_client.py` img\_client Phase 2 | 🔵 Future |
 
 ### Phase 4 📋 Planned — Dhan Live Trading
 
-Backtest validation (30–40 paper trades, win rate >35%) → Dhan API connection → Options CE execution → Live ₹45,000 capital deployment (₹5k buffer)
+| Item | Dependency | Notes |
+| --- | --- | --- |
+| Backtest validation | 30–40 live paper trades, win rate >35% | Currently running paper trades |
+| Dhan API connection | `DHAN_API_KEY` secrets already added | Needs full spec first — see Section 20, Item 9 |
+| Options CE execution | Dhan API + lot size data | CE flag already in alerts (informational) |
+| Live capital deployment | After backtest confirms system | ₹45,000 max deployed (₹5k buffer) |
 
 ---
 
-## 20. How to Test Everything
+## 19. How to Test Everything
 
-### Workflow manual trigger
+### Test a workflow manually
+GitHub Actions → select workflow → **Run workflow** → set `content_mode` dropdown → watch logs.
 
-GitHub Actions → select workflow → **Run workflow** → set dropdown.
-
-### Kids channel test
-
+### Verify ai\_client fallback chain
+In logs, look for:
 ```
-workflow_dispatch → kids-daily.yml → lang = both
+[AI]   Using ai_client fallback chain: Groq→Gemini→Claude→OpenAI→Templates
+✅ AI generated via groq
 ```
-Check logs for: `[IMG-1] Scene N via Gemini 2.5 Flash Image ✓` or `[LAYER-5]` if all AI fails.
-On failure: download `kids-debug-{run_id}` artifact from Actions → Artifacts.
+If Groq is down: `⚠️ groq failed` → `✅ AI generated via gemini`
 
-### Trading bot logs (main.yml)
+### Verify human\_touch is active
+In logs:
+```
+✅ ZENO script ready — emotion: thinking | via groq
+✅ Community post generated via groq (112 chars)
+```
 
+### Verify trading bot
+In logs (`main.yml`):
 ```
 [REGIME] Nifty CMP ₹22679 vs 20DMA ₹23547 → BEARISH
+[INFO] Active trades: 4/5
 [TSL] NSE:ONGC [STD]: ₹280.60→₹285.20
 [DONE] 15:20:01 IST | mem=842 chars
 ```
 
-### AppScript test
-
-Google Sheet → AI360 TRADING menu → MANUAL SYNC → Logger:
+### Verify AppScript
+Open Google Sheet → AI360 TRADING menu → MANUAL SYNC → check Logger output:
 ```
-[CAND] NSE:ADANIPOWER | Score=24 | ₹10000 | STD | AF=8.2 | Qty=64
-```
-
-### Force content modes
-
-```
-workflow_dispatch → content_mode = market / weekend / holiday
-workflow_dispatch (kids) → lang = both / hi / en
+[REGIME] CMP=22679 20DMA=23547 Bullish=false
+[CAND] NSE:ADANIPOWER | Score=24 | ATR%=2.1 | ₹10000 | STD | AF=8.2 | Qty=64
+[DONE] Traded=4 | Waiting=3 | Bullish=false
 ```
 
-### Automation switch
+### Force each content mode
+```
+workflow_dispatch → content_mode = market   # weekday content
+workflow_dispatch → content_mode = weekend  # weekend content
+workflow_dispatch → content_mode = holiday  # holiday content
+```
 
-Google Sheet → AlertLog → cell T2 → `YES` to enable.
+### Automation on/off switch
+Google Sheet → AlertLog → cell T2 → set "YES" to enable, anything else to disable.
 
 ---
 
-## 21. Workflow Health Summary (April 11, 2026)
+## 20. Improvement Backlog
 
-| Workflow | File | Run # | Status |
-| --- | --- | --- | --- |
-| AlgoTradeBot | `main.yml` | #1241+ | ✅ Healthy |
-| Daily Videos | `daily-videos.yml` | #74 | ✅ Healthy |
-| Daily Shorts | `daily-shorts.yml` | #41 | ✅ Healthy |
-| AI360 Daily Morning Reel | `daily-morning-reel.yml` | #6 | ✅ Healthy |
-| AI360 Daily ZENO Reel | `daily_reel.yml` | #47 | ✅ Healthy |
-| Daily AI Market Intelligence | `daily-articles.yml` | #46 | ✅ Healthy |
-| Kids Channel — HerooQuest | `kids-daily.yml` | #14 | ✅ Healthy |
-| Auto Token Refresh | `token_refresh.yml` | — | ✅ Scheduled |
-| KeepAlive | `keepalive.yml` | — | ✅ Active |
-| pages-build-deployment | Auto | #1626 | ✅ Healthy |
+This section tracks all planned improvements. Work through these one by one. Each item has a clear spec so any AI assistant can implement it immediately.
 
-**Overall: 🟢 ALL SYSTEMS OPERATIONAL**
+---
+
+### Item 1 — Trading Bot Circuit Breaker
+**Priority:** 🔴 High
+**File:** `trading_bot.py`
+**Status:** ⬜ Not started
+
+**Problem:** No automatic halt exists. If Sheets is unreachable, the bot crashes mid-run and can leave WAITING rows stuck. No guard against running too many signals in one cycle.
+
+**What to build:**
+Add these checks at the TOP of `main()` before any sheet operations:
+
+```python
+# 1. Sheets connectivity check
+try:
+    sheet = get_sheets()
+except Exception as e:
+    send_telegram(TELEGRAM_CHAT_ID, f"⚠️ Bot startup failed — Sheets unreachable: {e}")
+    sys.exit(1)
+
+# 2. Max signals per run guard (prevents runaway on data anomaly)
+MAX_NEW_SIGNALS_PER_RUN = 3
+new_signals_this_run = 0
+# increment new_signals_this_run each time a WAITING→TRADED transition fires
+# if new_signals_this_run >= MAX_NEW_SIGNALS_PER_RUN: break out of loop, log warning
+
+# 3. T2 switch check (already exists — confirm it runs before any trade logic)
+```
+
+Also add at end of `main()`:
+```python
+# Log run completion with memory size for debugging
+print(f"[DONE] {ist_now()} | mem={len(t4_string)} chars | signals={new_signals_this_run}")
+```
+
+---
+
+### Item 2 — T4 Memory: Migrate from CSV String to JSON
+**Priority:** 🟡 Medium-High
+**Files:** `trading_bot.py` (Python read/write) + AppScript (Google Sheets bound script)
+**Status:** ⬜ Not started
+
+**Problem:** T4 stores `ONGC_TSL=285.20,ONGC_MAX=291.00,...` as plain text. A symbol containing a comma (none currently, but possible) or a malformed write corrupts ALL memory for that row. JSON is safer and easier to debug.
+
+**Migration plan:**
+
+In `trading_bot.py`, replace the T4 read/write helpers:
+```python
+# OLD read
+def read_t4(t4_string):
+    mem = {}
+    for pair in t4_string.split(","):
+        if "=" in pair:
+            k, v = pair.split("=", 1)
+            mem[k.strip()] = v.strip()
+    return mem
+
+# NEW read (handles both old CSV format and new JSON — safe migration)
+def read_t4(t4_string):
+    t4_string = t4_string.strip()
+    if t4_string.startswith("{"):
+        try:
+            return json.loads(t4_string)
+        except json.JSONDecodeError:
+            return {}
+    # fallback: parse old CSV format
+    mem = {}
+    for pair in t4_string.split(","):
+        if "=" in pair:
+            k, v = pair.split("=", 1)
+            mem[k.strip()] = v.strip()
+    return mem
+
+# NEW write
+def write_t4(mem_dict):
+    return json.dumps(mem_dict, separators=(',', ':'))
+```
+
+In AppScript, replace T4 write:
+```javascript
+// OLD
+sheet.getRange("T4").setValue(memoryString);  // "ONGC_TSL=285,ONGC_MAX=291"
+
+// NEW
+sheet.getRange("T4").setValue(JSON.stringify(memoryObj));
+```
+
+**Rollout:** Deploy Python side first (with CSV fallback). Then update AppScript. No data loss — old CSV is still readable during transition.
+
+---
+
+### Item 3 — Verify generate\_community\_post.py Exists
+**Priority:** 🔴 High (workflow will fail if missing)
+**File:** `generate_community_post.py`
+**Status:** ⬜ Not verified
+
+**Problem:** SYSTEM.md lists this file as ✅ complete but it does not appear in the visible repo file listing. If it's missing, `daily-shorts.yml` will throw an ImportError or FileNotFoundError at runtime.
+
+**Steps:**
+1. Check repo root: does `generate_community_post.py` exist?
+2. If missing: create it. It should follow the same pattern as other generators:
+   - Import `ai_client`, `human_touch`, `indian_holidays`
+   - Read `CONTENT_MODE` from environment
+   - Generate a short community post text (100–200 chars) using `ai.generate()`
+   - Pass through `ht.humanize()`
+   - If YouTube Community Tab is unavailable (sub count check or API error): save to `output/community_post_YYYYMMDD.txt` and exit 0
+   - Otherwise: post via YouTube Data API community post endpoint
+3. If it exists but is not in root: move it to root or fix the import path in the workflow.
+
+---
+
+### Item 4 — Workflow Failure Alerts via Telegram
+**Priority:** 🟡 High
+**Files:** All `.github/workflows/*.yml` files
+**Status:** ⬜ Not started
+
+**Problem:** When a workflow fails at 3 AM, there is no notification. You only notice when content is missing for that day.
+
+**What to add to every workflow YAML** — add this as the last job step in each workflow (runs even if earlier steps fail):
+
+```yaml
+- name: Notify on failure
+  if: failure()
+  env:
+    TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+    TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+  run: |
+    curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+      -d chat_id="${TELEGRAM_CHAT_ID}" \
+      -d text="⚠️ GitHub Actions FAILED%0AWorkflow: ${{ github.workflow }}%0AJob: ${{ github.job }}%0ARun: ${{ github.run_id }}%0ACheck: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+```
+
+**Workflows to update:**
+- `daily-videos.yml`
+- `daily-shorts.yml`
+- `daily_reel.yml`
+- `daily-articles.yml`
+- `main.yml`
+- `token_refresh.yml`
+
+---
+
+### Item 5 — Internal Linking in Articles
+**Priority:** 🟡 Medium
+**File:** `generate_articles.py`
+**Status:** ⬜ Not started
+
+**Problem:** Each of the 4 daily articles is a standalone piece with no links to previous posts. Internal linking is one of the strongest on-page SEO signals for Google indexing.
+
+**What to add in `generate_articles.py`:**
+
+```python
+import os, glob
+
+def get_recent_post_links(posts_dir="_posts", count=5):
+    """Return list of (title, url_slug) for the most recent posts."""
+    files = sorted(glob.glob(f"{posts_dir}/*.md"), reverse=True)[:count]
+    links = []
+    for f in files:
+        with open(f) as fp:
+            content = fp.read()
+        # Extract title from frontmatter
+        for line in content.split("\n"):
+            if line.startswith("title:"):
+                title = line.replace("title:", "").strip().strip('"')
+                # Build URL from filename: 2026-04-10-nifty-analysis.md → /2026/04/10/nifty-analysis/
+                base = os.path.basename(f).replace(".md", "")
+                parts = base.split("-", 3)
+                slug = f"/{parts[0]}/{parts[1]}/{parts[2]}/{parts[3]}/"
+                links.append((title, slug))
+                break
+    return links
+
+# Then pass recent_links into the article prompt:
+recent = get_recent_post_links()
+link_context = "\n".join([f"- [{t}]({u})" for t, u in recent])
+prompt = f"""
+...your existing prompt...
+
+At the end of the article body, naturally include 1-2 internal links to these recent posts where relevant:
+{link_context}
+Use markdown link format: [anchor text](url)
+"""
+```
+
+---
+
+### Item 6 — Article Deduplication (Title Hash Check)
+**Priority:** 🟡 Medium
+**File:** `generate_articles.py`
+**Status:** ⬜ Not started
+
+**Problem:** The same topic can be generated multiple times in the same week via topic rotation, resulting in near-duplicate headlines that hurt SEO.
+
+**What to add:**
+
+```python
+import hashlib
+
+def get_recent_titles(posts_dir="_posts", days=7):
+    """Return set of normalised recent post titles for deduplication."""
+    cutoff = datetime.now() - timedelta(days=days)
+    titles = set()
+    for f in glob.glob(f"{posts_dir}/*.md"):
+        # Parse date from filename
+        base = os.path.basename(f)
+        try:
+            date = datetime.strptime(base[:10], "%Y-%m-%d")
+        except ValueError:
+            continue
+        if date >= cutoff:
+            with open(f) as fp:
+                for line in fp.read().split("\n"):
+                    if line.startswith("title:"):
+                        title = line.replace("title:", "").strip().strip('"').lower()
+                        titles.add(title)
+    return titles
+
+# Add to article generation prompt:
+recent_titles = get_recent_titles()
+prompt = f"""
+...existing prompt...
+
+IMPORTANT: Do NOT generate articles with titles similar to these recent ones:
+{chr(10).join(recent_titles)}
+Pick a fresh angle or different market/topic.
+"""
+```
+
+---
+
+### Item 7 — Pin All requirements.txt Packages
+**Priority:** 🟡 Medium
+**File:** `requirements.txt`
+**Status:** ⬜ Not started
+
+**Problem:** Most packages in `requirements.txt` are unpinned ("Latest"). A new release of `gspread`, `anthropic`, or `google-generativeai` can silently break production on the next GitHub Actions runner.
+
+**Steps:**
+1. Run `pip freeze` locally (or in a test Action run) to get exact current versions.
+2. Replace every unpinned line in `requirements.txt` with a pinned version.
+3. Keep existing pins for `Pillow`, `imageio`, `moviepy`.
+4. Example result:
+```
+Pillow>=10.3.0
+imageio==2.9.0
+moviepy==1.0.3
+yfinance==0.2.38
+gspread==6.1.2
+oauth2client==4.1.3
+anthropic==0.25.0
+openai==1.30.1
+google-generativeai==0.5.4
+groq==0.7.0
+pytz==2024.1
+PyNaCl==1.5.0
+edge-tts==6.1.9
+requests==2.32.3
+python-telegram-bot==21.3
+```
+5. Add a note at top of file: `# Pinned on YYYY-MM-DD — update quarterly or when upgrading a package`
+
+---
+
+### Item 8 — Add DRY\_RUN Mode to All Generators
+**Priority:** 🟢 Nice-to-have
+**Files:** All `generate_*.py` files + `upload_*.py` files
+**Status:** ⬜ Not started
+
+**Problem:** Every script needs live secrets to run. You cannot test prompt changes locally without uploading to YouTube or posting to Telegram.
+
+**What to add:**
+
+In each generator/uploader, read at the top:
+```python
+DRY_RUN = os.environ.get("DRY_RUN", "false").lower() == "true"
+```
+
+In upload functions:
+```python
+if DRY_RUN:
+    print(f"[DRY RUN] Would upload to YouTube: {video_path}")
+    print(f"[DRY RUN] Title: {title}")
+    print(f"[DRY RUN] Description: {description[:200]}")
+    return "dry_run_video_id"
+```
+
+In Telegram send functions:
+```python
+if DRY_RUN:
+    print(f"[DRY RUN] Telegram → {channel}: {message[:200]}")
+    return
+```
+
+**Usage:** `DRY_RUN=true python generate_reel.py` — generates the full video and logs everything, but makes no external calls.
+
+---
+
+### Item 9 — Dhan Live Trading Integration Spec
+**Priority:** 🔵 Phase 4 — do not start until 30+ paper trades validated
+**File:** New file `dhan_client.py`
+**Status:** ⬜ Not started — needs spec first
+
+**Pre-conditions before writing any code:**
+- [ ] 30–40 paper trades completed with win rate >35%
+- [ ] Max drawdown in paper trading <15%
+- [ ] AppScript + Python bot running stably with zero crashes for 2 weeks
+
+**Design decisions needed before starting:**
+1. Order type: Market or Limit? (Limit is safer — needs slippage buffer logic)
+2. Lot size: Fixed quantity or % of capital tier?
+3. Position sizing check: Verify available margin before placing order
+4. Live vs paper flag: Single env variable `LIVE_TRADING=true` that defaults to false
+5. Error handling: If order placement fails, send Telegram alert and do NOT mark as TRADED in sheet
+
+**Dhan API endpoints needed:**
+- `POST /orders` — place order
+- `GET /orders/{order_id}` — verify fill
+- `GET /portfolio/positions` — check open positions
+- `GET /funds` — check available margin
+
+**Implementation approach:**
+```python
+# dhan_client.py
+class DhanClient:
+    def place_order(self, symbol, qty, order_type, side):
+        if not LIVE_TRADING:
+            print(f"[PAPER] {side} {qty} {symbol}")
+            return {"status": "paper", "order_id": "PAPER_001"}
+        # actual Dhan API call here
+```
+
+---
+
+### Item 10 — English Channel Strategy Decision
+**Priority:** 🟡 Phase 3
+**File:** New `generate_english.py`
+**Status:** ⬜ Decision needed first
+
+**Decision required:** Two approaches are possible:
+
+**Option A — Auto-translate Hindi scripts:**
+- Fast to build (1–2 days)
+- Lower quality — financial terms translate poorly
+- CPM impact: moderate (translated content gets lower engagement → lower CPM)
+
+**Option B — Generate English scripts from scratch using same market data:**
+- Same market data (yfinance, Google Trends) → separate English prompt
+- Separate topic angle (US/UK audience focus, not India-centric)
+- 3–5× better CPM for USA/UK audience
+- 3–4 days to build properly
+- **Recommended approach**
+
+**When ready to build (Option B):**
+- New file: `generate_english.py` — same structure as `generate_shorts.py` but English prompt
+- Uses `en-US-JennyNeural` voice
+- Content focus: S&P 500, FTSE 100, Bitcoin — not Nifty
+- Calls same `ai.generate(prompt, content_mode=CONTENT_MODE, lang="en")`
+- Uploads via `upload_youtube_english.py` using `YOUTUBE_CREDENTIALS_EN`
 
 ---
 
 *Documentation maintained by AI360Trading automation.*
-*Full audit: April 11, 2026 — Claude Sonnet 4.6*
-*Phase 1 + 2 complete. HerooQuest Kids channel fully live and documented.*
-*Phase 3: FB Group fix, Instagram verify, HF\_TOKEN, English channel, Kids Wan2.2*
-*Phase 4: Dhan live trading after backtest validation*
-*Key corrections from April 3 version:*
-*— daily-morning-reel.yml is a SEPARATE workflow from daily\_reel.yml*
-*— kids-daily.yml was entirely missing — now fully documented: HerooQuest characters, 5-layer image chain, Ken Burns ffmpeg pipeline, generate\_kids\_video.py, upload\_kids\_youtube.py, kids\_content\_calendar.py, FB Kids Page ID 1021152881090398, Instagram permanently manual*
-*— FACEBOOK\_KIDS\_PAGE\_ID, YOUTUBE\_CREDENTIALS\_KIDS, HF\_TOKEN added to secrets table*
-*— Section 21 (Workflow Health) added with live run counts*
+*Last audit: April 11, 2026 — Updated by owner with improvement backlog added*
+*Phase 1 complete: ai\_client.py, human\_touch.py, token\_refresh.py, generate\_reel\_morning.py*
+*Phase 2 complete: generate\_articles.py, generate\_analysis.py, generate\_education.py, generate\_reel.py, generate\_shorts.py, generate\_community\_post.py*
+*Trading bot: AppScript v13.3 + Python v13.4 — paper trading, Google Sheets, Dhan Phase 4*
+*Phase 3 remaining: generate\_english.py, upload\_youtube\_english.py*
+*Phase 4 planned: Dhan live trading after backtest validation*
+*FB Group + Instagram: Manual posting by owner until re-prioritised*
 *Update this file whenever architecture, secrets, platform status, or file logic changes.*
