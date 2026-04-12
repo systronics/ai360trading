@@ -1,6 +1,8 @@
 # ==========================================
 # Site Settings - AI360TRADING GLOBAL
+# Updated: April 2026
 # ==========================================
+
 name: "AI360Trading"
 title: "AI360Trading | NIFTY, S&P 500 & Global Market Intelligence"
 description: "Daily AI-powered market intelligence for NIFTY, S&P 500, FTSE 100 and IBOVESPA. Swing and positional trading signals for traders in India, US, UK and Brazil."
@@ -24,6 +26,7 @@ author:
 # Permalinks & Markdown
 markdown: kramdown
 highlighter: rouge
+
 # WARNING: Do NOT change permalink format — changing breaks all indexed URLs
 permalink: /:year/:month/:day/:title/
 
@@ -35,11 +38,14 @@ youtube_username: ai360trading
 instagram_username: ai360trading
 
 # Plugins
+# jekyll-sitemap added April 2026 — auto-generates sitemap.xml on every build
+# Previously sitemap.xml was static and never updated with new articles
+# This was causing 39 "Discovered - not indexed" pages in Google Search Console
 plugins:
   - jekyll-paginate
   - jekyll-seo-tag
   - jekyll-feed
-  - jekyll-redirect-from
+  - jekyll-sitemap
 
 # Pagination Settings
 paginate: 10
@@ -55,12 +61,21 @@ exclude:
   - generate_analysis.py
   - generate_education.py
   - generate_reel.py
+  - generate_reel_morning.py
   - generate_shorts.py
+  - generate_kids_video.py
+  - generate_community_post.py
   - content_calendar.py
   - upload_youtube.py
+  - upload_youtube_english.py
+  - upload_kids_youtube.py
   - upload_facebook.py
   - upload_instagram.py
   - trading_bot.py
+  - ai_client.py
+  - human_touch.py
+  - indian_holidays.py
+  - token_refresh.py
   - requirements.txt
   - SYSTEM.md
   - README.md
@@ -71,6 +86,7 @@ exclude:
   - vendor/
   - output/
   - token.json
+  - sitemap.xml
 
 # Defaults
 defaults:
