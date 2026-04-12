@@ -46,6 +46,7 @@ jobs:
       - name: Run Token Refresh
         env:
           META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
+          META_ACCESS_TOKEN_KIDS: ${{ secrets.META_ACCESS_TOKEN_KIDS }}
           META_APP_ID: ${{ secrets.META_APP_ID }}
           META_APP_SECRET: ${{ secrets.META_APP_SECRET }}
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
