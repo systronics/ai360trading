@@ -1,12 +1,11 @@
 """
 generate_reel_morning.py — Morning Reel Generator (7:00 AM IST)
 ===============================================================
-MORNING BRIEF 7AM — pre-market motivation — NOT the evening ZENO reel.
+2nd daily reel — different from 8:30 PM ZENO reel.
 Topic auto-selected by day of week + target country.
-Style: upbeat, fresh, punchy — "start your day right"
+Style: motivational, educational, global audience focused.
 Voice: hi-IN-SwaraNeural (Hindi) or en-US-JennyNeural (English version)
 Schedule: 7:00 AM IST daily (separate from 8:30 PM ZENO reel)
-
 Author: AI360Trading Automation
 Last Updated: April 2026
 """
@@ -16,7 +15,6 @@ import sys
 import json
 import asyncio
 import logging
-import warnings
 import random
 from datetime import datetime
 from pathlib import Path
@@ -24,14 +22,6 @@ import pytz
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 import moviepy.editor as mp
 import numpy as np
-
-# ── Bug 1 Fix: Suppress noisy logs ──────────────────────────────────────────
-logging.getLogger("moviepy").setLevel(logging.ERROR)
-logging.getLogger("imageio").setLevel(logging.ERROR)
-logging.getLogger("PIL").setLevel(logging.ERROR)
-logging.getLogger("urllib3").setLevel(logging.ERROR)
-logging.getLogger("httpx").setLevel(logging.ERROR)
-warnings.filterwarnings("ignore")
 
 # AI360Trading modules
 from ai_client import ai, img_client
@@ -49,22 +39,22 @@ IST = pytz.timezone("Asia/Kolkata")
 OUTPUT_DIR = Path("output")
 OUTPUT_DIR.mkdir(exist_ok=True)
 
-ASSETS_DIR  = Path("public")
-MUSIC_DIR   = ASSETS_DIR / "music"
-IMAGE_DIR   = ASSETS_DIR / "image"
+ASSETS_DIR = Path("public")
+MUSIC_DIR = ASSETS_DIR / "music"
+IMAGE_DIR = ASSETS_DIR / "image"
 
 CONTENT_MODE = os.environ.get("CONTENT_MODE", "market")
-LANG         = os.environ.get("LANG_MODE", "hi")  # "hi" or "en"
+LANG = os.environ.get("LANG_MODE", "hi")   # "hi" or "en"
 
-TODAY    = datetime.now(IST)
+TODAY = datetime.now(IST)
 DATE_STR = TODAY.strftime("%Y%m%d")
-WEEKDAY  = TODAY.weekday()
+WEEKDAY = TODAY.weekday()
 
 # Video specs — 9:16 vertical for Shorts/Reels
 VIDEO_WIDTH  = 1080
 VIDEO_HEIGHT = 1920
-FPS          = 30
-DURATION     = 55  # seconds — slightly under 60 for reel eligibility
+FPS      = 30
+DURATION = 55  # seconds — slightly under 60 for reel eligibility
 
 # Voice selection
 VOICE_HI = "hi-IN-SwaraNeural"
@@ -76,12 +66,12 @@ VOICE_EN = "en-US-JennyNeural"
 
 PALETTES = [
     {"bg": (15, 20, 40),  "accent": (0, 200, 255),   "text": (255, 255, 255), "name": "midnight_blue"},
-    {"bg": (20, 40, 15),  "accent": (50, 220, 100),   "text": (255, 255, 255), "name": "forest_green"},
-    {"bg": (40, 15, 15),  "accent": (255, 80, 80),    "text": (255, 255, 255), "name": "deep_red"},
-    {"bg": (30, 20, 50),  "accent": (180, 100, 255),  "text": (255, 255, 255), "name": "royal_purple"},
-    {"bg": (40, 30, 10),  "accent": (255, 180, 0),    "text": (255, 255, 255), "name": "golden"},
-    {"bg": (10, 35, 45),  "accent": (0, 180, 200),    "text": (255, 255, 255), "name": "teal"},
-    {"bg": (35, 15, 35),  "accent": (255, 100, 200),  "text": (255, 255, 255), "name": "magenta"},
+    {"bg": (20, 40, 15),  "accent": (50, 220, 100),  "text": (255, 255, 255), "name": "forest_green"},
+    {"bg": (40, 15, 15),  "accent": (255, 80, 80),   "text": (255, 255, 255), "name": "deep_red"},
+    {"bg": (30, 20, 50),  "accent": (180, 100, 255), "text": (255, 255, 255), "name": "royal_purple"},
+    {"bg": (40, 30, 10),  "accent": (255, 180, 0),   "text": (255, 255, 255), "name": "golden"},
+    {"bg": (10, 35, 45),  "accent": (0, 180, 200),   "text": (255, 255, 255), "name": "teal"},
+    {"bg": (35, 15, 35),  "accent": (255, 100, 200), "text": (255, 255, 255), "name": "magenta"},
 ]
 
 TODAY_PALETTE = PALETTES[WEEKDAY % len(PALETTES)]
@@ -92,22 +82,16 @@ TODAY_PALETTE = PALETTES[WEEKDAY % len(PALETTES)]
 
 def generate_morning_script() -> dict:
     """Generate morning reel script based on day/country/topic."""
-
-    topic_data      = MORNING_REEL_TOPICS[WEEKDAY]
-    topic           = topic_data["topic"]
-    angle           = topic_data["angle"]
+    topic_data = MORNING_REEL_TOPICS[WEEKDAY]
+    topic  = topic_data["topic"]
+    angle  = topic_data["angle"]
+    # FIX: key in human_touch.py is "target_country" (singular)
     target_countries = topic_data["target_country"]
-    hook            = topic_data["hook_hi"] if LANG == "hi" else topic_data["hook_en"]
-    cta             = ht.get_cta(LANG)
+    hook   = topic_data["hook_hi"] if LANG == "hi" else topic_data["hook_en"]
+    cta    = ht.get_cta(LANG)
 
-    # ── Bug 3 Fix: Clear MORNING differentiation in prompt ──────────────────
     prompt = f"""
-Create a 55-second MORNING BRIEF reel script for AI360Trading.
-
-IMPORTANT: This is the MORNING BRIEF 7AM — pre-market motivation — NOT the evening ZENO reel.
-Tone: upbeat, fresh, punchy — "start your day right" energy.
-This is morning motivation ONLY. Do NOT make it reflective or end-of-day.
-
+Create a 55-second morning reel script for AI360Trading.
 Topic: {topic}
 Angle: {angle}
 Target Countries: {', '.join(target_countries)}
@@ -123,7 +107,7 @@ Script requirements:
 - Line 8: Personal touch — real trader perspective
 - Line 9-10: Strong CTA: {cta}
 - Total reading time: ~50-55 seconds at normal pace
-- Tone: Morning energy — motivating, clear, confident, fresh
+- Tone: Morning energy — motivating, clear, confident
 - {"Include 2-3 English words naturally (Hinglish)" if LANG == "hi" else "Sound natural, not robotic"}
 
 Return as JSON:
@@ -151,15 +135,17 @@ Return as JSON:
 
     # Apply human touch to lines
     result["lines"] = ht.humanize_script_lines(result.get("lines", []), LANG)
+
     logger.info(f"✅ Script generated: {len(result.get('lines', []))} lines via {ai.active_provider}")
     return result
+
 
 def _fallback_script(topic: str, hook: str, cta: str, countries: list) -> dict:
     """Fallback script when AI fails."""
     if LANG == "hi":
         lines = [
             hook,
-            "Aaj ka market ek important opportunity de raha hai.",
+            "Aaj ka market ek important message de raha hai.",
             "Smart traders yeh pehle se jaante hain.",
             "Har successful trade ke peeche ek plan hota hai.",
             "Risk manage karo — profit automatically aayega.",
@@ -170,7 +156,7 @@ def _fallback_script(topic: str, hook: str, cta: str, countries: list) -> dict:
     else:
         lines = [
             hook,
-            "Today's market has an important opportunity for traders.",
+            "Today's market has an important message for traders.",
             "Smart money knows this before the open.",
             "Every successful trade starts with a clear plan.",
             "Manage your risk first — profits follow naturally.",
@@ -198,8 +184,8 @@ async def generate_tts(lines: list, output_path: str) -> bool:
         logger.error("edge-tts not installed")
         return False
 
-    voice    = VOICE_HI if LANG == "hi" else VOICE_EN
-    speed    = ht.get_tts_speed()
+    voice = VOICE_HI if LANG == "hi" else VOICE_EN
+    speed = ht.get_tts_speed()
     rate_str = f"+{int((speed - 1) * 100)}%" if speed >= 1 else f"{int((speed - 1) * 100)}%"
 
     # Join lines with natural pauses
@@ -212,6 +198,7 @@ async def generate_tts(lines: list, output_path: str) -> bool:
     if os.path.exists(output_path) and os.path.getsize(output_path) > 0:
         logger.info(f"✅ TTS audio saved: {output_path}")
         return True
+
     logger.error("❌ TTS audio generation failed")
     return False
 
@@ -228,7 +215,6 @@ def create_frame(
     zeno_image=None
 ) -> np.ndarray:
     """Create a single video frame for a script line."""
-
     img  = Image.new("RGB", (VIDEO_WIDTH, VIDEO_HEIGHT), color=palette["bg"])
     draw = ImageDraw.Draw(img)
 
@@ -278,8 +264,8 @@ def create_frame(
                 img.paste(zeno_resized, (zeno_x, zeno_y), zeno_resized)
             else:
                 img.paste(zeno_resized, (zeno_x, zeno_y))
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"ZENO image paste failed: {e}")
 
     # Topic label
     try:
@@ -303,9 +289,9 @@ def create_frame(
         main_font = ImageFont.load_default()
 
     # Word wrap
-    words         = line.split()
+    words = line.split()
     wrapped_lines = []
-    current       = ""
+    current = ""
     for word in words:
         test = f"{current} {word}".strip()
         bbox = draw.textbbox((0, 0), test, font=main_font)
@@ -318,10 +304,10 @@ def create_frame(
     if current:
         wrapped_lines.append(current)
 
-    text_y       = VIDEO_HEIGHT // 2
-    line_height  = 70
+    text_y      = VIDEO_HEIGHT // 2
+    line_height = 70
     total_height = len(wrapped_lines) * line_height
-    start_y      = text_y - total_height // 2
+    start_y     = text_y - total_height // 2
 
     for i, wl in enumerate(wrapped_lines):
         draw.text(
@@ -360,7 +346,6 @@ def create_frame(
 
 def create_morning_video(script: dict, audio_path: str, output_path: str) -> bool:
     """Compose video from frames + audio + music."""
-
     lines = script.get("lines", [])
     topic = script.get("topic", "Morning Brief")
 
@@ -374,14 +359,14 @@ def create_morning_video(script: dict, audio_path: str, output_path: str) -> boo
     if zeno_path.exists():
         try:
             zeno_image = Image.open(zeno_path).convert("RGBA")
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Could not load ZENO: {e}")
 
     # Create frames — each line shown for proportional duration
     seconds_per_line = DURATION / len(lines)
     frames_per_line  = int(FPS * seconds_per_line)
-
     all_frames = []
+
     for i, line in enumerate(lines):
         frame = create_frame(line, i, len(lines), topic, TODAY_PALETTE, zeno_image)
         for _ in range(frames_per_line):
@@ -405,20 +390,18 @@ def create_morning_video(script: dict, audio_path: str, output_path: str) -> boo
         music_file = music_files[WEEKDAY % len(music_files)]
         try:
             bg_music = mp.AudioFileClip(str(music_file)).subclip(0, DURATION)
-            bg_music = bg_music.volumex(0.15)
+            bg_music = bg_music.volumex(0.15)  # Low volume
             clips_to_combine.append(bg_music)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Background music failed: {e}")
 
     # TTS audio
     if os.path.exists(audio_path):
         try:
-            tts_audio = mp.AudioFileClip(audio_path).subclip(
-                0, min(DURATION, mp.AudioFileClip(audio_path).duration)
-            )
+            tts_audio = mp.AudioFileClip(audio_path).subclip(0, min(DURATION, mp.AudioFileClip(audio_path).duration))
             clips_to_combine.append(tts_audio)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"TTS audio failed: {e}")
 
     # Combine audio
     if clips_to_combine:
@@ -442,6 +425,7 @@ def create_morning_video(script: dict, audio_path: str, output_path: str) -> boo
     if os.path.exists(output_path) and os.path.getsize(output_path) > 0:
         logger.info(f"✅ Morning reel exported: {output_path}")
         return True
+
     logger.error("❌ Video export failed")
     return False
 
@@ -451,18 +435,18 @@ def create_morning_video(script: dict, audio_path: str, output_path: str) -> boo
 
 def save_meta(script: dict, video_path: str) -> str:
     """Save metadata for upload scripts."""
-
     meta_path  = OUTPUT_DIR / f"morning_reel_meta_{DATE_STR}.json"
     topic_data = MORNING_REEL_TOPICS[WEEKDAY]
     tags       = seo.get_video_tags(CONTENT_MODE, is_short=True)
-    global_tag = ht.get_posting_time_tag(topic_data["target_countries"])
+    # FIX: key in human_touch.py is "target_country" (singular)
+    global_tag = ht.get_posting_time_tag(topic_data["target_country"])
 
     meta = {
         "date":             DATE_STR,
         "type":             "morning_reel",
         "video_path":       video_path,
         "title":            script.get("title", f"Morning Brief — {script.get('topic', '')} | AI360Trading"),
-        "description":      (
+        "description": (
             f"{script.get('description', '')}\n\n"
             f"🔔 Subscribe for daily trading insights!\n"
             f"📱 Telegram signals: t.me/ai360trading\n\n"
@@ -471,7 +455,7 @@ def save_meta(script: dict, video_path: str) -> str:
         ),
         "tags":             tags,
         "topic":            script.get("topic"),
-        "target_countries": topic_data["target_countries"],
+        "target_countries": topic_data["target_country"],   # store as target_countries in JSON for upload scripts
         "ai_provider":      ai.active_provider,
         "lang":             LANG,
         "palette":          TODAY_PALETTE["name"],
@@ -519,10 +503,11 @@ async def main():
 
     logger.info("=" * 60)
     logger.info("✅ Morning reel complete!")
-    logger.info(f"  Video: {video_path}")
-    logger.info(f"  Meta:  {meta_path}")
-    logger.info(f"  AI:    {ai.active_provider}")
+    logger.info(f"   Video: {video_path}")
+    logger.info(f"   Meta:  {meta_path}")
+    logger.info(f"   AI:    {ai.active_provider}")
     logger.info("=" * 60)
+
 
 if __name__ == "__main__":
     asyncio.run(main())
