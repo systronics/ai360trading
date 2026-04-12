@@ -1,50 +1,34 @@
 # ==========================================
 # robots.txt for ai360trading.in
-# Updated: March 2026
+# Updated: April 2026
 # ==========================================
+
 User-agent: *
 Allow: /
 
-# Block technical & internal folders
+# Block only truly private/technical paths
 Disallow: /assets/css/
 Disallow: /assets/js/
 Disallow: /cgi-bin/
 Disallow: /_site/
-
-# Block Jekyll system files
-Disallow: /_drafts/
-Disallow: /_includes/
-Disallow: /_layouts/
-Disallow: /_posts/
-Disallow: /Gemfile
-Disallow: /Gemfile.lock
-
-# Block private areas
 Disallow: /admin/
 Disallow: /private/
 Disallow: /temp/
+Disallow: /output/
 
-# Block tag and category pages
-Disallow: /categories/
-Disallow: /category/
+# NOTE: /_posts/ /_includes/ /_layouts/ are Jekyll SOURCE folders never served publicly.
+# Blocking them caused Googlebot to misinterpret redirect chains → 4 pages blocked.
+# REMOVED: Disallow: /_posts/  /_includes/  /_layouts/
+#
+# NOTE: /tags/ /categories/ /page/ are real indexed pages with content.
+# REMOVED: Disallow: /tag/  /tags/  /categories/  /category/  /page/
 
-# Block pagination
-Disallow: /page/
-
-# Block low-value pages
-Disallow: /darvas-box/
-
-# Bot optimization
-User-agent: Baiduspider
-Allow: /
-
+# Bot rate limiting only — not full block
 User-agent: dotbot
 Crawl-delay: 20
-Disallow: /
 
 User-agent: AhrefsBot
 Crawl-delay: 20
-Disallow: /
 
 User-agent: MJ12bot
 Disallow: /
