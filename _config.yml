@@ -41,6 +41,7 @@ instagram_username: ai360trading
 # jekyll-sitemap added April 2026 — auto-generates sitemap.xml on every build
 # Previously sitemap.xml was static and never updated with new articles
 # This was causing 39 "Discovered - not indexed" pages in Google Search Console
+
 plugins:
   - jekyll-paginate
   - jekyll-seo-tag
@@ -56,6 +57,7 @@ include:
   - _pages
 
 # Exclude from Jekyll build — keep all Python/automation files out
+
 exclude:
   - generate_articles.py
   - generate_analysis.py
@@ -65,9 +67,9 @@ exclude:
   - generate_shorts.py
   - generate_kids_video.py
   - generate_community_post.py
+  - generate_english_short.py
   - content_calendar.py
   - upload_youtube.py
-  - upload_youtube_english.py
   - upload_kids_youtube.py
   - upload_facebook.py
   - upload_instagram.py
