@@ -1,12 +1,9 @@
-# ==========================================
-# robots.txt for ai360trading.in
-# Updated: April 2026
-# ==========================================
+# robots.txt for ai360trading.in — Updated April 2026
 
 User-agent: *
 Allow: /
 
-# Block only truly private/technical paths
+# Block only private/technical paths
 Disallow: /assets/css/
 Disallow: /assets/js/
 Disallow: /cgi-bin/
@@ -16,14 +13,6 @@ Disallow: /private/
 Disallow: /temp/
 Disallow: /output/
 
-# NOTE: /_posts/ /_includes/ /_layouts/ are Jekyll SOURCE folders never served publicly.
-# Blocking them caused Googlebot to misinterpret redirect chains → 4 pages blocked.
-# REMOVED: Disallow: /_posts/  /_includes/  /_layouts/
-#
-# NOTE: /tags/ /categories/ /page/ are real indexed pages with content.
-# REMOVED: Disallow: /tag/  /tags/  /categories/  /category/  /page/
-
-# Bot rate limiting only — not full block
 User-agent: dotbot
 Crawl-delay: 20
 
@@ -33,5 +22,4 @@ Crawl-delay: 20
 User-agent: MJ12bot
 Disallow: /
 
-# Sitemap
 Sitemap: https://ai360trading.in/sitemap.xml
