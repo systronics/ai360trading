@@ -4,6 +4,7 @@
 # Phase 2: swap make_scene_clip() for Wan2.2 Colab clips
 
 import os, json, asyncio, time, base64
+import logging, warnings
 from pathlib import Path
 from datetime import date
 import edge_tts
@@ -11,6 +12,14 @@ from PIL import Image, ImageDraw, ImageFont
 from ai_client import ai
 from human_touch import ht, seo
 from kids_content_calendar import get_today_topic
+
+# ── Bug 1 Fix: Suppress noisy logs ──────────────────────────────────────────
+logging.getLogger("moviepy").setLevel(logging.ERROR)
+logging.getLogger("imageio").setLevel(logging.ERROR)
+logging.getLogger("PIL").setLevel(logging.ERROR)
+logging.getLogger("urllib3").setLevel(logging.ERROR)
+logging.getLogger("httpx").setLevel(logging.ERROR)
+warnings.filterwarnings("ignore")
 
 CONTENT_MODE = os.environ.get("CONTENT_MODE", "market")
 LANG         = os.environ.get("KIDS_LANG", "hi")
@@ -87,13 +96,14 @@ Create exactly 6 scenes. Simple language for children. Each narration must be 4 
 """
     return ai.generate_json(prompt, content_mode=CONTENT_MODE, lang="hi")
 
-# ── IMAGE — 5-layer fallback chain ───────────────────────────────────────
+# ── IMAGE — 6-layer fallback chain ───────────────────────────────────────
 #
-#  Layer 1: Gemini 2.5 Flash Image   — 500 free/day, no credit card
-#  Layer 2: Gemini 2.0 Flash Exp     — older free model, try as backup
-#  Layer 3: Hugging Face FLUX.1      — free tier with HF_TOKEN
-#  Layer 4: DALL-E 3 via OpenAI      — uses OPENAI_API_KEY (paid but you have it)
-#  Layer 5: Heroo branded placeholder — never fails, always produces output
+#  Layer 1: Gemini imagen-3.0-generate-002    — best quality
+#  Layer 2: Gemini 2.0 Flash preview image    — free fallback
+#  Layer 3: Pollinations.AI                   — FREE, no key needed
+#  Layer 4: HuggingFace Inference API v2      — free with HF_TOKEN
+#  Layer 5: DALL-E 3 via OpenAI               — paid fallback
+#  Layer 6: Heroo branded placeholder         — always works
 #
 def generate_scene_image(prompt: str, scene_id: int) -> Path:
     img_path = OUTPUT_DIR / f"kids_scene_{scene_id:02d}.png"
@@ -103,38 +113,13 @@ def generate_scene_image(prompt: str, scene_id: int) -> Path:
 
     full_prompt = f"{SCENE_STYLE} Scene: {prompt}"
 
-    # ── LAYER 1: Gemini 2.5 Flash Image (500 free/day) ───────────────────
+    # ── LAYER 1: Gemini imagen-3.0-generate-002 ──────────────────────────
     try:
         from google import genai
         from google.genai import types
         client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
         response = client.models.generate_content(
-            model="gemini-2.5-flash-image",
-            contents=full_prompt,
-            config=types.GenerateContentConfig(
-                response_modalities=["IMAGE", "TEXT"]
-            )
-        )
-        for part in response.candidates[0].content.parts:
-            if part.inline_data is not None:
-                img_path.write_bytes(part.inline_data.data)
-                # Resize to exact 1280x720
-                img = Image.open(img_path).resize((1280, 720), Image.LANCZOS)
-                img.save(img_path)
-                print(f"  [IMG-1] Scene {scene_id} via Gemini 2.5 Flash Image ✓")
-                return img_path
-    except Exception as e:
-        print(f"  [WARN-1] Gemini 2.5 Flash Image failed: {e}")
-
-    time.sleep(3)
-
-    # ── LAYER 2: Gemini 2.0 Flash Exp (older free model) ─────────────────
-    try:
-        from google import genai
-        from google.genai import types
-        client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
-        response = client.models.generate_content(
-            model="gemini-2.0-flash-exp-image-generation",
+            model="imagen-3.0-generate-002",
             contents=full_prompt,
             config=types.GenerateContentConfig(
                 response_modalities=["IMAGE", "TEXT"]
@@ -145,59 +130,91 @@ def generate_scene_image(prompt: str, scene_id: int) -> Path:
                 img_path.write_bytes(part.inline_data.data)
                 img = Image.open(img_path).resize((1280, 720), Image.LANCZOS)
                 img.save(img_path)
-                print(f"  [IMG-2] Scene {scene_id} via Gemini 2.0 Flash Exp ✓")
+                print(f"  [IMG-1] Scene {scene_id} via Gemini imagen-3.0 ✓")
                 return img_path
-    except Exception as e:
-        print(f"  [WARN-2] Gemini 2.0 Flash Exp failed: {e}")
+    except Exception:
+        print(f"  [WARN-1] Gemini imagen-3.0 failed — trying next")
 
     time.sleep(3)
 
-    # ── LAYER 3: Hugging Face FLUX.1-schnell (free with HF_TOKEN) ────────
-    # Get free token: huggingface.co → Settings → Access Tokens
-    # Add HF_TOKEN to GitHub secrets
+    # ── LAYER 2: Gemini 2.0 Flash preview image ───────────────────────────
+    try:
+        from google import genai
+        from google.genai import types
+        client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
+        response = client.models.generate_content(
+            model="gemini-2.0-flash-preview-image-generation",
+            contents=full_prompt,
+            config=types.GenerateContentConfig(
+                response_modalities=["IMAGE", "TEXT"]
+            )
+        )
+        for part in response.candidates[0].content.parts:
+            if part.inline_data is not None:
+                img_path.write_bytes(part.inline_data.data)
+                img = Image.open(img_path).resize((1280, 720), Image.LANCZOS)
+                img.save(img_path)
+                print(f"  [IMG-2] Scene {scene_id} via Gemini 2.0 Flash preview ✓")
+                return img_path
+    except Exception:
+        print(f"  [WARN-2] Gemini 2.0 Flash preview failed — trying next")
+
+    time.sleep(2)
+
+    # ── LAYER 3: Pollinations.AI — FREE, no API key needed ───────────────
+    try:
+        import urllib.request, urllib.parse
+        prompt_enc = urllib.parse.quote(full_prompt[:500])
+        url = f"https://image.pollinations.ai/prompt/{prompt_enc}?width=1280&height=720&nologo=true&seed={scene_id}"
+        urllib.request.urlretrieve(url, str(img_path))
+        if img_path.exists() and img_path.stat().st_size > 1000:
+            img = Image.open(img_path).resize((1280, 720), Image.LANCZOS)
+            img.save(img_path)
+            print(f"  [IMG-3] Scene {scene_id} via Pollinations.AI ✓")
+            return img_path
+    except Exception:
+        print(f"  [WARN-3] Pollinations.AI failed — trying next")
+
+    time.sleep(2)
+
+    # ── LAYER 4: HuggingFace Inference API v2 ────────────────────────────
     try:
         hf_token = os.environ.get("HF_TOKEN")
         if hf_token:
             import requests as req
             headers = {"Authorization": f"Bearer {hf_token}"}
-            payload = {"inputs": full_prompt[:500]}  # HF limit
-            # Try FLUX.1-schnell first (fastest), fallback to stable-diffusion
+            payload = {"inputs": full_prompt[:500]}
             for hf_model in [
                 "black-forest-labs/FLUX.1-schnell",
+                "stabilityai/stable-diffusion-3.5-medium",
                 "stabilityai/stable-diffusion-xl-base-1.0",
-                "runwayml/stable-diffusion-v1-5",
             ]:
                 try:
-                    api_url = f"https://api-inference.huggingface.co/models/{hf_model}"
+                    api_url  = f"https://router.huggingface.co/hf-inference/models/{hf_model}"
                     response = req.post(api_url, headers=headers, json=payload, timeout=60)
                     if response.status_code == 200 and response.headers.get("content-type", "").startswith("image"):
                         img_path.write_bytes(response.content)
                         img = Image.open(img_path).resize((1280, 720), Image.LANCZOS)
                         img.save(img_path)
-                        print(f"  [IMG-3] Scene {scene_id} via HuggingFace {hf_model.split('/')[1]} ✓")
+                        print(f"  [IMG-4] Scene {scene_id} via HuggingFace {hf_model.split('/')[1]} ✓")
                         return img_path
-                    elif response.status_code == 503:
-                        print(f"  [HF] Model {hf_model} loading, trying next...")
-                        time.sleep(5)
-                    else:
-                        print(f"  [HF] {hf_model} returned {response.status_code}")
-                except Exception as he:
-                    print(f"  [HF] {hf_model} error: {he}")
+                except Exception:
+                    pass
         else:
-            print("  [SKIP-3] HF_TOKEN not set — skipping Hugging Face")
-    except Exception as e:
-        print(f"  [WARN-3] Hugging Face failed: {e}")
+            print("  [SKIP-4] HF_TOKEN not set — skipping HuggingFace")
+    except Exception:
+        print(f"  [WARN-4] HuggingFace failed — trying next")
 
     time.sleep(2)
 
-    # ── LAYER 4: DALL-E 3 via OpenAI (paid but you already have the key) ─
+    # ── LAYER 5: DALL-E 3 via OpenAI ─────────────────────────────────────
     try:
         openai_key = os.environ.get("OPENAI_API_KEY")
         if openai_key:
             from openai import OpenAI
             import urllib.request
             client_oai = OpenAI(api_key=openai_key)
-            response = client_oai.images.generate(
+            response   = client_oai.images.generate(
                 model="dall-e-3",
                 prompt=full_prompt[:1000],
                 size="1792x1024",
@@ -208,15 +225,15 @@ def generate_scene_image(prompt: str, scene_id: int) -> Path:
             urllib.request.urlretrieve(img_url, str(img_path))
             img = Image.open(img_path).resize((1280, 720), Image.LANCZOS)
             img.save(img_path)
-            print(f"  [IMG-4] Scene {scene_id} via DALL-E 3 ✓")
+            print(f"  [IMG-5] Scene {scene_id} via DALL-E 3 ✓")
             return img_path
-    except Exception as e:
-        print(f"  [WARN-4] DALL-E 3 failed: {e}")
+    except Exception:
+        print(f"  [WARN-5] DALL-E 3 failed — using placeholder")
 
-    # ── LAYER 5: Heroo branded placeholder — always works ────────────────
+    # ── LAYER 6: Heroo branded placeholder — always works ────────────────
     colors = ["#1a1a2e","#16213e","#0f3460","#533483","#e94560","#2b2d42"]
-    img = Image.new("RGB", (1280, 720), color=colors[scene_id % len(colors)])
-    draw = ImageDraw.Draw(img)
+    img    = Image.new("RGB", (1280, 720), color=colors[scene_id % len(colors)])
+    draw   = ImageDraw.Draw(img)
     draw.rectangle([10, 10, 1270, 710], outline="#FFD700", width=5)
     draw.rectangle([20, 20, 1260, 700], outline="#FF6B35", width=2)
     try:
@@ -226,11 +243,11 @@ def generate_scene_image(prompt: str, scene_id: int) -> Path:
     except:
         font_big = font_med = font_small = ImageFont.load_default()
     draw.ellipse([580, 240, 700, 360], fill="#FFD700", outline="#FF6B35", width=4)
-    draw.text((640, 300), "H", fill="#1a1a2e", anchor="mm", font=font_big)
+    draw.text((640, 300), "H",          fill="#1a1a2e", anchor="mm", font=font_big)
     draw.text((640, 420), f"Scene {scene_id}", fill="#FFD700", anchor="mm", font=font_med)
     draw.text((640, 480), "HerooQuest", fill="#FF6B35", anchor="mm", font=font_small)
     img.save(img_path)
-    print(f"  [LAYER-5] Scene {scene_id} — all AI failed, using Heroo placeholder")
+    print(f"  [LAYER-6] Scene {scene_id} — all AI failed, using Heroo placeholder")
     return img_path
 
 # ── TTS ──────────────────────────────────────────────────────────────────
@@ -344,7 +361,7 @@ def make_reel_ffmpeg(video_path: Path, reel_path: Path):
     else:
         print(f"[REEL ERR] {result.stderr[-200:]}")
 
-# ── MAIN ─────────────────────────────────────────────────────────────────
+# ── MAIN ─────────────────────────────────────────────────────────────────────
 def main():
     print("[SCRIPT] Generating story...")
     script = generate_script(topic)
