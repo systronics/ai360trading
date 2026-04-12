@@ -1,9 +1,8 @@
 import os
 import json
 import asyncio
-import shutil
 import logging
-import warnings
+import shutil
 from datetime import datetime
 from pathlib import Path
 import pytz
@@ -13,16 +12,15 @@ from moviepy.editor import (
     ImageClip, AudioFileClip, CompositeAudioClip
 )
 
-# ── Bug 1 Fix: Suppress noisy logs ──────────────────────────────────────────
+# ── Bug 1: Log suppression — no more 50-line JSON dumps ──────────────────────
 logging.getLogger("moviepy").setLevel(logging.ERROR)
-logging.getLogger("imageio").setLevel(logging.ERROR)
 logging.getLogger("PIL").setLevel(logging.ERROR)
 logging.getLogger("urllib3").setLevel(logging.ERROR)
 logging.getLogger("httpx").setLevel(logging.ERROR)
-warnings.filterwarnings("ignore")
+logging.getLogger("httpcore").setLevel(logging.ERROR)
 
-# ── Bug 4 Fix: Use ai_client instead of Groq directly ───────────────────────
-from ai_client import ai
+# ── Bug 3 + Bug 4: Use ai_client fallback chain — no direct Groq import ──────
+from ai_client import ai, img_client
 from human_touch import ht, seo
 
 # ─── Content Mode ─────────────────────────────────────────────────────────────
@@ -44,10 +42,12 @@ os.makedirs(OUT, exist_ok=True)
 FONT_BOLD = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
 WHITE = (255, 255, 255)
 
+
 def get_font(path, size):
     if os.path.exists(path):
         return ImageFont.truetype(path, size)
     return ImageFont.load_default()
+
 
 def get_bg_music():
     day = datetime.now().weekday()
@@ -63,72 +63,90 @@ def get_bg_music():
         return f
     return None
 
-def generate_script():
-    """Generate fresh daily Hinglish ZENO evening script via ai_client fallback chain."""
 
+def generate_script():
+    """Generate EVENING ZENO 8:30PM reel script via ai_client fallback chain."""
     today = datetime.now(IST).strftime("%A, %d %B %Y")
 
-    # ── Bug 3 Fix: Clear EVENING differentiation in prompt ───────────────────
+    # ── Bug 3: Prompt clearly identifies this as EVENING ZENO 8:30PM ─────────
     if CONTENT_MODE == "holiday":
         holiday_label = HOLIDAY_NAME if HOLIDAY_NAME else "Indian Market Holiday"
         topic = (
-            f"special {holiday_label} evening message — reflect on the day, "
-            f"inspire viewers to use this holiday to plan investments and grow financially. "
+            f"special {holiday_label} message — inspire viewers to use this market holiday "
+            f"to learn, plan investments, and grow financially. "
             f"Motivational, educational, no live market data. "
-            f"Global appeal: India, US, UK and Brazil."
+            f"Global appeal: relevant to viewers in India, US, UK and Brazil."
         )
     elif CONTENT_MODE == "weekend":
         topic = (
-            "emotional evening life lesson about patience, discipline or money mindset — no market data. "
-            "End-of-day reflection for global audience: India, US, UK, Brazil."
+            "emotional life lesson about patience, discipline or money mindset — no market data. "
+            "Motivational and educational for global audience: India, US, UK, Brazil."
         )
     else:
-        topic = "evening stock market wisdom — what traders learned today, end-of-day reflection on trading psychology or risk management"
+        topic = "stock market trading wisdom, psychology, or risk management lesson for Indian traders"
 
-    prompt = f"""You are ZENO — a wise animated kid character teaching trading wisdom in Hinglish to Indian traders.
+    # Get rotating hook from human_touch — never hardcode
+    hook = ht.get_hook(mode=CONTENT_MODE, lang="hi")
+    cta = ht.get_cta(lang="hi")
+    tts_speed = ht.get_tts_speed()
 
-IMPORTANT: This is the EVENING ZENO 8:30PM reel — end-of-day reflection — DIFFERENT from the morning reel.
-Tone: wise, reflective, emotional — "what did traders learn today"
-Character: ZENO — animated wise kid, calm and thoughtful evening energy.
-NOT the morning brief. NOT pre-market motivation. This is evening reflection only.
+    prompt = f"""You are ZENO — a wise animated kid character teaching trading wisdom in Hinglish.
 
-Today is {today}. Create a 45-60 second evening reel script on: {topic}
+THIS IS THE EVENING ZENO REEL — 8:30PM end-of-day reflection.
+IMPORTANT: This is DIFFERENT from the 7AM morning reel. This is an end-of-day reflection, NOT morning motivation.
+Tone: calm, reflective, wise — like wrapping up the day's market lessons.
+
+Today is {today}.
+Topic: {topic}
+Opening hook (use this exactly): {hook}
+End CTA: {cta}
 
 Rules:
+- EVENING ZENO 8:30PM — end-of-day reflection tone, NOT morning energy
 - Hinglish only (natural Hindi + English mix)
 - Simple enough for a 10-year-old to understand
-- Emotional, reflective, human touch — evening wind-down energy
 - One clear lesson only
-- End with strong evening message
+- Reflect on the day — what did the market teach us today?
 
 Respond ONLY with valid JSON, no markdown:
 {{
   "title": "SHORT ENGLISH TITLE MAX 4 WORDS IN CAPS (for display on screen)",
-  "audio_script": "full spoken Hinglish evening script 80-100 words — what ZENO will say aloud",
+  "audio_script": "full spoken Hinglish script 80-100 words — what ZENO will say aloud. Start with the hook provided.",
   "display_text": "one powerful Hindi/Hinglish line shown on screen (max 12 words)",
   "emotion": "one of: happy, sad, fear, angry, thinking, greed, celebrating",
   "sentiment": "one of: positive, negative, fearful, motivated, greedy, angry, neutral",
   "description": "2 sentence English/Hinglish description for YouTube and Instagram"
 }}"""
 
-    print("🤖 Generating evening ZENO script via ai_client...")
+    print("🤖 [EVENING ZENO 8:30PM] Generating script via ai_client...")
 
-    try:
-        data = ai.generate_json(prompt, content_mode=CONTENT_MODE, lang="hi")
-        if data and "audio_script" in data:
-            print(f"✅ Script ready — emotion: {data.get('emotion')} | title: {data.get('title')} | via {ai.active_provider}")
-            return data
-        raise ValueError("Empty response from ai_client")
-    except Exception:
-        print("⚠️ ai_client failed — using fallback script")
+    # ── Bug 4: Use ai_client — full fallback chain Groq→Gemini→Claude→OpenAI→Template
+    data = ai.generate_json(
+        prompt=prompt,
+        content_mode=CONTENT_MODE,
+        lang="hi"
+    )
+
+    if not data or "audio_script" not in data:
+        print(f"⚠️ JSON generation failed — using fallback script")
         return {
-            "title": "EVENING REFLECTION",
-            "audio_script": "दोस्तों आज का दिन कैसा रहा? ट्रेडिंग में हर दिन एक नया lesson है। जो हुआ उससे सीखो, कल और better बनो। Discipline रखो, success जरूर मिलेगी।",
-            "display_text": "हर दिन एक नया lesson है। कल बेहतर बनो।",
-            "emotion": "thinking",
-            "sentiment": "motivated",
-            "description": "ZENO ki evening baat: Aaj ka din ka lesson lo aur kal ke liye ready ho jao. Discipline hi success hai."
+            "title": "CONTROL YOUR EMOTIONS",
+            "audio_script": ht.humanize(
+                "दोस्तों ट्रेडिंग में सबसे बड़ा दुश्मन मार्केट नहीं आपका डर है। "
+                "पेशेंस रखिए। हर loss एक lesson है। Discipline रखो, success जरूर मिलेगी।",
+                lang="hi"
+            ),
+            "display_text": "मार्केट नहीं, आपका डर है असली दुश्मन।",
+            "emotion": "fear",
+            "sentiment": "fearful",
+            "description": "ZENO ki baat: Trading mein patience aur discipline sabse zaroori hai. Apne emotions ko control karo."
         }
+
+    # Apply human touch to audio script
+    data["audio_script"] = ht.humanize(data.get("audio_script", ""), lang="hi")
+    print(f"✅ ZENO script ready — emotion: {data.get('emotion')} | via {ai.active_provider}")
+    return data
+
 
 def apply_zeno_disney_effect(base_img, emotion="thinking"):
     zeno_path = IMAGE_DIR / f"zeno_{emotion}.png"
@@ -161,6 +179,7 @@ def apply_zeno_disney_effect(base_img, emotion="thinking"):
     combined.paste(zeno, zeno_pos, zeno)
     return combined.convert("RGB")
 
+
 def build_reel_frame(title_text, display_text, emotion="thinking"):
     img = Image.new("RGB", (SW, SH))
     draw = ImageDraw.Draw(img, "RGBA")
@@ -174,8 +193,8 @@ def build_reel_frame(title_text, display_text, emotion="thinking"):
 
     draw.ellipse([100, 100, SW - 100, 600], fill=(60, 140, 255, 30))
     img = apply_zeno_disney_effect(img, emotion)
-    draw_text = ImageDraw.Draw(img)
 
+    draw_text = ImageDraw.Draw(img)
     font_title = get_font(FONT_BOLD, 85)
     text_y = 300
     words = title_text.split()
@@ -225,27 +244,33 @@ def build_reel_frame(title_text, display_text, emotion="thinking"):
     img.save(str(path))
     return path
 
+
 async def generate_reel():
-    print("🎬 Starting Evening ZENO Reel Generation...")
+    print("🎬 [EVENING ZENO 8:30PM] Starting Reel Generation...")
     today = datetime.now().strftime("%Y%m%d")
 
     script = generate_script()
-    title        = script.get("title", "EVENING REFLECTION")
-    audio_script = script.get("audio_script", "Aaj ka din ka lesson lo. Kal aur better bano.")
-    display_text = script.get("display_text", "Har din ek naya lesson hai।")
-    emotion      = script.get("emotion", "thinking")
-    sentiment    = script.get("sentiment", "neutral")
-    description  = script.get("description", "Daily evening wisdom by ZENO. Follow ai360trading.")
+    title = script.get("title", "TRADING WISDOM")
+    audio_script = script.get("audio_script", "Trading mein patience sabse zaroori hai.")
+    display_text = script.get("display_text", "Patience hi success hai।")
+    emotion = script.get("emotion", "thinking")
+    sentiment = script.get("sentiment", "neutral")
+    description = script.get("description", "Daily trading wisdom by ZENO. Follow ai360trading.")
+
+    # TTS with human_touch speed variation
+    tts_speed = ht.get_tts_speed()
+    rate_pct = int((tts_speed - 1.0) * 100)
+    rate_str = f"+{rate_pct}%" if rate_pct >= 0 else f"{rate_pct}%"
 
     audio_path = OUT / "zeno_speech.mp3"
     print("🎙️ Generating Voice...")
     await edge_tts.Communicate(
-        audio_script, "hi-IN-SwaraNeural", rate="+0%"
+        audio_script, "hi-IN-SwaraNeural", rate=rate_str
     ).save(str(audio_path))
 
     frame_path = build_reel_frame(title, display_text, emotion)
 
-    print("🎞️ Rendering Final Evening ZENO Reel...")
+    print("🎞️ Rendering Final Reel...")
     voice_clip = AudioFileClip(str(audio_path))
     music_file = get_bg_music()
     if music_file:
@@ -253,8 +278,8 @@ async def generate_reel():
             bg_m = AudioFileClip(str(music_file)).volumex(0.12).set_duration(voice_clip.duration)
             final_audio = CompositeAudioClip([voice_clip, bg_m])
             print(f"🎵 Music: {music_file.name}")
-        except Exception:
-            print("⚠️ Music load failed — voice only")
+        except Exception as e:
+            print(f"⚠️ Music error: {e}")
             final_audio = voice_clip
     else:
         final_audio = voice_clip
@@ -275,17 +300,19 @@ async def generate_reel():
     shutil.copy2(str(output_file), str(reel_dated))
     print(f"✅ Video saved: {output_file.name} + {reel_dated.name}")
 
-    tags = seo.get_video_tags(CONTENT_MODE, lang="hi")
+    # SEO tags from human_touch
+    tags = seo.get_video_tags(mode=CONTENT_MODE, is_short=True)
 
     meta = {
-        "title":        f"ZENO Ki Baat - {title}",
-        "description":  description + " 🔗 t.me/ai360trading | ai360trading.in",
-        "sentiment":    sentiment,
+        "title": f"ZENO Ki Baat - {title}",
+        "description": description + " 🔗 t.me/ai360trading | ai360trading.in",
+        "sentiment": sentiment,
         "content_mode": CONTENT_MODE,
-        "hashtags":     "#ZenoKiBaat #ai360trading #StockMarketIndia #TradingWisdom #Hinglish #FinancialLiteracy",
-        "tags":         tags,
+        "hashtags": seo.format_article_tags(tags[:10]),
+        "ai_provider": ai.active_provider,
         "public_video_url": ""
     }
+
     meta_path = OUT / f"meta_{today}.json"
     meta_path.write_text(
         json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8"
@@ -293,12 +320,14 @@ async def generate_reel():
     print(f"✅ Meta saved: {meta_path.name}")
 
     print("\n" + "=" * 50)
-    print(f"✅ EVENING REEL SUCCESS: {output_file}")
+    print(f"✅ EVENING ZENO REEL SUCCESS: {output_file}")
     print(f"TITLE: ZENO Ki Baat - {title}")
     print(f"MODE: {CONTENT_MODE.upper()}")
     print(f"DESC: {display_text}")
     print(f"EMOTION: {emotion} | SENTIMENT: {sentiment}")
+    print(f"AI: {ai.active_provider}")
     print("=" * 50 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(generate_reel())
