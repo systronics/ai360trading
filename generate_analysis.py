@@ -1,5 +1,4 @@
-import os, sys, json, asyncio, textwrap, random
-import logging, warnings
+import os, sys, json, asyncio, textwrap, random, logging
 from datetime import datetime
 from pathlib import Path
 import edge_tts
@@ -7,38 +6,34 @@ import yfinance as yf
 from PIL import Image, ImageDraw, ImageFont
 from moviepy.editor import ImageClip, AudioFileClip, CompositeAudioClip, concatenate_videoclips, concatenate_audioclips
 
-# ── Bug 1 Fix: Suppress noisy logs ──────────────────────────────────────────
-logging.getLogger("moviepy").setLevel(logging.ERROR)
-logging.getLogger("imageio").setLevel(logging.ERROR)
-logging.getLogger("PIL").setLevel(logging.ERROR)
-logging.getLogger("urllib3").setLevel(logging.ERROR)
-logging.getLogger("httpx").setLevel(logging.ERROR)
-warnings.filterwarnings("ignore")
-
-from ai_client import ai
-from human_touch import ht, seo
-
 # YouTube upload
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 
+# ── Bug 1: Log suppression — no more 50-line JSON dumps ──────────────────────
+logging.getLogger("moviepy").setLevel(logging.ERROR)
+logging.getLogger("PIL").setLevel(logging.ERROR)
+logging.getLogger("urllib3").setLevel(logging.ERROR)
+logging.getLogger("httpx").setLevel(logging.ERROR)
+logging.getLogger("httpcore").setLevel(logging.ERROR)
+
+# ── Bug 3 + Bug 4: Use ai_client fallback chain — no direct Groq import ──────
+from ai_client import ai
+from human_touch import ht, seo
+
 # ─── CONFIG ──────────────────────────────────────────────────────────────────
 OUT       = Path("output")
 MUSIC_DIR = Path("public/music")
-W, H      = 1920, 1080  # Horizontal — full YouTube video
+W, H      = 1920, 1080   # Horizontal — full YouTube video
 FPS       = 24
-VOICE     = "hi-IN-SwaraNeural"  # Hinglish female voice
-
+VOICE     = "hi-IN-SwaraNeural"
 CONTENT_MODE = os.environ.get("CONTENT_MODE", "market").lower()
-HOLIDAY_NAME = os.environ.get("HOLIDAY_NAME", "Indian Market Holiday")
 
 os.makedirs(OUT, exist_ok=True)
 
 if not hasattr(Image, "ANTIALIAS"):
     Image.ANTIALIAS = Image.LANCZOS
-
-print(f"[MODE] generate_analysis.py running in mode: {CONTENT_MODE.upper()}")
 
 # ─── FONTS ───────────────────────────────────────────────────────────────────
 FONT_BOLD_PATHS = [
@@ -86,25 +81,23 @@ def lerp(c1, c2, t):
 
 # ─── LIVE DATA FETCHING ──────────────────────────────────────────────────────
 def fetch_market_data():
-    """Fetches live global data to prevent AI hallucinations."""
+    """Fetches live global data to prevent AI hallucinations (old 17k Nifty)."""
     print("📈 Fetching live market data...")
     data_summary = ""
     try:
         tickers = {"Nifty 50": "^NSEI", "S&P 500": "^GSPC", "Bitcoin": "BTC-USD"}
         for name, sym in tickers.items():
-            try:
-                t = yf.Ticker(sym)
-                hist = t.history(period="2d")
-                if not hist.empty:
-                    price  = hist['Close'].iloc[-1]
-                    change = price - hist['Close'].iloc[-2]
-                    pct    = (change / hist['Close'].iloc[-2]) * 100
-                    data_summary += f"- {name}: {price:.2f} ({pct:+.2f}%)\n"
-                else:
-                    data_summary += f"- {name}: Data Unavailable\n"
-            except Exception:
+            t    = yf.Ticker(sym)
+            hist = t.history(period="2d")
+            if not hist.empty:
+                price  = hist['Close'].iloc[-1]
+                change = price - hist['Close'].iloc[-2]
+                pct    = (change / hist['Close'].iloc[-2]) * 100
+                data_summary += f"- {name}: {price:.2f} ({pct:+.2f}%)\n"
+            else:
                 data_summary += f"- {name}: Data Unavailable\n"
-    except Exception:
+    except Exception as e:
+        print(f"⚠️ Market data fetch error: {e}")
         data_summary = "Live data unavailable, focus on general technical structure."
     return data_summary
 
@@ -125,7 +118,7 @@ def get_bg_music():
 def is_weekend():
     return datetime.now().weekday() >= 5
 
-# ─── SCRIPT GENERATION via ai_client ─────────────────────────────────────────
+# ─── SCRIPT GENERATION ───────────────────────────────────────────────────────
 def generate_slides():
     today     = datetime.now().strftime("%A, %d %B %Y")
     weekend   = is_weekend()
@@ -133,9 +126,7 @@ def generate_slides():
 
     live_data = fetch_market_data()
 
-    if CONTENT_MODE == "holiday":
-        market_context = f"Today is {HOLIDAY_NAME} — market holiday. Create motivational educational content."
-    elif weekend or CONTENT_MODE == "weekend":
+    if weekend:
         market_context = "evergreen educational content about Indian and global markets."
     else:
         market_context = f"today's live market levels:\n{live_data}\nAnalyze these specific levels for Nifty, S&P 500, and BTC."
@@ -165,22 +156,29 @@ Generate exactly 8 slides in valid JSON:
 }}"""
 
     print("🤖 Generating market analysis script via ai_client...")
+    data = ai.generate_json(
+        prompt=prompt,
+        content_mode=CONTENT_MODE,
+        lang="hi"
+    )
 
-    try:
-        data = ai.generate_json(prompt, content_mode=CONTENT_MODE, lang="hi")
-        if data and "slides" in data:
-            print(f"✅ Script generated via {ai.active_provider}")
-            return data
-        raise ValueError("No slides in response")
-    except Exception:
-        print("⚠️ ai_client failed — using fallback slides")
+    if not data or "slides" not in data:
+        print(f"⚠️ JSON generation failed — using fallback slides")
         return _fallback_slides()
+
+    # Apply human touch to each slide's content
+    for slide in data.get("slides", []):
+        slide["content"] = ht.humanize(slide.get("content", ""), lang="hi")
+
+    print(f"✅ Analysis script ready — {len(data.get('slides', []))} slides via {ai.active_provider}")
+    return data
+
 
 def _fallback_slides():
     return {
-        "video_title":        f"Aaj Ka Market Analysis — {datetime.now().strftime('%d %B %Y')}",
-        "video_description":  "Aaj ke market ki poori analysis. Visit ai360trading.in",
-        "overall_sentiment":  "neutral",
+        "video_title":       f"Aaj Ka Market Analysis — {datetime.now().strftime('%d %B %Y')}",
+        "video_description": "Aaj ke market ki poori analysis. Visit ai360trading.in",
+        "overall_sentiment": "neutral",
         "slides": [{"title": "Market Overview", "content": "Market levels are updating. Please check back for live analysis.", "sentiment": "neutral", "key_points": ["Loading data"]}]
     }
 
@@ -188,7 +186,7 @@ def _fallback_slides():
 def make_slide(slide, idx, total, path):
     snt = slide.get("sentiment", "neutral").lower()
     if snt not in THEMES: snt = "neutral"
-    th = THEMES[snt]
+    th  = THEMES[snt]
 
     img = Image.new("RGB", (W, H))
     px  = img.load()
@@ -198,8 +196,8 @@ def make_slide(slide, idx, total, path):
 
     draw = ImageDraw.Draw(img, "RGBA")
     draw.rectangle([(0, 0), (W, 10)], fill=th["accent"])
-    draw.text((W - 40, 30),  "ai360trading.in", fill=(*th["subtext"], 180), font=get_font(FONT_REG_PATHS, 28),  anchor="ra")
-    draw.text((40, 35),      f"{idx} / {total}", fill=(*th["subtext"], 200), font=get_font(FONT_BOLD_PATHS, 32), anchor="la")
+    draw.text((W - 40, 30), "ai360trading.in", fill=(*th["subtext"], 180), font=get_font(FONT_REG_PATHS, 28), anchor="ra")
+    draw.text((40, 35), f"{idx} / {total}", fill=(*th["subtext"], 200), font=get_font(FONT_BOLD_PATHS, 32), anchor="la")
 
     title_font  = get_font(FONT_BOLD_PATHS, 72)
     title_lines = textwrap.wrap(slide["title"].upper(), width=28)
@@ -229,7 +227,10 @@ def make_slide(slide, idx, total, path):
 
 # ─── VOICE ───────────────────────────────────────────────────────────────────
 async def gen_voice(text, path):
-    await edge_tts.Communicate(text, VOICE).save(str(path))
+    tts_speed = ht.get_tts_speed()
+    rate_pct  = int((tts_speed - 1.0) * 100)
+    rate_str  = f"+{rate_pct}%" if rate_pct >= 0 else f"{rate_pct}%"
+    await edge_tts.Communicate(text, VOICE, rate=rate_str).save(str(path))
 
 # ─── YOUTUBE UPLOAD ──────────────────────────────────────────────────────────
 def get_youtube_service():
@@ -241,8 +242,8 @@ def get_youtube_service():
         info  = json.loads(creds_json)
         creds = Credentials.from_authorized_user_info(info)
         return build("youtube", "v3", credentials=creds)
-    except Exception:
-        return None
+    except Exception: return None
+
 
 def upload_to_youtube(video_path, title, description, tags):
     youtube = get_youtube_service()
@@ -258,39 +259,36 @@ def upload_to_youtube(video_path, title, description, tags):
         while response is None:
             status, response = request.next_chunk()
         return response["id"]
-    except Exception:
-        return None
+    except Exception: return None
 
 # ─── MAIN ────────────────────────────────────────────────────────────────────
 async def run():
     today = datetime.now().strftime("%Y%m%d")
+    data  = generate_slides()
 
-    data      = generate_slides()
     slides    = data["slides"]
     sentiment = data.get("overall_sentiment", "neutral")
     vid_title = data.get("video_title", f"Market Analysis — {today}")
     vid_desc  = data.get("video_description", "Daily market analysis by ai360trading.in")
     full_desc = f"{vid_desc}\n\n🌐 Website: https://ai360trading.in\n#Nifty #Trading #ai360trading"
 
-    tags = seo.get_video_tags(CONTENT_MODE, lang="hi") + ["Nifty", "Trading", "ai360trading"]
+    # SEO tags from human_touch
+    tags = seo.get_video_tags(mode=CONTENT_MODE)
 
     clips = []
     for i, s in enumerate(slides):
         img_path   = OUT / f"an_{i}.png"
         audio_path = OUT / f"an_{i}.mp3"
-        make_slide(s, i + 1, len(slides), img_path)
+
+        make_slide(s, i+1, len(slides), img_path)
         await gen_voice(s["content"], audio_path)
 
-        voice_clip    = AudioFileClip(str(audio_path))
-        duration      = voice_clip.duration + 0.8
+        voice_clip   = AudioFileClip(str(audio_path))
+        duration     = voice_clip.duration + 0.8
         bg_music_path = get_bg_music()
-
         if bg_music_path:
-            try:
-                bg          = AudioFileClip(str(bg_music_path)).subclip(0, duration).volumex(0.07)
-                slide_audio = CompositeAudioClip([voice_clip, bg])
-            except Exception:
-                slide_audio = voice_clip
+            bg          = AudioFileClip(str(bg_music_path)).subclip(0, duration).volumex(0.07)
+            slide_audio = CompositeAudioClip([voice_clip, bg])
         else:
             slide_audio = voice_clip
 
@@ -302,13 +300,15 @@ async def run():
         str(video_path), fps=FPS, codec="libx264", audio_codec="aac", remove_temp=True, logger=None
     )
 
-    video_id = upload_to_youtube(video_path, vid_title, full_desc, tags)
+    video_id = upload_to_youtube(video_path, vid_title, full_desc, list(tags)[:15])
     if video_id:
         (OUT / "analysis_video_id.txt").write_text(video_id, encoding="utf-8")
-        print(f"✅ Success! YouTube ID: {video_id}")
+        print(f"✅ Analysis video uploaded — YouTube ID: {video_id}")
+        print(f"   AI: {ai.active_provider}")
     else:
         (OUT / "analysis_video_id.txt").write_text("UPLOAD_FAILED", encoding="utf-8")
-        print("⚠️ YouTube upload failed — ID saved as UPLOAD_FAILED")
+        print("⚠️ Upload failed — placeholder written")
+
 
 if __name__ == "__main__":
     asyncio.run(run())
