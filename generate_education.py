@@ -1,43 +1,39 @@
-import os, sys, json, asyncio, textwrap
-import logging, warnings
+import os, sys, json, asyncio, textwrap, logging
 from datetime import datetime
 from pathlib import Path
 import edge_tts
 from PIL import Image, ImageDraw, ImageFont
 from moviepy.editor import ImageClip, AudioFileClip, CompositeAudioClip, concatenate_videoclips, concatenate_audioclips
 
-# ── Bug 1 Fix: Suppress noisy logs ──────────────────────────────────────────
-logging.getLogger("moviepy").setLevel(logging.ERROR)
-logging.getLogger("imageio").setLevel(logging.ERROR)
-logging.getLogger("PIL").setLevel(logging.ERROR)
-logging.getLogger("urllib3").setLevel(logging.ERROR)
-logging.getLogger("httpx").setLevel(logging.ERROR)
-warnings.filterwarnings("ignore")
-
-from ai_client import ai
-from human_touch import ht, seo
-from content_calendar import get_todays_education_topic
-
 # YouTube upload
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 
-# ─── CONFIG ──────────────────────────────────────────────────────────────────
-OUT       = Path("output")
-MUSIC_DIR = Path("public/music")
-W, H      = 1920, 1080
-FPS       = 24
-VOICE     = "hi-IN-SwaraNeural"
+# ── Bug 1: Log suppression — no more 50-line JSON dumps ──────────────────────
+logging.getLogger("moviepy").setLevel(logging.ERROR)
+logging.getLogger("PIL").setLevel(logging.ERROR)
+logging.getLogger("urllib3").setLevel(logging.ERROR)
+logging.getLogger("httpx").setLevel(logging.ERROR)
+logging.getLogger("httpcore").setLevel(logging.ERROR)
 
+# ── Bug 3 + Bug 4: Use ai_client fallback chain — no direct Groq import ──────
+from ai_client import ai
+from human_touch import ht, seo
+from content_calendar import get_todays_education_topic
+
+# ─── CONFIG ──────────────────────────────────────────────────────────────────
+OUT          = Path("output")
+MUSIC_DIR    = Path("public/music")
+W, H         = 1920, 1080
+FPS          = 24
+VOICE        = "hi-IN-SwaraNeural"
 CONTENT_MODE = os.environ.get("CONTENT_MODE", "market").lower()
 
 os.makedirs(OUT, exist_ok=True)
 
 if not hasattr(Image, "ANTIALIAS"):
     Image.ANTIALIAS = Image.LANCZOS
-
-print(f"[MODE] generate_education.py running in mode: {CONTENT_MODE.upper()}")
 
 # ─── FONTS ───────────────────────────────────────────────────────────────────
 FONT_BOLD_PATHS = [
@@ -82,9 +78,12 @@ def get_bg_music():
     }
     f = MUSIC_DIR / music_map[day]
     if f.exists():
+        print(f"🎵 Background music: {f.name}")
         return f
     for f in MUSIC_DIR.glob("*.mp3"):
+        print(f"🎵 Fallback music: {f.name}")
         return f
+    print("⚠️ No background music found — voice only")
     return None
 
 # ─── SCRIPT GENERATION ───────────────────────────────────────────────────────
@@ -119,16 +118,14 @@ Respond ONLY with valid JSON, no markdown, no extra text:
 }}"""
 
     print(f"🤖 Generating education script: {topic['title']} via ai_client...")
+    data = ai.generate_json(
+        prompt=prompt,
+        content_mode=CONTENT_MODE,
+        lang="hi"
+    )
 
-    try:
-        data   = ai.generate_json(prompt, content_mode=CONTENT_MODE, lang="hi")
-        slides = data.get("slides", [])
-        if not slides:
-            raise ValueError("No slides in response")
-        print(f"✅ {len(slides)} education slides generated via {ai.active_provider}")
-        return data
-    except Exception:
-        print("⚠️ ai_client failed — using topic slides directly as fallback")
+    if not data or not data.get("slides"):
+        print(f"⚠️ JSON generation failed — using topic slides directly")
         fallback_slides = []
         for s in topic.get("slides", []):
             fallback_slides.append({
@@ -141,6 +138,13 @@ Respond ONLY with valid JSON, no markdown, no extra text:
             "video_description": f"Aaj hum seekhenge {topic['title']} ke baare mein. Visit ai360trading.in",
             "slides":            fallback_slides
         }
+
+    # Apply human touch to each slide's content
+    for slide in data.get("slides", []):
+        slide["content"] = ht.humanize(slide.get("content", ""), lang="hi")
+
+    print(f"✅ {len(data.get('slides', []))} education slides generated via {ai.active_provider}")
+    return data
 
 # ─── SLIDE RENDERER ──────────────────────────────────────────────────────────
 def make_edu_slide(slide, idx, total, topic, path):
@@ -157,14 +161,14 @@ def make_edu_slide(slide, idx, total, topic, path):
     draw = ImageDraw.Draw(img, "RGBA")
     draw.rectangle([(0, 0), (W, 10)], fill=th["accent"])
 
-    draw.text((40, 35),      f"📚 {topic['category'].upper()}",
+    draw.text((40, 35), f"📚 {topic['category'].upper()}",
               fill=(*th["subtext"], 220), font=get_font(FONT_BOLD_PATHS, 30), anchor="la")
-    draw.text((W - 40, 35),  f"● {level}",
-              fill=(*th["accent"], 200),  font=get_font(FONT_BOLD_PATHS, 28), anchor="ra")
-    draw.text((W // 2, 38),  "ai360trading.in",
-              fill=(*th["subtext"], 160), font=get_font(FONT_REG_PATHS, 26),  anchor="mm")
-    draw.text((W // 2, 80),  f"{idx} of {total}",
-              fill=(*th["subtext"], 180), font=get_font(FONT_REG_PATHS, 28),  anchor="mm")
+    draw.text((W - 40, 35), f"● {level}",
+              fill=(*th["accent"], 200), font=get_font(FONT_BOLD_PATHS, 28), anchor="ra")
+    draw.text((W // 2, 38), "ai360trading.in",
+              fill=(*th["subtext"], 160), font=get_font(FONT_REG_PATHS, 26), anchor="mm")
+    draw.text((W // 2, 80), f"{idx} of {total}",
+              fill=(*th["subtext"], 180), font=get_font(FONT_REG_PATHS, 28), anchor="mm")
 
     title_font  = get_font(FONT_BOLD_PATHS, 68)
     title_lines = textwrap.wrap(slide["title"].upper(), width=30)
@@ -183,9 +187,9 @@ def make_edu_slide(slide, idx, total, topic, path):
         ty += 54
 
     if slide.get("key_takeaway"):
-        ty     += 20
-        box_top = ty
-        box_bot = ty + 70
+        ty      += 20
+        box_top  = ty
+        box_bot  = ty + 70
         draw.rectangle([(60, box_top), (W - 60, box_bot)], fill=(*th["accent"], 30))
         draw.rectangle([(60, box_top), (63, box_bot)], fill=th["accent"])
         draw.text((90, box_top + 35), f"💡 {slide['key_takeaway']}",
@@ -196,7 +200,10 @@ def make_edu_slide(slide, idx, total, topic, path):
 
 # ─── VOICE ───────────────────────────────────────────────────────────────────
 async def gen_voice(text, path):
-    await edge_tts.Communicate(text, VOICE).save(str(path))
+    tts_speed = ht.get_tts_speed()
+    rate_pct  = int((tts_speed - 1.0) * 100)
+    rate_str  = f"+{rate_pct}%" if rate_pct >= 0 else f"{rate_pct}%"
+    await edge_tts.Communicate(text, VOICE, rate=rate_str).save(str(path))
 
 # ─── YOUTUBE HELPERS ─────────────────────────────────────────────────────────
 def get_youtube_service():
@@ -212,16 +219,26 @@ def get_youtube_service():
         info  = json.loads(creds_json)
         creds = Credentials.from_authorized_user_info(info)
         return build("youtube", "v3", credentials=creds)
-    except Exception:
+    except Exception as e:
+        print(f"❌ YouTube auth error: {e}")
         return None
+
 
 def upload_to_youtube(video_path, title, description, tags):
     youtube = get_youtube_service()
     if not youtube:
         return None
     body = {
-        "snippet": {"title": title[:100], "description": description, "tags": tags, "categoryId": "27"},
-        "status":  {"privacyStatus": "public", "selfDeclaredMadeForKids": False}
+        "snippet": {
+            "title":       title[:100],
+            "description": description,
+            "tags":        tags,
+            "categoryId":  "27"
+        },
+        "status": {
+            "privacyStatus":           "public",
+            "selfDeclaredMadeForKids": False
+        }
     }
     media = MediaFileUpload(str(video_path), mimetype="video/mp4", resumable=True)
     print(f"🚀 Uploading to YouTube: {title[:60]}...")
@@ -237,8 +254,9 @@ def upload_to_youtube(video_path, title, description, tags):
         print(f"🔗 URL: https://youtube.com/watch?v={video_id}")
         return video_id
     except Exception as e:
-        print(f"⚠️ YouTube upload failed — trying next")
+        print(f"❌ YouTube upload failed: {e}")
         return None
+
 
 def update_part1_description(part1_id, part1_desc, part2_url):
     """Adds Part 2 link to Part 1 video description."""
@@ -259,14 +277,14 @@ def update_part1_description(part1_id, part1_desc, part2_url):
             body={"id": part1_id, "snippet": snippet}
         ).execute()
         print(f"✅ Part 1 description updated with Part 2 link")
-    except Exception:
-        print("⚠️ Could not update Part 1 description — skipping")
+    except Exception as e:
+        print(f"⚠️ Could not update Part 1 description: {e}")
 
 # ─── MAIN ────────────────────────────────────────────────────────────────────
 async def run():
     today = datetime.now().strftime("%Y%m%d")
 
-    # 1. Read Part 1 video ID
+    # 1. Read Part 1 video ID (saved by generate_analysis.py)
     part1_id  = ""
     part1_url = ""
     id_path   = OUT / "analysis_video_id.txt"
@@ -285,8 +303,8 @@ async def run():
     print(f"📚 Topic: {topic['title']} | {topic['category']} | {topic['level']}")
 
     # 3. Generate script
-    data      = generate_edu_slides(topic, part1_url)
-    slides    = data["slides"]
+    data     = generate_edu_slides(topic, part1_url)
+    slides   = data["slides"]
     vid_title = data.get("video_title", f"{topic['title']} — ai360trading")
     vid_desc  = data.get("video_description", f"Learn {topic['title']} with ai360trading.in")
 
@@ -316,16 +334,16 @@ async def run():
         voice_clip    = AudioFileClip(str(audio_path))
         duration      = voice_clip.duration + 0.8
         bg_music_path = get_bg_music()
-
         if bg_music_path:
             try:
                 bg = AudioFileClip(str(bg_music_path))
                 if bg.duration < duration:
                     loops = int(duration / bg.duration) + 1
-                    bg    = concatenate_audioclips([bg] * loops)
+                    bg = concatenate_audioclips([bg] * loops)
                 bg          = bg.subclip(0, duration).volumex(0.07)
                 slide_audio = CompositeAudioClip([voice_clip, bg])
-            except Exception:
+            except Exception as e:
+                print(f"⚠️ Music error slide {i}: {e}")
                 slide_audio = voice_clip
         else:
             slide_audio = voice_clip
@@ -349,19 +367,19 @@ async def run():
     print(f"✅ Video rendered: {video_path}")
 
     # 6. Upload to YouTube
-    tags = [
-        topic["title"], topic["category"], "Trading Education", "ai360trading",
-        "Stock Market India", "Learn Trading", "NSE", "BSE",
-        "Hinglish", "Trading India", topic["level"]
-    ] + seo.get_video_tags(CONTENT_MODE, lang="hi")
+    tags    = seo.get_video_tags(mode=CONTENT_MODE)
+    tag_list = [topic["title"], topic["category"], "Trading Education", "ai360trading",
+                "Stock Market India", "Learn Trading", "NSE", "BSE",
+                "Hinglish", "Trading India", topic["level"]]
 
-    part2_id = upload_to_youtube(video_path, vid_title, full_desc, tags)
+    part2_id = upload_to_youtube(video_path, vid_title, full_desc, tag_list)
 
     # 7. Save Part 2 ID and update Part 1 description
     if part2_id:
         (OUT / "education_video_id.txt").write_text(part2_id, encoding="utf-8")
         part2_url = f"https://youtube.com/watch?v={part2_id}"
         print(f"✅ Education video ID saved")
+        print(f"   AI: {ai.active_provider}")
 
         if part1_id and part1_id != "UPLOAD_FAILED":
             update_part1_description(part1_id, full_desc, part2_url)
@@ -375,6 +393,7 @@ async def run():
             "topic":       topic["title"],
             "category":    topic["category"],
             "level":       topic["level"],
+            "ai_provider": ai.active_provider,
             "date":        today
         }
         (OUT / f"education_meta_{today}.json").write_text(
@@ -384,6 +403,7 @@ async def run():
     else:
         print("⚠️ Upload failed — saving placeholder")
         (OUT / "education_video_id.txt").write_text("UPLOAD_FAILED", encoding="utf-8")
+
 
 if __name__ == "__main__":
     asyncio.run(run())
