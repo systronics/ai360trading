@@ -25,8 +25,63 @@
 > - Every automation gap = a gap in the family's income
 > - Fix bugs completely — never write "TODO" or "test later"
 > - Goal: zero logins, zero manual posting, zero human required
+> - Always read existing code from GitHub before writing any new code
+> - Always provide COMPLETE file content — never partial snippets
 >
 > **This is a life support system for a family. Treat it that way.**
+
+---
+
+## 🔴 PRIORITY TASK LIST — AI ASSISTANTS START HERE
+
+> Read this section first. Fix tasks in exact priority order. Do not skip ahead.
+> Check each task against existing code in GitHub before writing anything.
+
+### 🔴 P1 — MUST FIX NOW (System broken without these)
+
+| # | Task | File(s) | Status |
+|---|---|---|---|
+| P1-1 | Fix Bug 1 — Add log suppression block to all 6 video generators | `generate_kids_video.py`, `generate_reel.py`, `generate_reel_morning.py`, `generate_shorts.py`, `generate_analysis.py`, `generate_education.py` | ❌ Pending |
+| P1-2 | Fix Bug 2 — Fix Gemini model name + Add Pollinations.AI fallback + Fix HuggingFace endpoints in kids video | `generate_kids_video.py` | ❌ Pending |
+| P1-3 | Commit fixed robots.txt | `robots.txt` | ❌ Pending |
+| P1-4 | Commit fixed _config.yml — add jekyll-sitemap plugin, delete static sitemap.xml | `_config.yml`, `sitemap.xml` | ❌ Pending |
+
+### 🟡 P2 — FIX THIS WEEK (Quality and reliability)
+
+| # | Task | File(s) | Status |
+|---|---|---|---|
+| P2-1 | Fix Bug 3 — Separate morning vs evening reel prompts so they are not duplicate | `generate_reel.py`, `generate_reel_morning.py` | ❌ Pending |
+| P2-2 | Fix Bug 4 — Migrate generate_reel.py + generate_shorts.py to use ai_client instead of calling Groq directly | `generate_reel.py`, `generate_shorts.py` | ❌ Pending |
+| P2-3 | Remove all FACEBOOK_GROUP_ID references from upload_facebook.py — group has no followers | `upload_facebook.py` | ❌ Pending |
+| P2-4 | Verify Google Indexing API is logging [INDEX] Submitted after each article publish | `generate_articles.py` | ❌ Pending |
+| P2-5 | Enable YouTube Auto-Dubbing in Studio — free, 2 minutes, big reach impact | Manual task in YouTube Studio | ❌ Pending |
+
+### 🟢 P3 — PHASE 3 BUILDS (New features)
+
+| # | Task | File(s) | Status |
+|---|---|---|---|
+| P3-1 | Build generate_english_short.py — English Short 4 using JennyNeural voice | `generate_english_short.py` (new file) | ❌ Pending |
+| P3-2 | Add generate_english_short.py to daily-shorts.yml workflow | `.github/workflows/daily-shorts.yml` | ❌ Pending |
+
+### 🔵 P4 — PHASE 4 PLANNED (After paper trade validation)
+
+| # | Task | Dependency |
+|---|---|---|
+| P4-1 | Connect Dhan API for live trading | 30+ paper trades validated, win rate >35% |
+| P4-2 | Live CE options execution via Dhan | Dhan API connected |
+
+### ✅ COMPLETED TASKS (Do not redo these)
+
+| Task | Completed |
+|---|---|
+| Bug 5 — Facebook Kids Page token fixed | April 12, 2026 |
+| META_ACCESS_TOKEN_KIDS added to GitHub Secrets | April 12, 2026 |
+| FACEBOOK_KIDS_PAGE_ID = 1021152881090398 added to GitHub Secrets | April 12, 2026 |
+| token_refresh.py updated — now auto-refreshes both Trading + Kids tokens | April 12, 2026 |
+| token_refresh.yml updated — META_ACCESS_TOKEN_KIDS added to env | April 12, 2026 |
+| Facebook Group removed from all workflows — group has no followers | April 12, 2026 |
+| Kids channel (HerooQuest) YouTube upload working | Phase 2 |
+| All generators upgraded to ai_client + human_touch | Phase 2 |
 
 ---
 
@@ -84,14 +139,14 @@
 | Platform | Status | Notes |
 |---|---|---|
 | YouTube Kids | ✅ Auto | Full video + Short via `upload_kids_youtube.py` |
-| Facebook Kids Page | ⚠️ Fixing | Permission error — fix steps in Section 13 |
+| Facebook Kids Page | ✅ Fixed | Token fixed April 12, 2026. Uses META_ACCESS_TOKEN_KIDS. Auto-refreshes via token_refresh.yml. |
 | Instagram Kids | 📱 Manual | Reel generated — post manually for now |
 
 ---
 
-## 3. Known Bugs — Fix These First (Priority Order)
+## 3. Known Bugs — Fix in Priority Order
 
-### Bug 1: Excessive Log Text in GitHub Actions ❌ HIGH
+### Bug 1: Excessive Log Text in GitHub Actions ❌ P1 — Fix Now
 
 **Symptom:** Full JSON API error responses (50+ lines each) printed per scene × per fallback.
 From kids video log: 6 scenes × 5 providers = 30 full JSON error dumps per run.
@@ -131,7 +186,7 @@ print(f"  [WARN-1] Gemini image failed — trying next")
 [SCENE 1] TTS done ✓
 ```
 
-### Bug 2: All Image Sources Failing — Kids Video Uses Placeholder ❌ HIGH
+### Bug 2: All Image Sources Failing — Kids Video Uses Placeholder ❌ P1 — Fix Now
 
 **Symptom (from log):**
 - Gemini 2.5 Flash: 429 quota 0 (free tier exhausted for the day)
@@ -143,7 +198,6 @@ print(f"  [WARN-1] Gemini image failed — trying next")
 
 1. **Fix Gemini 2.0 model name (free, do now):**
    `gemini-2.0-flash-exp-image-generation` → deprecated.
-   Check current name: https://ai.google.dev/gemini-api/docs/image-generation
    Use: `gemini-2.0-flash-preview-image-generation` or `imagen-3.0-generate-002`
 
 2. **Add Pollinations.AI as free fallback Layer 3 (free, no key, do now):**
@@ -172,7 +226,7 @@ Layer 5: DALL-E 3 (if billing available)
 Layer 6: PIL placeholder (always works)
 ```
 
-### Bug 3: Reel Duplicate Content (Morning = Evening) ❌ MEDIUM
+### Bug 3: Reel Duplicate Content (Morning = Evening) ❌ P2 — Fix This Week
 
 **Symptom:** Morning reel and ZENO evening reel produce near-identical audio and text.
 
@@ -181,10 +235,10 @@ Layer 6: PIL placeholder (always works)
 - `generate_reel_morning.py`: add `"MORNING BRIEF 7AM — pre-market motivation — NOT the evening ZENO reel"`
 Also make fallback scripts completely different in each file.
 
-### Bug 4: generate_reel.py and generate_shorts.py Call Groq Directly ❌ MEDIUM
+### Bug 4: generate_reel.py and generate_shorts.py Call Groq Directly ❌ P2 — Fix This Week
 
 **Symptom:** Both import `from groq import Groq` directly — bypassing `ai_client` fallback.
-When Groq quota exhausts (as seen in kids log), these crash with no fallback.
+When Groq quota exhausts, these crash with no fallback.
 
 **Fix:**
 ```python
@@ -198,38 +252,17 @@ data = ai.generate_json(prompt, content_mode=CONTENT_MODE, lang="hi")
 ```
 Also add `from human_touch import ht, seo` to `generate_reel.py` (currently missing).
 
-### Bug 5: Facebook Kids Page Upload Permission Error ❌ HIGH (Fix Today)
+### Bug 5: Facebook Kids Page Upload ✅ FIXED — April 12, 2026
 
-**Error:** `(#200) Subject does not have permission to post videos on this target`
+**Was:** `(#200) Subject does not have permission to post videos on this target`
 
-**Step-by-step fix:**
-```
-1. Open: https://developers.facebook.com/tools/explorer/
-2. Top right — select your App
-3. Click "Get User Access Token"
-4. Check ALL these permissions:
-   ✅ pages_manage_posts
-   ✅ pages_read_engagement
-   ✅ pages_show_list
-   ✅ video_upload
-   ✅ publish_video
-5. Click "Generate Access Token" → approve popup
-6. Click "Get Page Access Token" → select KIDS PAGE (not profile, not trading page)
-7. Copy that Page Access Token
-8. Verify at: https://developers.facebook.com/tools/debug/accesstoken/
-   → Confirm it shows Kids Page name + all scopes above
-9. Add to GitHub Secrets as: META_ACCESS_TOKEN_KIDS (separate from trading token)
-10. Confirm FACEBOOK_KIDS_PAGE_ID = numeric ID (get from debug tool)
-11. Update upload_facebook.py to use META_ACCESS_TOKEN_KIDS when --meta-prefix kids
-```
-
-**Wrap FB kids upload in try/except — never let it crash the workflow:**
-```python
-try:
-    # facebook upload code
-except Exception as e:
-    print(f"⚠️ Kids FB upload failed: {e} — video saved to output/ for manual upload")
-```
+**Fixed:**
+- Generated Kids Page Access Token via Graph API Explorer
+- Added `META_ACCESS_TOKEN_KIDS` to GitHub Secrets
+- Added `FACEBOOK_KIDS_PAGE_ID = 1021152881090398` to GitHub Secrets
+- Updated `token_refresh.py` to auto-refresh both Trading + Kids tokens every 50 days
+- Updated `token_refresh.yml` to pass `META_ACCESS_TOKEN_KIDS` to environment
+- Kids upload wrapped in try/except — workflow never crashes on FB failure
 
 ---
 
@@ -238,25 +271,25 @@ except Exception as e:
 | Issue | Count | Action |
 |---|---|---|
 | Not found (404) | 8 | Find broken URLs — check for deleted posts or wrong permalinks |
-| Blocked by robots.txt | 4 | Fix robots.txt (see below) |
+| Blocked by robots.txt | 4 | Fix robots.txt — commit version from Section 23 ❌ P1 |
 | Page with redirect | 3 | Check permalink changes — may need 301 redirects |
 | Crawled - not indexed | 3 | Improve content quality/length on those pages |
 | Excluded by noindex | 2 | Check tag layout for accidental noindex tag |
-| Discovered - not indexed | 39 | Fix sitemap — add jekyll-sitemap plugin |
+| Discovered - not indexed | 39 | Fix sitemap — add jekyll-sitemap plugin ❌ P1 |
 
-### Fix 1: robots.txt — Stop Blocking Article Pages
+### Fix 1: robots.txt — Stop Blocking Article Pages ❌ P1
 
 Current file has `Disallow: /_posts/`, `/tags/`, `/page/` which causes Googlebot
 redirect chain confusion → 4 pages blocked. Commit new robots.txt from Section 23.
 
-### Fix 2: Add jekyll-sitemap Plugin
+### Fix 2: Add jekyll-sitemap Plugin ❌ P1
 
 `sitemap.xml` is a static file — never updates when articles publish.
 Google crawls stale sitemap → 39 articles sit in "Discovered - not indexed" queue.
 Add `jekyll-sitemap` to `_config.yml` plugins. Delete static `sitemap.xml` from repo.
 Plugin generates it automatically on every push.
 
-### Fix 3: Verify Google Indexing API Calls
+### Fix 3: Verify Google Indexing API Calls ❌ P2
 
 After each article publish, `generate_articles.py` must call the Google Indexing API.
 Check logs for: `[INDEX] Submitted: /YYYY/MM/DD/article-title/`
@@ -299,7 +332,7 @@ Auto-detected by `indian_holidays.py` → written to `$GITHUB_ENV`. Read by all 
 |---|---|---|---|---|
 | 1 | Kids Story Video (16:9) | Daily | YouTube Kids | ✅ Auto |
 | 2 | Kids Short (9:16) | Same workflow | YouTube Kids Shorts | ✅ Auto |
-| 3 | Kids Facebook Post | Same workflow | Facebook Kids Page | ⚠️ Fixing |
+| 3 | Kids Facebook Post | Same workflow | Facebook Kids Page | ✅ Fixed April 12 |
 
 ---
 
@@ -314,7 +347,7 @@ Auto-detected by `indian_holidays.py` → written to `$GITHUB_ENV`. Read by all 
 | `daily-shorts.yml` | 11:30 AM / 1:30 PM | Short 2 + Short 3 + Community Post | ✅ |
 | `daily_reel.yml` | 7:00 AM + 8:30 PM | Morning Reel + ZENO Reel | ✅ |
 | `daily-articles.yml` | 10:00 AM / 11:30 AM | 4 SEO articles | ✅ |
-| `token_refresh.yml` | Every 50 days | Auto META token refresh | N/A |
+| `token_refresh.yml` | Every 50 days (1st + 20th of month) | Auto META token refresh — Trading + Kids both | ✅ Updated April 12 |
 | `keepalive.yml` | Periodic | Prevents workflow deactivation | N/A |
 
 ### Kids Channel
@@ -333,7 +366,7 @@ Auto-detected by `indian_holidays.py` → written to `$GITHUB_ENV`. Read by all 
 |---|---|---|
 | `ai_client.py` | Universal AI — Groq→Gemini→Claude→OpenAI→Templates | ✅ |
 | `human_touch.py` | Anti-AI-penalty — hooks, TTS variation, SEO tags | ✅ |
-| `token_refresh.py` | Auto META token exchange + GitHub Secret update | ✅ |
+| `token_refresh.py` | Auto META token exchange for Trading + Kids + GitHub Secret update | ✅ Updated April 12 |
 | `indian_holidays.py` | Mode detection — NSE API + fallback dates | ✅ |
 | `content_calendar.py` | Topic rotation: Options, TA, Psychology | ✅ |
 
@@ -342,11 +375,11 @@ Auto-detected by `indian_holidays.py` → written to `$GITHUB_ENV`. Read by all 
 | File | Role | Status |
 |---|---|---|
 | `trading_bot.py` | Nifty200 signals + TSL + Telegram | ✅ v13.4 |
-| `generate_shorts.py` | Short 2 (Madhur) + Short 3 (Swara) | ✅ — Bug 4 pending |
-| `generate_reel.py` | ZENO 60s reel (8:30 PM) | ✅ — Bug 3+4 pending |
-| `generate_reel_morning.py` | Morning reel (7:00 AM) | ✅ — Bug 3 pending |
-| `generate_analysis.py` | 8-slide Part 1 analysis video | ✅ |
-| `generate_education.py` | Part 2 education video | ✅ |
+| `generate_shorts.py` | Short 2 (Madhur) + Short 3 (Swara) | ✅ — Bug 1+4 pending |
+| `generate_reel.py` | ZENO 60s reel (8:30 PM) | ✅ — Bug 1+3+4 pending |
+| `generate_reel_morning.py` | Morning reel (7:00 AM) | ✅ — Bug 1+3 pending |
+| `generate_analysis.py` | 8-slide Part 1 analysis video | ✅ — Bug 1 pending |
+| `generate_education.py` | Part 2 education video | ✅ — Bug 1 pending |
 | `generate_articles.py` | 4 SEO articles → Jekyll _posts | ✅ |
 | `generate_community_post.py` | YouTube community post 12:00 PM | ✅ |
 
@@ -362,11 +395,11 @@ Auto-detected by `indian_holidays.py` → written to `$GITHUB_ENV`. Read by all 
 |---|---|---|
 | `upload_youtube.py` | Trading channel upload | ✅ |
 | `upload_kids_youtube.py` | Kids channel upload | ✅ |
-| `upload_facebook.py` | Facebook upload — Trading Page only (Group removed) | ✅ |
+| `upload_facebook.py` | Facebook upload — Trading Page + Kids Page. No Group. | ✅ |
 | `upload_instagram.py` | Kept in repo but NOT in workflows. Manual only. | 📱 |
 
-> **IMPORTANT:** `upload_facebook.py` must NOT post to any Facebook Group. Remove all
-> `FACEBOOK_GROUP_ID` references from this file. Group has no followers — wasted API calls.
+> **IMPORTANT:** `upload_facebook.py` must NOT post to any Facebook Group. All
+> `FACEBOOK_GROUP_ID` references must be removed from this file. Group has no followers.
 
 ### Static Assets
 
@@ -380,7 +413,7 @@ Auto-detected by `indian_holidays.py` → written to `$GITHUB_ENV`. Read by all 
 ## 9. AI Client Rule — NO EXCEPTIONS
 
 All text generation uses `ai_client.py`. Never call Groq/Gemini/Claude/OpenAI directly.
-`generate_reel.py` and `generate_shorts.py` currently violate this — fix in Bug 4.
+`generate_reel.py` and `generate_shorts.py` currently violate this — fix in Bug 4 (P2).
 
 ### Text Generation Fallback Chain
 
@@ -401,7 +434,7 @@ Templates in human_touch.py (always works)
 ```
 Layer 1: Gemini imagen-3.0-generate-002
 Layer 2: Gemini 2.0 Flash preview image (fix model name — Bug 2)
-Layer 3: Pollinations.AI — FREE, no key ← ADD THIS
+Layer 3: Pollinations.AI — FREE, no key ← ADD THIS (Bug 2)
 Layer 4: HuggingFace Inference API v2 (fix endpoints — Bug 2)
 Layer 5: DALL-E 3 (if billing available)
 Layer 6: PIL placeholder (always works)
@@ -523,7 +556,7 @@ generate_kids_video.py
     → output/kids_meta_YYYY-MM-DD.json
 
 upload_kids_youtube.py → YouTube Kids full video + short
-upload_facebook.py --meta-prefix kids → Facebook Kids Page (fix Bug 5 first)
+upload_facebook.py --meta-prefix kids → Facebook Kids Page (✅ Fixed April 12)
     → always wrapped in try/except — workflow must not crash on FB failure
 ```
 
@@ -548,8 +581,8 @@ upload_facebook.py --meta-prefix kids → Facebook Kids Page (fix Bug 5 first)
 | Secret | Purpose | Status |
 |---|---|---|
 | `YOUTUBE_CREDENTIALS_KIDS` | YouTube OAuth JSON (HerooQuest) | ✅ |
-| `META_ACCESS_TOKEN_KIDS` | Facebook Kids Page token (separate!) | ⚠️ Fix today (Bug 5) |
-| `FACEBOOK_KIDS_PAGE_ID` | Kids Page numeric ID | ✅ (verify numeric not username) |
+| `META_ACCESS_TOKEN_KIDS` | Facebook Kids Page token (separate from Trading!) | ✅ Fixed April 12 — auto-refreshes via token_refresh.yml |
+| `FACEBOOK_KIDS_PAGE_ID` | Kids Page numeric ID = 1021152881090398 | ✅ Fixed April 12 |
 | `HF_TOKEN` | HuggingFace image generation | ✅ |
 
 ### AI Providers
@@ -583,7 +616,40 @@ upload_facebook.py --meta-prefix kids → Facebook Kids Page (fix Bug 5 first)
 
 ---
 
-## 13. Platform Decisions & Fixes
+## 13. Token Auto-Refresh System
+
+### What Auto-Refreshes (No Action Needed)
+
+| Token | How | Frequency |
+|---|---|---|
+| `META_ACCESS_TOKEN` (Trading Page) | `token_refresh.yml` → `token_refresh.py` | Every 50 days |
+| `META_ACCESS_TOKEN_KIDS` (Kids Page) | `token_refresh.yml` → `token_refresh.py` | Every 50 days ✅ Added April 12 |
+| Groq API Key | Never expires | Always |
+| Gemini API Key | Never expires | Always |
+| Anthropic API Key | Never expires | Always |
+| OpenAI API Key | Never expires | Always |
+| HuggingFace HF_TOKEN | Never expires | Always |
+| YouTube OAuth tokens | Self-refreshes via stored token.json | Only breaks if access revoked |
+
+### What Needs Manual Action
+
+| Token | When | Action |
+|---|---|---|
+| YouTube OAuth | Only if access revoked | Re-run OAuth flow, update YOUTUBE_CREDENTIALS secret |
+| GCP Service Account | Never expires | No action needed |
+
+### token_refresh.py — What It Does (Updated April 12, 2026)
+
+1. Reads `META_ACCESS_TOKEN` and `META_ACCESS_TOKEN_KIDS` from environment
+2. Exchanges each with Facebook Graph API for new 60-day long-lived token
+3. Verifies permissions on new token
+4. Updates GitHub Secrets automatically via GitHub API
+5. Sends Telegram alert with full summary — success or failure for each token separately
+6. If Kids token fails, Trading token still succeeds (separate try/except blocks)
+
+---
+
+## 14. Platform Decisions & Fixes
 
 ### Facebook Group ❌ Removed
 
@@ -598,11 +664,13 @@ Process: GitHub Actions → Run → Artifacts → Download → post to Instagram
 `upload_instagram.py` kept in repo but removed from all workflow YAML files.
 Revisit when Meta fixes the API.
 
-### Facebook Kids Page ⚠️ (Fix Today)
+### Facebook Kids Page ✅ Fixed April 12, 2026
 
-See Bug 5 in Section 3 for full fix steps.
-Short version: generate a Page Access Token with video scopes for the Kids Page specifically.
-Store as `META_ACCESS_TOKEN_KIDS`. Verify `FACEBOOK_KIDS_PAGE_ID` is numeric.
+Token generated via Graph API Explorer using AI360Trading app.
+Both HerooQuest and Trading Page are standard Facebook Business/Brand Pages — same token type.
+Kids Page ID: `1021152881090398`
+Token stored as `META_ACCESS_TOKEN_KIDS` — separate from Trading Page token.
+Auto-refreshes every 50 days via `token_refresh.yml`.
 
 ### YouTube Community Tab ⚠️
 
@@ -611,11 +679,12 @@ Requires 500+ subscribers. Below that: post text saved to
 
 ### META_ACCESS_TOKEN Auto-Refresh ✅
 
-`token_refresh.yml` runs every 50 days. Requires `META_APP_ID` + `META_APP_SECRET`.
+`token_refresh.yml` runs every 50 days. Now refreshes both Trading + Kids tokens.
+Requires `META_APP_ID` + `META_APP_SECRET` + `GH_TOKEN`.
 
 ---
 
-## 14. Human Touch System (Anti-AI-Penalty)
+## 15. Human Touch System (Anti-AI-Penalty)
 
 All content uses `human_touch.py`. Never use raw AI output directly.
 
@@ -631,17 +700,19 @@ All content uses `human_touch.py`. Never use raw AI output directly.
 
 ---
 
-## 15. Technical Standards
+## 16. Technical Standards
 
 ### The "Full Code" Rule
 
 > AI assistants must always provide **complete file content**. Partial snippets = prohibited.
+> Always read existing code from GitHub before writing updates.
 
 ```
 Standard AI task prompt:
 Context: I am working on the ai360trading system. Refer to SYSTEM.md for architecture.
 Task: [describe task]
-Note: Provide full code for any file you modify.
+Note: Read existing code from https://github.com/systronics/ai360trading first.
+      Provide full code for any file you modify. Never partial snippets.
 ```
 
 ### Dependency Pins
@@ -683,7 +754,7 @@ Universal: `Finance`, `Investing`, `FinancialLiteracy`, `Shorts`
 
 ---
 
-## 16. Reel Content Separation (Prevents Duplicate Audio/Text)
+## 17. Reel Content Separation (Prevents Duplicate Audio/Text)
 
 ### Morning Reel (7:00 AM) — `generate_reel_morning.py`
 
@@ -700,52 +771,19 @@ Universal: `Finance`, `Investing`, `FinancialLiteracy`, `Shorts`
 
 ---
 
-## 17. Full Data Flow
-
-```
-Market hours (Mon–Fri, 9:15–15:30 IST)
-└── main.yml every 5 min → trading_bot.py → Telegram alerts
-
-AppScript v13.3 → Nifty200 scan → AlertLog → T4 memory
-
-7:00 AM → daily_reel.yml (morning)
-    └── generate_reel_morning.py → YouTube + Facebook Trading Page
-
-7:30/9:30 AM → daily-videos.yml
-    └── generate_analysis.py (Part 1) + generate_education.py (Part 2) → YouTube
-
-10:00/11:30 AM → daily-articles.yml
-    └── generate_articles.py → 4 articles → GitHub Pages + Facebook Trading Page
-
-11:30/1:30 PM → daily-shorts.yml
-    └── generate_shorts.py (Short 2 + 3) + generate_community_post.py → YouTube
-
-8:30 PM → daily_reel.yml (evening)
-    └── generate_reel.py → YouTube + Facebook Trading Page
-    └── [Instagram → manual]
-
-Daily → daily-kids.yml
-    └── generate_kids_video.py → upload_kids_youtube.py → upload_facebook.py (kids page)
-    └── [Instagram kids → manual]
-```
-
----
-
 ## 18. Multilingual Strategy — Single Channel (Phase 3)
 
 > **Decision:** No separate English channel. Reach global audiences from the same Hindi channel.
 
 **Strategy (in order of effort):**
 
-1. **YouTube Auto-Dubbing (free, 2 minutes to enable, big impact):**
+1. **YouTube Auto-Dubbing (free, 2 minutes to enable, big impact):** ❌ P2 — Do this week
    YouTube Studio → Content → select video → Subtitles → Auto-dub to English + Portuguese + Spanish.
-   YouTube automatically dubs videos for viewers in USA/UK/Brazil in their language.
-   Enable this for all existing videos + set as default for new uploads.
+   Enable for all existing videos + set as default for new uploads.
 
-2. **English Short 4 (Phase 3 — one extra file per day):**
+2. **English Short 4 (Phase 3 — one extra file per day):** ❌ P3
    `generate_english_short.py` → same content as Short 3 but `en-US-JennyNeural` voice.
    Upload to same Hindi channel. No separate channel needed.
-   File needed: `generate_english_short.py` — add to `daily-shorts.yml`.
 
 3. **Global SEO already working:**
    All titles/descriptions already include English global keywords via `seo.get_video_tags()`.
@@ -774,9 +812,9 @@ Daily → daily-kids.yml
 
 - **URL:** ai360trading.in — GitHub Pages (Jekyll, master branch `_posts/`)
 - **Auto-publishing:** `daily-articles.yml` commits to `_posts/`
-- **Sitemap:** Must use `jekyll-sitemap` plugin — delete static `sitemap.xml`
+- **Sitemap:** Must use `jekyll-sitemap` plugin — delete static `sitemap.xml` ❌ P1
 - **Google Indexing:** `generate_articles.py` calls Indexing API after each article
-- **robots.txt:** Fixed version from Section 23 — commit today
+- **robots.txt:** Fixed version from Section 23 — commit today ❌ P1
 - **Revenue:** Google AdSense — USA/UK readers = highest CPM
 
 ---
@@ -804,23 +842,24 @@ Daily → daily-kids.yml
 `ai_client.py`, `human_touch.py`, `token_refresh.py`, `generate_reel_morning.py`
 
 ### Phase 2 ✅ Complete
-All generators upgraded. Kids channel added. 5 active bugs documented in Section 3.
+All generators upgraded. Kids channel added. Bugs documented and prioritised in Section 3.
 
 ### Phase 3 🔄 In Progress
 
-| Item | Priority |
-|---|---|
-| Fix Bug 5 — Kids Facebook token | 🔴 Today |
-| Fix Bug 1 — log spam | 🔴 High |
-| Fix Bug 2 — image sources (Pollinations.AI + Gemini model name) | 🔴 High |
-| Commit fixed robots.txt | 🔴 High |
-| Commit fixed _config.yml (jekyll-sitemap) | 🔴 High |
-| Enable YouTube Auto-Dubbing in Studio | 🟢 Easy win |
-| Fix Bug 3 — reel duplicate content | 🟡 Medium |
-| Fix Bug 4 — migrate reel/shorts to ai_client | 🟡 Medium |
-| Remove Facebook Group from upload_facebook.py | 🟡 Medium |
-| `generate_english_short.py` — English Short 4 | 🟡 Medium |
-| Instagram automation — when API stable | 🔵 Future |
+| Item | Priority | Status |
+|---|---|---|
+| Fix Bug 1 — log spam in all 6 generators | 🔴 P1 | ❌ Pending |
+| Fix Bug 2 — image sources (Pollinations.AI + Gemini model name + HF endpoints) | 🔴 P1 | ❌ Pending |
+| Commit fixed robots.txt | 🔴 P1 | ❌ Pending |
+| Commit fixed _config.yml (jekyll-sitemap) | 🔴 P1 | ❌ Pending |
+| Fix Bug 3 — reel duplicate content | 🟡 P2 | ❌ Pending |
+| Fix Bug 4 — migrate reel/shorts to ai_client | 🟡 P2 | ❌ Pending |
+| Remove Facebook Group from upload_facebook.py | 🟡 P2 | ❌ Pending |
+| Enable YouTube Auto-Dubbing in Studio | 🟡 P2 | ❌ Pending |
+| Verify Google Indexing API logging | 🟡 P2 | ❌ Pending |
+| Fix Bug 5 — Kids Facebook token | ✅ Done | April 12, 2026 |
+| `generate_english_short.py` — English Short 4 | 🟢 P3 | ❌ Pending |
+| Instagram automation — when API stable | 🔵 Future | ❌ Pending |
 
 ### Phase 4 📋 Planned — Dhan Live Trading
 After 30+ paper trades validated. Win rate >35% required. Max capital: ₹45,000.
@@ -829,7 +868,7 @@ After 30+ paper trades validated. Win rate >35% required. Max capital: ₹45,000
 
 ## 23. Files to Commit Now
 
-### robots.txt (replace current file)
+### robots.txt (replace current file) ❌ P1 — Commit Today
 
 ```
 # robots.txt for ai360trading.in — Updated April 2026
@@ -863,7 +902,7 @@ Disallow: /
 Sitemap: https://ai360trading.in/sitemap.xml
 ```
 
-### _config.yml — plugins + exclude section (replace current blocks)
+### _config.yml — plugins + exclude section ❌ P1 — Commit Today
 
 ```yaml
 plugins:
@@ -905,31 +944,35 @@ exclude:
   - sitemap.xml
 ```
 
+After committing `_config.yml` — also **delete `sitemap.xml`** from the repo root.
+The `jekyll-sitemap` plugin will generate it automatically on every push.
+
 ---
 
 ## 24. Immediate Action Checklist
 
 ```
-TODAY:
-[ ] 1. Fix Bug 5 — Facebook Kids Page token (follow steps in Section 3)
+TODAY — P1 (System broken without these):
+[✅] 1. Fix Bug 5 — Facebook Kids Page token — DONE April 12, 2026
 [ ] 2. Commit fixed robots.txt from Section 23
 [ ] 3. Commit fixed _config.yml (add jekyll-sitemap) from Section 23
-[ ] 4. Enable YouTube Auto-Dubbing in Studio (free, 2 min, big reach)
-
-THIS WEEK:
+[ ] 4. Delete static sitemap.xml from repo root after _config.yml committed
 [ ] 5. Fix Bug 1 — add log suppression block to all 6 video generators
-[ ] 6. Fix Bug 2 — add Pollinations.AI + fix Gemini model name in generate_kids_video.py
-[ ] 7. Fix Bug 3 — separate morning vs evening reel prompts
-[ ] 8. Fix Bug 4 — migrate generate_reel.py + generate_shorts.py to ai_client
-[ ] 9. Remove FACEBOOK_GROUP_ID from upload_facebook.py completely
-[ ] 10. Verify Google Indexing API is logging [INDEX] Submitted after each article
+[ ] 6. Fix Bug 2 — add Pollinations.AI + fix Gemini model name + fix HF endpoints in generate_kids_video.py
 
-PHASE 3:
-[ ] 11. Build generate_english_short.py (English Short 4 — JennyNeural voice)
-[ ] 12. Add to daily-shorts.yml workflow
+THIS WEEK — P2 (Quality and reliability):
+[ ] 7. Enable YouTube Auto-Dubbing in Studio (free, 2 min, big reach)
+[ ] 8. Fix Bug 3 — separate morning vs evening reel prompts
+[ ] 9. Fix Bug 4 — migrate generate_reel.py + generate_shorts.py to ai_client
+[ ] 10. Remove FACEBOOK_GROUP_ID from upload_facebook.py completely
+[ ] 11. Verify Google Indexing API is logging [INDEX] Submitted after each article
 
-PHASE 4:
-[ ] 13. Connect Dhan API after backtest validation (30+ paper trades, win rate >35%)
+PHASE 3 — P3 (New features):
+[ ] 12. Build generate_english_short.py (English Short 4 — JennyNeural voice)
+[ ] 13. Add to daily-shorts.yml workflow
+
+PHASE 4 — P4 (After backtest validation):
+[ ] 14. Connect Dhan API after 30+ paper trades validated, win rate >35%
 ```
 
 ---
@@ -941,5 +984,7 @@ PHASE 4:
 *— No separate English channel. Use YouTube Auto-Dubbing + English Shorts on same channel.*
 *— Facebook Group removed (no followers). Add back later if needed.*
 *— Instagram is manual until Meta API is reliable. No automation for now.*
+*— Facebook Kids Page token fixed April 12, 2026. Both tokens now auto-refresh every 50 days.*
+*— token_refresh.py and token_refresh.yml updated to handle Trading + Kids tokens together.*
 *This project supports the owner's family. Every line of code matters.*
 *Update this file whenever architecture, decisions, secrets, or bugs change.*
