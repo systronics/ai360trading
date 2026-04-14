@@ -1,25 +1,55 @@
-# robots.txt for ai360trading.in — Updated April 2026
+# ==========================================
+# robots.txt for ai360trading.in
+# Updated: April 2026
+# ==========================================
 
 User-agent: *
 Allow: /
 
-# Block only private/technical paths
+# Block technical & internal folders
 Disallow: /assets/css/
 Disallow: /assets/js/
 Disallow: /cgi-bin/
 Disallow: /_site/
+
+# Block Jekyll build folders (not publicly accessible anyway, but belt+suspenders)
+Disallow: /_drafts/
+Disallow: /_includes/
+Disallow: /_layouts/
+# REMOVED: Disallow: /_posts/  ← was incorrectly blocking real articles
+
+# Block private areas
 Disallow: /admin/
 Disallow: /private/
 Disallow: /temp/
-Disallow: /output/
+
+# Block tag and category pages (low value, thin content)
+Disallow: /tag/
+Disallow: /tags/
+Disallow: /categories/
+Disallow: /category/
+
+# Block pagination
+Disallow: /page/
+
+# Block low-value pages
+Disallow: /darvas-box.html
+Disallow: /darvas-box/
+
+# Bot optimization
+User-agent: Baiduspider
+Allow: /
 
 User-agent: dotbot
 Crawl-delay: 20
+Disallow: /
 
 User-agent: AhrefsBot
 Crawl-delay: 20
+Disallow: /
 
 User-agent: MJ12bot
 Disallow: /
 
+# Sitemap
 Sitemap: https://ai360trading.in/sitemap.xml
