@@ -12,18 +12,19 @@ Disallow: /assets/js/
 Disallow: /cgi-bin/
 Disallow: /_site/
 
-# Block Jekyll build folders (not publicly accessible anyway, but belt+suspenders)
+# Block Jekyll system files (not accessible on GitHub Pages, but explicit is better)
 Disallow: /_drafts/
 Disallow: /_includes/
 Disallow: /_layouts/
-# REMOVED: Disallow: /_posts/  ← was incorrectly blocking real articles
+
+# REMOVED: Disallow: /_posts/  — was incorrectly blocking article paths
 
 # Block private areas
 Disallow: /admin/
 Disallow: /private/
 Disallow: /temp/
 
-# Block tag and category pages (low value, thin content)
+# Block tag and category pages (thin/duplicate content)
 Disallow: /tag/
 Disallow: /tags/
 Disallow: /categories/
@@ -32,9 +33,12 @@ Disallow: /category/
 # Block pagination
 Disallow: /page/
 
-# Block low-value pages
+# Block low-value and dead pages
 Disallow: /darvas-box.html
 Disallow: /darvas-box/
+Disallow: /intraday-trading/
+Disallow: /SYSTEM/
+Disallow: /SYSTEM.md
 
 # Bot optimization
 User-agent: Baiduspider
