@@ -1,3 +1,8 @@
+---
+sitemap: false
+published: false
+---
+
 # AI360Trading — Master System Documentation
 
 **Last Updated:** April 12, 2026 — Trading Bot v13.4 + AppScript v13.3
