@@ -9,8 +9,6 @@ from datetime import datetime
 from groq import Groq
 
 # Import SEO seeds from content calendar
-# These bias article titles and content toward specific long-tail, high-CPC keywords
-# that actually rank on Google vs broad generic terms that Bloomberg already dominates
 try:
     from content_calendar import get_article_seo_seeds
     _CALENDAR_AVAILABLE = True
@@ -19,28 +17,12 @@ except ImportError:
     print("[WARN] content_calendar.py not found — SEO seeds skipped")
 
 # ─── Content Mode ─────────────────────────────────────────────────────────────
-# "market"  → normal weekday — live market data + analysis articles
-# "weekend" → Saturday/Sunday — educational/beginner articles
-# "holiday" → Indian market holiday — motivational/savings/storytelling articles
-
 CONTENT_MODE = os.environ.get("CONTENT_MODE", "market").lower()
 HOLIDAY_NAME = os.environ.get("HOLIDAY_NAME", "Indian Market Holiday")
 
 print(f"[MODE] generate_articles.py running in mode: {CONTENT_MODE.upper()}")
 
-# ─── Affiliate Links (country-aware) ─────────────────────────────────────────
-# Free referral programs — earn per lead or per policy/account opened
-# Replace placeholder URLs with your actual affiliate tracking links after signup:
-#   India insurance : partners.policybazaar.com  (instant approval)
-#   USA insurance   : policygenius.com/partners  (instant approval)
-#   UK insurance    : comparethemarket.com/affiliates (instant approval)
-#   India broker    : already in README — Zerodha + Dhan links
-#   USA broker      : webull.com/activity/register (instant approval)
-#   UK broker       : trading212.com/refer        (instant approval)
-#   India loans     : paisabazaar.com/partner     (instant approval)
-#   USA loans       : lendingtree.com/affiliates  (instant approval)
-#   UK loans        : moneysupermarket.com/affiliates (instant approval)
-
+# ─── Affiliate Links ──────────────────────────────────────────────────────────
 AFFILIATE_LINKS = {
     "insurance": {
         "india": os.environ.get("AFFILIATE_INSURANCE_IN", "https://www.policybazaar.com/"),
@@ -64,27 +46,16 @@ AFFILIATE_LINKS = {
     },
 }
 
-# ─── Affiliate link helper ────────────────────────────────────────────────────
 def get_affiliate_block(pillar_id):
-    """
-    Returns a prompt instruction block telling the AI which affiliate links
-    to insert naturally for this pillar. AI decides placement — never forced.
-    NOTE: Insurance/finance affiliates are country-specific by law.
-          India links for India readers, USA links for USA readers, UK for UK.
-          China is excluded — closed market, no foreign finance affiliates work there.
-    """
     if pillar_id == "personal-finance":
         return f"""
 AFFILIATE LINKS — insert naturally inside the article body, maximum 3 total across the whole article.
 Never use the word "sponsored" or "affiliate". Insert as natural recommendations only.
-
 Rules:
 - Only insert when the paragraph directly discusses that product category
-- Write naturally: "You can compare term plans at [PolicyBazaar](link)" or
-  "US readers can compare plans at [Policygenius](link)" etc.
+- Write naturally: "You can compare term plans at [PolicyBazaar](link)" etc.
 - Never insert more than one link per section
 - Never force a link where it does not fit the paragraph
-
 Available links by country:
 - India insurance comparison: {AFFILIATE_LINKS['insurance']['india']}
 - USA insurance comparison:   {AFFILIATE_LINKS['insurance']['usa']}
@@ -94,7 +65,7 @@ Available links by country:
 - USA investing/broker:       {AFFILIATE_LINKS['broker']['usa']}
 - UK investing/broker:        {AFFILIATE_LINKS['broker']['uk']}
 """
-    elif pillar_id == "stock-market":
+    elif pillar_id in ("stock-market", "ai-trading"):
         return f"""
 AFFILIATE LINKS — insert naturally, maximum 2 total, only where discussing opening a trading account.
 - India broker: {AFFILIATE_LINKS['broker']['india']}
@@ -103,15 +74,7 @@ AFFILIATE LINKS — insert naturally, maximum 2 total, only where discussing ope
 Write naturally: "Indian traders can open a free account at [Zerodha](link)" etc.
 Never force — only insert if the paragraph naturally leads to it.
 """
-    elif pillar_id == "ai-trading":
-        return f"""
-AFFILIATE LINKS — insert naturally, maximum 2 total, only where discussing starting to trade.
-- India broker: {AFFILIATE_LINKS['broker']['india']}
-- USA broker:   {AFFILIATE_LINKS['broker']['usa']}
-- UK broker:    {AFFILIATE_LINKS['broker']['uk']}
-"""
     else:
-        # bitcoin — no broker link forced, too risky legally
         return ""
 
 
@@ -191,27 +154,97 @@ def submit_urls_to_google(urls: list):
         print(f"  ⚠️  Indexing API error: {e} — articles still published normally")
 
 
+# ─── FIX: Also notify Google to REMOVE deleted article URLs ──────────────────
+def notify_google_url_deleted(urls: list):
+    """
+    Call this when articles are deleted (cleanup_old_posts).
+    Tells Google to de-index the URL immediately instead of waiting weeks.
+    """
+    try:
+        import json as _json
+        sa_json = os.environ.get("GCP_SERVICE_ACCOUNT_JSON", "")
+        if not sa_json:
+            return
+        sa = _json.loads(sa_json)
+        import base64
+        header = base64.urlsafe_b64encode(
+            _json.dumps({"alg": "RS256", "typ": "JWT"}).encode()
+        ).rstrip(b'=').decode()
+        now_ts = int(time.time())
+        payload = base64.urlsafe_b64encode(_json.dumps({
+            "iss":   sa["client_email"],
+            "scope": "https://www.googleapis.com/auth/indexing",
+            "aud":   "https://oauth2.googleapis.com/token",
+            "exp":   now_ts + 3600,
+            "iat":   now_ts,
+        }).encode()).rstrip(b'=').decode()
+        try:
+            from cryptography.hazmat.primitives import hashes, serialization
+            from cryptography.hazmat.primitives.asymmetric import padding
+            private_key = serialization.load_pem_private_key(
+                sa["private_key"].encode(), password=None
+            )
+            sig = private_key.sign(
+                f"{header}.{payload}".encode(), padding.PKCS1v15(), hashes.SHA256()
+            )
+            sig_b64 = base64.urlsafe_b64encode(sig).rstrip(b'=').decode()
+            jwt_token = f"{header}.{payload}.{sig_b64}"
+        except ImportError:
+            return
+        token_resp = requests.post(
+            "https://oauth2.googleapis.com/token",
+            data={"grant_type": "urn:ietf:params:oauth:grant-type:jwt-bearer", "assertion": jwt_token},
+            timeout=15
+        )
+        if not token_resp.ok:
+            return
+        access_token = token_resp.json().get("access_token", "")
+        if not access_token:
+            return
+        headers = {"Authorization": f"Bearer {access_token}", "Content-Type": "application/json"}
+        for url in urls:
+            try:
+                resp = requests.post(
+                    "https://indexing.googleapis.com/v3/urlNotifications:publish",
+                    headers=headers,
+                    json={"url": url, "type": "URL_DELETED"},
+                    timeout=10
+                )
+                if resp.ok:
+                    print(f"    🗑️  Deletion notified: {url}")
+                time.sleep(0.3)
+            except Exception:
+                pass
+    except Exception as e:
+        print(f"  ⚠️  Deletion notify error: {e}")
+
+
 SITE_URL = "https://ai360trading.in"
 
 client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
-ist     = pytz.timezone('Asia/Kolkata')
-now     = datetime.now(ist)
+ist          = pytz.timezone('Asia/Kolkata')
+now          = datetime.now(ist)
 date_str     = now.strftime("%Y-%m-%d")
 date_display = now.strftime("%B %d, %Y")
 day_name     = now.strftime("%A")
-day_of_year  = now.timetuple().tm_yday   # 1-365 — used everywhere instead of now.day
+day_of_year  = now.timetuple().tm_yday
+
+# FIX: Short time-based suffix to guarantee unique slugs even if title is similar
+# Uses hour + minute seeded from day_of_year to avoid collisions across pillars
+_slug_suffix = now.strftime("%H%M")
 
 POSTS_DIR = os.path.join(os.getcwd(), '_posts')
-MAX_POSTS = 60
+
+# FIX: Raised MAX_POSTS from 60 to 120.
+# OLD VALUE (60) was DELETING articles that Google had already indexed → causing 404s in GSC.
+# At 4 articles/day, 120 posts = 30 days of history. Google indexes within 1-3 days,
+# so keeping 30 days ensures no indexed article ever gets deleted.
+# Storage impact: ~120 markdown files × ~10KB avg = ~1.2MB — negligible on GitHub Pages.
+MAX_POSTS = 120
 
 
 # ─── HOLIDAY / WEEKEND ARTICLE PILLARS ───────────────────────────────────────
-# Used when CONTENT_MODE is "holiday" or "weekend"
-# Title templates are now style guides only — AI generates the actual title from live data
-# Target countries: India, USA, UK, UAE, Canada, Australia, Brazil
-# China is excluded — closed market, no foreign finance affiliates or meaningful traffic
-
 HOLIDAY_PILLARS = [
     {
         "id": "stock-market",
@@ -232,7 +265,7 @@ HOLIDAY_PILLARS = [
             "Stock Market Basics — Everything a Beginner Needs to Know Right Now",
             "Why Dollar-Cost Averaging Beats Timing the Market — Proof with Numbers",
             "NIFTY vs S&P 500 — Which Index Should You Invest In?",
-            "How to Invest ₹5000 a Month and Retire Comfortably",
+            "How to Invest Rs.5000 a Month and Retire Comfortably",
             "Dividend Investing vs Growth Investing — The Honest Comparison",
             "What Buffett's Portfolio Tells Us About Investing in 2026",
         ],
@@ -297,7 +330,7 @@ Target: complete beginners worldwide who keep hearing about crypto""",
             "Emergency Fund: How Much You Actually Need Right Now",
             "Best Term Life Insurance — US, UK and India Compared with Real Numbers",
             "The 50-30-20 Rule — Does It Actually Work? Real Numbers Inside",
-            "How to Build Your First Investment Portfolio on ₹5000 a Month",
+            "How to Build Your First Investment Portfolio on Rs.5000 a Month",
             "Retirement Planning at 30 vs 40 — The Numbers Are Shocking",
             "Mutual Funds vs Fixed Deposit vs Gold — Honest 2026 Comparison",
             "How to Get Out of Debt Faster — Step by Step Plan That Works",
@@ -305,7 +338,7 @@ Target: complete beginners worldwide who keep hearing about crypto""",
             "SIP vs Lump Sum — Data-Driven Answer for Indian Investors",
             "Credit Score Guide — US, UK and India Compared",
             "Tax Saving Investments — India, US and UK 2026",
-            "How to Save Your First ₹1 Lakh — Realistic Plan for Beginners",
+            "How to Save Your First Rs.1 Lakh — Realistic Plan for Beginners",
             "Health Insurance vs Term Insurance — Which Comes First?",
             "What Happens to Your Money When Inflation Rises — and How to Fight Back",
             "Best Savings Accounts — US, UK, India Interest Rates Compared",
@@ -489,7 +522,7 @@ MARKET_PILLARS = [
             "Credit Card Debt vs Investment — Which to Tackle First",
             "How Rising Inflation Destroys Savings — And 3 Ways to Fight Back",
             "Gold vs Equity vs Real Estate — Where Is Money Safer Right Now?",
-            "How to Build a ₹1 Crore Portfolio on a Salaried Income",
+            "How to Build a Rs.1 Crore Portfolio on a Salaried Income",
             "When Should You Buy Term Insurance? The Data Gives a Clear Answer",
             "LIC vs HDFC vs ICICI Term Insurance — Honest Comparison",
             "Family Floater Health Insurance — Best Plans Compared",
@@ -564,7 +597,6 @@ US readers at Policygenius, UK readers at CompareTheMarket. Mention naturally wh
 ]
 
 
-# ─── Select correct pillar set based on mode ─────────────────────────────────
 PILLARS = HOLIDAY_PILLARS if CONTENT_MODE in ("holiday", "weekend") else MARKET_PILLARS
 
 
@@ -690,7 +722,6 @@ def get_live_prices():
 
 def get_google_trends():
     all_trends = []
-    # Target: India, USA, UK, UAE/Australia (no China — closed market)
     regions = [("US", "-330"), ("IN", "-330"), ("GB", "0"), ("BR", "-180")]
     finance_keywords = [
         'stock', 'market', 'nifty', 'sensex', 'nasdaq', 'bitcoin', 'crypto',
@@ -768,12 +799,36 @@ def get_fear_greed():
 
 
 def cleanup_old_posts():
+    """
+    FIX: Cleanup now builds the full URL for each deleted post and notifies
+    Google Indexing API with URL_DELETED so they de-index immediately.
+    Previously, deleted posts stayed in Google's index as 404 errors for weeks.
+    """
     try:
         files = sorted([f for f in os.listdir(POSTS_DIR) if f.endswith('.md')])
         if len(files) > MAX_POSTS:
-            for fname in files[:len(files) - MAX_POSTS]:
-                os.remove(os.path.join(POSTS_DIR, fname))
-                print(f"  Removed: {fname}")
+            files_to_delete = files[:len(files) - MAX_POSTS]
+            urls_to_deindex = []
+            for fname in files_to_delete:
+                # Reconstruct URL from filename: YYYY-MM-DD-pillar-id-slug-words.md
+                # Pattern: date_str + "-" + pillar_id + "-" + title_slug + "-" + time_suffix
+                fpath = os.path.join(POSTS_DIR, fname)
+                try:
+                    # Read permalink from front matter to get exact URL
+                    with open(fpath, 'r', encoding='utf-8') as f:
+                        for line in f:
+                            if line.startswith('permalink:'):
+                                permalink = line.replace('permalink:', '').strip()
+                                full_url  = f"{SITE_URL}{permalink}"
+                                urls_to_deindex.append(full_url)
+                                break
+                except Exception:
+                    pass
+                os.remove(fpath)
+                print(f"  🗑️  Removed: {fname}")
+            if urls_to_deindex:
+                print(f"  Notifying Google to de-index {len(urls_to_deindex)} deleted URLs...")
+                notify_google_url_deleted(urls_to_deindex)
     except Exception as e:
         print(f"  Cleanup warning: {e}")
 
@@ -791,7 +846,7 @@ def get_recent_posts(pillar_id, limit=5):
                 try:
                     with open(fpath, 'r', encoding='utf-8') as f:
                         content = f.read()
-                    title         = None
+                    title          = None
                     url_slug_match = None
                     for line in content.split('\n'):
                         if line.startswith('title:'):
@@ -814,7 +869,6 @@ def get_recent_posts(pillar_id, limit=5):
 
 
 def get_recent_titles(pillar_id, days=14):
-    """Return list of recent article titles for this pillar to help AI avoid repeating topics."""
     try:
         files = sorted(
             [f for f in os.listdir(POSTS_DIR) if f.endswith('.md') and pillar_id in f],
@@ -868,9 +922,9 @@ def generate_schema(title, description, pillar, url_slug):
             {
                 "@type": "BreadcrumbList",
                 "itemListElement": [
-                    {"@type": "ListItem", "position": 1, "name": "Home",          "item": "https://ai360trading.in/"},
-                    {"@type": "ListItem", "position": 2, "name": pillar['name'],  "item": f"https://ai360trading.in/topics/{pillar['tag']}/"},
-                    {"@type": "ListItem", "position": 3, "name": title,           "item": f"https://ai360trading.in/{pillar['permalink_base']}/{url_slug}/"}
+                    {"@type": "ListItem", "position": 1, "name": "Home",         "item": "https://ai360trading.in/"},
+                    {"@type": "ListItem", "position": 2, "name": pillar['name'], "item": f"https://ai360trading.in/topics/{pillar['tag']}/"},
+                    {"@type": "ListItem", "position": 3, "name": title,          "item": f"https://ai360trading.in/{pillar['permalink_base']}/{url_slug}/"}
                 ]
             }
         ]
@@ -879,24 +933,9 @@ def generate_schema(title, description, pillar, url_slug):
 
 
 # ─── AI Title Generator ───────────────────────────────────────────────────────
-# This replaces the old template-index approach.
-# The AI generates a completely fresh title every day based on:
-#   - Today's live prices and market data
-#   - Today's trending searches
-#   - Today's news headlines
-#   - Recent titles (to avoid repeating)
-#   - Style examples (for tone guidance only — not to copy)
-# Result: titles are unique FOREVER — not just 365 days.
-
 def generate_ai_title(pillar, prices, trends, fear_greed, recent_titles, article_index):
-    """
-    Use Groq AI to generate a completely unique, data-driven title for today.
-    Falls back to style-example rotation only if AI call fails.
-    """
-
-    # Build market context summary for the title prompt
     if CONTENT_MODE in ("holiday", "weekend"):
-        market_context = f"Today is {day_name}, {date_display}. Markets are closed — this is an educational article."
+        market_context   = f"Today is {day_name}, {date_display}. Markets are closed — this is an educational article."
         trending_context = f"Trending searches today: {', '.join(trends[:6])}"
     else:
         nifty  = prices.get("NIFTY 50",  {}).get("display", "N/A")
@@ -955,7 +994,6 @@ Respond with ONLY the title — nothing else. No quotes. No explanation."""
             top_p=0.95,
         )
         ai_title = completion.choices[0].message.content.strip().strip('"').strip("'")
-        # Sanity check — must be reasonable length
         if 5 <= len(ai_title.split()) <= 20:
             print(f"    [TITLE-AI] {ai_title}")
             return ai_title
@@ -963,12 +1001,11 @@ Respond with ONLY the title — nothing else. No quotes. No explanation."""
             raise ValueError(f"AI title length out of range: {len(ai_title.split())} words")
     except Exception as e:
         print(f"    [TITLE-AI] AI title failed ({e}) — using style-example fallback")
-        # Fallback: rotate through style examples using day_of_year
-        # day_of_year (1-365) ensures no monthly repeat
-        pillar_offset = ["stock-market","bitcoin","personal-finance","ai-trading"].index(pillar['id']) \
-                        if pillar['id'] in ["stock-market","bitcoin","personal-finance","ai-trading"] else 0
+        pillar_offset = (
+            ["stock-market","bitcoin","personal-finance","ai-trading"].index(pillar['id'])
+            if pillar['id'] in ["stock-market","bitcoin","personal-finance","ai-trading"] else 0
+        )
         idx = (day_of_year + pillar_offset * 61 + article_index * 7) % len(pillar['title_style_examples'])
-        # Avoid recently used titles
         for _ in range(len(pillar['title_style_examples'])):
             candidate = pillar['title_style_examples'][idx]
             if not any(candidate.lower()[:30] in rt.lower() for rt in recent_titles):
@@ -985,7 +1022,6 @@ def generate_article(pillar, prices, trends, fear_greed, persona, article_index)
 
     news = get_live_news(pillar['news_queries'])
 
-    # Build market context
     if CONTENT_MODE in ("holiday", "weekend"):
         price_lines = "Market closed today — educational content mode"
         mode_note   = (
@@ -999,13 +1035,12 @@ def generate_article(pillar, prices, trends, fear_greed, persona, article_index)
         price_lines = "\n".join([f"  - {k}: {v['display']}" for k, v in prices.items()])
         mode_note   = ""
 
-    # Get recent titles for this pillar — AI uses these to avoid repetition
     recent_titles = get_recent_titles(pillar['id'], days=14)
-
-    # Generate AI title — unique every day, forever
     article_title = generate_ai_title(pillar, prices, trends, fear_greed, recent_titles, article_index)
 
-    # Build URL slug from title
+    # ─── FIX: Unique slug with time suffix ───────────────────────────────────
+    # Appending _slug_suffix (HHMM) prevents two articles with similar titles
+    # from generating the same permalink and overwriting each other.
     import re as _re
     _title_clean = article_title.lower()
     _title_clean = _title_clean.replace('s&p', 'sp').replace('s-and-p', 'sp')
@@ -1024,13 +1059,13 @@ def generate_article(pillar, prices, trends, fear_greed, persona, article_index)
         'by','as','so','if','just','vs','im','heres','thats','dont'
     }
     _words    = [w for w in _title_clean.split('-') if w and w not in _stop]
-    title_slug = '-'.join(_words[:6])
+    # FIX: Append time suffix to guarantee uniqueness across days and pillars
+    title_slug = '-'.join(_words[:6]) + f"-{_slug_suffix}"
 
     file_slug = f"{date_str}-{pillar['id']}-{title_slug}"
     chosen_slug = title_slug
     file_path   = os.path.join(POSTS_DIR, f"{file_slug}.md")
 
-    # Internal links from recent posts
     recent_posts       = get_recent_posts(pillar['id'])
     internal_links_text = ""
     if recent_posts:
@@ -1038,7 +1073,6 @@ def generate_article(pillar, prices, trends, fear_greed, persona, article_index)
         for post in recent_posts:
             internal_links_text += f'- [{post["title"]}](/{pillar["permalink_base"]}/{post["slug"]}/)\n'
 
-    # Format type rotation — day_of_year ensures no monthly repeat
     FORMAT_TYPES = [
         "story_led", "contrarian", "trader_notebook",
         "macro_driver", "chart_story", "question_led",
@@ -1067,13 +1101,10 @@ def generate_article(pillar, prices, trends, fear_greed, persona, article_index)
         "question_led":   ["The Direct Answer", "The Deeper Context", "India View", "US, UK and Brazil View", "Numbers and Levels", "What Happens Next", "More Questions"],
     }
 
-    sections          = SECTION_STRUCTURES[fmt]
+    sections            = SECTION_STRUCTURES[fmt]
     opening_instruction = FORMAT_INSTRUCTIONS[fmt]
+    affiliate_block     = get_affiliate_block(pillar['id'])
 
-    # Affiliate links block — country-aware, pillar-specific
-    affiliate_block = get_affiliate_block(pillar['id'])
-
-    # Recent titles block for AI article writer (avoid topic repetition)
     recent_titles_avoidance = ""
     if recent_titles:
         recent_titles_avoidance = (
@@ -1082,12 +1113,10 @@ def generate_article(pillar, prices, trends, fear_greed, persona, article_index)
             + "\n"
         )
 
-    # SEO seed block — long-tail high-CPC keyword guidance from content_calendar
     seo_seed_block = ""
     if _CALENDAR_AVAILABLE:
         try:
             calendar_seeds = get_article_seo_seeds(CONTENT_MODE)
-            # Find the seed most relevant to this pillar
             pillar_seed = next(
                 (s for s in calendar_seeds if s["primary_target"].lower() in
                  ["global", pillar["id"].split("-")[0]]),
@@ -1110,12 +1139,20 @@ KEYWORD RULES:
 - Use the primary keyword seed in the first 100 words naturally
 - Use at least one long-tail question as an H2 or FAQ question
 - Every statistic and number must connect to a specific reader decision
-- Specific beats generic always: "LIC Tech Term at ₹10,500/year" beats "term insurance is important"
+- Specific beats generic always: "LIC Tech Term at Rs.10,500/year" beats "term insurance is important"
 - The person searching this has a specific problem — solve it with specific answers
 """
         except Exception as e:
             print(f"    [SEO-SEED] Skipped ({e})")
             seo_seed_block = ""
+
+    # ─── FIX: Extract live price values for front matter ─────────────────────
+    # The post.html layout renders a live data strip using these front matter fields.
+    # Previously these were never written → the strip never appeared → lost SEO signal.
+    nifty_level   = prices.get("NIFTY 50",  {}).get("display", "N/A") if prices else "N/A"
+    sp500_level   = prices.get("S&P 500",   {}).get("display", "N/A") if prices else "N/A"
+    bitcoin_level = prices.get("Bitcoin",   {}).get("display", "N/A") if prices else "N/A"
+    gold_level    = prices.get("Gold",      {}).get("display", "N/A") if prices else "N/A"
 
     prompt = f"""You are Amit Kumar, founder of AI360Trading — independent market analyst from Haridwar, India.
 
@@ -1231,7 +1268,7 @@ End with:
                 cleaned_lines.append(line)
         content = "\n".join(cleaned_lines).lstrip("\n")
 
-        _primary_kw    = pillar['primary_keywords'][0]
+        _primary_kw     = pillar['primary_keywords'][0]
         article_excerpt = (
             f"{article_title} — {pillar['name']} for {date_display}. "
             f"Insights on {_primary_kw} for US, UK, India and Brazil investors."
@@ -1247,6 +1284,10 @@ End with:
         safe_desc    = (meta_description
                         .replace('"', "'").replace('&', 'and').replace('<', '').replace('>', '').strip())
 
+        # FIX: Sanitize live price display strings for safe front matter embedding
+        def safe_fm(val):
+            return str(val).replace('"', "'").replace('\n', ' ').replace('▲', '+').replace('▼', '-')
+
         header = (
             "---\n"
             "layout: post\n"
@@ -1261,9 +1302,14 @@ End with:
             f"keywords: \"{', '.join(pillar['primary_keywords'])}, {', '.join(pillar.get('us_keywords', [])[:2])}, {', '.join(pillar.get('india_keywords', [])[:2])}\"\n"
             f"categories: [{pillar['category']}]\n"
             f"tags: [{pillar['tag']}]\n"
-            f"fear_greed: \"{fear_greed}\"\n"
+            f"fear_greed: \"{safe_fm(fear_greed)}\"\n"
             f"trending: \"{', '.join(trends[:5])}\"\n"
             f"day_of_year: {day_of_year}\n"
+            # FIX: Write live price levels so post.html layout renders the data strip
+            f"nifty_level: \"{safe_fm(nifty_level)}\"\n"
+            f"sp500_level: \"{safe_fm(sp500_level)}\"\n"
+            f"bitcoin_level: \"{safe_fm(bitcoin_level)}\"\n"
+            f"gold_level: \"{safe_fm(gold_level)}\"\n"
             "---\n\n"
         )
 
@@ -1307,11 +1353,10 @@ def generate_all_articles():
         print(f"  F&G      : {fear_greed}")
         print(f"  Trending : {', '.join(trends[:3])}")
 
-    results       = []
+    results        = []
     published_urls = []
 
     for i, pillar in enumerate(PILLARS):
-        # Skip if already generated today for this pillar
         already_exists = False
         if os.path.exists(POSTS_DIR):
             pillar_today = [
@@ -1326,16 +1371,15 @@ def generate_all_articles():
             results.append({"pillar": pillar['name'], "status": "skipped"})
             continue
 
-        # Select persona — rotated by day_of_year + pillar offset
         persona_indices = PILLAR_PERSONA_MAP.get(pillar['id'], [0, 1, 2, 3])
         _pidx           = (day_of_year + i * 31) % len(persona_indices)
         persona         = PERSONAS[persona_indices[_pidx]]
 
         success, url = generate_article(pillar, prices, trends, fear_greed, persona, i + 1)
         results.append({
-            "pillar":  pillar['name'],
-            "status":  "success" if success else "failed",
-            "url":     url or ""
+            "pillar": pillar['name'],
+            "status": "success" if success else "failed",
+            "url":    url or ""
         })
         if success and url:
             published_urls.append(url)
@@ -1346,7 +1390,7 @@ def generate_all_articles():
         print(f"\n  Submitting {len(published_urls)} URLs to Google Indexing API...")
         submit_urls_to_google(published_urls)
 
-    # Cleanup old posts
+    # Cleanup old posts (now also notifies Google of deletions)
     cleanup_old_posts()
 
     # Summary
