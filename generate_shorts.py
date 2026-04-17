@@ -4,9 +4,13 @@ generate_shorts.py — AI360Trading
 Generates Short 2 (Trade Setup) + Short 3 (Global Market Pulse).
 
 VOICE ASSIGNMENTS:
-  Short 2: hi-IN-MadhurNeural  — authoritative male, trade setups
-  Short 3: hi-IN-NeerjaNeural  — energetic female, market pulse
+  Short 2: hi-IN-MadhurNeural  — authoritative Hindi male, trade setups
+  Short 3: en-IN-NeerjaNeural  — Indian English female, market pulse (Hinglish-compatible)
   (ZENO reel uses hi-IN-SwaraNeural — keep all three voices DISTINCT)
+
+NOTE: Edge TTS only has 2 hi-IN voices (Madhur + Swara).
+      en-IN-NeerjaNeural is Indian-accented English — works perfectly for
+      Hinglish scripts and sounds completely different from both Madhur and Swara.
 
 Upload: generate_shorts.py renders videos ONLY.
         upload is done inside this script via upload_short() which calls
@@ -59,9 +63,11 @@ now_ist = datetime.now(IST)
 os.makedirs(OUT, exist_ok=True)
 
 # Voice assignments — all three must be clearly distinct
-VOICE_SHORT2 = "hi-IN-MadhurNeural"   # authoritative male — trade setup
-VOICE_SHORT3 = "hi-IN-NeerjaNeural"   # energetic female  — market pulse
+VOICE_SHORT2 = "hi-IN-MadhurNeural"   # authoritative Hindi male — trade setup
+VOICE_SHORT3 = "en-IN-NeerjaNeural"   # Indian English female — market pulse (Hinglish-compatible)
 # ZENO reel = hi-IN-SwaraNeural (defined in generate_reel.py)
+# NOTE: Edge TTS only has 2 hi-IN voices. en-IN-NeerjaNeural is Indian-accented
+#       English and handles Hinglish scripts perfectly — sounds distinct from both.
 
 BULL_GREEN  = (0, 210, 100)
 BEAR_RED    = (220, 55, 55)
