@@ -537,7 +537,7 @@ All content uses `human_touch.py`. **Never use raw AI output directly.**
 **Root cause:** Short 3 was using `hi-IN-SwaraNeural` — the same voice as the ZENO reel. Both also used similar Hinglish market scripts, making them sound identical.
 
 **Fix applied:**
-- Short 3 now uses `hi-IN-NeerjaNeural` (energetic female voice, distinct from Swara)
+- Short 3 now uses `en-IN-NeerjaNeural` (energetic female voice, distinct from Swara)
 - Short 3 script is explicitly about the GLOBAL MACRO picture (Nifty + BTC + Gold + S&P500)
 - Short 2 remains `hi-IN-MadhurNeural` (authoritative male — specific trade setups)
 - ZENO reel remains `hi-IN-SwaraNeural` (wise female — trading wisdom/philosophy)
@@ -548,7 +548,7 @@ All content uses `human_touch.py`. **Never use raw AI output directly.**
 | Voice | Content | Character |
 | --- | --- | --- |
 | `hi-IN-MadhurNeural` | Short 2 — trade setup | Authoritative male analyst |
-| `hi-IN-NeerjaNeural` | Short 3 — global macro pulse | Energetic female commentator |
+| `en-IN-NeerjaNeural` | Short 3 — global macro pulse | Energetic female commentator |
 | `hi-IN-SwaraNeural` | ZENO reel + Morning reel + Analysis + Education | Wise female teacher (ZENO) |
 
 ### ✅ FIXED April 2026 — SEO/Hashtags Not Using seo.get_video_tags()
@@ -651,7 +651,7 @@ speed  = ht.get_tts_speed()  # pass to edge_tts rate param
 | Voice ID | Gender | Used For |
 | --- | --- | --- |
 | `hi-IN-MadhurNeural` | Male | Short 2 — authoritative trade setups |
-| `hi-IN-NeerjaNeural` | Female | Short 3 — energetic global market pulse |
+| `en-IN-NeerjaNeural` | Female | Short 3 — energetic global market pulse (Indian English — Hinglish-compatible) |
 | `hi-IN-SwaraNeural` | Female | ZENO Reel, Morning Reel, Analysis, Education |
 | `en-US-JennyNeural` | Female | English channel — all English content |
 | `en-US-GuyNeural` | Male | English Short 2 alternative |
@@ -849,7 +849,7 @@ In logs, check that each video appears only ONCE in upload output:
 
 ### Verify distinct voices
 - Short 2 log: `(Madhur voice)` or `hi-IN-MadhurNeural`
-- Short 3 log: `(Neerja voice)` or `hi-IN-NeerjaNeural`
+- Short 3 log: `(Neerja voice)` or `en-IN-NeerjaNeural`
 - ZENO reel log: `hi-IN-SwaraNeural`
 
 ### Verify SEO meta
