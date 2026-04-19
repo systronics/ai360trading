@@ -69,36 +69,36 @@ jobs:
         run: mkdir -p output
 
       # ─── PART 1: Market Analysis ────────────────────────────────────────────
-      - name: Generate Part 1 — Market Analysis
+      # generate_analysis.py generates + uploads to YouTube internally.
+      # It saves output/analysis_video_id.txt for Part 2 to link back.
+      # Do NOT call upload_youtube.py here — that would cause a duplicate upload.
+      - name: Generate + Upload Part 1 — Market Analysis
         env:
-          CONTENT_MODE:       ${{ env.CONTENT_MODE }}
-          HOLIDAY_NAME:       ${{ env.HOLIDAY_NAME }}
-          GROQ_API_KEY:       ${{ secrets.GROQ_API_KEY }}
-          GEMINI_API_KEY:     ${{ secrets.GEMINI_API_KEY }}
-          ANTHROPIC_API_KEY:  ${{ secrets.ANTHROPIC_API_KEY }}
-          OPENAI_API_KEY:     ${{ secrets.OPENAI_API_KEY }}
+          CONTENT_MODE:        ${{ env.CONTENT_MODE }}
+          HOLIDAY_NAME:        ${{ env.HOLIDAY_NAME }}
+          GROQ_API_KEY:        ${{ secrets.GROQ_API_KEY }}
+          GEMINI_API_KEY:      ${{ secrets.GEMINI_API_KEY }}
+          ANTHROPIC_API_KEY:   ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY:      ${{ secrets.OPENAI_API_KEY }}
           YOUTUBE_CREDENTIALS: ${{ secrets.YOUTUBE_CREDENTIALS }}
         run: python generate_analysis.py
 
-      - name: Upload Part 1 to YouTube
-        env:
-          CONTENT_MODE:       ${{ env.CONTENT_MODE }}
-          YOUTUBE_CREDENTIALS: ${{ secrets.YOUTUBE_CREDENTIALS }}
-        run: python upload_youtube.py --type analysis
-
       # ─── PART 2: Education Video (10+ min) ─────────────────────────────────
-      - name: Generate Part 2 — Education Video (22 slides, 10-12 min)
+      # generate_education.py generates + uploads to YouTube internally.
+      # It reads analysis_video_id.txt to cross-link Part 1 in its description.
+      # Do NOT call upload_youtube.py here — that would cause a duplicate upload.
+      - name: Generate + Upload Part 2 — Education Video (22 slides, 10-12 min)
         env:
-          CONTENT_MODE:       ${{ env.CONTENT_MODE }}
-          HOLIDAY_NAME:       ${{ env.HOLIDAY_NAME }}
-          GROQ_API_KEY:       ${{ secrets.GROQ_API_KEY }}
-          GEMINI_API_KEY:     ${{ secrets.GEMINI_API_KEY }}
-          ANTHROPIC_API_KEY:  ${{ secrets.ANTHROPIC_API_KEY }}
-          OPENAI_API_KEY:     ${{ secrets.OPENAI_API_KEY }}
+          CONTENT_MODE:        ${{ env.CONTENT_MODE }}
+          HOLIDAY_NAME:        ${{ env.HOLIDAY_NAME }}
+          GROQ_API_KEY:        ${{ secrets.GROQ_API_KEY }}
+          GEMINI_API_KEY:      ${{ secrets.GEMINI_API_KEY }}
+          ANTHROPIC_API_KEY:   ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY:      ${{ secrets.OPENAI_API_KEY }}
           YOUTUBE_CREDENTIALS: ${{ secrets.YOUTUBE_CREDENTIALS }}
         run: python generate_education.py
 
-      # ✅ FIXED: Duration check — fail workflow if video is under 8 minutes
+      # ✅ Duration check — fail workflow if video is under 8 minutes
       # This prevents a short video from silently going live without mid-roll ads
       - name: Verify education video duration (must be 8+ minutes for mid-roll ads)
         run: |
@@ -128,15 +128,15 @@ jobs:
               sys.exit(1)
           EOF
 
-      - name: Upload Part 2 to YouTube
-        env:
-          CONTENT_MODE:       ${{ env.CONTENT_MODE }}
-          YOUTUBE_CREDENTIALS: ${{ secrets.YOUTUBE_CREDENTIALS }}
-        run: python upload_youtube.py --type education
-
       - name: Summary
         run: |
           echo "=== Daily Videos Complete ==="
           echo "Content mode: $CONTENT_MODE"
           ls -lh output/*.mp4 2>/dev/null || echo "No MP4 files found"
           ls -lh output/*_meta_*.json 2>/dev/null || echo "No meta files found"
+          echo ""
+          echo "Part 1 video ID:"
+          cat output/analysis_video_id.txt 2>/dev/null || echo "Not found"
+          echo ""
+          echo "Part 2 video ID:"
+          cat output/education_video_id.txt 2>/dev/null || echo "Not found"
