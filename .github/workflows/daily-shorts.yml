@@ -1,4 +1,5 @@
 name: "Daily Shorts — AI360Trading (Short 2 + Short 3)"
+
 on:
   workflow_dispatch:
   schedule:
@@ -77,24 +78,22 @@ jobs:
             echo "✅ analysis_video_id.txt found: $(cat output/analysis_video_id.txt)"
           fi
 
-      # generate_shorts.py handles both Short 2 + Short 3 internally
-      # upload_youtube.py --type short adds them to PLAYLIST_SWING_TRADE
-      - name: Generate Short 2 + Short 3
+      # generate_shorts.py generates Short 2 (Madhur) + Short 3 (Neerja) and
+      # uploads BOTH directly to YouTube internally — no separate upload step needed.
+      # Short 2: hi-IN-MadhurNeural — authoritative Hindi male — trade setup
+      # Short 3: en-IN-NeerjaNeural — Indian English female — global macro pulse
+      # NOTE: No playlist assigned yet — add PLAYLIST_SWING_TRADE secret later
+      #       when channel has enough subscribers and playlist is created.
+      - name: Generate + Upload Short 2 + Short 3
         env:
           GROQ_API_KEY:        ${{ secrets.GROQ_API_KEY }}
+          YOUTUBE_CREDENTIALS: ${{ secrets.YOUTUBE_CREDENTIALS }}
           CONTENT_MODE:        ${{ env.CONTENT_MODE }}
           HOLIDAY_NAME:        ${{ env.HOLIDAY_NAME }}
         run: |
           echo "[SHORTS] Running generate_shorts.py in mode: $CONTENT_MODE"
           python generate_shorts.py
-          echo "✅ Both shorts generated"
-
-      - name: Upload Shorts to YouTube (PLAYLIST_SWING_TRADE)
-        env:
-          YOUTUBE_CREDENTIALS: ${{ secrets.YOUTUBE_CREDENTIALS }}
-          PLAYLIST_SWING_TRADE: ${{ secrets.PLAYLIST_SWING_TRADE }}
-          CONTENT_MODE:         ${{ env.CONTENT_MODE }}
-        run: python upload_youtube.py --type short
+          echo "✅ Both shorts generated and uploaded"
 
       - name: Upload artifacts for debug
         if: always()
