@@ -96,12 +96,13 @@ jobs:
           HOLIDAY_NAME: ${{ env.HOLIDAY_NAME }}
         run: python generate_reel.py
 
-      # ── 8. Upload to YouTube — PLAYLIST_ZENO_WISDOM ───────────────────────
-      - name: Upload ZENO Reel to YouTube (PLAYLIST_ZENO_WISDOM)
+      # ── 8. Upload to YouTube ───────────────────────────────────────────────
+      # NOTE: No playlist assigned yet — add PLAYLIST_ZENO_WISDOM secret later
+      #       when channel has enough subscribers and playlist is created.
+      - name: Upload ZENO Reel to YouTube
         env:
-          YOUTUBE_CREDENTIALS:  ${{ secrets.YOUTUBE_CREDENTIALS }}
-          PLAYLIST_ZENO_WISDOM: ${{ secrets.PLAYLIST_ZENO_WISDOM }}
-          CONTENT_MODE:         ${{ env.CONTENT_MODE }}
+          YOUTUBE_CREDENTIALS: ${{ secrets.YOUTUBE_CREDENTIALS }}
+          CONTENT_MODE:        ${{ env.CONTENT_MODE }}
         run: python upload_youtube.py --type reel
 
       # ── 9. Post to Facebook Page ───────────────────────────────────────────
