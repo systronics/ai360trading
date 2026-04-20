@@ -63,7 +63,7 @@
 | ▶️ YouTube | [@ai360trading](https://www.youtube.com/@ai360trading) |
 | 📸 Instagram | [@ai360trading](https://www.instagram.com/ai360trading) |
 | 👥 Facebook Group | [ai360trading](https://www.facebook.com/groups/ai360trading) |
-| 📘 Facebook Page | [ai360trading](https://www.facebook.com/ai360trading) |
+| 📘 Facebook Page | [ai360trading](https://www.facebook.com/ai360trading.official) |
 
 ---
 
