@@ -88,6 +88,9 @@ jobs:
         env:
           GROQ_API_KEY:        ${{ secrets.GROQ_API_KEY }}
           YOUTUBE_CREDENTIALS: ${{ secrets.YOUTUBE_CREDENTIALS }}
+          META_ACCESS_TOKEN:   ${{ secrets.META_ACCESS_TOKEN }}
+          FACEBOOK_PAGE_ID:    ${{ secrets.FACEBOOK_PAGE_ID }}
+          FACEBOOK_GROUP_ID:   ${{ secrets.FACEBOOK_GROUP_ID }}
           CONTENT_MODE:        ${{ env.CONTENT_MODE }}
           HOLIDAY_NAME:        ${{ env.HOLIDAY_NAME }}
         run: |
