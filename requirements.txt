@@ -3,12 +3,22 @@ gspread>=6.1.0
 oauth2client>=4.1.3
 requests>=2.32.0
 pytz>=2025.1
+
 # MARKET DATA — GLOBAL
 yfinance>=0.2.40
 pandas>=2.0.0
 numpy>=1.26.0
-# AI SCRIPT GENERATION
+
+# AI SCRIPT GENERATION — PRIMARY + FULL FALLBACK CHAIN
+# Groq = primary (free, fastest)
 groq>=1.0.0
+# Gemini = secondary fallback (free tier 1,500 req/day)
+google-generativeai>=0.8.0
+# Claude = tertiary fallback (pay-as-you-go — only fires if Groq + Gemini both fail)
+anthropic>=0.40.0
+# OpenAI = quaternary fallback (pay-as-you-go — last resort)
+openai>=1.50.0
+
 # VIDEO & AUDIO
 Pillow>=10.3.0
 moviepy==1.0.3
@@ -17,16 +27,20 @@ imageio==2.9.0
 imageio-ffmpeg>=0.4.9
 matplotlib>=3.8.0
 decorator==4.4.2
+
 # YOUTUBE UPLOAD
 google-api-python-client>=2.120.0
 google-auth>=2.30.0
 google-auth-oauthlib>=1.2.0
 google-auth-httplib2>=0.2.0
 pynacl>=1.5.0
+
 # FACEBOOK & RSS
 feedparser>=6.0.0
+
 # GOOGLE INDEXING API
 cryptography>=42.0.0
+
 # SYSTEM
 pytrends>=4.9.0
 python-dotenv>=1.0.1
