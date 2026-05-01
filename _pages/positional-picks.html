@@ -1,16 +1,18 @@
 ---
 layout: default
 title: "Institutional Positional Picks"
-description: "Institutional grade long-term buy and sell picks focusing on Fundamental and Technical analysis."
+description: "Institutional grade long-term buy and sell picks."
 permalink: /positional-picks/
 ---
 
 <style>
+  /* Standard Page Layout */
   .post-content, .wrapper {
     max-width: 1200px !important;
     margin: 0 auto !important;
     padding: 0 15px !important;
   }
+  
   .trading-status {
     text-align: center;
     margin-bottom: 25px;
@@ -18,122 +20,120 @@ permalink: /positional-picks/
     background: #f0f7ff;
     border-radius: 12px;
     border: 1px solid #d1d9e6;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
   }
-  .info-tag {
-    display: inline-block;
-    padding: 6px 16px;
-    background: #0088cc;
-    color: white !important;
-    border-radius: 20px;
-    font-size: 13px;
-    font-weight: bold;
-    margin-bottom: 12px;
-    letter-spacing: 0.5px;
-  }
-  
-  /* CUSTOM TAB BUTTONS */
+
   .tab-navigation {
     display: flex;
     justify-content: center;
-    gap: 15px;
-    margin-bottom: 25px;
+    gap: 10px;
+    margin-bottom: 20px;
   }
+
   .tab-btn {
-    padding: 14px 35px;
-    font-size: 16px;
+    padding: 12px 25px;
+    font-size: 15px;
     font-weight: 800;
     cursor: pointer;
     border: 2px solid #0088cc;
     background: white;
     color: #0088cc;
     border-radius: 50px;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    transition: 0.3s;
   }
+
   .tab-btn.active {
     background: #0088cc;
     color: white;
-    box-shadow: 0 6px 15px rgba(0,136,204,0.3);
   }
 
-  /* MOBILE SCROLLING ENGINE */
+  /* --- CRITICAL SCROLL FIXES --- */
+  
   .terminal-box {
     position: relative;
     width: 100%;
+    background: #fff;
     border: 1px solid #e1e8ed;
     border-radius: 12px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-    background: #fff;
-    overflow: hidden; /* Clips the inner scroll container */
-  }
-
-  .tab-content {
-    display: none;
-  }
-  .tab-content.active {
-    display: block;
+    
+    /* Prevents the parent from expanding beyond the screen */
+    overflow: hidden; 
   }
 
   .terminal-scroll-container {
     width: 100%;
-    overflow-x: auto !important; /* Enables horizontal scroll */
+    /* Forces horizontal scrollbar */
+    overflow-x: auto !important; 
     overflow-y: hidden;
-    display: block;
-    -webkit-overflow-scrolling: touch !important; /* Smooth inertial scroll for iOS */
-    touch-action: pan-x; /* Explicitly allows horizontal panning */
+    
+    /* Enable smooth momentum scrolling on iOS */
+    -webkit-overflow-scrolling: touch !important; 
+    
+    /* Disables browser 'bounce' to prioritize the table slide */
+    overscroll-behavior-x: contain; 
+    
+    /* Ensures the div is recognized as a scrollable layer */
+    display: block; 
+    position: relative;
   }
 
   iframe {
+    /* Large min-width forces the scroll container to work */
+    min-width: 1150px; 
     width: 100%;
-    min-width: 1100px; /* Prevents table from squishing */
-    height: 850px;
+    height: 800px;
     border: none;
     display: block;
+    
+    /* Prevents iframe from intercepting touch events poorly */
+    pointer-events: auto; 
   }
-  
+
   .scroll-hint {
-    display: none;
+    display: block;
     text-align: center;
-    font-size: 12px;
-    color: #718096;
-    margin-bottom: 8px;
+    font-size: 13px;
+    color: #0088cc;
+    margin-bottom: 10px;
     font-weight: bold;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0% { opacity: 0.5; }
+    50% { opacity: 1; }
+    100% { opacity: 0.5; }
   }
 
   @media (max-width: 768px) {
-    .tab-btn { padding: 10px 20px; font-size: 14px; }
-    iframe { height: 700px; min-width: 1000px; }
-    .scroll-hint { display: block; } /* Show hint only on mobile */
+    iframe { height: 700px; }
+    .tab-btn { padding: 10px 15px; font-size: 13px; }
   }
 </style>
 
 <div class="trading-status">
-  <span class="info-tag">STRATEGY: BUY SELL RECOMMENDATIONS</span>
-  <h1 style="margin: 5px 0; color: #2c3e50; font-size: 28px;">Institutional Positional Picks</h1>
-  <p style="font-size: 16px; color: #4a5568; margin-top: 10px;">Hand-vetted fundamental and technical research for long-term wealth.</p>
+  <span style="display: inline-block; padding: 4px 12px; background: #0088cc; color: white; border-radius: 20px; font-size: 12px; font-weight: bold; margin-bottom: 10px;">STRATEGY: INSTITUTIONAL RESEARCH</span>
+  <h1 style="margin: 5px 0; color: #2c3e50; font-size: 24px;">Institutional Positional Picks</h1>
 </div>
 
-<!-- TAB NAVIGATION -->
 <div class="tab-navigation">
   <button class="tab-btn active" onclick="switchSheet(event, 'buy-view')">📈 BUY SIGNALS</button>
-  <button class="tab-btn" onclick="switchSheet(event, 'sell-view')" style="border-color: #cc0000; color: #cc0000;">📉 SELL SIGNALS</button>
+  <button class="tab-btn" id="sell-btn" onclick="switchSheet(event, 'sell-view')" style="border-color: #cc0000; color: #cc0000;">📉 SELL SIGNALS</button>
 </div>
 
-<p class="scroll-hint">↔️ Swipe left or right to see full table</p>
+<!-- Animated Hint for Users -->
+<p class="scroll-hint">↔️ SWIPE LEFT/RIGHT ON TABLE TO VIEW ALL COLUMNS</p>
 
 <div class="terminal-box">
-  <!-- BUY SHEET (GID: 1076123104) -->
-  <div id="buy-view" class="tab-content active">
+  <div id="buy-view" class="tab-content" style="display: block;">
     <div class="terminal-scroll-container">
-      <iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRxCmYGRepK_DgUk-KMeudF4PoQ9B89msVkMeZmImFb-2QaXobqjOthwdMDlvxpHtu3S9UtyXo9SrOR/pubhtml?gid=1076123104&single=true&headers=false&widget=false&chrome=false"></iframe>
+      <iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRxCmYGRepK_DgUk-KMeudF4PoQ9B89msVkMeZmImFb-2QaXobqjOthwdMDlvxpHtu3S9UtyXo9SrOR/pubhtml?gid=1076123104&single=true&headers=false&widget=false"></iframe>
     </div>
   </div>
 
-  <!-- SELL SHEET (GID: 8115561) -->
-  <div id="sell-view" class="tab-content">
+  <div id="sell-view" class="tab-content" style="display: none;">
     <div class="terminal-scroll-container">
-      <iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRxCmYGRepK_DgUk-KMeudF4PoQ9B89msVkMeZmImFb-2QaXobqjOthwdMDlvxpHtu3S9UtyXo9SrOR/pubhtml?gid=8115561&single=true&headers=false&widget=false&chrome=false"></iframe>
+      <iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRxCmYGRepK_DgUk-KMeudF4PoQ9B89msVkMeZmImFb-2QaXobqjOthwdMDlvxpHtu3S9UtyXo9SrOR/pubhtml?gid=8115561&single=true&headers=false&widget=false"></iframe>
     </div>
   </div>
 </div>
@@ -143,28 +143,17 @@ function switchSheet(evt, tabId) {
   var i, tabcontent, tablinks;
   tabcontent = document.getElementsByClassName("tab-content");
   for (i = 0; i < tabcontent.length; i++) {
-    tabcontent[i].classList.remove("active");
+    tabcontent[i].style.display = "none";
   }
   tablinks = document.getElementsByClassName("tab-btn");
   for (i = 0; i < tablinks.length; i++) {
     tablinks[i].classList.remove("active");
-    if(tablinks[i].innerText.includes("SELL")) {
-        tablinks[i].style.backgroundColor = "white";
-        tablinks[i].style.color = "#cc0000";
-    } else {
-        tablinks[i].style.backgroundColor = "white";
-        tablinks[i].style.color = "#0088cc";
-    }
+    tablinks[i].style.backgroundColor = "white";
+    tablinks[i].style.color = tablinks[i].id === "sell-btn" ? "#cc0000" : "#0088cc";
   }
-  document.getElementById(tabId).classList.add("active");
+  document.getElementById(tabId).style.display = "block";
   evt.currentTarget.classList.add("active");
-  
-  if(evt.currentTarget.innerText.includes("SELL")) {
-      evt.currentTarget.style.backgroundColor = "#cc0000";
-      evt.currentTarget.style.color = "white";
-  } else {
-      evt.currentTarget.style.backgroundColor = "#0088cc";
-      evt.currentTarget.style.color = "white";
-  }
+  evt.currentTarget.style.backgroundColor = evt.currentTarget.id === "sell-btn" ? "#cc0000" : "#0088cc";
+  evt.currentTarget.style.color = "white";
 }
 </script>
