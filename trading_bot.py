@@ -1,31 +1,43 @@
 """
 AI360 TRADING BOT — v14.0
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-v14.0 CHANGE vs v13.5 — ONE change only: T4 → BotMemory sheet
+v14.0 CHANGES vs v13.5 — T4 → BotMemory sheet migration
 
-ALL memory read/write now uses BotMemory sheet rows instead of
-AlertLog cell T4. T4 is never read or written anywhere.
-T2 switch (AlertLog cell T2) still works — only T4 is retired.
+ALL T4 references replaced with BotMemory sheet reads/writes.
+T4 cell is no longer read or written by this bot.
+Deploy simultaneously with AppScript v14.0 on a day with no open trades.
 
-AppScript must also be updated to v14.0 at the same time.
+BotMemory sheet structure (columns A–E, 1-based):
+  A: Key  B: Value  C: UpdatedAt  D: Symbol  E: KeyType
 
-MIGRATION STEPS (do once):
-  1. Set T2 = NO in AlertLog to pause bot
-  2. Clear all data rows in BotMemory (keep header row only)
-  3. Deploy AppScript v14.0
-  4. Deploy this file (trading_bot.py v14.0) to GitHub
-  5. Set T2 = YES to resume
+KeyType values:
+  FLAG  — date-stamped flags (e.g. 2026-04-30_AM, 2026-04-30_PM)
+  TRADE — per-symbol keys (_CAP, _MODE, _SEC, _ATR, _LP, _MAX, _TSL, _EXDT)
+  STATE — (reserved for AppScript batch state — bot does not write these)
 
-BotMemory sheet columns (A–E):
-  A = Key        e.g. "2026-04-30_AM", "NSE_ONGC_CAP"
-  B = Value      e.g. "1", "10000"
-  C = UpdatedAt  e.g. "2026-04-30 09:15:00"
-  D = Symbol     e.g. "NSE:ONGC" (blank for FLAG entries)
-  E = KeyType    e.g. "FLAG", "TRADE", "STATE", "EXIT"
+BotMemory helpers in this file:
+  _bm_load(bm_sheet)              → dict {key: {value, row_index}}
+  _bm_get(bm_data, key)           → string value or ""
+  _bm_set(bm_sheet, bm_data, key, val, sym="", ktype="TRADE") → writes/updates
+  _bm_exists(bm_data, key)        → bool
+  _bm_purge(bm_sheet, days=14)    → removes FLAG entries older than N days
 
-ALL OTHER CODE IDENTICAL TO v13.5.
+Migration notes:
+  - _mem_get / _mem_set / clean_mem / get_tsl / set_tsl etc.
+    are replaced by BotMemory helpers where they accessed T4.
+  - TSL, MAX, LP, ATR, EXDT now use bm_sheet row writes (same key format).
+  - All key names (_CAP, _MODE, _SEC, _ATR, _LP, _MAX, _TSL, _EXDT)
+    are IDENTICAL to v13.5 — AppScript writes them; bot reads them.
+  - AM/NOON/PM/WEEKLY flags now go to BotMemory (FLAG type) not T4 string.
+
+ZERO changes to:
+  - Telegram channels, message builders, exit logic, TSL calculation
+  - ATR read from Nifty200 (v13.5 fix retained)
+  - RR re-validation on WAITING→TRADED (v13.5 fix retained)
+  - CE candidate flag, options hint, hold logic, hard loss logic
+  - History sheet writes, weekly summary, daily summary
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-ALERTLOG COLUMN MAP (0-based) — unchanged:
+ALERTLOG COLUMN MAP (0-based) — unchanged from v13.5:
   A=0  Signal Time       B=1  Symbol
   C=2  Live Price        D=3  Priority Score
   E=4  Trade Type        F=5  Strategy
@@ -36,7 +48,7 @@ ALERTLOG COLUMN MAP (0-based) — unchanged:
   O=14 Trailing SL       P=15 P/L%
   Q=16 ATH Warning       R=17 Risk ₹
   S=18 Position Size     T=19 SYSTEM CONTROL
-  T2 = YES/NO automation switch (still used — only T4 is retired)
+  T2 = YES/NO automation switch (still used — do not remove)
 
 HISTORY COLUMNS (A–R) — unchanged:
   A  Symbol        B  Entry Date    C  Entry Price   D  Exit Date
@@ -60,6 +72,7 @@ CHAT_PREMIUM = os.environ.get('CHAT_ID_ADVANCE')
 
 SHEET_NAME = "Ai360tradingAlgo"
 
+# AlertLog column indices (0-based) — unchanged
 C_SIGNAL_TIME = 0
 C_SYMBOL      = 1
 C_LIVE_PRICE  = 2
@@ -110,6 +123,8 @@ TSL_GAP_LOCK_FRAC = 0.5
 MIN_HOLD_SWING    = 2
 MIN_HOLD_POS      = 3
 HARD_LOSS_PCT     = 5.0
+
+BM_PURGE_DAYS = 14   # Purge FLAG entries older than this many days
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -248,159 +263,132 @@ def ce_candidate_flag(cp: float, atr: float, stage: str, is_bullish: bool) -> st
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# BOTMEMORY HELPERS — v14.0 replaces T4 string memory
+# BOTMEMORY SHEET HELPERS
 # ══════════════════════════════════════════════════════════════════════════════
+# BotMemory sheet columns (0-based in list):
+#   0=Key  1=Value  2=UpdatedAt  3=Symbol  4=KeyType
 
-def bm_load(bm_sheet) -> dict:
+def _bm_load(bm_sheet) -> dict:
     """
-    Load all BotMemory rows into a dict {key: value}.
-    Single sheet read — call once at start of run_trading_cycle.
-    Row 1 is the header row — skipped.
+    Load BotMemory sheet into a dict: {key: {"value": str, "row_index": int}}
+    row_index is 1-based (row 1 = header, data starts at row 2).
     """
+    bm_data = {}
     try:
-        data = bm_sheet.get_all_values()
-        result = {}
-        for row in data[1:]:
-            k = str(row[0]).strip() if row else ""
-            v = str(row[1]).strip() if len(row) > 1 else ""
-            if k:
-                result[k] = v
-        print(f"[BM] Loaded {len(result)} keys from BotMemory")
-        return result
+        all_values = bm_sheet.get_all_values()
+        for i, row in enumerate(all_values[1:], start=2):   # skip header row 1
+            key = str(row[0]).strip() if row else ""
+            if not key:
+                continue
+            val = str(row[1]) if len(row) > 1 else ""
+            bm_data[key] = {"value": val, "row_index": i}
     except Exception as e:
         print(f"[BM] Load error: {e}")
-        return {}
+    print(f"[BM] Loaded {len(bm_data)} keys from BotMemory sheet")
+    return bm_data
 
-def bm_get(bm_data: dict, key: str) -> str:
-    """Get a value from the pre-loaded dict. Returns "" if not found."""
-    return bm_data.get(key, "")
 
-def bm_exists(bm_data: dict, substring: str) -> bool:
-    """
-    Returns True if any key OR value contains the substring.
-    Replaces old:  substring in mem
-    """
-    return any(substring in k or substring in v for k, v in bm_data.items())
+def _bm_get(bm_data: dict, key: str) -> str:
+    """Return value for key, or '' if not found."""
+    entry = bm_data.get(key)
+    return entry["value"] if entry else ""
 
-def bm_set(bm_sheet, bm_data: dict, key: str, val: str,
-           symbol: str = "", key_type: str = "FLAG"):
+
+def _bm_exists(bm_data: dict, key: str) -> bool:
+    return key in bm_data
+
+
+def _bm_set(bm_sheet, bm_data: dict, key: str, val: str,
+            sym: str = "", ktype: str = "TRADE") -> None:
     """
-    Write or update a single key in BotMemory sheet.
-    Also updates the local bm_data dict so subsequent reads are consistent.
-    If key exists → updates Value (col B) and UpdatedAt (col C).
-    If new → appends a new row.
+    Write or update a key in BotMemory sheet.
+    If key exists: update Value (col B) and UpdatedAt (col C) in-place.
+    If new: append a new row.
+    Also updates bm_data dict in-memory so subsequent _bm_get calls see new value.
     """
     now_str = datetime.now(IST).strftime('%Y-%m-%d %H:%M:%S')
+    if key in bm_data:
+        row_idx = bm_data[key]["row_index"]
+        try:
+            bm_sheet.update_cell(row_idx, 2, val)       # col B: Value
+            bm_sheet.update_cell(row_idx, 3, now_str)   # col C: UpdatedAt
+            bm_data[key]["value"] = val
+        except Exception as e:
+            print(f"[BM] Update error for {key}: {e}")
+    else:
+        new_row = [key, val, now_str, sym, ktype]
+        try:
+            bm_sheet.append_row(new_row)
+            # Compute new row index
+            new_row_idx = len(bm_data) + 2   # approximate; header is row 1
+            # More accurate: reload just last row
+            try:
+                new_row_idx = len(bm_sheet.col_values(1))  # count filled A column
+            except:
+                pass
+            bm_data[key] = {"value": val, "row_index": new_row_idx}
+        except Exception as e:
+            print(f"[BM] Append error for {key}: {e}")
+
+
+def _bm_del(bm_sheet, bm_data: dict, key: str) -> None:
+    """
+    Clear a row in BotMemory sheet (does not physically delete to avoid row-shift bugs).
+    Removes key from bm_data dict.
+    """
+    if key not in bm_data:
+        return
+    row_idx = bm_data[key]["row_index"]
     try:
-        all_keys = bm_sheet.col_values(1)  # col A
-        for i, k in enumerate(all_keys):
-            if str(k).strip() == key:
-                row_num = i + 1
-                bm_sheet.update(f'B{row_num}', [[str(val)]])
-                bm_sheet.update(f'C{row_num}', [[now_str]])
-                bm_data[key] = str(val)
-                return
-        # Not found — append new row
-        bm_sheet.append_row([key, str(val), now_str, symbol or "", key_type or "FLAG"])
-        bm_data[key] = str(val)
+        bm_sheet.update(f"A{row_idx}:E{row_idx}", [["", "", "", "", ""]])
+        del bm_data[key]
     except Exception as e:
-        print(f"[BM] Set error key={key}: {e}")
+        print(f"[BM] Delete error for {key}: {e}")
 
-def bm_delete_prefix(bm_sheet, bm_data: dict, prefix: str):
+
+def _bm_purge(bm_sheet, days: int = BM_PURGE_DAYS) -> None:
     """
-    Delete all rows where Key starts with prefix.
-    Used for batch state (_BATCH_) cleanup.
+    Remove FLAG-type entries older than `days` days.
+    Called once at the start of run_trading_cycle().
     """
+    cutoff = (datetime.now(IST) - timedelta(days=days)).strftime("%Y-%m-%d")
     try:
-        all_keys = bm_sheet.col_values(1)
-        rows_to_delete = [
-            i + 1 for i, k in enumerate(all_keys)
-            if str(k).strip().startswith(prefix)
-        ]
-        for row_num in reversed(rows_to_delete):
-            bm_sheet.delete_rows(row_num)
-        # Remove from local dict too
-        for k in list(bm_data.keys()):
-            if k.startswith(prefix):
-                del bm_data[k]
-        if rows_to_delete:
-            print(f"[BM] Deleted {len(rows_to_delete)} rows with prefix '{prefix}'")
+        all_values = bm_sheet.get_all_values()
+        for i, row in enumerate(all_values[1:], start=2):
+            key   = str(row[0]).strip() if row else ""
+            ktype = str(row[4]).strip() if len(row) > 4 else ""
+            if not key or ktype != "FLAG":
+                continue
+            # FLAG key format: "yyyy-MM-dd_SOMETHING"
+            if len(key) >= 10 and key[:10] < cutoff:
+                bm_sheet.update(f"A{i}:E{i}", [["", "", "", "", ""]])
+                print(f"[BM PURGE] Removed old flag: {key}")
     except Exception as e:
-        print(f"[BM] Delete prefix={prefix} error: {e}")
-
-def bm_clean(bm_sheet, bm_data: dict):
-    """
-    Remove FLAG entries older than 14 days.
-    Remove EXIT entries older than 30 days.
-    Replaces clean_mem() T4 string logic entirely.
-    Called once per run at start of run_trading_cycle.
-    """
-    cutoff_14 = (datetime.now(IST) - timedelta(days=14)).strftime('%Y-%m-%d')
-    cutoff_30 = (datetime.now(IST) - timedelta(days=30)).strftime('%Y-%m-%d')
-
-    try:
-        all_rows = bm_sheet.get_all_values()
-        rows_to_delete = []
-
-        for i, row in enumerate(all_rows[1:], start=2):
-            key      = str(row[0]).strip() if row else ""
-            key_type = str(row[4]).strip() if len(row) > 4 else ""
-
-            # FLAG entries like "2026-04-30_AM" — drop if date older than 14 days
-            if key_type == "FLAG" and len(key) >= 10 and key[4] == '-' and key[7] == '-':
-                if key[:10] < cutoff_14:
-                    rows_to_delete.append(i)
-                    continue
-
-            # EXIT date entries like "NSE_ONGC_EXDT_2026-01-15"
-            if "_EXDT_" in key:
-                parts    = key.split("_EXDT_")
-                ex_date  = parts[-1]
-                if ex_date < cutoff_30:
-                    rows_to_delete.append(i)
-                    continue
-
-        for row_num in reversed(rows_to_delete):
-            bm_sheet.delete_rows(row_num)
-            # Remove from local dict
-            for k in list(bm_data.keys()):
-                if k in [all_rows[row_num - 1][0]]:
-                    del bm_data[k]
-
-        print(f"[BM] Cleaned {len(rows_to_delete)} old entries. "
-              f"Active keys: {len(bm_data)}")
-
-    except Exception as e:
-        print(f"[BM] clean_bm error: {e}")
+        print(f"[BM PURGE] Error: {e}")
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# TSL / PRICE HELPERS — unchanged from v13.5, now use bm_data dict
+# TSL / MAX / LP / ATR / EXDT HELPERS — now backed by BotMemory sheet
+# Same key formats as v13.5 — just stored in sheet rows instead of T4 string.
 # ══════════════════════════════════════════════════════════════════════════════
 
 def get_tsl(bm_data: dict, key: str) -> float:
     prefix = f"{key}_TSL_"
-    for k, v in bm_data.items():
+    for k, entry in bm_data.items():
         if k.startswith(prefix):
             try: return int(k[len(prefix):]) / 100.0
             except: return 0.0
     return 0.0
 
-def set_tsl(bm_sheet, bm_data: dict, key: str, price: float):
-    bm_key = f"{key}_TSL_{int(round(price * 100))}"
-    # Remove old TSL keys for this symbol
-    prefix = f"{key}_TSL_"
-    try:
-        all_keys = bm_sheet.col_values(1)
-        for i, k in enumerate(all_keys):
-            if str(k).strip().startswith(prefix):
-                bm_sheet.delete_rows(i + 1)
-                break
-    except: pass
-    for k in list(bm_data.keys()):
-        if k.startswith(prefix):
-            del bm_data[k]
-    bm_set(bm_sheet, bm_data, bm_key, "1", key, "TRADE")
+def set_tsl(bm_sheet, bm_data: dict, key: str, price: float, sym: str = "") -> None:
+    prefix    = f"{key}_TSL_"
+    tsl_key   = f"{prefix}{int(round(price * 100))}"
+    # Remove any old TSL key for this symbol
+    old_keys = [k for k in list(bm_data.keys()) if k.startswith(prefix)]
+    for old_key in old_keys:
+        if old_key != tsl_key:
+            _bm_del(bm_sheet, bm_data, old_key)
+    _bm_set(bm_sheet, bm_data, tsl_key, "1", sym, "TRADE")
 
 def get_max_price(bm_data: dict, key: str) -> float:
     prefix = f"{key}_MAX_"
@@ -410,23 +398,17 @@ def get_max_price(bm_data: dict, key: str) -> float:
             except: return 0.0
     return 0.0
 
-def set_max_price(bm_sheet, bm_data: dict, key: str, price: float):
-    cur_max = get_max_price(bm_data, key)
+def set_max_price(bm_sheet, bm_data: dict, key: str, price: float, sym: str = "") -> None:
+    prefix    = f"{key}_MAX_"
+    cur_max   = get_max_price(bm_data, key)
     if price <= cur_max:
         return
-    prefix = f"{key}_MAX_"
-    try:
-        all_keys = bm_sheet.col_values(1)
-        for i, k in enumerate(all_keys):
-            if str(k).strip().startswith(prefix):
-                bm_sheet.delete_rows(i + 1)
-                break
-    except: pass
-    for k in list(bm_data.keys()):
-        if k.startswith(prefix):
-            del bm_data[k]
-    bm_key = f"{prefix}{int(round(price * 100))}"
-    bm_set(bm_sheet, bm_data, bm_key, "1", key, "TRADE")
+    max_key   = f"{prefix}{int(round(price * 100))}"
+    old_keys  = [k for k in list(bm_data.keys()) if k.startswith(prefix)]
+    for old_key in old_keys:
+        if old_key != max_key:
+            _bm_del(bm_sheet, bm_data, old_key)
+    _bm_set(bm_sheet, bm_data, max_key, "1", sym, "TRADE")
 
 def get_atr_from_mem(bm_data: dict, key: str) -> float:
     prefix = f"{key}_ATR_"
@@ -436,20 +418,14 @@ def get_atr_from_mem(bm_data: dict, key: str) -> float:
             except: return 0.0
     return 0.0
 
-def save_atr_to_mem(bm_sheet, bm_data: dict, key: str, atr: float):
-    prefix = f"{key}_ATR_"
-    try:
-        all_keys = bm_sheet.col_values(1)
-        for i, k in enumerate(all_keys):
-            if str(k).strip().startswith(prefix):
-                bm_sheet.delete_rows(i + 1)
-                break
-    except: pass
-    for k in list(bm_data.keys()):
-        if k.startswith(prefix):
-            del bm_data[k]
-    bm_key = f"{prefix}{int(round(atr * 100))}"
-    bm_set(bm_sheet, bm_data, bm_key, "1", key, "TRADE")
+def save_atr_to_mem(bm_sheet, bm_data: dict, key: str, atr: float, sym: str = "") -> None:
+    prefix   = f"{key}_ATR_"
+    atr_key  = f"{prefix}{int(round(atr * 100))}"
+    old_keys = [k for k in list(bm_data.keys()) if k.startswith(prefix)]
+    for old_key in old_keys:
+        if old_key != atr_key:
+            _bm_del(bm_sheet, bm_data, old_key)
+    _bm_set(bm_sheet, bm_data, atr_key, "1", sym, "TRADE")
 
 def get_last_price(bm_data: dict, key: str) -> float:
     prefix = f"{key}_LP_"
@@ -459,39 +435,29 @@ def get_last_price(bm_data: dict, key: str) -> float:
             except: return 0.0
     return 0.0
 
-def set_last_price(bm_sheet, bm_data: dict, key: str, price: float):
-    prefix = f"{key}_LP_"
-    try:
-        all_keys = bm_sheet.col_values(1)
-        for i, k in enumerate(all_keys):
-            if str(k).strip().startswith(prefix):
-                bm_sheet.delete_rows(i + 1)
-                break
-    except: pass
-    for k in list(bm_data.keys()):
-        if k.startswith(prefix):
-            del bm_data[k]
-    bm_key = f"{prefix}{int(round(price * 100))}"
-    bm_set(bm_sheet, bm_data, bm_key, "1", key, "TRADE")
+def set_last_price(bm_sheet, bm_data: dict, key: str, price: float, sym: str = "") -> None:
+    prefix   = f"{key}_LP_"
+    lp_key   = f"{prefix}{int(round(price * 100))}"
+    old_keys = [k for k in list(bm_data.keys()) if k.startswith(prefix)]
+    for old_key in old_keys:
+        if old_key != lp_key:
+            _bm_del(bm_sheet, bm_data, old_key)
+    _bm_set(bm_sheet, bm_data, lp_key, "1", sym, "TRADE")
 
 def get_exit_date(bm_data: dict, key: str) -> str:
-    prefix = f"{key}_EXDT_"
-    for k in bm_data:
-        if k.startswith(prefix):
-            return k[len(prefix):]
-    return ""
+    val = _bm_get(bm_data, f"{key}_EXDT")
+    return val
 
-def set_exit_date(bm_sheet, bm_data: dict, key: str, date_str: str):
-    bm_key = f"{key}_EXDT_{date_str}"
-    bm_set(bm_sheet, bm_data, bm_key, "1", key, "EXIT")
+def set_exit_date(bm_sheet, bm_data: dict, key: str, date_str: str, sym: str = "") -> None:
+    _bm_set(bm_sheet, bm_data, f"{key}_EXDT", date_str, sym, "TRADE")
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# TRADE MODE + CAPITAL — now read from bm_data dict
+# TRADE MODE + CAPITAL FROM BOTMEMORY
 # ══════════════════════════════════════════════════════════════════════════════
 
 def get_trade_mode(bm_data: dict, key: str) -> str:
-    val = bm_get(bm_data, f"{key}_MODE")
+    val = _bm_get(bm_data, f"{key}_MODE")
     return val if val in ("VCP", "MOM", "STD") else "STD"
 
 def get_tsl_params(bm_data: dict, key: str) -> dict:
@@ -499,20 +465,18 @@ def get_tsl_params(bm_data: dict, key: str) -> dict:
     return TSL_PARAMS[mode]
 
 def get_capital_from_mem(bm_data: dict, key: str) -> int:
-    cap_str = bm_get(bm_data, f"{key}_CAP")
+    cap_str = _bm_get(bm_data, f"{key}_CAP")
     if cap_str:
         try:
             cap = int(cap_str)
             if cap in (7000, 10000, 13000): return cap
-        except: pass
+        except:
+            pass
     return CAPITAL_PER_TRADE
-
-def save_capital_to_mem(bm_sheet, bm_data: dict, key: str, capital: int):
-    bm_set(bm_sheet, bm_data, f"{key}_CAP", str(capital), key, "TRADE")
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# TSL CALCULATION — unchanged from v13.5
+# TSL CALCULATION — mode-aware, unchanged from v13.5
 # ══════════════════════════════════════════════════════════════════════════════
 
 def calc_new_tsl(cp: float, ent: float, init_sl: float, atr: float,
@@ -625,7 +589,7 @@ def build_exit_basic(sym, pnl_pct, exit_reason) -> str:
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# GOOGLE SHEETS — v14.0: also returns BotMemory sheet
+# GOOGLE SHEETS
 # ══════════════════════════════════════════════════════════════════════════════
 
 def get_sheets():
@@ -677,7 +641,9 @@ def get_market_regime(nifty_sheet) -> bool:
         print(f"[REGIME] Error: {e} — defaulting to bullish")
         return True
 
+
 def _read_atr_from_nifty200(nifty_sheet, sym: str) -> float:
+    """Read ATR14 from Nifty200 col AC (0-based index 28) — unchanged from v13.5."""
     try:
         nifty_data = nifty_sheet.get_all_values()
         for row in nifty_data[1:]:
@@ -692,10 +658,6 @@ def _read_atr_from_nifty200(nifty_sheet, sym: str) -> float:
     return 0.0
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-# SECTOR CONTEXT — now uses bm_data dict
-# ══════════════════════════════════════════════════════════════════════════════
-
 def get_sector_context(all_data: list, bm_data: dict) -> str:
     sector_counts = {}
     for r in all_data[1:16]:
@@ -703,9 +665,10 @@ def get_sector_context(all_data: list, bm_data: dict) -> str:
         if "WAITING" not in str(r[C_STATUS] if len(r) > C_STATUS else "").upper():
             continue
         sym = str(r[C_SYMBOL]).strip()
-        if not sym: continue
+        if not sym:
+            continue
         key = sym_key(sym)
-        sec = bm_get(bm_data, f"{key}_SEC") or "Mixed"
+        sec = _bm_get(bm_data, f"{key}_SEC") or "Mixed"
         sector_counts[sec] = sector_counts.get(sec, 0) + 1
     if not sector_counts:
         return ""
@@ -714,7 +677,7 @@ def get_sector_context(all_data: list, bm_data: dict) -> str:
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# MAIN TRADING CYCLE — v14.0: T4 replaced with BotMemory throughout
+# MAIN TRADING CYCLE — v14.0: T4 → BotMemory
 # ══════════════════════════════════════════════════════════════════════════════
 
 def run_trading_cycle():
@@ -730,12 +693,11 @@ def run_trading_cycle():
 
     print(f"[START] {now.strftime('%Y-%m-%d %H:%M:%S')} IST")
 
-    # v14.0: get BotMemory sheet
     log_sheet, hist_sheet, nifty_sheet, bm_sheet = get_sheets()
 
-    # v14.0: load BotMemory once, clean old entries
-    bm_data    = bm_load(bm_sheet)
-    bm_clean(bm_sheet, bm_data)
+    # v14.0: Load BotMemory, purge old flags
+    _bm_purge(bm_sheet)
+    bm_data = _bm_load(bm_sheet)
 
     is_bullish = get_market_regime(nifty_sheet)
 
@@ -743,12 +705,11 @@ def run_trading_cycle():
     am_key = f"{today}_AM"
     print(f"[GM CHECK] time={now.strftime('%H:%M')} IST | "
           f"window={'YES' if (now.hour==8 and now.minute>=45) or (now.hour==9 and now.minute<=15) else 'NO'} | "
-          f"AM_already_sent={bm_exists(bm_data, am_key)}")
-    # ──────────────────────────────────────────────────────────
+          f"AM_already_sent={_bm_exists(bm_data, am_key)}")
 
     if str(log_sheet.acell("T2").value or "").strip().upper() != "YES":
         print("[SKIP] Automation OFF (T2 != YES)")
-        return  # v14.0: no T4 write on skip
+        return
 
     all_data   = log_sheet.get_all_values()
     trade_zone = [pad(list(r)) for r in all_data[1:16]]
@@ -765,7 +726,7 @@ def run_trading_cycle():
     # 1. GOOD MORNING  08:45–09:15 IST
     # ─────────────────────────────────────────────────────────────────────────
     if ((now.hour == 8 and now.minute >= 45) or
-            (now.hour == 9 and now.minute <= 29)) and not bm_exists(bm_data, am_key):
+            (now.hour == 9 and now.minute <= 29)) and not _bm_exists(bm_data, am_key):
 
         waiting_count = sum(
             1 for r in [pad(list(x)) for x in all_data[1:16]]
@@ -786,14 +747,14 @@ def run_trading_cycle():
             if not ent or ent <= 0: continue
             sl_label = "TSL" if sl > to_f(r[C_INITIAL_SL]) else "SL"
             if cp > 0 and ent > 0:
-                pnl      = (cp - ent) / ent * 100
-                key      = sym_key(sym)
-                cap      = get_capital_from_mem(bm_data, key)
-                pl_rs    = round((cp - ent) / ent * cap)
-                to_tgt   = ((tgt - cp) / cp * 100) if cp > 0 else 0
-                to_sl    = ((cp - sl) / cp * 100) if cp > 0 else 0
-                em       = "🟢" if pnl >= 0 else "🔴"
-                mode     = get_trade_mode(bm_data, key)
+                pnl   = (cp - ent) / ent * 100
+                key   = sym_key(sym)
+                cap   = get_capital_from_mem(bm_data, key)
+                pl_rs = round((cp - ent) / ent * cap)
+                to_tgt = ((tgt - cp) / cp * 100) if cp > 0 else 0
+                to_sl  = ((cp - sl) / cp * 100) if cp > 0 else 0
+                em     = "🟢" if pnl >= 0 else "🔴"
+                mode   = get_trade_mode(bm_data, key)
                 mode_tag = {"VCP": "🎯", "MOM": "🚀", "STD": "📊"}.get(mode, "📊")
                 lines.append(
                     f"{em} <b>{sym}</b> {mode_tag} [{ttype}] Day {days + 1}\n"
@@ -819,8 +780,7 @@ def run_trading_cycle():
         send_advance(full_gm)
         send_premium(full_gm)
 
-        # v14.0: write flag to BotMemory instead of appending to T4 string
-        bm_set(bm_sheet, bm_data, am_key, "1", "", "FLAG")
+        _bm_set(bm_sheet, bm_data, am_key, "1", "", "FLAG")
 
     # ─────────────────────────────────────────────────────────────────────────
     # 2. MARKET HOURS — Core Trading Logic
@@ -856,7 +816,7 @@ def run_trading_cycle():
 
             if cp <= 0: continue
 
-            # RR re-validation
+            # RR re-validation (v13.5 fix retained)
             rr_raw = str(r[C_RR]).strip()
             if rr_raw:
                 try:
@@ -864,14 +824,14 @@ def run_trading_cycle():
                 except Exception:
                     rr_val = 0.0
                 if rr_val > 0 and rr_val < MIN_RR:
-                    print(f"[SKIP] {sym}: RR 1:{rr_val:.1f} below MIN_RR {MIN_RR}")
+                    print(f"[SKIP] {sym}: RR 1:{rr_val:.1f} below MIN_RR {MIN_RR} — stale candidate")
                     continue
 
             key       = sym_key(sym)
             sheet_row = i + 2
 
             last_cp = get_last_price(bm_data, key)
-            set_last_price(bm_sheet, bm_data, key, cp)
+            set_last_price(bm_sheet, bm_data, key, cp, sym)
             if last_cp > 0 and abs(cp - last_cp) < 0.01:
                 print(f"[STALE] {sym}: price unchanged — skipping")
                 continue
@@ -903,30 +863,23 @@ def run_trading_cycle():
             rr_num = (reward / risk) if risk > 0 else 0
             log_sheet.update_cell(sheet_row, C_RR + 1, f"1:{rr_num:.1f}")
 
-            # Read ATR14 directly from Nifty200
+            # Read ATR14 directly from Nifty200 (v13.5 fix retained)
             atr_est = _read_atr_from_nifty200(nifty_sheet, sym)
             if atr_est <= 0:
                 _mult   = 2 if "Intraday" in ttype else 4 if "Positional" in ttype else 3
                 atr_est = (target - cp) / _mult if target > cp else 0
-                print(f"[ATR] {sym}: fallback atr_est={atr_est:.2f}")
+                print(f"[ATR] {sym}: Nifty200 lookup returned 0, fallback atr_est={atr_est:.2f}")
             else:
-                print(f"[ATR] {sym}: ATR14={atr_est:.2f} from Nifty200")
+                print(f"[ATR] {sym}: read ATR14={atr_est:.2f} from Nifty200")
 
-            save_atr_to_mem(bm_sheet, bm_data, key, atr_est)
-            set_tsl(bm_sheet, bm_data, key, init_sl)
-            set_max_price(bm_sheet, bm_data, key, cp)
+            save_atr_to_mem(bm_sheet, bm_data, key, atr_est, sym)
+            set_tsl(bm_sheet, bm_data, key, init_sl, sym)
+            set_max_price(bm_sheet, bm_data, key, cp, sym)
 
-            # Remove old exit flag if re-entering
+            # Clear any old exit flag for this symbol
             ex_flag_key = f"{key}_EX"
-            if ex_flag_key in bm_data:
-                try:
-                    all_keys = bm_sheet.col_values(1)
-                    for idx, k in enumerate(all_keys):
-                        if str(k).strip() == ex_flag_key:
-                            bm_sheet.delete_rows(idx + 1)
-                            break
-                except: pass
-                del bm_data[ex_flag_key]
+            if _bm_exists(bm_data, ex_flag_key):
+                _bm_del(bm_sheet, bm_data, ex_flag_key)
 
             updated_r                = list(r)
             updated_r[C_STATUS]      = "🟢 TRADED (PAPER)"
@@ -935,12 +888,13 @@ def run_trading_cycle():
             updated_r[C_TRAIL_SL]    = init_sl
             traded_rows.append((sheet_row, updated_r))
 
-            atr    = atr_est
-            o_hint = options_hint(sym, cp, atr, ttype)
-            c_flag = ce_candidate_flag(cp, atr, stage, is_bullish)
+            atr     = atr_est
+            o_hint  = options_hint(sym, cp, atr, ttype)
+            c_flag  = ce_candidate_flag(cp, atr, stage, is_bullish)
 
+            # Write entry flag to BotMemory
             entry_key = f"{key}_ENTRY"
-            bm_set(bm_sheet, bm_data, entry_key, etime, sym, "TRADE")
+            _bm_set(bm_sheet, bm_data, entry_key, etime, sym, "TRADE")
 
             pos_size  = round(capital / cp) if cp > 0 else 0
             risk_rs   = round(max(0, cp - init_sl) * pos_size)
@@ -977,9 +931,9 @@ def run_trading_cycle():
 
             if not price_sanity(sym, cp, ent): continue
 
-            set_max_price(bm_sheet, bm_data, key, cp)
-            pnl_pct    = (cp - ent) / ent * 100
-            atr        = get_atr_from_mem(bm_data, key)
+            set_max_price(bm_sheet, bm_data, key, cp, sym)
+            pnl_pct  = (cp - ent) / ent * 100
+            atr      = get_atr_from_mem(bm_data, key)
             if atr <= 0:
                 _mult = 4 if "Positional" in ttype else 2 if "Intraday" in ttype else 3
                 atr   = (tgt - ent) / _mult if tgt > ent else ent * 0.02
@@ -1002,7 +956,7 @@ def run_trading_cycle():
                     f"   Trail SL: ₹{cur_tsl:.2f} → <b>₹{new_tsl:.2f}</b> ({tsl_label})"
                 )
                 trail_alerts.append(trail_msg)
-                set_tsl(bm_sheet, bm_data, key, new_tsl)
+                set_tsl(bm_sheet, bm_data, key, new_tsl, sym)
                 print(f"[TSL] {sym} [{trade_mode}]: ₹{cur_tsl:.2f}→₹{new_tsl:.2f}")
 
             entry_date_key = etime[:10].replace('-', '') if etime else "0"
@@ -1012,7 +966,7 @@ def run_trading_cycle():
             hard_loss  = pnl_pct < -HARD_LOSS_PCT
 
             # ── Hard loss exit ────────────────────────────────────────────────
-            if hard_loss and not bm_exists(bm_data, ex_flag):
+            if hard_loss and not _bm_exists(bm_data, ex_flag):
                 pl_rupees = round((cp - ent) / ent * capital, 2)
                 hold_str  = calc_hold_str(etime, now)
                 max_price = get_max_price(bm_data, key)
@@ -1033,11 +987,13 @@ def run_trading_cycle():
                     f"{pnl_pct:.2f}%", "LOSS 🔴", strat,
                     "🚨 HARD LOSS EXIT", ttype, init_sl, new_tsl,
                     max_price if max_price > 0 else cp,
-                    round(atr, 2), days_held, capital, pl_rupees, "—",
+                    round(atr, 2), days_held,
+                    capital,
+                    pl_rupees, "—",
                 ])
                 log_sheet.update_cell(sheet_row, C_STATUS + 1, "EXITED")
-                bm_set(bm_sheet, bm_data, ex_flag, "1", sym, "EXIT")
-                set_exit_date(bm_sheet, bm_data, key, now.strftime('%Y-%m-%d'))
+                _bm_set(bm_sheet, bm_data, ex_flag, "1", sym, "TRADE")
+                set_exit_date(bm_sheet, bm_data, key, now.strftime('%Y-%m-%d'), sym)
                 print(f"[HARD LOSS] {sym} | {pnl_pct:+.2f}% | ₹{pl_rupees:+.0f}")
                 continue
 
@@ -1052,7 +1008,7 @@ def run_trading_cycle():
                 and not (near_hard_loss and not is_bullish)
             )
 
-            if (tsl_hit or target_hit) and not bm_exists(bm_data, ex_flag) and not skip_exit:
+            if (tsl_hit or target_hit) and not _bm_exists(bm_data, ex_flag) and not skip_exit:
                 exit_reason   = ("🎯 TARGET HIT"    if target_hit else
                                  "🔒 TRAILING SL"   if new_tsl > init_sl else
                                  "🚨 INITIAL SL HIT")
@@ -1076,18 +1032,20 @@ def run_trading_cycle():
                     f"{pnl_pct:.2f}%", result_sym, strat,
                     exit_reason, ttype, init_sl, new_tsl,
                     max_price if max_price > 0 else cp,
-                    round(atr, 2), days_held, capital, pl_rupees,
+                    round(atr, 2), days_held,
+                    capital,
+                    pl_rupees,
                     o_note[:100] if o_note else "—",
                 ])
                 log_sheet.update_cell(sheet_row, C_STATUS + 1, "EXITED")
-                bm_set(bm_sheet, bm_data, ex_flag, "1", sym, "EXIT")
-                set_exit_date(bm_sheet, bm_data, key, now.strftime('%Y-%m-%d'))
+                _bm_set(bm_sheet, bm_data, ex_flag, "1", sym, "TRADE")
+                set_exit_date(bm_sheet, bm_data, key, now.strftime('%Y-%m-%d'), sym)
                 print(f"[EXIT] {sym} | {result_sym} | {pnl_pct:+.2f}% | ₹{pl_rupees:+.0f}")
 
             elif tsl_hit and skip_exit:
                 print(f"[HOLD] {sym}: SL touched Day {days_held + 1} < {min_hold} min hold")
                 hold_warn_key = f"{key}_HOLD_WARN"
-                if not bm_exists(bm_data, hold_warn_key):
+                if not _bm_exists(bm_data, hold_warn_key):
                     regime_note = "🐂 Bullish — recovery possible" if is_bullish else "🐻 Bearish — watching closely"
                     hold_msg = (
                         f"⚠️ <b>MIN HOLD ACTIVE — {sym}</b>\n"
@@ -1097,7 +1055,7 @@ def run_trading_cycle():
                         f"Current P/L: {pnl_pct:+.2f}%\n{regime_note}"
                     )
                     send_advance(hold_msg); send_premium(hold_msg)
-                    bm_set(bm_sheet, bm_data, hold_warn_key, "1", sym, "TRADE")
+                    _bm_set(bm_sheet, bm_data, hold_warn_key, "1", sym, "TRADE")
 
         # Batch TSL writes
         if tsl_cell_updates:
@@ -1114,7 +1072,7 @@ def run_trading_cycle():
             for msg in exit_alerts_basic: send_basic(msg)
 
         if exit_alerts_advance:
-            header    = f"⚡ <b>EXIT REPORT — {now.strftime('%H:%M IST')}</b>\n━━━━━━━━━━━━━━━━━━━━\n\n"
+            header   = f"⚡ <b>EXIT REPORT — {now.strftime('%H:%M IST')}</b>\n━━━━━━━━━━━━━━━━━━━━\n\n"
             full_exit = header + "\n\n".join(exit_alerts_advance)
             send_advance(full_exit); send_premium(full_exit)
 
@@ -1130,7 +1088,7 @@ def run_trading_cycle():
     # 3. MID-DAY PULSE  12:28–12:38 IST
     # ─────────────────────────────────────────────────────────────────────────
     noon_key = f"{today}_NOON"
-    if now.hour == 12 and 28 <= now.minute <= 38 and not bm_exists(bm_data, noon_key):
+    if now.hour == 12 and 28 <= now.minute <= 38 and not _bm_exists(bm_data, noon_key):
         fresh     = log_sheet.get_all_values()
         live_rows = [
             pad(list(r)) for r in fresh[1:16]
@@ -1169,13 +1127,13 @@ def run_trading_cycle():
             f"📊 Open: {len(lines_advance)} | 🟢 {wins} | 🔴 {losses}\n\n"
             + ("\n".join(lines_advance) if lines_advance else "📭 No open trades")
         )
-        bm_set(bm_sheet, bm_data, noon_key, "1", "", "FLAG")
+        _bm_set(bm_sheet, bm_data, noon_key, "1", "", "FLAG")
 
     # ─────────────────────────────────────────────────────────────────────────
     # 4. MARKET CLOSE SUMMARY  15:15–15:45 IST
     # ─────────────────────────────────────────────────────────────────────────
     pm_key = f"{today}_PM"
-    if now.hour == 15 and 15 <= now.minute <= 45 and not bm_exists(bm_data, pm_key):
+    if now.hour == 15 and 15 <= now.minute <= 45 and not _bm_exists(bm_data, pm_key):
         hist_data   = hist_sheet.get_all_values()
         today_exits = [r for r in hist_data[1:] if len(r) >= 7 and r[3] == today]
         wins_today  = [r for r in today_exits if "WIN"  in str(r[6]).upper()]
@@ -1226,16 +1184,16 @@ def run_trading_cycle():
         full_close += "\n\n✅ <i>Overnight holds monitored via TSL</i>"
         send_advance(full_close); send_premium(full_close)
 
-        bm_set(bm_sheet, bm_data, pm_key, "1", "", "FLAG")
+        _bm_set(bm_sheet, bm_data, pm_key, "1", "", "FLAG")
 
     # ─────────────────────────────────────────────────────────────────────────
-    # 5. DONE — v14.0: no T4 write at end (all writes happened immediately)
+    # 5. DONE — no T4 save needed (all writes are immediate in _bm_set)
     # ─────────────────────────────────────────────────────────────────────────
-    print(f"[DONE] {now.strftime('%H:%M:%S')} IST | BM keys: {len(bm_data)}")
+    print(f"[DONE] {now.strftime('%H:%M:%S')} IST | BotMemory keys: {len(bm_data)}")
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# WEEKLY SUMMARY — unchanged from v13.5
+# WEEKLY SUMMARY — unchanged from v13.5 except bm_data replaces mem
 # ══════════════════════════════════════════════════════════════════════════════
 
 def run_weekly_summary():
@@ -1244,7 +1202,7 @@ def run_weekly_summary():
     print("[WEEKLY] Fetching weekly + monthly summary...")
 
     log_sheet, hist_sheet, _, bm_sheet = get_sheets()
-    bm_data   = bm_load(bm_sheet)
+    bm_data   = _bm_load(bm_sheet)
     hist_data = hist_sheet.get_all_values()
     all_rows  = hist_data[1:]
 
@@ -1307,7 +1265,7 @@ def run_weekly_summary():
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# DAILY SUMMARY — v14.0: reads from BotMemory
+# DAILY SUMMARY — unchanged from v13.5 except bm_data replaces mem
 # ══════════════════════════════════════════════════════════════════════════════
 
 def run_daily_summary():
@@ -1316,7 +1274,8 @@ def run_daily_summary():
     print("[SUMMARY] Fetching portfolio summary...")
 
     log_sheet, hist_sheet, _, bm_sheet = get_sheets()
-    bm_data  = bm_load(bm_sheet)
+    bm_data  = _bm_load(bm_sheet)
+    print(f"[BM] {len(bm_data)} keys loaded")
     all_data = log_sheet.get_all_values()
 
     open_rows = [
