@@ -56,10 +56,8 @@ permalink: /positional-picks/
     color: white;
     box-shadow: 0 6px 15px rgba(0,136,204,0.3);
   }
-  .tab-btn:hover {
-    transform: translateY(-2px);
-  }
 
+  /* MOBILE SCROLLING ENGINE */
   .terminal-box {
     position: relative;
     width: 100%;
@@ -67,30 +65,46 @@ permalink: /positional-picks/
     border-radius: 12px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.1);
     background: #fff;
-    overflow: hidden;
+    overflow: hidden; /* Clips the inner scroll container */
   }
+
   .tab-content {
     display: none;
   }
   .tab-content.active {
     display: block;
   }
+
   .terminal-scroll-container {
     width: 100%;
-    overflow-x: auto !important;
-    -webkit-overflow-scrolling: touch;
+    overflow-x: auto !important; /* Enables horizontal scroll */
+    overflow-y: hidden;
+    display: block;
+    -webkit-overflow-scrolling: touch !important; /* Smooth inertial scroll for iOS */
+    touch-action: pan-x; /* Explicitly allows horizontal panning */
   }
+
   iframe {
     width: 100%;
-    min-width: 1100px;
+    min-width: 1100px; /* Prevents table from squishing */
     height: 850px;
     border: none;
     display: block;
   }
   
+  .scroll-hint {
+    display: none;
+    text-align: center;
+    font-size: 12px;
+    color: #718096;
+    margin-bottom: 8px;
+    font-weight: bold;
+  }
+
   @media (max-width: 768px) {
     .tab-btn { padding: 10px 20px; font-size: 14px; }
-    iframe { height: 700px; }
+    iframe { height: 700px; min-width: 1000px; }
+    .scroll-hint { display: block; } /* Show hint only on mobile */
   }
 </style>
 
@@ -106,15 +120,17 @@ permalink: /positional-picks/
   <button class="tab-btn" onclick="switchSheet(event, 'sell-view')" style="border-color: #cc0000; color: #cc0000;">📉 SELL SIGNALS</button>
 </div>
 
+<p class="scroll-hint">↔️ Swipe left or right to see full table</p>
+
 <div class="terminal-box">
-  <!-- BUY SHEET -->
+  <!-- BUY SHEET (GID: 1076123104) -->
   <div id="buy-view" class="tab-content active">
     <div class="terminal-scroll-container">
       <iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRxCmYGRepK_DgUk-KMeudF4PoQ9B89msVkMeZmImFb-2QaXobqjOthwdMDlvxpHtu3S9UtyXo9SrOR/pubhtml?gid=1076123104&single=true&headers=false&widget=false&chrome=false"></iframe>
     </div>
   </div>
 
-  <!-- SELL SHEET -->
+  <!-- SELL SHEET (GID: 8115561) -->
   <div id="sell-view" class="tab-content">
     <div class="terminal-scroll-container">
       <iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRxCmYGRepK_DgUk-KMeudF4PoQ9B89msVkMeZmImFb-2QaXobqjOthwdMDlvxpHtu3S9UtyXo9SrOR/pubhtml?gid=8115561&single=true&headers=false&widget=false&chrome=false"></iframe>
@@ -132,7 +148,6 @@ function switchSheet(evt, tabId) {
   tablinks = document.getElementsByClassName("tab-btn");
   for (i = 0; i < tablinks.length; i++) {
     tablinks[i].classList.remove("active");
-    // Reset specific colors if needed, but the CSS handles the .active class
     if(tablinks[i].innerText.includes("SELL")) {
         tablinks[i].style.backgroundColor = "white";
         tablinks[i].style.color = "#cc0000";
@@ -144,7 +159,6 @@ function switchSheet(evt, tabId) {
   document.getElementById(tabId).classList.add("active");
   evt.currentTarget.classList.add("active");
   
-  // Custom color handling for the Sell button when active
   if(evt.currentTarget.innerText.includes("SELL")) {
       evt.currentTarget.style.backgroundColor = "#cc0000";
       evt.currentTarget.style.color = "white";
