@@ -1,159 +1,189 @@
 ---
 layout: default
 title: "Institutional Positional Picks"
-description: "Institutional grade long-term buy and sell picks."
+description: "Institutional grade long-term positional picks focusing on Fundamental and Technical both."
 permalink: /positional-picks/
 ---
 
 <style>
-  /* Standard Page Layout */
+  /* Base Layout from Reference */
   .post-content, .wrapper {
     max-width: 1200px !important;
     margin: 0 auto !important;
     padding: 0 15px !important;
   }
-  
+
   .trading-status {
     text-align: center;
-    margin-bottom: 25px;
-    padding: 30px;
+    margin-bottom: 30px;
+    padding: 25px;
     background: #f0f7ff;
     border-radius: 12px;
     border: 1px solid #d1d9e6;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
   }
 
+  .info-tag {
+    display: inline-block;
+    padding: 6px 16px;
+    background: #0088cc;
+    color: white !important;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: bold;
+    margin-bottom: 12px;
+    letter-spacing: 0.5px;
+  }
+
+  /* Tab Navigation Styling */
   .tab-navigation {
     display: flex;
     justify-content: center;
-    gap: 10px;
-    margin-bottom: 20px;
+    gap: 15px;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
   }
 
   .tab-btn {
     padding: 12px 25px;
     font-size: 15px;
-    font-weight: 800;
+    font-weight: bold;
     cursor: pointer;
     border: 2px solid #0088cc;
     background: white;
     color: #0088cc;
     border-radius: 50px;
     transition: 0.3s;
+    box-shadow: 0 4px 15px rgba(0,136,204,0.1);
   }
 
   .tab-btn.active {
     background: #0088cc;
     color: white;
+    box-shadow: 0 4px 15px rgba(0,136,204,0.3);
   }
 
-  /* --- CRITICAL SCROLL FIXES --- */
-  
-  .terminal-box {
+  /* Scrolling Structure exactly like Reference Page */
+  .terminal-wrapper {
     position: relative;
     width: 100%;
-    background: #fff;
-    border: 1px solid #e1e8ed;
     border-radius: 12px;
+    border: 1px solid #e1e8ed;
+    background: #fff;
+    margin-bottom: 30px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-    
-    /* Prevents the parent from expanding beyond the screen */
-    overflow: hidden; 
+    overflow: visible; /* Match reference */
   }
 
   .terminal-scroll-container {
     width: 100%;
-    /* Forces horizontal scrollbar */
-    overflow-x: auto !important; 
+    overflow-x: auto !important;
     overflow-y: hidden;
-    
-    /* Enable smooth momentum scrolling on iOS */
-    -webkit-overflow-scrolling: touch !important; 
-    
-    /* Disables browser 'bounce' to prioritize the table slide */
-    overscroll-behavior-x: contain; 
-    
-    /* Ensures the div is recognized as a scrollable layer */
-    display: block; 
-    position: relative;
+    -webkit-overflow-scrolling: touch !important; /* Critical for iOS smooth scroll */
+    touch-action: pan-x;
+    border-radius: 12px;
   }
 
   iframe {
-    /* Large min-width forces the scroll container to work */
-    min-width: 1150px; 
     width: 100%;
-    height: 800px;
+    min-width: 1050px; /* Reference uses 1050px */
+    height: 850px;
     border: none;
     display: block;
-    
-    /* Prevents iframe from intercepting touch events poorly */
-    pointer-events: auto; 
+  }
+
+  .tab-content {
+    display: none; /* Logic for tab switching */
+  }
+
+  .tab-content.active {
+    display: block;
   }
 
   .scroll-hint {
-    display: block;
+    display: none;
     text-align: center;
     font-size: 13px;
-    color: #0088cc;
-    margin-bottom: 10px;
-    font-weight: bold;
-    animation: pulse 2s infinite;
-  }
-
-  @keyframes pulse {
-    0% { opacity: 0.5; }
-    50% { opacity: 1; }
-    100% { opacity: 0.5; }
+    color: #34495e;
+    margin-bottom: 12px;
+    padding: 10px;
+    background: #f8f9fa;
+    border: 1px dashed #cbd5e0;
+    border-radius: 6px;
   }
 
   @media (max-width: 768px) {
+    .scroll-hint { display: block; }
     iframe { height: 700px; }
-    .tab-btn { padding: 10px 15px; font-size: 13px; }
   }
 </style>
 
 <div class="trading-status">
-  <span style="display: inline-block; padding: 4px 12px; background: #0088cc; color: white; border-radius: 20px; font-size: 12px; font-weight: bold; margin-bottom: 10px;">STRATEGY: INSTITUTIONAL RESEARCH</span>
-  <h1 style="margin: 5px 0; color: #2c3e50; font-size: 24px;">Institutional Positional Picks</h1>
+  <span class="info-tag">STRATEGY: BUY SELL RECOMMENDATIONS</span>
+  <h1 style="margin: 5px 0; color: #2c3e50; font-size: 26px;">Institutional Positional Picks</h1>
+  <p style="font-size: 15px; color: #4a5568; margin-top: 10px;">Fundamental Technical Stocks — Swing to Positional</p>
 </div>
 
 <div class="tab-navigation">
-  <button class="tab-btn active" onclick="switchSheet(event, 'buy-view')">📈 BUY SIGNALS</button>
-  <button class="tab-btn" id="sell-btn" onclick="switchSheet(event, 'sell-view')" style="border-color: #cc0000; color: #cc0000;">📉 SELL SIGNALS</button>
+  <button id="buy-btn" class="tab-btn active" onclick="switchTab(event, 'buy-tab')">📈 BUY SIGNALS</button>
+  <button id="sell-btn" class="tab-btn" onclick="switchTab(event, 'sell-tab')" style="border-color: #cc0000; color: #cc0000;">📉 SELL SIGNALS</button>
 </div>
 
-<!-- Animated Hint for Users -->
-<p class="scroll-hint">↔️ SWIPE LEFT/RIGHT ON TABLE TO VIEW ALL COLUMNS</p>
+<p class="scroll-hint">↔️ <b>Expert View:</b> Swipe left/right to view full research table</p>
 
-<div class="terminal-box">
-  <div id="buy-view" class="tab-content" style="display: block;">
+<!-- BUY TAB -->
+<div id="buy-tab" class="tab-content active">
+  <div class="terminal-wrapper">
     <div class="terminal-scroll-container">
-      <iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRxCmYGRepK_DgUk-KMeudF4PoQ9B89msVkMeZmImFb-2QaXobqjOthwdMDlvxpHtu3S9UtyXo9SrOR/pubhtml?gid=1076123104&single=true&headers=false&widget=false"></iframe>
+      <iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRxCmYGRepK_DgUk-KMeudF4PoQ9B89msVkMeZmImFb-2QaXobqjOthwdMDlvxpHtu3S9UtyXo9SrOR/pubhtml?gid=1076123104&single=true&headers=false&chrome=false&widget=false"></iframe>
     </div>
   </div>
+</div>
 
-  <div id="sell-view" class="tab-content" style="display: none;">
+<!-- SELL TAB -->
+<div id="sell-tab" class="tab-content">
+  <div class="terminal-wrapper">
     <div class="terminal-scroll-container">
-      <iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRxCmYGRepK_DgUk-KMeudF4PoQ9B89msVkMeZmImFb-2QaXobqjOthwdMDlvxpHtu3S9UtyXo9SrOR/pubhtml?gid=8115561&single=true&headers=false&widget=false"></iframe>
+      <iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRxCmYGRepK_DgUk-KMeudF4PoQ9B89msVkMeZmImFb-2QaXobqjOthwdMDlvxpHtu3S9UtyXo9SrOR/pubhtml?gid=8115561&single=true&headers=false&chrome=false&widget=false"></iframe>
     </div>
   </div>
 </div>
 
 <script>
-function switchSheet(evt, tabId) {
+function switchTab(evt, tabName) {
   var i, tabcontent, tablinks;
+  
+  // Hide all tab content
   tabcontent = document.getElementsByClassName("tab-content");
   for (i = 0; i < tabcontent.length; i++) {
-    tabcontent[i].style.display = "none";
+    tabcontent[i].classList.remove("active");
   }
+
+  // Handle Button Active Styles
   tablinks = document.getElementsByClassName("tab-btn");
   for (i = 0; i < tablinks.length; i++) {
     tablinks[i].classList.remove("active");
+    // Reset colors to white background
     tablinks[i].style.backgroundColor = "white";
-    tablinks[i].style.color = tablinks[i].id === "sell-btn" ? "#cc0000" : "#0088cc";
+    tablinks[i].style.color = (tablinks[i].id === "sell-btn") ? "#cc0000" : "#0088cc";
   }
-  document.getElementById(tabId).style.display = "block";
-  evt.currentTarget.classList.add("active");
-  evt.currentTarget.style.backgroundColor = evt.currentTarget.id === "sell-btn" ? "#cc0000" : "#0088cc";
-  evt.currentTarget.style.color = "white";
+
+  // Show active tab
+  document.getElementById(tabName).classList.add("active");
+  
+  // Set active button style
+  var btn = evt.currentTarget;
+  btn.classList.add("active");
+  btn.style.backgroundColor = (btn.id === "sell-btn") ? "#cc0000" : "#0088cc";
+  btn.style.color = "white";
 }
+
+// Auto-refresh logic like your reference page
+document.addEventListener('DOMContentLoaded', function() {
+  var iframes = document.querySelectorAll('iframe');
+  iframes.forEach(function(iframe) {
+    var src = iframe.src;
+    iframe.src = src + (src.indexOf('?') > -1 ? '&' : '?') + 'cb=' + Date.now();
+  });
+});
 </script>
