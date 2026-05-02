@@ -6,7 +6,6 @@ permalink: /positional-picks/
 ---
 
 <style>
-  /* Standard Layout */
   .post-content, .wrapper {
     max-width: 1200px !important;
     margin: 0 auto !important;
@@ -22,7 +21,6 @@ permalink: /positional-picks/
     border: 1px solid #d1d9e6;
   }
 
-  /* Tab Buttons */
   .tab-navigation {
     display: flex;
     justify-content: center;
@@ -47,30 +45,27 @@ permalink: /positional-picks/
     color: white;
   }
 
-  /* --- FORCED SCROLLING ENGINE --- */
   .terminal-wrapper {
     position: relative;
     width: 100%;
     background: #fff;
     border: 1px solid #e1e8ed;
     border-radius: 12px;
-    overflow: hidden; /* Contains the scroll area */
+    overflow: hidden;
     box-shadow: 0 10px 30px rgba(0,0,0,0.1);
   }
 
   .terminal-scroll-container {
     width: 100%;
-    overflow-x: auto !important; /* Force horizontal scroll */
+    overflow-x: scroll;
     overflow-y: hidden;
-    display: block;
-    -webkit-overflow-scrolling: touch !important; /* Smooth scroll for iOS */
-    touch-action: pan-x;
+    -webkit-overflow-scrolling: touch;
   }
 
-  /* This is the key: a forced width inner container */
   .iframe-force-width {
-    width: 1100px; /* Forces the scroll container to overflow */
+    width: 1100px;
     display: block;
+    position: relative;
   }
 
   iframe {
@@ -78,6 +73,16 @@ permalink: /positional-picks/
     height: 850px;
     border: none;
     display: block;
+    pointer-events: none;
+  }
+
+  .touch-overlay {
+    display: none;
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 10;
+    cursor: grab;
   }
 
   .tab-content {
@@ -101,6 +106,7 @@ permalink: /positional-picks/
   }
 
   @media (max-width: 768px) {
+    .touch-overlay { display: block; }
     .scroll-hint { display: block; }
     iframe { height: 700px; }
   }
@@ -120,8 +126,9 @@ permalink: /positional-picks/
 
 <div id="buy-tab" class="tab-content active">
   <div class="terminal-wrapper">
-    <div class="terminal-scroll-container">
+    <div class="terminal-scroll-container" id="buy-scroll">
       <div class="iframe-force-width">
+        <div class="touch-overlay" data-scroll="buy-scroll"></div>
         <iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRxCmYGRepK_DgUk-KMeudF4PoQ9B89msVkMeZmImFb-2QaXobqjOthwdMDlvxpHtu3S9UtyXo9SrOR/pubhtml?gid=1076123104&single=true&headers=false&chrome=false&widget=false"></iframe>
       </div>
     </div>
@@ -130,8 +137,9 @@ permalink: /positional-picks/
 
 <div id="sell-tab" class="tab-content">
   <div class="terminal-wrapper">
-    <div class="terminal-scroll-container">
+    <div class="terminal-scroll-container" id="sell-scroll">
       <div class="iframe-force-width">
+        <div class="touch-overlay" data-scroll="sell-scroll"></div>
         <iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRxCmYGRepK_DgUk-KMeudF4PoQ9B89msVkMeZmImFb-2QaXobqjOthwdMDlvxpHtu3S9UtyXo9SrOR/pubhtml?gid=8115561&single=true&headers=false&chrome=false&widget=false"></iframe>
       </div>
     </div>
@@ -157,4 +165,26 @@ function switchTab(evt, tabName) {
   btn.style.backgroundColor = (btn.id === "sell-btn") ? "#cc0000" : "#0088cc";
   btn.style.color = "white";
 }
+
+document.querySelectorAll('.touch-overlay').forEach(function(overlay) {
+  var startX, startY, startScrollLeft;
+
+  overlay.addEventListener('touchstart', function(e) {
+    var scrollEl = document.getElementById(overlay.dataset.scroll);
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    startScrollLeft = scrollEl.scrollLeft;
+  }, { passive: true });
+
+  overlay.addEventListener('touchmove', function(e) {
+    var scrollEl = document.getElementById(overlay.dataset.scroll);
+    var dx = startX - e.touches[0].clientX;
+    var dy = startY - e.touches[0].clientY;
+
+    if (Math.abs(dx) > Math.abs(dy)) {
+      e.preventDefault();
+      scrollEl.scrollLeft = startScrollLeft + dx;
+    }
+  }, { passive: false });
+});
 </script>
