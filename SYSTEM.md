@@ -50,8 +50,9 @@
 | YouTube Shorts | ✅ Auto | Short 2 + Short 3 working |
 | YouTube Reels | ✅ Auto | ZENO reel (8:30 PM) working |
 | YouTube Morning Reel | ✅ Auto | 7:00 AM reel (generate\_reel\_morning.py) working |
-| Facebook Page | ✅ Auto | Posts, reels, article shares all working |
-| Facebook Group | ❌ Broken | Missing `publish_to_groups` token scope — see Section 12 |
+| Facebook Page (AI360Trading) | ✅ Auto | Posts, reels, article shares all working |
+| Facebook Page (HerooQuest Kids) | ✅ Auto | Fixed May 2026 — separate `META_ACCESS_TOKEN_KIDS` Page token |
+| Facebook Group (ai360trading) | ❌ Broken | Token missing `publish_to_groups` scope — see Section 12 |
 | Instagram | 📲 Manual | Videos downloaded from GitHub Artifacts and posted manually |
 | GitHub Pages | ✅ Auto | 4 articles/day + instant Google indexing |
 | Telegram | ✅ Auto | Signal alerts to all 3 channels (paper trading — followers take manual entry) |
@@ -475,23 +476,25 @@ This list is verified against actual GitHub Secrets as of May 2026.
 
 | Secret | Purpose | Status |
 | --- | --- | --- |
-| `META_ACCESS_TOKEN` | Facebook Page + Instagram API (main account) | ✅ Auto-refreshed every 50 days |
+| `META_ACCESS_TOKEN` | Facebook Page (AI360Trading/Unofficial Amit Kumar) token | ✅ Auto-refreshed every 60 days |
 | `META_APP_ID` | Facebook App ID — for token refresh | ✅ |
 | `META_APP_SECRET` | Facebook App Secret — for token refresh | ✅ |
 | `FACEBOOK_PAGE_ID` | Main trading Facebook Page ID | ✅ |
-| `FACEBOOK_GROUP_ID` | Trading Facebook Group ID | ✅ (posting broken — token scope issue) |
+| `FACEBOOK_GROUP_ID` | Trading Facebook Group ID (ai360trading) | ✅ (posting broken — token scope issue) |
 | `INSTAGRAM_ACCOUNT_ID` | Instagram Business/Creator numeric ID | ✅ |
 | `YOUTUBE_CREDENTIALS` | YouTube OAuth JSON (Hindi trading channel) | ✅ |
 
-### Social Platforms — Kids Channel
+> ⚠️ **Page rename in progress:** "Unofficial Amit Kumar" page is being renamed to "AI360 Algo Trading". Facebook review takes up to 7 days. Same Page ID, same token — nothing changes in the system.
+
+### Social Platforms — Kids Channel (HerooQuest)
 
 | Secret | Purpose | Status |
 | --- | --- | --- |
-| `FACEBOOK_KIDS_PAGE_ID` | Kids content Facebook Page ID | ✅ Added recently |
-| `META_ACCESS_TOKEN_KIDS` | META token for Kids page | ✅ |
+| `FACEBOOK_KIDS_PAGE_ID` | HerooQuest Kids Facebook Page ID (1021152881090398) | ✅ |
+| `META_ACCESS_TOKEN_KIDS` | HerooQuest Page Access Token — never expires | ✅ Fixed May 2026 |
 | `YOUTUBE_CREDENTIALS_KIDS` | YouTube OAuth JSON (Kids channel) | ✅ |
 
-> Kids channel secrets added recently — purpose and automation status to be documented as that project develops.
+> **Important:** `META_ACCESS_TOKEN_KIDS` is a **Page Access Token** (not User Token) — it never expires so no auto-refresh needed. If it ever stops working, regenerate via Graph API Explorer: `GET /{PAGE_ID}?fields=access_token` using a fresh User Token.
 
 ### AI Providers (Fallback Chain)
 
@@ -594,16 +597,30 @@ TG_TOKEN = os.environ.get('TELEGRAM_TOKEN')
 TG_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
 ```
 
-### Facebook Group Posting ❌
+### Facebook Group Posting ❌ (ai360trading group)
+
+The code in `upload_facebook.py` already supports group posting — it posts the reel link + caption to `FACEBOOK_GROUP_ID` after Page upload succeeds. No code changes needed, just token fix.
 
 **Root causes (check in order):**
 
-1. `META_ACCESS_TOKEN` missing `publish_to_groups` scope
-2. Bot account not **Admin** of the group
+1. `META_ACCESS_TOKEN` missing `publish_to_groups` scope — most likely
+2. Bot account not **Admin** of the group (must be Admin, not just member)
 3. Group Settings → Advanced → "Allow content from apps" OFF
 4. App not approved for Groups API by Meta
 
-**Fix:** developers.facebook.com → App → Add `publish_to_groups` → regenerate token → update secret. Token is auto-refreshed every 50 days by `token_refresh.yml` once scope is added.
+**Fix:**
+1. Graph API Explorer → add `publish_to_groups` to Permissions list → Generate Access Token → Edit Settings → grant access
+2. Extend to long-lived token
+3. Update `META_ACCESS_TOKEN` in GitHub Secrets
+4. Verify Amit Kumar account is Admin of ai360trading group
+
+### HerooQuest Kids Facebook Upload ✅ Fixed May 2026
+
+Was failing with Error 200 (permission denied) because workflow was using `META_ACCESS_TOKEN` (AI360Trading token) instead of `META_ACCESS_TOKEN_KIDS`. Fixed by:
+1. Generating a Page Access Token specifically for HerooQuest via Graph API Explorer
+2. Extending to long-lived token via token debugger
+3. Saving as `META_ACCESS_TOKEN_KIDS` in GitHub Secrets
+4. `META_ACCESS_TOKEN_KIDS` is a Page token — never expires, no auto-refresh needed
 
 ### Instagram Posting 📲 Manual
 
