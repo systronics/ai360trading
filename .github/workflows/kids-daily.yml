@@ -65,7 +65,7 @@ jobs:
       # Instagram permanently removed — upload manually from phone after YouTube goes live
       - name: Upload to Facebook Kids Page (HerooQuest — ID 1021152881090398)
         env:
-          META_ACCESS_TOKEN:     ${{ secrets.META_ACCESS_TOKEN }}
+          META_ACCESS_TOKEN:     ${{ secrets.META_ACCESS_TOKEN_KIDS }}
           FACEBOOK_KIDS_PAGE_ID: ${{ secrets.FACEBOOK_KIDS_PAGE_ID }}
         run: python upload_facebook.py --meta-prefix kids
 
