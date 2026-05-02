@@ -96,12 +96,14 @@ Mode is **auto-detected** by `indian_holidays.py` at the start of every workflow
 
 | File | Trigger (IST) | Purpose | Mode-Aware |
 | --- | --- | --- | --- |
-| `main.yml` | Every 5 min (market hours, Mon–Fri) | `trading_bot.py` — Nifty200 signals | ✅ Auto-skips weekends/holidays |
+| `trading_bot.yml` | Every 5 min (08:15–16:29, Mon–Fri) + 08:45, 12:58, 15:58 | `trading_bot.py` — Nifty200 signals + daily messages | ✅ Auto-skips weekends/holidays |
 | `daily-videos.yml` | 7:30 AM Mon–Fri / 9:30 AM Sat–Sun | Part 1 (analysis) + Part 2 (education) | ✅ |
 | `daily-shorts.yml` | 11:30 AM Mon–Fri / 1:30 PM Sat–Sun | Short 2 + Short 3 | ✅ |
-| `daily_reel.yml` | 7:00 AM + 8:30 PM daily | Morning Reel + ZENO Reel | ✅ |
+| `daily_reel.yml` | 8:30 PM daily | ZENO Reel | ✅ |
+| `daily-morning-reel.yml` | 7:00 AM daily | Morning Reel | ✅ |
 | `daily-articles.yml` | 10:00 AM Mon–Fri / 11:30 AM Sat–Sun | 4 SEO articles → GitHub Pages | ✅ |
-| `token_refresh.yml` | Every 50 days (1st + 20th of month) | Auto META token refresh | N/A |
+| `kids-daily.yml` | 8:00 AM daily | Kids video → YouTube + Facebook HerooQuest | ✅ |
+| `token_refresh.yml` | 1st + 20th of month | Auto META token refresh | N/A |
 | `keepalive.yml` | Periodic | Prevents GitHub disabling inactive workflows | N/A |
 
 All workflows support `workflow_dispatch` with a `content_mode` dropdown to force any mode for testing.
@@ -255,8 +257,9 @@ r[22] Breakout_Stage (W)  r[23] Retest% (X)
 r[24] Trade_Type (Y)      r[25] Priority_Score (Z)
 r[26] Pivot_Resistance(AA) r[27] VCP_Status (AB)
 r[28] ATR14 (AC)          r[29] Days_Since_Low (AD)
-r[30] 52W_Breakout_Score  r[31] Sector_Rotation_Score (AF)
+r[30] 52W_Breakout_Score(AE) r[31] Sector_Rotation_Score (AF)
 r[32] FII_Buying_Signal(AG) r[33] Master_Score (AH)
+r[34] Sector_Rank (AI)    ← =RANK(AF, FILTER by same sector) — rank within sector by AF score
 ```
 
 ### AppScript v13.3 — Key Logic
