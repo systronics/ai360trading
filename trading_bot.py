@@ -64,11 +64,11 @@ from datetime import datetime, timedelta
 from oauth2client.service_account import ServiceAccountCredentials
 
 IST        = pytz.timezone('Asia/Kolkata')
-TG_TOKEN   = os.environ.get('TELEGRAM_TOKEN')
+TG_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
 
 CHAT_BASIC   = os.environ.get('TELEGRAM_CHAT_ID')
-CHAT_ADVANCE = os.environ.get('CHAT_ID_PREMIUM')
-CHAT_PREMIUM = os.environ.get('CHAT_ID_ADVANCE')
+CHAT_ADVANCE = os.environ.get('CHAT_ID_ADVANCE')
+CHAT_PREMIUM = os.environ.get('CHAT_ID_PREMIUM')
 
 SHEET_NAME = "Ai360tradingAlgo"
 
