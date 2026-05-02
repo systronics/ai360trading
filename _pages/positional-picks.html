@@ -1,12 +1,12 @@
 ---
 layout: default
 title: "Institutional Positional Picks"
-description: "Institutional grade long-term positional picks focusing on Fundamental and Technical both."
+description: "Institutional grade long-term positional picks focusing on Fundamental and Technical analysis."
 permalink: /positional-picks/
 ---
 
 <style>
-  /* Base Layout from Reference */
+  /* Standard Layout */
   .post-content, .wrapper {
     max-width: 1200px !important;
     margin: 0 auto !important;
@@ -15,33 +15,19 @@ permalink: /positional-picks/
 
   .trading-status {
     text-align: center;
-    margin-bottom: 30px;
+    margin-bottom: 25px;
     padding: 25px;
     background: #f0f7ff;
     border-radius: 12px;
     border: 1px solid #d1d9e6;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
   }
 
-  .info-tag {
-    display: inline-block;
-    padding: 6px 16px;
-    background: #0088cc;
-    color: white !important;
-    border-radius: 20px;
-    font-size: 13px;
-    font-weight: bold;
-    margin-bottom: 12px;
-    letter-spacing: 0.5px;
-  }
-
-  /* Tab Navigation Styling */
+  /* Tab Buttons */
   .tab-navigation {
     display: flex;
     justify-content: center;
     gap: 15px;
     margin-bottom: 25px;
-    flex-wrap: wrap;
   }
 
   .tab-btn {
@@ -54,46 +40,48 @@ permalink: /positional-picks/
     color: #0088cc;
     border-radius: 50px;
     transition: 0.3s;
-    box-shadow: 0 4px 15px rgba(0,136,204,0.1);
   }
 
   .tab-btn.active {
     background: #0088cc;
     color: white;
-    box-shadow: 0 4px 15px rgba(0,136,204,0.3);
   }
 
-  /* Scrolling Structure exactly like Reference Page */
+  /* --- FORCED SCROLLING ENGINE --- */
   .terminal-wrapper {
     position: relative;
     width: 100%;
-    border-radius: 12px;
-    border: 1px solid #e1e8ed;
     background: #fff;
-    margin-bottom: 30px;
+    border: 1px solid #e1e8ed;
+    border-radius: 12px;
+    overflow: hidden; /* Contains the scroll area */
     box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-    overflow: visible; /* Match reference */
   }
 
   .terminal-scroll-container {
     width: 100%;
-    overflow-x: auto !important;
+    overflow-x: auto !important; /* Force horizontal scroll */
     overflow-y: hidden;
-    -webkit-overflow-scrolling: touch !important; /* Critical for iOS smooth scroll */
+    display: block;
+    -webkit-overflow-scrolling: touch !important; /* Smooth scroll for iOS */
     touch-action: pan-x;
-    border-radius: 12px;
+  }
+
+  /* This is the key: a forced width inner container */
+  .iframe-force-width {
+    width: 1100px; /* Forces the scroll container to overflow */
+    display: block;
   }
 
   iframe {
     width: 100%;
-    min-width: 1050px; /* Reference uses 1050px */
     height: 850px;
     border: none;
     display: block;
   }
 
   .tab-content {
-    display: none; /* Logic for tab switching */
+    display: none;
   }
 
   .tab-content.active {
@@ -119,9 +107,8 @@ permalink: /positional-picks/
 </style>
 
 <div class="trading-status">
-  <span class="info-tag">STRATEGY: BUY SELL RECOMMENDATIONS</span>
   <h1 style="margin: 5px 0; color: #2c3e50; font-size: 26px;">Institutional Positional Picks</h1>
-  <p style="font-size: 15px; color: #4a5568; margin-top: 10px;">Fundamental Technical Stocks — Swing to Positional</p>
+  <p style="font-size: 15px; color: #4a5568;">Fundamental & Technical Research Signals</p>
 </div>
 
 <div class="tab-navigation">
@@ -129,22 +116,24 @@ permalink: /positional-picks/
   <button id="sell-btn" class="tab-btn" onclick="switchTab(event, 'sell-tab')" style="border-color: #cc0000; color: #cc0000;">📉 SELL SIGNALS</button>
 </div>
 
-<p class="scroll-hint">↔️ <b>Expert View:</b> Swipe left/right to view full research table</p>
+<p class="scroll-hint">↔️ <b>Expert View:</b> Swipe left/right to view full data</p>
 
-<!-- BUY TAB -->
 <div id="buy-tab" class="tab-content active">
   <div class="terminal-wrapper">
     <div class="terminal-scroll-container">
-      <iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRxCmYGRepK_DgUk-KMeudF4PoQ9B89msVkMeZmImFb-2QaXobqjOthwdMDlvxpHtu3S9UtyXo9SrOR/pubhtml?gid=1076123104&single=true&headers=false&chrome=false&widget=false"></iframe>
+      <div class="iframe-force-width">
+        <iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRxCmYGRepK_DgUk-KMeudF4PoQ9B89msVkMeZmImFb-2QaXobqjOthwdMDlvxpHtu3S9UtyXo9SrOR/pubhtml?gid=1076123104&single=true&headers=false&chrome=false&widget=false"></iframe>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- SELL TAB -->
 <div id="sell-tab" class="tab-content">
   <div class="terminal-wrapper">
     <div class="terminal-scroll-container">
-      <iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRxCmYGRepK_DgUk-KMeudF4PoQ9B89msVkMeZmImFb-2QaXobqjOthwdMDlvxpHtu3S9UtyXo9SrOR/pubhtml?gid=8115561&single=true&headers=false&chrome=false&widget=false"></iframe>
+      <div class="iframe-force-width">
+        <iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRxCmYGRepK_DgUk-KMeudF4PoQ9B89msVkMeZmImFb-2QaXobqjOthwdMDlvxpHtu3S9UtyXo9SrOR/pubhtml?gid=8115561&single=true&headers=false&chrome=false&widget=false"></iframe>
+      </div>
     </div>
   </div>
 </div>
@@ -152,38 +141,20 @@ permalink: /positional-picks/
 <script>
 function switchTab(evt, tabName) {
   var i, tabcontent, tablinks;
-  
-  // Hide all tab content
   tabcontent = document.getElementsByClassName("tab-content");
   for (i = 0; i < tabcontent.length; i++) {
     tabcontent[i].classList.remove("active");
   }
-
-  // Handle Button Active Styles
   tablinks = document.getElementsByClassName("tab-btn");
   for (i = 0; i < tablinks.length; i++) {
     tablinks[i].classList.remove("active");
-    // Reset colors to white background
     tablinks[i].style.backgroundColor = "white";
     tablinks[i].style.color = (tablinks[i].id === "sell-btn") ? "#cc0000" : "#0088cc";
   }
-
-  // Show active tab
   document.getElementById(tabName).classList.add("active");
-  
-  // Set active button style
   var btn = evt.currentTarget;
   btn.classList.add("active");
   btn.style.backgroundColor = (btn.id === "sell-btn") ? "#cc0000" : "#0088cc";
   btn.style.color = "white";
 }
-
-// Auto-refresh logic like your reference page
-document.addEventListener('DOMContentLoaded', function() {
-  var iframes = document.querySelectorAll('iframe');
-  iframes.forEach(function(iframe) {
-    var src = iframe.src;
-    iframe.src = src + (src.indexOf('?') > -1 ? '&' : '?') + 'cb=' + Date.now();
-  });
-});
 </script>
