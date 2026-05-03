@@ -82,8 +82,6 @@ jobs:
       # uploads BOTH directly to YouTube internally — no separate upload step needed.
       # Short 2: hi-IN-MadhurNeural — authoritative Hindi male — trade setup
       # Short 3: en-IN-NeerjaNeural — Indian English female — global macro pulse
-      # NOTE: No playlist assigned yet — add PLAYLIST_SWING_TRADE secret later
-      #       when channel has enough subscribers and playlist is created.
       - name: Generate + Upload Short 2 + Short 3
         env:
           GROQ_API_KEY:             ${{ secrets.GROQ_API_KEY }}
