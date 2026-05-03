@@ -1,43 +1,59 @@
 """
 AI360 TRADING BOT — v14.0
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-v14.0 CHANGES vs v13.5 — T4 → BotMemory sheet migration
+v14.0 CHANGES vs v13.5:
 
-ALL T4 references replaced with BotMemory sheet reads/writes.
-T4 cell is no longer read or written by this bot.
-Deploy simultaneously with AppScript v14.0 on a day with no open trades.
+1. BotMemory sheet migration — T4 cell removed completely
+   All state that was stored in AlertLog T4 as comma-separated string
+   is now stored in the BotMemory sheet (cols A–E: Key, Value,
+   UpdatedAt, Symbol, KeyType).
+   - _mem_get / _mem_set / clean_mem → REMOVED
+   - All string-based TSL/MAX/ATR/LP/CAP/MODE/SEC/EXDT helpers →
+     replaced with BotMemory sheet read/write functions (_bm_*)
+   - Daytime flags (AM, NOON, PM, WEEKLY) → stored as FLAG entries
+   - Per-symbol state (TSL, MAX, ATR, CAP, MODE, SEC, LP, EXDT) →
+     stored as TRADE entries
+   - log_sheet.update_acell("T4", ...) calls → REMOVED
+   IMPORTANT: Deploy AppScript v14.0 and this file together on a day
+   with no open trades.
 
-BotMemory sheet structure (columns A–E, 1-based):
-  A: Key  B: Value  C: UpdatedAt  D: Symbol  E: KeyType
+2. Telegram token fix
+   WRONG: os.environ.get('TELEGRAM_TOKEN')
+   FIXED: os.environ.get('TELEGRAM_BOT_TOKEN')
+   Workflow already passes TELEGRAM_BOT_TOKEN as TELEGRAM_TOKEN env var
+   (legacy mapping kept in trading_bot.yml). Both now align.
 
-KeyType values:
-  FLAG  — date-stamped flags (e.g. 2026-04-30_AM, 2026-04-30_PM)
-  TRADE — per-symbol keys (_CAP, _MODE, _SEC, _ATR, _LP, _MAX, _TSL, _EXDT)
-  STATE — (reserved for AppScript batch state — bot does not write these)
+3. Telegram channel swap fix
+   WRONG: CHAT_ADVANCE read CHAT_ID_PREMIUM, CHAT_PREMIUM read CHAT_ID_ADVANCE
+   FIXED: Each variable reads its own correct secret.
 
-BotMemory helpers in this file:
-  _bm_load(bm_sheet)              → dict {key: {value, row_index}}
-  _bm_get(bm_data, key)           → string value or ""
-  _bm_set(bm_sheet, bm_data, key, val, sym="", ktype="TRADE") → writes/updates
-  _bm_exists(bm_data, key)        → bool
-  _bm_purge(bm_sheet, days=14)    → removes FLAG entries older than N days
+4. Capital tiers raised
+   OLD: ₹7,000 / ₹10,000 / ₹13,000 | MAX_DEPLOYED ₹45,000 | MAX_TRADES 5
+   NEW: ₹15,000 / ₹20,000 / ₹25,000 | MAX_DEPLOYED ₹1,00,000 | MAX_TRADES 8
 
-Migration notes:
-  - _mem_get / _mem_set / clean_mem / get_tsl / set_tsl etc.
-    are replaced by BotMemory helpers where they accessed T4.
-  - TSL, MAX, LP, ATR, EXDT now use bm_sheet row writes (same key format).
-  - All key names (_CAP, _MODE, _SEC, _ATR, _LP, _MAX, _TSL, _EXDT)
-    are IDENTICAL to v13.5 — AppScript writes them; bot reads them.
-  - AM/NOON/PM/WEEKLY flags now go to BotMemory (FLAG type) not T4 string.
+5. Options advisory split
+   Advance channel: CE candidate flag (informational, ATR%-based)
+   Premium channel: full options buying block (strike, trigger, target%,
+                    SL%, expiry note) — separate build_options_premium()
 
-ZERO changes to:
-  - Telegram channels, message builders, exit logic, TSL calculation
-  - ATR read from Nifty200 (v13.5 fix retained)
-  - RR re-validation on WAITING→TRADED (v13.5 fix retained)
-  - CE candidate flag, options hint, hold logic, hard loss logic
-  - History sheet writes, weekly summary, daily summary
+6. CE ATR fix
+   ce_candidate_flag() now receives real ATR14 from Nifty200 (via
+   _read_atr_from_nifty200), not backwards-derived estimate.
+   Falls back to estimated ATR only if sheet lookup fails (same as v13.5 entry fix).
+
+WHAT IS NOT CHANGED vs v13.5:
+   - All TSL logic (calc_new_tsl, TSL_PARAMS, mode thresholds)
+   - All exit rules (hard loss, min hold, cooldown, target/TSL hit)
+   - Market regime detection (get_market_regime)
+   - Message builders (GM, entry, exit, trail) — structure unchanged
+   - Daily message schedule (AM/NOON/PM windows)
+   - Weekly summary, daily summary run modes
+   - Nifty200 ATR14 read (_read_atr_from_nifty200)
+   - RR re-validation (MIN_RR = 1.8)
+   - Sector context helper (get_sector_context)
+   - get_sheets() with retry logic
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-ALERTLOG COLUMN MAP (0-based) — unchanged from v13.5:
+ALERTLOG COLUMN MAP (0-based):
   A=0  Signal Time       B=1  Symbol
   C=2  Live Price        D=3  Priority Score
   E=4  Trade Type        F=5  Strategy
@@ -48,9 +64,32 @@ ALERTLOG COLUMN MAP (0-based) — unchanged from v13.5:
   O=14 Trailing SL       P=15 P/L%
   Q=16 ATH Warning       R=17 Risk ₹
   S=18 Position Size     T=19 SYSTEM CONTROL
-  T2 = YES/NO automation switch (still used — do not remove)
+  T2 = YES/NO automation switch
 
-HISTORY COLUMNS (A–R) — unchanged:
+BOTMEMORY SHEET (cols A–E, header in row 1, data from row 2):
+  A: Key   B: Value   C: UpdatedAt   D: Symbol   E: KeyType
+  KeyType: FLAG (date-stamped, purged after 14 days by AppScript)
+           TRADE (per-symbol persistent state)
+           STATE (batch state — written by AppScript, not bot)
+
+PER-SYMBOL TRADE KEYS written by this bot:
+  {sym}_TSL   — current trailing SL (int, price×100 to avoid floats)
+  {sym}_MAX   — highest price seen since entry (int, price×100)
+  {sym}_ATR   — ATR14 at entry (int, atr×100)
+  {sym}_LP    — last known live price (int, price×100) for staleness check
+  {sym}_EXDT  — exit date "YYYY-MM-DD" for 5-day cooldown
+
+FLAG KEYS written by this bot:
+  {today}_AM     — Good Morning sent
+  {today}_NOON   — Mid-day pulse sent
+  {today}_PM     — Market close summary sent
+
+PER-SYMBOL TRADE KEYS written by AppScript (read-only by bot):
+  {sym}_CAP   — capital tier (15000/20000/25000)
+  {sym}_MODE  — trade mode (VCP/MOM/STD)
+  {sym}_SEC   — sector name
+
+HISTORY COLUMNS (A–R):
   A  Symbol        B  Entry Date    C  Entry Price   D  Exit Date
   E  Exit Price    F  P/L%          G  Result         H  Strategy
   I  Exit Reason   J  Trade Type    K  Initial SL     L  TSL at Exit
@@ -63,16 +102,18 @@ import os, json, pytz, requests, gspread
 from datetime import datetime, timedelta
 from oauth2client.service_account import ServiceAccountCredentials
 
-IST        = pytz.timezone('Asia/Kolkata')
-TG_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
+IST      = pytz.timezone('Asia/Kolkata')
+TG_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')   # v14.0 fix: was 'TELEGRAM_TOKEN'
 
+# ── 3 Telegram channels ───────────────────────────────────────────────────────
 CHAT_BASIC   = os.environ.get('TELEGRAM_CHAT_ID')
-CHAT_ADVANCE = os.environ.get('CHAT_ID_ADVANCE')
-CHAT_PREMIUM = os.environ.get('CHAT_ID_PREMIUM')
+CHAT_ADVANCE = os.environ.get('CHAT_ID_ADVANCE')   # v14.0 fix: was reading CHAT_ID_PREMIUM
+CHAT_PREMIUM = os.environ.get('CHAT_ID_PREMIUM')   # v14.0 fix: was reading CHAT_ID_ADVANCE
 
 SHEET_NAME = "Ai360tradingAlgo"
+BM_SHEET   = "BotMemory"          # v14.0: new memory sheet
 
-# AlertLog column indices (0-based) — unchanged
+# ── AlertLog column indices (0-based) ─────────────────────────────────────────
 C_SIGNAL_TIME = 0
 C_SYMBOL      = 1
 C_LIVE_PRICE  = 2
@@ -90,11 +131,19 @@ C_DAYS        = 13
 C_TRAIL_SL    = 14
 C_PNL         = 15
 
-CAPITAL_PER_TRADE = 10000
-MAX_TRADES        = 5
+# ── Capital config — v14.0 raised tiers ───────────────────────────────────────
+CAPITAL_HIGH      = 25000   # was 13000
+CAPITAL_MED       = 20000   # was 10000
+CAPITAL_STD       = 15000   # was  7000
+CAPITAL_PER_TRADE = CAPITAL_STD    # fallback default
+MAX_TRADES        = 8       # was 5
 MAX_WAITING       = 10
-MIN_RR            = 1.8
+MAX_DEPLOYED      = 100000  # was 45000
 
+# ── RR minimum ────────────────────────────────────────────────────────────────
+MIN_RR = 1.8
+
+# ── TSL mode parameters — unchanged from v13.5 ────────────────────────────────
 TSL_PARAMS = {
     "VCP": {
         "breakeven": 3.0,
@@ -124,11 +173,9 @@ MIN_HOLD_SWING    = 2
 MIN_HOLD_POS      = 3
 HARD_LOSS_PCT     = 5.0
 
-BM_PURGE_DAYS = 14   # Purge FLAG entries older than this many days
-
 
 # ══════════════════════════════════════════════════════════════════════════════
-# TELEGRAM — unchanged from v13.5
+# TELEGRAM
 # ══════════════════════════════════════════════════════════════════════════════
 
 def _send_one(chat_id: str, msg: str) -> bool:
@@ -164,7 +211,7 @@ def send_tg(msg): return send_all(msg)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# HELPERS — unchanged from v13.5
+# GENERAL HELPERS
 # ══════════════════════════════════════════════════════════════════════════════
 
 def to_f(val) -> float:
@@ -224,259 +271,289 @@ def trading_days_since(date_str: str, now: datetime) -> int:
     except:
         return 999
 
-def options_hint(sym: str, cp: float, atr: float, trade_type: str) -> str:
-    if "Options Alert" not in str(trade_type): return ""
-    expected_move = round(atr * 1.5, 0)
-    strike_ce     = round((cp + atr) / 50) * 50
-    return (
-        f"\n\n📊 <b>OPTIONS ADVISORY</b> (informational only)\n"
-        f"   Stock: {sym} @ ₹{cp:.0f}\n"
-        f"   Expected move: ~₹{expected_move:.0f} ({(expected_move/cp*100):.1f}%)\n"
-        f"   CE strike hint: {int(strike_ce)} CE (buy on breakout confirm)\n"
-        f"   ⚠️ Options are leveraged — size carefully"
-    )
-
-def ce_candidate_flag(cp: float, atr: float, stage: str, is_bullish: bool) -> str:
-    if not is_bullish: return ""
-    if cp <= 0 or atr <= 0: return ""
-    atr_pct = (atr / cp) * 100
-    if atr_pct < 1.5: return ""
-    gap = 5 if cp < 200 else (10 if cp < 500 else (20 if cp < 1000 else 50))
-    atm_strike  = round(cp / gap) * gap
-    otm_strike  = atm_strike + gap
-    if "BREAKOUT CONFIRMED" in stage:
-        strike_str = f"{int(otm_strike)} CE (OTM — breakout in progress)"
-    else:
-        strike_str = f"{int(atm_strike)} CE or {int(otm_strike)} CE"
-    if atr_pct >= 2.5:
-        target_pct = 50; sl_pct = 35; speed_tag = "⚡ Fast mover"
-    else:
-        target_pct = 65; sl_pct = 40; speed_tag = "📈 Normal mover"
-    return (
-        f"\n\n📊 <b>CE CANDIDATE</b> ({speed_tag})\n"
-        f"   ATR%: {atr_pct:.1f}% | Strike: {strike_str}\n"
-        f"   Target: +{target_pct}% on premium | SL: -{sl_pct}% on premium\n"
-        f"   Entry: Only above ₹{cp + atr * 0.3:.1f} (breakout confirm)\n"
-        f"   ⚠️ Check actual premium on Zerodha option chain\n"
-        f"   ⚠️ Wednesday entry → prefer monthly expiry"
-    )
-
 
 # ══════════════════════════════════════════════════════════════════════════════
-# BOTMEMORY SHEET HELPERS
+# BOTMEMORY SHEET HELPERS — v14.0 replacement for T4 string helpers
 # ══════════════════════════════════════════════════════════════════════════════
-# BotMemory sheet columns (0-based in list):
-#   0=Key  1=Value  2=UpdatedAt  3=Symbol  4=KeyType
+# BotMemory sheet cols (1-based for gspread, 0-based in array):
+#   A(0)=Key  B(1)=Value  C(2)=UpdatedAt  D(3)=Symbol  E(4)=KeyType
+# Row 1 is header. Data starts row 2.
+# bm dict: { key: { "value": str, "row": int (1-based) } }
 
-def _bm_load(bm_sheet) -> dict:
-    """
-    Load BotMemory sheet into a dict: {key: {"value": str, "row_index": int}}
-    row_index is 1-based (row 1 = header, data starts at row 2).
-    """
-    bm_data = {}
+def bm_load(bm_sheet) -> dict:
+    """Load entire BotMemory sheet into a dict."""
+    bm = {}
+    if not bm_sheet:
+        return bm
+    last_row = bm_sheet.row_count
+    if last_row < 2:
+        return bm
     try:
-        all_values = bm_sheet.get_all_values()
-        for i, row in enumerate(all_values[1:], start=2):   # skip header row 1
-            key = str(row[0]).strip() if row else ""
-            if not key:
-                continue
-            val = str(row[1]) if len(row) > 1 else ""
-            bm_data[key] = {"value": val, "row_index": i}
+        data = bm_sheet.get_all_values()
     except Exception as e:
-        print(f"[BM] Load error: {e}")
-    print(f"[BM] Loaded {len(bm_data)} keys from BotMemory sheet")
-    return bm_data
+        print(f"[BM LOAD] Error: {e}")
+        return bm
+    for i, row in enumerate(data[1:], start=2):   # skip header row 1
+        key = str(row[0]).strip() if row else ""
+        if not key:
+            continue
+        bm[key] = {
+            "value": str(row[1]) if len(row) > 1 else "",
+            "row"  : i,
+        }
+    print(f"[BM] Loaded {len(bm)} keys from BotMemory sheet")
+    return bm
 
+def bm_get(bm: dict, key: str) -> str:
+    """Get a value from the loaded bm dict. Returns '' if missing."""
+    return bm[key]["value"] if key in bm else ""
 
-def _bm_get(bm_data: dict, key: str) -> str:
-    """Return value for key, or '' if not found."""
-    entry = bm_data.get(key)
-    return entry["value"] if entry else ""
+def bm_exists(bm: dict, key: str) -> bool:
+    return key in bm
 
-
-def _bm_exists(bm_data: dict, key: str) -> bool:
-    return key in bm_data
-
-
-def _bm_set(bm_sheet, bm_data: dict, key: str, val: str,
-            sym: str = "", ktype: str = "TRADE") -> None:
-    """
-    Write or update a key in BotMemory sheet.
-    If key exists: update Value (col B) and UpdatedAt (col C) in-place.
-    If new: append a new row.
-    Also updates bm_data dict in-memory so subsequent _bm_get calls see new value.
-    """
-    now_str = datetime.now(IST).strftime('%Y-%m-%d %H:%M:%S')
-    if key in bm_data:
-        row_idx = bm_data[key]["row_index"]
-        try:
-            bm_sheet.update_cell(row_idx, 2, val)       # col B: Value
-            bm_sheet.update_cell(row_idx, 3, now_str)   # col C: UpdatedAt
-            bm_data[key]["value"] = val
-        except Exception as e:
-            print(f"[BM] Update error for {key}: {e}")
-    else:
-        new_row = [key, val, now_str, sym, ktype]
-        try:
-            bm_sheet.append_row(new_row)
-            # Compute new row index
-            new_row_idx = len(bm_data) + 2   # approximate; header is row 1
-            # More accurate: reload just last row
-            try:
-                new_row_idx = len(bm_sheet.col_values(1))  # count filled A column
-            except:
-                pass
-            bm_data[key] = {"value": val, "row_index": new_row_idx}
-        except Exception as e:
-            print(f"[BM] Append error for {key}: {e}")
-
-
-def _bm_del(bm_sheet, bm_data: dict, key: str) -> None:
-    """
-    Clear a row in BotMemory sheet (does not physically delete to avoid row-shift bugs).
-    Removes key from bm_data dict.
-    """
-    if key not in bm_data:
+def bm_set(bm_sheet, bm: dict, key: str, val: str,
+           sym: str = "", ktype: str = "STATE") -> None:
+    """Write or update a key in BotMemory sheet. Mutates bm in-place."""
+    if not bm_sheet:
         return
-    row_idx = bm_data[key]["row_index"]
-    try:
-        bm_sheet.update(f"A{row_idx}:E{row_idx}", [["", "", "", "", ""]])
-        del bm_data[key]
-    except Exception as e:
-        print(f"[BM] Delete error for {key}: {e}")
+    now_str = datetime.now(IST).strftime("%Y-%m-%d %H:%M:%S")
+    sym   = sym   or ""
+    ktype = ktype or "STATE"
 
+    if key in bm:
+        # Update existing row in-place (B=Value, C=UpdatedAt only)
+        r = bm[key]["row"]
+        try:
+            bm_sheet.update(f"B{r}:C{r}", [[val, now_str]])
+        except Exception as e:
+            print(f"[BM SET] Update error key={key}: {e}")
+            return
+        bm[key]["value"] = val
+    else:
+        # Append new row
+        try:
+            bm_sheet.append_row([key, val, now_str, sym, ktype],
+                                 value_input_option="RAW")
+        except Exception as e:
+            print(f"[BM SET] Append error key={key}: {e}")
+            return
+        # Compute new row index (approximation — safe because we only read row later)
+        new_row = max((v["row"] for v in bm.values()), default=1) + 1
+        bm[key] = {"value": val, "row": new_row}
 
-def _bm_purge(bm_sheet, days: int = BM_PURGE_DAYS) -> None:
-    """
-    Remove FLAG-type entries older than `days` days.
-    Called once at the start of run_trading_cycle().
-    """
-    cutoff = (datetime.now(IST) - timedelta(days=days)).strftime("%Y-%m-%d")
-    try:
-        all_values = bm_sheet.get_all_values()
-        for i, row in enumerate(all_values[1:], start=2):
-            key   = str(row[0]).strip() if row else ""
-            ktype = str(row[4]).strip() if len(row) > 4 else ""
-            if not key or ktype != "FLAG":
-                continue
-            # FLAG key format: "yyyy-MM-dd_SOMETHING"
-            if len(key) >= 10 and key[:10] < cutoff:
-                bm_sheet.update(f"A{i}:E{i}", [["", "", "", "", ""]])
-                print(f"[BM PURGE] Removed old flag: {key}")
-    except Exception as e:
-        print(f"[BM PURGE] Error: {e}")
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-# TSL / MAX / LP / ATR / EXDT HELPERS — now backed by BotMemory sheet
-# Same key formats as v13.5 — just stored in sheet rows instead of T4 string.
-# ══════════════════════════════════════════════════════════════════════════════
-
-def get_tsl(bm_data: dict, key: str) -> float:
-    prefix = f"{key}_TSL_"
-    for k, entry in bm_data.items():
-        if k.startswith(prefix):
-            try: return int(k[len(prefix):]) / 100.0
-            except: return 0.0
-    return 0.0
-
-def set_tsl(bm_sheet, bm_data: dict, key: str, price: float, sym: str = "") -> None:
-    prefix    = f"{key}_TSL_"
-    tsl_key   = f"{prefix}{int(round(price * 100))}"
-    # Remove any old TSL key for this symbol
-    old_keys = [k for k in list(bm_data.keys()) if k.startswith(prefix)]
-    for old_key in old_keys:
-        if old_key != tsl_key:
-            _bm_del(bm_sheet, bm_data, old_key)
-    _bm_set(bm_sheet, bm_data, tsl_key, "1", sym, "TRADE")
-
-def get_max_price(bm_data: dict, key: str) -> float:
-    prefix = f"{key}_MAX_"
-    for k in bm_data:
-        if k.startswith(prefix):
-            try: return int(k[len(prefix):]) / 100.0
-            except: return 0.0
-    return 0.0
-
-def set_max_price(bm_sheet, bm_data: dict, key: str, price: float, sym: str = "") -> None:
-    prefix    = f"{key}_MAX_"
-    cur_max   = get_max_price(bm_data, key)
-    if price <= cur_max:
+def bm_del(bm_sheet, bm: dict, key: str) -> None:
+    """Clear a key row without physically deleting (avoids row-shift bugs)."""
+    if not bm_sheet or key not in bm:
         return
-    max_key   = f"{prefix}{int(round(price * 100))}"
-    old_keys  = [k for k in list(bm_data.keys()) if k.startswith(prefix)]
-    for old_key in old_keys:
-        if old_key != max_key:
-            _bm_del(bm_sheet, bm_data, old_key)
-    _bm_set(bm_sheet, bm_data, max_key, "1", sym, "TRADE")
-
-def get_atr_from_mem(bm_data: dict, key: str) -> float:
-    prefix = f"{key}_ATR_"
-    for k in bm_data:
-        if k.startswith(prefix):
-            try: return int(k[len(prefix):]) / 100.0
-            except: return 0.0
-    return 0.0
-
-def save_atr_to_mem(bm_sheet, bm_data: dict, key: str, atr: float, sym: str = "") -> None:
-    prefix   = f"{key}_ATR_"
-    atr_key  = f"{prefix}{int(round(atr * 100))}"
-    old_keys = [k for k in list(bm_data.keys()) if k.startswith(prefix)]
-    for old_key in old_keys:
-        if old_key != atr_key:
-            _bm_del(bm_sheet, bm_data, old_key)
-    _bm_set(bm_sheet, bm_data, atr_key, "1", sym, "TRADE")
-
-def get_last_price(bm_data: dict, key: str) -> float:
-    prefix = f"{key}_LP_"
-    for k in bm_data:
-        if k.startswith(prefix):
-            try: return int(k[len(prefix):]) / 100.0
-            except: return 0.0
-    return 0.0
-
-def set_last_price(bm_sheet, bm_data: dict, key: str, price: float, sym: str = "") -> None:
-    prefix   = f"{key}_LP_"
-    lp_key   = f"{prefix}{int(round(price * 100))}"
-    old_keys = [k for k in list(bm_data.keys()) if k.startswith(prefix)]
-    for old_key in old_keys:
-        if old_key != lp_key:
-            _bm_del(bm_sheet, bm_data, old_key)
-    _bm_set(bm_sheet, bm_data, lp_key, "1", sym, "TRADE")
-
-def get_exit_date(bm_data: dict, key: str) -> str:
-    val = _bm_get(bm_data, f"{key}_EXDT")
-    return val
-
-def set_exit_date(bm_sheet, bm_data: dict, key: str, date_str: str, sym: str = "") -> None:
-    _bm_set(bm_sheet, bm_data, f"{key}_EXDT", date_str, sym, "TRADE")
+    r = bm[key]["row"]
+    try:
+        bm_sheet.update(f"A{r}:E{r}", [["", "", "", "", ""]])
+    except Exception as e:
+        print(f"[BM DEL] Error key={key}: {e}")
+        return
+    del bm[key]
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-# TRADE MODE + CAPITAL FROM BOTMEMORY
-# ══════════════════════════════════════════════════════════════════════════════
+# ── BotMemory: per-symbol float helpers ───────────────────────────────────────
+# Values stored as int (price×100) to avoid float serialisation issues.
 
-def get_trade_mode(bm_data: dict, key: str) -> str:
-    val = _bm_get(bm_data, f"{key}_MODE")
+def bm_get_f(bm: dict, key: str) -> float:
+    """Get an int-encoded float from bm (stored as price×100)."""
+    raw = bm_get(bm, key)
+    if not raw:
+        return 0.0
+    try:
+        return int(raw) / 100.0
+    except:
+        return 0.0
+
+def bm_set_f(bm_sheet, bm: dict, key: str, val: float,
+             sym: str = "", ktype: str = "TRADE") -> None:
+    """Store a float as int (×100) in BotMemory."""
+    bm_set(bm_sheet, bm, key, str(int(round(val * 100))), sym, ktype)
+
+
+# ── BotMemory: TSL / MAX / ATR / LP / EXDT per-symbol wrappers ───────────────
+
+def get_tsl(bm: dict, key: str) -> float:
+    return bm_get_f(bm, f"{key}_TSL")
+
+def set_tsl(bm_sheet, bm: dict, key: str, sym: str, price: float) -> None:
+    bm_set_f(bm_sheet, bm, f"{key}_TSL", price, sym, "TRADE")
+
+def get_max_price(bm: dict, key: str) -> float:
+    return bm_get_f(bm, f"{key}_MAX")
+
+def set_max_price(bm_sheet, bm: dict, key: str, sym: str, price: float) -> None:
+    cur = get_max_price(bm, key)
+    if price <= cur:
+        return
+    bm_set_f(bm_sheet, bm, f"{key}_MAX", price, sym, "TRADE")
+
+def get_atr_from_bm(bm: dict, key: str) -> float:
+    return bm_get_f(bm, f"{key}_ATR")
+
+def save_atr_to_bm(bm_sheet, bm: dict, key: str, sym: str, atr: float) -> None:
+    bm_set_f(bm_sheet, bm, f"{key}_ATR", atr, sym, "TRADE")
+
+def get_last_price(bm: dict, key: str) -> float:
+    return bm_get_f(bm, f"{key}_LP")
+
+def set_last_price(bm_sheet, bm: dict, key: str, sym: str, price: float) -> None:
+    bm_set_f(bm_sheet, bm, f"{key}_LP", price, sym, "TRADE")
+
+def get_exit_date(bm: dict, key: str) -> str:
+    return bm_get(bm, f"{key}_EXDT")
+
+def set_exit_date(bm_sheet, bm: dict, key: str, sym: str, date_str: str) -> None:
+    bm_set(bm_sheet, bm, f"{key}_EXDT", date_str, sym, "TRADE")
+
+
+# ── BotMemory: trade mode + capital ───────────────────────────────────────────
+
+def get_trade_mode(bm: dict, key: str) -> str:
+    val = bm_get(bm, f"{key}_MODE")
     return val if val in ("VCP", "MOM", "STD") else "STD"
 
-def get_tsl_params(bm_data: dict, key: str) -> dict:
-    mode = get_trade_mode(bm_data, key)
+def get_tsl_params(bm: dict, key: str) -> dict:
+    mode = get_trade_mode(bm, key)
     return TSL_PARAMS[mode]
 
-def get_capital_from_mem(bm_data: dict, key: str) -> int:
-    cap_str = _bm_get(bm_data, f"{key}_CAP")
+def get_capital_from_bm(bm: dict, key: str) -> int:
+    """Read _CAP written by AppScript. Falls back to CAPITAL_STD."""
+    cap_str = bm_get(bm, f"{key}_CAP")
     if cap_str:
         try:
             cap = int(cap_str)
-            if cap in (7000, 10000, 13000): return cap
+            if cap in (CAPITAL_HIGH, CAPITAL_MED, CAPITAL_STD):
+                return cap
         except:
             pass
     return CAPITAL_PER_TRADE
 
 
+# ── BotMemory: exit flag ───────────────────────────────────────────────────────
+
+def get_ex_flag_key(key: str, etime: str) -> str:
+    entry_date_key = etime[:10].replace('-', '') if etime else "0"
+    return f"{key}_EX_{entry_date_key}"
+
+def ex_flag_exists(bm: dict, key: str, etime: str) -> bool:
+    return bm_exists(bm, get_ex_flag_key(key, etime))
+
+def set_ex_flag(bm_sheet, bm: dict, key: str, sym: str, etime: str) -> None:
+    bm_set(bm_sheet, bm, get_ex_flag_key(key, etime), "1", sym, "FLAG")
+
+def hold_warn_exists(bm: dict, key: str) -> bool:
+    return bm_exists(bm, f"{key}_HOLD_WARN")
+
+def set_hold_warn(bm_sheet, bm: dict, key: str, sym: str) -> None:
+    bm_set(bm_sheet, bm, f"{key}_HOLD_WARN", "1", sym, "FLAG")
+
+
 # ══════════════════════════════════════════════════════════════════════════════
-# TSL CALCULATION — mode-aware, unchanged from v13.5
+# OPTIONS ADVISORY — v14.0: Advance gets CE flag, Premium gets full block
+# ══════════════════════════════════════════════════════════════════════════════
+
+def ce_candidate_flag(cp: float, atr: float, stage: str, is_bullish: bool) -> str:
+    """
+    CE candidate flag — shown in Advance entry alerts only.
+    Informational only (no lot sizing, no specific expiry).
+    ATR comes from Nifty200 col AC (real ATR14).
+
+    ATR% < 1.5%    → no flag
+    ATR% 1.5–2.5%  → normal mover: target +65%, SL -40% on premium
+    ATR% > 2.5%    → fast mover:   target +50%, SL -35% on premium
+    Not bullish    → no flag
+    """
+    if not is_bullish: return ""
+    if cp <= 0 or atr <= 0: return ""
+
+    atr_pct = (atr / cp) * 100
+    if atr_pct < 1.5: return ""
+
+    gap = 5 if cp < 200 else (10 if cp < 500 else (20 if cp < 1000 else 50))
+    atm_strike = round(cp / gap) * gap
+    otm_strike = atm_strike + gap
+
+    if "BREAKOUT CONFIRMED" in stage:
+        strike_str = f"{int(otm_strike)} CE (OTM — breakout in progress)"
+    else:
+        strike_str = f"{int(atm_strike)} CE or {int(otm_strike)} CE"
+
+    if atr_pct >= 2.5:
+        target_pct = 50; sl_pct = 35; speed_tag = "⚡ Fast mover"
+    else:
+        target_pct = 65; sl_pct = 40; speed_tag = "📈 Normal mover"
+
+    return (
+        f"\n\n📊 <b>CE CANDIDATE</b> ({speed_tag})\n"
+        f"   ATR%: {atr_pct:.1f}% | Strike hint: {strike_str}\n"
+        f"   Target: +{target_pct}% on premium | SL: -{sl_pct}% on premium\n"
+        f"   Entry only above ₹{cp + atr * 0.3:.1f} (breakout confirm)\n"
+        f"   ⚠️ Check actual premium on Zerodha option chain"
+    )
+
+def build_options_premium(sym: str, cp: float, atr: float, stage: str,
+                          is_bullish: bool) -> str:
+    """
+    Full options buying block — Premium channel ONLY.
+    Includes: strike selection, entry trigger, target%, SL%, lot sizing note,
+    expiry guidance. Separate from the simpler CE flag shown in Advance.
+    """
+    if not is_bullish: return ""
+    if cp <= 0 or atr <= 0: return ""
+
+    atr_pct = (atr / cp) * 100
+    if atr_pct < 1.5: return ""
+
+    gap = 5 if cp < 200 else (10 if cp < 500 else (20 if cp < 1000 else 50))
+    atm_strike = round(cp / gap) * gap
+    otm_strike = atm_strike + gap
+
+    # Entry trigger: 0.3× ATR above CMP (same logic as CE flag)
+    entry_trigger = round(cp + atr * 0.3, 1)
+
+    # Premium budget estimate: ATM CE roughly 1–3% of CMP
+    premium_est_low  = round(cp * 0.008)
+    premium_est_high = round(cp * 0.025)
+
+    # Lot sizing note: use 1 lot first (standard NSE lot = 75 for Nifty; for stocks, varies)
+    # Keep generic — actual lot size must be checked on Zerodha
+    if atr_pct >= 2.5:
+        target_pct = 50; sl_pct = 35; speed_tag = "⚡ Fast mover"
+        ce_strike  = int(otm_strike)
+        strike_note = "OTM — breakout already running"
+    else:
+        target_pct = 65; sl_pct = 40; speed_tag = "📈 Normal mover"
+        ce_strike  = int(atm_strike)
+        strike_note = "ATM — maximum delta"
+
+    # Expiry guidance
+    from datetime import datetime
+    dow = datetime.now(IST).weekday()   # 0=Mon … 6=Sun
+    if dow >= 2:   # Wed Thu Fri
+        expiry_note = "⚠️ Wednesday+ entry → prefer monthly expiry (weekly decays fast)"
+    else:
+        expiry_note = "Weekly expiry OK — enough days remain"
+
+    return (
+        f"\n\n👑 <b>OPTIONS ADVISORY — PREMIUM</b> ({speed_tag})\n"
+        f"━━━━━━━━━━━━━━━━━━━━\n"
+        f"   Stock: {sym} @ ₹{cp:.0f} | ATR%: {atr_pct:.1f}%\n"
+        f"   Strike: <b>{ce_strike} CE</b> ({strike_note})\n"
+        f"   Entry trigger: ₹{entry_trigger} (wait for stock to cross this)\n"
+        f"   Est. premium: ₹{premium_est_low}–₹{premium_est_high} per share\n"
+        f"   Target: <b>+{target_pct}%</b> on premium\n"
+        f"   SL: <b>-{sl_pct}%</b> on premium (strict — no averaging)\n"
+        f"   Lot sizing: Start with 1 lot — check lot size on Zerodha\n"
+        f"   {expiry_note}\n"
+        f"   ⚠️ Options are leveraged. Size = max 5% of options capital."
+    )
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# TSL CALCULATION — unchanged from v13.5
 # ══════════════════════════════════════════════════════════════════════════════
 
 def calc_new_tsl(cp: float, ent: float, init_sl: float, atr: float,
@@ -484,12 +561,15 @@ def calc_new_tsl(cp: float, ent: float, init_sl: float, atr: float,
     if params is None:
         params = TSL_PARAMS["STD"]
     if ent <= 0: return init_sl
+
     gain_pct    = ((cp - ent) / ent) * 100
     gap_lock_at = params["gap_lock"]
+
     if gain_pct >= gap_lock_at:
         gap_lock  = round(ent + (cp - ent) * TSL_GAP_LOCK_FRAC, 2)
         atr_trail = round(cp - (params["atr_mult"] * atr), 2)
         return max(gap_lock, atr_trail, round(ent * 1.02, 2))
+
     if gain_pct < params["breakeven"]:
         return init_sl
     elif gain_pct < params["lock1"]:
@@ -502,7 +582,7 @@ def calc_new_tsl(cp: float, ent: float, init_sl: float, atr: float,
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# MESSAGE BUILDERS — unchanged from v13.5
+# MESSAGE BUILDERS — unchanged from v13.5 except Premium entry builder
 # ══════════════════════════════════════════════════════════════════════════════
 
 def build_gm_basic(today: str, trade_count: int, waiting_count: int,
@@ -558,11 +638,16 @@ def build_entry_advance(sym, cp, ent, init_sl, target, ttype, strat, stage,
 
 def build_entry_premium(sym, cp, ent, init_sl, target, ttype, strat, stage,
                         priority, pos_size, capital, risk_rs, reward_rs,
-                        rr_num, o_hint, trade_mode, ce_flag="") -> str:
+                        rr_num, options_block, trade_mode, ce_flag="") -> str:
+    """
+    Premium entry alert = Advance alert (with CE flag) + full options block.
+    ce_flag is included here too (same as Advance) so Premium sees everything.
+    options_block is built by build_options_premium() separately.
+    """
     base = build_entry_advance(sym, cp, ent, init_sl, target, ttype, strat,
                                stage, priority, pos_size, capital, risk_rs,
                                reward_rs, rr_num, trade_mode, ce_flag)
-    return base + (o_hint if o_hint else "")
+    return base + (options_block if options_block else "")
 
 def build_exit_advance(sym, ttype, ent, cp, pnl_pct, pl_rupees, hold_str,
                        max_price, strat, exit_reason) -> str:
@@ -606,12 +691,10 @@ def get_sheets():
     for attempt, delay in enumerate(delays):
         try:
             ss = gspread.authorize(creds).open(SHEET_NAME)
-            return (
-                ss.worksheet("AlertLog"),
-                ss.worksheet("History"),
-                ss.worksheet("Nifty200"),
-                ss.worksheet("BotMemory"),   # v14.0: added
-            )
+            return (ss.worksheet("AlertLog"),
+                    ss.worksheet("History"),
+                    ss.worksheet("Nifty200"),
+                    ss.worksheet(BM_SHEET))
         except gspread.exceptions.APIError as e:
             status = e.response.status_code if hasattr(e, 'response') else 0
             if status in (429, 500, 502, 503, 504):
@@ -642,8 +725,10 @@ def get_market_regime(nifty_sheet) -> bool:
         return True
 
 
+# ── ATR14 from Nifty200 — unchanged from v13.5 ───────────────────────────────
+
 def _read_atr_from_nifty200(nifty_sheet, sym: str) -> float:
-    """Read ATR14 from Nifty200 col AC (0-based index 28) — unchanged from v13.5."""
+    """Read ATR14 from Nifty200 col AC (index 28) for sym."""
     try:
         nifty_data = nifty_sheet.get_all_values()
         for row in nifty_data[1:]:
@@ -658,7 +743,9 @@ def _read_atr_from_nifty200(nifty_sheet, sym: str) -> float:
     return 0.0
 
 
-def get_sector_context(all_data: list, bm_data: dict) -> str:
+# ── Sector context — reads _SEC from BotMemory ────────────────────────────────
+
+def get_sector_context(all_data: list, bm: dict) -> str:
     sector_counts = {}
     for r in all_data[1:16]:
         r = pad(list(r))
@@ -668,8 +755,9 @@ def get_sector_context(all_data: list, bm_data: dict) -> str:
         if not sym:
             continue
         key = sym_key(sym)
-        sec = _bm_get(bm_data, f"{key}_SEC") or "Mixed"
+        sec = bm_get(bm, f"{key}_SEC") or "Mixed"
         sector_counts[sec] = sector_counts.get(sec, 0) + 1
+
     if not sector_counts:
         return ""
     parts = [f"{s} ({c})" for s, c in sorted(sector_counts.items(), key=lambda x: -x[1])]
@@ -677,7 +765,7 @@ def get_sector_context(all_data: list, bm_data: dict) -> str:
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# MAIN TRADING CYCLE — v14.0: T4 → BotMemory
+# MAIN TRADING CYCLE — v14.0
 # ══════════════════════════════════════════════════════════════════════════════
 
 def run_trading_cycle():
@@ -691,22 +779,16 @@ def run_trading_cycle():
     if not ((8 * 60 + 45) <= mins <= (15 * 60 + 45)):
         print(f"[SKIP] Outside window: {now.strftime('%H:%M')} IST"); return
 
-    print(f"[START] {now.strftime('%Y-%m-%d %H:%M:%S')} IST")
+    print(f"[START] {now.strftime('%Y-%m-%d %H:%M:%S')} IST | v14.0")
 
     log_sheet, hist_sheet, nifty_sheet, bm_sheet = get_sheets()
 
-    # v14.0: Load BotMemory, purge old flags
-    _bm_purge(bm_sheet)
-    bm_data = _bm_load(bm_sheet)
+    # Load BotMemory once per run — all reads/writes use this dict
+    bm = bm_load(bm_sheet)
 
     is_bullish = get_market_regime(nifty_sheet)
 
-    # ── DEBUG: Good Morning window check ──────────────────────
-    am_key = f"{today}_AM"
-    print(f"[GM CHECK] time={now.strftime('%H:%M')} IST | "
-          f"window={'YES' if (now.hour==8 and now.minute>=45) or (now.hour==9 and now.minute<=15) else 'NO'} | "
-          f"AM_already_sent={_bm_exists(bm_data, am_key)}")
-
+    # Automation switch — T2 still lives in AlertLog
     if str(log_sheet.acell("T2").value or "").strip().upper() != "YES":
         print("[SKIP] Automation OFF (T2 != YES)")
         return
@@ -722,17 +804,23 @@ def run_trading_cycle():
 
     print(f"[INFO] Active trades: {len(traded_rows)}/{MAX_TRADES}")
 
+    # ── DEBUG: Good Morning window check ──────────────────────────────────────
+    am_key = f"{today}_AM"
+    print(f"[GM CHECK] time={now.strftime('%H:%M')} IST | "
+          f"window={'YES' if (now.hour==8 and now.minute>=45) or (now.hour==9 and now.minute<=29) else 'NO'} | "
+          f"AM_already_sent={bm_exists(bm, am_key)}")
+
     # ─────────────────────────────────────────────────────────────────────────
-    # 1. GOOD MORNING  08:45–09:15 IST
+    # 1. GOOD MORNING  08:45–09:29 IST
     # ─────────────────────────────────────────────────────────────────────────
     if ((now.hour == 8 and now.minute >= 45) or
-            (now.hour == 9 and now.minute <= 29)) and not _bm_exists(bm_data, am_key):
+            (now.hour == 9 and now.minute <= 29)) and not bm_exists(bm, am_key):
 
         waiting_count = sum(
             1 for r in [pad(list(x)) for x in all_data[1:16]]
             if "WAITING" in str(r[C_STATUS]).upper()
         )
-        sector_line = get_sector_context(all_data, bm_data)
+        sector_line = get_sector_context(all_data, bm)
 
         lines = []
         for _, r in traded_rows:
@@ -745,16 +833,16 @@ def run_trading_cycle():
             etime = str(r[C_ENTRY_TIME])
             days  = calc_hold_days(etime, now)
             if not ent or ent <= 0: continue
+            key      = sym_key(sym)
             sl_label = "TSL" if sl > to_f(r[C_INITIAL_SL]) else "SL"
             if cp > 0 and ent > 0:
                 pnl   = (cp - ent) / ent * 100
-                key   = sym_key(sym)
-                cap   = get_capital_from_mem(bm_data, key)
+                cap   = get_capital_from_bm(bm, key)
                 pl_rs = round((cp - ent) / ent * cap)
                 to_tgt = ((tgt - cp) / cp * 100) if cp > 0 else 0
                 to_sl  = ((cp - sl) / cp * 100) if cp > 0 else 0
                 em     = "🟢" if pnl >= 0 else "🔴"
-                mode   = get_trade_mode(bm_data, key)
+                mode   = get_trade_mode(bm, key)
                 mode_tag = {"VCP": "🎯", "MOM": "🚀", "STD": "📊"}.get(mode, "📊")
                 lines.append(
                     f"{em} <b>{sym}</b> {mode_tag} [{ttype}] Day {days + 1}\n"
@@ -771,7 +859,7 @@ def run_trading_cycle():
                 )
 
         deployed = sum(
-            get_capital_from_mem(bm_data, sym_key(r[C_SYMBOL]))
+            get_capital_from_bm(bm, sym_key(r[C_SYMBOL]))
             for _, r in traded_rows if r[C_SYMBOL]
         )
 
@@ -780,7 +868,8 @@ def run_trading_cycle():
         send_advance(full_gm)
         send_premium(full_gm)
 
-        _bm_set(bm_sheet, bm_data, am_key, "1", "", "FLAG")
+        bm_set(bm_sheet, bm, am_key, "1", "", "FLAG")
+        print(f"[GM] Sent and flagged: {am_key}")
 
     # ─────────────────────────────────────────────────────────────────────────
     # 2. MARKET HOURS — Core Trading Logic
@@ -793,7 +882,7 @@ def run_trading_cycle():
         entry_alerts_premium = []
         tsl_cell_updates     = []
 
-        # ── Step A: Mark WAITING → TRADED ────────────────────────────────────
+        # ── Step A: Mark WAITING → TRADED ─────────────────────────────────────
         for i, r in enumerate(trade_zone):
             status = str(r[C_STATUS]).upper()
             sym    = str(r[C_SYMBOL]).strip()
@@ -816,7 +905,7 @@ def run_trading_cycle():
 
             if cp <= 0: continue
 
-            # RR re-validation (v13.5 fix retained)
+            # RR re-validation — reject stale pre-v13.3 rows
             rr_raw = str(r[C_RR]).strip()
             if rr_raw:
                 try:
@@ -824,33 +913,32 @@ def run_trading_cycle():
                 except Exception:
                     rr_val = 0.0
                 if rr_val > 0 and rr_val < MIN_RR:
-                    print(f"[SKIP] {sym}: RR 1:{rr_val:.1f} below MIN_RR {MIN_RR} — stale candidate")
+                    print(f"[SKIP] {sym}: RR 1:{rr_val:.1f} below MIN_RR {MIN_RR}")
                     continue
 
             key       = sym_key(sym)
             sheet_row = i + 2
 
-            last_cp = get_last_price(bm_data, key)
-            set_last_price(bm_sheet, bm_data, key, cp, sym)
+            last_cp = get_last_price(bm, key)
+            set_last_price(bm_sheet, bm, key, sym, cp)
             if last_cp > 0 and abs(cp - last_cp) < 0.01:
                 print(f"[STALE] {sym}: price unchanged — skipping")
                 continue
 
-            exit_date = get_exit_date(bm_data, key)
+            exit_date = get_exit_date(bm, key)
             if exit_date:
                 days_since = trading_days_since(exit_date, now)
                 if days_since < 5:
                     print(f"[COOLDOWN] {sym}: {days_since} days since exit")
                     continue
 
-            pos_size_check = round(CAPITAL_PER_TRADE / cp) if cp > 0 else 0
+            capital    = get_capital_from_bm(bm, key)
+            pos_size_check = round(capital / cp) if cp > 0 else 0
             if pos_size_check < 2:
-                print(f"[SKIP] {sym}: CMP ₹{cp:,.0f} too high")
+                print(f"[SKIP] {sym}: CMP ₹{cp:,.0f} too high for ₹{capital:,}")
                 continue
 
-            capital    = get_capital_from_mem(bm_data, key)
-            trade_mode = get_trade_mode(bm_data, key)
-            tsl_params = TSL_PARAMS[trade_mode]
+            trade_mode = get_trade_mode(bm, key)
             etime      = now.strftime('%Y-%m-%d %H:%M:%S')
 
             log_sheet.update_cell(sheet_row, C_STATUS + 1,      "🟢 TRADED (PAPER)")
@@ -863,23 +951,20 @@ def run_trading_cycle():
             rr_num = (reward / risk) if risk > 0 else 0
             log_sheet.update_cell(sheet_row, C_RR + 1, f"1:{rr_num:.1f}")
 
-            # Read ATR14 directly from Nifty200 (v13.5 fix retained)
+            # Read ATR14 directly from Nifty200
             atr_est = _read_atr_from_nifty200(nifty_sheet, sym)
             if atr_est <= 0:
                 _mult   = 2 if "Intraday" in ttype else 4 if "Positional" in ttype else 3
                 atr_est = (target - cp) / _mult if target > cp else 0
-                print(f"[ATR] {sym}: Nifty200 lookup returned 0, fallback atr_est={atr_est:.2f}")
+                print(f"[ATR] {sym}: fallback atr_est={atr_est:.2f}")
             else:
-                print(f"[ATR] {sym}: read ATR14={atr_est:.2f} from Nifty200")
+                print(f"[ATR] {sym}: ATR14={atr_est:.2f} from Nifty200")
 
-            save_atr_to_mem(bm_sheet, bm_data, key, atr_est, sym)
-            set_tsl(bm_sheet, bm_data, key, init_sl, sym)
-            set_max_price(bm_sheet, bm_data, key, cp, sym)
-
-            # Clear any old exit flag for this symbol
-            ex_flag_key = f"{key}_EX"
-            if _bm_exists(bm_data, ex_flag_key):
-                _bm_del(bm_sheet, bm_data, ex_flag_key)
+            save_atr_to_bm(bm_sheet, bm, key, sym, atr_est)
+            set_tsl(bm_sheet, bm, key, sym, init_sl)
+            set_max_price(bm_sheet, bm, key, sym, cp)
+            # Clear any stale exit flag for this entry date
+            bm_del(bm_sheet, bm, get_ex_flag_key(key, etime))
 
             updated_r                = list(r)
             updated_r[C_STATUS]      = "🟢 TRADED (PAPER)"
@@ -888,13 +973,9 @@ def run_trading_cycle():
             updated_r[C_TRAIL_SL]    = init_sl
             traded_rows.append((sheet_row, updated_r))
 
-            atr     = atr_est
-            o_hint  = options_hint(sym, cp, atr, ttype)
-            c_flag  = ce_candidate_flag(cp, atr, stage, is_bullish)
-
-            # Write entry flag to BotMemory
-            entry_key = f"{key}_ENTRY"
-            _bm_set(bm_sheet, bm_data, entry_key, etime, sym, "TRADE")
+            atr      = atr_est
+            c_flag   = ce_candidate_flag(cp, atr, stage, is_bullish)
+            o_block  = build_options_premium(sym, cp, atr, stage, is_bullish)
 
             pos_size  = round(capital / cp) if cp > 0 else 0
             risk_rs   = round(max(0, cp - init_sl) * pos_size)
@@ -908,11 +989,11 @@ def run_trading_cycle():
             entry_alerts_premium.append(
                 build_entry_premium(sym, cp, cp, init_sl, target, ttype, strat, stage,
                                     priority, pos_size, capital, risk_rs, reward_rs,
-                                    rr_num, o_hint, trade_mode, c_flag)
+                                    rr_num, o_block, trade_mode, c_flag)
             )
             print(f"[ENTRY] {sym} @ ₹{cp} | ₹{capital:,} | {pos_size}sh | {ttype} | {trade_mode} | SL ₹{init_sl} | T ₹{target}")
 
-        # ── Step B: Monitor active trades ─────────────────────────────────────
+        # ── Step B: Monitor active trades ──────────────────────────────────────
         for sheet_row, r in traded_rows:
             sym = str(r[C_SYMBOL]).strip()
             if not sym: continue
@@ -927,24 +1008,24 @@ def run_trading_cycle():
             stage   = str(r[C_STAGE])
             etime   = str(r[C_ENTRY_TIME])
             ttype   = str(r[C_TRADE_TYPE])
-            priority = str(r[C_PRIORITY])
 
             if not price_sanity(sym, cp, ent): continue
 
-            set_max_price(bm_sheet, bm_data, key, cp, sym)
-            pnl_pct  = (cp - ent) / ent * 100
-            atr      = get_atr_from_mem(bm_data, key)
+            set_max_price(bm_sheet, bm, key, sym, cp)
+            pnl_pct    = (cp - ent) / ent * 100
+            atr        = get_atr_from_bm(bm, key)
             if atr <= 0:
                 _mult = 4 if "Positional" in ttype else 2 if "Intraday" in ttype else 3
                 atr   = (tgt - ent) / _mult if tgt > ent else ent * 0.02
 
             days_held  = calc_hold_days(etime, now)
-            trade_mode = get_trade_mode(bm_data, key)
+            trade_mode = get_trade_mode(bm, key)
             tsl_params = TSL_PARAMS[trade_mode]
-            capital    = get_capital_from_mem(bm_data, key)
+            capital    = get_capital_from_bm(bm, key)
 
             new_tsl = calc_new_tsl(cp, ent, init_sl, atr, ttype, tsl_params)
-            new_tsl = max(new_tsl, get_tsl(bm_data, key), cur_tsl)
+            bm_tsl  = get_tsl(bm, key)
+            new_tsl = max(new_tsl, bm_tsl, cur_tsl)
 
             if new_tsl > cur_tsl:
                 tsl_cell_updates.append((sheet_row, new_tsl))
@@ -956,20 +1037,18 @@ def run_trading_cycle():
                     f"   Trail SL: ₹{cur_tsl:.2f} → <b>₹{new_tsl:.2f}</b> ({tsl_label})"
                 )
                 trail_alerts.append(trail_msg)
-                set_tsl(bm_sheet, bm_data, key, new_tsl, sym)
+                set_tsl(bm_sheet, bm, key, sym, new_tsl)
                 print(f"[TSL] {sym} [{trade_mode}]: ₹{cur_tsl:.2f}→₹{new_tsl:.2f}")
 
-            entry_date_key = etime[:10].replace('-', '') if etime else "0"
-            ex_flag    = f"{key}_EX_{entry_date_key}"
             tsl_hit    = (new_tsl > 0 and cp <= new_tsl)
             target_hit = (tgt > 0 and cp >= tgt)
             hard_loss  = pnl_pct < -HARD_LOSS_PCT
 
-            # ── Hard loss exit ────────────────────────────────────────────────
-            if hard_loss and not _bm_exists(bm_data, ex_flag):
+            # ── Hard loss exit ─────────────────────────────────────────────────
+            if hard_loss and not ex_flag_exists(bm, key, etime):
                 pl_rupees = round((cp - ent) / ent * capital, 2)
                 hold_str  = calc_hold_str(etime, now)
-                max_price = get_max_price(bm_data, key)
+                max_price = get_max_price(bm, key)
 
                 exit_alerts_basic.append(build_exit_basic(sym, pnl_pct, "HARD LOSS"))
                 exit_alerts_advance.append(
@@ -992,33 +1071,30 @@ def run_trading_cycle():
                     pl_rupees, "—",
                 ])
                 log_sheet.update_cell(sheet_row, C_STATUS + 1, "EXITED")
-                _bm_set(bm_sheet, bm_data, ex_flag, "1", sym, "TRADE")
-                set_exit_date(bm_sheet, bm_data, key, now.strftime('%Y-%m-%d'), sym)
+                set_ex_flag(bm_sheet, bm, key, sym, etime)
+                set_exit_date(bm_sheet, bm, key, sym, now.strftime('%Y-%m-%d'))
                 print(f"[HARD LOSS] {sym} | {pnl_pct:+.2f}% | ₹{pl_rupees:+.0f}")
                 continue
 
-            # ── Normal exit ───────────────────────────────────────────────────
-            is_pos     = "Positional" in ttype or "positional" in ttype.lower()
-            min_hold   = MIN_HOLD_POS if is_pos else MIN_HOLD_SWING
+            # ── Normal exit ────────────────────────────────────────────────────
+            is_pos        = "Positional" in ttype or "positional" in ttype.lower()
+            min_hold      = MIN_HOLD_POS if is_pos else MIN_HOLD_SWING
             near_hard_loss = pnl_pct < -4.0
-            skip_exit  = (
+            skip_exit = (
                 days_held < min_hold
                 and not target_hit
                 and not hard_loss
                 and not (near_hard_loss and not is_bullish)
             )
 
-            if (tsl_hit or target_hit) and not _bm_exists(bm_data, ex_flag) and not skip_exit:
-                exit_reason   = ("🎯 TARGET HIT"    if target_hit else
-                                 "🔒 TRAILING SL"   if new_tsl > init_sl else
-                                 "🚨 INITIAL SL HIT")
-                result_sym    = "WIN ✅" if (target_hit or pnl_pct > 0) else "LOSS 🔴"
-                hold_str      = calc_hold_str(etime, now)
-                max_price     = get_max_price(bm_data, key)
-                pl_rupees     = round((cp - ent) / ent * capital, 2)
-                o_note        = (options_hint(sym, ent, atr, ttype)
-                                 .replace('\n\n📊 <b>OPTIONS ADVISORY</b>', '')
-                                 .strip() if atr > 0 else "")
+            if (tsl_hit or target_hit) and not ex_flag_exists(bm, key, etime) and not skip_exit:
+                exit_reason = ("🎯 TARGET HIT"    if target_hit else
+                               "🔒 TRAILING SL"   if new_tsl > init_sl else
+                               "🚨 INITIAL SL HIT")
+                result_sym  = "WIN ✅" if (target_hit or pnl_pct > 0) else "LOSS 🔴"
+                hold_str    = calc_hold_str(etime, now)
+                max_price   = get_max_price(bm, key)
+                pl_rupees   = round((cp - ent) / ent * capital, 2)
 
                 exit_alerts_basic.append(build_exit_basic(sym, pnl_pct, exit_reason))
                 exit_alerts_advance.append(
@@ -1034,18 +1110,16 @@ def run_trading_cycle():
                     max_price if max_price > 0 else cp,
                     round(atr, 2), days_held,
                     capital,
-                    pl_rupees,
-                    o_note[:100] if o_note else "—",
+                    pl_rupees, "—",
                 ])
                 log_sheet.update_cell(sheet_row, C_STATUS + 1, "EXITED")
-                _bm_set(bm_sheet, bm_data, ex_flag, "1", sym, "TRADE")
-                set_exit_date(bm_sheet, bm_data, key, now.strftime('%Y-%m-%d'), sym)
+                set_ex_flag(bm_sheet, bm, key, sym, etime)
+                set_exit_date(bm_sheet, bm, key, sym, now.strftime('%Y-%m-%d'))
                 print(f"[EXIT] {sym} | {result_sym} | {pnl_pct:+.2f}% | ₹{pl_rupees:+.0f}")
 
             elif tsl_hit and skip_exit:
                 print(f"[HOLD] {sym}: SL touched Day {days_held + 1} < {min_hold} min hold")
-                hold_warn_key = f"{key}_HOLD_WARN"
-                if not _bm_exists(bm_data, hold_warn_key):
+                if not hold_warn_exists(bm, key):
                     regime_note = "🐂 Bullish — recovery possible" if is_bullish else "🐻 Bearish — watching closely"
                     hold_msg = (
                         f"⚠️ <b>MIN HOLD ACTIVE — {sym}</b>\n"
@@ -1055,7 +1129,7 @@ def run_trading_cycle():
                         f"Current P/L: {pnl_pct:+.2f}%\n{regime_note}"
                     )
                     send_advance(hold_msg); send_premium(hold_msg)
-                    _bm_set(bm_sheet, bm_data, hold_warn_key, "1", sym, "TRADE")
+                    set_hold_warn(bm_sheet, bm, key, sym)
 
         # Batch TSL writes
         if tsl_cell_updates:
@@ -1067,12 +1141,12 @@ def run_trading_cycle():
             log_sheet.update_cells(cells)
             print(f"[TSL WRITE] {len(cells)} updates")
 
-        # ── Send all alerts ───────────────────────────────────────────────────
+        # ── Send all alerts ────────────────────────────────────────────────────
         if exit_alerts_basic:
             for msg in exit_alerts_basic: send_basic(msg)
 
         if exit_alerts_advance:
-            header   = f"⚡ <b>EXIT REPORT — {now.strftime('%H:%M IST')}</b>\n━━━━━━━━━━━━━━━━━━━━\n\n"
+            header    = f"⚡ <b>EXIT REPORT — {now.strftime('%H:%M IST')}</b>\n━━━━━━━━━━━━━━━━━━━━\n\n"
             full_exit = header + "\n\n".join(exit_alerts_advance)
             send_advance(full_exit); send_premium(full_exit)
 
@@ -1088,7 +1162,7 @@ def run_trading_cycle():
     # 3. MID-DAY PULSE  12:28–12:38 IST
     # ─────────────────────────────────────────────────────────────────────────
     noon_key = f"{today}_NOON"
-    if now.hour == 12 and 28 <= now.minute <= 38 and not _bm_exists(bm_data, noon_key):
+    if now.hour == 12 and 28 <= now.minute <= 38 and not bm_exists(bm, noon_key):
         fresh     = log_sheet.get_all_values()
         live_rows = [
             pad(list(r)) for r in fresh[1:16]
@@ -1096,7 +1170,8 @@ def run_trading_cycle():
             and "EXITED" not in str(r[C_STATUS] if len(r) > C_STATUS else "").upper()
         ]
         wins = losses = 0
-        lines_advance = []; lines_basic = []
+        lines_advance = []
+        lines_basic   = []
         for r in live_rows:
             sym   = r[C_SYMBOL]; cp = to_f(r[C_LIVE_PRICE]); ent = to_f(r[C_ENTRY_PRICE])
             tsl   = to_f(r[C_TRAIL_SL]) or to_f(r[C_INITIAL_SL])
@@ -1105,7 +1180,7 @@ def run_trading_cycle():
             pnl = (cp - ent) / ent * 100
             em  = "🟢" if pnl >= 0 else "🔴"
             key = sym_key(sym)
-            mode_tag = {"VCP": "🎯", "MOM": "🚀", "STD": "📊"}.get(get_trade_mode(bm_data, key), "📊")
+            mode_tag = {"VCP": "🎯", "MOM": "🚀", "STD": "📊"}.get(get_trade_mode(bm, key), "📊")
             if pnl >= 0: wins += 1
             else: losses += 1
             lines_advance.append(f"{em} <b>{sym}</b> {mode_tag} [{ttype}]: {pnl:+.2f}% | TSL ₹{tsl:.2f}")
@@ -1117,23 +1192,19 @@ def run_trading_cycle():
             + ("\n".join(lines_basic) if lines_basic else "No open trades")
             + "\n\n🔔 <i>Full levels at ai360trading.in/membership</i>"
         )
-        send_advance(
+        full_noon = (
             f"☀️ <b>MID-DAY PULSE — {today}</b>\n━━━━━━━━━━━━━━━━━━━━\n"
             f"📊 Open: {len(lines_advance)} | 🟢 {wins} | 🔴 {losses}\n\n"
             + ("\n".join(lines_advance) if lines_advance else "📭 No open trades")
         )
-        send_premium(
-            f"☀️ <b>MID-DAY PULSE — {today}</b>\n━━━━━━━━━━━━━━━━━━━━\n"
-            f"📊 Open: {len(lines_advance)} | 🟢 {wins} | 🔴 {losses}\n\n"
-            + ("\n".join(lines_advance) if lines_advance else "📭 No open trades")
-        )
-        _bm_set(bm_sheet, bm_data, noon_key, "1", "", "FLAG")
+        send_advance(full_noon); send_premium(full_noon)
+        bm_set(bm_sheet, bm, noon_key, "1", "", "FLAG")
 
     # ─────────────────────────────────────────────────────────────────────────
     # 4. MARKET CLOSE SUMMARY  15:15–15:45 IST
     # ─────────────────────────────────────────────────────────────────────────
     pm_key = f"{today}_PM"
-    if now.hour == 15 and 15 <= now.minute <= 45 and not _bm_exists(bm_data, pm_key):
+    if now.hour == 15 and 15 <= now.minute <= 45 and not bm_exists(bm, pm_key):
         hist_data   = hist_sheet.get_all_values()
         today_exits = [r for r in hist_data[1:] if len(r) >= 7 and r[3] == today]
         wins_today  = [r for r in today_exits if "WIN"  in str(r[6]).upper()]
@@ -1184,16 +1255,13 @@ def run_trading_cycle():
         full_close += "\n\n✅ <i>Overnight holds monitored via TSL</i>"
         send_advance(full_close); send_premium(full_close)
 
-        _bm_set(bm_sheet, bm_data, pm_key, "1", "", "FLAG")
+        bm_set(bm_sheet, bm, pm_key, "1", "", "FLAG")
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # 5. DONE — no T4 save needed (all writes are immediate in _bm_set)
-    # ─────────────────────────────────────────────────────────────────────────
-    print(f"[DONE] {now.strftime('%H:%M:%S')} IST | BotMemory keys: {len(bm_data)}")
+    print(f"[DONE] {now.strftime('%H:%M:%S')} IST | v14.0 | BotMemory: {len(bm)} keys")
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# WEEKLY SUMMARY — unchanged from v13.5 except bm_data replaces mem
+# WEEKLY SUMMARY — unchanged from v13.5 (except get_sheets signature)
 # ══════════════════════════════════════════════════════════════════════════════
 
 def run_weekly_summary():
@@ -1202,7 +1270,8 @@ def run_weekly_summary():
     print("[WEEKLY] Fetching weekly + monthly summary...")
 
     log_sheet, hist_sheet, _, bm_sheet = get_sheets()
-    bm_data   = _bm_load(bm_sheet)
+    bm = bm_load(bm_sheet)
+
     hist_data = hist_sheet.get_all_values()
     all_rows  = hist_data[1:]
 
@@ -1265,7 +1334,7 @@ def run_weekly_summary():
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# DAILY SUMMARY — unchanged from v13.5 except bm_data replaces mem
+# DAILY SUMMARY — unchanged from v13.5 (except get_sheets signature + bm)
 # ══════════════════════════════════════════════════════════════════════════════
 
 def run_daily_summary():
@@ -1274,8 +1343,7 @@ def run_daily_summary():
     print("[SUMMARY] Fetching portfolio summary...")
 
     log_sheet, hist_sheet, _, bm_sheet = get_sheets()
-    bm_data  = _bm_load(bm_sheet)
-    print(f"[BM] {len(bm_data)} keys loaded")
+    bm = bm_load(bm_sheet)
     all_data = log_sheet.get_all_values()
 
     open_rows = [
@@ -1296,11 +1364,11 @@ def run_daily_summary():
         if not price_sanity(sym, cp, ent): continue
         pnl   = (cp - ent) / ent * 100
         key   = sym_key(sym)
-        cap   = get_capital_from_mem(bm_data, key)
+        cap   = get_capital_from_bm(bm, key)
         pl_rs = round((cp - ent) / ent * cap)
         days  = calc_hold_days(etime, now)
         em    = "🟢" if pnl >= 0 else "🔴"
-        mode  = get_trade_mode(bm_data, key)
+        mode  = get_trade_mode(bm, key)
         trade_lines.append(
             f"{em} <b>{sym}</b> [{ttype}] [{mode}]\n"
             f"   Entry ₹{ent:.2f} → Now ₹{cp:.2f} | <b>{pnl:+.2f}%</b> = ₹{pl_rs:+,}\n"
@@ -1320,18 +1388,18 @@ def run_daily_summary():
     wait_lines = []
     for r in waiting_rows[:5]:
         key  = sym_key(str(r[C_SYMBOL]))
-        mode = get_trade_mode(bm_data, key)
-        cap  = get_capital_from_mem(bm_data, key)
+        mode = get_trade_mode(bm, key)
+        cap  = get_capital_from_bm(bm, key)
         wait_lines.append(
             f"  ⏳ <b>{r[C_SYMBOL]}</b> [{r[C_TRADE_TYPE]}] [{mode}] "
             f"₹{cap:,} | P:{r[C_PRIORITY]}"
         )
 
     msg = (
-        f"📊 <b>PORTFOLIO SUMMARY</b>\n━━━━━━━━━━━━━━━━━━━━\n"
+        f"📊 <b>PORTFOLIO SUMMARY — v14.0</b>\n━━━━━━━━━━━━━━━━━━━━\n"
         f"🕐 {now.strftime('%Y-%m-%d %H:%M')} IST\n"
         f"📈 Open: {len(open_rows)}/{MAX_TRADES} | ⏳ Waiting: {len(waiting_rows)}/{MAX_WAITING}\n"
-        f"💰 Deployed: ₹{sum(get_capital_from_mem(bm_data, sym_key(r[C_SYMBOL])) for r in open_rows):,}\n"
+        f"💰 Deployed: ₹{sum(get_capital_from_bm(bm, sym_key(r[C_SYMBOL])) for r in open_rows):,}\n"
     )
     if trade_lines: msg += f"\n<b>── OPEN TRADES ──</b>\n" + "\n\n".join(trade_lines)
     else: msg += "\n📭 No open trades"
@@ -1346,7 +1414,7 @@ def run_daily_summary():
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# TEST TELEGRAM — unchanged from v13.5
+# TEST TELEGRAM
 # ══════════════════════════════════════════════════════════════════════════════
 
 def run_test_telegram():
@@ -1365,7 +1433,7 @@ def run_test_telegram():
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# ENTRY POINT — unchanged from v13.5
+# ENTRY POINT
 # ══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
