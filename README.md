@@ -41,8 +41,8 @@
 | Channel | Audience | Content |
 |---------|----------|---------|
 | [@ai360trading](https://t.me/ai360trading) | Free | Market mood, daily summary |
-| ai360trading_Advance | ₹499/month | Full signals, entry/exit/TSL alerts |
-| ai360trading_Premium | Bundle | Everything + options hints |
+| ai360trading_Advance | Swing and positional | Full signals, entry/exit/TSL alerts |
+| ai360trading_Premium | advance, intraday and option | Everything + options hints |
 
 ---
 
