@@ -38,7 +38,8 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y -qq ffmpeg imagemagick
+          sudo apt-get install -y -qq ffmpeg imagemagick \
+            fonts-dejavu fonts-liberation fonts-freefont-ttf fonts-ubuntu
           sudo sed -i 's/rights="none" pattern="@\*"/rights="read|write" pattern="@\*"/g' /etc/ImageMagick-6/policy.xml || true
 
       # ── 4. Python dependencies ─────────────────────────────────────────────
@@ -89,16 +90,23 @@ jobs:
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
       # ── 7. Generate ZENO Reel ──────────────────────────────────────────────
+      # FIX (May 2026): Added full AI fallback chain + GCP secrets.
+      # generate_reel.py needs GCP_SERVICE_ACCOUNT_JSON for fetch_best_trade()
+      # (live AlertLog data shown as ZENO's proof point in thumbnail + script).
+      # Without these, live trade data silently returns empty every run.
       - name: Generate ZENO Viral Reel
         env:
-          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-          CONTENT_MODE: ${{ env.CONTENT_MODE }}
-          HOLIDAY_NAME: ${{ env.HOLIDAY_NAME }}
+          GROQ_API_KEY:             ${{ secrets.GROQ_API_KEY }}
+          GEMINI_API_KEY:           ${{ secrets.GEMINI_API_KEY }}
+          ANTHROPIC_API_KEY:        ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY:           ${{ secrets.OPENAI_API_KEY }}
+          GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
+          GOOGLE_SHEET_ID:          ${{ secrets.GOOGLE_SHEET_ID }}
+          CONTENT_MODE:             ${{ env.CONTENT_MODE }}
+          HOLIDAY_NAME:             ${{ env.HOLIDAY_NAME }}
         run: python generate_reel.py
 
       # ── 8. Upload to YouTube ───────────────────────────────────────────────
-      # NOTE: No playlist assigned yet — add PLAYLIST_ZENO_WISDOM secret later
-      #       when channel has enough subscribers and playlist is created.
       - name: Upload ZENO Reel to YouTube
         env:
           YOUTUBE_CREDENTIALS: ${{ secrets.YOUTUBE_CREDENTIALS }}
@@ -106,7 +114,6 @@ jobs:
         run: python upload_youtube.py --type reel
 
       # ── 9. Post to Facebook Page ───────────────────────────────────────────
-      # Facebook Group permanently removed — requires Meta App Review, zero ad revenue
       - name: Post ZENO Reel to Facebook Page
         env:
           META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
