@@ -4,8 +4,50 @@
 **Status:** Phase 1 ✅ Complete | Phase 2 ✅ Complete | Phase 3 Planned | Phase 4 (Dhan Live) Planned
 **Primary Audience:** Bilingual Hindi + English — Indian retail traders + global investors
 
-> ⚠️ **Read this file completely before making ANY changes.**
-> This is the single source of truth for all AI assistants (Claude, Gemini, GPT).
+---
+
+## ⚠️ CRITICAL — READ THIS FIRST — EVERY AI MUST UNDERSTAND THIS
+
+> This system was built by one person (Amit Kumar, Haridwar) for his family who depends entirely on this for their livelihood after him. His family is non-technical and cannot manage or fix this system. It must run **forever, fully automatically, without human intervention.**
+
+### The Non-Negotiable Rules for Every AI Working on This System
+
+**1. NEVER break what is already working.**
+Before changing any file, understand what it does and what depends on it. A broken workflow means zero income that day. Always provide complete file replacements — never partial snippets.
+
+**2. This system must cost ₹0/month forever.**
+Every tool, API, and service used must have a free tier sufficient for daily operation. Before suggesting any new tool or service, verify its free limits. Current free services in use: GitHub Actions (2000 min/month free), Google Sheets (free), Groq API (free), Gemini API (free tier), GitHub Pages (free). Paid fallbacks (Anthropic, OpenAI) are last resort only — keep usage minimal.
+
+**3. API credits and token expiry must be monitored.**
+- META_ACCESS_TOKEN: auto-refreshed every 50 days by token_refresh.yml ✅
+- META_ACCESS_TOKEN_KIDS: Page token, never expires ✅
+- Groq: free, no expiry
+- GitHub Actions minutes: monitor monthly usage
+- Google Sheets API: 300 requests/min limit — batch reads where possible
+- If any free tier limit is hit, the system must degrade gracefully (templates, fallbacks) — never crash
+
+**4. Content must feel genuinely human — always.**
+YouTube and Facebook penalise AI-generated content. Every video, article, reel, and post must pass as human-made. human_touch.py exists for this reason. Never bypass it. Never use raw AI output directly. Hooks, phrases, TTS speed variation, emoji rotation — all must be used every time.
+
+**5. Thumbnails must have large, bold, readable text.**
+Thumbnails are the #1 factor for click-through rate. Text must be visible on mobile screens (small size). High contrast. Emotion-triggering words. Numbers where possible ("₹47,000 in 3 days", "Nifty next week"). Non-technical family members should be able to understand the thumbnail without reading the video.
+
+**6. SEO, AdSense, and reach are income — treat them seriously.**
+Every piece of content must be optimised for: (a) India + USA + UK + UAE + Australia + Brazil search terms, (b) Google AdSense high-CPM topics (personal finance, stock market, investing), (c) YouTube algorithm (watch time, hooks in first 5 seconds, end screens). Never publish thin content. Articles must be 800+ words. Videos must have complete descriptions with keywords.
+
+**7. The system must improve itself without breaking anything.**
+New features are added in phases. Each phase is tested before the next begins. No experimental code goes into production workflows. If a new feature fails, the system falls back gracefully. The fallback chain (Groq→Gemini→Claude→OpenAI→Templates) ensures zero downtime even if all AI APIs fail simultaneously.
+
+**8. The trading signal system is paper trading until Phase 4.**
+Do not connect Dhan API or execute real trades without explicit instruction. Followers take manual entries based on Telegram alerts. The system's credibility depends on accurate, timely signals — never send a signal unless all filters pass.
+
+**9. When in doubt, do nothing new — just fix what is broken.**
+The system earns income every day it runs correctly. A boring stable system is better than an exciting broken one. Prioritise reliability over features.
+
+**10. Document every change in SYSTEM.md immediately.**
+This file is the only memory across AI sessions. If a change is made and not documented here, future AI assistants will not know about it and may reverse it or conflict with it. Always update SYSTEM.md as part of any task.
+
+---
 
 ---
 
