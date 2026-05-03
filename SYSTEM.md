@@ -1,6 +1,6 @@
 # AI360Trading — Master System Documentation
 
-**Last Updated:** May 2, 2026 — Trading Bot v13.4 + AppScript v13.3
+**Last Updated:** May 3, 2026 — Trading Bot v13.4 + AppScript v14.0
 **Status:** Phase 1 ✅ Complete | Phase 2 ✅ Complete | Phase 3 Planned | Phase 4 (Dhan Live) Planned
 **Primary Audience:** Bilingual Hindi + English — Indian retail traders + global investors
 
@@ -220,9 +220,9 @@ The trading system is split across two components that work together:
 
 | Sheet | Purpose |
 | --- | --- |
-| `Nifty200` | Live data for all 200 stocks — CMP, DMAs, FII data, signals, scores (34 cols) |
-| `AlertLog` | Active + waiting trades — 15 rows, 19 cols. T2=YES/NO automation switch. T4=memory string (legacy ref — memory now in BotMemory sheet) |
-| `BotMemory` | Persistent key=value memory store replacing T4 cell — stores TSL, MAX, ATR, CAP, MODE, SEC, exit dates, daily flags per stock |
+| `Nifty200` | Live data for all 200 stocks — CMP, DMAs, FII data, signals, scores (35 cols A–AI) |
+| `AlertLog` | Active + waiting trades — 15 rows, 19 cols. T2=YES/NO automation switch |
+| `BotMemory` | Persistent key-value memory store (cols A–E: Key, Value, UpdatedAt, Symbol, KeyType) |
 | `History` | Closed trade log — 18 cols A–R |
 
 > ⚠️ **Memory system note:** Memory was previously stored in AlertLog T4 cell as a comma-separated string. It has been migrated to a dedicated `BotMemory` sheet. SYSTEM.md references to T4 memory are legacy — always use BotMemory sheet for current state.
@@ -262,16 +262,20 @@ r[32] FII_Buying_Signal(AG) r[33] Master_Score (AH)
 r[34] Sector_Rank (AI)    ← =RANK(AF, FILTER by same sector) — rank within sector by AF score
 ```
 
-### AppScript v13.3 — Key Logic
+### AppScript v14.0 — Key Logic
+
+> **v14.0 change:** Full BotMemory sheet migration (T4 cell no longer used). All gate conditions, capital tiers, ATR multipliers identical to v13.5. Deploy AppScript v14.0 and trading_bot.py BotMemory version together on a day with no open trades.
 
 **Market Regime:** Nifty50 CMP vs 20DMA → Bullish or Bearish. Controls which filter gate applies.
 
-**Bearish gate (4 conditions all required):**
+**Bearish gate (5 conditions all required):**
 
 * Leader\_Type = "Sector Leader"
-* AF ≥ 5 (RS≥2.5 with sector tailwind)
+* AF ≥ 5
 * Master\_Score ≥ 22
-* FII signal ≠ "FII CAUTION" or "FII SELLING"
+* FII signal ≠ "FII CAUTION"
+* FII signal ≠ "FII SELLING"
+* Signal must be one of: RETEST BUY, STRONG BUY, BASE PREPARED
 
 **10 scan gates (in order):**
 
@@ -279,36 +283,88 @@ r[34] Sector_Rank (AI)    ← =RANK(AF, FILTER by same sector) — rank within s
 2. Market regime filter (bullish vs bearish path)
 3. Late entry block (BREAKOUT CONFIRMED needs RS≥7)
 4. Price validity (CMP>0, ATR>0, CMP≤₹5000)
-5. Extension filter (>8% above 20DMA → skip)
-6. Pivot resistance buffer (within 2% below pivot → skip)
-7. Volume filter (bullish market only — vol<120% → skip)
+5. Extension filter — breakout stages: retest% < -3% → skip; others: >8% above 20DMA → skip
+6. Pivot resistance buffer (within 2% below pivot → skip) — RETEST BUY exempt
+7. Volume filter (bullish only) — base/correction stages: vol<60% → skip; others: vol<120% → skip
 8. ATH buffer (within 3% of 52W high → skip)
 9. Trade type (AVOID/NO TRADE → skip)
-10. Sector concentration (max 2 per sector)
+10. Sector concentration (max 2 per sector across traded + waiting combined)
 
 **Capital tiers:**
 
 * ₹13,000 — MasterScore≥28 AND AF≥10 (high conviction)
 * ₹10,000 — MasterScore≥22 OR Accumulation Zone (medium conviction)
 * ₹7,000 — standard
+* Max deployed: ₹45,000 across all trades
+
+**RR minimum:** 1.8 (trades below this are skipped)
+
+**ATR multipliers for SL/Target:**
+
+| Type | SL mult | Target mult |
+| --- | --- | --- |
+| Intraday / Options | 1.5× ATR | 2.0× ATR |
+| Swing (default) | 2.0× ATR | 3.0× ATR |
+| Positional | 2.5× ATR | 4.0× ATR |
+
+> Positional SL anchored to 20DMA (or 50DMA for Value trades) if DMA is closer than raw ATR SL.
+
+**Conviction bonus (added to score before sorting):**
+
+| Condition | Bonus |
+| --- | --- |
+| VCP < 0.04 | +3 |
+| VCP < 0.07 | +1 |
+| Accumulation Zone | +2 |
+| Momentum Zone | +1 |
+| Days since low > 30 | +2 |
+| Days since low > 20 | +1 |
+| Strong Bull SMA | +1 |
+| Near Breakout / Building Momentum / Correction Base stage | +1 |
+| BREAKOUT CONFIRMED + RS < 7 | -3 |
+| AF ≥ 10 | +2 |
+| AF ≥ 6 | +1 |
+| Bearish market + day gain > 0 | +1 |
+| FII BUYING signal | +2 |
+| STRONG FII signal | +1 |
 
 **Trade modes (stored as \_MODE in BotMemory):**
 
-* VCP — AB<0.04 + pre-breakout stage
-* MOM — Strong Bull + RS≥6
+* VCP — VCP\_Status < 0.04 + pre-breakout stage (Near Breakout / Building Momentum / Correction Base)
+* MOM — Strong Bull SMA + RS≥6
 * STD — everything else (default in bear market)
 
-**Memory keys written per stock (to BotMemory sheet):**
+**Sort order:** finalScore DESC, then ATR% ASC as tiebreaker within ±2 score points (minimum SL preference).
+
+**Intraday window:** 09:15–12:30 only (high volume + momentum required for intraday classification).
+
+**BotMemory sheet structure (columns A–E):**
+
+```
+A: Key    B: Value    C: UpdatedAt    D: Symbol    E: KeyType
+```
+
+KeyType values: `FLAG` (date-stamped, purged after 14 days), `TRADE` (per-symbol), `STATE` (batch state)
+
+**Memory keys written per stock by AppScript (KeyType=TRADE):**
 
 * `{sym}_CAP` — capital tier (7000/10000/13000)
 * `{sym}_MODE` — trade mode (VCP/MOM/STD)
 * `{sym}_SEC` — sector name (for Good Morning sector context)
+
+**Memory keys written by trading\_bot.py (KeyType=TRADE):**
+
 * `{sym}_TSL` — current trailing SL price
 * `{sym}_MAX` — highest price seen since entry
 * `{sym}_ATR` — ATR at entry
 * `{sym}_EXDT` — exit date (for 5-day cooldown)
 
-**Sort order:** finalScore DESC, then ATR% ASC as tiebreaker within ±2 score points (minimum SL preference).
+**Batch state keys (KeyType=STATE):**
+
+* `_BATCH_START` — next row index for batched scan (60 rows per 5-min run)
+* `_BATCH_CANDS` — accumulated candidates across batch runs (JSON, URL-encoded)
+
+**Sector_Rank (AI column):** Sheet formula only — `=RANK(AF, FILTER by same sector)`. Not read by AppScript or trading\_bot.py. Informational display only in the sheet.
 
 ### Python Bot v13.4 — Key Logic
 
