@@ -91,7 +91,7 @@ from datetime import datetime, timedelta
 from oauth2client.service_account import ServiceAccountCredentials
 
 IST      = pytz.timezone('Asia/Kolkata')
-TG_TOKEN = os.environ.get('TELEGRAM_TOKEN')   # workflow maps TELEGRAM_BOT_TOKEN -> TELEGRAM_TOKEN
+TG_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')  
 
 # ── 3 Telegram channels — FIXED: channel variable swap corrected ──────────────
 CHAT_BASIC   = os.environ.get('TELEGRAM_CHAT_ID')
