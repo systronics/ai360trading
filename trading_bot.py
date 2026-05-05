@@ -938,7 +938,7 @@ def run_trading_cycle():
                     f"   Entry Rs{ent:.2f} \u2192 Now Rs{cp:.2f}\n"
                     f"   P/L: <b>{pnl_pct:+.2f}%</b> = Rs{pl_rs_dw:+,}\n"
                     f"   SL Rs{init_sl:.2f} | Hard loss at {-HARD_LOSS_PCT:.0f}%\n"
-                    f"   {'Bullish market \u2014 stay calm, SL is your guide' if is_bullish else 'Bear market \u2014 monitor closely'}"
+                    f"   {('Bullish market — stay calm, SL is your guide') if is_bullish else ('Bear market — monitor closely')}"
                 )
                 print(f"[DRAWDOWN] {sym}: {pnl_pct:+.2f}% \u2014 alert queued")
 
