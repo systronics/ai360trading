@@ -1371,7 +1371,11 @@ def run_test_telegram():
     ok1 = _send_one(CHAT_BASIC,   test_msg + "\U0001f4e2 Channel: <b>ai360trading (Free)</b>")
     ok2 = _send_one(CHAT_ADVANCE, test_msg + "\U0001f48e Channel: <b>ai360trading_Advance</b>")
     ok3 = _send_one(CHAT_PREMIUM, test_msg + "\U0001f451 Channel: <b>ai360trading_Premium</b>")
-    print(f"[TEST] BASIC={'\u2705' if ok1 else '\u274c'} | ADVANCE={'\u2705' if ok2 else '\u274c'} | PREMIUM={'\u2705' if ok3 else '\u274c'}")
+    
+    ok1s = '✅' if ok1 else '❌'
+    ok2s = '✅' if ok2 else '❌'
+    ok3s = '✅' if ok3 else '❌'
+    print(f"[TEST] BASIC={ok1s} | ADVANCE={ok2s} | PREMIUM={ok3s}")
 
 
 # =============================================================================
