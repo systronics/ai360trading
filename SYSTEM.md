@@ -679,17 +679,6 @@ All content uses `human_touch.py`. **Never use raw AI output directly.**
 
 ## 12. Known Issues & Fixes
 
-### ✅ Telegram Token Mismatch — FIXED in v14.0
-
-`trading_bot.py` now reads `os.environ.get('TELEGRAM_BOT_TOKEN')` which matches the GitHub Secret name exactly.
-`trading_bot.yml` now passes `TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}` directly.
-
-### ✅ Telegram Channel Variable Swap — FIXED in v14.0
-
-`CHAT_ADVANCE` and `CHAT_PREMIUM` variables were swapped in v13.x (both channels received the same content).
-Fixed in v14.0: each variable reads its own correct secret. Advance and Premium channels now receive
-distinct content. Premium gets the full options buying block (`build_options_premium()`).
-
 ### Facebook Group Posting ❌ (ai360trading group)
 
 The code in `upload_facebook.py` already supports group posting — it posts the reel link + caption to `FACEBOOK_GROUP_ID` after Page upload succeeds. No code changes needed, just token fix.
@@ -707,14 +696,6 @@ The code in `upload_facebook.py` already supports group posting — it posts the
 3. Update `META_ACCESS_TOKEN` in GitHub Secrets
 4. Verify Amit Kumar account is Admin of ai360trading group
 
-### HerooQuest Kids Facebook Upload ✅ Fixed May 2026
-
-Was failing with Error 200 (permission denied) because workflow was using `META_ACCESS_TOKEN` (AI360Trading token) instead of `META_ACCESS_TOKEN_KIDS`. Fixed by:
-1. Generating a Page Access Token specifically for HerooQuest via Graph API Explorer
-2. Extending to long-lived token via token debugger
-3. Saving as `META_ACCESS_TOKEN_KIDS` in GitHub Secrets
-4. `META_ACCESS_TOKEN_KIDS` is a Page token — never expires, no auto-refresh needed
-
 ### Instagram Posting 📲 Manual
 
 Instagram is currently posted manually. Process:
@@ -727,23 +708,7 @@ Instagram is currently posted manually. Process:
 ### META\_ACCESS\_TOKEN Expiry — Automated ✅
 
 `token_refresh.yml` runs every 50 days automatically. Refreshes token + updates GitHub Secret + sends Telegram alert. Requires `META_APP_ID` and `META_APP_SECRET` (both now added).
-
-### AppScript Capital Tiers — UPDATE REQUIRED
-
-AppScript v14.0 CONFIG still has old capital values (₹7k/₹10k/₹13k). The `_CAP` key written to BotMemory will have old values until AppScript CONFIG is updated:
-
-```javascript
-// In AppScript CONFIG block, update:
-CAPITAL_HIGH: 25000,   // was 13000
-CAPITAL_MED:  20000,   // was 10000
-CAPITAL_STD:  15000,   // was  7000
-MAX_DEPLOYED: 100000,  // was 45000
-MAX_TRADES:   8,       // was 5
-```
-
-Until AppScript CONFIG is updated, `trading_bot.py` v14.0 will fall back to ₹15,000 (CAPITAL_STD) per trade because the old values (7000/10000/13000) are not in the new valid set (15000/20000/25000).
-
----
+`META_ACCESS_TOKEN_KIDS` is a Page token for HerooQuest via Graph API Explorer — never expires, no auto-refresh needed
 
 ## 13. Technical Standards
 
