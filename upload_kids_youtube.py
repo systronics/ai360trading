@@ -1,5 +1,6 @@
 # upload_kids_youtube.py
 # Uploads to a SEPARATE YouTube Kids channel (uses YOUTUBE_CREDENTIALS_KIDS secret)
+# v2: Added thumbnail upload from scene 01 image — fixes low CTR from dark first frame
 import os, json
 from pathlib import Path
 from datetime import date
@@ -7,15 +8,15 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 from google.oauth2.credentials import Credentials
 
-TODAY = date.today().isoformat()
+TODAY     = date.today().isoformat()
 META_PATH = Path(f"output/kids_meta_{TODAY}.json")
-meta = json.loads(META_PATH.read_text())
+meta      = json.loads(META_PATH.read_text())
 
 creds_json = json.loads(os.environ["YOUTUBE_CREDENTIALS_KIDS"])
-creds = Credentials.from_authorized_user_info(creds_json)
-youtube = build("youtube", "v3", credentials=creds)
+creds      = Credentials.from_authorized_user_info(creds_json)
+youtube    = build("youtube", "v3", credentials=creds)
 
-# Upload full video
+# ── Upload full video ──────────────────────────────────────────────────────────
 print("[YT-KIDS] Uploading full video...")
 body = {
     "snippet": {
@@ -28,24 +29,36 @@ body = {
             "#KidsCartoon #HindiKahani #KidsEnglish #MoralStories"
         ),
         "tags": meta["seo_tags"],
-        "categoryId": "27",           # Education
+        "categoryId": "27",           # Education — gets into YouTube Kids recommendations
         "defaultLanguage": "en",
         "defaultAudioLanguage": "en",
     },
     "status": {
-        "privacyStatus": "public",
+        "privacyStatus":           "public",
         "selfDeclaredMadeForKids": True,   # CRITICAL — marks as kids content
-        "madeForKids": True,
+        "madeForKids":             True,
     }
 }
-media = MediaFileUpload(meta["video_path"], resumable=True, chunksize=10*1024*1024)
+media    = MediaFileUpload(meta["video_path"], resumable=True, chunksize=10*1024*1024)
 response = youtube.videos().insert(part="snippet,status", body=body, media_body=media).execute()
 
 video_id = response["id"]
+meta["youtube_video_id"]  = video_id
+meta["youtube_video_url"] = f"https://www.youtube.com/watch?v={video_id}"
+meta["public_video_url"]  = meta["youtube_video_url"]
+META_PATH.write_text(json.dumps(meta, ensure_ascii=False, indent=2))
+print(f"[YT-KIDS] ✅ Uploaded: https://youtu.be/{video_id}")
+
+# ── Upload custom thumbnail ────────────────────────────────────────────────────
+# v2 NEW: YouTube default thumbnail = dark first video frame = very low CTR.
+# Scene 01 image is a bright Pixar-style AI-generated frame = much higher CTR.
+# Falls back through scene 01 → 02 → 03 until one exists.
 thumb_candidates = [
-    OUTPUT_DIR / "kids_scene_01.png",
-    OUTPUT_DIR / "kids_scene_02.png",
+    Path("output/kids_scene_01.png"),
+    Path("output/kids_scene_02.png"),
+    Path("output/kids_scene_03.png"),
 ]
+thumb_uploaded = False
 for thumb in thumb_candidates:
     if thumb.exists():
         try:
@@ -53,33 +66,51 @@ for thumb in thumb_candidates:
                 videoId=video_id,
                 media_body=MediaFileUpload(str(thumb), mimetype="image/png")
             ).execute()
-            print(f"[YT-KIDS] Thumbnail uploaded from {thumb.name}")
+            print(f"[YT-KIDS] ✅ Thumbnail uploaded: {thumb.name}")
+            thumb_uploaded = True
         except Exception as e:
-            print(f"[YT-KIDS] Thumbnail upload failed: {e} — YouTube default used")
+            print(f"[YT-KIDS] ⚠️ Thumbnail upload failed: {e} — YouTube default used")
         break
-meta["youtube_video_id"] = video_id
-meta["youtube_video_url"] = f"https://www.youtube.com/watch?v={video_id}"
-meta["public_video_url"] = meta["youtube_video_url"]
-META_PATH.write_text(json.dumps(meta, ensure_ascii=False, indent=2))
-print(f"[YT-KIDS] Uploaded: https://youtu.be/{video_id}")
 
-# Upload short (9:16) to same channel
+if not thumb_uploaded:
+    print("[YT-KIDS] ⚠️ No scene image found for thumbnail — YouTube default used")
+    print("          Check output/ folder for kids_scene_0*.png files")
+
+# ── Upload short (9:16) ────────────────────────────────────────────────────────
 print("[YT-KIDS] Uploading short...")
 short_body = {
     "snippet": {
-        "title": f"#{meta['title_en'][:80]} #Shorts #KidsStories",
+        "title":       f"#{meta['title_en'][:80]} #Shorts #KidsStories",
         "description": meta["description_en"],
-        "tags": meta["seo_tags"] + ["Shorts"],
-        "categoryId": "27",
+        "tags":        meta["seo_tags"] + ["Shorts"],
+        "categoryId":  "27",
     },
     "status": {
-        "privacyStatus": "public",
+        "privacyStatus":           "public",
         "selfDeclaredMadeForKids": True,
-        "madeForKids": True,
+        "madeForKids":             True,
     }
 }
 short_media = MediaFileUpload(meta["short_path"], resumable=True)
-short_resp = youtube.videos().insert(
+short_resp  = youtube.videos().insert(
     part="snippet,status", body=short_body, media_body=short_media
 ).execute()
-print(f"[YT-KIDS] Short uploaded: https://youtu.be/{short_resp['id']}")
+short_id = short_resp["id"]
+print(f"[YT-KIDS] ✅ Short uploaded: https://youtu.be/{short_id}")
+
+# Upload thumbnail for short too (same scene image)
+for thumb in thumb_candidates:
+    if thumb.exists():
+        try:
+            youtube.thumbnails().set(
+                videoId=short_id,
+                media_body=MediaFileUpload(str(thumb), mimetype="image/png")
+            ).execute()
+            print(f"[YT-KIDS] ✅ Short thumbnail uploaded: {thumb.name}")
+        except Exception as e:
+            print(f"[YT-KIDS] ⚠️ Short thumbnail failed: {e}")
+        break
+
+print(f"\n[YT-KIDS] 🎉 Done!")
+print(f"  Full video : https://youtu.be/{video_id}")
+print(f"  Short      : https://youtu.be/{short_id}")
