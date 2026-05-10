@@ -1,18 +1,36 @@
 """
-generate_analysis.py — AI360Trading
+generate_analysis.py — AI360Trading v2.0
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Generates Part 1 — 8-slide market analysis video (16:9, YouTube).
+Generates ONE combined 10-15 min market analysis + education video (16:9).
+(Replaces Part 1 + Part 2 separate videos — combined = longer watch time
+= mid-roll ads = higher RPM)
 
-VOICE: hi-IN-SwaraNeural (Swara female voice — consistent with education)
+v2.0 CHANGES:
+1. TITLE FIX — Stock name FIRST in title (people search stock names)
+   "CGPOWER 🚀 BREAKOUT — ₹1000 Target? | Nifty50 11 May 2026 | AI360 Trading"
+   was: "Aaj Ka Market Analysis — 2026-05-11" (nobody searches this)
 
-Upload: This script uploads directly to YouTube after render.
-        Saves output/analysis_video_id.txt for generate_education.py to link.
+2. DESCRIPTION FIX — Full 20-line description with timestamps, links, hashtags
+   was: "3-4 sentence description"
+
+3. ENGAGEMENT CTA — "Comment करो A ya B" injected in slides 4 and 8
+   was: no engagement prompts in video
+
+4. VIDEO LENGTH — 10 slides × 65 sec = ~11 min (mid-roll ads enabled at 8 min)
+   was: 8 slides × 45 sec = ~6 min (no mid-roll ads = lower RPM)
+
+5. CATEGORY FIX — categoryId "25" (News & Politics) for finance = higher CPM
+   was: "27" (Education) — lower CPM for finance content
+
+6. DESCRIPTION INCLUDES TIMESTAMPS — increases watch time by guiding viewers
+   was: no timestamps
+
+VOICE: hi-IN-SwaraNeural (Swara female — analysis + education combined)
+Upload: uploads directly to YouTube. Saves analysis_video_id.txt.
         Saves output/analysis_meta_YYYYMMDD.json with full SEO meta.
 
 SEO: All tags from seo.get_video_tags() — never hardcoded here.
 Mode: market / weekend / holiday via CONTENT_MODE env var.
-
-Last updated: April 2026 — SEO meta fix, seo.get_video_tags(), human_touch
 """
 
 import os
@@ -32,7 +50,6 @@ from moviepy.editor import (
     concatenate_videoclips, concatenate_audioclips
 )
 
-# YouTube upload
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
@@ -42,13 +59,14 @@ from human_touch import ht, seo
 # ─── CONFIG ──────────────────────────────────────────────────────────────────
 CONTENT_MODE = os.environ.get("CONTENT_MODE", "market").lower()
 HOLIDAY_NAME = os.environ.get("HOLIDAY_NAME", "Indian Market Holiday")
-print(f"[MODE] generate_analysis.py running in mode: {CONTENT_MODE.upper()}")
+print(f"[MODE] generate_analysis.py v2.0 running in mode: {CONTENT_MODE.upper()}")
 
-OUT      = Path("output")
-MUSIC_DIR= Path("public/music")
-W, H     = 1920, 1080   # Horizontal — full YouTube video
-FPS      = 24
-VOICE    = "hi-IN-SwaraNeural"  # Swara female — analysis + education
+OUT       = Path("output")
+MUSIC_DIR = Path("public/music")
+W, H      = 1920, 1080
+FPS       = 24
+VOICE     = "hi-IN-SwaraNeural"
+NUM_SLIDES= 10  # v2.0: 10 slides × ~65 sec = ~11 min (mid-roll ads enabled)
 
 os.makedirs(OUT, exist_ok=True)
 
@@ -78,17 +96,17 @@ def get_font(paths, size):
 # ─── THEME ───────────────────────────────────────────────────────────────────
 THEMES = {
     "bullish": {
-        "bg_top": (5, 30, 15),  "bg_bot": (10, 60, 30),
+        "bg_top": (5, 30, 15),   "bg_bot": (10, 60, 30),
         "accent": (0, 220, 110), "text": (235, 255, 245),
         "subtext": (160, 220, 180), "bar": (0, 180, 90)
     },
     "bearish": {
-        "bg_top": (35, 10, 10), "bg_bot": (70, 20, 20),
+        "bg_top": (35, 10, 10),  "bg_bot": (70, 20, 20),
         "accent": (255, 60, 60), "text": (255, 240, 240),
         "subtext": (220, 160, 160), "bar": (200, 40, 40)
     },
     "neutral": {
-        "bg_top": (10, 20, 40), "bg_bot": (20, 40, 80),
+        "bg_top": (10, 20, 40),  "bg_bot": (20, 40, 80),
         "accent": (0, 180, 255), "text": (240, 250, 255),
         "subtext": (160, 200, 230), "bar": (0, 140, 210)
     },
@@ -99,7 +117,6 @@ def lerp(c1, c2, t):
 
 # ─── LIVE DATA ───────────────────────────────────────────────────────────────
 def fetch_market_data():
-    """Fetches live global data — prevents AI hallucinating old Nifty levels."""
     print("📈 Fetching live market data...")
     data_summary = ""
     try:
@@ -141,55 +158,87 @@ def get_bg_music():
 def generate_slides():
     from ai_client import ai
 
-    today    = datetime.now().strftime("%A, %d %B %Y")
-    today_str= datetime.now().strftime("%Y-%m-%d")
-    hook     = ht.get_hook(mode=CONTENT_MODE, lang="hi")
+    today     = datetime.now().strftime("%A, %d %B %Y")
+    today_str = datetime.now().strftime("%d %b %Y")
+    hook      = ht.get_hook(mode=CONTENT_MODE, lang="hi")
+    cta       = ht.get_cta(lang="hi")
 
     if CONTENT_MODE == "weekend":
         market_context = "evergreen educational content about Indian and global markets."
+        extra_instruction = "Focus on one technical concept or wealth-building lesson. Make it beginner-friendly."
     elif CONTENT_MODE == "holiday":
         holiday_label = HOLIDAY_NAME if HOLIDAY_NAME else "Indian Market Holiday"
         market_context = (
             f"special {holiday_label} educational content. Market is closed. "
             f"Focus on investment lessons, wealth-building, financial planning."
         )
+        extra_instruction = f"Reference {holiday_label} naturally. Keep festive but educational tone."
     else:
         live_data = fetch_market_data()
-        market_context = f"today's live market levels:\n{live_data}\nAnalyze these specific levels for Nifty, S&P 500, and BTC."
+        market_context = f"today's live market levels:\n{live_data}\nAnalyze these specific levels."
+        extra_instruction = (
+            "Identify 2-3 specific breakout stocks with entry, SL, target levels. "
+            "Name them explicitly — do not say 'stock ABC'. Use real NSE symbols like CGPOWER, BHEL etc."
+        )
 
-    prompt = f"""You are an expert Indian market analyst creating a professional YouTube video script in Hinglish for ai360trading.
+    # v2.0: Prompt forces viral title format, engagement CTAs, and longer content
+    prompt = f"""You are an expert Indian market analyst creating a combined 10-12 minute YouTube video in Hinglish for ai360trading.
 
 Today is {today}.
+Market context: {market_context}
 
-USE THIS LIVE DATA FOR THE SCRIPT:
-{market_context}
+{extra_instruction}
 
-IMPORTANT: Nifty is currently around 22,000-24,000. DO NOT mention 17,000 or any outdated levels.
-Start slide 1 with this hook: "{hook}"
+CRITICAL TITLE RULES (YouTube SEO):
+- If market mode: put the MOST EXCITING stock name FIRST: "CGPOWER 🚀 BREAKOUT — ₹1000 Target? | Nifty50 {today_str} | AI360 Trading"
+- If weekend/holiday: "Warren Buffett ka Yeh Rule | Trading Education {today_str} | AI360 Trading"  
+- NEVER start with "Aaj Ka" or generic phrases
+- Always end with "| AI360 Trading"
+- Max 95 characters
 
-Generate exactly 8 slides in valid JSON:
+ENGAGEMENT CTA RULES:
+- Slide 4 MUST end with: "Comment karo — A agar aap bullish hain, B agar bearish! 👇"
+- Slide 9 MUST end with: "Subscribe karo aur bell icon dabao — kal ka setup miss mat karo! 🔔"
+
+Start slide 1 content with this hook: "{hook}"
+Use this CTA somewhere: "{cta}"
+
+Generate exactly {NUM_SLIDES} slides in valid JSON:
 {{
-  "video_title": "Hinglish title max 70 chars with {today_str}",
-  "video_description": "3-4 sentence Hinglish description with key insights, include ai360trading.in link",
+  "video_title": "STOCK_NAME 🚀 ACTION — RESULT? | Nifty50 {today_str} | AI360 Trading",
+  "main_insight": "One key insight sentence for description — max 20 words",
+  "top_stocks": ["STOCK1", "STOCK2", "STOCK3"],
   "overall_sentiment": "bullish or bearish or neutral",
   "slides": [
     {{
-      "title": "slide heading",
-      "content": "spoken content 40-60 words in Hinglish using the LIVE DATA provided.",
+      "title": "slide heading max 6 words",
+      "content": "spoken content 55-70 words in Hinglish. Natural, energetic, human. Use live data.",
       "sentiment": "bullish or bearish or neutral",
-      "key_points": ["point 1", "point 2", "point 3"]
+      "key_points": ["point 1", "point 2", "point 3"],
+      "slide_type": "intro or analysis or education or cta"
     }}
   ]
-}}"""
+}}
 
-    print("🤖 Generating market analysis script via ai_client...")
+Slide structure should be:
+1. Hook + Market Overview (intro)
+2. Global Markets (analysis)
+3. Nifty Key Levels (analysis)
+4. Best Stock Setup #1 + ENGAGEMENT CTA (analysis)
+5. Best Stock Setup #2 (analysis)
+6. Best Stock Setup #3 (analysis)
+7. Technical Concept / Why This Setup Works (education)
+8. Risk Management for Today's Trades (education)
+9. Options Insight + SUBSCRIBE CTA (education)
+10. Summary + Tomorrow's Preview (cta)"""
+
+    print("🤖 Generating combined analysis+education script via ai_client...")
     try:
         data = ai.generate_json(prompt, content_mode=CONTENT_MODE, lang="hi")
-        # Humanize slide content
         for slide in data.get("slides", []):
             if slide.get("content"):
                 slide["content"] = ht.humanize(slide["content"], lang="hi")
-        print(f"✅ Analysis script ready: {data.get('video_title', '')[:60]}")
+        print(f"✅ Script ready: {data.get('video_title', '')[:70]}")
         return data
     except Exception as e:
         print(f"⚠️ Script generation error: {e}")
@@ -197,17 +246,25 @@ Generate exactly 8 slides in valid JSON:
 
 
 def _fallback_slides():
+    today_str = datetime.now().strftime("%d %b %Y")
     return {
-        "video_title": f"Aaj Ka Market Analysis — {datetime.now().strftime('%d %B %Y')}",
-        "video_description": "Aaj ke market ki poori analysis. Visit ai360trading.in",
+        "video_title": f"Nifty50 Analysis {today_str} | Breakout Stocks Today | AI360 Trading",
+        "main_insight": "Aaj ke top breakout stocks with entry, SL and target levels.",
+        "top_stocks": ["NIFTY50"],
         "overall_sentiment": "neutral",
         "slides": [
-            {"title": "Market Overview", "content": "Market levels are updating. Please check back for live analysis.", "sentiment": "neutral", "key_points": ["Loading data"]}
-        ]
+            {
+                "title": f"Market Overview {today_str}",
+                "content": "Namaskar! Aaj ka market analysis le ke aa gaya hoon. Live data load ho raha hai. Subscribe karo daily signals ke liye!",
+                "sentiment": "neutral",
+                "key_points": ["Subscribe karo", "Telegram join karo", "ai360trading.in"],
+                "slide_type": "intro"
+            }
+        ] * NUM_SLIDES
     }
 
 # ─── SLIDE RENDERER ──────────────────────────────────────────────────────────
-def make_slide(slide, idx, total, path):
+def make_slide(slide, idx, total, path, thumb_text=None):
     snt = slide.get("sentiment", "neutral").lower()
     if snt not in THEMES: snt = "neutral"
     th = THEMES[snt]
@@ -219,26 +276,47 @@ def make_slide(slide, idx, total, path):
         for x in range(W): px[x, y] = c
 
     draw = ImageDraw.Draw(img, "RGBA")
-    draw.rectangle([(0, 0), (W, 10)], fill=th["accent"])
-    draw.text((W - 40, 30), "ai360trading.in", fill=(*th["subtext"], 180), font=get_font(FONT_REG_PATHS, 28), anchor="ra")
-    draw.text((40, 35), f"{idx} / {total}", fill=(*th["subtext"], 200), font=get_font(FONT_BOLD_PATHS, 32), anchor="la")
 
-    title_font  = get_font(FONT_BOLD_PATHS, 72)
-    title_lines = textwrap.wrap(slide["title"].upper(), width=28)
-    ty = 140
-    for line in title_lines[:2]:
-        draw.text((W // 2, ty), line, fill=th["text"], font=title_font, anchor="mm")
-        ty += 88
+    # Top bar + branding
+    draw.rectangle([(0, 0), (W, 12)], fill=th["accent"])
+    draw.text((W - 40, 30), "ai360trading.in",
+              fill=(*th["subtext"], 180), font=get_font(FONT_REG_PATHS, 28), anchor="ra")
+    draw.text((40, 35), f"{idx} / {total}",
+              fill=(*th["subtext"], 200), font=get_font(FONT_BOLD_PATHS, 32), anchor="la")
 
-    draw.rectangle([(80, ty + 20), (W - 80, ty + 24)], fill=th["accent"])
-    ty += 60
+    # v2.0: Thumbnail-style overlay on slide 1 (high CTR thumbnail = first frame)
+    if idx == 1 and thumb_text:
+        # Large thumbnail text on first slide (YouTube uses first frame as thumbnail option)
+        t1_font = get_font(FONT_BOLD_PATHS, 110)
+        t2_font = get_font(FONT_BOLD_PATHS, 80)
+        t3_font = get_font(FONT_BOLD_PATHS, 60)
+        # Shadow/outline effect for readability
+        for dx, dy in [(-3,0),(3,0),(0,-3),(0,3)]:
+            draw.text((W//2+dx, 200+dy), thumb_text.get("line1",""), font=t1_font, fill=(0,0,0), anchor="mm")
+        draw.text((W//2, 200), thumb_text.get("line1",""), font=t1_font, fill=(255, 220, 0), anchor="mm")
+        draw.text((W//2, 330), thumb_text.get("line2",""), font=t2_font, fill=th["text"], anchor="mm")
+        draw.text((W//2, 420), thumb_text.get("line3",""), font=t3_font, fill=th["accent"], anchor="mm")
+        draw.rectangle([(80, 460), (W-80, 464)], fill=th["accent"])
+        ty = 510
+    else:
+        # Normal slide layout
+        title_font  = get_font(FONT_BOLD_PATHS, 72)
+        title_lines = textwrap.wrap(slide["title"].upper(), width=28)
+        ty = 140
+        for line in title_lines[:2]:
+            draw.text((W//2, ty), line, fill=th["text"], font=title_font, anchor="mm")
+            ty += 88
+        draw.rectangle([(80, ty+20), (W-80, ty+24)], fill=th["accent"])
+        ty += 60
 
+    # Content text
     content_font  = get_font(FONT_REG_PATHS, 42)
     content_lines = textwrap.wrap(slide["content"], width=55)
     for line in content_lines[:6]:
         draw.text((80, ty), line, fill=th["text"], font=content_font)
         ty += 58
 
+    # Key points
     if slide.get("key_points"):
         ty += 30
         bullet_font = get_font(FONT_BOLD_PATHS, 38)
@@ -246,7 +324,9 @@ def make_slide(slide, idx, total, path):
             draw.text((80, ty), f"▶ {pt}", fill=th["accent"], font=bullet_font)
             ty += 52
 
-    draw.rectangle([(0, H - 10), (W, H)], fill=th["accent"])
+    # Bottom bar
+    draw.rectangle([(0, H-10), (W, H)], fill=th["accent"])
+
     img.save(str(path), quality=95)
 
 # ─── VOICE ───────────────────────────────────────────────────────────────────
@@ -279,100 +359,106 @@ def upload_to_youtube(video_path, title, description, tags):
             "title":       title[:100],
             "description": description,
             "tags":        tags[:30],
-            "categoryId":  "27"  # Education — best for finance monetisation
+            # v2.0: categoryId "25" = News & Politics — higher CPM for finance
+            # vs "27" (Education) which has lower finance CPM
+            "categoryId":  "25"
         },
         "status": {
             "privacyStatus":           "public",
             "selfDeclaredMadeForKids": False
         }
     }
-    media = MediaFileUpload(str(video_path), mimetype="video/mp4", resumable=True)
-    print(f"🚀 Uploading analysis video: {title[:60]}...")
+    media    = MediaFileUpload(str(video_path), mimetype="video/mp4", resumable=True)
+    print(f"🚀 Uploading analysis video: {title[:65]}...")
     try:
         request  = youtube.videos().insert(part="snippet,status", body=body, media_body=media)
         response = None
         while response is None:
             status, response = request.next_chunk()
             if status: print(f"  {int(status.progress() * 100)}%")
-        vid_id = response["id"]
-        print(f"✅ Analysis uploaded: https://youtube.com/watch?v={vid_id}")
+        vid_id   = response["id"]
+        print(f"✅ Uploaded: https://youtube.com/watch?v={vid_id}")
         return vid_id
     except Exception as e:
         print(f"❌ Upload failed: {e}")
         return None
 
 # ─── BUILD SEO TITLE + DESCRIPTION ───────────────────────────────────────────
-def build_video_meta(data, today):
-    """Build full SEO title, description, and tags for the analysis video."""
-    vid_title = data.get("video_title", f"Market Analysis — {today}")
-    vid_desc  = data.get("video_description", "Daily market analysis by ai360trading.in")
-    sentiment = data.get("overall_sentiment", "neutral")
+def build_video_meta(data, today_str):
+    """
+    v2.0: Full SEO title + 20-line description with timestamps, links, hashtags.
+    """
+    vid_title   = data.get("video_title", f"Nifty50 Analysis {today_str} | Today's Breakout Stocks | AI360 Trading")
+    main_insight= data.get("main_insight", "Aaj ke top stocks with complete entry, SL and target.")
+    top_stocks  = data.get("top_stocks", [])
+    sentiment   = data.get("overall_sentiment", "neutral")
 
-    # Get tags from seo system
-    tags       = seo.get_video_tags(mode=CONTENT_MODE, is_short=False)
-    hashtag_str= " ".join([f"#{t}" for t in tags[:15]])
+    # Tags — mix Hindi + English for max reach
+    tags = seo.get_video_tags(
+        mode=CONTENT_MODE,
+        is_short=False,
+        channel="trading",
+        lang="both",
+        extra_tags=[s.replace("NSE:", "") for s in top_stocks[:3]]  # Stock names as first tags
+    )
 
-    if CONTENT_MODE == "holiday":
-        label    = HOLIDAY_NAME if HOLIDAY_NAME else "Market Holiday"
-        full_desc = (
-            f"🎉 {label} Special — {vid_desc}\n\n"
-            f"🌍 For investors: India, USA, UK, Brazil & UAE\n"
-            f"📊 Daily market analysis | Nifty50 | S&P500 | BTC\n"
-            f"🌐 Website: https://ai360trading.in\n"
-            f"📱 Telegram: https://t.me/ai360trading\n"
-            f"⚠️ Educational content only. Not financial advice.\n\n"
-            f"#ai360trading #MarketAnalysis {hashtag_str}"
-        )
-    elif CONTENT_MODE == "weekend":
-        full_desc = (
-            f"📚 Weekend Learning — {vid_desc}\n\n"
-            f"🌍 For investors: India, USA, UK, Brazil & UAE\n"
-            f"📊 Weekly market recap and education\n"
-            f"🌐 Website: https://ai360trading.in\n"
-            f"📱 Telegram: https://t.me/ai360trading\n"
-            f"⚠️ Educational content only. Not financial advice.\n\n"
-            f"#ai360trading #WeekendLearning {hashtag_str}"
-        )
-    else:
-        full_desc = (
-            f"📊 {vid_desc}\n\n"
-            f"🎯 Daily Nifty50 analysis with live data\n"
-            f"🌍 For traders: India, USA, UK, Brazil & UAE\n"
-            f"🌐 Website: https://ai360trading.in\n"
-            f"📱 Telegram: https://t.me/ai360trading\n"
-            f"⚠️ Educational content only. Not financial advice.\n\n"
-            f"#ai360trading #Nifty50 #MarketAnalysis {hashtag_str}"
-        )
+    # v2.0: Full description with timestamps
+    full_desc = seo.get_description_template(
+        title=vid_title,
+        main_insight=main_insight,
+        mode=CONTENT_MODE,
+        channel="trading",
+        stocks=top_stocks,
+        lang="hi"
+    )
 
     return vid_title, full_desc, tags, sentiment
 
 # ─── MAIN ────────────────────────────────────────────────────────────────────
 async def run():
-    today = datetime.now().strftime("%Y%m%d")
+    today_str = datetime.now().strftime("%d %b %Y")
+    today_fn  = datetime.now().strftime("%Y%m%d")
 
-    data      = generate_slides()
-    slides    = data["slides"]
+    data       = generate_slides()
+    slides     = data["slides"]
+    top_stocks = data.get("top_stocks", [])
+    sentiment  = data.get("overall_sentiment", "neutral")
 
     # Build full SEO meta
-    vid_title, full_desc, tags, sentiment = build_video_meta(data, today)
+    vid_title, full_desc, tags, sentiment = build_video_meta(data, today_str)
 
-    # ── Render all slides + voices ────────────────────────────────────────────
+    # v2.0: Generate thumbnail text for slide 1
+    stock1    = top_stocks[0] if top_stocks else ""
+    thumb     = seo.get_thumbnail_text(
+        channel="trading",
+        stock=stock1,
+        mood=sentiment.upper(),
+    )
+
+    print(f"📋 Title: {vid_title}")
+    print(f"🏷️  Tags (first 5): {tags[:5]}")
+    print(f"🖼️  Thumbnail: {thumb['line1']} | {thumb['line2']} | {thumb['line3']}")
+
+    # ── Render slides + voices ────────────────────────────────────────────────
     clips = []
     for i, s in enumerate(slides):
         img_path   = OUT / f"an_{i}.png"
         audio_path = OUT / f"an_{i}.mp3"
-        make_slide(s, i + 1, len(slides), img_path)
+
+        # Pass thumbnail text only to slide 1
+        make_slide(s, i+1, len(slides), img_path, thumb_text=(thumb if i == 0 else None))
         await gen_voice(s["content"], audio_path)
 
         voice_clip    = AudioFileClip(str(audio_path))
-        duration      = voice_clip.duration + 0.8
+        # v2.0: Slightly longer slide duration for better watch time
+        duration      = voice_clip.duration + 1.2  # was 0.8
         bg_music_path = get_bg_music()
         if bg_music_path:
             try:
-                bg         = AudioFileClip(str(bg_music_path)).subclip(0, duration).volumex(0.07)
-                slide_audio= CompositeAudioClip([voice_clip, bg])
+                bg          = AudioFileClip(str(bg_music_path)).subclip(0, duration).volumex(0.07)
+                slide_audio = CompositeAudioClip([voice_clip, bg])
             except:
-                slide_audio= voice_clip
+                slide_audio = voice_clip
         else:
             slide_audio = voice_clip
 
@@ -385,40 +471,49 @@ async def run():
         str(video_path), fps=FPS, codec="libx264", audio_codec="aac",
         remove_temp=True, logger=None
     )
-    print(f"✅ Analysis video rendered: {video_path.name}")
+
+    total_duration = sum(c.duration for c in clips)
+    print(f"✅ Video rendered: {video_path.name} | Duration: {total_duration/60:.1f} min")
+    if total_duration >= 480:  # 8 minutes
+        print("✅ MID-ROLL ADS ENABLED (video > 8 minutes)")
+    else:
+        print(f"⚠️  Video {total_duration/60:.1f} min — mid-roll ads need 8+ min")
 
     # ── Upload to YouTube ─────────────────────────────────────────────────────
     video_id = upload_to_youtube(video_path, vid_title, full_desc, tags)
 
     if video_id:
-        # Save video ID for generate_education.py to link Part 1 → Part 2
         id_path = OUT / "analysis_video_id.txt"
         id_path.write_text(video_id, encoding="utf-8")
         print(f"💾 Saved analysis_video_id.txt: {video_id}")
     else:
-        # Write UPLOAD_FAILED so education script doesn't try to use empty ID
         (OUT / "analysis_video_id.txt").write_text("UPLOAD_FAILED", encoding="utf-8")
 
-    # ── Save meta JSON with full SEO data ────────────────────────────────────
+    # ── Save full meta JSON ────────────────────────────────────────────────────
     meta = {
-        "title":            vid_title,
-        "description":      full_desc,
-        "tags":             tags,
-        "sentiment":        sentiment,
-        "content_mode":     CONTENT_MODE,
-        "youtube_video_id": video_id or "",
+        "title":             vid_title,
+        "description":       full_desc,
+        "tags":              tags,
+        "sentiment":         sentiment,
+        "top_stocks":        top_stocks,
+        "content_mode":      CONTENT_MODE,
+        "duration_minutes":  round(total_duration / 60, 1),
+        "mid_roll_eligible": total_duration >= 480,
+        "youtube_video_id":  video_id or "",
         "youtube_video_url": f"https://youtube.com/watch?v={video_id}" if video_id else "",
+        "thumbnail_text":    thumb,
     }
-    meta_path = OUT / f"analysis_meta_{today}.json"
+    meta_path = OUT / f"analysis_meta_{today_fn}.json"
     meta_path.write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"💾 Saved analysis meta: {meta_path.name}")
+    print(f"💾 Saved meta: {meta_path.name}")
 
-    print(f"\n{'='*55}")
-    print(f"✅ ANALYSIS DONE — {today} [{CONTENT_MODE.upper()}]")
-    print(f"   Title    : {vid_title[:60]}")
+    print(f"\n{'='*60}")
+    print(f"✅ ANALYSIS DONE — {today_str} [{CONTENT_MODE.upper()}]")
+    print(f"   Title    : {vid_title[:65]}")
+    print(f"   Duration : {total_duration/60:.1f} min")
     print(f"   Video ID : {video_id or 'FAILED'}")
     print(f"   Tags     : {', '.join(tags[:5])}...")
-    print(f"{'='*55}\n")
+    print(f"{'='*60}\n")
 
 
 if __name__ == "__main__":
