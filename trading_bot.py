@@ -88,10 +88,10 @@ from datetime import datetime, timedelta
 from oauth2client.service_account import ServiceAccountCredentials
 
 IST        = pytz.timezone('Asia/Kolkata')
-TG_TOKEN   = os.environ.get('TELEGRAM_TOKEN')
+TG_TOKEN   = os.environ.get('TELEGRAM_BOT_TOKEN')
 
 # ── 3 Telegram channels — v14.0 FIX: correct env var names ───────────────────
-CHAT_BASIC   = os.environ.get('CHAT_ID_BASIC')      # FREE Follow/Subscribe
+CHAT_BASIC = os.environ.get('CHAT_ID_BASIC')      # FREE Follow/Subscribe
 CHAT_ADVANCE = os.environ.get('CHAT_ID_ADVANCE')    # Advance Rs. ₹1000/month
 CHAT_PREMIUM = os.environ.get('CHAT_ID_PREMIUM')    # Premium Rs. ₹3000/month
 
@@ -1197,7 +1197,7 @@ if __name__ == "__main__":
         print(f"[FATAL] {e}\n{err}")
         # Try to send error alert so family knows something broke
         try:
-            TG_TOKEN_env = os.environ.get('TELEGRAM_TOKEN')
+            TG_TOKEN_env = os.environ.get('TELEGRAM_BOT_TOKEN')
             CHAT_ADV_env = os.environ.get('CHAT_ID_ADVANCE')
             if TG_TOKEN_env and CHAT_ADV_env:
                 requests.post(
