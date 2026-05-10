@@ -13,8 +13,9 @@ on:
           - hi
           - en
   schedule:
-    - cron: '0 11 * * 1-5'    # 4:30 PM IST weekdays
-    - cron: '30 4 * * 6,0'    # 10:00 AM IST weekends
+    # v2: Fixed upload times — kids are HOME now
+    - cron: '0 11 * * 1-5'    # 4:30 PM IST weekdays (kids home from school)
+    - cron: '30 4 * * 6,0'    # 10:00 AM IST weekends (morning screen time)
 
 jobs:
   generate-and-upload:
