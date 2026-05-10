@@ -220,8 +220,7 @@ def generate_scene_image(prompt: str, scene_id: int) -> Path:
         stability_key = os.environ.get("STABILITY_API_KEY")
         if stability_key:
             import requests as req
-            import base64
-
+            
             # Stable Image Core — best quality, 3 credits per image
             response = req.post(
                 "https://api.stability.ai/v2beta/stable-image/generate/core",
@@ -253,7 +252,7 @@ def generate_scene_image(prompt: str, scene_id: int) -> Path:
 
     time.sleep(1)
 
- # ── LAYER 5: Heroo branded placeholder — always works ────────────────
+# ── LAYER 5: Heroo branded placeholder — always works ────────────────
     colors = ["#1a1a2e","#16213e","#0f3460","#533483","#e94560","#2b2d42"]
     img = Image.new("RGB", (1280, 720), color=colors[scene_id % len(colors)])
     draw = ImageDraw.Draw(img)
