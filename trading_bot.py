@@ -1189,26 +1189,76 @@ def run_trading_cycle():
 # ══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
+    import traceback
+    mode = os.environ.get('BOT_MODE', 'trade').strip().lower()
+    print(f"[MODE] {mode}")
+
     try:
-        run_trading_cycle()
+        if mode == 'test_telegram':
+            # Test all 3 channels regardless of market hours
+            now = datetime.now(IST)
+            test_msg = (
+                f"✅ <b>TELEGRAM TEST — {now.strftime('%d-%b %H:%M')} IST</b>\n"
+                f"━━━━━━━━━━━━━━━━━━━━\n"
+                f"AI360 Trading v14.0\n"
+                f"Channel: {{channel}}\n"
+                f"Status: Bot is alive and connected ✅\n"
+                f"Market: {'OPEN' if is_market_hours(now) else 'CLOSED'}"
+            )
+            ok1 = send_basic(test_msg.format(channel="Basic 🆓"))
+            ok2 = send_advance(test_msg.format(channel="Advance 📊"))
+            ok3 = send_premium(test_msg.format(channel="Premium 💎"))
+            print(f"[TEST] Basic={ok1} Advance={ok2} Premium={ok3}")
+            if not (ok1 or ok2 or ok3):
+                print("[TEST] ❌ ALL channels failed — check TELEGRAM_BOT_TOKEN")
+            elif ok1 and ok2 and ok3:
+                print("[TEST] ✅ All 3 channels received message")
+            else:
+                print("[TEST] ⚠️ Some channels failed — check CHAT_ID secrets")
+
+        elif mode == 'daily_summary':
+            # Send daily summary without market hours check
+            now     = datetime.now(IST)
+            today   = now.strftime('%Y-%m-%d')
+            ss, log_sheet, hist_sheet, nifty_sheet = get_sheets()
+            bm_data = load_bm_sheet(ss)
+            all_data = log_sheet.get_all_values()
+            trade_zone = [pad(list(r)) for r in all_data[1:LOG_ROWS + 1]]
+            traded = [r for r in trade_zone if "TRADED" in str(r[C_STATUS]).upper() and "EXITED" not in str(r[C_STATUS]).upper()]
+            waiting = [r for r in trade_zone if "WAITING" in str(r[C_STATUS]).upper()]
+            msg = (
+                f"📊 <b>DAILY SUMMARY — {today}</b>\n"
+                f"━━━━━━━━━━━━━━━━━━━━\n"
+                f"🔹 Active: {len(traded)}/{MAX_TRADES}\n"
+                f"🔸 Waiting: {len(waiting)}/{MAX_WAITING}\n"
+                f"✅ System: Online v14.0"
+            )
+            send_advance_and_premium(msg)
+            print(f"[DAILY] Sent — Traded:{len(traded)} Waiting:{len(waiting)}")
+
+        elif mode == 'weekly_summary':
+            # Trigger weekly summary without day check
+            now     = datetime.now(IST)
+            today   = now.strftime('%Y-%m-%d')
+            ss, log_sheet, hist_sheet, nifty_sheet = get_sheets()
+            send_advance_and_premium(f"📅 <b>WEEKLY SUMMARY</b>\n<i>Manual trigger — {today}</i>\nCheck History sheet for full details.")
+            print("[WEEKLY] Sent manual trigger")
+
+        else:
+            # Default: trade mode
+            run_trading_cycle()
+
     except Exception as e:
-        import traceback
         err = traceback.format_exc()
         print(f"[FATAL] {e}\n{err}")
-        # Try to send error alert so family knows something broke
         try:
-            TG_TOKEN_env = os.environ.get('TELEGRAM_BOT_TOKEN')
-            CHAT_ADV_env = os.environ.get('CHAT_ID_ADVANCE')
-            if TG_TOKEN_env and CHAT_ADV_env:
+            adv = os.environ.get('CHAT_ID_ADVANCE')
+            tok = os.environ.get('TELEGRAM_BOT_TOKEN')
+            if tok and adv:
                 requests.post(
-                    f"https://api.telegram.org/bot{TG_TOKEN_env}/sendMessage",
-                    json={
-                        "chat_id": CHAT_ADV_env,
-                        "text": f"⚠️ <b>BOT ERROR — {datetime.now(IST).strftime('%H:%M %d-%b')}</b>\n{str(e)[:300]}",
-                        "parse_mode": "HTML"
-                    },
+                    f"https://api.telegram.org/bot{tok}/sendMessage",
+                    json={"chat_id": adv, "text": f"⚠️ <b>BOT ERROR</b>\n{str(e)[:300]}", "parse_mode": "HTML"},
                     timeout=10
                 )
-        except:
-            pass
+        except: pass
         raise
