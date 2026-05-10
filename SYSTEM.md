@@ -466,9 +466,9 @@ TSL_PARAMS = {
 
 | Channel | Secret | Audience | Content |
 | --- | --- | --- | --- |
-| Basic (free) | `TELEGRAM_CHAT_ID` | Free followers | Market mood, signal closed result only |
-| Advance | `CHAT_ID_ADVANCE` | ₹499/month | Full entry/exit details, TSL updates, mid-day pulse, CE candidate flag (informational) |
-| Premium | `CHAT_ID_PREMIUM` | Bundle subscribers | Everything in Advance + **full options buying block** (strike, trigger, target%, SL%, expiry note, lot sizing) |
+| Basic (free) | `CHAT_ID_BASIC` | Free followers | Market mood, signal closed result only |
+| Advance | `CHAT_ID_ADVANCE` | ₹1000/month | Full entry/exit details, TSL updates, mid-day pulse, CE candidate flag (informational) |
+| Premium | `CHAT_ID_PREMIUM` | ₹3000/month | Everything in Advance + **full options buying block** (strike, trigger, target%, SL%, expiry note, lot sizing) |
 
 > ✅ Channel swap bug **FIXED in v14.0**. Both CHAT_ADVANCE and CHAT_PREMIUM now read their correct secrets.
 > ✅ Token bug **FIXED in v14.0**. Bot reads `TELEGRAM_BOT_TOKEN` which matches the GitHub Secret name.
@@ -574,9 +574,9 @@ This list is verified against actual GitHub Secrets as of May 2026.
 | Secret | Purpose | Notes |
 | --- | --- | --- |
 | `TELEGRAM_BOT_TOKEN` | Bot authentication token | ✅ Confirmed secret name. Bot reads this directly. |
-| `TELEGRAM_CHAT_ID` | Free channel (@ai360trading) | ✅ |
-| `CHAT_ID_ADVANCE` | Advance signals channel (₹499/month) | ✅ |
-| `CHAT_ID_PREMIUM` | Premium signals channel (bundle) | ✅ |
+| `CHAT_ID_BASIC` | Free channel (Follow & Subscribe) | ✅ |
+| `CHAT_ID_ADVANCE` | Advance signals channel (₹1000/month) | ✅ |
+| `CHAT_ID_PREMIUM` | Premium signals channel (₹3000/bundle) | ✅ |
 
 ### Social Platforms — Main (AI360Trading)
 
