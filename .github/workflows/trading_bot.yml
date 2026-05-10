@@ -1,12 +1,9 @@
 name: Trading Bot — Signal Monitor
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # CHANNELS:
-#   TELEGRAM_CHAT_ID = ai360trading (Free — original channel)
-#   CHAT_ID_ADVANCE  = ai360trading_Advance (Rs499/month)
-#   CHAT_ID_PREMIUM  = ai360trading_Premium (Bundle)
-#
-# v14.0: TELEGRAM_BOT_TOKEN env var name now matches the secret name
-#        directly. trading_bot.py reads os.environ.get('TELEGRAM_BOT_TOKEN').
+#   CHAT_ID_BASIC    = ai360trading_Free  (Follow and Subscribe)
+#   CHAT_ID_ADVANCE  = ai360trading_Advance (1000/month)
+#   CHAT_ID_PREMIUM  = ai360trading_Premium (3000/month)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 on:
   schedule:
@@ -58,7 +55,7 @@ jobs:
         env:
           GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID:   ${{ secrets.TELEGRAM_CHAT_ID }}
+          CHAT_ID_BASIC:   ${{ secrets.CHAT_ID_BASIC }}
           CHAT_ID_ADVANCE:    ${{ secrets.CHAT_ID_ADVANCE }}
           CHAT_ID_PREMIUM:    ${{ secrets.CHAT_ID_PREMIUM }}
           BOT_MODE: ${{ github.event.inputs.mode || 'trade' }}
