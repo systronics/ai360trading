@@ -92,8 +92,8 @@ TG_TOKEN   = os.environ.get('TELEGRAM_TOKEN')
 
 # ── 3 Telegram channels — v14.0 FIX: correct env var names ───────────────────
 CHAT_BASIC   = os.environ.get('CHAT_ID_BASIC')      # FREE Follow/Subscribe
-CHAT_ADVANCE = os.environ.get('CHAT_ID_ADVANCE')    # Advance Rs. 1000/month
-CHAT_PREMIUM = os.environ.get('CHAT_ID_PREMIUM')    # Premium Rs. 3000/month
+CHAT_ADVANCE = os.environ.get('CHAT_ID_ADVANCE')    # Advance Rs. ₹1000/month
+CHAT_PREMIUM = os.environ.get('CHAT_ID_PREMIUM')    # Premium Rs. ₹3000/month
 
 SHEET_NAME = "Ai360tradingAlgo"
 
