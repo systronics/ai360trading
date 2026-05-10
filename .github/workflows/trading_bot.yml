@@ -2,8 +2,8 @@ name: Trading Bot — Signal Monitor
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # CHANNELS:
 #   CHAT_ID_BASIC    = ai360trading_Free  (Follow and Subscribe)
-#   CHAT_ID_ADVANCE  = ai360trading_Advance (1000/month)
-#   CHAT_ID_PREMIUM  = ai360trading_Premium (3000/month)
+#   CHAT_ID_ADVANCE  = ai360trading_Advance (₹1000/month)
+#   CHAT_ID_PREMIUM  = ai360trading_Premium (₹3000/month)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 on:
   schedule:
