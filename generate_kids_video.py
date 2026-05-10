@@ -213,22 +213,6 @@ def generate_scene_image(prompt: str, scene_id: int) -> Path:
     except Exception as e:
         print(f"  [WARN-4] DALL-E 3 failed: {e}")
 
-    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# STABILITY AI PATCH for generate_kids_video.py
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-#
-# WHERE TO INSERT:
-#   In generate_scene_image() function,
-#   AFTER the DALL-E 3 block (Layer 4),
-#   BEFORE the Heroo placeholder block (Layer 5).
-#
-# HOW: Find this comment in generate_kids_video.py:
-#   # ── LAYER 5: Heroo branded placeholder — always works ────────────────
-# And paste the block below ABOVE that line.
-#
-# NO NEW PACKAGES NEEDED — uses requests (already installed)
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
     # ── LAYER 4b: Stability AI — Stable Image Core (your key is already set) ──
     # Uses REST API directly — no stability-sdk package needed, just requests
     # Stability AI REST docs: https://platform.stability.ai/docs/api-reference
