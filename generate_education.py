@@ -368,7 +368,7 @@ def upload_to_youtube(video_path, title, description, tags):
             "title":       title[:100],
             "description": description,
             "tags":        tags,
-            "categoryId":  "27"  # Education category — better for finance monetisation
+            "categoryId":  "25"  # Education category — better for finance monetisation
         },
         "status": {
             "privacyStatus":          "public",
