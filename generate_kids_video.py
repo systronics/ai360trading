@@ -213,7 +213,63 @@ def generate_scene_image(prompt: str, scene_id: int) -> Path:
     except Exception as e:
         print(f"  [WARN-4] DALL-E 3 failed: {e}")
 
-    # ── LAYER 5: Heroo branded placeholder — always works ────────────────
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# STABILITY AI PATCH for generate_kids_video.py
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+#
+# WHERE TO INSERT:
+#   In generate_scene_image() function,
+#   AFTER the DALL-E 3 block (Layer 4),
+#   BEFORE the Heroo placeholder block (Layer 5).
+#
+# HOW: Find this comment in generate_kids_video.py:
+#   # ── LAYER 5: Heroo branded placeholder — always works ────────────────
+# And paste the block below ABOVE that line.
+#
+# NO NEW PACKAGES NEEDED — uses requests (already installed)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    # ── LAYER 4b: Stability AI — Stable Image Core (your key is already set) ──
+    # Uses REST API directly — no stability-sdk package needed, just requests
+    # Stability AI REST docs: https://platform.stability.ai/docs/api-reference
+    try:
+        stability_key = os.environ.get("STABILITY_API_KEY")
+        if stability_key:
+            import requests as req
+            import base64
+
+            # Stable Image Core — best quality, 3 credits per image
+            response = req.post(
+                "https://api.stability.ai/v2beta/stable-image/generate/core",
+                headers={
+                    "authorization": f"Bearer {stability_key}",
+                    "accept":        "image/*",
+                },
+                files={"none": ""},
+                data={
+                    "prompt":        full_prompt[:10000],
+                    "output_format": "png",
+                    "aspect_ratio":  "16:9",
+                },
+                timeout=60,
+            )
+            if response.status_code == 200:
+                img_path.write_bytes(response.content)
+                img = Image.open(img_path).resize((1280, 720), Image.LANCZOS)
+                img.save(img_path)
+                print(f"  [IMG-4b] Scene {scene_id} via Stability AI Core ✓")
+                return img_path
+            else:
+                err = response.json() if response.headers.get("content-type","").startswith("application/json") else response.text[:100]
+                print(f"  [WARN-4b] Stability AI {response.status_code}: {err}")
+        else:
+            print("  [SKIP-4b] STABILITY_API_KEY not set — skipping")
+    except Exception as e:
+        print(f"  [WARN-4b] Stability AI failed: {e}")
+
+    time.sleep(1)
+
+ # ── LAYER 5: Heroo branded placeholder — always works ────────────────
     colors = ["#1a1a2e","#16213e","#0f3460","#533483","#e94560","#2b2d42"]
     img = Image.new("RGB", (1280, 720), color=colors[scene_id % len(colors)])
     draw = ImageDraw.Draw(img)
