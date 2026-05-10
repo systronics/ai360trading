@@ -7,7 +7,7 @@ CATEGORIES = {
         {"hi": "अकबर और बीरबल की कहानी", "en": "Akbar and Birbal — The Wise Minister", "tags": ["India","Mughal","history"]},
         {"hi": "नासा का पहला चाँद मिशन", "en": "Apollo 11 — First Moon Landing Story", "tags": ["NASA","space","USA"]},
         {"hi": "विश्व युद्ध की कहानी बच्चों के लिए", "en": "World War II for Kids — Brave Stories", "tags": ["WW2","history","UK"]},
-        {"hi": "महान दीवार चीन की कहानी", "en": "The Great Wall of China — Epic Story", "tags": ["China","history","architecture"]},
+        {"hi": "महान दीवार चीन की कहानी", "en": "The Great Wall of China — Epic Story", "tags": ["history","architecture"]},
         {"hi": "रानी एलिज़ाबेथ की कहानी", "en": "Queen Elizabeth — A Royal Story for Kids", "tags": ["UK","royals","history"]},
         {"hi": "आइंस्टीन की बचपन की कहानी", "en": "Young Einstein — The Boy Who Changed Science", "tags": ["Germany","science","biography"]},
     ],
@@ -42,12 +42,12 @@ CATEGORIES = {
     ],
     "fairy_tales": [
         {"hi": "जादुई जंगल की परी कहानी", "en": "The Enchanted Forest — A Magical Fairy Tale", "tags": ["fairy tale","magic","UK","USA"]},
-        {"hi": "ड्रैगन और बहादुर बच्चा", "en": "The Dragon and the Brave Child — Fantasy Story", "tags": ["dragon","fantasy","China","USA"]},
+        {"hi": "ड्रैगन और बहादुर बच्चा", "en": "The Dragon and the Brave Child — Fantasy Story", "tags": ["dragon","fantasy","USA"]},
     ],
     "geography": [
         {"hi": "भारत की अद्भुत जगहें बच्चों के लिए", "en": "Amazing Places of India — Kids Geography", "tags": ["India","travel","geography"]},
         {"hi": "जर्मनी — बच्चों के लिए दुनिया की सैर", "en": "Germany for Kids — Castles, Cars and Culture", "tags": ["Germany","geography","Europe"]},
-        {"hi": "चीन की दीवार से ड्रैगन तक", "en": "China for Kids — Dragons, Food and Traditions", "tags": ["China","culture","geography"]},
+        {"hi": "चीन की दीवार से ड्रैगन तक", "en": "China for Kids — Dragons, Food and Traditions", "tags": ["culture","geography"]},
     ],
 }
 
