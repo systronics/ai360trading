@@ -42,6 +42,21 @@ media = MediaFileUpload(meta["video_path"], resumable=True, chunksize=10*1024*10
 response = youtube.videos().insert(part="snippet,status", body=body, media_body=media).execute()
 
 video_id = response["id"]
+thumb_candidates = [
+    OUTPUT_DIR / "kids_scene_01.png",
+    OUTPUT_DIR / "kids_scene_02.png",
+]
+for thumb in thumb_candidates:
+    if thumb.exists():
+        try:
+            youtube.thumbnails().set(
+                videoId=video_id,
+                media_body=MediaFileUpload(str(thumb), mimetype="image/png")
+            ).execute()
+            print(f"[YT-KIDS] Thumbnail uploaded from {thumb.name}")
+        except Exception as e:
+            print(f"[YT-KIDS] Thumbnail upload failed: {e} — YouTube default used")
+        break
 meta["youtube_video_id"] = video_id
 meta["youtube_video_url"] = f"https://www.youtube.com/watch?v={video_id}"
 meta["public_video_url"] = meta["youtube_video_url"]
