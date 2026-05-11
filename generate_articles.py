@@ -1255,9 +1255,9 @@ End with:
 
         schema_json = generate_schema(article_title, meta_description, pillar, chosen_slug)
 
-        safe_title   = (article_title
-                        .replace('"', "'").replace('&', 'and').replace('<', '')
-                        .replace('>', '').replace('₹', 'Rs.').replace('\n', ' ').strip())
+        safe_title   = (clean_ai_title(article_title)
+                .replace('"', "'").replace('<', '')
+                .replace('>', '').replace('₹', 'Rs.').replace('\n', ' ').strip())
         safe_excerpt = (article_excerpt
                         .replace('"', "'").replace('&', 'and').replace('<', '').replace('>', '').strip())
         safe_desc    = (meta_description
