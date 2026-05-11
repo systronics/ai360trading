@@ -6,7 +6,8 @@ import json
 import time
 import xml.etree.ElementTree as ET
 from datetime import datetime
-from groq import Groq
+# ai_client handles Groq → Gemini → Claude → OpenAI fallback automatically
+from ai_client import ai
 
 # Import SEO seeds from content calendar
 try:
@@ -16,10 +17,28 @@ except ImportError:
     _CALENDAR_AVAILABLE = False
     print("[WARN] content_calendar.py not found — SEO seeds skipped")
 
+# ── FIX: Clean LLM title encoding issues ─────────────────────────────────────
+def clean_ai_title(title: str) -> str:
+    """Fixes 'SandP 500' → 'S&P 500' and other HTML entity issues from LLM output."""
+    if not title:
+        return title
+    return (
+        title
+        .replace("SandP 500",   "S&P 500")
+        .replace("S and P 500", "S&P 500")
+        .replace("S &amp; P",   "S&P")
+        .replace("&amp;",       "&")
+        .replace("&#38;",       "&")
+        .replace("&lt;",        "<")
+        .replace("&gt;",        ">")
+        .replace("&quot;",      '"')
+        .strip()
+    )
+# ─────────────────────────────────────────────────────────────────────────────
+
 # ─── Content Mode ─────────────────────────────────────────────────────────────
 CONTENT_MODE = os.environ.get("CONTENT_MODE", "market").lower()
 HOLIDAY_NAME = os.environ.get("HOLIDAY_NAME", "Indian Market Holiday")
-
 print(f"[MODE] generate_articles.py running in mode: {CONTENT_MODE.upper()}")
 
 # ─── Affiliate Links ──────────────────────────────────────────────────────────
@@ -156,10 +175,6 @@ def submit_urls_to_google(urls: list):
 
 # ─── FIX: Also notify Google to REMOVE deleted article URLs ──────────────────
 def notify_google_url_deleted(urls: list):
-    """
-    Call this when articles are deleted (cleanup_old_posts).
-    Tells Google to de-index the URL immediately instead of waiting weeks.
-    """
     try:
         import json as _json
         sa_json = os.environ.get("GCP_SERVICE_ACCOUNT_JSON", "")
@@ -221,7 +236,8 @@ def notify_google_url_deleted(urls: list):
 
 SITE_URL = "https://ai360trading.in"
 
-client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+# Direct Groq client removed — ai_client.py handles full fallback chain
+# Groq → Gemini → Claude → OpenAI → Templates (zero downtime)
 
 ist          = pytz.timezone('Asia/Kolkata')
 now          = datetime.now(ist)
@@ -230,17 +246,10 @@ date_display = now.strftime("%B %d, %Y")
 day_name     = now.strftime("%A")
 day_of_year  = now.timetuple().tm_yday
 
-# FIX: Short time-based suffix to guarantee unique slugs even if title is similar
-# Uses hour + minute seeded from day_of_year to avoid collisions across pillars
 _slug_suffix = now.strftime("%H%M")
 
 POSTS_DIR = os.path.join(os.getcwd(), '_posts')
 
-# FIX: Raised MAX_POSTS from 60 to 120.
-# OLD VALUE (60) was DELETING articles that Google had already indexed → causing 404s in GSC.
-# At 4 articles/day, 120 posts = 30 days of history. Google indexes within 1-3 days,
-# so keeping 30 days ensures no indexed article ever gets deleted.
-# Storage impact: ~120 markdown files × ~10KB avg = ~1.2MB — negligible on GitHub Pages.
 MAX_POSTS = 120
 
 
@@ -799,22 +808,14 @@ def get_fear_greed():
 
 
 def cleanup_old_posts():
-    """
-    FIX: Cleanup now builds the full URL for each deleted post and notifies
-    Google Indexing API with URL_DELETED so they de-index immediately.
-    Previously, deleted posts stayed in Google's index as 404 errors for weeks.
-    """
     try:
         files = sorted([f for f in os.listdir(POSTS_DIR) if f.endswith('.md')])
         if len(files) > MAX_POSTS:
             files_to_delete = files[:len(files) - MAX_POSTS]
             urls_to_deindex = []
             for fname in files_to_delete:
-                # Reconstruct URL from filename: YYYY-MM-DD-pillar-id-slug-words.md
-                # Pattern: date_str + "-" + pillar_id + "-" + title_slug + "-" + time_suffix
                 fpath = os.path.join(POSTS_DIR, fname)
                 try:
-                    # Read permalink from front matter to get exact URL
                     with open(fpath, 'r', encoding='utf-8') as f:
                         for line in f:
                             if line.startswith('permalink:'):
@@ -983,17 +984,17 @@ Rules for the title:
 Respond with ONLY the title — nothing else. No quotes. No explanation."""
 
     try:
-        completion = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
-            messages=[
-                {"role": "system", "content": "You generate precise, data-driven financial article titles. Respond with only the title text."},
-                {"role": "user",   "content": title_prompt}
-            ],
-            temperature=0.9,
+        # FIX: Use ai_client fallback chain instead of direct Groq
+        raw_title = ai.generate(
+            prompt=title_prompt,
+            system_prompt="You generate precise, data-driven financial article titles. Respond with only the title text.",
+            content_mode=CONTENT_MODE,
+            lang="en",
             max_tokens=60,
-            top_p=0.95,
+            temperature=0.9,
         )
-        ai_title = completion.choices[0].message.content.strip().strip('"').strip("'")
+        # FIX: Clean encoding issues (SandP → S&P etc.)
+        ai_title = clean_ai_title(raw_title.strip().strip('"').strip("'"))
         if 5 <= len(ai_title.split()) <= 20:
             print(f"    [TITLE-AI] {ai_title}")
             return ai_title
@@ -1038,9 +1039,7 @@ def generate_article(pillar, prices, trends, fear_greed, persona, article_index)
     recent_titles = get_recent_titles(pillar['id'], days=14)
     article_title = generate_ai_title(pillar, prices, trends, fear_greed, recent_titles, article_index)
 
-    # ─── FIX: Unique slug with time suffix ───────────────────────────────────
-    # Appending _slug_suffix (HHMM) prevents two articles with similar titles
-    # from generating the same permalink and overwriting each other.
+    # ─── Unique slug with time suffix ────────────────────────────────────────
     import re as _re
     _title_clean = article_title.lower()
     _title_clean = _title_clean.replace('s&p', 'sp').replace('s-and-p', 'sp')
@@ -1059,7 +1058,6 @@ def generate_article(pillar, prices, trends, fear_greed, persona, article_index)
         'by','as','so','if','just','vs','im','heres','thats','dont'
     }
     _words    = [w for w in _title_clean.split('-') if w and w not in _stop]
-    # FIX: Append time suffix to guarantee uniqueness across days and pillars
     title_slug = '-'.join(_words[:6]) + f"-{_slug_suffix}"
 
     file_slug = f"{date_str}-{pillar['id']}-{title_slug}"
@@ -1124,31 +1122,22 @@ def generate_article(pillar, prices, trends, fear_greed, persona, article_index)
             )
             seo_seed_block = f"""
 === SEO KEYWORD STRATEGY (CRITICAL FOR GOOGLE RANKING) ===
-DO NOT write about broad topics that Bloomberg and Reuters already dominate.
-INSTEAD write about these SPECIFIC long-tail questions real people search:
-
 Primary keyword seed: {pillar_seed['seo_seed']}
 Long-tail keywords to naturally address in the article:
 - {pillar_seed['long_tail'][0]}
 - {pillar_seed['long_tail'][1] if len(pillar_seed['long_tail']) > 1 else pillar_seed['long_tail'][0]}
 
-Primary audience for this article: {pillar_seed['primary_target']} readers
-Affiliate/product context: {pillar_seed['affiliate_hint']}
+Primary audience: {pillar_seed['primary_target']} readers
+Affiliate context: {pillar_seed['affiliate_hint']}
 
 KEYWORD RULES:
 - Use the primary keyword seed in the first 100 words naturally
 - Use at least one long-tail question as an H2 or FAQ question
-- Every statistic and number must connect to a specific reader decision
-- Specific beats generic always: "LIC Tech Term at Rs.10,500/year" beats "term insurance is important"
-- The person searching this has a specific problem — solve it with specific answers
+- Specific beats generic: "LIC Tech Term at Rs.10,500/year" beats "term insurance is important"
 """
         except Exception as e:
             print(f"    [SEO-SEED] Skipped ({e})")
-            seo_seed_block = ""
 
-    # ─── FIX: Extract live price values for front matter ─────────────────────
-    # The post.html layout renders a live data strip using these front matter fields.
-    # Previously these were never written → the strip never appeared → lost SEO signal.
     nifty_level   = prices.get("NIFTY 50",  {}).get("display", "N/A") if prices else "N/A"
     sp500_level   = prices.get("S&P 500",   {}).get("display", "N/A") if prices else "N/A"
     bitcoin_level = prices.get("Bitcoin",   {}).get("display", "N/A") if prices else "N/A"
@@ -1157,7 +1146,6 @@ KEYWORD RULES:
     prompt = f"""You are Amit Kumar, founder of AI360Trading — independent market analyst from Haridwar, India.
 
 PERSONA TODAY: {persona['name']} | {persona['tone']}
-
 WRITING STYLE: {persona['style']}
 
 Today is {day_name}, {date_display}.
@@ -1195,13 +1183,11 @@ TRENDING SEARCHES: {', '.join(trends[:8])}
 3. SHOW UNCERTAINTY where real.
 4. USE NATURAL LANGUAGE — no jargon overload.
 5. ADD ONE REAL HISTORICAL PARALLEL with exact month/year.
-6. BREAK PARAGRAPH SYMMETRY.
-7. BANNED WORDS: "In conclusion", "Furthermore", "Moreover", "This underscores",
+6. BANNED WORDS: "In conclusion", "Furthermore", "Moreover", "This underscores",
    "Navigating", "Landscape", "Delve into", "Robust", "Game-changer", "Paradigm shift",
    "Deep dive", "Shed light", "It's worth noting", "It is important to note"
-8. NEVER use headers: "Core Analysis", "Country Analysis", "Brand View"
-9. NUMBERS must connect to decisions.
-10. DELETE fake authority lines.
+7. NEVER use headers: "Core Analysis", "Country Analysis", "Brand View"
+8. NUMBERS must connect to decisions.
 
 === ARTICLE STRUCTURE ===
 Use EXACTLY these section names:
@@ -1229,27 +1215,20 @@ End with:
 """
 
     try:
-        completion = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
-            messages=[
-                {
-                    "role": "system",
-                    "content": (
-                        f"You are Amit Kumar of AI360Trading writing as a {persona['name']}. "
-                        f"Tone: {persona['tone']}. Style: {persona['style']}. "
-                        "Write 100% original human-sounding financial content. "
-                        "Readers are in US, UK, Brazil and India — all four groups must find genuine value."
-                    )
-                },
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.88,
+        # FIX: Use ai_client fallback chain instead of direct Groq client
+        content = ai.generate(
+            prompt=prompt,
+            system_prompt=(
+                f"You are Amit Kumar of AI360Trading writing as a {persona['name']}. "
+                f"Tone: {persona['tone']}. Style: {persona['style']}. "
+                "Write 100% original human-sounding financial content. "
+                "Readers are in US, UK, Brazil and India — all four groups must find genuine value."
+            ),
+            content_mode=CONTENT_MODE,
+            lang="en",
             max_tokens=5500,
-            top_p=0.95,
-            frequency_penalty=0.40,
-            presence_penalty=0.30,
+            temperature=0.88,
         )
-        content = completion.choices[0].message.content
 
         meta_description = (
             f"{article_title} | {pillar['name']} — {date_display}. "
@@ -1284,7 +1263,6 @@ End with:
         safe_desc    = (meta_description
                         .replace('"', "'").replace('&', 'and').replace('<', '').replace('>', '').strip())
 
-        # FIX: Sanitize live price display strings for safe front matter embedding
         def safe_fm(val):
             return str(val).replace('"', "'").replace('\n', ' ').replace('▲', '+').replace('▼', '-')
 
@@ -1305,7 +1283,6 @@ End with:
             f"fear_greed: \"{safe_fm(fear_greed)}\"\n"
             f"trending: \"{', '.join(trends[:5])}\"\n"
             f"day_of_year: {day_of_year}\n"
-            # FIX: Write live price levels so post.html layout renders the data strip
             f"nifty_level: \"{safe_fm(nifty_level)}\"\n"
             f"sp500_level: \"{safe_fm(sp500_level)}\"\n"
             f"bitcoin_level: \"{safe_fm(bitcoin_level)}\"\n"
@@ -1385,15 +1362,12 @@ def generate_all_articles():
             published_urls.append(url)
         time.sleep(2)
 
-    # Google Indexing
     if published_urls:
         print(f"\n  Submitting {len(published_urls)} URLs to Google Indexing API...")
         submit_urls_to_google(published_urls)
 
-    # Cleanup old posts (now also notifies Google of deletions)
     cleanup_old_posts()
 
-    # Summary
     print("\n" + "=" * 60)
     print("  SUMMARY")
     print("=" * 60)
