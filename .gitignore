@@ -136,18 +136,44 @@ node_modules/
 # ============================================================
 # EXPLICITLY TRACKED — DO NOT IGNORE
 # ============================================================
-!_posts/
-!generate_articles.py
+
+# ── Core infrastructure ────────────────────────────────────
+!ai_client.py
+!human_touch.py
+!indian_holidays.py
+!token_refresh.py
+!content_calendar.py
+!kids_content_calendar.py
+!requirements.txt
+
+# ── Trading bot ────────────────────────────────────────────
+!trading_bot.py
+
+# ── Trading content generators ─────────────────────────────
 !generate_analysis.py
 !generate_education.py
 !generate_reel.py
+!generate_reel_morning.py
 !generate_shorts.py
-!content_calendar.py
+!generate_articles.py
+!generate_community_post.py
+
+# ── Kids content generators ────────────────────────────────
+!generate_kids_video.py
+
+# ── Upload scripts ─────────────────────────────────────────
 !upload_youtube.py
 !upload_facebook.py
 !upload_instagram.py
-!trading_bot.py
-!requirements.txt
+!upload_kids_youtube.py
+
+# ── Website ────────────────────────────────────────────────
+!_posts/
 !_config.yml
 !robots.txt
+
+# ── Documentation ──────────────────────────────────────────
 !SYSTEM.md
+!REPO_STRUCTURE.md
+!LICENSE.md
+!README.md
