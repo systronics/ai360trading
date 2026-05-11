@@ -66,7 +66,7 @@ MUSIC_DIR = Path("public/music")
 W, H      = 1920, 1080
 FPS       = 24
 VOICE     = "hi-IN-SwaraNeural"
-NUM_SLIDES= 10  # v2.0: 10 slides × ~65 sec = ~11 min (mid-roll ads enabled)
+NUM_SLIDES = 14  # was 10 — 14 × ~35sec = ~8 min
 
 os.makedirs(OUT, exist_ok=True)
 
@@ -200,7 +200,7 @@ Generate exactly {NUM_SLIDES} slides in valid JSON:
   "slides": [
     {{
       "title": "slide heading max 6 words",
-      "content": "spoken content 55-70 words in Hinglish. Natural, energetic, human. Use live data.",
+      "content": "spoken content 100-120 words in Hinglish. Must be detailed — explain the why, not just the what.",
       "sentiment": "bullish or bearish or neutral",
       "key_points": ["point 1", "point 2", "point 3"],
       "slide_type": "intro or analysis or education or cta"
