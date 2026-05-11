@@ -729,6 +729,35 @@ class HumanTouch:
 
     Usage:
         ht = HumanTouch()
+        def format_article_tags(self, tags: list) -> str:
+        """
+        Format tags as comma-separated string for meta/front matter use.
+        Used by generate_reel_morning.py and other generators.
+        Filters to ASCII-safe tags only (YouTube API rejects non-ASCII).
+        """
+        safe = []
+        for t in tags:
+            # Keep only ASCII-printable tags for YouTube compatibility
+            cleaned = ''.join(c for c in t if ord(c) < 128).strip()
+            if cleaned and len(cleaned) > 2:
+                safe.append(cleaned)
+        return ', '.join(safe[:8])
+
+    def get_youtube_safe_tags(self, tags: list) -> list:
+        """
+        Filter tags for YouTube API upload — removes Hindi/non-ASCII.
+        YouTube API rejects tags with non-ASCII characters.
+        Returns max 30 tags, each under 30 chars, ASCII only.
+        """
+        safe = []
+        for t in tags:
+            cleaned = ''.join(c for c in t if ord(c) < 128).strip()
+            # Remove special chars YouTube rejects
+            cleaned = cleaned.replace('#', '').replace('@', '').strip()
+            if cleaned and 2 < len(cleaned) < 30:
+                safe.append(cleaned)
+        return safe[:30]
+        
         hook = ht.get_hook(mode="market", lang="hi")
         script = ht.humanize(raw_script, lang="hi")
         tts_speed = ht.get_tts_speed()
