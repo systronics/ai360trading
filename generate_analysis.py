@@ -142,18 +142,6 @@ def fetch_market_data():
         data_summary = "Live data unavailable — focus on general technical structure."
     return data_summary
 
-# ─── BACKGROUND MUSIC ────────────────────────────────────────────────────────
-def get_bg_music():
-    day = datetime.now().weekday()
-    music_map = {
-        0: "bgmusic1.mp3", 1: "bgmusic2.mp3", 2: "bgmusic3.mp3",
-        3: "bgmusic1.mp3", 4: "bgmusic2.mp3", 5: "bgmusic3.mp3", 6: "bgmusic1.mp3"
-    }
-    f = MUSIC_DIR / music_map[day]
-    if f.exists(): return f
-    for f in MUSIC_DIR.glob("*.mp3"): return f
-    return None
-
 # ─── SCRIPT GENERATION ───────────────────────────────────────────────────────
 def generate_slides():
     from ai_client import ai
@@ -452,15 +440,8 @@ async def run():
         voice_clip    = AudioFileClip(str(audio_path))
         # v2.0: Slightly longer slide duration for better watch time
         duration      = voice_clip.duration + 1.2  # was 0.8
-        bg_music_path = get_bg_music()
-        if bg_music_path:
-            try:
-                bg          = AudioFileClip(str(bg_music_path)).subclip(0, duration).volumex(0.07)
-                slide_audio = CompositeAudioClip([voice_clip, bg])
-            except:
-                slide_audio = voice_clip
-        else:
-            slide_audio = voice_clip
+        # bgmusic removed — not required
+slide_audio = voice_clip
 
         clip = ImageClip(str(img_path)).set_duration(duration).set_audio(slide_audio)
         clips.append(clip)
@@ -480,7 +461,8 @@ async def run():
         print(f"⚠️  Video {total_duration/60:.1f} min — mid-roll ads need 8+ min")
 
     # ── Upload to YouTube ─────────────────────────────────────────────────────
-    video_id = upload_to_youtube(video_path, vid_title, full_desc, tags)
+    youtube_tags = seo.get_youtube_safe_tags(tags)  # removes Hindi/non-ASCII
+video_id = upload_to_youtube(video_path, vid_title, full_desc, youtube_tags)
 
     if video_id:
         id_path = OUT / "analysis_video_id.txt"
