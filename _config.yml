@@ -1,6 +1,6 @@
 # ==========================================
 # Site Settings - AI360TRADING GLOBAL
-# Updated: April 2026
+# Updated: May 2026
 # ==========================================
 name: "AI360Trading"
 title: "AI360Trading | NIFTY, S&P 500 & Global Market Intelligence"
@@ -52,37 +52,58 @@ include:
   - _pages
 
 # Exclude from Jekyll build
+# WARNING: Add ALL Python files and non-Jekyll files here
+# Missing entries = Jekyll tries to process them = build errors
 exclude:
-  - generate_articles.py
+  # ── Trading content generators ────────────────────────────────────────
   - generate_analysis.py
   - generate_education.py
   - generate_reel.py
   - generate_reel_morning.py
   - generate_shorts.py
-  - generate_kids_video.py
   - generate_community_post.py
   - generate_english_short.py
-  - content_calendar.py
+  - generate_articles.py
+
+  # ── Kids content generators ───────────────────────────────────────────
+  - generate_kids_video.py
+
+  # ── Upload scripts ────────────────────────────────────────────────────
   - upload_youtube.py
   - upload_kids_youtube.py
   - upload_facebook.py
   - upload_instagram.py
+
+  # ── Trading bot ───────────────────────────────────────────────────────
   - trading_bot.py
+
+  # ── Core infrastructure ───────────────────────────────────────────────
   - ai_client.py
   - human_touch.py
   - indian_holidays.py
   - token_refresh.py
-  - requirements.txt
+  - content_calendar.py
+  - kids_content_calendar.py    # v2.0 — added
+
+  # ── Documentation ─────────────────────────────────────────────────────
   - SYSTEM.md
+  - REPO_STRUCTURE.md           # v2.0 — added
   - README.md
   - LICENSE.md
+
+  # ── Config & requirements ─────────────────────────────────────────────
+  - requirements.txt
   - Gemfile
   - Gemfile.lock
+
+  # ── Build & local artifacts ───────────────────────────────────────────
   - .github/
   - vendor/
   - output/
   - token.json
   - sitemap.xml
+  - .env
+  - credentials.json
 
 # Defaults
 defaults:
@@ -96,10 +117,9 @@ defaults:
       layout: "post"
       author: "ai360trading"
   - scope:
-      path: "page*"        
+      path: "page*"
     values:
       sitemap: false
 
 # jekyll-sitemap: exclude low-value pages from auto-generated sitemap
 # Tag pages, pagination, and system files should not appear in sitemap
-# Individual pages can also add "sitemap: false" in their front matter
