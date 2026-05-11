@@ -53,14 +53,20 @@
     body { font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
   </style>
 
-  <!-- JSON-LD: NewsArticle schema -->
+  <!-- JSON-LD: Article schema
+       FIX 1: NewsArticle only for time-sensitive market reports.
+               Article for evergreen educational content (personal-finance, ai-trading guides).
+               Google gives higher E-E-A-T to correctly typed evergreen content.
+       FIX 2: dateModified uses site.time (build time) — tells Google content is fresh.
+               Previously both datePublished and dateModified were same → looked stale. -->
+  {% if page.layout == 'post' or page.layout == 'article' %}
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
-    "@type": "NewsArticle",
+    "@type": "{% if page.category == 'Stock-Market' or page.category == 'Bitcoin-Crypto' %}NewsArticle{% else %}Article{% endif %}",
     "headline": "{{ page.title | escape }}",
     "datePublished": "{{ page.date | date_to_xmlschema }}",
-    "dateModified": "{{ page.date | date_to_xmlschema }}",
+    "dateModified":  "{{ site.time | date_to_xmlschema }}",
     "author": {
       "@type": "Person",
       "name": "Amit Kumar",
@@ -83,6 +89,7 @@
     }
   }
   </script>
+  {% endif %}
 
   {% if page.url == '/' %}
   <script type="application/ld+json">
@@ -93,7 +100,13 @@
     "url": "https://ai360trading.in",
     "logo": "{{ '/public/image/header.webp' | absolute_url }}",
     "description": "Daily market intelligence terminal covering NIFTY, S&P 500, FTSE 100 and IBOVESPA for traders in India, US, UK and Brazil.",
-    "sameAs": ["https://t.me/ai360trading"]
+    "sameAs": [
+      "https://t.me/ai360trading",
+      "https://twitter.com/ai360trading",
+      "https://youtube.com/@ai360trading",
+      "https://instagram.com/ai360trading",
+      "https://facebook.com/ai360trading.official"
+    ]
   }
   </script>
   <script type="application/ld+json">
