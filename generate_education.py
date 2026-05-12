@@ -344,13 +344,10 @@ async def run():
     vid_title = ht.humanize(data.get("video_title", f"{topic['title']} — ai360trading"), lang="hi")[:100]
     vid_desc  = data.get("video_description", f"Learn {topic['title']} with ai360trading.in")
 
-    # v2.1: YouTube safe tags (no Hindi/non-ASCII)
     seo_tags   = seo.get_video_tags(mode=CONTENT_MODE)
-    extra_tags = [topic["title"], topic["category"], "Trading Education",
-                  "ai360trading", "Stock Market India", "Learn Trading",
-                  "NSE", "BSE", "Hinglish", topic["level"]]
+    extra_tags = ["Trading Education", "ai360trading", "NSE", "BSE"]
     all_tags       = list(dict.fromkeys(seo_tags + extra_tags))
-    youtube_tags   = seo.get_youtube_safe_tags(all_tags)  # removes Hindi/non-ASCII
+    youtube_tags   = seo.get_youtube_safe_tags(all_tags)
 
     part1_section = f"\nPart 1 — Market Analysis: {part1_url}\n" if part1_url else ""
     full_desc = (
