@@ -352,18 +352,26 @@ class SEO:
         return ', '.join(safe[:8])
 
     def get_youtube_safe_tags(self, tags: list) -> list:
-        """
-        Filter tags for YouTube API upload.
-        YouTube API rejects non-ASCII characters (Hindi etc.).
-        Returns max 30 tags, ASCII only, each under 30 chars.
-        """
-        safe = []
-        for t in tags:
-            cleaned = ''.join(c for c in str(t) if ord(c) < 128).strip()
-            cleaned = cleaned.replace('#', '').replace('@', '').strip()
-            if cleaned and 2 < len(cleaned) < 30:
-                safe.append(cleaned)
-        return safe[:30]
+    """
+    Filter tags for YouTube API upload.
+    Rules:
+    - ASCII only (no Hindi/emoji)
+    - Each tag: 3–30 chars
+    - TOTAL chars across all tags: under 480 (YouTube hard limit = 500)
+    - Max 20 tags
+    """
+    safe        = []
+    total_chars = 0
+    for t in tags:
+        cleaned = ''.join(c for c in str(t) if ord(c) < 128).strip()
+        cleaned = cleaned.replace('#', '').replace('@', '').strip()
+        if not cleaned or not (2 < len(cleaned) <= 30):
+            continue
+        if total_chars + len(cleaned) + 1 >= 480:   # +1 for separator
+            break
+        safe.append(cleaned)
+        total_chars += len(cleaned) + 1
+    return safe[:20]
 
     def get_description_template(self, title, main_insight, mode="market",
                                   channel="trading", video_id_part1="",
