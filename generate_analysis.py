@@ -298,7 +298,7 @@ def build_video_meta(data, today_str):
 
     tags = seo.get_video_tags(
         mode=CONTENT_MODE, is_short=False, channel="trading", lang="both",
-        extra_tags=[s.replace("NSE:","") for s in top_stocks[:3]]
+        extra_tags=[s.replace("NSE:","")[:20] for s in top_stocks[:3]]
     )
     full_desc = seo.get_description_template(
         title=vid_title, main_insight=main_insight,
