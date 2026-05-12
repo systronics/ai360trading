@@ -2,590 +2,392 @@
 layout: default
 title: "Membership — AI360Trading"
 permalink: /membership/
-description: "Join AI360Trading Membership — Telegram signals, YouTube private videos, live sessions and TradingView scanner. All trading services in one place."
+description: "AI360Trading Membership — Live Telegram signals, TradingView indicator, Chartink screener, private videos and live sessions. Advance ₹699/month. Premium ₹1,499/month."
 ---
 
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Mulish:wght@300;400;500;600;700&display=swap');
-
 :root {
-  --bg:       #05080f;
-  --surface:  #0b0f1a;
-  --card:     #0f1520;
-  --border:   #1c2535;
-  --gold:     #fbbf24;
-  --green:    #10b981;
-  --red:      #ef4444;
-  --blue:     #3b82f6;
-  --purple:   #8b5cf6;
-  --orange:   #f97316;
-  --text:     #e2e8f0;
-  --muted:    #64748b;
-  --shadow:   0 8px 32px rgba(0,0,0,0.4);
+  --bg:#05080f; --surface:#0b0f1a; --card:#0f1520; --border:#1c2535;
+  --gold:#fbbf24; --green:#10b981; --red:#ef4444; --blue:#3b82f6;
+  --purple:#8b5cf6; --orange:#f97316; --text:#e2e8f0; --muted:#64748b;
+  --shadow:0 8px 32px rgba(0,0,0,0.4);
 }
-
-* { box-sizing: border-box; margin: 0; padding: 0; }
-.mp { background: var(--bg); font-family: 'Mulish', sans-serif; color: var(--text); min-height: 100vh; overflow-x: hidden; }
+*{box-sizing:border-box;margin:0;padding:0;}
+.mp{background:var(--bg);font-family:'Mulish',sans-serif;color:var(--text);min-height:100vh;overflow-x:hidden;}
 
 /* ── NAV ── */
-.mp-nav { background: rgba(11,15,26,0.95); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); padding: 10px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 200; }
-.mp-nav-home { display: flex; align-items: center; gap: 6px; text-decoration: none; color: var(--text); font-size: 0.82rem; font-weight: 700; padding: 6px 14px; border-radius: 8px; background: var(--card); border: 1px solid var(--border); transition: all 0.2s; }
-.mp-nav-home:hover { border-color: var(--gold); color: var(--gold); }
-.mp-nav-links { display: flex; gap: 4px; }
-.mp-nav-link { text-decoration: none; color: var(--muted); font-size: 0.75rem; font-weight: 700; padding: 5px 10px; border-radius: 6px; transition: all 0.2s; text-transform: uppercase; letter-spacing: 0.04em; }
-.mp-nav-link:hover { color: var(--text); background: var(--card); }
-@media(max-width:480px) { .mp-nav-links { display: none; } }
+.mp-nav{background:rgba(11,15,26,0.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:10px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;}
+.mp-nav-home{display:flex;align-items:center;gap:6px;text-decoration:none;color:var(--text);font-size:0.82rem;font-weight:700;padding:6px 14px;border-radius:8px;background:var(--card);border:1px solid var(--border);transition:all 0.2s;}
+.mp-nav-home:hover{border-color:var(--gold);color:var(--gold);}
+.mp-nav-links{display:flex;gap:4px;}
+.mp-nav-link{text-decoration:none;color:var(--muted);font-size:0.75rem;font-weight:700;padding:5px 10px;border-radius:6px;transition:all 0.2s;text-transform:uppercase;letter-spacing:0.04em;}
+.mp-nav-link:hover{color:var(--text);background:var(--card);}
+@media(max-width:480px){.mp-nav-links{display:none;}}
 
 /* ── HERO ── */
-.mp-hero { padding: 20px 20px 18px; text-align: center; position: relative; overflow: hidden; }
-.mp-hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 60% 40% at 50% 0%, rgba(251,191,36,0.07) 0%, transparent 70%); pointer-events: none; }
-.mp-hero::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--border), transparent); }
-
-.mp-eyebrow { display: inline-flex; align-items: center; gap: 8px; background: rgba(251,191,36,0.08); border: 1px solid rgba(251,191,36,0.2); color: var(--gold); font-size: 0.68rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; padding: 5px 12px; border-radius: 100px; margin-bottom: 10px; }
-.live-dot { width: 6px; height: 6px; background: var(--green); border-radius: 50%; animation: blink 1.4s infinite; }
-@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
-
-.mp-hero h1 { font-family: 'Syne', sans-serif; font-size: clamp(1.5rem, 4vw, 2.6rem); line-height: 1.1; color: #fff; letter-spacing: -0.02em; margin-bottom: 8px; word-break: break-word; overflow-wrap: break-word; }
-.mp-hero h1 em { font-style: normal; color: var(--gold); }
-.mp-hero p { font-size: 0.82rem; color: var(--muted); max-width: 460px; margin: 0 auto 16px; line-height: 1.55; }
+.mp-hero{padding:28px 20px 22px;text-align:center;position:relative;overflow:hidden;}
+.mp-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 40% at 50% 0%,rgba(251,191,36,0.07) 0%,transparent 70%);pointer-events:none;}
+.mp-eyebrow{display:inline-flex;align-items:center;gap:8px;background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.2);color:var(--gold);font-size:0.68rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;padding:5px 12px;border-radius:100px;margin-bottom:12px;}
+.live-dot{width:6px;height:6px;background:var(--green);border-radius:50%;animation:blink 1.4s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+/* FIXED: text size reduced from clamp(1.5rem,4vw,2.6rem) */
+.mp-hero h1{font-family:'Syne',sans-serif;font-size:clamp(1.4rem,3vw,2.0rem);line-height:1.15;color:#fff;letter-spacing:-0.02em;margin-bottom:8px;}
+.mp-hero h1 em{font-style:normal;color:var(--gold);}
+.mp-hero p{font-size:0.82rem;color:var(--muted);max-width:480px;margin:0 auto 20px;line-height:1.6;}
 
 /* Billing toggle */
-.billing-toggle { display: inline-flex; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 3px; gap: 3px; margin-bottom: 20px; }
-.billing-btn { padding: 7px 16px; border-radius: 8px; border: none; font-family: 'Mulish', sans-serif; font-size: 0.82rem; font-weight: 700; cursor: pointer; transition: all 0.2s; color: var(--muted); background: transparent; }
-.billing-btn.active { background: var(--gold); color: #000; }
-.billing-save { font-size: 0.62rem; background: var(--green); color: #fff; padding: 2px 5px; border-radius: 100px; margin-left: 3px; }
+.billing-toggle{display:inline-flex;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:3px;gap:3px;margin-bottom:24px;}
+.billing-btn{padding:7px 16px;border-radius:8px;border:none;font-family:'Mulish',sans-serif;font-size:0.8rem;font-weight:700;cursor:pointer;transition:all 0.2s;color:var(--muted);background:transparent;}
+.billing-btn.active{background:var(--gold);color:#000;}
+.billing-save{font-size:0.62rem;background:var(--green);color:#fff;padding:2px 5px;border-radius:100px;margin-left:3px;}
 
-/* ── SERVICE CARDS ── */
-.services-section { max-width: 1100px; margin: 0 auto; padding: 0 16px 48px; }
-.services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 20px; }
+/* ── PLANS ── */
+.plans-section{max-width:900px;margin:0 auto;padding:0 16px 48px;}
+.plans-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+@media(max-width:640px){.plans-grid{grid-template-columns:1fr;}}
 
-.svc-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 22px 20px; position: relative; transition: transform 0.25s, border-color 0.25s; display: flex; flex-direction: column; overflow: hidden; }
-.svc-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; border-radius: 16px 16px 0 0; }
-.svc-card.tg::before   { background: linear-gradient(90deg, #0088cc, #229ed9); }
-.svc-card.yt::before   { background: linear-gradient(90deg, #ff0000, #ff6b6b); }
-.svc-card.live::before { background: linear-gradient(90deg, #ef4444, #f97316); }
-.svc-card.tv::before   { background: linear-gradient(90deg, #2962ff, #1565c0); }
-.svc-card:hover { transform: translateY(-3px); border-color: var(--gold); }
+.plan-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:28px 24px;position:relative;display:flex;flex-direction:column;overflow:hidden;transition:transform 0.25s,border-color 0.25s;}
+.plan-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;border-radius:20px 20px 0 0;}
+.plan-card.advance::before{background:linear-gradient(90deg,#3b82f6,#60a5fa);}
+.plan-card.premium::before{background:linear-gradient(90deg,#fbbf24,#f59e0b);}
+.plan-card.premium{border-color:rgba(251,191,36,0.3);}
+.plan-card:hover{transform:translateY(-4px);border-color:rgba(251,191,36,0.5);}
 
-.svc-icon { font-size: 1.8rem; margin-bottom: 10px; }
-.svc-platform { font-size: 0.65rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 4px; }
-.svc-card.tg   .svc-platform { color: #229ed9; }
-.svc-card.yt   .svc-platform { color: #ff6b6b; }
-.svc-card.live .svc-platform { color: var(--orange); }
-.svc-card.tv   .svc-platform { color: #5c9eff; }
+.plan-badge{position:absolute;top:16px;right:16px;font-size:0.6rem;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;padding:3px 8px;border-radius:100px;}
+.plan-card.premium .plan-badge{background:rgba(251,191,36,0.15);color:var(--gold);border:1px solid rgba(251,191,36,0.3);}
+.plan-card.advance .plan-badge{background:rgba(59,130,246,0.15);color:#60a5fa;border:1px solid rgba(59,130,246,0.3);}
 
-.svc-name { font-family: 'Syne', sans-serif; font-size: 1.05rem; color: #fff; margin-bottom: 6px; }
-.svc-desc { font-size: 0.78rem; color: var(--muted); line-height: 1.55; flex: 1; margin-bottom: 12px; }
+/* FIXED: plan name font size reduced */
+.plan-name{font-family:'Syne',sans-serif;font-size:1.2rem;color:#fff;margin-bottom:4px;}
+.plan-tagline{font-size:0.75rem;color:var(--muted);margin-bottom:16px;}
+.plan-price{font-family:'Syne',sans-serif;font-size:2.0rem;color:#fff;font-weight:800;line-height:1;}
+.plan-price span{font-size:0.8rem;color:var(--muted);font-weight:400;}
+.plan-price-annual{font-size:0.72rem;color:var(--green);margin-top:4px;margin-bottom:20px;display:none;}
+.plan-price-annual.show{display:block;}
+.plan-strike{font-size:0.7rem;color:var(--muted);text-decoration:line-through;margin-right:4px;}
 
-.svc-features { list-style: none; margin-bottom: 16px; display: flex; flex-direction: column; gap: 5px; }
-.svc-features li { display: flex; align-items: flex-start; gap: 6px; font-size: 0.76rem; color: var(--text); line-height: 1.4; }
-.svc-features li::before { content: '✓'; color: var(--green); font-weight: 800; flex-shrink: 0; }
+.plan-features{list-style:none;flex:1;margin-bottom:22px;}
+.plan-features li{font-size:0.78rem;color:var(--text);padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);display:flex;align-items:flex-start;gap:8px;line-height:1.45;}
+.plan-features li:last-child{border-bottom:none;}
+.feat-check{color:var(--green);font-size:0.85rem;flex-shrink:0;margin-top:1px;}
+.feat-star{color:var(--gold);font-size:0.85rem;flex-shrink:0;margin-top:1px;}
 
-.svc-price { margin-bottom: 14px; }
-.svc-amount { font-family: 'Syne', sans-serif; font-size: 1.7rem; color: var(--gold); line-height: 1; }
-.svc-period { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
-.svc-annual  { font-size: 0.7rem; color: var(--green); margin-top: 3px; }
+.plan-cta{display:block;text-align:center;padding:12px 20px;border-radius:10px;font-size:0.82rem;font-weight:800;text-decoration:none;cursor:pointer;border:none;font-family:'Mulish',sans-serif;transition:all 0.2s;letter-spacing:0.02em;}
+.plan-cta.advance-cta{background:rgba(59,130,246,0.15);color:#60a5fa;border:1px solid rgba(59,130,246,0.3);}
+.plan-cta.advance-cta:hover{background:#3b82f6;color:#fff;}
+.plan-cta.premium-cta{background:var(--gold);color:#000;}
+.plan-cta.premium-cta:hover{background:#f59e0b;}
 
-.btn-svc { width: 100%; padding: 10px; border-radius: 9px; border: 1.5px solid var(--border); background: transparent; color: var(--gold); font-family: 'Mulish', sans-serif; font-size: 0.82rem; font-weight: 700; cursor: pointer; transition: all 0.2s; }
-.btn-svc:hover { background: var(--gold); color: #000; border-color: var(--gold); }
+/* Section labels */
+.feat-section{font-size:0.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;font-weight:700;padding:10px 0 4px;border-top:1px solid var(--border);margin-top:4px;}
+.feat-section:first-child{border-top:none;padding-top:0;margin-top:0;}
 
-/* ── COMBO CARD ── */
-.combo-wrap { background: linear-gradient(135deg, #0f1520, #141c2e); border: 1px solid rgba(251,191,36,0.4); border-radius: 20px; padding: 28px 24px; position: relative; overflow: hidden; margin-bottom: 36px; }
-.combo-wrap::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(251,191,36,0.05) 0%, transparent 70%); pointer-events: none; }
-.combo-badge { display: inline-flex; align-items: center; gap: 6px; background: var(--gold); color: #000; font-size: 0.68rem; font-weight: 800; padding: 4px 12px; border-radius: 100px; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 16px; }
-.combo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: center; }
-@media(max-width:640px) { .combo-grid { grid-template-columns: 1fr; gap: 16px; } }
-
-.combo-left h2 { font-family: 'Syne', sans-serif; font-size: clamp(1.3rem, 3.5vw, 2rem); color: #fff; line-height: 1.1; margin-bottom: 10px; }
-.combo-left h2 span { color: var(--gold); }
-.combo-left p { font-size: 0.8rem; color: var(--muted); line-height: 1.6; margin-bottom: 16px; }
-.combo-includes { display: flex; flex-wrap: wrap; gap: 6px; }
-.combo-tag { display: flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 7px; padding: 4px 9px; font-size: 0.72rem; color: var(--text); font-weight: 600; }
-
-.combo-right { text-align: center; }
-.combo-price-box { background: var(--bg); border-radius: 14px; padding: 20px; border: 1px solid var(--border); margin-bottom: 12px; }
-.combo-original { font-size: 0.78rem; color: var(--muted); text-decoration: line-through; margin-bottom: 4px; }
-.combo-amount { font-family: 'Syne', sans-serif; font-size: 2.8rem; color: var(--gold); line-height: 1; }
-.combo-period { font-size: 0.78rem; color: var(--muted); margin-top: 4px; }
-.combo-saving { display: inline-block; background: rgba(16,185,129,0.15); color: var(--green); border: 1px solid rgba(16,185,129,0.3); font-size: 0.72rem; font-weight: 700; padding: 3px 10px; border-radius: 100px; margin-top: 8px; }
-.btn-combo { width: 100%; background: var(--gold); color: #000; border: none; border-radius: 10px; padding: 14px; font-family: 'Mulish', sans-serif; font-size: 0.95rem; font-weight: 800; cursor: pointer; transition: all 0.2s; letter-spacing: 0.01em; }
-.btn-combo:hover { background: #fcd34d; transform: scale(1.02); }
+/* ── COMPARISON TABLE ── */
+.compare-section{max-width:860px;margin:0 auto 48px;padding:0 16px;}
+.compare-title{font-size:0.75rem;color:var(--muted);text-align:center;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:16px;font-weight:700;}
+.compare-table{width:100%;border-collapse:collapse;font-size:0.76rem;}
+.compare-table th{padding:10px 14px;text-align:left;color:var(--muted);font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;border-bottom:1px solid var(--border);}
+.compare-table th:nth-child(2),.compare-table th:nth-child(3){text-align:center;}
+.compare-table td{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--text);vertical-align:middle;}
+.compare-table td:nth-child(2),.compare-table td:nth-child(3){text-align:center;}
+.compare-table tr:last-child td{border-bottom:none;}
+.ct-yes{color:var(--green);font-size:1rem;}
+.ct-no{color:var(--border);font-size:1rem;}
+.ct-adv{color:#60a5fa;font-size:0.62rem;font-weight:700;text-transform:uppercase;}
+.ct-prem{color:var(--gold);font-size:0.62rem;font-weight:700;text-transform:uppercase;}
+.compare-table .section-row td{background:rgba(255,255,255,0.02);color:var(--muted);font-size:0.68rem;text-transform:uppercase;letter-spacing:0.08em;font-weight:700;padding:8px 14px;}
 
 /* ── HOW IT WORKS ── */
-.how-section { max-width: 860px; margin: 0 auto 48px; padding: 0 16px; }
-.section-label { font-family: 'Syne', sans-serif; font-size: clamp(1.2rem, 3.5vw, 1.7rem); color: #fff; text-align: center; margin-bottom: 6px; }
-.section-sub { text-align: center; color: var(--muted); font-size: 0.8rem; margin-bottom: 24px; }
-.steps-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
-@media(max-width:600px) { .steps-row { grid-template-columns: 1fr 1fr; } }
-.step-box { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px 14px; text-align: center; }
-.step-n { font-family: 'Syne', sans-serif; font-size: 1.8rem; color: var(--gold); opacity: 0.25; line-height: 1; }
-.step-t { font-size: 0.8rem; font-weight: 700; color: #fff; margin: 5px 0 3px; }
-.step-d { font-size: 0.72rem; color: var(--muted); line-height: 1.5; }
+.how-section{max-width:680px;margin:0 auto 48px;padding:0 16px;text-align:center;}
+.how-title{font-size:0.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;font-weight:700;margin-bottom:20px;}
+.steps-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+@media(max-width:560px){.steps-grid{grid-template-columns:repeat(2,1fr);}}
+.step{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 12px;text-align:center;}
+.step-num{width:28px;height:28px;background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.3);color:var(--gold);border-radius:50%;font-size:0.75rem;font-weight:800;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;}
+.step-label{font-size:0.72rem;font-weight:700;color:#fff;margin-bottom:4px;}
+.step-desc{font-size:0.65rem;color:var(--muted);line-height:1.5;}
 
 /* ── FAQ ── */
-.faq-section { max-width: 680px; margin: 0 auto 48px; padding: 0 16px; }
-.faq-item { border-bottom: 1px solid var(--border); }
-.faq-q { width: 100%; background: none; border: none; color: var(--text); font-family: 'Mulish', sans-serif; font-size: 0.85rem; font-weight: 700; padding: 14px 0; text-align: left; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-.faq-q:hover { color: var(--gold); }
-.faq-icon { color: var(--gold); font-size: 1.1rem; flex-shrink: 0; transition: transform 0.2s; }
-.faq-a { display: none; font-size: 0.8rem; color: var(--muted); line-height: 1.7; padding-bottom: 12px; }
-.faq-item.open .faq-a { display: block; }
-.faq-item.open .faq-icon { transform: rotate(45deg); }
+.faq-section{max-width:680px;margin:0 auto 48px;padding:0 16px;}
+.faq-title{font-size:0.75rem;color:var(--muted);text-align:center;text-transform:uppercase;letter-spacing:0.1em;font-weight:700;margin-bottom:16px;}
+.faq-item{background:var(--card);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;overflow:hidden;}
+.faq-q{padding:14px 16px;font-size:0.8rem;font-weight:700;color:var(--text);cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:12px;}
+.faq-q:hover{color:var(--gold);}
+.faq-q::after{content:'+';color:var(--gold);font-size:1.1rem;flex-shrink:0;}
+.faq-a{padding:0 16px 14px;font-size:0.76rem;color:var(--muted);line-height:1.6;}
 
-/* ── MODAL ── */
-.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.88); z-index: 1000; align-items: center; justify-content: center; padding: 16px; backdrop-filter: blur(8px); }
-.modal-overlay.open { display: flex; }
-.modal { background: var(--card); border: 1px solid var(--border); border-radius: 18px; max-width: 440px; width: 100%; max-height: 92vh; overflow-y: auto; animation: up 0.28s ease; }
-@keyframes up { from{transform:translateY(20px);opacity:0} to{transform:translateY(0);opacity:1} }
-.modal-head { padding: 20px 20px 0; display: flex; justify-content: space-between; align-items: flex-start; }
-.modal-svc-name { font-family: 'Syne', sans-serif; font-size: 1.1rem; color: var(--gold); }
-.modal-svc-price { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
-.modal-x { background: var(--surface); border: 1px solid var(--border); border-radius: 50%; width: 28px; height: 28px; color: var(--muted); cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.modal-body { padding: 14px 20px 20px; }
+/* ── PAYMENT MODAL ── */
+.pay-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:500;align-items:center;justify-content:center;padding:16px;}
+.pay-overlay.open{display:flex;}
+.pay-modal{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:28px 24px;max-width:380px;width:100%;position:relative;}
+.pay-close{position:absolute;top:14px;right:16px;background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer;padding:4px;}
+.pay-close:hover{color:var(--text);}
+.pay-plan-name{font-family:'Syne',sans-serif;font-size:1rem;color:#fff;margin-bottom:4px;}
+.pay-amount{font-size:1.6rem;font-weight:800;color:var(--gold);margin-bottom:16px;}
+.upi-box{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px;}
+.upi-label{font-size:0.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;}
+.upi-id{font-size:0.95rem;font-weight:800;color:#fff;letter-spacing:0.02em;}
+.upi-copy{display:inline-block;font-size:0.68rem;color:var(--gold);cursor:pointer;margin-top:4px;padding:3px 8px;border:1px solid rgba(251,191,36,0.3);border-radius:6px;}
+.upi-copy:hover{background:rgba(251,191,36,0.1);}
+.pay-steps{font-size:0.72rem;color:var(--muted);line-height:1.9;margin-bottom:16px;}
+.pay-steps span{color:var(--text);}
+.pay-wa{display:block;text-align:center;padding:12px;background:var(--green);color:#fff;font-size:0.82rem;font-weight:800;border-radius:10px;text-decoration:none;transition:opacity 0.2s;}
+.pay-wa:hover{opacity:0.9;}
+.pay-disclaimer{font-size:0.62rem;color:var(--muted);text-align:center;margin-top:10px;line-height:1.5;}
 
-.form-group { margin-bottom: 10px; }
-.form-label { display: block; font-size: 0.7rem; font-weight: 700; color: var(--muted); margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.05em; }
-.form-input { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 9px; padding: 9px 11px; font-family: 'Mulish', sans-serif; font-size: 0.85rem; color: var(--text); outline: none; transition: border-color 0.2s; }
-.form-input:focus { border-color: var(--gold); }
-
-.pay-box { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin: 12px 0; }
-.pay-amount-row { display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; margin-bottom: 10px; border-bottom: 1px solid var(--border); }
-.pay-label { font-size: 0.72rem; color: var(--muted); }
-.pay-amount { font-family: 'Syne', sans-serif; font-size: 1.5rem; color: var(--gold); }
-.upi-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.upi-val { font-size: 0.88rem; font-weight: 700; color: var(--text); }
-.btn-copy { background: var(--card); border: 1px solid var(--border); border-radius: 7px; padding: 5px 10px; font-size: 0.72rem; font-weight: 700; color: var(--gold); cursor: pointer; transition: all 0.2s; white-space: nowrap; }
-.btn-copy:hover { background: var(--gold); color: #000; border-color: var(--gold); }
-.pay-steps { margin-top: 10px; display: flex; flex-direction: column; gap: 5px; }
-.pay-step { display: flex; align-items: center; gap: 7px; font-size: 0.72rem; color: var(--muted); }
-.pay-step-n { background: var(--card); border-radius: 50%; width: 17px; height: 17px; display: flex; align-items: center; justify-content: center; font-size: 0.6rem; font-weight: 800; color: var(--gold); flex-shrink: 0; }
-
-.btn-wa { width: 100%; background: #25d366; color: #fff; border: none; border-radius: 10px; padding: 13px; font-family: 'Mulish', sans-serif; font-size: 0.9rem; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 4px; transition: background 0.2s; text-decoration: none; }
-.btn-wa:hover { background: #1ebe5d; }
-.btn-email { width: 100%; background: transparent; color: var(--text); border: 1px solid var(--border); border-radius: 10px; padding: 11px; font-family: 'Mulish', sans-serif; font-size: 0.82rem; font-weight: 700; cursor: pointer; margin-top: 7px; transition: all 0.2s; }
-.btn-email:hover { border-color: var(--gold); color: var(--gold); }
-
-/* ── TOAST ── */
-.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--gold); color: #000; padding: 10px 22px; border-radius: 100px; font-size: 0.82rem; font-weight: 800; z-index: 9999; transition: transform 0.3s; white-space: nowrap; }
-.toast.show { transform: translateX(-50%) translateY(0); }
-
-/* Hide site header on membership page */
-.header-container { display: none !important; }
-.content-wrapper { padding-top: 0 !important; margin-top: 0 !important; }
-body { padding-top: 0 !important; margin-top: 0 !important; }
-
-/* Mobile overrides */
-@media(max-width:480px) {
-  .mp-hero { padding: 16px 16px 14px; }
-  .mp-hero h1 { font-size: 1.55rem; }
-  .mp-hero p { font-size: 0.78rem; margin-bottom: 12px; }
-  .billing-btn { padding: 6px 13px; font-size: 0.78rem; }
-  .services-section { padding: 0 12px 40px; }
-  .services-grid { grid-template-columns: 1fr; gap: 12px; }
-  .svc-card { padding: 18px 16px; }
-  .svc-icon { font-size: 1.5rem; margin-bottom: 8px; }
-  .svc-amount { font-size: 1.5rem; }
-  .combo-wrap { padding: 20px 16px; }
-  .combo-amount { font-size: 2.2rem; }
-  .how-section { padding: 0 12px; margin-bottom: 36px; }
-  .faq-section { padding: 0 12px; }
-}
+/* ── FOOTER NOTE ── */
+.mp-footer{text-align:center;padding:20px 16px 40px;font-size:0.7rem;color:var(--muted);line-height:1.8;}
+.mp-footer a{color:var(--muted);text-decoration:underline;}
 </style>
 
 <div class="mp">
 
-  <!-- NAV -->
-  <div class="mp-nav">
-    <a href="/" class="mp-nav-home">← Home</a>
-    <div class="mp-nav-links">
-      <a href="/shop/" class="mp-nav-link">Shop</a>
-      <a href="/about/" class="mp-nav-link">About</a>
-      <a href="/contact/" class="mp-nav-link">Contact</a>
-    </div>
+<!-- NAV -->
+<nav class="mp-nav">
+  <a href="/" class="mp-nav-home">← AI360Trading</a>
+  <div class="mp-nav-links">
+    <a href="/about/" class="mp-nav-link">About</a>
+    <a href="/contact/" class="mp-nav-link">Contact</a>
   </div>
+</nav>
 
-  <!-- HERO -->
-  <div class="mp-hero">
-    <div class="mp-eyebrow"><span class="live-dot"></span> All Services Live</div>
-    <h1>AI360 <em>Membership</em></h1>
-    <p>All AI360Trading services in one place — signals, videos, live sessions and scanner. Pick what you need or get everything at once.</p>
-
-    <div class="billing-toggle">
-      <button class="billing-btn active" id="btnM" onclick="setBilling('monthly')">Monthly</button>
-      <button class="billing-btn" id="btnA" onclick="setBilling('annual')">Annual <span class="billing-save">Save 33%</span></button>
-    </div>
+<!-- HERO -->
+<section class="mp-hero">
+  <div class="mp-eyebrow"><span class="live-dot"></span> Live Membership</div>
+  <h1>AI360 <em>Membership</em></h1>
+  <p>Signals, TradingView indicator, Chartink screener, private videos and live sessions — everything in two simple plans.</p>
+  <div class="billing-toggle">
+    <button class="billing-btn active" onclick="setBilling('monthly',this)">Monthly</button>
+    <button class="billing-btn" onclick="setBilling('annual',this)">Annual <span class="billing-save">Save 33%</span></button>
   </div>
+</section>
 
-  <!-- SERVICES -->
-  <div class="services-section">
+<!-- PLANS -->
+<section class="plans-section">
+  <div class="plans-grid">
 
-    <div class="services-grid">
-
-      <!-- TELEGRAM -->
-      <div class="svc-card tg">
-        <div class="svc-icon">📱</div>
-        <div class="svc-platform">Telegram</div>
-        <div class="svc-name">Signal Channel</div>
-        <div class="svc-desc">Private Telegram channel with live trading signals — swing, positional and options alerts as they happen.</div>
-        <ul class="svc-features">
-          <li>Swing trade signals daily</li>
-          <li>Positional calls weekly</li>
-          <li>Options alerts when triggered</li>
-          <li>Entry, target, stop loss levels</li>
-          <li>Market regime alerts</li>
-          <li>Weekly performance report</li>
-        </ul>
-        <div class="svc-price">
-          <div class="svc-amount" id="tg-price">₹499</div>
-          <div class="svc-period" id="tg-period">per month</div>
-          <div class="svc-annual" id="tg-annual">or ₹3,999/year</div>
-        </div>
-        <button class="btn-svc" onclick="openModal('Telegram Signal Channel', 499, 3999, 'tg')">Subscribe Now</button>
+    <!-- ADVANCE -->
+    <div class="plan-card advance">
+      <div class="plan-badge">Advance</div>
+      <div class="plan-name">Advance</div>
+      <div class="plan-tagline">For active traders who want daily signals + tools</div>
+      <div class="plan-price" id="adv-price">₹699 <span>/ month</span></div>
+      <div class="plan-price-annual" id="adv-annual">
+        <span class="plan-strike">₹8,388</span>₹5,588/year — save ₹2,800
       </div>
-
-      <!-- YOUTUBE PRIVATE -->
-      <div class="svc-card yt">
-        <div class="svc-icon">📺</div>
-        <div class="svc-platform">YouTube</div>
-        <div class="svc-name">Private Videos</div>
-        <div class="svc-desc">Access to private YouTube videos — market analysis, trade walkthroughs, tutorials and strategy breakdowns.</div>
-        <ul class="svc-features">
-          <li>Private analysis videos</li>
-          <li>Trade setup walkthroughs</li>
-          <li>Strategy tutorials</li>
-          <li>Chart reading lessons</li>
-          <li>Post-trade reviews</li>
-          <li>New videos every week</li>
-        </ul>
-        <div class="svc-price">
-          <div class="svc-amount" id="yt-price">₹299</div>
-          <div class="svc-period" id="yt-period">per month</div>
-          <div class="svc-annual" id="yt-annual">or ₹2,499/year</div>
-        </div>
-        <button class="btn-svc" onclick="openModal('YouTube Private Videos', 299, 2499, 'yt')">Subscribe Now</button>
-      </div>
-
-      <!-- YOUTUBE LIVE -->
-      <div class="svc-card live">
-        <div class="svc-icon">🔴</div>
-        <div class="svc-platform">YouTube Live</div>
-        <div class="svc-name">Live Sessions</div>
-        <div class="svc-desc">Private live trading sessions — watch Amit trade in real time, ask questions, learn the decision-making process live.</div>
-        <ul class="svc-features">
-          <li>Live trading sessions</li>
-          <li>Real-time market commentary</li>
-          <li>Live Q&amp;A with Amit</li>
-          <li>Pre-market live analysis</li>
-          <li>Recorded replays available</li>
-          <li>Priority access to sessions</li>
-        </ul>
-        <div class="svc-price">
-          <div class="svc-amount" id="live-price">₹699</div>
-          <div class="svc-period" id="live-period">per month</div>
-          <div class="svc-annual" id="live-annual">or ₹5,999/year</div>
-        </div>
-        <button class="btn-svc" onclick="openModal('YouTube Live Sessions', 699, 5999, 'live')">Subscribe Now</button>
-      </div>
-
-      <!-- TRADINGVIEW -->
-      <div class="svc-card tv">
-        <div class="svc-icon">📊</div>
-        <div class="svc-platform">TradingView</div>
-        <div class="svc-name">Scanner Access</div>
-        <div class="svc-desc">Access to the AI360 Nifty200 TradingView scanner — the same tool that powers all trade signals. Full setup guide included.</div>
-        <ul class="svc-features">
-          <li>Nifty200 scanner access</li>
-          <li>Priority score formula</li>
-          <li>Sector trend filter</li>
-          <li>RS vs Nifty indicator</li>
-          <li>Full setup guide PDF</li>
-          <li>Lifetime updates</li>
-        </ul>
-        <div class="svc-price">
-          <div class="svc-amount" id="tv-price">₹399</div>
-          <div class="svc-period" id="tv-period">per month</div>
-          <div class="svc-annual" id="tv-annual">or ₹2,999/year</div>
-        </div>
-        <button class="btn-svc" onclick="openModal('TradingView Scanner Access', 399, 2999, 'tv')">Subscribe Now</button>
-      </div>
-
+      <ul class="plan-features">
+        <li class="feat-section">📱 Telegram Signals</li>
+        <li><span class="feat-check">✓</span> Daily swing + positional trade alerts</li>
+        <li><span class="feat-check">✓</span> Entry, stop loss, target levels for every trade</li>
+        <li><span class="feat-check">✓</span> Market regime alerts (bullish/bearish)</li>
+        <li><span class="feat-check">✓</span> Weekly performance report</li>
+        <li class="feat-section">🛠️ Tools</li>
+        <li><span class="feat-check">✓</span> Chartink screener access (Nifty200 filter)</li>
+        <li><span class="feat-check">✓</span> TradingView Pine Script indicator (open source)</li>
+        <li><span class="feat-check">✓</span> TradingView strategy script access</li>
+        <li><span class="feat-check">✓</span> Setup guide PDF</li>
+        <li class="feat-section">📺 Content</li>
+        <li><span class="feat-check">✓</span> Private YouTube market analysis videos</li>
+        <li><span class="feat-check">✓</span> Trade setup walkthroughs weekly</li>
+      </ul>
+      <button class="plan-cta advance-cta" onclick="openPay('Advance','699','5588')">Get Advance →</button>
     </div>
 
-    <!-- ALL-IN-ONE COMBO -->
-    <div class="combo-wrap">
-      <div class="combo-badge">👑 Best Value — All-in-One</div>
-      <div class="combo-grid">
-        <div class="combo-left">
-          <h2>Everything in<br><span>One Membership</span></h2>
-          <p>Get all 4 services together at one price. Save 47% vs buying individually. Everything Amit uses — signals, videos, live sessions and scanner.</p>
-          <div class="combo-includes">
-            <div class="combo-tag">📱 Telegram</div>
-            <div class="combo-tag">📺 YouTube Private</div>
-            <div class="combo-tag">🔴 YouTube Live</div>
-            <div class="combo-tag">📊 TradingView Scanner</div>
-          </div>
-        </div>
-        <div class="combo-right">
-          <div class="combo-price-box">
-            <div class="combo-original" id="combo-original">Individual total: ₹1,896/mo</div>
-            <div class="combo-amount" id="combo-price">₹999</div>
-            <div class="combo-period" id="combo-period">per month</div>
-            <div class="combo-saving" id="combo-saving">You save ₹897/month — 47% off</div>
-          </div>
-          <button class="btn-combo" onclick="openModal('All-in-One Membership', 999, 7999, 'combo')">
-            Join All-in-One Now →
-          </button>
-          <div style="font-size:0.7rem;color:var(--muted);margin-top:8px">Access within 1 hour of payment confirmation</div>
-        </div>
+    <!-- PREMIUM -->
+    <div class="plan-card premium">
+      <div class="plan-badge">⭐ Best Value</div>
+      <div class="plan-name">Premium</div>
+      <div class="plan-tagline">For serious traders who want everything + live sessions</div>
+      <div class="plan-price" id="prem-price">₹1,499 <span>/ month</span></div>
+      <div class="plan-price-annual" id="prem-annual">
+        <span class="plan-strike">₹17,988</span>₹11,988/year — save ₹6,000
       </div>
+      <ul class="plan-features">
+        <li class="feat-section">📱 Telegram Signals</li>
+        <li><span class="feat-star">★</span> Everything in Advance</li>
+        <li><span class="feat-star">★</span> Options CE/PE candidate alerts</li>
+        <li><span class="feat-star">★</span> Intraday momentum alerts (10:30 AM)</li>
+        <li class="feat-section">🛠️ Tools</li>
+        <li><span class="feat-star">★</span> All Advance tools included</li>
+        <li><span class="feat-star">★</span> Chartink screener + email alerts setup</li>
+        <li><span class="feat-star">★</span> Full Nifty200 watchlist with scores (Google Sheet access)</li>
+        <li class="feat-section">🎥 Live Sessions</li>
+        <li><span class="feat-star">★</span> 2× live trading sessions per month</li>
+        <li><span class="feat-star">★</span> Live Q&A with Amit Kumar</li>
+        <li><span class="feat-star">★</span> Session recordings available</li>
+        <li class="feat-section">💎 Premium Only</li>
+        <li><span class="feat-star">★</span> Priority WhatsApp support</li>
+        <li><span class="feat-star">★</span> Monthly 1:1 portfolio review (15 min)</li>
+        <li><span class="feat-star">★</span> Early access to new indicators</li>
+      </ul>
+      <button class="plan-cta premium-cta" onclick="openPay('Premium','1499','11988')">Get Premium →</button>
     </div>
 
   </div>
+</section>
 
-  <!-- HOW IT WORKS -->
-  <div class="how-section">
-    <div class="section-label">How It Works</div>
-    <p class="section-sub">Simple 4-step process — takes less than 5 minutes</p>
-    <div class="steps-row">
-      <div class="step-box"><div class="step-n">01</div><div class="step-t">Choose Service</div><div class="step-d">Pick the plan that fits your trading style and budget</div></div>
-      <div class="step-box"><div class="step-n">02</div><div class="step-t">Pay via UPI</div><div class="step-d">Copy UPI ID and pay from any UPI app in 30 seconds</div></div>
-      <div class="step-box"><div class="step-n">03</div><div class="step-t">Send Screenshot</div><div class="step-d">Click WhatsApp button and send payment screenshot</div></div>
-      <div class="step-box"><div class="step-n">04</div><div class="step-t">Get Access</div><div class="step-d">Receive invite links within 1 hour during market hours</div></div>
-    </div>
+<!-- COMPARISON TABLE -->
+<section class="compare-section">
+  <div class="compare-title">Full Feature Comparison</div>
+  <table class="compare-table">
+    <thead>
+      <tr>
+        <th>Feature</th>
+        <th><span class="ct-adv">Advance</span></th>
+        <th><span class="ct-prem">Premium</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="section-row"><td colspan="3">📱 Telegram Signals</td></tr>
+      <tr><td>Daily swing + positional alerts</td><td><span class="ct-yes">✓</span></td><td><span class="ct-yes">✓</span></td></tr>
+      <tr><td>Options CE/PE alerts</td><td><span class="ct-no">—</span></td><td><span class="ct-yes">✓</span></td></tr>
+      <tr><td>Intraday momentum alerts</td><td><span class="ct-no">—</span></td><td><span class="ct-yes">✓</span></td></tr>
+      <tr><td>Weekly performance report</td><td><span class="ct-yes">✓</span></td><td><span class="ct-yes">✓</span></td></tr>
+      <tr class="section-row"><td colspan="3">🛠️ Tools &amp; Screeners</td></tr>
+      <tr><td>TradingView Pine Script indicator</td><td><span class="ct-yes">✓</span></td><td><span class="ct-yes">✓</span></td></tr>
+      <tr><td>TradingView strategy script</td><td><span class="ct-yes">✓</span></td><td><span class="ct-yes">✓</span></td></tr>
+      <tr><td>Chartink screener link</td><td><span class="ct-yes">✓</span></td><td><span class="ct-yes">✓</span></td></tr>
+      <tr><td>Chartink email alerts setup</td><td><span class="ct-no">—</span></td><td><span class="ct-yes">✓</span></td></tr>
+      <tr><td>Nifty200 Google Sheet (live scores)</td><td><span class="ct-no">—</span></td><td><span class="ct-yes">✓</span></td></tr>
+      <tr class="section-row"><td colspan="3">📺 Videos &amp; Learning</td></tr>
+      <tr><td>Private YouTube videos</td><td><span class="ct-yes">✓</span></td><td><span class="ct-yes">✓</span></td></tr>
+      <tr><td>Trade setup walkthroughs</td><td><span class="ct-yes">✓</span></td><td><span class="ct-yes">✓</span></td></tr>
+      <tr><td>Live trading sessions (2×/month)</td><td><span class="ct-no">—</span></td><td><span class="ct-yes">✓</span></td></tr>
+      <tr><td>Session recordings</td><td><span class="ct-no">—</span></td><td><span class="ct-yes">✓</span></td></tr>
+      <tr class="section-row"><td colspan="3">💎 Support</td></tr>
+      <tr><td>Priority WhatsApp support</td><td><span class="ct-no">—</span></td><td><span class="ct-yes">✓</span></td></tr>
+      <tr><td>Monthly 1:1 portfolio review</td><td><span class="ct-no">—</span></td><td><span class="ct-yes">✓</span></td></tr>
+      <tr class="section-row"><td colspan="3">💰 Pricing</td></tr>
+      <tr><td>Monthly</td><td>₹699</td><td>₹1,499</td></tr>
+      <tr><td>Annual (save 33%)</td><td>₹5,588/yr</td><td>₹11,988/yr</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how-section">
+  <div class="how-title">How It Works</div>
+  <div class="steps-grid">
+    <div class="step"><div class="step-num">1</div><div class="step-label">Choose Plan</div><div class="step-desc">Pick Advance or Premium — monthly or annual</div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-label">Pay via UPI</div><div class="step-desc">Copy UPI ID, pay from GPay / PhonePe / Paytm</div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-label">Send Screenshot</div><div class="step-desc">WhatsApp payment screenshot + Telegram username</div></div>
+    <div class="step"><div class="step-num">4</div><div class="step-label">Get Access</div><div class="step-desc">All invite links sent within 1 hour (9AM–6PM IST)</div></div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="faq-section">
+  <div class="faq-title">Frequently Asked Questions</div>
+
+  <div class="faq-item">
+    <div class="faq-q">Is this SEBI registered investment advice?</div>
+    <div class="faq-a">No. AI360Trading is not a SEBI registered investment advisor. All signals and analysis are for educational purposes only. Trading involves risk of loss. Always do your own research.</div>
   </div>
 
-  <!-- FAQ -->
-  <div class="faq-section">
-    <div class="section-label" style="margin-bottom:20px">FAQ</div>
-    <div class="faq-item">
-      <button class="faq-q" onclick="toggleFaq(this)">Is this SEBI registered investment advice? <span class="faq-icon">+</span></button>
-      <div class="faq-a">No. All content is for educational purposes only. AI360Trading is not a SEBI registered investment advisor. Past performance does not guarantee future results. Trade at your own risk.</div>
-    </div>
-    <div class="faq-item">
-      <button class="faq-q" onclick="toggleFaq(this)">How do I get access after payment? <span class="faq-icon">+</span></button>
-      <div class="faq-a">After paying via UPI, click the WhatsApp button and send your payment screenshot along with your Telegram username and YouTube email. You will receive all invite links within 1 hour during market hours (9AM–6PM IST).</div>
-    </div>
-    <div class="faq-item">
-      <button class="faq-q" onclick="toggleFaq(this)">Can I subscribe to only one service? <span class="faq-icon">+</span></button>
-      <div class="faq-a">Yes — each service can be subscribed individually. You are not required to take the combo. Start with what interests you most and upgrade anytime.</div>
-    </div>
-    <div class="faq-item">
-      <button class="faq-q" onclick="toggleFaq(this)">How does the annual plan work? <span class="faq-icon">+</span></button>
-      <div class="faq-a">Annual plans are paid once upfront and give you 12 months of access. You save 33% compared to paying monthly. Access does not auto-renew — you will be reminded before expiry.</div>
-    </div>
-    <div class="faq-item">
-      <button class="faq-q" onclick="toggleFaq(this)">What is the TradingView scanner exactly? <span class="faq-icon">+</span></button>
-      <div class="faq-a">It is the same Nifty200 screening tool that powers all AI360 signals — priority score, sector trend, RS vs Nifty and more. You get access to the Pine Script indicator plus a complete PDF setup guide to use it on your own TradingView account.</div>
-    </div>
-    <div class="faq-item">
-      <button class="faq-q" onclick="toggleFaq(this)">Can I cancel anytime? <span class="faq-icon">+</span></button>
-      <div class="faq-a">Monthly plans are not auto-renewed. Simply do not renew after your month ends and access will stop automatically. No cancellation needed.</div>
-    </div>
+  <div class="faq-item">
+    <div class="faq-q">What is the TradingView indicator exactly?</div>
+    <div class="faq-a">It is an open-source Pine Script indicator — the same priority scoring formula that powers all AI360 signals. You get the script link to add to your own TradingView account (free account works). A full PDF setup guide is included.</div>
   </div>
 
-</div>
+  <div class="faq-item">
+    <div class="faq-q">What is the Chartink screener?</div>
+    <div class="faq-a">A pre-built Chartink screener that filters Nifty200 stocks by breakout stage, volume, FII zone and SMA structure. Premium members also get help setting up Chartink email alerts so you never miss a signal.</div>
+  </div>
 
-<!-- MODAL -->
-<div class="modal-overlay" id="modal">
-  <div class="modal">
-    <div class="modal-head">
-      <div>
-        <div class="modal-svc-name" id="m-name">Service</div>
-        <div class="modal-svc-price" id="m-price-label">₹499/month</div>
-      </div>
-      <button class="modal-x" onclick="closeModal()">✕</button>
+  <div class="faq-item">
+    <div class="faq-q">What is the Nifty200 Google Sheet in Premium?</div>
+    <div class="faq-a">View-only access to the live Nifty200 spreadsheet — the same sheet that the AI trading bot uses. Shows real-time CMP, priority scores, sector rank, ATR, FII signal and breakout stage for all 200+ stocks.</div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q">How do I get access after payment?</div>
+    <div class="faq-a">After paying via UPI, click the WhatsApp button and send your payment screenshot with your Telegram username. You will receive all invite links and tool access within 1 hour during market hours (9AM–6PM IST).</div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q">Can I cancel anytime?</div>
+    <div class="faq-a">Monthly plans are not auto-renewed. Simply do not renew after your month ends and access stops automatically. No cancellation process needed.</div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q">Can I upgrade from Advance to Premium?</div>
+    <div class="faq-a">Yes — pay the difference and WhatsApp the screenshot. Upgrade is processed within 1 hour during market hours.</div>
+  </div>
+</section>
+
+<!-- PAYMENT MODAL -->
+<div class="pay-overlay" id="payOverlay">
+  <div class="pay-modal">
+    <button class="pay-close" onclick="closePay()">✕</button>
+    <div class="pay-plan-name" id="modalPlanName">Advance Membership</div>
+    <div class="pay-amount" id="modalAmount">₹699/month</div>
+    <div class="upi-box">
+      <div class="upi-label">Pay via UPI</div>
+      <div class="upi-id">9634759528@upi</div>
+      <div class="upi-copy" onclick="copyUPI()">📋 Copy UPI ID</div>
     </div>
-    <div class="modal-body">
-      <div class="form-group">
-        <label class="form-label">Your Name *</label>
-        <input class="form-input" id="m-name-in" placeholder="Full name">
-      </div>
-      <div class="form-group">
-        <label class="form-label">WhatsApp Number *</label>
-        <input class="form-input" id="m-phone" placeholder="+91 XXXXXXXXXX" type="tel">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Telegram Username *</label>
-        <input class="form-input" id="m-tg" placeholder="@yourusername">
-      </div>
-      <div class="form-group">
-        <label class="form-label">YouTube Email (for YouTube services)</label>
-        <input class="form-input" id="m-yt" placeholder="you@gmail.com" type="email">
-      </div>
-      <div class="form-group">
-        <label class="form-label">TradingView Username (for scanner)</label>
-        <input class="form-input" id="m-tv" placeholder="your TradingView username">
-      </div>
-
-      <div class="pay-box">
-        <div class="pay-amount-row">
-          <span class="pay-label">Amount to pay</span>
-          <span class="pay-amount" id="m-amount">₹499</span>
-        </div>
-        <div style="font-size:0.65rem;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:0.05em">Pay to UPI ID</div>
-        <div class="upi-row">
-          <span class="upi-val">9634759528@upi</span>
-          <button class="btn-copy" onclick="copyUpi()">📋 Copy</button>
-        </div>
-        <div class="pay-steps">
-          <div class="pay-step"><span class="pay-step-n">1</span>Copy UPI ID and open GPay / PhonePe / Paytm</div>
-          <div class="pay-step"><span class="pay-step-n">2</span>Send <strong id="m-pay-step-amt" style="color:var(--gold)">₹499</strong> to UPI ID</div>
-          <div class="pay-step"><span class="pay-step-n">3</span>Take screenshot of payment confirmation</div>
-          <div class="pay-step"><span class="pay-step-n">4</span>Click WhatsApp below — send screenshot</div>
-        </div>
-      </div>
-
-      <a class="btn-wa" href="#" id="m-wa-btn" onclick="confirmOrder(event)" target="_blank">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-        Confirm via WhatsApp
-      </a>
-      <button class="btn-email" onclick="confirmOrder('email')">Confirm via Email instead</button>
-      <div style="font-size:0.65rem;color:var(--muted);text-align:center;margin-top:10px;line-height:1.5">Access granted within 1 hour. Educational content only — not SEBI registered advice.</div>
+    <div class="pay-steps">
+      <span>1.</span> Copy UPI ID above and open GPay / PhonePe / Paytm<br>
+      <span>2.</span> Send exact amount: <strong id="modalAmtInline">₹699</strong><br>
+      <span>3.</span> Take screenshot of payment confirmation<br>
+      <span>4.</span> Click WhatsApp below — send screenshot + Telegram username
     </div>
+    <a href="#" class="pay-wa" id="waLink" target="_blank">📲 Confirm via WhatsApp</a>
+    <div class="pay-disclaimer">Access granted within 1 hour. Educational content only — not SEBI advice.</div>
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<!-- FOOTER NOTE -->
+<div class="mp-footer">
+  <strong style="color:var(--text)">AI360Trading</strong><br>
+  Educational content only. Not SEBI registered. Trading involves risk of loss.<br>
+  <a href="/disclaimer/">Disclaimer</a> · <a href="/policy/">Privacy Policy</a> · <a href="/contact/">Contact</a><br>
+  Haridwar, Uttarakhand, India · admin@ai360trading.in
+</div>
+
+</div><!-- end .mp -->
 
 <script>
-const CONFIG = {
-  whatsapp: "919634759528",
-  email:    "admin@ai360trading.in",
-  upiId:    "9634759528@upi"
-};
-
-const PRICES = {
-  tg:    { monthly: 499,  annual: 3999  },
-  yt:    { monthly: 299,  annual: 2499  },
-  live:  { monthly: 699,  annual: 5999  },
-  tv:    { monthly: 399,  annual: 2999  },
-  combo: { monthly: 999,  annual: 7999  },
-};
-
-let billing = 'monthly';
-let currentPlan = { name: '', price: 0, type: '' };
-
-function setBilling(type) {
-  billing = type;
-  document.getElementById('btnM').classList.toggle('active', type === 'monthly');
-  document.getElementById('btnA').classList.toggle('active', type === 'annual');
-
-  const keys = ['tg', 'yt', 'live', 'tv'];
-  keys.forEach(k => {
-    const p = PRICES[k];
-    const amt = type === 'monthly' ? p.monthly : p.annual;
-    document.getElementById(k+'-price').textContent  = '₹' + amt.toLocaleString('en-IN');
-    document.getElementById(k+'-period').textContent = type === 'monthly' ? 'per month' : 'per year';
-    document.getElementById(k+'-annual').textContent = type === 'monthly'
-      ? 'or ₹' + p.annual.toLocaleString('en-IN') + '/year'
-      : 'Save 33% vs monthly billing';
-  });
-
-  if (type === 'monthly') {
-    document.getElementById('combo-original').textContent = 'Individual total: ₹1,896/mo';
-    document.getElementById('combo-price').textContent    = '₹999';
-    document.getElementById('combo-period').textContent   = 'per month';
-    document.getElementById('combo-saving').textContent   = 'You save ₹897/month — 47% off';
-  } else {
-    document.getElementById('combo-original').textContent = 'Individual total: ₹15,496/yr';
-    document.getElementById('combo-price').textContent    = '₹7,999';
-    document.getElementById('combo-period').textContent   = 'per year';
-    document.getElementById('combo-saving').textContent   = 'You save ₹7,497/year — 48% off';
-  }
+// Billing toggle
+function setBilling(type, btn) {
+  document.querySelectorAll('.billing-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const isAnnual = type === 'annual';
+  document.getElementById('adv-price').innerHTML  = isAnnual ? '₹465 <span>/ month</span>' : '₹699 <span>/ month</span>';
+  document.getElementById('prem-price').innerHTML = isAnnual ? '₹999 <span>/ month</span>' : '₹1,499 <span>/ month</span>';
+  document.getElementById('adv-annual').classList.toggle('show', isAnnual);
+  document.getElementById('prem-annual').classList.toggle('show', isAnnual);
 }
 
-function openModal(name, monthly, annual, type) {
-  const price = billing === 'monthly' ? monthly : annual;
-  currentPlan = { name, price, type };
-
-  document.getElementById('m-name').textContent        = name;
-  document.getElementById('m-price-label').textContent = '₹' + price.toLocaleString('en-IN') + (billing === 'monthly' ? '/month' : '/year');
-  document.getElementById('m-amount').textContent      = '₹' + price.toLocaleString('en-IN');
-  document.getElementById('m-pay-step-amt').textContent = '₹' + price.toLocaleString('en-IN');
-
-  ['m-name-in','m-phone','m-tg','m-yt','m-tv'].forEach(id => {
-    const el = document.getElementById(id); if(el) el.value = '';
-  });
-
-  document.getElementById('modal').classList.add('open');
-  document.body.style.overflow = 'hidden';
+// Payment modal
+function openPay(plan, monthly, annual) {
+  const isAnnual = document.querySelector('.billing-btn.active').textContent.includes('Annual');
+  const amt      = isAnnual ? annual : monthly;
+  const period   = isAnnual ? '/year' : '/month';
+  document.getElementById('modalPlanName').textContent  = plan + ' Membership';
+  document.getElementById('modalAmount').textContent    = '₹' + amt + period;
+  document.getElementById('modalAmtInline').textContent = '₹' + amt;
+  const msg  = encodeURIComponent(`Hi Amit, I've paid ₹${amt} for AI360Trading ${plan} membership. Please activate my access. My Telegram username is: @`);
+  document.getElementById('waLink').href = `https://wa.me/919634759528?text=${msg}`;
+  document.getElementById('payOverlay').classList.add('open');
 }
 
-function closeModal() {
-  document.getElementById('modal').classList.remove('open');
-  document.body.style.overflow = '';
+function closePay() {
+  document.getElementById('payOverlay').classList.remove('open');
 }
-document.getElementById('modal').addEventListener('click', function(e) {
-  if (e.target === this) closeModal();
+
+document.getElementById('payOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closePay();
 });
 
-function copyUpi() {
-  navigator.clipboard.writeText(CONFIG.upiId)
-    .then(() => showToast('UPI ID copied: ' + CONFIG.upiId))
-    .catch(() => showToast('UPI ID: ' + CONFIG.upiId));
+function copyUPI() {
+  navigator.clipboard.writeText('9634759528@upi').then(() => {
+    const el = document.querySelector('.upi-copy');
+    el.textContent = '✅ Copied!';
+    setTimeout(() => el.textContent = '📋 Copy UPI ID', 2000);
+  }).catch(() => {
+    alert('UPI: 9634759528@upi');
+  });
 }
-
-function confirmOrder(e) {
-  if (e && e.preventDefault) e.preventDefault();
-  const name  = document.getElementById('m-name-in').value.trim();
-  const phone = document.getElementById('m-phone').value.trim();
-  const tg    = document.getElementById('m-tg').value.trim();
-  if (!name)  { showToast('Please enter your Name');              highlight('m-name-in'); return false; }
-  if (!phone) { showToast('Please enter your WhatsApp number');   highlight('m-phone');   return false; }
-  if (!tg)    { showToast('Please enter your Telegram username'); highlight('m-tg');      return false; }
-
-  const yt = document.getElementById('m-yt').value.trim();
-  const tv = document.getElementById('m-tv').value.trim();
-
-  const msg =
-    "New Membership Request — AI360Trading\n\n" +
-    "Service: " + currentPlan.name + "\n" +
-    "Amount: Rs." + currentPlan.price.toLocaleString('en-IN') + " (" + billing + ")\n" +
-    "Name: " + name + "\n" +
-    "WhatsApp: " + phone + "\n" +
-    "Telegram: " + tg + "\n" +
-    (yt ? "YouTube Email: " + yt + "\n" : "") +
-    (tv ? "TradingView: " + tv + "\n" : "") +
-    "\nPayment of Rs." + currentPlan.price.toLocaleString('en-IN') +
-    " sent to UPI: " + CONFIG.upiId +
-    "\nPayment screenshot attached below.";
-
-  if (e === 'email') {
-    window.location.href = 'mailto:' + CONFIG.email +
-      '?subject=' + encodeURIComponent('Membership: ' + currentPlan.name) +
-      '&body=' + encodeURIComponent(msg);
-    showToast('Opening email...');
-  } else {
-    window.open('https://wa.me/' + CONFIG.whatsapp + '?text=' + encodeURIComponent(msg), '_blank');
-    showToast('Opening WhatsApp...');
-  }
-  closeModal();
-  return false;
-}
-
-function highlight(id) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.style.borderColor = 'var(--gold)';
-  el.focus();
-  setTimeout(() => { el.style.borderColor = ''; }, 3000);
-}
-
-function toggleFaq(btn) {
-  btn.parentElement.classList.toggle('open');
-}
-
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 3000);
-}
-
-(function(){
-  const h = document.querySelector('.header-container');
-  if(h) h.style.display = 'none';
-  const w = document.querySelector('.content-wrapper');
-  if(w){ w.style.paddingTop = '0'; w.style.marginTop = '0'; }
-})();
 </script>
