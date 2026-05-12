@@ -90,7 +90,21 @@ FONT_REG_PATHS = [
 
 FB_RETRY = 3
 FB_RETRY_WAIT = 8
-
+def get_fb_page_token(user_token: str, page_id: str) -> str:
+    """Exchange user token for page token — required for page posts."""
+    try:
+        resp = requests.get(
+            "https://graph.facebook.com/v21.0/me/accounts",
+            params={"access_token": user_token, "limit": 20},
+            timeout=15
+        )
+        if resp.ok:
+            for page in resp.json().get("data", []):
+                if str(page.get("id")) == str(page_id):
+                    return page.get("access_token", user_token)
+    except Exception:
+        pass
+    return user_token
 
 # ─── HELPERS ──────────────────────────────────────────────────────────────────
 
@@ -533,9 +547,10 @@ def upload_short(youtube, video_path, title, description, tags):
 # ─── FACEBOOK SHARE ───────────────────────────────────────────────────────────
 
 def share_to_facebook(short2_url, short3_url, market):
-    token   = os.environ.get("META_ACCESS_TOKEN", "")
-    page_id = os.environ.get("FACEBOOK_PAGE_ID", "")
-    group_id= os.environ.get("FACEBOOK_GROUP_ID", "")
+    user_token = os.environ.get("META_ACCESS_TOKEN", "")
+    page_id    = os.environ.get("FACEBOOK_PAGE_ID", "")
+    group_id   = os.environ.get("FACEBOOK_GROUP_ID", "")
+    token      = get_fb_page_token(user_token, page_id)
 
     if not token or not page_id:
         print("⚠️ Facebook credentials missing — skipping share")
