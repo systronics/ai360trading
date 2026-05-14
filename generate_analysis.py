@@ -1,7 +1,9 @@
 """
 generate_analysis.py — AI360Trading v2.1
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-v2.1 FIX: IndentationError on slide_audio and video_id lines
+v2.1 FIX: Removed non-existent seo method calls (channel=, lang=,
+           extra_tags=, get_description_template, get_thumbnail_text,
+           get_youtube_safe_tags). All seo calls now match human_touch.py.
 v2.0 CHANGES: Stock-name title, 14 slides, no bgmusic,
               YouTube safe tags, longer content per slide
 """
@@ -296,15 +298,62 @@ def build_video_meta(data, today_str):
     top_stocks   = data.get("top_stocks", [])
     sentiment    = data.get("overall_sentiment", "neutral")
 
-    tags = seo.get_video_tags(
-        mode=CONTENT_MODE, is_short=False, channel="trading", lang="both",
-        extra_tags=[s.replace("NSE:","")[:20] for s in top_stocks[:3]]
-    )
-    full_desc = seo.get_description_template(
-        title=vid_title, main_insight=main_insight,
-        mode=CONTENT_MODE, channel="trading", stocks=top_stocks, lang="hi"
-    )
-    return vid_title, full_desc, tags, sentiment
+    # ── Tags: only use what SEOTags.get_video_tags() actually accepts ─────────
+    tags = seo.get_video_tags(mode=CONTENT_MODE, is_short=False)
+
+    # Append clean stock symbols as extra tags (ASCII only, max 20 chars each)
+    for stock in top_stocks[:3]:
+        clean = stock.replace("NSE:", "").strip()[:20]
+        if clean and clean not in tags:
+            tags.append(clean)
+    tags = tags[:30]  # YouTube hard limit
+
+    # ── Description: built inline ─────────────────────────────────────────────
+    hashtag_str = " ".join([f"#{t}" for t in tags[:15]])
+    stock_line  = " | ".join(top_stocks[:3]) if top_stocks else "Nifty50"
+
+    if CONTENT_MODE == "holiday":
+        label     = HOLIDAY_NAME if HOLIDAY_NAME else "Market Holiday"
+        full_desc = (
+            f"🎉 {label} Special — {main_insight}\n\n"
+            f"📊 Stocks covered: {stock_line}\n"
+            f"🌍 For investors: India, USA, UK, Brazil & UAE\n"
+            f"🌐 Website: https://ai360trading.in\n"
+            f"📱 Telegram: https://t.me/ai360trading\n"
+            f"⚠️ Educational content only. Not financial advice.\n\n"
+            f"#ai360trading #MarketAnalysis {hashtag_str}"
+        )
+    elif CONTENT_MODE == "weekend":
+        full_desc = (
+            f"📚 Weekend Learning — {main_insight}\n\n"
+            f"📊 Stocks covered: {stock_line}\n"
+            f"🌍 For investors: India, USA, UK, Brazil & UAE\n"
+            f"🌐 Website: https://ai360trading.in\n"
+            f"📱 Telegram: https://t.me/ai360trading\n"
+            f"⚠️ Educational content only. Not financial advice.\n\n"
+            f"#ai360trading #WeekendLearning {hashtag_str}"
+        )
+    else:
+        full_desc = (
+            f"📊 {main_insight}\n\n"
+            f"🎯 Stocks covered: {stock_line}\n"
+            f"🌍 For traders: India, USA, UK, Brazil & UAE\n"
+            f"🌐 Website: https://ai360trading.in\n"
+            f"📱 Telegram: https://t.me/ai360trading\n"
+            f"⚠️ Educational content only. Not financial advice.\n\n"
+            f"#ai360trading #Nifty50 #MarketAnalysis {hashtag_str}"
+        )
+
+    # ── Thumbnail text: built inline ──────────────────────────────────────────
+    stock1 = top_stocks[0].replace("NSE:", "").strip() if top_stocks else "NIFTY50"
+    mood   = sentiment.upper()
+    thumb  = {
+        "line1": stock1,
+        "line2": f"Breakout? — {mood}",
+        "line3": f"ai360trading.in | {today_str}",
+    }
+
+    return vid_title, full_desc, tags, sentiment, thumb
 
 # ─── MAIN ─────────────────────────────────────────────────────────────────────
 async def run():
@@ -314,12 +363,8 @@ async def run():
     data       = generate_slides()
     slides     = data["slides"]
     top_stocks = data.get("top_stocks", [])
-    sentiment  = data.get("overall_sentiment", "neutral")
 
-    vid_title, full_desc, tags, sentiment = build_video_meta(data, today_str)
-
-    stock1 = top_stocks[0] if top_stocks else ""
-    thumb  = seo.get_thumbnail_text(channel="trading", stock=stock1, mood=sentiment.upper())
+    vid_title, full_desc, tags, sentiment, thumb = build_video_meta(data, today_str)
 
     print(f"📋 Title: {vid_title}")
     print(f"🏷️  Tags (first 5): {tags[:5]}")
@@ -336,7 +381,7 @@ async def run():
 
         voice_clip  = AudioFileClip(str(audio_path))
         duration    = voice_clip.duration + 1.2
-        slide_audio = voice_clip   # ← bgmusic removed — not required
+        slide_audio = voice_clip   # bgmusic removed — not required
 
         clip = ImageClip(str(img_path)).set_duration(duration).set_audio(slide_audio)
         clips.append(clip)
@@ -356,7 +401,8 @@ async def run():
         print(f"⚠️  Video {total_duration/60:.1f} min — mid-roll ads need 8+ min")
 
     # ── Upload to YouTube ─────────────────────────────────────────────────────
-    youtube_tags = seo.get_youtube_safe_tags(tags)   # removes Hindi/non-ASCII
+    # Filter ASCII-only tags for YouTube safety (strips Hindi/special chars)
+    youtube_tags = [t for t in tags if t.isascii()]
     video_id     = upload_to_youtube(video_path, vid_title, full_desc, youtube_tags)
 
     if video_id:
