@@ -1,6 +1,6 @@
 # AI360 TRADING — SYSTEM.md
 # Complete System Reference — Updated May 2026
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 ## SECTION 1 — CURRENT VERSIONS (DEPLOYED)
 
