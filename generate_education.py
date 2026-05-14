@@ -1,138 +1,56 @@
 """
 generate_education.py — AI360Trading
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Replaces generate_analysis.py.
-Produces ONE education video per day in BOTH Hindi and English.
-- Hindi  : hi-IN-SwaraNeural  → YouTube Hindi channel
-- English: en-US-JennyNeural  → YouTube English channel (Phase 3)
-
-Course calendar: 52 weeks, Week 1 = Stock market basics.
-Week is auto-calculated from a fixed START_DATE so the course
-never repeats and always progresses forward.
-
-Weekend mode  : Fundamental / base-prepared stock deep-dive.
-Holiday mode  : Motivational investing lesson.
-
-Upload: writes output/education_video_hi.mp4
-               output/education_video_en.mp4
-               output/education_meta_YYYYMMDD.json
+v2.1 FIX: bgmusic removed (not required), YouTube safe tags added
+Target: 10-12 minutes — 22 slides × ~27sec each
 """
 
 import os
+import sys
 import json
 import asyncio
 import textwrap
-from datetime import datetime, date
+from datetime import datetime
 from pathlib import Path
 
 import edge_tts
 from PIL import Image, ImageDraw, ImageFont
 from moviepy.editor import ImageClip, AudioFileClip, concatenate_videoclips
+
+from ai_client import ai
+from human_touch import ht, seo
+from content_calendar import get_todays_education_topic
+
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 
-from human_touch import ht, seo
-from ai_client import ai
-
-# ─── CONFIG ───────────────────────────────────────────────────────────────────
 CONTENT_MODE = os.environ.get("CONTENT_MODE", "market").lower()
-HOLIDAY_NAME = os.environ.get("HOLIDAY_NAME", "Indian Market Holiday")
-LANG         = os.environ.get("EDUCATION_LANG", "hi")   # "hi" or "en"
+HOLIDAY_NAME = os.environ.get("HOLIDAY_NAME", "")
 
-print(f"[EDUCATION] mode={CONTENT_MODE.upper()} lang={LANG.upper()}")
-
-OUT   = Path("output")
-W, H  = 1920, 1080
-FPS   = 24
-NUM_SLIDES = 14   # 14 × ~40 sec ≈ 9–10 min (mid-roll eligible)
-
-VOICE_HI = "hi-IN-SwaraNeural"
-VOICE_EN = "en-US-JennyNeural"
-VOICE    = VOICE_HI if LANG == "hi" else VOICE_EN
+OUT        = Path("output")
+W, H       = 1920, 1080
+FPS        = 24
+VOICE      = "hi-IN-SwaraNeural"
+MIN_SLIDES = 22
+WORDS_TARGET = "110-130"
 
 os.makedirs(OUT, exist_ok=True)
 
 if not hasattr(Image, "ANTIALIAS"):
     Image.ANTIALIAS = Image.LANCZOS
 
-# ─── COURSE CALENDAR — 52 weeks, auto-advances ───────────────────────────────
-# Fixed start date — Week 1 began here. Never change this.
-COURSE_START = date(2026, 5, 15)
+print(f"[MODE] generate_education.py running in mode: {CONTENT_MODE.upper()}")
 
-COURSE = [
-    # Week : Topic : Subtitle
-    ( 1, "Stock Market Kya Hai?",             "Basics: Shares, NSE, BSE explained simply"),
-    ( 2, "Demat Account Kaise Kholein?",       "Step-by-step account opening guide"),
-    ( 3, "Bull Market vs Bear Market",         "Market moods and how to trade them"),
-    ( 4, "Index Kya Hota Hai?",               "Nifty50, Sensex, Bank Nifty decoded"),
-    ( 5, "Candlestick Charts Basics",          "Reading price candles for beginners"),
-    ( 6, "Support aur Resistance",             "The most important concept in trading"),
-    ( 7, "Breakout Trading Strategy",          "How to catch stocks at the right moment"),
-    ( 8, "Volume Ka Raaz",                     "Why volume confirms everything"),
-    ( 9, "Moving Averages — 20DMA, 50DMA",     "Trend confirmation the simple way"),
-    (10, "RSI — Relative Strength Index",      "Is a stock overbought or oversold?"),
-    (11, "MACD — Momentum Indicator",          "When two moving averages talk"),
-    (12, "FII vs DII — Smart Money",           "Follow the big players, not news"),
-    (13, "Swing Trading Complete System",      "Entry, SL, Target — step by step"),
-    (14, "Positional Trading vs Intraday",     "Which is better for you?"),
-    (15, "Risk Management — Trade Size",       "How much to risk per trade"),
-    (16, "Stop Loss — Types and Usage",        "Protect capital before profit"),
-    (17, "Trailing Stop Loss Strategy",        "Lock profits while the trend runs"),
-    (18, "Sector Rotation — FII Style",        "Which sector is smart money entering?"),
-    (19, "Options Basics — CE and PE",         "What is a call option, simply"),
-    (20, "Options Buying vs Selling",          "Risk profile of each side"),
-    (21, "VIX — Fear Index",                   "How market fear affects options"),
-    (22, "Expiry Strategy — Monthly vs Weekly","Theta decay explained simply"),
-    (23, "ATR — Average True Range",           "Measure volatility, set better SL"),
-    (24, "VCP — Volatility Contraction",       "Mark Minervini's setup explained"),
-    (25, "Base Building — Stage Analysis",     "Enter before breakout, not after"),
-    (26, "52-Week High Breakout Strategy",     "Simple, powerful, works globally"),
-    (27, "Cup and Handle Pattern",             "Most reliable chart pattern"),
-    (28, "Double Bottom — Reversal Setup",     "Catching bottoms safely"),
-    (29, "Gap Up / Gap Down Strategy",         "How to trade morning gaps"),
-    (30, "Earnings Season — Trade or Avoid?",  "Result day risk management"),
-    (31, "Global Markets Effect on India",     "USA, UK, Japan — what to watch"),
-    (32, "Dollar Index and Indian Market",     "DXY and Nifty relationship"),
-    (33, "Gold vs Stock Market",               "Safe haven vs growth assets"),
-    (34, "Mutual Funds vs Direct Stocks",      "Which is right for you?"),
-    (35, "SIP vs Lump Sum Investment",         "Time in market vs timing market"),
-    (36, "Annual Report Reading Basics",       "Key numbers every investor needs"),
-    (37, "PE Ratio — Value Investing Intro",   "Is a stock cheap or expensive?"),
-    (38, "ROE and ROCE Explained",             "Quality of business metrics"),
-    (39, "Debt-to-Equity Ratio",               "How much debt is too much?"),
-    (40, "Promoter Holding — What It Means",   "Skin in the game matters"),
-    (41, "IPO — How to Apply and Analyse",     "Grey market, allotment, listing"),
-    (42, "Bonus, Split, Buyback Explained",    "Corporate actions decoded"),
-    (43, "Dividend Investing Strategy",        "Build passive income from stocks"),
-    (44, "Portfolio Diversification",          "How many stocks is enough?"),
-    (45, "Taxes on Stock Trading",             "STCG, LTCG, ITR basics"),
-    (46, "Trading Psychology — Part 1",        "Why smart people lose money"),
-    (47, "Trading Psychology — Part 2",        "Fear and greed control"),
-    (48, "Trading Journal — Why and How",      "The habit that changes results"),
-    (49, "Building a Watchlist System",        "Like our Nifty200 — step by step"),
-    (50, "Complete Swing Trade Plan",          "From scan to exit — full system"),
-    (51, "Common Beginner Mistakes",           "Learn from others' losses"),
-    (52, "Your 1-Year Trading Roadmap",        "What to do next — full plan"),
-]
-
-def get_course_week() -> tuple:
-    """Auto-calculate current week number from course start date."""
-    today     = date.today()
-    delta     = (today - COURSE_START).days
-    week_num  = (delta // 7) % 52   # loops after 52 weeks
-    return COURSE[week_num]
-
-
-# ─── FONTS ────────────────────────────────────────────────────────────────────
 FONT_BOLD_PATHS = [
     "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
     "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
+    "/usr/share/fonts/truetype/freefont/FreeSansBold.ttf",
     "/usr/share/fonts/truetype/ubuntu/Ubuntu-B.ttf",
 ]
 FONT_REG_PATHS = [
     "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
     "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+    "/usr/share/fonts/truetype/freefont/FreeSans.ttf",
 ]
 
 def get_font(paths, size):
@@ -142,371 +60,363 @@ def get_font(paths, size):
             except: continue
     return ImageFont.load_default()
 
-
-# ─── THEME ────────────────────────────────────────────────────────────────────
-# Education uses a consistent deep-blue professional theme
-THEME = {
-    "bg_top"  : (8, 15, 40),
-    "bg_bot"  : (15, 35, 80),
-    "accent"  : (0, 200, 255),
-    "text"    : (240, 250, 255),
-    "subtext" : (160, 200, 230),
-    "gold"    : (255, 210, 0),
-    "green"   : (0, 220, 110),
+LEVEL_THEMES = {
+    "Beginner":     {"bg_top":(10,20,50),  "bg_bot":(20,40,90),  "accent":(80,180,255),  "text":(240,250,255),"subtext":(160,200,230)},
+    "Intermediate": {"bg_top":(20,15,45),  "bg_bot":(40,30,80),  "accent":(180,120,255), "text":(245,240,255),"subtext":(190,160,230)},
+    "Advanced":     {"bg_top":(15,30,20),  "bg_bot":(30,60,40),  "accent":(80,220,140),  "text":(240,255,245),"subtext":(160,220,180)},
+    "All Levels":   {"bg_top":(30,20,15),  "bg_bot":(60,40,25),  "accent":(255,180,60),  "text":(255,248,235),"subtext":(220,190,140)},
 }
+DEFAULT_THEME = LEVEL_THEMES["Beginner"]
 
 def lerp(c1, c2, t):
     return tuple(int(c1[i] + (c2[i] - c1[i]) * t) for i in range(3))
 
+EXPANSION_SLIDES = [
+    "Common Mistakes Traders Make","Risk Management Is Key",
+    "Psychology Angle — Why Most Fail","Real Indian Stock Example",
+    "Step-by-Step Guide Part 1","Step-by-Step Guide Part 2",
+    "Global Market Context (USA/UK)","Advanced Tip for Experienced Traders",
+    "Q&A — Aapko Kya Lagta Hai?","Action Plan — This Week",
+    "Quick Quiz for Viewers","Summary of Key Points",
+    "Outro — Subscribe + Telegram CTA",
+]
 
 # ─── SCRIPT GENERATION ────────────────────────────────────────────────────────
-def generate_script(week_num: int, topic: str, subtitle: str) -> dict:
-    today   = datetime.now().strftime("%A, %d %B %Y")
-    hook    = ht.get_hook(mode=CONTENT_MODE, lang=LANG)
-    cta     = ht.get_cta(lang=LANG)
 
-    if LANG == "hi":
-        language_instruction = (
-            "Write in Hinglish (Hindi + English mix). "
-            "Simple language, like explaining to a friend. "
-            "Use Hindi script where natural, English for technical terms."
-        )
-        channel_tag = "ai360trading"
-    else:
-        language_instruction = (
-            "Write in clear simple English. "
-            "Explain as if teaching a complete beginner from India or globally. "
-            "Avoid jargon — define every term when first used."
-        )
-        channel_tag = "AI360 Trading"
+def generate_edu_slides(topic, part1_url):
+    today       = datetime.now().strftime("%A, %d %B %Y")
+    topic_slides  = topic.get("slides", [])
+    slide_headings = [s.get("heading", f"Slide {i+1}") for i, s in enumerate(topic_slides)]
+    while len(slide_headings) < MIN_SLIDES:
+        idx = len(slide_headings) - len(topic_slides)
+        slide_headings.append(EXPANSION_SLIDES[idx % len(EXPANSION_SLIDES)])
+    hook = ht.get_hook(mode=CONTENT_MODE, lang="hi")
 
-    if CONTENT_MODE == "weekend":
-        context = f"Weekend deep-dive on: {topic} — {subtitle}. Focus on fundamentals."
-    elif CONTENT_MODE == "holiday":
-        holiday = HOLIDAY_NAME or "Market Holiday"
-        context = f"{holiday} special lesson on: {topic}. Keep it festive but educational."
-    else:
-        context = f"Today's course lesson: Week {week_num} — {topic} — {subtitle}."
+    prompt = f"""You are an expert trading educator creating a YouTube education video in Hinglish for ai360trading channel.
 
-    prompt = f"""You are an expert Indian stock market educator creating a YouTube education video for {channel_tag}.
+Today is {today}.
+Topic: {topic['title']}
+Category: {topic['category']}
+Level: {topic['level']}
+Opening hook for slide 1: "{hook}"
 
-Today: {today}
-Course: Week {week_num} of 52 — {topic}
-Subtitle: {subtitle}
-Context: {context}
-Language: {language_instruction}
+Generate EXACTLY {MIN_SLIDES} slides using these headings:
+{json.dumps(slide_headings, ensure_ascii=False)}
 
-Start slide 1 with this hook: "{hook}"
-End last slide with this CTA: "{cta}"
-Slide 7 must include: "Comment mein batao — kya yeh concept clear hua? 👇"
+RULES:
+- Each slide: EXACTLY {WORDS_TARGET} words of spoken Hinglish
+- Slide 17: include USA/UK/global context for international viewers
+- Last slide: end with "Subscribe karo, Telegram join karo t.me/ai360trading!"
+- Natural conversational Hinglish
 
-TITLE RULES:
-- Put the topic name + week number FIRST
-- Include a curiosity question or number
-- End with "| AI360 Trading"
-- Max 95 characters
-
-Generate exactly {NUM_SLIDES} slides as valid JSON:
+Respond ONLY with valid JSON:
 {{
-  "video_title": "Week {week_num}: {topic} — clear example title | AI360 Trading",
-  "video_description": "3-4 sentence description with key learning points. Include ai360trading.in",
-  "week_number": {week_num},
-  "topic": "{topic}",
-  "key_takeaway": "One sentence — the single most important thing to remember",
+  "video_title": "Hinglish YouTube title max 70 chars",
+  "video_description": "3-4 sentence description",
   "slides": [
     {{
-      "title": "slide heading max 6 words",
-      "content": "spoken content 80-100 words. Teach one clear concept per slide. Use real examples.",
-      "key_points": ["point 1", "point 2", "point 3"],
-      "slide_type": "intro|concept|example|practice|summary|cta"
+      "title": "slide heading max 8 words",
+      "content": "spoken Hinglish {WORDS_TARGET} words",
+      "key_takeaway": "one line summary"
     }}
   ]
 }}"""
 
-    print(f"🤖 Generating {LANG.upper()} education script — Week {week_num}: {topic}")
-    try:
-        data = ai.generate_json(prompt, content_mode=CONTENT_MODE, lang=LANG)
-        for slide in data.get("slides", []):
-            if slide.get("content"):
-                slide["content"] = ht.humanize(slide["content"], lang=LANG)
-        print(f"✅ Script ready: {data.get('video_title','')[:70]}")
+    print(f"🤖 Generating {MIN_SLIDES}-slide education script via ai_client: {topic['title']}...")
+    data = ai.generate_json(prompt, content_mode=CONTENT_MODE, lang="hi")
+
+    if data and data.get("slides") and len(data["slides"]) >= 10:
+        slides = data["slides"]
+        while len(slides) < MIN_SLIDES:
+            idx = len(slides) - len(topic_slides)
+            heading = slide_headings[len(slides)] if len(slides) < len(slide_headings) else "Key Lesson"
+            slides.append({
+                "title": heading,
+                "content": (
+                    "Trading mein sabse important cheez hai discipline aur patience. "
+                    "Jo trader apni emotions control karta hai, woh long term mein zaroor profitable hota hai. "
+                    "Market mein ups and downs aate rehte hain, lekin jo log consistent rehte hain woh jeette hain. "
+                    "Risk management seekho, position sizing samjho, aur har trade se kuch na kuch seekhte raho."
+                ),
+                "key_takeaway": "Discipline aur patience — trading ka asli secret"
+            })
+        data["slides"] = slides[:MIN_SLIDES]
+        print(f"✅ {len(data['slides'])} education slides generated via {ai.active_provider}")
         return data
-    except Exception as e:
-        print(f"⚠️ Script error: {e}")
-        return _fallback_script(week_num, topic, subtitle)
-
-
-def _fallback_script(week_num, topic, subtitle):
-    today_str = datetime.now().strftime("%d %b %Y")
-    return {
-        "video_title": f"Week {week_num}: {topic} | AI360 Trading",
-        "video_description": f"Learn {topic} with AI360 Trading. Visit ai360trading.in",
-        "week_number": week_num,
-        "topic": topic,
-        "key_takeaway": subtitle,
-        "slides": [{
-            "title": f"Week {week_num}: {topic}",
-            "content": f"Namaskar! Aaj hum seekhenge {topic} ke baare mein. {subtitle}. Subscribe karo daily lessons ke liye!",
-            "key_points": ["Subscribe karo", "Like karo", "ai360trading.in"],
-            "slide_type": "intro"
-        }] * NUM_SLIDES
-    }
-
+    else:
+        print("⚠️ AI returned insufficient slides — using fallback")
+        fallback_slides = []
+        for i, heading in enumerate(slide_headings):
+            if i < len(topic_slides):
+                s       = topic_slides[i]
+                content = " ".join(s.get("points", []))
+                if len(content.split()) < 40:
+                    content += (
+                        f" {heading} ke baare mein aur gehraai se samjhte hain. "
+                        "Yeh concept Indian stock market mein bahut important role play karta hai. "
+                        "Practice aur consistency se yeh skill develop hoti hai."
+                    )
+            else:
+                content = (
+                    f"{heading} trading ka ek bahut important aspect hai. "
+                    "Successful traders kaise sochte hain aur apne decisions kaise lete hain yeh samajhna zaroori hai. "
+                    "Indian market mein yeh concept specially important hai kyunki humari market global markets se connect hai. "
+                    "Practice aur consistency se yeh skill develop hoti hai, aur har din kuch na kuch seekhte raho."
+                )
+            fallback_slides.append({
+                "title": heading,
+                "content": content,
+                "key_takeaway": f"{heading} — zaroor yaad rakhein"
+            })
+        return {
+            "video_title": f"{topic['title']} — ai360trading Education",
+            "video_description": f"Aaj hum seekhenge {topic['title']} ke baare mein.",
+            "slides": fallback_slides
+        }
 
 # ─── SLIDE RENDERER ───────────────────────────────────────────────────────────
-def make_slide(slide: dict, idx: int, total: int, week_num: int,
-               topic: str, path: Path, is_first: bool = False):
-    th  = THEME
+
+def make_edu_slide(slide, idx, total, topic, path):
+    level = topic.get("level", "Beginner")
+    th    = LEVEL_THEMES.get(level, DEFAULT_THEME)
+
     img = Image.new("RGB", (W, H))
     px  = img.load()
-
-    # Gradient background
     for y in range(H):
         c = lerp(th["bg_top"], th["bg_bot"], y / H)
         for x in range(W): px[x, y] = c
 
     draw = ImageDraw.Draw(img, "RGBA")
+    draw.rectangle([(0,0),(W,10)], fill=th["accent"])
+    draw.text((40,35), f"📚 {topic['category'].upper()}",
+              fill=(*th["subtext"],220), font=get_font(FONT_BOLD_PATHS,30), anchor="la")
+    draw.text((W//2,38), "ai360trading.in",
+              fill=(*th["subtext"],160), font=get_font(FONT_REG_PATHS,26), anchor="mm")
+    draw.text((W-40,35), f"● {level}",
+              fill=(*th["accent"],200), font=get_font(FONT_BOLD_PATHS,28), anchor="ra")
+    draw.text((W//2,80), f"Slide {idx} of {total}",
+              fill=(*th["subtext"],180), font=get_font(FONT_REG_PATHS,28), anchor="mm")
 
-    # Top accent bar
-    draw.rectangle([(0, 0), (W, 8)], fill=th["accent"])
+    title_font  = get_font(FONT_BOLD_PATHS, 68)
+    title_lines = textwrap.wrap(slide["title"].upper(), width=30)
+    ty = 150
+    for line in title_lines[:2]:
+        draw.text((W//2,ty), line, fill=th["text"], font=title_font, anchor="mm")
+        ty += 84
+    draw.rectangle([(80,ty+15),(W-80,ty+19)], fill=th["accent"])
+    ty += 55
 
-    # Week badge top-left
-    draw.text((40, 30), f"Week {week_num} of 52",
-              fill=(*th["gold"], 220), font=get_font(FONT_BOLD_PATHS, 30), anchor="la")
+    content_font  = get_font(FONT_REG_PATHS, 40)
+    content_lines = textwrap.wrap(slide["content"], width=58)
+    for line in content_lines[:7]:
+        draw.text((80,ty), line, fill=th["text"], font=content_font)
+        ty += 54
 
-    # Channel watermark top-right
-    draw.text((W - 40, 30), "ai360trading.in",
-              fill=(*th["subtext"], 180), font=get_font(FONT_REG_PATHS, 28), anchor="ra")
+    if slide.get("key_takeaway"):
+        ty += 20
+        draw.rectangle([(60,ty),(W-60,ty+70)], fill=(*th["accent"],30))
+        draw.rectangle([(60,ty),(63,ty+70)], fill=th["accent"])
+        draw.text((90,ty+35), f"💡 {slide['key_takeaway']}",
+                  fill=th["accent"], font=get_font(FONT_BOLD_PATHS,34), anchor="lm")
 
-    # Slide counter
-    draw.text((W - 40, 65), f"{idx}/{total}",
-              fill=(*th["subtext"], 150), font=get_font(FONT_REG_PATHS, 24), anchor="ra")
-
-    if is_first:
-        # Hero slide — large topic title
-        t1 = get_font(FONT_BOLD_PATHS, 100)
-        t2 = get_font(FONT_BOLD_PATHS, 52)
-        t3 = get_font(FONT_REG_PATHS,  38)
-
-        # Shadow effect
-        for dx, dy in [(-3, 0), (3, 0), (0, -3), (0, 3)]:
-            draw.text((W//2 + dx, 220 + dy), topic,
-                      font=t1, fill=(0, 0, 0), anchor="mm")
-        draw.text((W//2, 220), topic, font=t1, fill=th["gold"], anchor="mm")
-
-        # Subtitle from slide title
-        title_lines = textwrap.wrap(slide["title"], width=50)
-        ty = 340
-        for line in title_lines[:2]:
-            draw.text((W//2, ty), line, font=t2, fill=th["text"], anchor="mm")
-            ty += 65
-
-        draw.rectangle([(W//2 - 300, ty + 20), (W//2 + 300, ty + 24)], fill=th["accent"])
-        ty += 60
-
-        content_lines = textwrap.wrap(slide["content"], width=60)
-        for line in content_lines[:4]:
-            draw.text((80, ty), line, fill=th["subtext"], font=get_font(FONT_REG_PATHS, 38))
-            ty += 52
-
-    else:
-        # Regular slide
-        title_font  = get_font(FONT_BOLD_PATHS, 68)
-        title_lines = textwrap.wrap(slide["title"].upper(), width=30)
-        ty = 130
-        for line in title_lines[:2]:
-            draw.text((W//2, ty), line, fill=th["text"], font=title_font, anchor="mm")
-            ty += 82
-
-        # Accent divider
-        draw.rectangle([(80, ty + 15), (W - 80, ty + 19)], fill=th["accent"])
-        ty += 55
-
-        # Content
-        content_font  = get_font(FONT_REG_PATHS, 40)
-        content_lines = textwrap.wrap(slide["content"], width=58)
-        for line in content_lines[:6]:
-            draw.text((80, ty), line, fill=th["text"], font=content_font)
-            ty += 55
-
-        # Key points
-        if slide.get("key_points"):
-            ty += 20
-            bf = get_font(FONT_BOLD_PATHS, 36)
-            for pt in slide["key_points"][:3]:
-                draw.text((80, ty), f"✦ {pt}", fill=th["accent"], font=bf)
-                ty += 50
-
-    # Slide type badge bottom-right
-    stype = slide.get("slide_type", "")
-    if stype in ("concept", "example", "practice"):
-        badge_colors = {"concept": th["accent"], "example": th["green"], "practice": th["gold"]}
-        draw.text((W - 40, H - 45), f"[{stype.upper()}]",
-                  fill=(*badge_colors.get(stype, th["accent"]), 200),
-                  font=get_font(FONT_BOLD_PATHS, 26), anchor="ra")
-
-    # Bottom bar
-    draw.rectangle([(0, H - 8), (W, H)], fill=th["accent"])
-
+    draw.text((40,H-45), "📱 t.me/ai360trading",
+              fill=(*th["subtext"],180), font=get_font(FONT_REG_PATHS,26), anchor="la")
+    draw.rectangle([(0,H-10),(W,H)], fill=th["accent"])
     img.save(str(path), quality=95)
 
+# ─── TTS ──────────────────────────────────────────────────────────────────────
 
-# ─── VOICE ────────────────────────────────────────────────────────────────────
-async def gen_voice(text: str, path: Path):
+async def gen_voice(text, path):
     tts_speed = ht.get_tts_speed()
     rate_pct  = int((tts_speed - 1.0) * 100)
     rate_str  = f"+{rate_pct}%" if rate_pct >= 0 else f"{rate_pct}%"
     await edge_tts.Communicate(text, VOICE, rate=rate_str).save(str(path))
 
+# ─── DURATION CHECK ───────────────────────────────────────────────────────────
 
-# ─── YOUTUBE UPLOAD ───────────────────────────────────────────────────────────
+def check_duration(video_path):
+    try:
+        from moviepy.editor import VideoFileClip
+        v   = VideoFileClip(str(video_path))
+        dur = v.duration
+        v.close()
+        print(f"⏱️  Education video duration: {dur:.1f}s ({dur/60:.1f} min)")
+        if dur < 480:
+            print(f"❌ CRITICAL: {dur:.0f}s — under 8 minutes! Mid-roll ads will NOT activate.")
+            sys.exit(1)
+        elif dur < 600:
+            print(f"⚠️  WARNING: {dur/60:.1f} min — above 8min but below 10min target.")
+        else:
+            print(f"✅ Duration OK — {dur/60:.1f} min — mid-roll ads WILL activate.")
+    except SystemExit:
+        raise
+    except Exception as e:
+        print(f"⚠️  Duration check error: {e}")
+
+# ─── YOUTUBE ──────────────────────────────────────────────────────────────────
+
 def get_youtube_service():
     try:
-        # English channel uses different credentials in Phase 3
-        creds_key  = "YOUTUBE_CREDENTIALS_EN" if LANG == "en" else "YOUTUBE_CREDENTIALS"
-        creds_json = os.environ.get(creds_key)
-        if not creds_json and os.path.exists("token.json"):
-            with open("token.json") as f: creds_json = f.read()
-        if not creds_json: return None
+        creds_json = os.environ.get("YOUTUBE_CREDENTIALS")
+        if not creds_json:
+            if os.path.exists("token.json"):
+                with open("token.json") as f: creds_json = f.read()
+            else:
+                print("❌ No YouTube credentials found"); return None
         creds = Credentials.from_authorized_user_info(json.loads(creds_json))
         return build("youtube", "v3", credentials=creds)
-    except Exception:
-        return None
+    except Exception as e:
+        print(f"❌ YouTube auth error: {e}"); return None
 
 
-def upload_to_youtube(video_path: Path, title: str, description: str, tags: list):
+def upload_to_youtube(video_path, title, description, tags):
     youtube = get_youtube_service()
-    if not youtube:
-        print(f"❌ YouTube service unavailable [{LANG}] — skipping")
-        return None
-
+    if not youtube: return None
     body = {
         "snippet": {
             "title":       title[:100],
             "description": description,
-            "tags":        tags[:30],
-            "categoryId":  "27"   # Education
+            "tags":        tags,
+            "categoryId":  "25"
         },
-        "status": {
-            "privacyStatus":           "public",
-            "selfDeclaredMadeForKids": False
-        }
+        "status": {"privacyStatus":"public","selfDeclaredMadeForKids":False}
     }
     media = MediaFileUpload(str(video_path), mimetype="video/mp4", resumable=True)
-    print(f"🚀 Uploading [{LANG.upper()}]: {title[:60]}...")
+    print(f"🚀 Uploading to YouTube: {title[:60]}...")
     try:
         request  = youtube.videos().insert(part="snippet,status", body=body, media_body=media)
         response = None
         while response is None:
             status, response = request.next_chunk()
-            if status: print(f"  {int(status.progress() * 100)}%")
-        vid_id = response["id"]
-        print(f"✅ Uploaded [{LANG.upper()}]: https://youtube.com/watch?v={vid_id}")
-        return vid_id
+            if status: print(f"  Uploaded {int(status.progress() * 100)}%")
+        video_id = response["id"]
+        print(f"✅ YouTube upload success! https://youtube.com/watch?v={video_id}")
+        return video_id
     except Exception as e:
-        print(f"❌ Upload failed [{LANG}]: {e}")
-        return None
+        print(f"❌ YouTube upload failed: {e}"); return None
 
 
-# ─── BUILD META ───────────────────────────────────────────────────────────────
-def build_meta(data: dict, today_str: str):
-    vid_title    = data.get("video_title", f"Week {data.get('week_number',1)}: {data.get('topic','')} | AI360 Trading")
-    vid_desc_raw = data.get("video_description", "")
-    week_num     = data.get("week_number", 1)
-    topic        = data.get("topic", "")
-    key_takeaway = data.get("key_takeaway", "")
-
-    tags        = seo.get_video_tags(mode=CONTENT_MODE, is_short=False)
-    hashtag_str = " ".join([f"#{t}" for t in tags[:15]])
-
-    full_desc = (
-        f"📚 {vid_desc_raw}\n\n"
-        f"🎯 Key Takeaway: {key_takeaway}\n\n"
-        f"📖 This is Week {week_num} of our complete 52-week stock market course.\n"
-        f"   Start from Week 1: ai360trading.in/course\n\n"
-        f"🌐 Website: https://ai360trading.in\n"
-        f"📱 Telegram Signals: https://t.me/ai360trading\n"
-        f"⚠️ Educational content only. Not financial advice.\n\n"
-        f"#ai360trading #StockMarket #TradingEducation {hashtag_str}"
-    )
-
-    return vid_title, full_desc, tags
-
+def update_part1_description(youtube_service, part1_id, part2_url):
+    if not youtube_service or not part1_id or part1_id == "UPLOAD_FAILED":
+        return
+    try:
+        resp    = youtube_service.videos().list(part="snippet", id=part1_id).execute()
+        if not resp.get("items"): return
+        snippet = resp["items"][0]["snippet"]
+        existing_desc = snippet.get("description","")
+        if part2_url not in existing_desc:
+            snippet["description"] = existing_desc + f"\n\nPart 2 — Education Video: {part2_url}"
+            youtube_service.videos().update(
+                part="snippet", body={"id":part1_id,"snippet":snippet}
+            ).execute()
+            print(f"✅ Part 1 description updated with Part 2 link")
+    except Exception as e:
+        print(f"⚠️  Could not update Part 1 description: {e}")
 
 # ─── MAIN ─────────────────────────────────────────────────────────────────────
+
 async def run():
-    today_str = datetime.now().strftime("%d %b %Y")
-    today_fn  = datetime.now().strftime("%Y%m%d")
+    today = datetime.now().strftime("%Y%m%d")
 
-    # Get this week's course topic
-    week_num, topic, subtitle = get_course_week()
-    print(f"📖 Course Week {week_num}: {topic} — {subtitle}")
+    # 1. Read Part 1 video ID
+    part1_id  = ""
+    part1_url = ""
+    id_path   = OUT / "analysis_video_id.txt"
+    if id_path.exists():
+        part1_id = id_path.read_text(encoding="utf-8").strip()
+        if part1_id and part1_id != "UPLOAD_FAILED":
+            part1_url = f"https://youtube.com/watch?v={part1_id}"
+            print(f"🔗 Part 1 linked: {part1_url}")
+        else:
+            print("⚠️  Part 1 upload failed — continuing without link")
+    else:
+        print("⚠️  No analysis_video_id.txt — continuing without Part 1 link")
 
-    # Generate script
-    data   = generate_script(week_num, topic, subtitle)
+    # 2. Get today's topic
+    topic = get_todays_education_topic()
+    print(f"📚 Topic: {topic['title']} | {topic['category']} | {topic['level']}")
+
+    # 3. Generate 22-slide script
+    data   = generate_edu_slides(topic, part1_url)
     slides = data["slides"]
+    print(f"📊 Total slides: {len(slides)} (minimum required: {MIN_SLIDES})")
 
-    # Build meta
-    vid_title, full_desc, tags = build_meta(data, today_str)
-    print(f"📋 Title: {vid_title}")
+    vid_title = ht.humanize(data.get("video_title", f"{topic['title']} — ai360trading"), lang="hi")[:100]
+    vid_desc  = data.get("video_description", f"Learn {topic['title']} with ai360trading.in")
 
-    # ── Render slides + voice ─────────────────────────────────────────────────
+    seo_tags   = seo.get_video_tags(mode=CONTENT_MODE)
+    extra_tags = ["Trading Education", "ai360trading", "NSE", "BSE"]
+    all_tags       = list(dict.fromkeys(seo_tags + extra_tags))
+    youtube_tags   = seo.get_youtube_safe_tags(all_tags)
+
+    part1_section = f"\nPart 1 — Market Analysis: {part1_url}\n" if part1_url else ""
+    full_desc = (
+        f"{vid_desc}\n\n"
+        f"Topic: {topic['title']}\n"
+        f"Level: {topic['level']} | Category: {topic['category']}\n"
+        f"{part1_section}"
+        f"Website: https://ai360trading.in\n"
+        f"Telegram: https://t.me/ai360trading\n"
+        f"Subscribe for daily education!\n\n"
+        f"#TradingEducation #ai360trading #StockMarketIndia #LearnTrading #NSE"
+    )
+
+    # 4. Build slides + voice clips
+    print(f"\n🎬 Building {len(slides)} slides...")
     clips = []
     for i, s in enumerate(slides):
-        img_path   = OUT / f"edu_{LANG}_{i}.png"
-        audio_path = OUT / f"edu_{LANG}_{i}.mp3"
+        img_path   = OUT / f"edu_{i}.png"
+        audio_path = OUT / f"edu_{i}.mp3"
 
-        make_slide(s, i + 1, len(slides), week_num, topic, img_path, is_first=(i == 0))
+        make_edu_slide(s, i+1, len(slides), topic, img_path)
         await gen_voice(s["content"], audio_path)
 
         voice_clip  = AudioFileClip(str(audio_path))
-        duration    = voice_clip.duration + 1.0
-        clip        = ImageClip(str(img_path)).set_duration(duration).set_audio(voice_clip)
-        clips.append(clip)
+        duration    = voice_clip.duration + 1.2
+        slide_audio = voice_clip   # bgmusic removed — not required
 
-    # ── Render video ──────────────────────────────────────────────────────────
-    video_path = OUT / f"education_video_{LANG}.mp4"
+        clip = ImageClip(str(img_path)).set_duration(duration).set_audio(slide_audio)
+        clips.append(clip)
+        print(f"  Slide {i+1}/{len(slides)} — {voice_clip.duration:.1f}s voice + 1.2s pause = {duration:.1f}s total")
+
+    # 5. Render video
+    video_path = OUT / "education_video.mp4"
+    print(f"\n🎥 Rendering education video ({len(slides)} slides)...")
     concatenate_videoclips(clips, method="compose").write_videofile(
         str(video_path), fps=FPS, codec="libx264", audio_codec="aac",
+        temp_audiofile=str(OUT / "temp_edu_audio.aac"),
         remove_temp=True, logger=None
     )
+    print(f"✅ Video rendered: {video_path}")
 
-    total_duration = sum(c.duration for c in clips)
-    print(f"✅ Video rendered [{LANG.upper()}]: {video_path.name} | {total_duration/60:.1f} min")
+    # 6. Duration check
+    check_duration(video_path)
 
-    if total_duration >= 480:
-        print("✅ MID-ROLL ADS ENABLED (>8 minutes)")
+    # 7. Upload to YouTube
+    youtube_service = get_youtube_service()
+    part2_id        = upload_to_youtube(video_path, vid_title, full_desc, youtube_tags)
 
-    # ── Upload ────────────────────────────────────────────────────────────────
-    youtube_tags = [t for t in tags if t.isascii()]
-    video_id     = upload_to_youtube(video_path, vid_title, full_desc, youtube_tags)
-
-    # ── Save meta JSON ────────────────────────────────────────────────────────
-    meta = {
-        "title":            vid_title,
-        "description":      full_desc,
-        "tags":             tags,
-        "week_number":      week_num,
-        "topic":            topic,
-        "subtitle":         subtitle,
-        "lang":             LANG,
-        "content_mode":     CONTENT_MODE,
-        "duration_minutes": round(total_duration / 60, 1),
-        "mid_roll_eligible": total_duration >= 480,
-        "youtube_video_id": video_id or "",
-        "youtube_video_url": f"https://youtube.com/watch?v={video_id}" if video_id else "",
-    }
-
-    meta_path = OUT / f"education_meta_{today_fn}_{LANG}.json"
-    meta_path.write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"💾 Saved meta: {meta_path.name}")
-
-    print(f"\n{'='*60}")
-    print(f"✅ EDUCATION DONE — Week {week_num} | {LANG.upper()} | {today_str}")
-    print(f"   Topic    : {topic}")
-    print(f"   Duration : {total_duration/60:.1f} min")
-    print(f"   Video ID : {video_id or 'FAILED'}")
-    print(f"{'='*60}\n")
+    # 8. Save IDs and cross-link
+    if part2_id:
+        (OUT / "education_video_id.txt").write_text(part2_id, encoding="utf-8")
+        part2_url = f"https://youtube.com/watch?v={part2_id}"
+        print(f"✅ Education video ID saved: {part2_id}")
+        if part1_id and part1_id != "UPLOAD_FAILED":
+            update_part1_description(youtube_service, part1_id, part2_url)
+        meta = {
+            "title": vid_title, "description": full_desc,
+            "video_id": part2_id, "video_url": part2_url,
+            "part1_url": part1_url, "topic": topic["title"],
+            "category": topic["category"], "level": topic["level"],
+            "slide_count": len(slides), "content_mode": CONTENT_MODE, "date": today,
+        }
+        (OUT / f"education_meta_{today}.json").write_text(
+            json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
+        print(f"✅ Education meta saved.")
+    else:
+        print("⚠️  Upload failed — saving placeholder")
+        (OUT / "education_video_id.txt").write_text("UPLOAD_FAILED", encoding="utf-8")
 
 
 if __name__ == "__main__":
