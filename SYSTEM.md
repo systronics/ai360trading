@@ -96,32 +96,6 @@ This system is the **sole livelihood** of Amit Kumar's family. Amit has serious 
 | HerooQuest Kids Facebook upload | ✅ | META_ACCESS_TOKEN_KIDS page token |
 | Kids daily yml cron + STABILITY_API_KEY | ✅ | v2.1 deployed |
 
-### 🔴 CRITICAL — Fix Now
-
-| # | Issue | File | Impact |
-|---|-------|------|--------|
-| 1 | trading_bot.py v14.0 not pushed to GitHub yet | `trading_bot.py` | v13.5 running on server — missing 7 fixes |
-| 2 | human_touch.py v2.1 not pushed | `human_touch.py` | generate_analysis.py still failing |
-
-### 🟡 IMPORTANT — This Week
-
-| # | Issue | File | Impact |
-|---|-------|------|--------|
-| 3 | HerooQuest YouTube thumbnail 403 | studio.youtube.com | No custom thumbnails — verify phone |
-| 4 | Facebook Group posting broken (token scope) | `upload_facebook.py` | Missing group distribution |
-| 5 | Short 4 English not yet live | `generate_shorts.py` | Missing USA/UK audience — highest CPM gap |
-
-### 🟢 MEDIUM TERM — Next Month
-
-| # | Issue | File | Impact |
-|---|-------|------|--------|
-| 6 | HerooQuest thumbnails CTR 0.6% — too dark | Kids generator | Very low CTR |
-| 7 | Pinned comment on every video → Telegram growth | Post-upload step | Membership funnel |
-| 8 | Instagram fully automated | `upload_instagram.py` | Currently manual |
-| 9 | Test v15.4 base entry (needs bullish market) | AppScript | Market currently bearish |
-
----
-
 ## 4. Platform Status
 
 | Platform | Status | Notes |
