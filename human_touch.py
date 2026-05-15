@@ -391,3 +391,150 @@ class SEOTags:
 # from human_touch import ht, seo
 ht  = HumanTouch()
 seo = SEOTags()
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# PERMANENT RULES — v2.2
+# These 3 functions fix Hindi/English issues FOREVER across ALL generators.
+# Every generator that imports human_touch.py gets these automatically.
+# ═════════════════════════════════════════════════════════════════════════════
+
+def safe_thumbnail_text(text: str) -> str:
+    """
+    Strip Devanagari Hindi characters from thumbnail text.
+    Keeps: English, numbers, ₹, %, +, -, punctuation.
+    Removes: Hindi chars (U+0900-U+097F) that PIL can't render on GitHub Actions.
+
+    Why: PIL fonts on GitHub Actions don't have Hindi glyphs.
+    Result: Hindi like "पाइए" or "पर" renders as broken "पा" artifact.
+    Fix: Thumbnail line1 and line2 = English only. Hindi goes in audio (TTS) only.
+
+    Usage (in ALL generators that render thumbnails):
+        line1 = safe_thumbnail_text(script.get("thumbnail_text_line1", sym))
+        line2 = safe_thumbnail_text(script.get("thumbnail_text_line2", "BREAKOUT!"))
+    """
+    cleaned = re.sub(r'[\u0900-\u097F]+', '', text)  # Remove Devanagari only
+    cleaned = re.sub(r'\s+', ' ', cleaned).strip()
+    return cleaned if cleaned else text[:10]
+
+
+def safe_tts_price(val: float, lang: str = "hi") -> str:
+    """
+    Format price for TTS — avoids ₹ symbol reading issues.
+
+    Why: Edge TTS reads "₹1457" inconsistently in Hindi.
+    Sometimes reads the ₹ symbol as "rupaye" correctly,
+    sometimes skips it, sometimes creates broken syllables like "पा".
+    Fix: Spell out the price in words the TTS engine understands clearly.
+
+    Hindi: "1457 rupaye"   (TTS reads correctly, no symbol confusion)
+    English: "1457 rupees" (TTS reads correctly)
+
+    Usage (in ALL generators with stock prices in spoken script):
+        sl_spoken = safe_tts_price(sl, lang=LANG)
+        # Pass sl_spoken to AI prompt instead of "₹1457"
+    """
+    if val <= 0:
+        return "market price pe" if lang == "hi" else "at market price"
+    rounded = int(round(val))
+    if lang == "hi":
+        return f"{rounded} rupaye"
+    return f"{rounded} rupees"
+
+
+def validate_stock_numbers(sl: float, target: float, cmp: float) -> dict:
+    """
+    Validate SL and Target values before passing to AI.
+
+    Why: AI sometimes misreads numbers from prompts.
+    "SL: Rs.1457" → AI writes "₹145.7" (decimal shift).
+    Also catches: SL above CMP, Target below CMP, absurd values.
+
+    Returns: dict with validated sl, target, and any warnings.
+
+    Usage (in ALL generators that use stock data):
+        validated = validate_stock_numbers(sl, target, cmp)
+        sl     = validated["sl"]
+        target = validated["target"]
+        if validated["warnings"]:
+            print(validated["warnings"])
+    """
+    warnings = []
+    result   = {"sl": sl, "target": target, "warnings": []}
+
+    if cmp <= 0:
+        return result  # Can't validate without CMP
+
+    # SL validation
+    if sl > 0:
+        pct_diff = abs(cmp - sl) / cmp
+        if sl >= cmp:
+            warnings.append(f"SL {sl} >= CMP {cmp} — using 3% below")
+            sl = round(cmp * 0.97, 2)
+        elif pct_diff > 0.15:
+            warnings.append(f"SL {sl} is {pct_diff:.1%} from CMP {cmp} — likely error, using 5%")
+            sl = round(cmp * 0.95, 2)
+
+    # Target validation
+    if target > 0:
+        if target <= cmp:
+            warnings.append(f"Target {target} <= CMP {cmp} — clearing target")
+            target = 0
+        elif (target - cmp) / cmp > 0.40:
+            warnings.append(f"Target {target} is >40% above CMP — may be error")
+            # Don't auto-correct target — just warn
+
+    result["sl"]       = sl
+    result["target"]   = target
+    result["warnings"] = warnings
+    for w in warnings:
+        print(f"[VALIDATE] ⚠️ {w}")
+
+    return result
+
+
+def get_prompt_rules(lang: str = "hi", sym: str = "",
+                     cmp: float = 0, sl: float = 0, target: float = 0) -> str:
+    """
+    Standard AI prompt rules block for ALL generators.
+    Prevents: Hindi in thumbnail, wrong numbers, TTS symbol issues.
+
+    Usage (add this to EVERY AI prompt in every generator):
+        rules = get_prompt_rules(lang=LANG, sym=sym, cmp=cmp, sl=sl, target=target)
+        prompt = f"...your prompt...\n\n{rules}"
+
+    This PERMANENTLY fixes:
+      1. "पा" artifact — thumbnail always English
+      2. Wrong SL/Target — AI can't change the numbers
+      3. TTS confusion — no ₹ symbol in spoken script
+    """
+    cmp_disp = f"Rs.{int(round(cmp))}" if cmp > 0 else "live price"
+    sl_disp  = f"Rs.{int(round(sl))}"  if sl > 0   else "see chart"
+    tgt_disp = f"Rs.{int(round(target))}" if target > 0 else "next level"
+
+    cmp_tts  = safe_tts_price(cmp, lang)
+    sl_tts   = safe_tts_price(sl, lang)
+    tgt_tts  = safe_tts_price(target, lang)
+
+    return f"""
+CRITICAL RULES — follow exactly, no exceptions:
+
+RULE 1 — THUMBNAIL TEXT (thumbnail_text_line1, thumbnail_text_line2):
+  - English characters ONLY — no Hindi, no Devanagari script
+  - line1: stock name or % move — max 10 chars, ALL CAPS
+  - line2: short phrase — max 18 chars, English
+  - Examples: "NESTLE" / "BREAKOUT!" or "BHEL +4%" / "WATCHLIST"
+  - NEVER write: "प्राइस", "पर", "है", or any Hindi word here
+
+RULE 2 — EXACT NUMBERS — NEVER change these:
+  - Entry (CMP): {cmp_disp} — use exactly this
+  - Stop Loss:   {sl_disp}  — use exactly this
+  - Target:      {tgt_disp} — use exactly this
+  - DO NOT add decimal points, DO NOT divide, DO NOT round differently
+
+RULE 3 — SPOKEN SCRIPT (full_script for TTS audio):
+  - No ₹ symbol — TTS can't read it cleanly
+  - Write prices as: {cmp_tts}, SL {sl_tts}, target {tgt_tts}
+  - Hindi is fine in full_script — this is for audio only
+  - full_script goes to TTS engine, NOT to thumbnail
+"""
