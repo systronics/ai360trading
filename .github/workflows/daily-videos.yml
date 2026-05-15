@@ -1,142 +1,118 @@
-name: Daily Videos
+name: "Daily Shorts — AI360Trading (Hindi + English)"
 
 on:
-  schedule:
-    # Mon-Fri 7:30 AM IST = 2:00 AM UTC
-    - cron: '0 2 * * 1-5'
-    # Sat-Sun 9:30 AM IST = 4:00 AM UTC
-    - cron: '0 4 * * 0,6'
   workflow_dispatch:
-    inputs:
-      content_mode:
-        description: 'Force content mode'
-        required: false
-        default: 'auto'
-        type: choice
-        options:
-          - auto
-          - market
-          - weekend
-          - holiday
+  schedule:
+    # Mon-Fri: 11:30 AM IST (06:00 UTC)
+    - cron: "0 6 * * 1-5"
+    # Sat-Sun: 1:30 PM IST (08:00 UTC)
+    - cron: "0 8 * * 6,0"
 
 jobs:
-  daily-videos:
+  build-and-upload:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 30
+    permissions:
+      contents: write
 
     steps:
-      - name: Checkout
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: "3.11"
+          cache: "pip"
 
-      - name: Install dependencies
+      - name: Install system dependencies
         run: |
-          pip install --upgrade pip
-          pip install \
-            "Pillow>=10.3.0" \
-            "imageio==2.9.0" \
-            "moviepy==1.0.3" \
-            edge-tts \
-            groq \
-            google-generativeai \
-            anthropic \
-            openai \
-            yfinance \
-            pytz \
-            requests \
-            google-api-python-client \
-            google-auth \
-            google-auth-oauthlib
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            ffmpeg \
+            fonts-dejavu \
+            fonts-liberation \
+            fonts-freefont-ttf \
+            fonts-ubuntu \
+            imagemagick
+          sudo sed -i 's/rights="none" pattern="@\*"/rights="read|write" pattern="@*"/g' /etc/ImageMagick-6/policy.xml || true
 
-      - name: Detect content mode
-        id: mode
-        env:
-          FORCED_MODE: ${{ github.event.inputs.content_mode }}
+      - name: Install Python dependencies
         run: |
-          if [ "$FORCED_MODE" != "auto" ] && [ -n "$FORCED_MODE" ]; then
-            echo "CONTENT_MODE=$FORCED_MODE" >> $GITHUB_ENV
-            echo "mode=$FORCED_MODE" >> $GITHUB_OUTPUT
-            echo "Using forced mode: $FORCED_MODE"
-          else
-            python indian_holidays.py
-          fi
+          python -m pip install --upgrade pip
+          pip install --force-reinstall moviepy==1.0.3
+          pip install -r requirements.txt
+          pip install gspread oauth2client
 
-      - name: Create output directory
+      - name: Prepare workspace
         run: mkdir -p output
 
-      # ─── PART 1: Market Analysis ────────────────────────────────────────────
-      # generate_analysis.py generates + uploads to YouTube internally.
-      # It saves output/analysis_video_id.txt for Part 2 to link back.
-      # Do NOT call upload_youtube.py here — that would cause a duplicate upload.
-      - name: Generate + Upload Part 1 — Market Analysis
-        env:
-          CONTENT_MODE:        ${{ env.CONTENT_MODE }}
-          HOLIDAY_NAME:        ${{ env.HOLIDAY_NAME }}
-          GROQ_API_KEY:        ${{ secrets.GROQ_API_KEY }}
-          GEMINI_API_KEY:      ${{ secrets.GEMINI_API_KEY }}
-          ANTHROPIC_API_KEY:   ${{ secrets.ANTHROPIC_API_KEY }}
-          OPENAI_API_KEY:      ${{ secrets.OPENAI_API_KEY }}
-          YOUTUBE_CREDENTIALS: ${{ secrets.YOUTUBE_CREDENTIALS }}
-        run: python generate_analysis.py
-
-      # ─── PART 2: Education Video (10+ min) ─────────────────────────────────
-      # generate_education.py generates + uploads to YouTube internally.
-      # It reads analysis_video_id.txt to cross-link Part 1 in its description.
-      # Do NOT call upload_youtube.py here — that would cause a duplicate upload.
-      - name: Generate + Upload Part 2 — Education Video (22 slides, 10-12 min)
-        env:
-          CONTENT_MODE:        ${{ env.CONTENT_MODE }}
-          HOLIDAY_NAME:        ${{ env.HOLIDAY_NAME }}
-          GROQ_API_KEY:        ${{ secrets.GROQ_API_KEY }}
-          GEMINI_API_KEY:      ${{ secrets.GEMINI_API_KEY }}
-          ANTHROPIC_API_KEY:   ${{ secrets.ANTHROPIC_API_KEY }}
-          OPENAI_API_KEY:      ${{ secrets.OPENAI_API_KEY }}
-          YOUTUBE_CREDENTIALS: ${{ secrets.YOUTUBE_CREDENTIALS }}
-        run: python generate_education.py
-
-      # ✅ Duration check — fail workflow if video is under 8 minutes
-      # This prevents a short video from silently going live without mid-roll ads
-      - name: Verify education video duration (must be 8+ minutes for mid-roll ads)
+      - name: Detect content mode (market / weekend / holiday)
         run: |
           python - <<'EOF'
-          import sys
-          from moviepy.editor import VideoFileClip
-
-          video_path = "output/education_video.mp4"
+          import os, sys
+          sys.path.insert(0, ".")
           try:
-              v = VideoFileClip(video_path)
-              dur = v.duration
-              v.close()
-              mins = dur / 60
-              print(f"Education video duration: {dur:.1f}s ({mins:.1f} min)")
-              if dur < 480:
-                  print(f"CRITICAL FAIL: Video is {dur:.0f}s — under 8 minutes!")
-                  print("Mid-roll ads will NOT activate on videos under 8 minutes.")
-                  print("Fix: Check generate_education.py — need 22 slides, 80-100 words/slide, 1.2s pause.")
-                  sys.exit(1)
-              elif dur < 600:
-                  print(f"WARNING: Video is {mins:.1f} min — above 8min threshold but below 10min target.")
-                  print("Consider checking word counts per slide.")
-              else:
-                  print(f"OK: {mins:.1f} min — mid-roll ads WILL activate.")
+              from indian_holidays import get_day_mode, get_holiday_name
+              mode = get_day_mode()
+              holiday_name = get_holiday_name() if mode == "holiday" else ""
           except Exception as e:
-              print(f"Could not read video file: {e}")
-              sys.exit(1)
+              print(f"[WARN] indian_holidays error: {e} — defaulting to market mode")
+              mode = "market"
+              holiday_name = ""
+          print(f"[MODE] Shorts content mode: {mode.upper()}")
+          with open(os.environ["GITHUB_ENV"], "a") as f:
+              f.write(f"CONTENT_MODE={mode}\n")
+              f.write(f"HOLIDAY_NAME={holiday_name}\n")
           EOF
 
-      - name: Summary
+      # ─── HINDI Short ────────────────────────────────────────────────────────
+      # Weekday: top stock from AlertLog (highest Priority Score)
+      # Weekend: Base Prepared / Near Breakout from Nifty200
+      # ZENO emotion auto-selected based on stock sentiment + % move
+      - name: Generate + Upload Short (Hindi)
+        env:
+          CONTENT_MODE:             ${{ env.CONTENT_MODE }}
+          HOLIDAY_NAME:             ${{ env.HOLIDAY_NAME }}
+          SHORT_LANG:               hi
+          GROQ_API_KEY:             ${{ secrets.GROQ_API_KEY }}
+          GEMINI_API_KEY:           ${{ secrets.GEMINI_API_KEY }}
+          ANTHROPIC_API_KEY:        ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY:           ${{ secrets.OPENAI_API_KEY }}
+          YOUTUBE_CREDENTIALS:      ${{ secrets.YOUTUBE_CREDENTIALS }}
+          GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
+          META_ACCESS_TOKEN:        ${{ secrets.META_ACCESS_TOKEN }}
+          FACEBOOK_PAGE_ID:         ${{ secrets.FACEBOOK_PAGE_ID }}
         run: |
-          echo "=== Daily Videos Complete ==="
-          echo "Content mode: $CONTENT_MODE"
-          ls -lh output/*.mp4 2>/dev/null || echo "No MP4 files found"
-          ls -lh output/*_meta_*.json 2>/dev/null || echo "No meta files found"
-          echo ""
-          echo "Part 1 video ID:"
-          cat output/analysis_video_id.txt 2>/dev/null || echo "Not found"
-          echo ""
-          echo "Part 2 video ID:"
-          cat output/education_video_id.txt 2>/dev/null || echo "Not found"
+          echo "[SHORTS] Generating Hindi short — mode: $CONTENT_MODE"
+          python generate_shorts.py
+          echo "✅ Hindi short done"
+
+      # ─── ENGLISH Short ──────────────────────────────────────────────────────
+      # Same stock, same ZENO emotion — English voice (Jenny)
+      # Uploads to English channel if YOUTUBE_CREDENTIALS_EN is set
+      - name: Generate + Upload Short (English)
+        env:
+          CONTENT_MODE:             ${{ env.CONTENT_MODE }}
+          HOLIDAY_NAME:             ${{ env.HOLIDAY_NAME }}
+          SHORT_LANG:               en
+          GROQ_API_KEY:             ${{ secrets.GROQ_API_KEY }}
+          GEMINI_API_KEY:           ${{ secrets.GEMINI_API_KEY }}
+          ANTHROPIC_API_KEY:        ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY:           ${{ secrets.OPENAI_API_KEY }}
+          YOUTUBE_CREDENTIALS_EN:   ${{ secrets.YOUTUBE_CREDENTIALS_EN }}
+          GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
+        run: |
+          echo "[SHORTS] Generating English short — mode: $CONTENT_MODE"
+          python generate_shorts.py
+          echo "✅ English short done"
+
+      - name: Upload artifacts for debug
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily-shorts-${{ github.run_id }}
+          path: |
+            output/short_*.mp4
+            output/short_meta_*.json
+          retention-days: 3
