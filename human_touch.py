@@ -1,20 +1,11 @@
 """
 human_touch.py — Anti-AI-Penalty Human Touch Engine
 =====================================================
-Makes all AI-generated content feel human-written.
-Used by: ALL content generators
-
-Techniques:
-- 50+ rotating hooks (no two videos start the same)
-- Personal voice phrases injection
-- Sentence structure variation
-- Natural imperfection patterns
-- TTS speed variation
-- Emoji placement variation
-- Day/country/audience-aware tone shifts
-
-Author: AI360Trading Automation
-Last Updated: March 2026
+v2.1 CHANGES (May 2026):
+- SEOTags.get_video_tags() — added channel, lang params (fixes TypeError)
+- SEOTags.get_youtube_safe_tags() — new (ASCII-only, 480 char limit)
+- SEOTags.format_article_tags() — new (Jekyll frontmatter format)
+Last Updated: May 2026
 """
 
 import random
@@ -23,11 +14,6 @@ from datetime import datetime
 import pytz
 
 IST = pytz.timezone("Asia/Kolkata")
-
-
-# ─────────────────────────────────────────────
-# HOOK LIBRARIES
-# ─────────────────────────────────────────────
 
 HOOKS_HINDI_MARKET = [
     "Yaar, aaj market ne kuch aisa kiya jo bahut log miss kar gaye —",
@@ -97,11 +83,6 @@ HOOKS_ENGLISH = [
     "The only market analysis you need today:",
 ]
 
-
-# ─────────────────────────────────────────────
-# PERSONAL VOICE PHRASES
-# ─────────────────────────────────────────────
-
 PERSONAL_PHRASES_HINDI = [
     "Mera personal experience hai ki",
     "Maine khud dekha hai ki",
@@ -128,11 +109,6 @@ PERSONAL_PHRASES_ENGLISH = [
     "Real talk —",
 ]
 
-
-# ─────────────────────────────────────────────
-# CTA VARIATIONS
-# ─────────────────────────────────────────────
-
 CTAS_HINDI = [
     "Agar helpful laga toh like karo aur Telegram join karo signals ke liye! 🔔",
     "Apne trading friends ke saath share karo — unki bhi madad hogi! 📤",
@@ -155,151 +131,80 @@ CTAS_ENGLISH = [
     "Tag a friend who needs to see this setup! 🎯",
 ]
 
-
-# ─────────────────────────────────────────────
-# MORNING REEL TOPICS BY DAY
-# ─────────────────────────────────────────────
-
 MORNING_REEL_TOPICS = {
-    0: {  # Monday
-        "topic": "US/UK Weekend Market Recap",
+    0: {"topic": "US/UK Weekend Market Recap",
         "angle": "What happened globally while Indian markets were closed",
         "target_country": ["USA", "UK", "India"],
         "hook_en": "While you were sleeping, global markets made a big move:",
-        "hook_hi": "Weekend mein global markets mein yeh hua — dekhna zaroori hai:",
-    },
-    1: {  # Tuesday
-        "topic": "Trading Psychology",
+        "hook_hi": "Weekend mein global markets mein yeh hua — dekhna zaroori hai:"},
+    1: {"topic": "Trading Psychology",
         "angle": "One mindset shift that separates winners from losers",
         "target_country": ["India", "UAE"],
         "hook_en": "The real reason most traders fail has nothing to do with charts:",
-        "hook_hi": "90% traders yeh galti karte hain — aur yeh chart se related nahi hai:",
-    },
-    2: {  # Wednesday
-        "topic": "Global Market Update",
+        "hook_hi": "90% traders yeh galti karte hain — aur yeh chart se related nahi hai:"},
+    2: {"topic": "Global Market Update",
         "angle": "Mid-week global picture — US, UK, Brazil, India",
         "target_country": ["USA", "UK", "Brazil", "India"],
         "hook_en": "Mid-week check — here's what global markets are telling us:",
-        "hook_hi": "Hafte ke beech mein global market ka ek quick scan karte hain:",
-    },
-    3: {  # Thursday
-        "topic": "Wealth Mindset",
+        "hook_hi": "Hafte ke beech mein global market ka ek quick scan karte hain:"},
+    3: {"topic": "Wealth Mindset",
         "angle": "One wealth principle successful investors follow",
         "target_country": ["UAE", "Canada", "Australia"],
         "hook_en": "One wealth principle that compound investors never break:",
-        "hook_hi": "Ek rule jo sab successful investors follow karte hain — seriously:",
-    },
-    4: {  # Friday
-        "topic": "Weekend Strategy Preview",
+        "hook_hi": "Ek rule jo sab successful investors follow karte hain — seriously:"},
+    4: {"topic": "Weekend Strategy Preview",
         "angle": "What to watch, what to prepare before next week",
         "target_country": ["India", "USA", "UK"],
         "hook_en": "Before markets close today — here's your weekend prep list:",
-        "hook_hi": "Weekend se pehle yeh 3 cheezein prepare kar lo — trading ke liye:",
-    },
-    5: {  # Saturday
-        "topic": "Motivation + Lessons",
+        "hook_hi": "Weekend se pehle yeh 3 cheezein prepare kar lo — trading ke liye:"},
+    5: {"topic": "Motivation + Lessons",
         "angle": "One trading lesson from a real market mistake",
         "target_country": ["Global"],
         "hook_en": "The lesson I learned the hard way — so you don't have to:",
-        "hook_hi": "Ek galti jo maine ki — taaki aap na karein:",
-    },
-    6: {  # Sunday
-        "topic": "Next Week Strategy",
+        "hook_hi": "Ek galti jo maine ki — taaki aap na karein:"},
+    6: {"topic": "Next Week Strategy",
         "angle": "Key levels, sector focus, and what to watch Monday",
         "target_country": ["USA", "UK", "India"],
         "hook_en": "Sunday prep: here's exactly what I'm watching for next week:",
-        "hook_hi": "Kal market kholega — yeh levels aur sectors ready rakhna:",
-    },
+        "hook_hi": "Kal market kholega — yeh levels aur sectors ready rakhna:"},
 }
 
 
-# ─────────────────────────────────────────────
-# MAIN HumanTouch CLASS
-# ─────────────────────────────────────────────
-
 class HumanTouch:
-    """
-    Injects human-like qualities into AI-generated content.
-
-    Usage:
-        ht = HumanTouch()
-        hook = ht.get_hook(mode="market", lang="hi")
-        script = ht.humanize(raw_script, lang="hi")
-        tts_speed = ht.get_tts_speed()
-    """
-
     def __init__(self):
         self.now_ist = datetime.now(IST)
-        self.weekday = self.now_ist.weekday()  # 0=Mon, 6=Sun
-        self.seed = int(self.now_ist.strftime("%Y%m%d"))
-        random.seed(self.seed)  # Same day = same variation (consistent daily content)
+        self.weekday = self.now_ist.weekday()
+        self.seed    = int(self.now_ist.strftime("%Y%m%d"))
+        random.seed(self.seed)
 
-    def get_hook(self, mode: str = "market", lang: str = "hi", holiday_name: str = "") -> str:
-        """Get a unique hook for today's content."""
-        if lang == "en":
-            hooks = HOOKS_ENGLISH
-        elif mode == "holiday":
-            hooks = HOOKS_HINDI_HOLIDAY
-        elif mode == "weekend":
-            hooks = HOOKS_HINDI_WEEKEND
-        else:
-            hooks = HOOKS_HINDI_MARKET
-
+    def get_hook(self, mode="market", lang="hi", holiday_name=""):
+        if lang == "en":        hooks = HOOKS_ENGLISH
+        elif mode == "holiday": hooks = HOOKS_HINDI_HOLIDAY
+        elif mode == "weekend": hooks = HOOKS_HINDI_WEEKEND
+        else:                   hooks = HOOKS_HINDI_MARKET
         hook = hooks[self.seed % len(hooks)]
-
-        # Replace {holiday} placeholder
         if "{holiday}" in hook:
             hook = hook.replace("{holiday}", holiday_name or "aaj")
-
         return hook
 
-    def get_cta(self, lang: str = "hi") -> str:
-        """Get a CTA variation for today."""
+    def get_cta(self, lang="hi"):
         ctas = CTAS_ENGLISH if lang == "en" else CTAS_HINDI
         return ctas[(self.seed + 3) % len(ctas)]
 
-    def get_personal_phrase(self, lang: str = "hi") -> str:
-        """Get a personal voice phrase."""
+    def get_personal_phrase(self, lang="hi"):
         phrases = PERSONAL_PHRASES_ENGLISH if lang == "en" else PERSONAL_PHRASES_HINDI
         return random.choice(phrases)
 
-    def get_tts_speed(self) -> float:
-        """
-        Return a slightly varied TTS speed.
-        Range: 0.95-1.05 — sounds natural, not robotic.
-        """
+    def get_tts_speed(self):
         speeds = [0.95, 0.97, 1.00, 1.02, 1.05]
         return speeds[self.seed % len(speeds)]
 
-    def get_searchable_title(
-        self,
-        content_type: str,
-        topic_keyword: str,
-        date_str: str = "",
-        mode: str = "market",
-        holiday_name: str = ""
-    ) -> str:
-        """
-        Central YouTube title builder for ALL generators.
-
-        Format rules (YouTube SEO — what people actually search):
-          analysis : "Nifty50 Analysis {date} | {topic} | AI360 Trading"
-          education: "{topic} {date} | Trading Education | AI360 Trading"
-          reel     : "{topic} | AI360 Trading Shorts"
-          short    : "{topic} {date} | AI360 Trading"
-          holiday  : "{holiday} 2026 | {topic} | AI360 Trading"
-
-        Always ends with | AI360 Trading so channel is always searchable.
-        Hard limit 95 chars — YouTube shows ~70 chars in search results.
-        """
+    def get_searchable_title(self, content_type, topic_keyword, date_str="", mode="market", holiday_name=""):
         if not date_str:
             date_str = datetime.now(IST).strftime("%d %b %Y")
-
         channel = "AI360 Trading"
-
         if mode == "holiday" and holiday_name:
-            year = datetime.now(IST).year
-            base = f"{holiday_name} {year} | {topic_keyword} | {channel}"
+            base = f"{holiday_name} {datetime.now(IST).year} | {topic_keyword} | {channel}"
         elif content_type == "analysis":
             base = f"Nifty50 Analysis {date_str} | {topic_keyword} | {channel}"
         elif content_type == "education":
@@ -310,39 +215,25 @@ class HumanTouch:
             base = f"{topic_keyword} {date_str} | {channel}"
         else:
             base = f"{topic_keyword} {date_str} | {channel}"
-
-        # Truncate to 95 chars max — keep channel name always
         if len(base) > 95:
             suffix = f" | {channel}"
-            max_front = 95 - len(suffix)
-            base = base[:max_front].rstrip(" |") + suffix
-
+            base   = base[:95 - len(suffix)].rstrip(" |") + suffix
         return base[:100]
 
-    def get_morning_reel_topic(self) -> dict:
-        """Get today's morning reel topic based on day of week."""
+    def get_morning_reel_topic(self):
         return MORNING_REEL_TOPICS[self.weekday]
 
-    def humanize(self, text: str, lang: str = "hi") -> str:
-        """
-        Apply human touch transformations to AI-generated text.
-        - Injects personal phrases
-        - Varies sentence connectors
-        - Adds natural pauses (for TTS)
-        - Removes robotic patterns
-        """
+    def humanize(self, text, lang="hi"):
         text = self._remove_robotic_patterns(text)
         text = self._vary_connectors(text, lang)
         text = self._inject_personal_phrase(text, lang)
         text = self._add_tts_pauses(text)
         return text.strip()
 
-    def humanize_script_lines(self, lines: list, lang: str = "hi") -> list:
-        """Humanize a list of script lines."""
+    def humanize_script_lines(self, lines, lang="hi"):
         result = []
         for i, line in enumerate(lines):
             line = self.humanize(line, lang)
-            # Occasionally add a natural filler between lines
             if i > 0 and i % 3 == 0 and random.random() > 0.6:
                 filler = self._get_filler(lang)
                 if filler:
@@ -350,83 +241,62 @@ class HumanTouch:
             result.append(line)
         return result
 
-    def get_emoji_set(self, mode: str = "market") -> list:
-        """Get contextually appropriate emojis — varied by day."""
+    def get_emoji_set(self, mode="market"):
         sets = {
-            "market": ["📈", "📊", "🎯", "💹", "🔔", "⚡", "🚀", "💡", "🔥", "✅"],
-            "weekend": ["📚", "🧠", "💡", "🌟", "🎯", "📖", "✨", "🏆", "💪", "🌱"],
-            "holiday": ["🎉", "🌟", "✨", "🙏", "💫", "🎊", "❤️", "🌈", "🌸", "🎈"],
+            "market":  ["📈","📊","🎯","💹","🔔","⚡","🚀","💡","🔥","✅"],
+            "weekend": ["📚","🧠","💡","🌟","🎯","📖","✨","🏆","💪","🌱"],
+            "holiday": ["🎉","🌟","✨","🙏","💫","🎊","❤️","🌈","🌸","🎈"],
         }
         emoji_set = sets.get(mode, sets["market"])
-        # Rotate which emojis are used each day
         start = self.seed % len(emoji_set)
         return emoji_set[start:] + emoji_set[:start]
 
-    def get_posting_time_tag(self, target_countries: list) -> str:
-        """
-        Generate SEO-friendly time tag for descriptions.
-        USA/UK prime time content gets special tags.
-        """
-        if any(c in ["USA", "UK", "Canada", "Australia"] for c in target_countries):
+    def get_posting_time_tag(self, target_countries):
+        if any(c in ["USA","UK","Canada","Australia"] for c in target_countries):
             return "#USStocks #UKInvesting #GlobalInvesting #FinanceWorld"
         elif "UAE" in target_countries:
             return "#UAEInvesting #NRIInvestors #DubaiFinance #GlobalStocks"
         elif "Brazil" in target_countries:
             return "#BrazilMarket #BrazilFinance #GlobalInvesting"
-        else:
-            return "#Nifty50 #TradingIndia #StockMarketIndia #BankNifty"
+        return "#Nifty50 #TradingIndia #StockMarketIndia #BankNifty"
 
-    # ── PRIVATE HELPERS ───────────────────────
-
-    def _remove_robotic_patterns(self, text: str) -> str:
-        """Remove common AI writing patterns that feel robotic."""
+    def _remove_robotic_patterns(self, text):
         replacements = {
-            "Certainly! ": "",
-            "Absolutely! ": "",
-            "Of course! ": "",
-            "Sure! ": "",
-            "Great! ": "",
-            "Indeed, ": "",
-            "It's important to note that ": "",
-            "It is worth noting that ": "",
-            "In conclusion, ": "Toh basically, " if random.random() > 0.5 else "Ek baat clear hai — ",
-            "In summary, ": "Short mein bolunga toh, ",
-            "Furthermore, ": "Iske alawa, ",
-            "Additionally, ": "Saath hi, ",
-            "However, ": "Lekin, ",
-            "Therefore, ": "Isliye, ",
-            "It's important to": "Remember to",
-            "You should consider": "Think about",
-            "As an AI": "",
-            "I'm an AI": "",
+            "Certainly! ":"","Absolutely! ":"","Of course! ":"",
+            "Sure! ":"","Great! ":"","Indeed, ":"",
+            "It's important to note that ":"","It is worth noting that ":"",
+            "In conclusion, ":"Toh basically, " if random.random()>0.5 else "Ek baat clear hai — ",
+            "In summary, ":"Short mein bolunga toh, ",
+            "Furthermore, ":"Iske alawa, ","Additionally, ":"Saath hi, ",
+            "However, ":"Lekin, ","Therefore, ":"Isliye, ",
+            "It's important to":"Remember to",
+            "You should consider":"Think about",
+            "As an AI":"","I'm an AI":"",
         }
         for old, new in replacements.items():
             text = text.replace(old, new)
         return text
 
-    def _vary_connectors(self, text: str, lang: str) -> str:
-        """Replace repetitive connectors with varied alternatives."""
+    def _vary_connectors(self, text, lang):
         if lang == "hi":
             connector_map = {
-                "aur ": random.choice(["aur ", "saath hi ", "plus "]),
-                "lekin ": random.choice(["lekin ", "but ", "par "]),
-                "kyunki ": random.choice(["kyunki ", "because ", "isliye ki "]),
+                "aur ":    random.choice(["aur ","saath hi ","plus "]),
+                "lekin ":  random.choice(["lekin ","but ","par "]),
+                "kyunki ": random.choice(["kyunki ","because ","isliye ki "]),
             }
         else:
             connector_map = {
-                "and ": random.choice(["and ", "plus ", "also "]),
-                "but ": random.choice(["but ", "however, ", "yet "]),
-                "because ": random.choice(["because ", "since ", "as "]),
+                "and ":     random.choice(["and ","plus ","also "]),
+                "but ":     random.choice(["but ","however, ","yet "]),
+                "because ": random.choice(["because ","since ","as "]),
             }
-        # Only replace first occurrence to avoid over-modification
         for old, new in connector_map.items():
             text = text.replace(old, new, 1)
         return text
 
-    def _inject_personal_phrase(self, text: str, lang: str) -> str:
-        """Inject a personal phrase at a natural breakpoint."""
-        if random.random() > 0.6:  # 40% chance to inject
-            phrase = self.get_personal_phrase(lang)
+    def _inject_personal_phrase(self, text, lang):
+        if random.random() > 0.6:
+            phrase    = self.get_personal_phrase(lang)
             sentences = text.split(". ")
             if len(sentences) > 2:
                 mid = len(sentences) // 2
@@ -434,122 +304,90 @@ class HumanTouch:
                 text = ". ".join(sentences)
         return text
 
-    def _add_tts_pauses(self, text: str) -> str:
-        """
-        Add natural pauses for TTS engines.
-        Edge-TTS respects comma pauses.
-        """
-        text = re.sub(r'([.!?])\s+([A-Z\u0900-\u097F])', r'\1 \2', text)
+    def _add_tts_pauses(self, text):
+        text = re.sub(r'(\d+)\s+(percent|%)', r'\1 \2,', text)
+        text = text.replace(" — ", ", ")
         return text
 
-    def _get_filler(self, lang: str) -> str:
-        """Natural filler phrases used between sections."""
-        if lang == "en":
-            fillers = [
-                "Now, here's the key part:",
-                "And this is where it gets interesting —",
-                "Pay attention to this:",
-                "Here's what most people miss:",
-            ]
-        else:
-            fillers = [
-                "Ab yahan dhyan do —",
-                "Yeh part important hai:",
-                "Ab interesting part aata hai:",
-                "Yahan zyada log galti karte hain:",
-            ]
+    def _get_filler(self, lang):
+        fillers_hi = ["Chaliye aage badhte hain.","Ab doosri important baat.",
+                      "Yeh toh tha ek angle.","Ek aur cheez dhyan mein rakhna."]
+        fillers_en = ["Now, here's the next part.","Moving on to something important.",
+                      "Let me show you another angle.","Keep this in mind as well."]
+        fillers = fillers_en if lang == "en" else fillers_hi
         return random.choice(fillers) if random.random() > 0.5 else ""
 
 
-# ─────────────────────────────────────────────
-# SEO TAG GENERATOR
-# ─────────────────────────────────────────────
-
 class SEOTags:
     """
-    Generate optimised SEO tags for all content types.
-    Always includes India + global tags.
+    v2.1: get_video_tags() now accepts channel + lang (fixes TypeError).
+    New: get_youtube_safe_tags(), format_article_tags()
     """
 
-    INDIA_TAGS = [
-        "Nifty50", "TradingIndia", "StockMarketIndia", "BankNifty",
-        "NSE", "BSE", "IndianMarket", "TradingHindi", "ShareMarket",
-        "NiftyAnalysis", "TradingTips", "StockMarket"
+    BASE_TAGS = [
+        "AI360Trading","StockMarket","Trading","Investing",
+        "Nifty50","TradingIndia","StockMarketIndia","BankNifty",
+        "Finance","FinancialLiteracy","SwingTrading","TechnicalAnalysis",
     ]
-
     GLOBAL_TAGS = [
-        "USStocks", "UKInvesting", "BrazilMarket", "UAEInvesting",
-        "GlobalInvesting", "Finance", "Investing", "FinancialLiteracy",
-        "TradingSignals", "StockTrading", "ForexTrading", "WealthBuilding"
+        "USStocks","UKInvesting","GlobalInvesting","BrazilMarket",
+        "UAEInvesting","FinanceWorld","StockMarketNews","InvestingTips",
     ]
-
-    SHORT_TAGS = ["Shorts", "TradingShorts", "FinanceShorts", "StocksShorts"]
-
+    MARKET_TAGS = [
+        "NiftyAnalysis","MarketToday","BreakoutStocks","TradingSignals",
+        "SwingTrade","Nifty50Analysis","StockPicks","MarketUpdate",
+        "FIIData","BullMarket","TradingSetup","NiftyPrediction",
+    ]
     EDUCATION_TAGS = [
-        "TradingEducation", "LearnTrading", "TradingForBeginners",
-        "TradingPsychology", "TechnicalAnalysis", "CandlestickPatterns"
+        "TradingEducation","LearnTrading","TradingForBeginners",
+        "InvestmentTips","WealthBuilding","PersonalFinance",
+        "TradingPsychology","StockMarketBasics","FinancialFreedom",
+        "PassiveIncome","MoneyManagement","InvestingForBeginners",
+    ]
+    SHORTS_TAGS = [
+        "Shorts","YouTubeShorts","StockMarketShorts","TradingShorts",
+        "NiftyShorts","ViralFinance","FinanceShorts",
     ]
 
-    @classmethod
-    def get_video_tags(cls, mode: str = "market", is_short: bool = False) -> list:
-        tags = cls.INDIA_TAGS[:6] + cls.GLOBAL_TAGS[:6]
+    def get_video_tags(self, mode="market", is_short=False, channel="trading", lang="both"):
+        """channel and lang accepted for compatibility — v2.1 fix."""
+        tags = list(self.BASE_TAGS)
+        tags += self.MARKET_TAGS if mode == "market" else self.EDUCATION_TAGS
+        tags += self.GLOBAL_TAGS
         if is_short:
-            tags += cls.SHORT_TAGS
-        if mode in ["weekend", "holiday", "education"]:
-            tags += cls.EDUCATION_TAGS[:3]
-        random.shuffle(tags)
-        return tags[:20]  # YouTube max effective tags
+            tags += self.SHORTS_TAGS
+        seen, result = set(), []
+        for t in tags:
+            if t not in seen:
+                seen.add(t)
+                result.append(t)
+        return result[:40]
 
-    @classmethod
-    def get_article_tags(cls, topic: str = "") -> list:
-        base = cls.INDIA_TAGS[:4] + cls.GLOBAL_TAGS[:4] + cls.EDUCATION_TAGS[:3]
-        if topic:
-            base = [topic.replace(" ", "")] + base
-        return base[:15]
+    def get_youtube_safe_tags(self, tags):
+        """ASCII-only tags, total under 480 chars for YouTube API."""
+        safe   = [t for t in tags if t.isascii()]
+        result, total = [], 0
+        for tag in safe:
+            if total + len(tag) + 1 <= 480:
+                result.append(tag)
+                total += len(tag) + 1
+            else:
+                break
+        return result
 
-    @classmethod
-    def format_youtube_tags(cls, tags: list) -> str:
-        return ", ".join(tags)
+    def format_article_tags(self, tags, max_tags=15):
+        """Format tags for Jekyll article frontmatter YAML."""
+        safe = [t for t in tags if t.isascii()][:max_tags]
+        return "[" + ", ".join(f'"{t}"' for t in safe) + "]"
 
-    @classmethod
-    def format_article_tags(cls, tags: list) -> str:
-        return " ".join([f"#{t}" for t in tags])
+    def get_description_tags(self, mode="market", lang="hi"):
+        """Get hashtag string for video descriptions."""
+        tags = self.get_video_tags(mode=mode, is_short=False)
+        safe = self.get_youtube_safe_tags(tags)
+        return " ".join(f"#{t}" for t in safe[:12])
 
 
-# ─────────────────────────────────────────────
-# SINGLETON INSTANCES
-# ─────────────────────────────────────────────
-
-ht = HumanTouch()
+# Singleton instances — import in all generators as:
+# from human_touch import ht, seo
+ht  = HumanTouch()
 seo = SEOTags()
-
-
-# ─────────────────────────────────────────────
-# TEST
-# ─────────────────────────────────────────────
-
-if __name__ == "__main__":
-    touch = HumanTouch()
-
-    print("=" * 60)
-    print("Human Touch Engine Test")
-    print("=" * 60)
-
-    print(f"\nToday's weekday: {touch.weekday} ({['Mon','Tue','Wed','Thu','Fri','Sat','Sun'][touch.weekday]})")
-    print(f"TTS Speed: {touch.get_tts_speed()}")
-
-    print(f"\nHook (Hindi, market): {touch.get_hook('market', 'hi')}")
-    print(f"Hook (English, market): {touch.get_hook('market', 'en')}")
-    print(f"Hook (Hindi, weekend): {touch.get_hook('weekend', 'hi')}")
-
-    print(f"\nCTA (Hindi): {touch.get_cta('hi')}")
-    print(f"CTA (English): {touch.get_cta('en')}")
-
-    print(f"\nMorning reel topic: {touch.get_morning_reel_topic()}")
-
-    sample = "Certainly! It's important to note that Nifty50 aaj strong support pe hai. Furthermore, volume confirm kar raha hai yeh level."
-    print(f"\nBefore humanize: {sample}")
-    print(f"After humanize: {touch.humanize(sample, 'hi')}")
-
-    print(f"\nSEO Tags (video): {SEOTags.get_video_tags('market')}")
-    print(f"SEO Tags (short): {SEOTags.get_video_tags('market', is_short=True)}")
