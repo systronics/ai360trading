@@ -32,6 +32,8 @@ import textwrap
 from datetime import datetime
 from pathlib import Path
 
+import time
+import requests
 import edge_tts
 import gspread
 from PIL import Image, ImageDraw, ImageFont
@@ -491,6 +493,85 @@ def upload_short(video_path: Path, title: str, description: str, tags: list):
         return None
 
 
+# ─── FACEBOOK SHARE (Hindi only — page token fix) ────────────────────────────
+FB_RETRY      = 2
+FB_RETRY_WAIT = 5
+
+
+def get_fb_page_token(user_token: str, page_id: str) -> str:
+    """Exchange user token for page token — required for page posts. Fixes #200 error."""
+    try:
+        resp = requests.get(
+            "https://graph.facebook.com/v21.0/me/accounts",
+            params={"access_token": user_token, "limit": 20},
+            timeout=15
+        )
+        if resp.ok:
+            for page in resp.json().get("data", []):
+                if str(page.get("id")) == str(page_id):
+                    return page.get("access_token", user_token)
+    except Exception:
+        pass
+    return user_token
+
+
+def share_to_facebook(short_url: str, stock: dict, script: dict):
+    """
+    Share YouTube Short link to Facebook Page.
+    Hindi only — English has no FB page yet.
+    Only runs when META_ACCESS_TOKEN + FACEBOOK_PAGE_ID are set.
+    """
+    user_token = os.environ.get("META_ACCESS_TOKEN", "")
+    page_id    = os.environ.get("FACEBOOK_PAGE_ID", "")
+    if not user_token or not page_id or not short_url:
+        print("⚠️ Facebook credentials missing or no short URL — skipping")
+        return
+
+    token  = get_fb_page_token(user_token, page_id)
+    sym    = stock.get("symbol", "").replace("NSE:", "")
+    pct    = stock.get("pct_change", 0)
+    stage  = stock.get("stage", "")
+    sl     = stock.get("sl", 0)
+    target = stock.get("target", 0)
+    tags   = seo.get_video_tags(mode=CONTENT_MODE, is_short=True)
+    htags  = " ".join([f"#{t}" for t in tags[:8]])
+
+    pct_str = f"{pct:+.1f}%" if pct != 0 else ""
+    msg = (
+        f"📊 {sym} {pct_str} — {stage} 🔥\n\n"
+        f"🎯 Entry: ₹{stock.get('cmp',0):.1f}\n"
+        f"🛑 SL: ₹{sl:.1f}\n" if sl > 0 else ""
+        f"🎯 Target: ₹{target:.1f}\n\n" if target > 0 else "\n"
+        f"📱 Daily signals: https://t.me/ai360trading\n"
+        f"🌐 https://ai360trading.in\n\n"
+        f"⚠️ Educational only. Not SEBI advice.\n\n"
+        f"{htags} #ai360trading #{sym.replace('-','')}\n\n"
+        f"▶️ Watch: {short_url}"
+    )
+
+    for attempt in range(1, FB_RETRY + 1):
+        try:
+            resp   = requests.post(
+                f"https://graph.facebook.com/v21.0/{page_id}/feed",
+                data={"message": msg, "access_token": token},
+                timeout=30
+            )
+            result = resp.json()
+            if "id" in result:
+                print(f"  ✅ Facebook Page shared — Post ID: {result['id']}")
+                return
+            else:
+                error = result.get("error", {})
+                print(f"  ❌ Facebook failed (attempt {attempt}): {error.get('message','unknown')}")
+                if error.get("code") in [200, 190]:
+                    break  # Auth error — no point retrying
+        except Exception as e:
+            print(f"  ⚠️ Facebook error (attempt {attempt}): {e}")
+        if attempt < FB_RETRY:
+            time.sleep(FB_RETRY_WAIT)
+    print("  ✗ Facebook share failed — all attempts done.")
+
+
 # ─── MAIN ─────────────────────────────────────────────────────────────────────
 async def run():
     today_str = datetime.now().strftime("%d %b %Y")
@@ -575,6 +656,11 @@ async def run():
     meta_path = OUT / f"short_meta_{today_fn}_{LANG}.json"
     meta_path.write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"💾 Saved: {meta_path.name}")
+
+    # ── Facebook share (Hindi only) ───────────────────────────────────────────
+    if LANG == "hi" and video_id:
+        short_url = f"https://youtube.com/shorts/{video_id}"
+        share_to_facebook(short_url, stock, script)
 
     print(f"\n{'='*55}")
     print(f"✅ SHORT DONE — {sym} | {LANG.upper()} | {today_str}")
