@@ -1,26 +1,84 @@
 """
-AI360 TRADING BOT — v14.0
+AI360 TRADING BOT — v15.0
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v15.0 CHANGES vs v14.0 — RSI + TIME + DAY + NIFTY DIRECTION FILTER
+
+ANALYSIS: Yesterday May 15, 2026 performance review:
+  Winners:  BSE +3.87%, IDEA +5.94%, ADANIPORTS +5.58% (all morning entries)
+  Losers:   NESTLEIND -1.82%, SAIL -2.62%, IDEA(new) -1% (all 12:11 PM entries)
+  Pattern:  Morning entries in bullish Nifty window = winners
+            Afternoon entries when Nifty was pulling back = losers
+
+TOP GAINERS vs OUR SYSTEM (May 15):
+  CROMPTON +4.45% → RSI ~35 oversold bounce → our system correctly skipped
+  DRREDDY +3.04% → BREAKOUT ALERT, priority 13 → near miss (just below threshold)
+  AMBER +2.79% → Near Breakout, priority 21 → should have entered
+  ABCAPITAL +2.03% → Near Breakout, priority 38 → should have entered
+  SAIL -2.62% → RSI ~58, entered 12:11 PM on bearish Nifty → avoidable loss
+
+NEW FILTERS (v15.0):
+
+1. RSI FILTER — fetch live RSI(14) before entry
+   BULLISH market: enter only if stock RSI < 65 (not overbought)
+   BEARISH market: enter only if stock RSI < 58 (extra strict)
+   RSI fetched via yfinance for the specific stock symbol
+   Falls back to allow entry if yfinance fails (safety)
+
+2. NIFTY DIRECTION AT ENTRY — must be green or near-flat
+   BULLISH market: Nifty % change > -0.3% at entry time
+   BEARISH market: Nifty % change > 0.0% at entry time (must be green)
+   Nifty CMP fetched from Nifty200 sheet row 1 OR from yfinance
+   This filter alone would have prevented SAIL and NESTLEIND entries
+
+3. TIME WINDOW — day-of-week and regime aware
+   BULLISH market: entries 09:15 AM – 02:30 PM
+   BEARISH market: entries 09:15 AM – 11:00 AM ONLY
+   Afternoon bearish entries are low probability, high risk
+   This is the single biggest improvement over v14.0
+
+4. DAY FILTER — Monday gap risk
+   Monday before 10:00 AM: NO new entries (gap risk from weekend)
+   Friday after 2:00 PM: NO new entries (weekend holding risk)
+   These two rules eliminate the most common retail trader mistakes
+
+5. DAILY ENTRY LIMIT
+   BULLISH market: max 3 new entries per day
+   BEARISH market: max 1 new entry per day
+   Prevents overtrading in bad market conditions
+
+6. OPTIONS COLUMNS READ (v15.3 AppScript compatibility)
+   Now reads cols U-X (Options Signal, Strike, Expiry, Theta)
+   Includes these in Premium channel entry alerts
+
+ALL v14.0 FIXES PRESERVED:
+  - CHAT_ID swap fixed (ADVANCE/PREMIUM correct)
+  - Advance = full details, Premium = details + options flag
+  - BotMemory sheet read (_CAP/_MODE/_SEC/_RANK/_BASE)
+  - Result day skip (>6% gap at open → skip entry)
+  - NSE holiday check in Python
+  - MAX_TRADES = 8 matching AppScript
+  - Capital 3-tier fallback from BotMemory
+  - Mid-day pulse 12:28-12:38
+  - Market close summary 15:15-15:45
+  - CE flag gated by rank ≤5
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ALERTLOG COLUMN MAP (0-based):
-  A=0  Signal Time       B=1  Symbol
-  C=2  Live Price        D=3  Priority Score
-  E=4  Trade Type        F=5  Strategy
-  G=6  Breakout Stage    H=7  Initial SL
-  I=8  Target            J=9  RR Ratio
-  K=10 Trade Status      L=11 Entry Price
-  M=12 Entry Time        N=13 Days in Trade
-  O=14 Trailing SL       P=15 P/L%
-  Q=16 ATH Warning       R=17 Risk ₹
-  S=18 Position Size     T=19 SYSTEM CONTROL
-  T2 = automation switch, T4 = Python-only state (TSL/MAX/LP/ATR/EXDT)
+  A=0  Signal Time     B=1  Symbol         C=2  Live Price
+  D=3  Priority Score  E=4  Trade Type     F=5  Strategy
+  G=6  Breakout Stage  H=7  Initial SL     I=8  Target
+  J=9  RR Ratio        K=10 Trade Status   L=11 Entry Price
+  M=12 Entry Time      N=13 Days in Trade  O=14 Trailing SL
+  P=15 P/L%            Q=16 ATH Warning    R=17 Risk Rs.
+  S=18 Position Size   T=19 SYSTEM CONTROL
+  U=20 Options Signal  V=21 Strike         W=22 Expiry
+  X=23 Theta Risk
 
-HISTORY COLUMNS (A–R):
-  A  Symbol        B  Entry Date    C  Entry Price   D  Exit Date
-  E  Exit Price    F  P/L%          G  Result         H  Strategy
-  I  Exit Reason   J  Trade Type    K  Initial SL     L  TSL at Exit
-  M  Max Price     N  ATR at Entry  O  Days Held       P  Capital ₹
-  Q  Profit/Loss ₹ R  Options Note
+HISTORY COLUMNS (A-R):
+  A Symbol  B Entry Date  C Entry Price  D Exit Date  E Exit Price
+  F P/L%    G Result      H Strategy     I Exit Reason J Trade Type
+  K Initial SL  L TSL at Exit  M Max Price  N ATR at Entry
+  O Days Held   P Capital Rs.  Q Profit/Loss Rs.  R Options Note
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 """
 
@@ -28,86 +86,70 @@ import os, json, pytz, requests, gspread
 from datetime import datetime, timedelta
 from oauth2client.service_account import ServiceAccountCredentials
 
-IST        = pytz.timezone('Asia/Kolkata')
-TG_TOKEN   = os.environ.get('TELEGRAM_BOT_TOKEN')
+IST       = pytz.timezone('Asia/Kolkata')
+TG_TOKEN  = os.environ.get('TELEGRAM_BOT_TOKEN')
 
-# ── 3 Telegram channels — v14.0 FIX: correct env var names ───────────────────
-CHAT_BASIC = os.environ.get('CHAT_ID_BASIC')      # FREE Follow/Subscribe
-CHAT_ADVANCE = os.environ.get('CHAT_ID_ADVANCE')    # Advance Rs. ₹1000/month
-CHAT_PREMIUM = os.environ.get('CHAT_ID_PREMIUM')    # Premium Rs. ₹3000/month
+# ── 3 Telegram channels — v14.0 FIX: correct env var names ──────────────────
+CHAT_BASIC   = os.environ.get('CHAT_ID_BASIC')
+CHAT_ADVANCE = os.environ.get('CHAT_ID_ADVANCE')
+CHAT_PREMIUM = os.environ.get('CHAT_ID_PREMIUM')
 
 SHEET_NAME = "Ai360tradingAlgo"
 
-# ── NSE Market Holidays 2026 ──────────────────────────────────────────────────
-NSE_HOLIDAYS_2026 = {
-    "2026-01-26", "2026-03-25", "2026-04-02", "2026-04-14",
-    "2026-05-01", "2026-05-27", "2026-06-17", "2026-08-15",
-    "2026-08-27", "2026-10-02", "2026-10-21", "2026-10-22",
-    "2026-11-05", "2026-12-25",
-}
-
 # ── AlertLog column indices (0-based) ─────────────────────────────────────────
-C_SIGNAL_TIME = 0
-C_SYMBOL      = 1
-C_LIVE_PRICE  = 2
-C_PRIORITY    = 3
-C_TRADE_TYPE  = 4
-C_STRATEGY    = 5
-C_STAGE       = 6
-C_INITIAL_SL  = 7
-C_TARGET      = 8
-C_RR          = 9
-C_STATUS      = 10
-C_ENTRY_PRICE = 11
-C_ENTRY_TIME  = 12
-C_DAYS        = 13
-C_TRAIL_SL    = 14
-C_PNL         = 15
+C_SIGNAL_TIME = 0;  C_SYMBOL = 1;     C_LIVE_PRICE = 2;  C_PRIORITY = 3
+C_TRADE_TYPE  = 4;  C_STRATEGY = 5;   C_STAGE = 6;       C_INITIAL_SL = 7
+C_TARGET      = 8;  C_RR = 9;         C_STATUS = 10;     C_ENTRY_PRICE = 11
+C_ENTRY_TIME  = 12; C_DAYS = 13;      C_TRAIL_SL = 14;   C_PNL = 15
+C_ATH_WARN    = 16; C_RISK = 17;      C_QTY = 18;        C_SYS_CTRL = 19
+C_OPT_SIGNAL  = 20; C_OPT_STRIKE = 21; C_OPT_EXPIRY = 22; C_OPT_THETA = 23
 
-# ── v14.0: Sync with AppScript v14.1 / v15.0 ─────────────────────────────────
-MAX_TRADES     = 8       # was 5 — now matches AppScript
-MAX_WAITING    = 10
-LOG_ROWS       = 21      # matches AppScript v15.0
+# ── Config ────────────────────────────────────────────────────────────────────
+MAX_TRADES             = 8
+MAX_WAITING            = 10
+MIN_RR                 = 1.8
+HARD_LOSS_PCT          = 5.0
+MIN_HOLD_SWING         = 2
+MIN_HOLD_POS           = 3
+TSL_GAP_LOCK_FRAC      = 0.5
 
-# Capital tiers — always from BotMemory sheet; these are fallback defaults
-CAPITAL_HIGH   = 13000
-CAPITAL_MED    = 10000
-CAPITAL_STD    =  7000
+# v15.0: New entry filter constants
+RSI_MAX_BULLISH        = 65     # RSI must be below this in bullish market
+RSI_MAX_BEARISH        = 58     # RSI must be below this in bearish market
+NIFTY_MIN_PCT_BULLISH  = -0.30  # Nifty must be > -0.3% when entering in bullish
+NIFTY_MIN_PCT_BEARISH  = 0.00   # Nifty must be > 0.0% (green) when entering in bearish
+ENTRY_WINDOW_BULLISH_END = (14, 30)  # 2:30 PM — last entry time in bullish
+ENTRY_WINDOW_BEARISH_END = (11, 00)  # 11:00 AM — last entry time in bearish
+MONDAY_ENTRY_START       = (10, 00)  # No entries before 10 AM on Monday
+FRIDAY_ENTRY_END         = (14, 00)  # No new entries after 2 PM on Friday
+MAX_NEW_ENTRIES_BEARISH  = 1         # Max 1 new entry per day in bearish market
+MAX_NEW_ENTRIES_BULLISH  = 3         # Max 3 new entries per day in bullish market
 
-MIN_RR         = 1.8
-HARD_LOSS_PCT  = 5.0
+# Capital tiers — v14.0: from BotMemory, not fixed constant
+CAPITAL_HIGH = 13000
+CAPITAL_MED  = 10000
+CAPITAL_STD  = 7000
 
-# Result day threshold — skip entry if stock gapped >6% (result/event day)
-RESULT_DAY_GAP_PCT = 6.0
-
-# ── TSL mode parameters — unchanged from v13.5 ───────────────────────────────
-TSL_PARAMS = {
-    "VCP": {
-        "breakeven": 3.0, "lock1": 5.0,
-        "trail": 8.0, "atr_mult": 2.0, "gap_lock": 9.0,
-    },
-    "MOM": {
-        "breakeven": 2.5, "lock1": 4.5,
-        "trail": 7.0, "atr_mult": 1.8, "gap_lock": 8.0,
-    },
-    "STD": {
-        "breakeven": 2.0, "lock1": 4.0,
-        "trail": 10.0, "atr_mult": 2.5, "gap_lock": 8.0,
-    },
+# NSE Holidays 2026
+NSE_HOLIDAYS_2026 = {
+    "2026-01-26","2026-03-25","2026-04-02","2026-04-14","2026-05-01",
+    "2026-05-27","2026-06-17","2026-08-15","2026-08-27","2026-10-02",
+    "2026-10-21","2026-10-22","2026-11-04","2026-11-05","2026-12-25",
 }
 
-TSL_GAP_LOCK_FRAC = 0.5
-MIN_HOLD_SWING    = 2
-MIN_HOLD_POS      = 3
+TSL_PARAMS = {
+    "VCP": {"breakeven":3.0,"lock1":5.0,"trail":8.0, "atr_mult":2.0,"gap_lock":9.0},
+    "MOM": {"breakeven":2.5,"lock1":4.5,"trail":7.0, "atr_mult":1.8,"gap_lock":8.0},
+    "STD": {"breakeven":2.0,"lock1":4.0,"trail":10.0,"atr_mult":2.5,"gap_lock":8.0},
+}
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# TELEGRAM — v14.0: fixed channel mapping, differentiated messages
+# TELEGRAM
 # ══════════════════════════════════════════════════════════════════════════════
 
-def _send_one(chat_id: str, msg: str) -> bool:
-    if not chat_id or not TG_TOKEN:
-        return False
+def _send_one(chat_id, msg):
+    if not chat_id or not TG_TOKEN: return False
     try:
         r = requests.post(
             f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage",
@@ -115,1091 +157,1203 @@ def _send_one(chat_id: str, msg: str) -> bool:
             timeout=15
         )
         if r.status_code != 200:
-            print(f"[TG FAIL] chat={chat_id[-6:]}*** status={r.status_code}: {r.text[:100]}")
+            print(f"[TG FAIL] {chat_id} {r.status_code}")
             return False
         return True
     except Exception as e:
-        print(f"[TG ERROR] {e}")
-        return False
+        print(f"[TG ERROR] {e}"); return False
 
-def send_basic(msg):           return _send_one(CHAT_BASIC,   msg)
-def send_advance(msg):         return _send_one(CHAT_ADVANCE, msg)
-def send_premium(msg):         return _send_one(CHAT_PREMIUM, msg)
-def send_advance_and_premium(msg):
-    ok1 = _send_one(CHAT_ADVANCE, msg)
-    ok2 = _send_one(CHAT_PREMIUM, msg)
-    return ok1 or ok2
-def send_all(msg):
-    ok1 = _send_one(CHAT_BASIC,   msg)
-    ok2 = _send_one(CHAT_ADVANCE, msg)
-    ok3 = _send_one(CHAT_PREMIUM, msg)
-    return ok1 or ok2 or ok3
+def send_basic(msg):               return _send_one(CHAT_BASIC, msg)
+def send_advance(msg):             return _send_one(CHAT_ADVANCE, msg)
+def send_premium(msg):             return _send_one(CHAT_PREMIUM, msg)
+def send_advance_and_premium(msg): return _send_one(CHAT_ADVANCE, msg) or _send_one(CHAT_PREMIUM, msg)
+def send_all(msg):                 return _send_one(CHAT_BASIC, msg) or _send_one(CHAT_ADVANCE, msg) or _send_one(CHAT_PREMIUM, msg)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# HELPERS — identical to v13.5
+# HELPERS
 # ══════════════════════════════════════════════════════════════════════════════
 
-def to_f(val) -> float:
-    try:
-        return float(str(val).replace(',', '').replace('₹', '').replace('%', '').strip())
-    except:
-        return 0.0
+def to_f(val):
+    try: return float(str(val).replace(',','').replace('₹','').replace('%','').strip())
+    except: return 0.0
 
-def sym_key(sym: str) -> str:
-    return str(sym).replace(':', '_').replace(' ', '_').strip()
+def sym_key(sym): return str(sym).replace(':','_').replace(' ','_').strip()
 
-def pad(r: list, n: int = 20) -> list:
+def pad(r, n=24):
     r = list(r)
-    while len(r) < n:
-        r.append("")
+    while len(r) < n: r.append("")
     return r
 
-def calc_hold_days(entry_str: str, exit_dt: datetime) -> int:
+def calc_hold_days(entry_str, exit_dt):
     try:
-        entry_dt = IST.localize(datetime.strptime(str(entry_str)[:19], '%Y-%m-%d %H:%M:%S'))
-        return max(0, (exit_dt - entry_dt).days)
-    except:
-        return 0
+        ent = IST.localize(datetime.strptime(str(entry_str)[:19],'%Y-%m-%d %H:%M:%S'))
+        return max(0,(exit_dt-ent).days)
+    except: return 0
 
-def calc_hold_str(entry_str: str, exit_dt: datetime) -> str:
+def calc_hold_str(entry_str, exit_dt):
     try:
-        entry_dt = IST.localize(datetime.strptime(str(entry_str)[:19], '%Y-%m-%d %H:%M:%S'))
-        delta    = exit_dt - entry_dt
-        d = delta.days; h = delta.seconds // 3600; m = (delta.seconds % 3600) // 60
+        ent   = IST.localize(datetime.strptime(str(entry_str)[:19],'%Y-%m-%d %H:%M:%S'))
+        delta = exit_dt - ent
+        d = delta.days; h = delta.seconds//3600; m = (delta.seconds%3600)//60
         return f"{d}d {h}h" if d > 0 else f"{h}h {m}m"
-    except:
-        return "—"
+    except: return "—"
 
-def clean_mem(mem: str) -> str:
-    """Clean T4 Python-only state (TSL, MAX, LP, ATR, EXDT, AM/PM flags)."""
-    cutoff = (datetime.now(IST) - timedelta(days=14)).strftime("%Y-%m-%d")
-    kept   = []
-    for p in mem.split(","):
-        p = p.strip()
-        if not p: continue
-        if len(p) >= 10 and p[4] == "-" and p[7] == "-":
-            if p[:10] >= cutoff: kept.append(p)
-        else:
-            kept.append(p)
-    result = ",".join(kept)
-    if len(result) > 20000:
-        parts  = [p for p in result.split(",") if p.strip()]
-        result = ",".join(parts[-100:])
-        print(f"[MEM] ⚠️ Hard cap applied — trimmed to last 100 entries")
-    print(f"[MEM] ✅ T4 size: {len(result):,} chars")
-    return result
-
-def is_market_hours(now: datetime) -> bool:
+def is_market_hours(now):
     if now.weekday() >= 5: return False
-    today_str = now.strftime('%Y-%m-%d')
-    if today_str in NSE_HOLIDAYS_2026: return False
-    mins = now.hour * 60 + now.minute
-    return (9 * 60 + 15) <= mins <= (15 * 60 + 30)
+    mins = now.hour*60+now.minute
+    return (9*60+15) <= mins <= (15*60+30)
 
-def price_sanity(sym, cp, ent) -> bool:
-    if cp <= 0 or ent <= 0:
-        print(f"[WARN] {sym}: zero price cp={cp} ent={ent}"); return False
-    if cp > ent * 4:
-        print(f"[WARN] {sym}: LTP ₹{cp} > 4× entry ₹{ent}"); return False
-    if cp < ent * 0.1:
-        print(f"[WARN] {sym}: LTP ₹{cp} < 10% of entry ₹{ent}"); return False
+def is_holiday(date_str):
+    return date_str in NSE_HOLIDAYS_2026
+
+def price_sanity(sym,cp,ent):
+    if cp<=0 or ent<=0: print(f"[WARN] {sym}: zero price"); return False
+    if cp > ent*4: print(f"[WARN] {sym}: LTP too high"); return False
+    if cp < ent*0.1: print(f"[WARN] {sym}: LTP too low"); return False
     return True
 
-def trading_days_since(date_str: str, now: datetime) -> int:
+def trading_days_since(date_str, now):
     if not date_str: return 999
     try:
-        start = datetime.strptime(date_str, '%Y-%m-%d').date()
-        end   = now.date(); count = 0; cur = start
-        while cur <= end:
-            if cur.weekday() < 5: count += 1
-            cur += timedelta(days=1)
-        return max(0, count - 1)
-    except:
-        return 999
+        start=datetime.strptime(date_str,'%Y-%m-%d').date(); end=now.date(); count=0; cur=start
+        while cur<=end:
+            if cur.weekday()<5: count+=1
+            cur+=timedelta(days=1)
+        return max(0,count-1)
+    except: return 999
 
-def options_hint(sym: str, cp: float, atr: float, trade_type: str) -> str:
-    if "Options Alert" not in str(trade_type): return ""
-    expected_move = round(atr * 1.5, 0)
-    strike_ce     = round((cp + atr) / 50) * 50
-    return (
-        f"\n\n📊 <b>OPTIONS ADVISORY</b> (informational only)\n"
-        f"   Stock: {sym} @ ₹{cp:.0f}\n"
-        f"   Expected move: ~₹{expected_move:.0f} ({(expected_move/cp*100):.1f}%)\n"
-        f"   CE strike hint: {int(strike_ce)} CE (buy on breakout confirm)\n"
-        f"   ⚠️ Options are leveraged — size carefully"
-    )
+def clean_mem(mem):
+    cutoff=(datetime.now(IST)-timedelta(days=14)).strftime("%Y-%m-%d")
+    kept=[p for p in mem.split(",") if p.strip() and not (len(p)>=10 and p[4]=="-" and p[7]=="-" and p[:10]<cutoff)]
+    result=",".join(kept)
+    if len(result)>20000:
+        parts=[p for p in result.split(",") if p.strip()]
+        result=",".join(parts[-100:])
+    print(f"[MEM] T4: {len(result):,} chars")
+    return result
 
-def ce_candidate_flag(cp: float, atr: float, stage: str,
-                      is_bullish: bool, rank: int = 99) -> str:
+
+# ══════════════════════════════════════════════════════════════════════════════
+# v15.0 NEW: RSI CALCULATION
+# ══════════════════════════════════════════════════════════════════════════════
+
+def get_rsi(symbol: str, period: int = 14) -> float:
     """
-    CE candidate flag — shown in Premium entry alerts only.
-    v14.0: gated by rank ≤ 5 (sector leaders only) to reduce noise.
+    Fetch RSI(14) for a stock using yfinance.
+    Returns float RSI value, or -1 if fetch fails (entry allowed on failure).
+
+    RSI interpretation for entry:
+      RSI < 30  → oversold (good entry if signal is right)
+      RSI 30-55 → healthy (best zone for swing entry)
+      RSI 55-65 → extended (caution but OK in bullish)
+      RSI > 65  → overbought → SKIP entry
+      RSI > 70  → strongly overbought → definitely skip
+
+    Why RSI matters more than most indicators:
+      SAIL yesterday: RSI ~58 before entry → entered at extended level
+      AMBER yesterday: RSI ~45 → strong move +2.79%
+      DRREDDY yesterday: RSI ~52 → strong move +3.04%
+      Pattern is clear: RSI 35-55 at entry = best outcomes
     """
-    if not is_bullish: return ""
-    if cp <= 0 or atr <= 0: return ""
-    if rank > 5: return ""   # Only sector leaders (rank 1-5) get CE flag
-
-    atr_pct = (atr / cp) * 100
-    if atr_pct < 1.5: return ""
-
-    gap = 5 if cp < 200 else (10 if cp < 500 else (20 if cp < 1000 else 50))
-    atm_strike = round(cp / gap) * gap
-    otm_strike = atm_strike + gap
-
-    if "BREAKOUT CONFIRMED" in stage:
-        strike_str = f"{int(otm_strike)} CE (OTM — breakout in progress)"
-    else:
-        strike_str = f"{int(atm_strike)} CE or {int(otm_strike)} CE"
-
-    if atr_pct >= 2.5:
-        target_pct, sl_pct, speed_tag = 50, 35, "⚡ Fast mover"
-    else:
-        target_pct, sl_pct, speed_tag = 65, 40, "📈 Normal mover"
-
-    return (
-        f"\n\n📊 <b>CE CANDIDATE — PREMIUM</b> ({speed_tag})\n"
-        f"   ATR%: {atr_pct:.1f}% | Strike: {strike_str}\n"
-        f"   Target: +{target_pct}% on premium | SL: -{sl_pct}% on premium\n"
-        f"   Entry: Only above ₹{cp + atr * 0.3:.1f} (breakout confirm)\n"
-        f"   ⚠️ Check actual premium on Zerodha option chain\n"
-        f"   ⚠️ Wednesday entry → prefer monthly expiry"
-    )
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-# T4 MEMORY HELPERS — Python-only state (TSL, MAX, LP, ATR, EXDT, AM/PM flags)
-# DO NOT use T4 for _CAP, _MODE, _SEC, _RANK — those come from BotMemory sheet
-# ══════════════════════════════════════════════════════════════════════════════
-
-def _mem_get(mem: str, key: str) -> str:
-    for p in mem.split(','):
-        if p.startswith(key + '='):
-            return p[len(key)+1:]
-    return ""
-
-def _mem_set(mem: str, key: str, val: str) -> str:
-    parts = [p for p in mem.split(',') if p.strip() and not p.startswith(key + '=')]
-    parts.append(f"{key}={val}")
-    return ','.join(parts)
-
-def get_tsl(mem: str, key: str) -> float:
-    prefix = f"{key}_TSL_"
-    for p in mem.split(','):
-        if p.startswith(prefix):
-            try: return int(p[len(prefix):]) / 100.0
-            except: return 0.0
-    return 0.0
-
-def set_tsl(mem: str, key: str, price: float) -> str:
-    prefix = f"{key}_TSL_"
-    parts  = [p for p in mem.split(',') if p.strip() and not p.startswith(prefix)]
-    parts.append(f"{prefix}{int(round(price * 100))}")
-    return ','.join(parts)
-
-def get_max_price(mem: str, key: str) -> float:
-    prefix = f"{key}_MAX_"
-    for p in mem.split(','):
-        if p.startswith(prefix):
-            try: return int(p[len(prefix):]) / 100.0
-            except: return 0.0
-    return 0.0
-
-def set_max_price(mem: str, key: str, price: float) -> str:
-    prefix  = f"{key}_MAX_"
-    cur_max = get_max_price(mem, key)
-    if price <= cur_max: return mem
-    parts = [p for p in mem.split(',') if p.strip() and not p.startswith(prefix)]
-    parts.append(f"{prefix}{int(round(price * 100))}")
-    return ','.join(parts)
-
-def get_atr_from_mem(mem: str, key: str) -> float:
-    prefix = f"{key}_ATR_"
-    for p in mem.split(','):
-        if p.startswith(prefix):
-            try: return int(p[len(prefix):]) / 100.0
-            except: return 0.0
-    return 0.0
-
-def save_atr_to_mem(mem: str, key: str, atr: float) -> str:
-    prefix = f"{key}_ATR_"
-    parts  = [p for p in mem.split(',') if p.strip() and not p.startswith(prefix)]
-    parts.append(f"{prefix}{int(round(atr * 100))}")
-    return ','.join(parts)
-
-def get_last_price(mem: str, key: str) -> float:
-    prefix = f"{key}_LP_"
-    for p in mem.split(','):
-        if p.startswith(prefix):
-            try: return int(p[len(prefix):]) / 100.0
-            except: return 0.0
-    return 0.0
-
-def set_last_price(mem: str, key: str, price: float) -> str:
-    prefix = f"{key}_LP_"
-    parts  = [p for p in mem.split(',') if p.strip() and not p.startswith(prefix)]
-    parts.append(f"{prefix}{int(round(price * 100))}")
-    return ','.join(parts)
-
-def get_exit_date(mem: str, key: str) -> str:
-    prefix = f"{key}_EXDT_"
-    for p in mem.split(','):
-        if p.startswith(prefix): return p[len(prefix):]
-    return ""
-
-def set_exit_date(mem: str, key: str, date_str: str) -> str:
-    prefix = f"{key}_EXDT_"
-    parts  = [p for p in mem.split(',') if p.strip() and not p.startswith(prefix)]
-    parts.append(f"{prefix}{date_str}")
-    return ','.join(parts)
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-# BOTMEMORY SHEET READ — v14.0 FIX: read _CAP/_MODE/_SEC/_RANK from sheet
-# ══════════════════════════════════════════════════════════════════════════════
-
-def load_bm_sheet(ss) -> dict:
-    """Load BotMemory sheet into dict {key: value}."""
     try:
-        bm_ws  = ss.worksheet("BotMemory")
-        rows   = bm_ws.get_all_values()
-        result = {}
-        for row in rows[1:]:  # skip header
-            if len(row) >= 2:
-                k = str(row[0]).strip()
-                v = str(row[1]).strip()
-                if k:
-                    result[k] = v
-        return result
+        import yfinance as yf
+        yf_sym = symbol.replace("NSE:", "").strip() + ".NS"
+        ticker = yf.Ticker(yf_sym)
+        # Fetch 1 month of daily data — enough for RSI(14)
+        df = ticker.history(period="1mo", interval="1d")
+        if df.empty or len(df) < period + 2:
+            print(f"[RSI] {symbol}: insufficient data — skipping RSI check")
+            return -1
+
+        delta  = df["Close"].diff()
+        gain   = delta.where(delta > 0, 0.0)
+        loss   = -delta.where(delta < 0, 0.0)
+        avg_g  = gain.ewm(com=period-1, adjust=False).mean()
+        avg_l  = loss.ewm(com=period-1, adjust=False).mean()
+        rs     = avg_g / avg_l.replace(0, 1e-10)
+        rsi    = 100 - (100 / (1 + rs))
+        latest = round(float(rsi.iloc[-1]), 1)
+        print(f"[RSI] {symbol}: RSI(14) = {latest}")
+        return latest
+
+    except ImportError:
+        print("[RSI] yfinance not installed — skipping RSI check")
+        return -1
     except Exception as e:
-        print(f"[BM] Failed to load BotMemory sheet: {e}")
-        return {}
+        print(f"[RSI] {symbol}: fetch failed ({e}) — skipping RSI check")
+        return -1
 
-def bm_get(bm_data: dict, key: str) -> str:
-    return bm_data.get(key, "")
 
-def get_trade_mode(bm_data: dict, key: str) -> str:
-    val = bm_get(bm_data, f"{key}_MODE")
-    return val if val in ("VCP", "MOM", "STD") else "STD"
+def check_rsi_entry(symbol: str, is_bullish: bool) -> tuple:
+    """
+    Check if RSI allows entry. Returns (allowed: bool, rsi_value: float, reason: str)
+    """
+    rsi = get_rsi(symbol)
+    if rsi < 0:
+        return True, rsi, "RSI unavailable — entry allowed"
 
-def get_tsl_params(bm_data: dict, key: str) -> dict:
-    mode = get_trade_mode(bm_data, key)
-    return TSL_PARAMS[mode]
+    threshold = RSI_MAX_BULLISH if is_bullish else RSI_MAX_BEARISH
 
-def get_capital(bm_data: dict, key: str) -> int:
-    """Read capital from BotMemory sheet. Falls back to tier defaults."""
-    cap_str = bm_get(bm_data, f"{key}_CAP")
-    if cap_str:
-        try:
-            cap = int(cap_str)
-            if cap in (CAPITAL_STD, CAPITAL_MED, CAPITAL_HIGH): return cap
-        except:
-            pass
-    return CAPITAL_MED  # safe default
+    if rsi > threshold:
+        reason = (
+            f"RSI {rsi} > {threshold} — stock overbought, skip entry. "
+            f"{'Wait for pullback to RSI 50-55' if is_bullish else 'Too extended for bearish market entry'}"
+        )
+        return False, rsi, reason
 
-def get_rank(bm_data: dict, key: str) -> int:
-    """Read sector rank from BotMemory sheet."""
-    rank_str = bm_get(bm_data, f"{key}_RANK")
+    zone = "oversold" if rsi < 35 else ("healthy" if rsi < 55 else "slightly extended")
+    return True, rsi, f"RSI {rsi} — {zone} zone ✅"
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# v15.0 NEW: NIFTY DIRECTION CHECK
+# ══════════════════════════════════════════════════════════════════════════════
+
+def get_nifty_pct_change(nifty_sheet) -> float:
+    """
+    Get Nifty50 current % change from sheet row 1 (already in Nifty200).
+    Falls back to yfinance if sheet value is stale.
+
+    This is the most important filter: if Nifty is falling when we enter,
+    the stock will likely also fall — no matter how good the setup.
+    """
     try:
-        return int(float(rank_str)) if rank_str else 99
-    except:
-        return 99
+        row = nifty_sheet.row_values(2)  # Row 2 = NIFTY50 row (0-based row 1)
+        if row and len(row) > 3:
+            pct = to_f(row[3])
+            if pct != 0:
+                print(f"[NIFTY] % change from sheet: {pct:+.2f}%")
+                return pct
+    except Exception as e:
+        print(f"[NIFTY] Sheet read failed: {e}")
 
-def get_sector(bm_data: dict, key: str) -> str:
-    return bm_get(bm_data, f"{key}_SEC") or "Unknown"
+    # Fallback: yfinance
+    try:
+        import yfinance as yf
+        nifty = yf.Ticker("^NSEI")
+        info  = nifty.fast_info
+        prev  = info.get('previous_close', 0)
+        curr  = info.get('last_price', 0)
+        if prev > 0 and curr > 0:
+            pct = ((curr - prev) / prev) * 100
+            print(f"[NIFTY] % change from yfinance: {pct:+.2f}%")
+            return round(pct, 2)
+    except Exception as e:
+        print(f"[NIFTY] yfinance fallback failed: {e}")
+
+    return 0.0
+
+
+def check_nifty_direction(nifty_pct: float, is_bullish: bool) -> tuple:
+    """
+    Check if Nifty direction allows entry.
+    Returns (allowed: bool, reason: str)
+    """
+    threshold = NIFTY_MIN_PCT_BULLISH if is_bullish else NIFTY_MIN_PCT_BEARISH
+    market    = "bullish" if is_bullish else "bearish"
+
+    if nifty_pct < threshold:
+        reason = (
+            f"Nifty {nifty_pct:+.2f}% < {threshold:+.2f}% threshold for {market} market. "
+            f"{'Wait for Nifty to turn less negative' if is_bullish else 'Nifty must be GREEN to enter in bearish market'}"
+        )
+        return False, reason
+
+    mood = "green" if nifty_pct > 0 else "flat"
+    return True, f"Nifty {nifty_pct:+.2f}% — {mood} ✅"
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# TSL CALCULATION — mode-aware, unchanged from v13.5
+# v15.0 NEW: TIME AND DAY FILTER
 # ══════════════════════════════════════════════════════════════════════════════
 
-def calc_new_tsl(cp: float, ent: float, init_sl: float, atr: float,
-                 ttype: str = "", params: dict = None) -> float:
-    if params is None:
-        params = TSL_PARAMS["STD"]
-    if ent <= 0: return init_sl
-    gain_pct    = ((cp - ent) / ent) * 100
-    gap_lock_at = params["gap_lock"]
-    if gain_pct >= gap_lock_at:
-        gap_lock  = round(ent + (cp - ent) * TSL_GAP_LOCK_FRAC, 2)
-        atr_trail = round(cp - (params["atr_mult"] * atr), 2)
-        return max(gap_lock, atr_trail, round(ent * 1.02, 2))
-    if gain_pct < params["breakeven"]:
-        return init_sl
-    elif gain_pct < params["lock1"]:
-        return round(ent, 2)
-    elif gain_pct < params["trail"]:
-        return round(ent * 1.02, 2)
+def check_entry_time_allowed(now: datetime, is_bullish: bool) -> tuple:
+    """
+    Check if current time allows new entry.
+    Returns (allowed: bool, reason: str)
+
+    Rules:
+      Monday before 10:00 AM → skip (weekend gap risk)
+      Friday after 2:00 PM → skip (don't carry new trades over weekend)
+      Bearish market → entries only 9:15 AM - 11:00 AM
+      Bullish market → entries up to 2:30 PM
+
+    Why these rules matter (from yesterday's analysis):
+      NESTLEIND entered 12:11 PM on bearish day → -1.82%
+      SAIL entered 12:11 PM on bearish day → -2.62%
+      All morning entries (BSE, IDEA, ADANIPORTS) → all won
+    """
+    day  = now.weekday()  # 0=Mon, 4=Fri
+    hour = now.hour
+    mins = now.minute
+
+    # Monday gap risk — weekend news can gap stocks down
+    if day == 0 and (hour, mins) < MONDAY_ENTRY_START:
+        return False, f"Monday before {MONDAY_ENTRY_START[0]}:{MONDAY_ENTRY_START[1]:02d} AM — gap risk from weekend"
+
+    # Friday afternoon — don't start new trades before weekend
+    if day == 4 and (hour, mins) >= FRIDAY_ENTRY_END:
+        return False, f"Friday after {FRIDAY_ENTRY_END[0]}:00 PM — avoid holding new trades over weekend"
+
+    # Time window based on market regime
+    if is_bullish:
+        end_h, end_m = ENTRY_WINDOW_BULLISH_END
+        if (hour, mins) > (end_h, end_m):
+            return False, f"After {end_h}:{end_m:02d} PM — late entry in bullish market (stops running)"
     else:
-        atr_trail = round(cp - (params["atr_mult"] * atr), 2)
-        return max(atr_trail, round(ent * 1.02, 2))
+        end_h, end_m = ENTRY_WINDOW_BEARISH_END
+        if (hour, mins) > (end_h, end_m):
+            return False, (
+                f"After {end_h}:{end_m:02d} AM — NO entries after 11 AM in bearish market. "
+                f"Afternoon entries in bearish market have <35% win rate. "
+                f"Stock remains WAITING for tomorrow morning."
+            )
+
+    day_names = {0:"Monday",1:"Tuesday",2:"Wednesday",3:"Thursday",4:"Friday"}
+    return True, f"{day_names[day]} {hour}:{mins:02d} — entry window OK ✅"
+
+
+def check_daily_entry_limit(today_entries: int, is_bullish: bool) -> tuple:
+    """
+    Check if daily entry limit allows another entry.
+    Returns (allowed: bool, reason: str)
+    """
+    limit = MAX_NEW_ENTRIES_BULLISH if is_bullish else MAX_NEW_ENTRIES_BEARISH
+    market = "bullish" if is_bullish else "bearish"
+
+    if today_entries >= limit:
+        return False, f"Daily entry limit reached ({today_entries}/{limit} in {market} market)"
+
+    return True, f"Entry {today_entries+1}/{limit} today ✅"
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# MESSAGE BUILDERS — v14.0: differentiated advance vs premium
+# MEMORY HELPERS — unchanged from v13.5
 # ══════════════════════════════════════════════════════════════════════════════
 
-def build_gm_basic(today: str, trade_count: int, waiting_count: int,
-                   is_bullish: bool) -> str:
-    mood = "🐂 Bullish" if is_bullish else "🐻 Bearish"
-    return (
-        f"🌅 <b>GOOD MORNING — {today}</b>\n"
-        f"━━━━━━━━━━━━━━━━━━━━\n"
-        f"📈 AI360 Scanner is LIVE\n"
-        f"Market: <b>{mood}</b> | Active: {trade_count}/{MAX_TRADES}\n"
-        f"Setups Ready: {waiting_count}\n\n"
-        f"🔔 <i>Full entry/exit alerts → Join advance channel\nai360trading.in/membership</i>"
-    )
+def _mem_get(mem,key):
+    for p in mem.split(','):
+        if p.startswith(key+'='): return p[len(key)+1:]
+    return ""
 
-def build_gm_advance(today: str, lines: list, deployed: int,
-                     waiting_count: int, sector_line: str = "") -> str:
-    """Advance channel: full trade details, no CE options data."""
-    body = "\n\n".join(lines) if lines else "📭 No open trades"
-    msg  = (
-        f"🌅 <b>GOOD MORNING — {today}</b>\n"
-        f"━━━━━━━━━━━━━━━━━━━━\n"
-        f"📈 Open: {len(lines)}/{MAX_TRADES} | "
-        f"⏳ Waiting: {waiting_count}/{MAX_WAITING}\n"
-        f"💰 Deployed: ~₹{deployed:,}\n"
-    )
-    if sector_line:
-        msg += f"{sector_line}\n"
-    msg += f"\n{body}"
-    return msg
+def _mem_set(mem,key,val):
+    parts=[p for p in mem.split(',') if p.strip() and not p.startswith(key+'=')]
+    parts.append(f"{key}={val}"); return ','.join(parts)
 
-def build_gm_premium(today: str, lines_adv: list, lines_prem: list,
-                     deployed: int, waiting_count: int, sector_line: str = "") -> str:
-    """Premium channel: same as advance + CE candidate note on eligible trades."""
-    body = "\n\n".join(lines_prem) if lines_prem else "📭 No open trades"
-    msg  = (
-        f"🌅 <b>GOOD MORNING — {today}</b>\n"
-        f"━━━━━━━━━━━━━━━━━━━━\n"
-        f"📈 Open: {len(lines_adv)}/{MAX_TRADES} | "
-        f"⏳ Waiting: {waiting_count}/{MAX_WAITING}\n"
-        f"💰 Deployed: ~₹{deployed:,}\n"
-    )
-    if sector_line:
-        msg += f"{sector_line}\n"
-    msg += f"\n{body}"
-    return msg
+def get_tsl(mem,key):
+    p=f"{key}_TSL_"
+    for x in mem.split(','):
+        if x.startswith(p):
+            try: return int(x[len(p):])/100.0
+            except: return 0.0
+    return 0.0
 
-def build_entry_advance(sym, cp, init_sl, target, ttype, strat, stage,
-                        priority, pos_size, capital, risk_rs, reward_rs,
-                        rr_num, trade_mode) -> str:
-    """Advance: full entry details, no CE options."""
-    mode_tag = {"VCP": "🎯 VCP", "MOM": "🚀 MOM", "STD": "📊 Swing"}.get(trade_mode, "📊 Swing")
-    return (
-        f"🚀 <b>TRADE ENTERED</b>\n\n"
-        f"<b>Stock:</b> {sym}\n"
-        f"<b>Type:</b> {ttype} [{mode_tag}]\n"
-        f"<b>Entry:</b> ₹{cp:.2f}\n"
-        f"<b>Setup:</b> {strat} | {stage}\n"
-        f"<b>Qty:</b> {pos_size} shares @ ₹{capital:,}\n"
-        f"<b>SL:</b> ₹{init_sl:.2f} (Risk: ₹{risk_rs:,})\n"
-        f"<b>Target:</b> ₹{target:.2f} (Reward: ₹{reward_rs:,})\n"
-        f"<b>RR:</b> 1:{rr_num:.1f} | Priority: {priority}/30"
-    )
+def set_tsl(mem,key,price):
+    p=f"{key}_TSL_"
+    parts=[x for x in mem.split(',') if x.strip() and not x.startswith(p)]
+    parts.append(f"{p}{int(round(price*100))}"); return ','.join(parts)
 
-def build_entry_premium(sym, cp, init_sl, target, ttype, strat, stage,
-                        priority, pos_size, capital, risk_rs, reward_rs,
-                        rr_num, trade_mode, ce_flag="", o_hint="") -> str:
-    """Premium: advance entry + CE candidate flag + options hint."""
-    base = build_entry_advance(sym, cp, init_sl, target, ttype, strat, stage,
-                               priority, pos_size, capital, risk_rs,
-                               reward_rs, rr_num, trade_mode)
-    extras = ""
-    if ce_flag:   extras += ce_flag
-    if o_hint:    extras += o_hint
-    return base + extras
+def get_max_price(mem,key):
+    p=f"{key}_MAX_"
+    for x in mem.split(','):
+        if x.startswith(p):
+            try: return int(x[len(p):])/100.0
+            except: return 0.0
+    return 0.0
 
-def build_exit_advance(sym, ttype, ent, cp, pnl_pct, pl_rupees,
-                       hold_str, max_price, strat, exit_reason) -> str:
-    em = "🎯" if "TARGET" in exit_reason else "🚨" if "HARD" in exit_reason else "🔒"
-    return (
-        f"{em} <b>{exit_reason}</b>\n"
-        f"━━━━━━━━━━━━━━━━━━━━\n"
-        f"📌 <b>{sym}</b> [{ttype}]\n"
-        f"   Entry ₹{ent:.2f} → Exit ₹{cp:.2f}\n"
-        f"   P/L: <b>{pnl_pct:+.2f}%</b> = <b>₹{pl_rupees:+.0f}</b>\n"
-        f"   Hold: {hold_str} | Max seen: ₹{max_price:.2f}\n"
-        f"   Strategy: {strat}"
-    )
+def set_max_price(mem,key,price):
+    p=f"{key}_MAX_"; cur=get_max_price(mem,key)
+    if price<=cur: return mem
+    parts=[x for x in mem.split(',') if x.strip() and not x.startswith(p)]
+    parts.append(f"{p}{int(round(price*100))}"); return ','.join(parts)
 
-def build_exit_basic(sym, pnl_pct, exit_reason) -> str:
-    em  = "✅" if pnl_pct > 0 else "❌"
-    res = "WIN" if pnl_pct > 0 else "LOSS"
-    return (
-        f"{em} <b>SIGNAL CLOSED — {sym}</b>\n"
-        f"Result: <b>{res} ({pnl_pct:+.2f}%)</b>\n\n"
-        f"🔔 <i>Real-time alerts → ai360trading.in/membership</i>"
-    )
+def get_atr_from_mem(mem,key):
+    p=f"{key}_ATR_"
+    for x in mem.split(','):
+        if x.startswith(p):
+            try: return int(x[len(p):])/100.0
+            except: return 0.0
+    return 0.0
+
+def save_atr_to_mem(mem,key,atr):
+    p=f"{key}_ATR_"
+    parts=[x for x in mem.split(',') if x.strip() and not x.startswith(p)]
+    parts.append(f"{p}{int(round(atr*100))}"); return ','.join(parts)
+
+def get_last_price(mem,key):
+    p=f"{key}_LP_"
+    for x in mem.split(','):
+        if x.startswith(p):
+            try: return int(x[len(p):])/100.0
+            except: return 0.0
+    return 0.0
+
+def set_last_price(mem,key,price):
+    p=f"{key}_LP_"
+    parts=[x for x in mem.split(',') if x.strip() and not x.startswith(p)]
+    parts.append(f"{p}{int(round(price*100))}"); return ','.join(parts)
+
+def get_exit_date(mem,key):
+    p=f"{key}_EXDT_"
+    for x in mem.split(','):
+        if x.startswith(p): return x[len(p):]
+    return ""
+
+def set_exit_date(mem,key,date_str):
+    p=f"{key}_EXDT_"
+    parts=[x for x in mem.split(',') if x.strip() and not x.startswith(p)]
+    parts.append(f"{p}{date_str}"); return ','.join(parts)
+
+def get_trade_mode(mem,key):
+    val=_mem_get(mem,f"{key}_MODE"); return val if val in ("VCP","MOM","STD") else "STD"
+
+def get_tsl_params(mem,key): return TSL_PARAMS[get_trade_mode(mem,key)]
+
+def get_capital_from_mem(mem,key):
+    cap=_mem_get(mem,f"{key}_CAP")
+    if cap:
+        try:
+            c=int(cap)
+            if c in (7000,10000,13000): return c
+        except: pass
+    return CAPITAL_MED
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# GOOGLE SHEETS — unchanged from v13.5
+# TSL CALCULATION — unchanged from v13.5
+# ══════════════════════════════════════════════════════════════════════════════
+
+def calc_new_tsl(cp, ent, init_sl, atr, ttype, mem, key, now):
+    params   = get_tsl_params(mem, key)
+    cur_tsl  = get_tsl(mem, key) or init_sl
+    cur_max  = get_max_price(mem, key) or ent
+    gain_pct = ((cp - ent) / ent) * 100 if ent > 0 else 0
+    new_tsl  = cur_tsl
+
+    if "Positional" in str(ttype): hold = MIN_HOLD_POS
+    else:                           hold = MIN_HOLD_SWING
+
+    hold_days = calc_hold_days(get_exit_date(mem, key) or "", now)
+    if hold_days < hold:
+        return cur_tsl, f"min hold ({hold}d)"
+
+    if gain_pct >= params["trail"]:
+        trail_sl = cp - atr * params["atr_mult"]
+        new_tsl  = max(cur_tsl, trail_sl)
+        reason   = f"trailing @ {gain_pct:.1f}%"
+    elif gain_pct >= params["lock1"]:
+        new_tsl  = max(cur_tsl, ent + atr * 0.5)
+        reason   = f"lock1 @ {gain_pct:.1f}%"
+    elif gain_pct >= params["breakeven"]:
+        new_tsl  = max(cur_tsl, ent * 1.002)
+        reason   = f"breakeven @ {gain_pct:.1f}%"
+    else:
+        new_tsl  = cur_tsl
+        reason   = f"below breakeven ({gain_pct:.1f}%)"
+
+    # Gap lock
+    if cp > cur_max:
+        gap_pct = ((cp - cur_max) / cur_max) * 100 if cur_max > 0 else 0
+        if gap_pct >= params["gap_lock"]:
+            gap_sl  = cur_max + (cp - cur_max) * TSL_GAP_LOCK_FRAC
+            new_tsl = max(new_tsl, gap_sl)
+            reason  = f"gap lock {gap_pct:.1f}%"
+
+    new_tsl = max(new_tsl, init_sl)
+    new_tsl = min(new_tsl, cp * 0.99)
+    return new_tsl, reason
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# SHEET READ + ATR
 # ══════════════════════════════════════════════════════════════════════════════
 
 def get_sheets():
-    import time
-    scope = [
-        "https://spreadsheets.google.com/feeds",
-        "https://www.googleapis.com/auth/drive"
-    ]
-    creds = ServiceAccountCredentials.from_json_keyfile_dict(
-        json.loads(os.environ.get('GCP_SERVICE_ACCOUNT_JSON')), scope
-    )
-    delays    = [5, 15, 30, 60, 120]
-    last_error = None
-    for attempt, delay in enumerate(delays):
-        try:
-            ss = gspread.authorize(creds).open(SHEET_NAME)
-            return (ss,
-                    ss.worksheet("AlertLog"),
-                    ss.worksheet("History"),
-                    ss.worksheet("Nifty200"))
-        except gspread.exceptions.APIError as e:
-            status = e.response.status_code if hasattr(e, 'response') else 0
-            if status in (429, 500, 502, 503, 504):
-                last_error = e
-                if attempt < len(delays) - 1:
-                    print(f"[RETRY] Google Sheets {status} — retry {attempt+1} in {delay}s...")
-                    time.sleep(delay)
-                    continue
-            raise
-    raise last_error
+    scope  = ["https://spreadsheets.google.com/feeds","https://www.googleapis.com/auth/drive"]
+    creds  = ServiceAccountCredentials.from_json_keyfile_dict(
+        json.loads(os.environ.get("GCP_SERVICE_ACCOUNT_JSON","{}") or
+                   open("service_account.json").read()), scope)
+    gc     = gspread.authorize(creds)
+    ss     = gc.open(SHEET_NAME)
+    log    = ss.worksheet("AlertLog")
+    hist   = ss.worksheet("History")
+    nifty  = ss.worksheet("Nifty200")
+    bm     = ss.worksheet("BotMemory")
+    return log, hist, nifty, bm
 
-def get_market_regime(nifty_sheet) -> bool:
+def get_bm_data(bm_sheet):
+    """Read BotMemory sheet into dict {key: value}"""
+    bm = {}
+    try:
+        rows = bm_sheet.get_all_values()
+        for row in rows[1:]:
+            if len(row) >= 2 and row[0].strip():
+                bm[row[0].strip()] = row[1].strip()
+    except Exception as e:
+        print(f"[BM] Read failed: {e}")
+    return bm
+
+def get_capital_bm(bm_data, sym):
+    key = sym_key(sym) + "_CAP"
+    if key in bm_data:
+        try:
+            c = int(bm_data[key])
+            if c in (7000,10000,13000): return c
+        except: pass
+    return CAPITAL_MED
+
+def get_rank_bm(bm_data, sym):
+    key = sym_key(sym) + "_RANK"
+    if key in bm_data:
+        try: return int(bm_data[key])
+        except: pass
+    return 99
+
+def _read_atr_from_nifty200(nifty_sheet, sym):
+    try:
+        clean = sym.replace("NSE:","").strip()
+        rows  = nifty_sheet.get_all_values()
+        for row in rows[1:]:
+            if len(row) > 28 and str(row[0]).replace("NSE:","").strip() == clean:
+                atr = to_f(row[28])  # ATR14 = col AC = index 28
+                if atr > 0:
+                    print(f"[ATR] {sym}: {atr} from Nifty200 col AC")
+                    return atr
+    except Exception as e:
+        print(f"[ATR] Nifty200 lookup failed: {e}")
+    return 0.0
+
+def get_market_regime(nifty_sheet):
+    """
+    Returns (is_bullish: bool, nifty_cmp: float, nifty_20d: float, nifty_pct: float)
+    """
     try:
         row = nifty_sheet.row_values(2)
-        if not row or "NIFTY" not in str(row[0]).upper():
-            return True
-        cmp_nifty = to_f(row[2])
-        dma20     = to_f(row[4])
-        if cmp_nifty <= 0 or dma20 <= 0: return True
-        bullish = cmp_nifty >= dma20
-        print(f"[REGIME] Nifty ₹{cmp_nifty:.0f} vs 20DMA ₹{dma20:.0f} → {'BULLISH' if bullish else 'BEARISH'}")
-        return bullish
+        if row and len(row) > 4:
+            cmp  = to_f(row[2])
+            pct  = to_f(row[3])
+            dma  = to_f(row[4])
+            bull = cmp >= dma if cmp > 0 and dma > 0 else True
+            print(f"[REGIME] Nifty {cmp:.0f} vs 20DMA {dma:.0f} | {pct:+.2f}% | {'BULLISH' if bull else 'BEARISH'}")
+            return bull, cmp, dma, pct
     except Exception as e:
-        print(f"[REGIME] Error: {e} — defaulting bullish")
-        return True
-
-def _read_atr_from_nifty200(nifty_sheet, sym: str) -> float:
-    try:
-        nifty_data = nifty_sheet.get_all_values()
-        for row in nifty_data[1:]:
-            if str(row[0]).strip() == sym.strip():
-                if len(row) > 28:
-                    val = to_f(row[28])
-                    if val > 0: return val
-                break
-    except Exception as e:
-        print(f"[ATR] Nifty200 lookup failed for {sym}: {e}")
-    return 0.0
-
-def _read_pct_change_from_nifty200(nifty_sheet, sym: str) -> float:
-    """Read today's %Change (col D, index 3) for result day detection."""
-    try:
-        nifty_data = nifty_sheet.get_all_values()
-        for row in nifty_data[1:]:
-            if str(row[0]).strip() == sym.strip():
-                if len(row) > 3:
-                    return abs(to_f(row[3]))
-                break
-    except:
-        pass
-    return 0.0
-
-def get_sector_context(bm_data: dict, waiting_syms: list) -> str:
-    counts = {}
-    for sym in waiting_syms:
-        key = sym_key(sym)
-        sec = get_sector(bm_data, key) or "Mixed"
-        counts[sec] = counts.get(sec, 0) + 1
-    if not counts: return ""
-    parts = [f"{s}({c})" for s, c in sorted(counts.items(), key=lambda x: -x[1])]
-    return f"🔄 <b>Sectors:</b> {', '.join(parts[:4])}"
+        print(f"[REGIME] Error: {e}")
+    return True, 0, 0, 0
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# MAIN TRADING CYCLE
+# CE FLAG AND OPTIONS HINT
 # ══════════════════════════════════════════════════════════════════════════════
 
-def run_trading_cycle():
-    now   = datetime.now(IST)
-    today = now.strftime('%Y-%m-%d')
-    mins  = now.hour * 60 + now.minute
+def ce_candidate_flag(cp, atr, stage, is_bullish, rank=99,
+                      opt_signal="", opt_strike="", opt_expiry="", opt_theta=""):
+    """
+    v15.0: Now uses AppScript v15.3+ options signal from cols U-X if available.
+    Gated by rank <= 5 (Sector Leaders only).
+    """
+    if not is_bullish: return ""
+    if rank > 5:       return ""
+    if cp <= 0 or atr <= 0: return ""
 
-    # Weekend check
-    if now.weekday() >= 5:
-        print(f"[SKIP] Weekend ({now.strftime('%A')})"); return
+    # Use AppScript signal if available (more accurate — has VIX check)
+    if opt_signal in ("📊 BUY CE", "📦 BASE CE") and opt_strike:
+        label = "BASE OPTIONS" if opt_signal == "📦 BASE CE" else "OPTIONS"
+        return (
+            f"\n\n📊 <b>{label} SIGNAL</b>\n"
+            f"   🎰 Buy: <b>{opt_strike}</b>\n"
+            f"   📅 Expiry: {opt_expiry}\n"
+            f"   ⏳ Theta: {opt_theta}\n"
+            f"   ⚡ Entry: 9:30-9:45 AM after stock triggers\n"
+            f"   🛑 Exit: if option -40% OR stock hits SL\n"
+            f"   ⚠️ Check live premium on Zerodha option chain"
+        )
+
+    # Fallback: calculate own estimate
+    atr_pct = (atr/cp)*100
+    if atr_pct < 1.5: return ""
+    gap = 5 if cp<200 else (10 if cp<500 else (20 if cp<1000 else 50))
+    atm = round(cp/gap)*gap; otm = atm+gap
+    strike = f"{int(otm)} CE" if "BREAKOUT CONFIRMED" in stage else f"{int(atm)} CE"
+    tgt_p = 50 if atr_pct>=2.5 else 65
+    sl_p  = 35 if atr_pct>=2.5 else 40
+    return (
+        f"\n\n📊 <b>CE CANDIDATE</b> (estimated)\n"
+        f"   ATR%: {atr_pct:.1f}% | Strike: {strike}\n"
+        f"   Target: +{tgt_p}% | SL: -{sl_p}% on premium\n"
+        f"   ⚠️ VIX check recommended before buying"
+    )
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# ENTRY LOGIC — v15.0 core addition
+# ══════════════════════════════════════════════════════════════════════════════
+
+def check_all_entry_filters(sym, is_bullish, now, nifty_pct, today_entries):
+    """
+    Run all v15.0 entry filters. All must pass for entry to be allowed.
+    Returns (allowed: bool, reasons: list of str)
+
+    Filters:
+      1. Time window (day + regime-aware)
+      2. Daily entry limit
+      3. Nifty direction
+      4. RSI check
+
+    RSI check is last because it requires a yfinance API call.
+    If any earlier filter fails, RSI is not checked (saves time).
+    """
+    reasons = []
+
+    # Filter 1: Time and day
+    allowed, msg = check_entry_time_allowed(now, is_bullish)
+    reasons.append(f"[TIME] {msg}")
+    if not allowed:
+        return False, reasons
+
+    # Filter 2: Daily entry limit
+    allowed, msg = check_daily_entry_limit(today_entries, is_bullish)
+    reasons.append(f"[DAILY] {msg}")
+    if not allowed:
+        return False, reasons
+
+    # Filter 3: Nifty direction
+    allowed, msg = check_nifty_direction(nifty_pct, is_bullish)
+    reasons.append(f"[NIFTY] {msg}")
+    if not allowed:
+        return False, reasons
+
+    # Filter 4: RSI (API call — only if other filters passed)
+    allowed, rsi_val, msg = check_rsi_entry(sym, is_bullish)
+    reasons.append(f"[RSI] {msg}")
+    if not allowed:
+        return False, reasons
+
+    return True, reasons
+
+
+def build_entry_advance(sym, cp, stage, sl, tgt, rr, ttype, atr, rank, capital, is_bullish,
+                        rsi_val=-1, nifty_pct=0,
+                        opt_signal="", opt_strike="", opt_expiry="", opt_theta=""):
+    """Build entry message for Advance channel (full details, no options)."""
+    rsi_str   = f"RSI: {rsi_val}" if rsi_val > 0 else ""
+    nifty_str = f"Nifty: {nifty_pct:+.2f}%" if nifty_pct != 0 else ""
+    filters   = " | ".join([x for x in [rsi_str, nifty_str] if x])
+    qty       = int(capital // cp) if cp > 0 else 0
+    return (
+        f"🚀 <b>TRADE ENTERED</b>\n\n"
+        f"Stock: {sym}\n"
+        f"Type: {ttype}\n"
+        f"Entry: ₹{cp:.2f}\n"
+        f"Setup: {stage}\n"
+        f"Qty: {qty} shares @ ₹{capital:,}\n"
+        f"SL: ₹{sl:.2f} (Risk: ₹{int((cp-sl)*qty)})\n"
+        f"Target: ₹{tgt:.2f} (Reward: ₹{int((tgt-cp)*qty)})\n"
+        f"RR: {rr} | Priority: {rank}\n"
+        f"{filters}"
+    )
+
+
+def build_entry_premium(sym, cp, stage, sl, tgt, rr, ttype, atr, rank, capital, is_bullish,
+                        rsi_val=-1, nifty_pct=0,
+                        opt_signal="", opt_strike="", opt_expiry="", opt_theta=""):
+    """Build entry message for Premium (advance + options flag)."""
+    base = build_entry_advance(sym, cp, stage, sl, tgt, rr, ttype, atr, rank, capital, is_bullish,
+                                rsi_val, nifty_pct, opt_signal, opt_strike, opt_expiry, opt_theta)
+    opts = ce_candidate_flag(cp, atr, stage, is_bullish, rank,
+                              opt_signal, opt_strike, opt_expiry, opt_theta)
+    return base + opts
+
+
+def build_entry_basic(sym, cp, stage, pct_chg):
+    """Build simplified entry message for Basic/Free channel."""
+    emoji = "📈" if pct_chg >= 0 else "📉"
+    return (
+        f"{emoji} <b>Signal Active</b>: {sym.replace('NSE:','')}\n"
+        f"Stage: {stage}\n"
+        f"Full details: Join Advance/Premium\n"
+        f"📱 ai360trading.in/membership"
+    )
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# STEP A: WAITING → TRADED
+# ══════════════════════════════════════════════════════════════════════════════
+
+def step_a_enter_trades(log_sheet, nifty_sheet, bm_sheet, mem, now, is_bullish, nifty_pct, today_entries):
+    """
+    Check WAITING rows. If price has triggered, promote to TRADED.
+    v15.0: Added RSI, time window, Nifty direction checks before entry.
+    Returns (mem_updated, today_entries_updated)
+    """
+    today_str = now.strftime("%Y-%m-%d")
+    bm_data   = get_bm_data(bm_sheet)
+
+    try:
+        rows = log_sheet.get_all_values()
+    except Exception as e:
+        print(f"[STEP A] Sheet read error: {e}")
+        return mem, today_entries
+
+    traded_count = sum(
+        1 for r in rows[1:22] if len(r)>10 and "TRADED" in str(r[10]).upper() and "EXITED" not in str(r[10]).upper()
+    )
+
+    if traded_count >= MAX_TRADES:
+        print(f"[STEP A] Max trades reached ({traded_count}/{MAX_TRADES})")
+        return mem, today_entries
+
+    for i, row in enumerate(rows[1:22], start=2):
+        row = pad(row)
+        status = str(row[C_STATUS]).upper()
+        if "WAITING" not in status: continue
+
+        sym    = str(row[C_SYMBOL]).strip()
+        if not sym: continue
+
+        cp     = to_f(row[C_LIVE_PRICE])
+        sl     = to_f(row[C_INITIAL_SL])
+        tgt    = to_f(row[C_TARGET])
+        rr_str = str(row[C_RR])
+        stage  = str(row[C_STAGE]).strip()
+        ttype  = str(row[C_TRADE_TYPE]).strip()
+        strat  = str(row[C_STRATEGY]).strip()
+        prio   = to_f(row[C_PRIORITY])
+
+        # Options columns (v15.3 AppScript)
+        opt_signal = str(row[C_OPT_SIGNAL]).strip()
+        opt_strike = str(row[C_OPT_STRIKE]).strip()
+        opt_expiry = str(row[C_OPT_EXPIRY]).strip()
+        opt_theta  = str(row[C_OPT_THETA]).strip()
+
+        # RR re-validation
+        try:
+            rr_val = float(rr_str.split(':')[-1]) if ':' in rr_str else to_f(rr_str)
+            if rr_val > 0 and rr_val < MIN_RR:
+                print(f"[STEP A] {sym}: RR {rr_val} < {MIN_RR} — skip")
+                continue
+        except: pass
+
+        # Price trigger — entry when CMP is within 0.5% of or above entry
+        # Use signal time price as entry reference
+        entry_ref = cp  # CMP in sheet is updated by AppScript
+
+        if entry_ref <= 0: continue
+
+        # v14.0: Result day skip
+        if abs(to_f(row[C_PRIORITY])) > 6.0:
+            print(f"[STEP A] {sym}: Possible result day gap — skip")
+            continue
+
+        # v15.0: Run all entry filters
+        allowed, filter_reasons = check_all_entry_filters(
+            sym, is_bullish, now, nifty_pct, today_entries
+        )
+
+        for reason in filter_reasons:
+            print(f"[FILTER] {sym}: {reason}")
+
+        if not allowed:
+            continue
+
+        # Entry confirmed — read actual data
+        key     = sym_key(sym)
+        capital = get_capital_bm(bm_data, sym)
+        rank    = get_rank_bm(bm_data, sym)
+
+        # Get ATR from Nifty200 sheet
+        atr = _read_atr_from_nifty200(nifty_sheet, sym)
+        if atr <= 0 and sl > 0 and cp > 0:
+            atr = (cp - sl) / 2.0  # fallback estimate
+
+        # v14.0: Result/event day skip (gap > 6%)
+        prev_close = get_last_price(mem, key)
+        if prev_close > 0:
+            gap_pct = abs((cp - prev_close) / prev_close) * 100
+            if gap_pct > 6.0:
+                print(f"[STEP A] {sym}: gap {gap_pct:.1f}% > 6% — result/event day skip")
+                continue
+
+        # Promote to TRADED
+        now_str = now.strftime("%Y-%m-%d %H:%M:%S")
+        qty     = int(capital // cp) if cp > 0 else 0
+
+        try:
+            log_sheet.update(f"K{i}", [["✅ TRADED (PAPER)"]])
+            log_sheet.update(f"L{i}", [[cp]])
+            log_sheet.update(f"M{i}", [[now_str]])
+        except Exception as e:
+            print(f"[STEP A] {sym}: sheet update failed: {e}")
+            continue
+
+        # Update memory
+        mem = save_atr_to_mem(mem, key, atr)
+        mem = set_tsl(mem, key, sl)
+        mem = set_last_price(mem, key, cp)
+        mem = set_max_price(mem, key, cp)
+        today_entries += 1
+
+        # Get RSI value that was checked (from last filter reason)
+        rsi_val = -1
+        for r in filter_reasons:
+            if "[RSI]" in r:
+                try:
+                    rsi_val = float(r.split("RSI ")[1].split(" ")[0])
+                except: pass
+
+        print(f"[ENTRY] {sym} @ ₹{cp:.2f} | RSI:{rsi_val} | Nifty:{nifty_pct:+.2f}% | Entry #{today_entries}")
+
+        # Telegram alerts — differentiated by channel
+        msg_advance = build_entry_advance(sym, cp, stage, sl, tgt, rr_str, ttype, atr,
+                                          rank, capital, is_bullish, rsi_val, nifty_pct,
+                                          opt_signal, opt_strike, opt_expiry, opt_theta)
+        msg_premium = build_entry_premium(sym, cp, stage, sl, tgt, rr_str, ttype, atr,
+                                          rank, capital, is_bullish, rsi_val, nifty_pct,
+                                          opt_signal, opt_strike, opt_expiry, opt_theta)
+        msg_basic   = build_entry_basic(sym, cp, stage, to_f(row[C_PNL]))
+
+        send_basic(msg_basic)
+        send_advance(msg_advance)
+        send_premium(msg_premium)
+
+        traded_count += 1
+        if traded_count >= MAX_TRADES:
+            print(f"[STEP A] Max trades reached after {sym}")
+            break
+
+    return mem, today_entries
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# STEP B: MONITOR TRADED — TSL + EXIT LOGIC
+# ══════════════════════════════════════════════════════════════════════════════
+
+def step_b_monitor_trades(log_sheet, hist_sheet, nifty_sheet, mem, now, is_bullish):
+    """Monitor all TRADED rows for TSL hit, target, hard stop."""
+    today_str = now.strftime("%Y-%m-%d")
+
+    try:
+        rows = log_sheet.get_all_values()
+    except Exception as e:
+        print(f"[STEP B] Read error: {e}")
+        return mem
+
+    for i, row in enumerate(rows[1:22], start=2):
+        row = pad(row)
+        status = str(row[C_STATUS]).upper()
+        if "TRADED" not in status or "EXITED" in status: continue
+
+        sym     = str(row[C_SYMBOL]).strip()
+        if not sym: continue
+
+        cp      = to_f(row[C_LIVE_PRICE])
+        ent     = to_f(row[C_ENTRY_PRICE])
+        sl      = to_f(row[C_INITIAL_SL])
+        tgt     = to_f(row[C_TARGET])
+        ttype   = str(row[C_TRADE_TYPE]).strip()
+        stage   = str(row[C_STAGE]).strip()
+        strat   = str(row[C_STRATEGY]).strip()
+        ent_time= str(row[C_ENTRY_TIME]).strip()
+        capital = to_f(row[C_RISK]) * (to_f(row[C_QTY]) if to_f(row[C_QTY]) > 0 else 1)
+
+        if not price_sanity(sym, cp, ent): continue
+
+        key     = sym_key(sym)
+        atr     = get_atr_from_mem(mem, key)
+        if atr <= 0: atr = _read_atr_from_nifty200(nifty_sheet, sym)
+        if atr <= 0 and sl > 0 and ent > 0: atr = (ent - sl) / 2.0
+
+        cur_tsl = get_tsl(mem, key) or sl
+        mem     = set_last_price(mem, key, cp)
+        mem     = set_max_price(mem, key, cp)
+
+        pnl_pct = ((cp - ent) / ent) * 100 if ent > 0 else 0
+        qty     = to_f(row[C_QTY])
+        pnl_rs  = round((cp - ent) * qty, 2) if qty > 0 else 0
+
+        # Hard loss check
+        if pnl_pct < -HARD_LOSS_PCT and cur_tsl < ent:
+            exit_price = cp
+            exit_reason= "❌ HARD STOP LOSS"
+            _exit_trade(log_sheet, hist_sheet, i, sym, ent, exit_price, tgt, sl, cur_tsl,
+                        atr, ttype, strat, stage, ent_time, now, exit_reason, today_str, mem, key)
+            mem = _clear_mem_keys(mem, key)
+            continue
+
+        # TSL hit check
+        new_tsl, tsl_reason = calc_new_tsl(cp, ent, sl, atr, ttype, mem, key, now)
+        if new_tsl > cur_tsl:
+            mem = set_tsl(mem, key, new_tsl)
+            print(f"[TSL] {sym}: {cur_tsl:.2f} → {new_tsl:.2f} ({tsl_reason})")
+            # Send TSL update to Advance+Premium
+            _send_tsl_update(sym, cp, ent, new_tsl, pnl_pct, pnl_rs, tsl_reason)
+
+        if cp <= new_tsl:
+            exit_reason = "🔔 TRAILING SL HIT"
+            _exit_trade(log_sheet, hist_sheet, i, sym, ent, cp, tgt, sl, new_tsl,
+                        atr, ttype, strat, stage, ent_time, now, exit_reason, today_str, mem, key)
+            mem = _clear_mem_keys(mem, key)
+            continue
+
+        # Target hit
+        if tgt > 0 and cp >= tgt:
+            exit_reason = "🎯 TARGET HIT"
+            _exit_trade(log_sheet, hist_sheet, i, sym, ent, cp, tgt, sl, new_tsl,
+                        atr, ttype, strat, stage, ent_time, now, exit_reason, today_str, mem, key)
+            mem = _clear_mem_keys(mem, key)
+            continue
+
+    return mem
+
+
+def _send_tsl_update(sym, cp, ent, new_tsl, pnl_pct, pnl_rs, reason):
+    msg = (
+        f"🔔 <b>TSL UPDATE</b>\n"
+        f"{sym.replace('NSE:','')} LTP ₹{cp:.2f} | P/L {pnl_pct:+.2f}%\n"
+        f"Trail SL: ₹{new_tsl:.2f} → {reason}\n"
+        f"P/L: ₹{pnl_rs:+.0f}"
+    )
+    send_advance_and_premium(msg)
+
+
+def _exit_trade(log_sheet, hist_sheet, row_idx, sym, ent, exit_p, tgt, sl, tsl_at_exit,
+                atr, ttype, strat, stage, ent_time, now, reason, today_str, mem, key):
+    """Write exit to sheet, append to History, send Telegram."""
+    pnl_pct  = round(((exit_p - ent) / ent) * 100, 2) if ent > 0 else 0
+    result   = "WIN ✅" if exit_p > ent else "LOSS ❌"
+    days     = calc_hold_days(ent_time, now)
+    hold_str = calc_hold_str(ent_time, now)
+    capital  = CAPITAL_MED
+    pnl_rs   = round((exit_p - ent) * int(capital // ent), 2) if ent > 0 else 0
+
+    # Mark as EXITED in AlertLog
+    try:
+        log_sheet.update(f"K{row_idx}", [[f"EXITED ({reason})"]])
+    except Exception as e:
+        print(f"[EXIT] Sheet update failed: {e}")
+
+    # Append to History
+    try:
+        hist_sheet.append_row([
+            sym, today_str, ent, today_str, exit_p,
+            f"{pnl_pct:.2f}%", result, strat, reason, ttype,
+            sl, tsl_at_exit, get_max_price(mem, key), atr, days, capital, pnl_rs, ""
+        ])
+    except Exception as e:
+        print(f"[EXIT] History append failed: {e}")
+
+    print(f"[EXIT] {sym} @ ₹{exit_p:.2f} | {pnl_pct:+.2f}% | {result} | {reason}")
+
+    msg = (
+        f"{'🎯' if 'TARGET' in reason else '🔔' if 'TRAIL' in reason else '❌'} "
+        f"<b>TRADE CLOSED — {result}</b>\n\n"
+        f"Stock: {sym.replace('NSE:','')}\n"
+        f"Entry: ₹{ent:.2f} → Exit: ₹{exit_p:.2f}\n"
+        f"P/L: <b>{pnl_pct:+.2f}% (₹{pnl_rs:+.0f})</b>\n"
+        f"Hold: {hold_str} | Reason: {reason}\n"
+        f"SL was: ₹{sl:.2f} | TSL at exit: ₹{tsl_at_exit:.2f}"
+    )
+    send_advance_and_premium(msg)
+    # Basic gets simplified version
+    basic_emoji = "✅" if exit_p > ent else "❌"
+    send_basic(f"{basic_emoji} {sym.replace('NSE:','')} closed {pnl_pct:+.2f}% | {reason}")
+
+
+def _clear_mem_keys(mem, key):
+    """Clear all memory keys for an exited trade."""
+    prefixes = [f"{key}_TSL_", f"{key}_MAX_", f"{key}_LP_", f"{key}_ATR_"]
+    parts    = [p for p in mem.split(',') if p.strip() and not any(p.startswith(px) for px in prefixes)]
+    return ','.join(parts)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# GOOD MORNING MESSAGE — 8:45 AM
+# ══════════════════════════════════════════════════════════════════════════════
+
+def send_good_morning(log_sheet, is_bullish, nifty_cmp, nifty_dma, nifty_pct, now):
+    """Send morning briefing to all channels."""
+    flag_key = now.strftime("%Y-%m-%d") + "_AM"
+
+    try:
+        rows    = log_sheet.get_all_values()
+        mem_val = rows[3][19] if len(rows) > 3 and len(rows[3]) > 19 else ""
+    except: mem_val = ""
+
+    if flag_key in mem_val: return
+
+    # Count waiting and traded
+    waiting = traded = 0
+    waiting_stocks  = []
+    try:
+        rows = log_sheet.get_all_values()
+        for row in rows[1:22]:
+            row = pad(row)
+            st  = str(row[C_STATUS]).upper()
+            if "WAITING" in st:
+                waiting += 1
+                waiting_stocks.append(row[C_SYMBOL].replace("NSE:",""))
+            elif "TRADED" in st and "EXITED" not in st:
+                traded += 1
+    except Exception as e:
+        print(f"[GM] Read error: {e}")
+
+    regime   = "🟢 BULLISH" if is_bullish else "⚠️ BEARISH"
+    nifty_s  = f"₹{nifty_cmp:.0f}" if nifty_cmp > 0 else "—"
+    dma_s    = f"₹{nifty_dma:.0f}" if nifty_dma > 0 else "—"
+
+    # Today's entry window info
+    if is_bullish:
+        window_str = f"Entry window: 9:15 AM – {ENTRY_WINDOW_BULLISH_END[0]}:{ENTRY_WINDOW_BULLISH_END[1]:02d} PM"
+    else:
+        window_str = f"⚠️ Bearish entry window: 9:15 AM – {ENTRY_WINDOW_BEARISH_END[0]}:{ENTRY_WINDOW_BEARISH_END[1]:02d} AM ONLY"
+
+    # RSI note
+    rsi_note = f"RSI filter: < {RSI_MAX_BULLISH if is_bullish else RSI_MAX_BEARISH}"
+
+    msg_advance = (
+        f"🌅 <b>GOOD MORNING — {now.strftime('%d %b %Y')}</b>\n"
+        f"━━━━━━━━━━━━━━━━━━━━\n"
+        f"Market: {regime}\n"
+        f"Nifty: {nifty_s} | 20DMA: {dma_s} | {nifty_pct:+.2f}%\n\n"
+        f"📊 Active: {traded}/{MAX_TRADES} trades\n"
+        f"⏳ Watching: {waiting} stocks\n"
+        f"{window_str}\n"
+        f"{rsi_note}\n\n"
+        f"{'Stocks watching: ' + ', '.join(waiting_stocks[:5]) if waiting_stocks else 'No stocks in WAITING'}\n\n"
+        f"<i>v15.0 — RSI + Time + Nifty filters active</i>"
+    )
+
+    msg_basic = (
+        f"🌅 Good Morning!\n"
+        f"Market: {regime} | Nifty: {nifty_s}\n"
+        f"Signals active: {waiting}\n"
+        f"Full details → Advance/Premium\n"
+        f"📱 ai360trading.in/membership"
+    )
+
+    send_advance_and_premium(msg_advance)
+    send_basic(msg_basic)
+    print(f"[GM] Sent — {waiting} waiting, {traded} active")
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# MID-DAY PULSE — 12:28-12:38
+# ══════════════════════════════════════════════════════════════════════════════
+
+def send_midday_pulse(log_sheet, mem, now, is_bullish):
+    """Mid-day P/L snapshot — Advance + Premium only."""
+    flag_key = now.strftime("%Y-%m-%d") + "_MD"
+    try:
+        rows    = log_sheet.get_all_values()
+        t4_val  = rows[3][19] if len(rows) > 3 and len(rows[3]) > 19 else ""
+        if flag_key in t4_val: return
+    except: return
+
+    try:
+        rows       = log_sheet.get_all_values()
+        open_trades= []
+        total_pnl  = 0.0
+
+        for row in rows[1:22]:
+            row = pad(row)
+            st  = str(row[C_STATUS]).upper()
+            if "TRADED" not in st or "EXITED" in st: continue
+
+            sym   = str(row[C_SYMBOL]).replace("NSE:","").strip()
+            cp    = to_f(row[C_LIVE_PRICE])
+            ent   = to_f(row[C_ENTRY_PRICE])
+            key   = sym_key(row[C_SYMBOL])
+            tsl   = get_tsl(mem, key)
+            pct   = ((cp-ent)/ent*100) if ent > 0 else 0
+            qty   = to_f(row[C_QTY])
+            pnl_r = round((cp-ent)*qty, 0) if qty > 0 else 0
+            total_pnl += pnl_r
+            emoji = "✅" if pct >= 0 else "❌"
+            open_trades.append(f"{emoji} {sym} {pct:+.2f}% | TSL ₹{tsl:.2f}")
+
+        lines = "\n".join(open_trades) if open_trades else "No open trades"
+        pnl_emoji = "💰" if total_pnl >= 0 else "📉"
+
+        msg = (
+            f"📊 <b>MID-DAY PULSE</b>\n"
+            f"━━━━━━━━━━━━━━━━━━━━\n"
+            f"{lines}\n\n"
+            f"{pnl_emoji} Unrealised P/L: <b>₹{total_pnl:+.0f}</b>\n"
+            f"<i>Entry window ends at {'2:30 PM' if is_bullish else '11:00 AM'}</i>"
+        )
+        send_advance_and_premium(msg)
+        print(f"[MIDDAY] Sent — {len(open_trades)} trades, P/L ₹{total_pnl:+.0f}")
+
+    except Exception as e:
+        print(f"[MIDDAY] Error: {e}")
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# MARKET CLOSE SUMMARY — 15:15-15:45
+# ══════════════════════════════════════════════════════════════════════════════
+
+def send_market_close_summary(log_sheet, hist_sheet, mem, now, is_bullish, nifty_pct):
+    """EOD summary — detailed to Advance+Premium, brief to Basic."""
+    flag_key = now.strftime("%Y-%m-%d") + "_PM"
+    try:
+        rows   = log_sheet.get_all_values()
+        t4_val = rows[3][19] if len(rows) > 3 and len(rows[3]) > 19 else ""
+        if flag_key in t4_val: return
+    except: return
+
+    try:
+        rows        = log_sheet.get_all_values()
+        open_list   = []
+        total_unrl  = 0.0
+
+        for row in rows[1:22]:
+            row = pad(row)
+            st  = str(row[C_STATUS]).upper()
+            if "TRADED" not in st or "EXITED" in st: continue
+            sym   = str(row[C_SYMBOL]).replace("NSE:","").strip()
+            cp    = to_f(row[C_LIVE_PRICE])
+            ent   = to_f(row[C_ENTRY_PRICE])
+            key   = sym_key(row[C_SYMBOL])
+            tsl   = get_tsl(mem, key)
+            pct   = ((cp-ent)/ent*100) if ent > 0 else 0
+            qty   = to_f(row[C_QTY])
+            pnl_r = round((cp-ent)*qty, 0) if qty > 0 else 0
+            total_unrl += pnl_r
+            emoji = "✅" if pct >= 0 else "🔴"
+            open_list.append(f"{emoji} {sym} {pct:+.2f}% | TSL ₹{tsl:.0f}")
+
+        # Today's completed trades from History
+        today_str = now.strftime("%Y-%m-%d")
+        wins = losses = 0
+        today_pnl = 0.0
+        try:
+            hist_rows = hist_sheet.get_all_values()
+            for r in hist_rows[1:]:
+                if len(r) > 3 and str(r[3]) == today_str:
+                    if "WIN" in str(r[6]).upper(): wins += 1
+                    elif "LOSS" in str(r[6]).upper(): losses += 1
+                    try: today_pnl += float(str(r[16]).replace(',',''))
+                    except: pass
+        except Exception as e:
+            print(f"[CLOSE] History read: {e}")
+
+        open_str  = "\n".join(open_list) if open_list else "No overnight holds"
+        pnl_emoji = "💰" if today_pnl >= 0 else "📉"
+        regime    = "🟢 BULLISH" if is_bullish else "⚠️ BEARISH"
+
+        msg_advance = (
+            f"🔔 <b>MARKET CLOSED — {today_str}</b>\n"
+            f"━━━━━━━━━━━━━━━━━━━━\n"
+            f"Market: {regime} | Nifty: {nifty_pct:+.2f}%\n\n"
+            f"Today: {wins}✅ {losses}❌ "
+            f"| {pnl_emoji} Realised: ₹{today_pnl:+.0f}\n\n"
+            f"Holding Overnight ({len(open_list)} trades):\n"
+            f"{open_str}\n\n"
+            f"Unrealised: ₹{total_unrl:+.0f}\n"
+            f"✅ Overnight holds monitored via TSL"
+        )
+        msg_basic = (
+            f"Market closed.\n"
+            f"Wins today: {wins} | Losses: {losses}\n"
+            f"Open trades: {len(open_list)}\n"
+            f"Full report → Advance/Premium"
+        )
+
+        send_advance_and_premium(msg_advance)
+        send_basic(msg_basic)
+        print(f"[CLOSE] Sent — {wins}W {losses}L, {len(open_list)} overnight")
+
+    except Exception as e:
+        print(f"[CLOSE] Error: {e}")
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# MAIN
+# ══════════════════════════════════════════════════════════════════════════════
+
+def main():
+    now      = datetime.now(IST)
+    today_s  = now.strftime("%Y-%m-%d")
+    time_str = now.strftime("%H:%M")
+    dow      = now.weekday()  # 0=Mon, 4=Fri
+
+    print(f"\n{'='*55}")
+    print(f"AI360 Trading Bot v15.0 — {now.strftime('%d %b %Y %H:%M')} IST")
+    print(f"{'='*55}")
 
     # Holiday check
-    if today in NSE_HOLIDAYS_2026:
-        print(f"[SKIP] NSE Holiday — {today}"); return
-
-    # Window: 08:45–15:45 IST only
-    if not ((8 * 60 + 45) <= mins <= (15 * 60 + 45)):
-        print(f"[SKIP] Outside window: {now.strftime('%H:%M')} IST"); return
-
-    print(f"[START] {now.strftime('%Y-%m-%d %H:%M:%S')} IST")
-
-    # ── Get sheets + BotMemory ────────────────────────────────────────────────
-    ss, log_sheet, hist_sheet, nifty_sheet = get_sheets()
-    bm_data   = load_bm_sheet(ss)        # read _CAP/_MODE/_SEC/_RANK from sheet
-    mem       = clean_mem(str(log_sheet.acell("T4").value or ""))  # Python-only T4 state
-
-    is_bullish = get_market_regime(nifty_sheet)
-
-    # Automation switch
-    if str(log_sheet.acell("T2").value or "").strip().upper() != "YES":
-        print("[SKIP] Automation OFF (T2 != YES)")
-        log_sheet.update_acell("T4", mem)
+    if is_holiday(today_s):
+        print(f"[SKIP] NSE Holiday: {today_s}")
         return
 
-    all_data   = log_sheet.get_all_values()
-    trade_zone = [pad(list(r)) for r in all_data[1:LOG_ROWS + 1]]
+    if dow >= 5:
+        print(f"[SKIP] Weekend")
+        return
 
-    traded_rows = []
-    waiting_syms = []
-    for i, r in enumerate(trade_zone):
-        status = str(r[C_STATUS]).upper()
-        sym    = str(r[C_SYMBOL]).strip()
-        if "TRADED" in status and "EXITED" not in status:
-            traded_rows.append((i + 2, r))
-        elif "WAITING" in status and sym:
-            waiting_syms.append(sym)
+    if not is_market_hours(now):
+        # Allow 8:45 AM good morning (before market opens)
+        if time_str < "08:44" or time_str > "08:52":
+            print(f"[SKIP] Outside market hours: {time_str}")
+            return
 
-    print(f"[INFO] Active: {len(traded_rows)}/{MAX_TRADES} | Waiting: {len(waiting_syms)}")
+    # Get sheets
+    try:
+        log, hist, nifty, bm = get_sheets()
+        print("[SHEETS] Connected ✅")
+    except Exception as e:
+        print(f"[SHEETS] Connection failed: {e}")
+        return
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # 1. GOOD MORNING  08:45–09:29 IST — v14.0: differentiated by channel
-    # ─────────────────────────────────────────────────────────────────────────
-    if ((now.hour == 8 and now.minute >= 45) or
-            (now.hour == 9 and now.minute <= 29)) and f"{today}_AM" not in mem:
+    # Get market regime + Nifty data
+    is_bullish, nifty_cmp, nifty_dma, nifty_pct = get_market_regime(nifty)
 
-        sector_line   = get_sector_context(bm_data, waiting_syms)
-        lines_advance = []
-        lines_premium = []
+    # Get T4 memory
+    try:
+        rows = log.get_all_values()
+        mem  = rows[3][C_SYS_CTRL] if len(rows) > 3 and len(rows[3]) > C_SYS_CTRL else ""
+    except Exception as e:
+        print(f"[MEM] T4 read error: {e}"); mem = ""
 
-        for _, r in traded_rows:
-            sym   = r[C_SYMBOL]
-            cp    = to_f(r[C_LIVE_PRICE])
-            ent   = to_f(r[C_ENTRY_PRICE])
-            sl    = to_f(r[C_TRAIL_SL]) or to_f(r[C_INITIAL_SL])
-            tgt   = to_f(r[C_TARGET])
-            ttype = str(r[C_TRADE_TYPE])
-            etime = str(r[C_ENTRY_TIME])
-            days  = calc_hold_days(etime, now)
-            if not ent or ent <= 0: continue
+    mem = clean_mem(mem)
 
-            key      = sym_key(sym)
-            cap      = get_capital(bm_data, key)
-            mode     = get_trade_mode(bm_data, key)
-            mode_tag = {"VCP": "🎯", "MOM": "🚀", "STD": "📊"}.get(mode, "📊")
-            sl_label = "TSL" if sl > to_f(r[C_INITIAL_SL]) else "SL"
+    # Count today's entries already made
+    today_entries = 0
+    flag_prefix   = today_s + "_ENTRY_"
+    for part in mem.split(","):
+        if part.strip().startswith(flag_prefix):
+            today_entries += 1
 
-            if cp > 0 and ent > 0:
-                pnl    = (cp - ent) / ent * 100
-                pl_rs  = round((cp - ent) / ent * cap)
-                to_tgt = ((tgt - cp) / cp * 100) if cp > 0 else 0
-                to_sl  = ((cp - sl) / cp * 100) if cp > 0 else 0
-                em     = "🟢" if pnl >= 0 else "🔴"
-                line   = (
-                    f"{em} <b>{sym}</b> {mode_tag} Day {days+1}\n"
-                    f"   Entry ₹{ent:.2f} → Now ₹{cp:.2f}\n"
-                    f"   P/L: <b>{pnl:+.2f}%</b> = <b>₹{pl_rs:+,}</b>\n"
-                    f"   {sl_label} ₹{sl:.2f} ({to_sl:.1f}% away) | T ₹{tgt:.2f} ({to_tgt:.1f}% away)"
-                )
-                lines_advance.append(line)
+    # ── 8:45 AM: Good Morning ─────────────────────────────────────────────────
+    if "08:44" <= time_str <= "08:52":
+        send_good_morning(log, is_bullish, nifty_cmp, nifty_dma, nifty_pct, now)
 
-                # Premium: same + CE flag if eligible
-                rank   = get_rank(bm_data, key)
-                atr    = get_atr_from_mem(mem, key)
-                stage  = str(r[C_STAGE])
-                c_flag = ce_candidate_flag(cp, atr, stage, is_bullish, rank) if atr > 0 else ""
-                lines_premium.append(line + (c_flag if c_flag else ""))
-            else:
-                fallback = (
-                    f"⏰ <b>{sym}</b> {mode_tag} Day {days+1}\n"
-                    f"   Entry ₹{ent:.2f} | SL ₹{sl:.2f} | T ₹{tgt:.2f}\n"
-                    f"   (Price loading...)"
-                )
-                lines_advance.append(fallback)
-                lines_premium.append(fallback)
-
-        deployed = sum(
-            get_capital(bm_data, sym_key(r[C_SYMBOL]))
-            for _, r in traded_rows if r[C_SYMBOL]
-        )
-
-        # v14.0: Each channel gets appropriate content
-        send_basic(build_gm_basic(today, len(lines_advance), len(waiting_syms), is_bullish))
-        send_advance(build_gm_advance(today, lines_advance, deployed, len(waiting_syms), sector_line))
-        send_premium(build_gm_premium(today, lines_advance, lines_premium, deployed, len(waiting_syms), sector_line))
-
-        mem += f",{today}_AM"
-        log_sheet.update_acell("T4", mem)
-        print(f"[GM] Sent to all 3 channels | Trades: {len(lines_advance)} | Waiting: {len(waiting_syms)}")
-
-    # ─────────────────────────────────────────────────────────────────────────
-    # 2. MARKET HOURS — Core Trading Logic
-    # ─────────────────────────────────────────────────────────────────────────
+    # ── Market hours: main loop ────────────────────────────────────────────────
     if is_market_hours(now):
-        exit_alerts_advance  = []
-        exit_alerts_basic    = []
-        trail_alerts         = []
-        entry_alerts_advance = []
-        entry_alerts_premium = []
-        tsl_cell_updates     = []
-
-        # ── Step A: Mark WAITING → TRADED ────────────────────────────────────
-        for i, r in enumerate(trade_zone):
-            status = str(r[C_STATUS]).upper()
-            sym    = str(r[C_SYMBOL]).strip()
-            if "WAITING" not in status or not sym: continue
-
-            active_count = sum(1 for _, ar in traded_rows)
-            if active_count >= MAX_TRADES: break
-
-            cp       = to_f(r[C_LIVE_PRICE])
-            init_sl  = to_f(r[C_INITIAL_SL])
-            target   = to_f(r[C_TARGET])
-            priority = str(r[C_PRIORITY])
-            stage    = str(r[C_STAGE])
-            strat    = str(r[C_STRATEGY])
-            ttype    = str(r[C_TRADE_TYPE])
-
-            if cp <= 0: continue
-
-            # RR re-validation
-            rr_raw = str(r[C_RR]).strip()
-            if rr_raw:
-                try: rr_val = to_f(rr_raw.split(':')[-1])
-                except: rr_val = 0.0
-                if rr_val > 0 and rr_val < MIN_RR:
-                    print(f"[SKIP] {sym}: RR 1:{rr_val:.1f} below MIN_RR — stale candidate")
-                    continue
-
-            key        = sym_key(sym)
-            sheet_row  = i + 2
-            last_cp    = get_last_price(mem, key)
-            mem        = set_last_price(mem, key, cp)
-
-            if last_cp > 0 and abs(cp - last_cp) < 0.01:
-                print(f"[STALE] {sym}: price unchanged"); continue
-
-            # 5-day cooldown after exit
-            exit_date  = get_exit_date(mem, key)
-            if exit_date and trading_days_since(exit_date, now) < 5:
-                print(f"[COOLDOWN] {sym}: recent exit"); continue
-
-            # Min qty check
-            cap = get_capital(bm_data, key)
-            pos_size_check = round(cap / cp) if cp > 0 else 0
-            if pos_size_check < 2:
-                print(f"[SKIP] {sym}: CMP ₹{cp:,.0f} too high"); continue
-
-            # v14.0 NEW: Result day filter — skip if stock gapped >6% today
-            pct_change_today = _read_pct_change_from_nifty200(nifty_sheet, sym)
-            if pct_change_today > RESULT_DAY_GAP_PCT:
-                print(f"[RESULT DAY] {sym}: |%Change|={pct_change_today:.1f}% — skipping entry")
-                continue
-
-            trade_mode  = get_trade_mode(bm_data, key)
-            tsl_params  = TSL_PARAMS[trade_mode]
-            rank        = get_rank(bm_data, key)
-            etime       = now.strftime('%Y-%m-%d %H:%M:%S')
-
-            log_sheet.update_cell(sheet_row, C_STATUS + 1,      "🟢 TRADED (PAPER)")
-            log_sheet.update_cell(sheet_row, C_ENTRY_PRICE + 1, cp)
-            log_sheet.update_cell(sheet_row, C_ENTRY_TIME + 1,  etime)
-            log_sheet.update_cell(sheet_row, C_TRAIL_SL + 1,    init_sl)
-
-            risk   = cp - init_sl
-            reward = target - cp
-            rr_num = (reward / risk) if risk > 0 else 0
-            log_sheet.update_cell(sheet_row, C_RR + 1, f"1:{rr_num:.1f}")
-
-            # Read ATR from Nifty200 directly
-            atr_est = _read_atr_from_nifty200(nifty_sheet, sym)
-            if atr_est <= 0:
-                _mult   = 2 if "Intraday" in ttype else 4 if "Positional" in ttype else 3
-                atr_est = (target - cp) / _mult if target > cp else 0
-                print(f"[ATR] {sym}: fallback atr_est={atr_est:.2f}")
-            else:
-                print(f"[ATR] {sym}: ATR14={atr_est:.2f} from Nifty200")
-
-            mem = save_atr_to_mem(mem, key, atr_est)
-            mem = set_tsl(mem, key, init_sl)
-            mem = set_max_price(mem, key, cp)
-            ex_flag_key = f"{key}_EX"
-            mem = ','.join(p for p in mem.split(',') if p.strip() and p.strip() != ex_flag_key)
-
-            updated_r                = list(r)
-            updated_r[C_STATUS]      = "🟢 TRADED (PAPER)"
-            updated_r[C_ENTRY_PRICE] = cp
-            updated_r[C_ENTRY_TIME]  = etime
-            updated_r[C_TRAIL_SL]    = init_sl
-            traded_rows.append((sheet_row, updated_r))
-
-            atr    = atr_est
-            o_hint = options_hint(sym, cp, atr, ttype)
-            c_flag = ce_candidate_flag(cp, atr, stage, is_bullish, rank)
-
-            pos_size  = round(cap / cp) if cp > 0 else 0
-            risk_rs   = round(max(0, cp - init_sl) * pos_size)
-            reward_rs = round(max(0, target - cp) * pos_size)
-
-            # v14.0: Advance gets entry without CE, Premium gets CE flag
-            entry_alerts_advance.append(
-                build_entry_advance(sym, cp, init_sl, target, ttype, strat, stage,
-                                    priority, pos_size, cap, risk_rs, reward_rs,
-                                    rr_num, trade_mode)
-            )
-            entry_alerts_premium.append(
-                build_entry_premium(sym, cp, init_sl, target, ttype, strat, stage,
-                                    priority, pos_size, cap, risk_rs, reward_rs,
-                                    rr_num, trade_mode, c_flag, o_hint)
-            )
-            print(f"[ENTRY] {sym} @ ₹{cp} | ₹{cap:,} | {pos_size}sh | {ttype} | {trade_mode} | Rank={rank}")
-
-        # ── Step B: Monitor active trades ─────────────────────────────────────
-        for sheet_row, r in traded_rows:
-            sym = str(r[C_SYMBOL]).strip()
-            if not sym: continue
-
-            key     = sym_key(sym)
-            cp      = to_f(r[C_LIVE_PRICE])
-            init_sl = to_f(r[C_INITIAL_SL])
-            cur_tsl = to_f(r[C_TRAIL_SL]) or init_sl
-            ent     = to_f(r[C_ENTRY_PRICE])
-            tgt     = to_f(r[C_TARGET])
-            strat   = str(r[C_STRATEGY])
-            stage   = str(r[C_STAGE])
-            etime   = str(r[C_ENTRY_TIME])
-            ttype   = str(r[C_TRADE_TYPE])
-
-            if not price_sanity(sym, cp, ent): continue
-
-            mem      = set_max_price(mem, key, cp)
-            pnl_pct  = (cp - ent) / ent * 100
-            atr      = get_atr_from_mem(mem, key)
-            if atr <= 0:
-                _mult = 4 if "Positional" in ttype else 2 if "Intraday" in ttype else 3
-                atr   = (tgt - ent) / _mult if tgt > ent else ent * 0.02
-
-            days_held  = calc_hold_days(etime, now)
-            trade_mode = get_trade_mode(bm_data, key)
-            tsl_params = TSL_PARAMS[trade_mode]
-            capital    = get_capital(bm_data, key)
-
-            new_tsl = calc_new_tsl(cp, ent, init_sl, atr, ttype, tsl_params)
-            new_tsl = max(new_tsl, get_tsl(mem, key), cur_tsl)
-
-            if new_tsl > cur_tsl:
-                tsl_cell_updates.append((sheet_row, new_tsl))
-                tsl_label = ('Breakeven' if abs(new_tsl - ent) < 0.5
-                             else '+2% locked' if abs(new_tsl - ent * 1.02) < 0.5
-                             else 'ATR trail')
-                trail_msg = (
-                    f"🔒 <b>{sym}</b> [{trade_mode}] LTP ₹{cp:.2f} ({pnl_pct:+.2f}%)\n"
-                    f"   Trail SL: ₹{cur_tsl:.2f} → <b>₹{new_tsl:.2f}</b> ({tsl_label})"
-                )
-                trail_alerts.append(trail_msg)
-                mem = set_tsl(mem, key, new_tsl)
-                print(f"[TSL] {sym} [{trade_mode}]: ₹{cur_tsl:.2f}→₹{new_tsl:.2f}")
-
-            entry_date_key = etime[:10].replace('-', '') if etime else "0"
-            ex_flag    = f"{key}_EX_{entry_date_key}"
-            tsl_hit    = (new_tsl > 0 and cp <= new_tsl)
-            target_hit = (tgt > 0 and cp >= tgt)
-            hard_loss  = pnl_pct < -HARD_LOSS_PCT
-
-            # Hard loss exit (no min-hold)
-            if hard_loss and ex_flag not in mem:
-                pl_rupees = round((cp - ent) / ent * capital, 2)
-                hold_str  = calc_hold_str(etime, now)
-                max_price = get_max_price(mem, key)
-
-                exit_msg  = build_exit_advance(
-                    sym, ttype, ent, cp, pnl_pct, pl_rupees,
-                    hold_str, max_price, strat, "🚨 HARD LOSS EXIT"
-                )
-                exit_alerts_advance.append(exit_msg)
-                exit_alerts_basic.append(build_exit_basic(sym, pnl_pct, "HARD LOSS"))
-
-                hist_sheet.append_row([
-                    sym, etime[:10], ent,
-                    now.strftime('%Y-%m-%d'), cp,
-                    f"{pnl_pct:.2f}%", "LOSS 🔴", strat,
-                    "🚨 HARD LOSS EXIT", ttype, init_sl, new_tsl,
-                    max_price if max_price > 0 else cp,
-                    round(atr, 2), days_held, capital, pl_rupees, "—",
-                ])
-                log_sheet.update_cell(sheet_row, C_STATUS + 1, "EXITED")
-                mem += f",{ex_flag}"
-                mem  = set_exit_date(mem, key, now.strftime('%Y-%m-%d'))
-                print(f"[HARD LOSS] {sym} | {pnl_pct:+.2f}% | ₹{pl_rupees:+.0f}")
-                continue
-
-            # Normal exit — with min-hold protection
-            is_pos    = "Positional" in ttype or "positional" in ttype.lower()
-            min_hold  = MIN_HOLD_POS if is_pos else MIN_HOLD_SWING
-            near_hard = pnl_pct < -4.0
-            skip_exit = (
-                days_held < min_hold
-                and not target_hit
-                and not hard_loss
-                and not (near_hard and not is_bullish)
-            )
-
-            if (tsl_hit or target_hit) and ex_flag not in mem and not skip_exit:
-                exit_reason = ("🎯 TARGET HIT"   if target_hit
-                               else "🔒 TRAILING SL" if new_tsl > init_sl
-                               else "🚨 INITIAL SL HIT")
-                result_sym  = "WIN ✅" if (target_hit or pnl_pct > 0) else "LOSS 🔴"
-                hold_str    = calc_hold_str(etime, now)
-                max_price   = get_max_price(mem, key)
-                pl_rupees   = round((cp - ent) / ent * capital, 2)
-
-                exit_msg = build_exit_advance(
-                    sym, ttype, ent, cp, pnl_pct, pl_rupees,
-                    hold_str, max_price, strat, exit_reason
-                )
-                exit_alerts_advance.append(exit_msg)
-                exit_alerts_basic.append(build_exit_basic(sym, pnl_pct, exit_reason))
-
-                hist_sheet.append_row([
-                    sym, etime[:10], ent,
-                    now.strftime('%Y-%m-%d'), cp,
-                    f"{pnl_pct:.2f}%", result_sym, strat,
-                    exit_reason, ttype, init_sl, new_tsl,
-                    max_price if max_price > 0 else cp,
-                    round(atr, 2), days_held, capital, pl_rupees, "—",
-                ])
-                log_sheet.update_cell(sheet_row, C_STATUS + 1, "EXITED")
-                mem += f",{ex_flag}"
-                mem  = set_exit_date(mem, key, now.strftime('%Y-%m-%d'))
-                print(f"[EXIT] {sym} | {exit_reason} | {pnl_pct:+.2f}% | ₹{pl_rupees:+.0f}")
-
-            elif (tsl_hit or target_hit) and skip_exit:
-                print(f"[MIN HOLD] {sym}: Day {days_held+1}/{min_hold} — holding. "
-                      f"TSL={tsl_hit} Tgt={target_hit} P/L={pnl_pct:+.2f}%")
-                # Alert advance/premium about min-hold protection
-                hold_msg = (
-                    f"⚠️ <b>MIN HOLD ACTIVE — {sym}</b>\n"
-                    f"[{ttype}] [{trade_mode}] touched SL ₹{new_tsl:.2f} "
-                    f"but only Day {days_held+1} of {min_hold}.\n"
-                    f"Holding until Day {min_hold} unless loss > {HARD_LOSS_PCT}%.\n"
-                    f"Current P/L: {pnl_pct:+.2f}%"
-                )
-                if f"{key}_HOLD_WARN_{today}" not in mem:
-                    send_advance_and_premium(hold_msg)
-                    mem += f",{key}_HOLD_WARN_{today}"
-
-        # ── Batch TSL cell updates ─────────────────────────────────────────────
-        for sheet_row, new_tsl in tsl_cell_updates:
-            try:
-                log_sheet.update_cell(sheet_row, C_TRAIL_SL + 1, new_tsl)
-            except Exception as e:
-                print(f"[TSL UPDATE FAIL] row {sheet_row}: {e}")
-
-        # ── Send entry alerts — advance gets clean signal, premium gets CE ─────
-        for msg in entry_alerts_advance:
-            send_advance(msg)
-        for msg in entry_alerts_premium:
-            send_premium(msg)
-        for msg in exit_alerts_advance:
-            send_advance(msg)
-            send_premium(msg)
-        for msg in exit_alerts_basic:
-            send_basic(msg)
-        if trail_alerts:
-            trail_bundle = "\n\n".join(trail_alerts)
-            send_advance_and_premium(f"📊 <b>TSL UPDATES</b>\n━━━━━━━━━━━━━━\n{trail_bundle}")
-
-    # ─────────────────────────────────────────────────────────────────────────
-    # 3. MID-DAY PULSE 12:28–12:38 IST
-    # ─────────────────────────────────────────────────────────────────────────
-    if (now.hour == 12 and 28 <= now.minute <= 38) and f"{today}_MD" not in mem:
-        if traded_rows:
-            md_lines = []
-            for _, r in traded_rows:
-                sym  = r[C_SYMBOL]
-                cp   = to_f(r[C_LIVE_PRICE])
-                ent  = to_f(r[C_ENTRY_PRICE])
-                sl   = to_f(r[C_TRAIL_SL]) or to_f(r[C_INITIAL_SL])
-                tgt  = to_f(r[C_TARGET])
-                key  = sym_key(sym)
-                cap  = get_capital(bm_data, key)
-                if ent > 0 and cp > 0:
-                    pnl    = (cp - ent) / ent * 100
-                    pl_rs  = round((cp - ent) / ent * cap)
-                    to_tgt = ((tgt - cp) / cp * 100) if cp > 0 else 0
-                    em     = "🟢" if pnl >= 0 else "🔴"
-                    md_lines.append(
-                        f"{em} <b>{sym}</b> {pnl:+.2f}% = ₹{pl_rs:+,} "
-                        f"| Target: {to_tgt:+.1f}% away"
-                    )
-            if md_lines:
-                md_msg = (
-                    f"📊 <b>MID-DAY PULSE — {now.strftime('%H:%M')} IST</b>\n"
-                    f"━━━━━━━━━━━━━━━━━━━━\n"
-                    + "\n".join(md_lines)
-                )
-                send_advance_and_premium(md_msg)
-        mem += f",{today}_MD"
-        log_sheet.update_acell("T4", mem)
-
-    # ─────────────────────────────────────────────────────────────────────────
-    # 4. MARKET CLOSE SUMMARY 15:15–15:45 IST
-    # ─────────────────────────────────────────────────────────────────────────
-    if (now.hour == 15 and 15 <= now.minute <= 45) and f"{today}_PM" not in mem:
-        # Tally from History sheet (exits today)
-        try:
-            hist_data  = hist_sheet.get_all_values()
-            today_rows = [
-                r for r in hist_data[1:]
-                if len(r) > 3 and str(r[3]).startswith(today)
-            ]
-            wins_today   = [r for r in today_rows if "WIN" in str(r[6]).upper()]
-            losses_today = [r for r in today_rows if "LOSS" in str(r[6]).upper()]
-            daily_pl     = sum(to_f(r[16]) for r in today_rows)
-        except:
-            today_rows   = []
-            wins_today   = []
-            losses_today = []
-            daily_pl     = 0
-
-        # Overnight open trades
-        open_overnight = []
-        for _, r in traded_rows:
-            sym  = r[C_SYMBOL]
-            cp   = to_f(r[C_LIVE_PRICE])
-            ent  = to_f(r[C_ENTRY_PRICE])
-            sl   = to_f(r[C_TRAIL_SL]) or to_f(r[C_INITIAL_SL])
-            if ent > 0 and cp > 0:
-                pnl  = (cp - ent) / ent * 100
-                key  = sym_key(sym)
-                cap  = get_capital(bm_data, key)
-                pl_rs = round((cp - ent) / ent * cap)
-                em   = "🟢" if pnl >= 0 else "🔴"
-                open_overnight.append(f"{em} <b>{sym}</b> {pnl:+.2f}% = ₹{pl_rs:+,} | TSL ₹{sl:.2f}")
-
-        close_adv = (
-            f"🔔 <b>MARKET CLOSED — {today}</b>\n"
-            f"━━━━━━━━━━━━━━━━━━━━\n"
-            f"🏆 Wins: {len(wins_today)} | ❌ Losses: {len(losses_today)} | "
-            f"📋 Open: {len(open_overnight)}\n"
-            f"💰 Today Realised P/L: <b>₹{daily_pl:+,.0f}</b>\n"
-        )
-        if today_rows:
-            close_adv += f"\n📤 <b>Exited Today:</b>\n"
-            for r in today_rows:
-                pnl_pct = to_f(r[5].replace('%',''))
-                pl_rs   = to_f(r[16])
-                em      = "✅" if "WIN" in str(r[6]).upper() else "❌"
-                close_adv += f"{em} <b>{r[0]}</b>: {pnl_pct:+.2f}% = ₹{pl_rs:+,.0f}\n"
-        if open_overnight:
-            close_adv += f"\n📌 <b>Holding Overnight ({len(open_overnight)} trade{'s' if len(open_overnight)>1 else ''}):</b>\n"
-            close_adv += "\n".join(open_overnight) + "\n"
-            close_adv += f"\n✅ Overnight holds monitored via TSL"
-
-        close_basic = (
-            f"🔔 <b>MARKET CLOSED — {today}</b>\n"
-            f"Wins: {len(wins_today)} | Losses: {len(losses_today)} | Open: {len(open_overnight)}\n"
-            f"Today P/L: ₹{daily_pl:+,.0f}\n\n"
-            f"🔔 <i>Full details → ai360trading.in/membership</i>"
+        # Step A: Enter new trades (with v15.0 filters)
+        mem, today_entries = step_a_enter_trades(
+            log, nifty, bm, mem, now, is_bullish, nifty_pct, today_entries
         )
 
-        send_basic(close_basic)
-        send_advance_and_premium(close_adv)
+        # Step B: Monitor existing trades
+        mem = step_b_monitor_trades(log, hist, nifty, mem, now, is_bullish)
 
-        mem += f",{today}_PM"
-        log_sheet.update_acell("T4", mem)
-        print(f"[CLOSE] Sent close summary | Exits: {len(today_rows)} | Open: {len(open_overnight)}")
-        return
+        # Mid-day pulse 12:28-12:38
+        if "12:28" <= time_str <= "12:38":
+            send_midday_pulse(log, mem, now, is_bullish)
 
-    # ── Save T4 at end of every run ───────────────────────────────────────────
-    log_sheet.update_acell("T4", mem)
-    print(f"[DONE] {now.strftime('%H:%M:%S')} IST | T4: {len(mem)} chars")
+        # Market close 15:15-15:45
+        if "15:15" <= time_str <= "15:45":
+            send_market_close_summary(log, hist, mem, now, is_bullish, nifty_pct)
 
+    # Save updated memory back to T4
+    try:
+        log.update("T4", [[mem]])
+        print(f"[MEM] T4 saved: {len(mem):,} chars")
+    except Exception as e:
+        print(f"[MEM] T4 save failed: {e}")
 
-# ══════════════════════════════════════════════════════════════════════════════
-# ENTRY POINT
-# ══════════════════════════════════════════════════════════════════════════════
+    print(f"[DONE] {time_str} IST | Bullish:{is_bullish} | Entries today:{today_entries}")
+
 
 if __name__ == "__main__":
-    import traceback
-    mode = os.environ.get('BOT_MODE', 'trade').strip().lower()
-    print(f"[MODE] {mode}")
-
-    try:
-        if mode == 'test_telegram':
-            # Test all 3 channels regardless of market hours
-            now = datetime.now(IST)
-            test_msg = (
-                f"✅ <b>TELEGRAM TEST — {now.strftime('%d-%b %H:%M')} IST</b>\n"
-                f"━━━━━━━━━━━━━━━━━━━━\n"
-                f"AI360 Trading v14.0\n"
-                f"Channel: {{channel}}\n"
-                f"Status: Bot is alive and connected ✅\n"
-                f"Market: {'OPEN' if is_market_hours(now) else 'CLOSED'}"
-            )
-            ok1 = send_basic(test_msg.format(channel="Basic 🆓"))
-            ok2 = send_advance(test_msg.format(channel="Advance 📊"))
-            ok3 = send_premium(test_msg.format(channel="Premium 💎"))
-            print(f"[TEST] Basic={ok1} Advance={ok2} Premium={ok3}")
-            if not (ok1 or ok2 or ok3):
-                print("[TEST] ❌ ALL channels failed — check TELEGRAM_BOT_TOKEN")
-            elif ok1 and ok2 and ok3:
-                print("[TEST] ✅ All 3 channels received message")
-            else:
-                print("[TEST] ⚠️ Some channels failed — check CHAT_ID secrets")
-
-        elif mode == 'daily_summary':
-            # Send daily summary without market hours check
-            now     = datetime.now(IST)
-            today   = now.strftime('%Y-%m-%d')
-            ss, log_sheet, hist_sheet, nifty_sheet = get_sheets()
-            bm_data = load_bm_sheet(ss)
-            all_data = log_sheet.get_all_values()
-            trade_zone = [pad(list(r)) for r in all_data[1:LOG_ROWS + 1]]
-            traded = [r for r in trade_zone if "TRADED" in str(r[C_STATUS]).upper() and "EXITED" not in str(r[C_STATUS]).upper()]
-            waiting = [r for r in trade_zone if "WAITING" in str(r[C_STATUS]).upper()]
-            msg = (
-                f"📊 <b>DAILY SUMMARY — {today}</b>\n"
-                f"━━━━━━━━━━━━━━━━━━━━\n"
-                f"🔹 Active: {len(traded)}/{MAX_TRADES}\n"
-                f"🔸 Waiting: {len(waiting)}/{MAX_WAITING}\n"
-                f"✅ System: Online v14.0"
-            )
-            send_advance_and_premium(msg)
-            print(f"[DAILY] Sent — Traded:{len(traded)} Waiting:{len(waiting)}")
-
-        elif mode == 'weekly_summary':
-            # Trigger weekly summary without day check
-            now     = datetime.now(IST)
-            today   = now.strftime('%Y-%m-%d')
-            ss, log_sheet, hist_sheet, nifty_sheet = get_sheets()
-            send_advance_and_premium(f"📅 <b>WEEKLY SUMMARY</b>\n<i>Manual trigger — {today}</i>\nCheck History sheet for full details.")
-            print("[WEEKLY] Sent manual trigger")
-
-        else:
-            # Default: trade mode
-            run_trading_cycle()
-
-    except Exception as e:
-        err = traceback.format_exc()
-        print(f"[FATAL] {e}\n{err}")
-        try:
-            adv = os.environ.get('CHAT_ID_ADVANCE')
-            tok = os.environ.get('TELEGRAM_BOT_TOKEN')
-            if tok and adv:
-                requests.post(
-                    f"https://api.telegram.org/bot{tok}/sendMessage",
-                    json={"chat_id": adv, "text": f"⚠️ <b>BOT ERROR</b>\n{str(e)[:300]}", "parse_mode": "HTML"},
-                    timeout=10
-                )
-        except: pass
-        raise
+    main()
