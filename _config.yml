@@ -52,58 +52,40 @@ include:
   - _pages
 
 # Exclude from Jekyll build
-# WARNING: Add ALL Python files and non-Jekyll files here
-# Missing entries = Jekyll tries to process them = build errors
+# FIX (May 2026):
+#   REMOVED: generate_analysis.py (deleted from repo)
+#   REMOVED: generate_community_post.py (deleted from repo)
+#   REMOVED: upload_instagram.py (deleted from repo)
+#   ADDED: kids_content_calendar.py (new file, must be excluded)
 exclude:
-  # ── Trading content generators ────────────────────────────────────────
-  - generate_analysis.py
+  - generate_articles.py
   - generate_education.py
   - generate_reel.py
   - generate_reel_morning.py
   - generate_shorts.py
-  - generate_community_post.py
-  - generate_english_short.py
-  - generate_articles.py
-
-  # ── Kids content generators ───────────────────────────────────────────
   - generate_kids_video.py
-
-  # ── Upload scripts ────────────────────────────────────────────────────
+  - generate_english_short.py
+  - content_calendar.py
+  - kids_content_calendar.py
   - upload_youtube.py
   - upload_kids_youtube.py
   - upload_facebook.py
-  - upload_instagram.py
-
-  # ── Trading bot ───────────────────────────────────────────────────────
   - trading_bot.py
-
-  # ── Core infrastructure ───────────────────────────────────────────────
   - ai_client.py
   - human_touch.py
   - indian_holidays.py
   - token_refresh.py
-  - content_calendar.py
-  - kids_content_calendar.py    # v2.0 — added
-
-  # ── Documentation ─────────────────────────────────────────────────────
+  - requirements.txt
   - SYSTEM.md
-  - REPO_STRUCTURE.md           # v2.0 — added
   - README.md
   - LICENSE.md
-
-  # ── Config & requirements ─────────────────────────────────────────────
-  - requirements.txt
   - Gemfile
   - Gemfile.lock
-
-  # ── Build & local artifacts ───────────────────────────────────────────
   - .github/
   - vendor/
   - output/
   - token.json
   - sitemap.xml
-  - .env
-  - credentials.json
 
 # Defaults
 defaults:
@@ -120,6 +102,3 @@ defaults:
       path: "page*"
     values:
       sitemap: false
-
-# jekyll-sitemap: exclude low-value pages from auto-generated sitemap
-# Tag pages, pagination, and system files should not appear in sitemap
