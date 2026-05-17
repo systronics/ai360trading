@@ -1,5 +1,5 @@
 # AI360Trading — Master System Documentation
-**Last Updated:** 17 May 2026
+**Last Updated:** 17 May 2026 — Education v1.1 confirmed working, 17.9 min video, mid-roll ads active
 **Repo:** https://github.com/systronics/ai360trading
 **Website:** https://ai360trading.in
 **Owner:** Amit Kumar, Haridwar, Uttarakhand, India
@@ -30,7 +30,7 @@ The repo is PUBLIC. Any AI that knows the filename can construct the raw URL:
 Format:
 https://raw.githubusercontent.com/systronics/ai360trading/refs/heads/master/FILENAME
 
-Examples:
+Python files:
 https://raw.githubusercontent.com/systronics/ai360trading/refs/heads/master/trading_bot.py
 https://raw.githubusercontent.com/systronics/ai360trading/refs/heads/master/ai_client.py
 https://raw.githubusercontent.com/systronics/ai360trading/refs/heads/master/human_touch.py
@@ -59,6 +59,9 @@ https://raw.githubusercontent.com/systronics/ai360trading/refs/heads/master/.git
 https://raw.githubusercontent.com/systronics/ai360trading/refs/heads/master/.github/workflows/daily-morning-reel.yml
 https://raw.githubusercontent.com/systronics/ai360trading/refs/heads/master/.github/workflows/token_refresh.yml
 https://raw.githubusercontent.com/systronics/ai360trading/refs/heads/master/.github/workflows/keepalive.yml
+
+SYSTEM.md (always read first):
+https://raw.githubusercontent.com/systronics/ai360trading/refs/heads/master/SYSTEM.md
 ```
 
 ### Mandatory Workflow Before Touching Any File
@@ -81,9 +84,6 @@ AppScript (Google Sheets bound — NOT in GitHub):
 Google Sheets (AlertLog, Nifty200, BotMemory, History):
   Sheet ID: 1fPNGL6AHs-7M-oC22zILg9FlyWi-7DF9NoVVqZQs2vk
   Owner must share sheet data — no direct AI access
-
-SYSTEM.md in GitHub (always read this first):
-  https://raw.githubusercontent.com/systronics/ai360trading/refs/heads/master/SYSTEM.md
 ```
 
 ---
@@ -163,8 +163,8 @@ USA/UK prime time = 11 PM - 1 AM IST
 | `upload_kids_youtube.py` | YouTube upload (kids channel) | — | ✅ Live |
 | `upload_facebook.py` | Facebook page upload | v2.1 | ✅ Live |
 | `requirements.txt` | Python dependencies | — | ✅ Live |
-| `generate_analysis.py` | ❌ DELETED — was replaced by generate_education.py | — | ❌ Removed |
-| `upload_instagram.py` | ❌ DELETED — Instagram manual only | — | ❌ Removed |
+| `generate_analysis.py` | ❌ DELETED | — | ❌ Removed |
+| `upload_instagram.py` | ❌ DELETED — manual only | — | ❌ Removed |
 | `generate_community_post.py` | ❌ DELETED — unused | — | ❌ Removed |
 
 ## GitHub Actions Workflows (.github/workflows/)
@@ -180,17 +180,6 @@ USA/UK prime time = 11 PM - 1 AM IST
 | `kids-daily.yml` | 8:00 AM daily | HerooQuest 3 outputs x 2 languages |
 | `token_refresh.yml` | 1st + 20th of month | META token auto-refresh |
 | `keepalive.yml` | Periodic | Prevents GitHub disabling workflows |
-
-## Website Folders
-
-| Folder | Contents |
-|--------|---------|
-| `_posts/` | Auto-generated daily articles (Jekyll) |
-| `_pages/` | Static pages (membership, disclaimer) |
-| `_includes/` | Jekyll includes (head, nav, footer) |
-| `_layouts/` | Jekyll layouts |
-| `public/image/` | heroo.png, zeno_*.png |
-| `tags/` | SEO tag pages |
 
 ## Static Assets (public/image/)
 
@@ -214,8 +203,8 @@ USA/UK prime time = 11 PM - 1 AM IST
 | Time IST | Content | Generator | Platform |
 |----------|---------|-----------|---------|
 | 7:00 AM | Morning reel (9:16) | generate_reel_morning.py | YouTube + Facebook |
-| 7:30 AM | Education video Hindi (~10 min) | generate_education.py | YouTube Hindi |
-| 7:30 AM | Education video English | generate_education.py | YouTube English (Phase 3) |
+| 7:30 AM | Education video Hindi (~17 min) | generate_education.py EDUCATION_LANG=hi | YouTube Hindi |
+| 7:30 AM | Education video English (~14 min) | generate_education.py EDUCATION_LANG=en | YouTube English (Phase 3) |
 | 8:00 AM | HerooQuest Full Story Hindi | generate_kids_video.py KIDS_OUTPUT=full | YouTube Kids |
 | 8:00 AM | HerooQuest Cliffhanger Short | generate_kids_video.py KIDS_OUTPUT=short | YouTube Kids |
 | 8:00 AM | HerooQuest Did You Know | generate_kids_video.py KIDS_OUTPUT=didyouknow | YouTube Kids |
@@ -232,9 +221,69 @@ USA/UK prime time = 11 PM - 1 AM IST
 | `weekend` | Sat-Sun | Base stocks, evergreen content |
 | `holiday` | NSE holidays | Motivational content |
 
+```
+NOTE: CONTENT_MODE env var is sometimes empty in workflows (known issue)
+generate_education.py v1.1 auto-detects from weekday when empty — working correctly
+Saturday detected as "weekend" automatically ✅
+```
+
 ---
 
-# SECTION 4 — KEY FILE DETAILS
+# SECTION 4 — CONFIRMED PERFORMANCE (17 May 2026)
+
+## Education Video — Fully Working ✅
+
+```
+Hindi: youtube.com/watch?v=cvRcZNzLbPw
+  Duration: 17.9 min ✅ (was 3.3 min before fix)
+  Mid-roll ads: WILL ACTIVATE ✅ (needs 8+ min threshold)
+  Title: "Stock Market Kya Hai | Week 1 | AI360 Trading" ✅
+  22 slides | 2262 words ✅
+
+English: 14.5 min (not uploaded — YOUTUBE_CREDENTIALS_EN not set)
+
+NOTE: 17.9 min is long — consider reducing MIN_WORDS_SLIDE from 80 to 60
+or MIN_STORY_SLIDES from 22 to 16 for sweet spot of ~10 min
+Both values are in generate_education.py
+```
+
+## Paper Trading Performance (Week 1)
+
+```
+3 wins / 0 losses = 100% win rate
+  BSE:        Entry Rs.3880 → Rs.4030 | +3.87% | Rs.502 | 1 day
+  IDEA:       Entry Rs.12.45 → Rs.13.19 | +5.94% | Rs.773 | 2 days
+  ADANIPORTS: Entry Rs.1716 → Rs.1812 | +5.58% | Rs.725 | 2 days
+Total realised: Rs.2,001
+
+Open: 8 trades
+Need: 27+ more completed trades before Phase 4
+```
+
+---
+
+# SECTION 5 — KEY FILE DETAILS
+
+## generate_education.py v1.1
+
+```
+Mode detection: auto-detects from weekday if CONTENT_MODE env is empty
+  Empty + Saturday = weekend (confirmed working 17 May 2026)
+LANG: from EDUCATION_LANG env var (hi or en)
+
+Title format: "Topic | Week N | AI360 Trading"
+  clean_edu_title() strips stray percentages
+
+Duration settings:
+  MIN_SLIDES = 22
+  MIN_WORDS_SLIDE = 80 (produces ~17 min — may want to reduce to 60 for ~10 min)
+  expand_slide_content() forces minimum word count
+  check_duration() warns if under 8 min threshold
+
+Week auto-advances from content_calendar.get_todays_education_topic()
+  COURSE_START = date(2026, 5, 15)
+  Week 1 = May 15-21 | Week 2 = May 22-28 | etc.
+```
 
 ## ai_client.py v2.2
 
@@ -254,10 +303,6 @@ System prompts by mode:
   "education" → teacher persona (NO chart/setup/breakout language)
   "weekend"   → casual educator
   "holiday"   → motivational
-
-Stability AI image generation:
-  img_client.generate_background(stock, sentiment, style)
-  Uses STABILITY_API_KEY — ~25 credits/month free
 ```
 
 ## human_touch.py v2.2
@@ -271,30 +316,19 @@ Key functions:
   ht.get_video_description(mode, lang, week, topic)
   ht.get_cta(lang, mode)
   ht.humanize(text, lang)
-  ht.get_tts_speed()   → 0.95-1.05x variation
+  ht.get_tts_speed() → 0.95-1.05x variation
 
   seo.get_video_tags(mode, is_short, channel, lang)
     mode="education" → education SEO tags
     mode="market"    → trading SEO tags
     channel="kids"   → kids SEO tags
 
-  seo.get_youtube_safe_tags(tags)  → ASCII only, max 480 chars
-  seo.format_article_tags(tags)    → Jekyll frontmatter format
+  seo.get_youtube_safe_tags(tags) → ASCII only, max 480 chars
 
-Permanent fixes (active for all generators):
-  safe_thumbnail_text(text)
-    → strips Devanagari chars, keeps Rs. and numbers
-    → fixes "paa" artifact in PIL rendering
-
-  safe_tts_price(val, lang)
-    → "1457 rupaye" not Rs.1457
-    → fixes TTS reading symbol incorrectly
-
-  get_prompt_rules(lang, sym, cmp, sl, target, mode)
-    → injects 3 rules into every AI prompt
-    → Rule 1: thumbnail text = English only
-    → Rule 2: exact numbers from Sheet, never change
-    → Rule 3: no Rs. symbol in spoken TTS script
+Permanent fixes:
+  safe_thumbnail_text(text) → strips Devanagari, keeps Rs. and numbers
+  safe_tts_price(val, lang) → "1457 rupaye" not Rs.1457
+  get_prompt_rules(lang, sym, cmp, sl, target, mode) → 3 rules in every AI prompt
 ```
 
 ## content_calendar.py v2.1
@@ -304,15 +338,11 @@ TWO separate functions:
 
 get_todays_topic()
   → day-of-week topics for articles and reels
-  → Monday=Options, Tuesday=Technical, Wednesday=Fundamental
-  → Thursday=Strategies, Friday=Psychology, Weekend=Evergreen
 
 get_todays_education_topic()
   → 52-week progressive course for education videos
   → week auto-calculated from COURSE_START = date(2026, 5, 15)
   → returns dict WITH "week" key
-  → Week 1: Stock Market Kya Hai
-  → Week 52: Course Complete
 
 52-week phases:
   Wk 1-8:   Foundations (demat, NSE/BSE, IPO, dividend, MF, SIP)
@@ -349,21 +379,15 @@ Characters:
   Heroo: brave 10-yr Indian boy, red-blue superhero suit, golden H emblem
   Arya: cheerful 8-yr Indian girl, orange kurta, star clip braids
 
-KIDS_OUTPUT env var:
-  full       → 10 scenes x 45 sec = ~7.5 min full story
-  short      → 35-45 sec cliffhanger (different script from full)
-  didyouknow → 20-30 sec fun fact
-
-KIDS_LANG env var:
-  hi → Swara voice, Hindi scripts
-  en → Jenny voice, English scripts (Phase 3)
+KIDS_OUTPUT: full (10 scenes ~7.5 min) | short (35-45s) | didyouknow (20-30s)
+KIDS_LANG: hi (Swara) | en (Jenny — Phase 3)
 ```
 
 ## generate_shorts.py v3.0
 
 ```
 Stock selection:
-  Weekday (market mode): AlertLog top stock by Priority Score
+  Weekday: AlertLog top stock by Priority Score
   Weekend/holiday: Nifty200 base/near-breakout stocks
 
 ZENO emotion (STAGE TAKES PRIORITY OVER PCT_CHANGE):
@@ -377,73 +401,51 @@ ZENO emotion (STAGE TAKES PRIORITY OVER PCT_CHANGE):
   default            → zeno_thinking.png
 
 Facebook: Hindi only, page token (not group — group broken)
-Thumbnail: safe_thumbnail_text() — no Hindi chars in PIL
-TTS: safe_tts_price() — no Rs. symbol
-```
-
-## generate_education.py v1.1
-
-```
-Mode detection: auto-detects from weekday if CONTENT_MODE env is empty
-LANG: from EDUCATION_LANG env var (hi or en)
-
-Title format: "Topic | Week N | AI360 Trading"
-  clean_edu_title() strips stray percentages (was "5%" appearing in title)
-
-Duration: 22 slides minimum, expand_slide_content() forces 80+ words/slide
-  22 slides x ~100 words x 0.5s/word = ~10-12 min video
-  check_duration() warns if under 8 min (mid-roll ad threshold)
+Thumbnail: safe_thumbnail_text() strips Devanagari chars
+TTS: safe_tts_price() — no Rs. symbol in spoken script
 ```
 
 ## trading_bot.py v15.0
 
 ```
-5 entry filters (order = fastest first):
+5 entry filters (fastest first):
   1. Re-entry cooldown (RECD) — memory lookup, instant
      After TARGET HIT: 5 trading days no re-entry
-     After SL/TSL: no cooldown (can re-enter next day)
+     After SL/TSL: no cooldown
 
   2. Time window — date math, instant
      Bearish: 9:15 AM - 11:00 AM only
      Bullish: 9:15 AM - 2:30 PM
-     Monday before 10 AM: skip
-     Friday after 2 PM: skip
+     Monday before 10 AM: skip | Friday after 2 PM: skip
 
   3. Daily entry limit — count, instant
-     Bearish: max 1 per day
-     Bullish: max 3 per day
+     Bearish: max 1 per day | Bullish: max 3 per day
 
   4. Nifty direction — sheet value, instant
      Bearish: Nifty must be GREEN (>0%)
      Bullish: Nifty > -0.3%
 
   5. RSI(14) via yfinance — API call, only if 1-4 pass
-     Bearish: RSI < 58
-     Bullish: RSI < 65
+     Bearish: RSI < 58 | Bullish: RSI < 65
      Failure: entry allowed (safe default)
 
-Telegram: 3 channels differentiated
-  Basic: simplified message only
-  Advance: full entry/exit/TSL details + RSI + Nifty%
-  Premium: Advance + options signal flag
+Telegram: Basic (simplified) | Advance (full details) | Premium (+ options)
 ```
 
 ---
 
-# SECTION 5 — TRADING SYSTEM
+# SECTION 6 — TRADING SYSTEM
 
-## AppScript v15.5 (Google Sheets — NOT in GitHub)
+## AppScript v15.5 (NOT in GitHub)
 
 ```
-Bound to: https://docs.google.com/spreadsheets/d/1fPNGL6AHs-7M-oC22zILg9FlyWi-7DF9NoVVqZQs2vk
-Sheet tabs: AlertLog, Nifty200, History, BotMemory
+Bound to sheet: 1fPNGL6AHs-7M-oC22zILg9FlyWi-7DF9NoVVqZQs2vk
+Tabs: AlertLog, Nifty200, History, BotMemory
 
-11-gate filter → WAITING stocks written to AlertLog
-_cleanSystemControlColumn() → protects T4, clears col T rows 3+
+11-gate filter → WAITING stocks → AlertLog
+_cleanSystemControlColumn() → protects T4
 Options signals → cols U-X + Premium Telegram
-Two entry types: Breakout (Gates 1-10) and Base (Gate 11)
-
-Base entry: FII Accumulation + VCP tight + DaysLow>=15 + SMA Bull + 5% below ATH
+Entry types: Breakout (Gates 1-10) | Base (Gate 11)
 ```
 
 ## AlertLog Column Map (0-based)
@@ -460,44 +462,50 @@ U=20 Options Signal V=21 Strike        W=22 Expiry
 X=23 Theta Risk
 
 T2 = automation switch YES/NO
-T4 = Python bot state per stock
-     NSE_SYM_TSL_, NSE_SYM_MAX_, NSE_SYM_LP_
-     NSE_SYM_ATR_, NSE_SYM_EXDT_, NSE_SYM_RECD_
-```
-
-## Paper Trading Performance (Week 1)
-
-```
-3 wins / 0 losses = 100% win rate
-  BSE:        Entry Rs.3880 → Rs.4030 | +3.87% | Rs.502 | 1 day
-  IDEA:       Entry Rs.12.45 → Rs.13.19 | +5.94% | Rs.773 | 2 days
-  ADANIPORTS: Entry Rs.1716 → Rs.1812 | +5.58% | Rs.725 | 2 days
-Total realised: Rs.2,001
-
-Open: 8 trades
-Need: 27+ more completed trades before Phase 4
+T4 = Python bot state (TSL/MAX/LP/ATR/EXDT/RECD per stock)
 ```
 
 ---
 
-# SECTION 6 — PLATFORMS STATUS
+# SECTION 7 — PLATFORMS STATUS
 
-| Platform | Status | Pending |
-|----------|--------|---------|
-| YouTube Hindi | ✅ Auto | — |
-| YouTube Kids Hindi (HerooQuest) | ✅ Auto | — |
+| Platform | Status | Note |
+|----------|--------|------|
+| YouTube Hindi | ✅ Auto | Education + Shorts + Reels |
+| YouTube Kids Hindi (HerooQuest) | ✅ Auto | 3 videos/day |
 | YouTube English | 🔄 Phase 3 | Add YOUTUBE_CREDENTIALS_EN |
 | YouTube Kids English | 🔄 Phase 3 | Add YOUTUBE_CREDENTIALS_KIDS_EN |
-| Facebook Page AI360 | ✅ Auto | — |
-| Facebook Page HerooQuest | ✅ Auto | — |
-| Facebook Group | ❌ Broken | Needs publish_to_groups token scope |
+| Facebook AI360 Page | ✅ Auto | Token updated 17 May 2026 |
+| Facebook HerooQuest Page | ✅ Auto | Same token — auto exchanges |
+| Facebook Group | ❌ Broken | Needs publish_to_groups Advanced Access |
 | Instagram | ❌ Removed | Manual only |
-| GitHub Pages ai360trading.in | ✅ Auto | — |
-| Telegram 3 channels | ✅ Auto | — |
+| GitHub Pages ai360trading.in | ✅ Auto | 4 articles/day |
+| Telegram 3 channels | ✅ Auto | Paper trading signals |
+
+## Facebook Pages (confirmed 17 May 2026)
+
+```
+AI360Trading page:
+  URL: facebook.com/ai360trading.official
+  Name: still "Unofficial Amit Kumar" — change pending after category switch
+  Category: Education (changed from Digital Creator)
+  Type: Business (changed from Creator)
+  Action: Try name change to "AI360 Trading" via Settings → Page Info → Name
+
+HerooQuest page:
+  URL: facebook.com/HerooQuest
+  Name: HerooQuest ✅ (correct — no change needed)
+  Category: Education ✅
+  Type: Business ✅
+
+META_ACCESS_TOKEN: Updated 17 May 2026
+  Token works for both pages automatically
+  token_refresh.py auto-renews on 1st and 20th of month
+```
 
 ---
 
-# SECTION 7 — GITHUB SECRETS
+# SECTION 8 — GITHUB SECRETS
 
 ```
 Telegram:
@@ -505,54 +513,54 @@ Telegram:
   CHAT_ID_BASIC, CHAT_ID_ADVANCE, CHAT_ID_PREMIUM
 
 AI360Trading Social:
-  META_ACCESS_TOKEN (auto-refreshed every 50 days)
+  META_ACCESS_TOKEN  (updated 17 May 2026 — auto-refreshed)
   META_APP_ID, META_APP_SECRET
   FACEBOOK_PAGE_ID
-  FACEBOOK_GROUP_ID (group posting broken)
+  FACEBOOK_GROUP_ID  (group posting broken)
   YOUTUBE_CREDENTIALS (Hindi)
   YOUTUBE_CREDENTIALS_EN (Phase 3 — not set)
 
 HerooQuest Kids:
   FACEBOOK_KIDS_PAGE_ID
-  META_ACCESS_TOKEN_KIDS
+  META_ACCESS_TOKEN_KIDS (same user token — auto exchanges for kids page)
   YOUTUBE_CREDENTIALS_KIDS (Hindi kids)
   YOUTUBE_CREDENTIALS_KIDS_EN (Phase 3 — not set)
 
 AI Providers:
   GROQ_API_KEY (primary)
-  GEMINI_API_KEY (secondary + image generation)
+  GEMINI_API_KEY (secondary + kids image generation)
   ANTHROPIC_API_KEY (tertiary)
-  OPENAI_API_KEY (quaternary + DALL-E 3)
-  HF_TOKEN (HuggingFace FLUX.1 image generation)
+  OPENAI_API_KEY (quaternary + DALL-E 3 for kids)
+  HF_TOKEN (HuggingFace FLUX.1 for kids images)
   STABILITY_API_KEY (Stability AI backgrounds)
 
 Google + GitHub:
-  GCP_SERVICE_ACCOUNT_JSON (Sheets + Search Console)
-  GH_TOKEN (GitHub API)
-  GOOGLE_SHEET_ID (AlertLog sheet)
+  GCP_SERVICE_ACCOUNT_JSON
+  GH_TOKEN
+  GOOGLE_SHEET_ID
 
 Dhan API (Phase 4 — not connected):
-  DHAN_API_KEY, DHAN_API_SECRET
-  DHAN_CLIENT_ID, DHAN_PIN, DHAN_TOTP_KEY
+  DHAN_API_KEY, DHAN_API_SECRET, DHAN_CLIENT_ID, DHAN_PIN, DHAN_TOTP_KEY
 ```
 
 ---
 
-# SECTION 8 — PENDING TASKS
+# SECTION 9 — PENDING TASKS
 
 ## 🔴 Critical
 
 | Task | Action |
 |------|--------|
-| Facebook Group token | Graph API Explorer → add publish_to_groups → update secret |
+| Facebook page name change | Settings → Page Info → Name → "AI360 Trading" (category now Education+Business — should work) |
+| Facebook Group posting | Apply for publish_to_groups Advanced Access at developers.facebook.com |
 
 ## 🟡 Important This Week
 
 | Task | Action |
 |------|--------|
-| Add YOUTUBE_CREDENTIALS_EN | English channel upload |
-| Add YOUTUBE_CREDENTIALS_KIDS_EN | Kids English upload |
-| Monitor generate_kids_video.py v2.1 | Confirm 7+ min duration next run |
+| Add YOUTUBE_CREDENTIALS_EN | English trading channel upload |
+| Add YOUTUBE_CREDENTIALS_KIDS_EN | HerooQuest English upload |
+| Consider reducing education video length | MIN_WORDS_SLIDE 80→60 or MIN_SLIDES 22→16 for ~10 min sweet spot |
 
 ## 🟢 Medium Term
 
@@ -565,24 +573,27 @@ Dhan API (Phase 4 — not connected):
 
 ---
 
-# SECTION 9 — PHASE ROADMAP
+# SECTION 10 — PHASE ROADMAP
 
 ## Phase 1 ✅ Infrastructure (Complete)
 ## Phase 2 ✅ Content Upgrade (Complete)
 
 ## Phase 3 🔄 English + Global (Building)
-- [x] 52-week education course
-- [x] generate_shorts.py v3.0
-- [x] generate_kids_video.py v2.1
-- [x] heroo.png fixed
-- [x] human_touch.py v2.2
-- [x] ai_client.py v2.2
-- [x] trading_bot.py v15.0
-- [x] Options signals AppScript v15.5
-- [x] Base entry AppScript v15.4
+- [x] 52-week education course ✅ confirmed working 17.9 min
+- [x] generate_shorts.py v3.0 ✅
+- [x] generate_kids_video.py v2.1 ✅
+- [x] heroo.png fixed ✅
+- [x] human_touch.py v2.2 ✅
+- [x] ai_client.py v2.2 ✅
+- [x] trading_bot.py v15.0 ✅
+- [x] Options signals AppScript v15.5 ✅
+- [x] Base entry AppScript v15.4 ✅
+- [x] META_ACCESS_TOKEN updated ✅
+- [x] Facebook pages: Education + Business category ✅
 - [ ] YOUTUBE_CREDENTIALS_EN
 - [ ] YOUTUBE_CREDENTIALS_KIDS_EN
 - [ ] Facebook Group token fix
+- [ ] Facebook page name: "AI360 Trading"
 
 ## Phase 4 📋 Live Trading
 - After 30+ paper trades with win rate > 55%
@@ -591,21 +602,21 @@ Dhan API (Phase 4 — not connected):
 
 ---
 
-# SECTION 10 — MEMBERSHIP
+# SECTION 11 — MEMBERSHIP
 
 | Plan | Price | Annual |
 |------|-------|--------|
 | Advance | Rs.699/month | Rs.5,588/year |
 | Premium | Rs.1,499/month | Rs.11,988/year |
 
-UPI: 9634759528@upi
-WhatsApp: 9634759528
+UPI: 9634759528@upi | WhatsApp: 9634759528
+Advance: signals, TradingView, Chartink, private videos
+Premium: Advance + options signals, live sessions, Sheet access
 
-## Broker Links
-- Zerodha: https://bit.ly/2VK6k5F
-- Dhan: https://invite.dhan.co/?invite=MSIVC45309
+Broker links:
+  Zerodha: https://bit.ly/2VK6k5F
+  Dhan: https://invite.dhan.co/?invite=MSIVC45309
 
-## Contact
-- Email: admin@ai360trading.in
-- Disclaimer: ai360trading.in/disclaimer/
-- Legal: Educational only. Not SEBI registered.
+Contact: admin@ai360trading.in
+Legal: Educational only. Not SEBI registered.
+Disclaimer: ai360trading.in/disclaimer/
