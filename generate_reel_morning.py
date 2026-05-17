@@ -3,25 +3,20 @@ generate_reel_morning.py — Morning Reel Generator (7:00 AM IST)
 ===============================================================
 v2.1 FIXES (May 2026):
 
-FIX 1 — Background music muted by Meta
-  Problem: bgmusic*.mp3 files are copyrighted — Meta mutes video in many countries
-           "Your video is muted in certain countries where Meta does not have music rights"
-           Result: video plays silently = zero watch time on Facebook
-  Fix: Background music completely removed
-       TTS voice only — clear and professional
-       No copyright issues ever
+FIX 1 — Background music removed
+  public/music/ deleted — no bgmusic files exist anymore
+  TTS voice only — no copyright issues on any platform
 
-FIX 2 — Stale Nifty level (18500 from 2022-2023 training data)
-  Problem: AI prompt had no live data → AI used training memory → Nifty 18500 shown
-           Current Nifty = 23,643 — wrong data looks unprofessional
-  Fix: Fetch live Nifty from yfinance before building prompt
-       Inject live level + % change into prompt
-       If yfinance fails: block AI from mentioning any specific level
+FIX 2 — Live Nifty data injected before prompt
+  Prevents AI using Nifty 18500 (2022-2023 training data)
+  yfinance fetches ^NSEI live level before building prompt
+  If yfinance fails: AI blocked from mentioning any specific level
 
-2nd daily reel — different from 8:30 PM ZENO reel.
-Topic auto-selected by day of week + target country.
-Style: motivational, educational, global audience focused.
-Voice: hi-IN-SwaraNeural (Hindi) or en-US-JennyNeural (English)
+FIX 3 — Proper thumbnail with big text
+  Old: text lines on gradient — tiny on mobile
+  New: ZENO 65% height + 120px bold yellow topic text
+       Stock/topic name visible in 2 seconds on mobile feed
+
 Schedule: 7:00 AM IST daily
 """
 
@@ -29,7 +24,6 @@ import os
 import json
 import asyncio
 import logging
-import random
 from datetime import datetime
 from pathlib import Path
 
@@ -49,8 +43,7 @@ IST = pytz.timezone("Asia/Kolkata")
 OUTPUT_DIR = Path("output")
 OUTPUT_DIR.mkdir(exist_ok=True)
 
-ASSETS_DIR = Path("public")
-IMAGE_DIR  = ASSETS_DIR / "image"
+IMAGE_DIR = Path("public/image")
 
 CONTENT_MODE = os.environ.get("CONTENT_MODE", "market")
 LANG         = os.environ.get("LANG_MODE", "hi")
@@ -79,391 +72,401 @@ PALETTES = [
 
 TODAY_PALETTE = PALETTES[WEEKDAY % len(PALETTES)]
 
+FONT_BOLD_PATHS = [
+    "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+    "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
+    "/usr/share/fonts/truetype/ubuntu/Ubuntu-B.ttf",
+]
+FONT_REG_PATHS = [
+    "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+    "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+]
 
-# ─────────────────────────────────────────────
-# v2.1 FIX 2: Fetch live Nifty data
-# ─────────────────────────────────────────────
+def get_font(paths, size):
+    if isinstance(paths, str): paths = [paths]
+    for p in paths:
+        if os.path.exists(p):
+            try: return ImageFont.truetype(p, size)
+            except: continue
+    return ImageFont.load_default()
+
+def lerp(c1, c2, t):
+    return tuple(int(c1[i]+(c2[i]-c1[i])*t) for i in range(3))
+
+
+# ─── v2.1 FIX 2: Live Nifty ───────────────────────────────────────────────────
 
 def get_live_nifty_data() -> str:
-    """
-    Fetch live Nifty 50 level from yfinance.
-    Returns string injected into AI prompt.
-
-    Prevents AI from using stale training data levels like 18500.
-    """
     try:
         import yfinance as yf
-        ticker = yf.Ticker("^NSEI")
-        info   = ticker.fast_info
-        cmp    = info.get('last_price', 0)
-        prev   = info.get('previous_close', 0)
-
+        info = yf.Ticker("^NSEI").fast_info
+        cmp  = info.get('last_price', 0)
+        prev = info.get('previous_close', 0)
         if cmp > 15000 and prev > 0:
-            pct     = round(((cmp - prev) / prev) * 100, 2)
+            pct     = round(((cmp-prev)/prev)*100, 2)
             cmp_int = int(round(cmp, 0))
             logger.info(f"[NIFTY] Live: {cmp_int} ({pct:+.2f}%)")
             return (
                 f"\nLIVE MARKET DATA — use ONLY these numbers:\n"
-                f"  Nifty 50 level today: {cmp_int}\n"
+                f"  Nifty 50 level: {cmp_int}\n"
                 f"  Nifty change: {pct:+.2f}%\n"
-                f"  CRITICAL: Never use 18500, 22000, or any other Nifty level from memory.\n"
-                f"  If you mention Nifty, always say {cmp_int} only.\n"
+                f"  CRITICAL: Never use 18500 or any level from memory. Use {cmp_int} only.\n"
             )
-        raise ValueError(f"Unrealistic Nifty value: {cmp}")
-
+        raise ValueError(f"Unrealistic: {cmp}")
     except Exception as e:
-        logger.warning(f"[NIFTY] yfinance failed ({e}) — blocking hallucination")
+        logger.warning(f"[NIFTY] Failed ({e}) — blocking hallucination")
         return (
-            "\nCRITICAL RULE: Do NOT mention any specific Nifty or index numbers. "
-            "You have no live data. Say 'current market' or 'today's levels' "
-            "without ever specifying any number.\n"
+            "\nCRITICAL: Do NOT mention any specific Nifty numbers. "
+            "Say 'current market levels' only — never specify a number.\n"
         )
 
 
-# ─────────────────────────────────────────────
-# STEP 1: Generate Script
-# ─────────────────────────────────────────────
+# ─── SCRIPT GENERATION ────────────────────────────────────────────────────────
 
 def generate_morning_script() -> dict:
-    """Generate morning reel script — with live Nifty data injected."""
     topic_data       = MORNING_REEL_TOPICS[WEEKDAY]
     topic            = topic_data["topic"]
     angle            = topic_data["angle"]
     target_countries = topic_data["target_country"]
     hook             = topic_data["hook_hi"] if LANG == "hi" else topic_data["hook_en"]
     cta              = ht.get_cta(LANG)
-
-    # v2.1 FIX: Get live Nifty data BEFORE building prompt
-    nifty_data = get_live_nifty_data()
+    nifty_data       = get_live_nifty_data()
 
     prompt = f"""
 Create a 55-second morning reel script for AI360Trading.
-
 Topic: {topic}
 Angle: {angle}
-Target Countries: {', '.join(target_countries)}
-Language: {"Hindi-English mix (Hinglish)" if LANG == "hi" else "English"}
-Time: 7:00 AM — morning motivation + market prep
+Target: {', '.join(target_countries)}
+Language: {"Hinglish" if LANG == "hi" else "English"}
+Hook (use exactly as line 1): {hook}
 
-Hook (use this exactly as line 1): {hook}
-
-Script requirements:
-- 8-10 short punchy lines (each line = 5-7 words max)
-- Line 1: The hook above
-- Lines 2-7: Key insight, 2-3 actionable points
-- Line 8: Personal touch — real trader perspective
-- Line 9-10: Strong CTA: {cta}
-- Total reading time: ~50-55 seconds at normal pace
-- Tone: Morning energy — motivating, clear, confident
-- {"Hinglish (Hindi + English mix)" if LANG == "hi" else "Natural English"}
-
+Requirements:
+- 8-10 punchy lines (5-7 words each)
+- Line 1 = hook above
+- Lines 2-8 = key insight + actionable points
+- Last line = CTA: {cta}
+- Tone: Morning energy, motivating
 {nifty_data}
 
-Return as JSON:
+Return JSON:
 {{
-  "title": "SEO-optimised YouTube title max 70 chars",
-  "lines": ["line1", "line2", ...],
-  "description": "YouTube description 200 chars with global keywords",
+  "title": "SEO title max 70 chars",
+  "lines": ["line1","line2",...],
+  "topic_display": "2-4 word topic for thumbnail (English only, no Hindi chars)",
+  "description": "200 char YouTube description",
   "topic": "{topic}",
   "target_countries": {json.dumps(target_countries)}
-}}
-"""
+}}"""
 
-    logger.info(f"Generating morning reel — {topic} | {['Mon','Tue','Wed','Thu','Fri','Sat','Sun'][WEEKDAY]}")
-
+    logger.info(f"Generating morning reel — {topic}")
     result = ai.generate_json(prompt=prompt, content_mode=CONTENT_MODE, lang=LANG)
 
     if not result or "lines" not in result:
-        logger.warning("JSON generation failed — using fallback")
+        logger.warning("Fallback script")
         result = _fallback_script(topic, hook, cta, target_countries)
 
     result["lines"] = ht.humanize_script_lines(result.get("lines", []), LANG)
-    logger.info(f"Script ready: {len(result.get('lines', []))} lines via {ai.active_provider}")
     return result
 
 
 def _fallback_script(topic, hook, cta, countries):
-    lines = [
-        hook,
-        "Aaj ka market ek important message de raha hai." if LANG == "hi" else "Today's market has an important message.",
-        "Smart traders yeh pehle se jaante hain." if LANG == "hi" else "Smart money knows this before the open.",
-        "Har successful trade ke peeche ek plan hota hai." if LANG == "hi" else "Every successful trade starts with a plan.",
-        "Risk manage karo — profit automatically aayega." if LANG == "hi" else "Manage risk first — profits follow naturally.",
-        "Patience aur discipline — yeh do cheezein zaroori hain." if LANG == "hi" else "Patience and discipline beat any indicator.",
-        ht.get_personal_phrase(LANG) + (" consistent traders hi jeette hain." if LANG == "hi" else " consistent traders always win."),
-        cta,
-    ]
+    lines = [hook,
+        "Aaj ka market ek important message de raha hai." if LANG=="hi" else "Today's market has an important message.",
+        "Smart traders yeh pehle se jaante hain." if LANG=="hi" else "Smart money knows this before the open.",
+        "Har successful trade ke peeche ek plan hota hai." if LANG=="hi" else "Every successful trade starts with a plan.",
+        "Risk manage karo profit aayega." if LANG=="hi" else "Manage risk first profits follow.",
+        "Patience aur discipline zaroori hain." if LANG=="hi" else "Patience and discipline beat any indicator.",
+        cta]
     return {
-        "title": f"{topic} — AI360Trading Morning Brief",
+        "title": f"{topic} — AI360Trading",
         "lines": lines,
-        "description": f"Morning trading insight: {topic}. For {', '.join(countries)} investors.",
+        "topic_display": topic[:20],
+        "description": f"Morning insight: {topic}. For {', '.join(countries)} investors.",
         "topic": topic,
         "target_countries": countries,
     }
 
 
-# ─────────────────────────────────────────────
-# STEP 2: Generate TTS Audio
-# ─────────────────────────────────────────────
+# ─── v2.1 FIX 3: PROPER THUMBNAIL ────────────────────────────────────────────
+
+def build_thumbnail(topic_display, palette):
+    """
+    Morning reel thumbnail — drives CTR.
+
+    Layout:
+      - Bright colourful gradient (day-based palette)
+      - ZENO happy — 65% height, right side
+      - Topic text — 120px bold yellow, left side
+      - "MORNING BRIEF" badge — top left
+      - Time badge "7:00 AM" — accent colour
+      - Accent bars top and bottom
+
+    Why this drives more clicks than the old design:
+      Old: Just text lines on gradient — no face, no focal point
+      New: ZENO face visible + large topic text = clear in 2 seconds
+    """
+    W, H    = VIDEO_WIDTH, VIDEO_HEIGHT
+    accent  = palette["accent"]
+    bg      = palette["bg"]
+
+    img = Image.new("RGB", (W, H))
+    px  = img.load()
+    for y in range(H):
+        c = lerp(bg, tuple(min(255, x+30) for x in bg), y/H)
+        for x in range(W): px[x, y] = c
+
+    draw = ImageDraw.Draw(img, "RGBA")
+
+    # Accent bars
+    draw.rectangle([(0, 0), (W, 14)],   fill=accent)
+    draw.rectangle([(0, H-14), (W, H)], fill=accent)
+
+    # ZENO — right side, 65% height
+    zeno_path = IMAGE_DIR / "zeno_happy.png"
+    if not zeno_path.exists():
+        zeno_path = IMAGE_DIR / "zeno_thinking.png"
+    if zeno_path.exists():
+        try:
+            zeno   = Image.open(str(zeno_path)).convert("RGBA")
+            zeno_h = int(H * 0.65)
+            zeno_w = int(zeno.width * (zeno_h / zeno.height))
+            zeno   = zeno.resize((zeno_w, zeno_h), Image.LANCZOS)
+            zeno_x = W - zeno_w - 10
+            zeno_y = H - zeno_h - 60
+            img.paste(zeno, (zeno_x, zeno_y), zeno)
+        except Exception as e:
+            logger.warning(f"Thumbnail ZENO: {e}")
+
+    draw = ImageDraw.Draw(img, "RGBA")
+
+    f_big   = get_font(FONT_BOLD_PATHS, 120)
+    f_sub   = get_font(FONT_BOLD_PATHS, 54)
+    f_badge = get_font(FONT_BOLD_PATHS, 44)
+    f_time  = get_font(FONT_BOLD_PATHS, 52)
+
+    import textwrap
+    safe_topic  = topic_display.upper() if topic_display else "MORNING BRIEF"
+    topic_lines = textwrap.wrap(safe_topic, width=10)
+    ty = 120
+    for line in topic_lines[:3]:
+        for dx, dy in [(-3,3),(3,-3),(-3,-3),(3,3)]:
+            draw.text((80+dx, ty+dy), line, font=f_big,
+                      fill=(0,0,0,200), anchor="la")
+        draw.text((80, ty), line, font=f_big,
+                  fill=(255, 200, 0), anchor="la")
+        ty += 138
+
+    # 7:00 AM badge
+    draw.rounded_rectangle([(80, ty+20), (340, ty+90)], radius=14, fill=(*accent, 180))
+    draw.text((210, ty+55), "⏰ 7:00 AM", font=f_time,
+              fill=(0, 0, 0), anchor="mm")
+
+    # MORNING BRIEF badge — top left
+    draw.rounded_rectangle([(20, 20), (360, 80)], radius=14, fill=(255, 200, 0))
+    draw.text((190, 50), "☀️ MORNING BRIEF", font=f_badge,
+              fill=(0, 0, 0), anchor="mm")
+
+    # AI360Trading watermark — bottom
+    f_wm = get_font(FONT_REG_PATHS, 36)
+    draw.text((W//2, H-60), "AI360Trading.in",
+              font=f_wm, fill=(200, 220, 255, 200), anchor="mm")
+
+    thumb_path = OUTPUT_DIR / f"morning_reel_thumb_{DATE_STR}.png"
+    img.save(str(thumb_path), quality=95)
+    logger.info(f"Thumbnail saved: {thumb_path.name}")
+    return thumb_path
+
+
+# ─── TTS ──────────────────────────────────────────────────────────────────────
 
 async def generate_tts(lines: list, output_path: str) -> bool:
-    """Generate TTS audio — voice only, no background music."""
     try:
         import edge_tts
     except ImportError:
-        logger.error("edge-tts not installed")
-        return False
+        logger.error("edge-tts not installed"); return False
 
     voice    = VOICE_HI if LANG == "hi" else VOICE_EN
     speed    = ht.get_tts_speed()
-    rate_str = f"+{int((speed - 1) * 100)}%" if speed >= 1 else f"{int((speed - 1) * 100)}%"
-    full_text = ". ".join(lines)
+    rate_str = f"+{int((speed-1)*100)}%" if speed >= 1 else f"{int((speed-1)*100)}%"
+    text     = ". ".join(lines)
 
-    logger.info(f"TTS: voice={voice}, speed={speed}")
-    communicate = edge_tts.Communicate(full_text, voice, rate=rate_str)
-    await communicate.save(output_path)
-
-    if os.path.exists(output_path) and os.path.getsize(output_path) > 0:
-        logger.info(f"TTS saved: {output_path}")
-        return True
-
-    logger.error("TTS failed")
-    return False
+    await edge_tts.Communicate(text, voice, rate=rate_str).save(output_path)
+    ok = os.path.exists(output_path) and os.path.getsize(output_path) > 0
+    if ok: logger.info(f"TTS saved: {output_path}")
+    else:  logger.error("TTS failed")
+    return ok
 
 
-# ─────────────────────────────────────────────
-# STEP 3: Create Video Frames
-# ─────────────────────────────────────────────
+# ─── FRAMES ───────────────────────────────────────────────────────────────────
 
 def create_frame(line, line_index, total_lines, topic, palette, zeno_image=None):
     img  = Image.new("RGB", (VIDEO_WIDTH, VIDEO_HEIGHT), color=palette["bg"])
     draw = ImageDraw.Draw(img)
 
-    # Gradient background
     for y in range(VIDEO_HEIGHT):
         alpha = y / VIDEO_HEIGHT
         r = int(palette["bg"][0] * (1 - alpha * 0.3))
         g = int(palette["bg"][1] * (1 - alpha * 0.3))
         b = int(palette["bg"][2] + alpha * 20)
-        draw.line([(0, y), (VIDEO_WIDTH, y)],
-                  fill=(min(255,max(0,r)), min(255,max(0,g)), min(255,max(0,b))))
+        draw.line([(0,y),(VIDEO_WIDTH,y)],fill=(
+            min(255,max(0,r)), min(255,max(0,g)), min(255,max(0,b))))
 
-    # Top accent bar
-    draw.rectangle([(0, 0), (VIDEO_WIDTH, 8)], fill=palette["accent"])
+    draw.rectangle([(0,0),(VIDEO_WIDTH,8)], fill=palette["accent"])
 
     # Watermark
-    try:
-        wm_font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 36)
-    except:
-        wm_font = ImageFont.load_default()
-    draw.text((40, 30), "AI360Trading", font=wm_font, fill=palette["accent"])
+    wm_font = get_font(FONT_BOLD_PATHS, 36)
+    draw.text((40,30), "AI360Trading", font=wm_font, fill=palette["accent"])
 
     # Progress dots
-    dot_y       = 90
-    dot_spacing = 20
-    dot_start_x = VIDEO_WIDTH // 2 - (total_lines * dot_spacing) // 2
+    dot_y    = 90; dot_sp = 20
+    dot_sx   = VIDEO_WIDTH//2 - (total_lines*dot_sp)//2
     for i in range(total_lines):
-        color = palette["accent"] if i <= line_index else (80, 80, 80)
-        draw.ellipse([(dot_start_x + i*dot_spacing - 5, dot_y - 5),
-                      (dot_start_x + i*dot_spacing + 5, dot_y + 5)], fill=color)
+        col = palette["accent"] if i <= line_index else (80,80,80)
+        draw.ellipse([(dot_sx+i*dot_sp-5,dot_y-5),(dot_sx+i*dot_sp+5,dot_y+5)], fill=col)
 
-    # ZENO character
+    # ZENO
     if zeno_image:
         try:
-            zeno_size    = 300
-            zeno_resized = zeno_image.resize((zeno_size, zeno_size), Image.LANCZOS)
-            zx = VIDEO_WIDTH - zeno_size - 40
-            zy = VIDEO_HEIGHT // 2 - zeno_size - 100
-            if zeno_resized.mode == "RGBA":
-                img.paste(zeno_resized, (zx, zy), zeno_resized)
-            else:
-                img.paste(zeno_resized, (zx, zy))
-        except Exception as e:
-            logger.warning(f"ZENO paste failed: {e}")
+            zh = int(VIDEO_HEIGHT*0.45); zw = int(zeno_image.width*(zh/zeno_image.height))
+            zr = zeno_image.resize((zw,zh),Image.LANCZOS)
+            zx = VIDEO_WIDTH-zw-20; zy = VIDEO_HEIGHT-zh
+            img.paste(zr,(zx,zy),zr)
+        except: pass
 
     # Topic label
-    try:
-        topic_font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 32)
-    except:
-        topic_font = ImageFont.load_default()
-    draw.text((VIDEO_WIDTH // 2, VIDEO_HEIGHT // 3), topic.upper(),
-              font=topic_font, fill=palette["accent"], anchor="mm")
+    tl_font = get_font(FONT_BOLD_PATHS, 38)
+    draw     = ImageDraw.Draw(img)
+    draw.text((VIDEO_WIDTH//2, VIDEO_HEIGHT//3), topic.upper(),
+              font=tl_font, fill=palette["accent"], anchor="mm")
 
-    # Main text line
-    try:
-        main_font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 52)
-    except:
-        main_font = ImageFont.load_default()
+    # Main text
+    main_font  = get_font(FONT_BOLD_PATHS, 62)
+    words      = line.split(); wrapped = []; cur = ""
+    for w in words:
+        test = (cur+" "+w).strip()
+        bbox = draw.textbbox((0,0),test,font=main_font)
+        if bbox[2]-bbox[0] > VIDEO_WIDTH-120:
+            if cur: wrapped.append(cur)
+            cur = w
+        else: cur = test
+    if cur: wrapped.append(cur)
 
-    words         = line.split()
-    wrapped_lines = []
-    current       = ""
-    for word in words:
-        test = f"{current} {word}".strip()
-        bbox = draw.textbbox((0, 0), test, font=main_font)
-        if bbox[2] - bbox[0] > VIDEO_WIDTH - 120:
-            if current: wrapped_lines.append(current)
-            current = word
-        else:
-            current = test
-    if current: wrapped_lines.append(current)
-
-    text_y       = VIDEO_HEIGHT // 2
-    line_height  = 70
-    total_height = len(wrapped_lines) * line_height
-    start_y      = text_y - total_height // 2
-
-    for i, wl in enumerate(wrapped_lines):
-        draw.text((VIDEO_WIDTH // 2, start_y + i * line_height),
+    text_y  = VIDEO_HEIGHT//2
+    tot_h   = len(wrapped)*74
+    start_y = text_y - tot_h//2
+    for i, wl in enumerate(wrapped[:5]):
+        draw.text((VIDEO_WIDTH//2, start_y+i*74),
                   wl, font=main_font, fill=palette["text"], anchor="mm")
 
-    # Bottom bar
-    draw.rectangle([(0, VIDEO_HEIGHT - 8), (VIDEO_WIDTH, VIDEO_HEIGHT)], fill=palette["accent"])
-
-    # Morning badge
-    try:
-        badge_font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 28)
-    except:
-        badge_font = ImageFont.load_default()
-    draw.text((VIDEO_WIDTH // 2, VIDEO_HEIGHT - 50), "MORNING BRIEF",
-              font=badge_font, fill=palette["accent"], anchor="mm")
+    draw.rectangle([(0,VIDEO_HEIGHT-10),(VIDEO_WIDTH,VIDEO_HEIGHT)], fill=palette["accent"])
+    draw.text((VIDEO_WIDTH//2, VIDEO_HEIGHT-55), "MORNING BRIEF",
+              font=get_font(FONT_BOLD_PATHS,30), fill=palette["accent"], anchor="mm")
 
     return np.array(img)
 
 
-# ─────────────────────────────────────────────
-# STEP 4: Compose Video
-# v2.1 FIX: No background music — TTS voice only
-# ─────────────────────────────────────────────
+# ─── VIDEO COMPOSITION — NO MUSIC ─────────────────────────────────────────────
 
 def create_morning_video(script, audio_path, output_path) -> bool:
     lines = script.get("lines", [])
     topic = script.get("topic", "Morning Brief")
-
-    if not lines:
-        logger.error("No script lines")
-        return False
+    if not lines: logger.error("No lines"); return False
 
     # Load ZENO
     zeno_image = None
-    zeno_path  = IMAGE_DIR / "zeno_happy.png"
-    if zeno_path.exists():
-        try:
-            zeno_image = Image.open(zeno_path).convert("RGBA")
-        except Exception as e:
-            logger.warning(f"ZENO load failed: {e}")
+    for zp in [IMAGE_DIR/"zeno_happy.png", IMAGE_DIR/"zeno_thinking.png"]:
+        if zp.exists():
+            try: zeno_image = Image.open(str(zp)).convert("RGBA"); break
+            except: pass
 
-    # Create frames
-    seconds_per_line = DURATION / len(lines)
-    frames_per_line  = int(FPS * seconds_per_line)
-    all_frames       = []
-
+    spl     = DURATION / len(lines)
+    fpl     = int(FPS * spl)
+    frames  = []
     for i, line in enumerate(lines):
-        frame = create_frame(line, i, len(lines), topic, TODAY_PALETTE, zeno_image)
-        for _ in range(frames_per_line):
-            all_frames.append(frame)
-
-    logger.info(f"Created {len(all_frames)} frames for {len(lines)} lines")
+        f = create_frame(line, i, len(lines), topic, TODAY_PALETTE, zeno_image)
+        for _ in range(fpl): frames.append(f)
 
     def make_frame(t):
-        frame_idx = min(int(t * FPS), len(all_frames) - 1)
-        return all_frames[frame_idx]
+        idx = min(int(t*FPS), len(frames)-1)
+        return frames[idx]
 
     video = mp.VideoClip(make_frame, duration=DURATION)
 
-    # v2.1 FIX: TTS audio only — NO background music (prevents Meta muting)
+    # TTS only — NO background music (prevents Meta muting)
     if os.path.exists(audio_path):
         try:
-            tts_audio = mp.AudioFileClip(audio_path)
-            tts_dur   = min(DURATION, tts_audio.duration)
-            tts_audio = tts_audio.subclip(0, tts_dur)
-            video     = video.set_audio(tts_audio)
-            logger.info("Audio: TTS voice only (no background music — prevents Meta copyright muting)")
+            tts   = mp.AudioFileClip(audio_path)
+            dur   = min(DURATION, tts.duration)
+            tts   = tts.subclip(0, dur)
+            video = video.set_audio(tts)
+            logger.info("Audio: TTS only (no bgmusic — no copyright risk)")
         except Exception as e:
-            logger.warning(f"TTS audio attach failed: {e}")
+            logger.warning(f"Audio attach: {e}")
 
-    logger.info(f"Exporting: {output_path}")
     video.write_videofile(
-        output_path, fps=FPS, codec="libx264", audio_codec="aac",
-        verbose=False, logger=None
+        output_path, fps=FPS, codec="libx264",
+        audio_codec="aac", verbose=False, logger=None
     )
-
-    if os.path.exists(output_path) and os.path.getsize(output_path) > 0:
-        logger.info(f"Morning reel exported: {output_path}")
-        return True
-
-    logger.error("Video export failed")
-    return False
+    ok = os.path.exists(output_path) and os.path.getsize(output_path) > 0
+    if ok: logger.info(f"Video exported: {output_path}")
+    else:  logger.error("Video export failed")
+    return ok
 
 
-# ─────────────────────────────────────────────
-# STEP 5: Save Meta
-# ─────────────────────────────────────────────
+# ─── META ─────────────────────────────────────────────────────────────────────
 
-def save_meta(script, video_path) -> str:
+def save_meta(script, video_path, thumb_path) -> str:
     meta_path = OUTPUT_DIR / f"morning_reel_meta_{DATE_STR}.json"
     tags      = seo.get_video_tags(CONTENT_MODE, is_short=True)
-
-    target_countries = script.get("target_countries",
-                       MORNING_REEL_TOPICS[WEEKDAY].get("target_country", ["Global"]))
-
     meta = {
         "title":            script.get("title", "Morning Brief — AI360Trading"),
         "description":      script.get("description", "Morning market insight."),
         "tags":             seo.get_youtube_safe_tags(tags),
         "topic":            script.get("topic", ""),
-        "target_countries": target_countries,
+        "target_countries": script.get("target_countries", ["India","USA","UK"]),
         "lang":             LANG,
         "content_mode":     CONTENT_MODE,
         "date":             DATE_STR,
         "video_path":       str(video_path),
-        "posting_tags":     ht.get_posting_time_tag(target_countries),
-        "music":            "none — TTS voice only (no copyright issues)",
+        "thumb_path":       str(thumb_path),
+        "music":            "none — TTS voice only",
     }
-
     with open(meta_path, "w") as f:
         json.dump(meta, f, indent=2)
-
     logger.info(f"Meta saved: {meta_path}")
     return str(meta_path)
 
 
-# ─────────────────────────────────────────────
-# MAIN
-# ─────────────────────────────────────────────
+# ─── MAIN ─────────────────────────────────────────────────────────────────────
 
 async def main():
-    logger.info(f"Morning Reel v2.1 — {TODAY.strftime('%A %d %b %Y')} | Mode: {CONTENT_MODE} | Lang: {LANG}")
+    logger.info(f"Morning Reel v2.1 — {TODAY.strftime('%A %d %b %Y')} | {CONTENT_MODE.upper()} | {LANG.upper()}")
 
-    # Step 1: Script (with live Nifty data)
-    script = generate_morning_script()
-    lines  = script.get("lines", [])
+    script       = generate_morning_script()
+    topic_display= script.get("topic_display", script.get("topic","Morning Brief")[:20])
+    lines        = script.get("lines", [])
     logger.info(f"Script: {len(lines)} lines | Topic: {script.get('topic','')}")
 
-    # Step 2: TTS
     audio_path = str(OUTPUT_DIR / f"morning_reel_audio_{DATE_STR}.mp3")
     tts_ok     = await generate_tts(lines, audio_path)
     if not tts_ok:
-        logger.error("TTS failed — aborting")
-        return
+        logger.error("TTS failed — aborting"); return
 
-    # Step 3+4: Video
     video_path = str(OUTPUT_DIR / f"morning_reel_{DATE_STR}.mp4")
     video_ok   = create_morning_video(script, audio_path, video_path)
     if not video_ok:
-        logger.error("Video creation failed")
-        return
+        logger.error("Video failed"); return
 
-    # Step 5: Meta
-    meta_path = save_meta(script, video_path)
+    # v2.1 FIX: Build proper thumbnail
+    thumb_path = build_thumbnail(topic_display, TODAY_PALETTE)
+
+    save_meta(script, video_path, thumb_path)
 
     logger.info("=" * 55)
     logger.info(f"MORNING REEL DONE")
-    logger.info(f"  Title: {script.get('title','')}")
-    logger.info(f"  Topic: {script.get('topic','')}")
-    logger.info(f"  Lines: {len(lines)}")
-    logger.info(f"  Video: {video_path}")
-    logger.info(f"  Music: none (no copyright risk)")
+    logger.info(f"  Video:     {video_path}")
+    logger.info(f"  Thumbnail: {thumb_path}")
+    logger.info(f"  Music:     none (no copyright risk)")
     logger.info("=" * 55)
 
 
