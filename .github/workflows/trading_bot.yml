@@ -1,9 +1,15 @@
 name: Trading Bot — Signal Monitor
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# FIX v15.0 (May 2026):
+#   TELEGRAM_TOKEN renamed to TELEGRAM_BOT_TOKEN (matches trading_bot.py)
+#   TELEGRAM_CHAT_ID removed (bot uses CHAT_ID_BASIC/ADVANCE/PREMIUM)
+#   CHAT_ID_BASIC added (was missing — bot could not send to Basic channel)
+#   CHAT_ID_ADVANCE and CHAT_ID_PREMIUM were already present
+#
 # CHANNELS:
-#   CHAT_ID_BASIC    = ai360trading_Free  (Follow and Subscribe)
-#   CHAT_ID_ADVANCE  = ai360trading_Advance (₹1000/month)
-#   CHAT_ID_PREMIUM  = ai360trading_Premium (₹3000/month)
+#   CHAT_ID_BASIC   = ai360trading (Free channel)
+#   CHAT_ID_ADVANCE = ai360trading_Advance (Rs.699/month)
+#   CHAT_ID_PREMIUM = ai360trading_Premium (Rs.1499/month)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 on:
   schedule:
@@ -15,8 +21,7 @@ on:
     - cron: '58 6 * * 1-5'
     # Market close backup — 3:15 PM IST (09:45 UTC)
     - cron: '45 9 * * 1-5'
-  # NOTE: 'push' trigger REMOVED — it was causing midnight Telegram messages
-  # every time a commit was pushed (articles, keepalive, content_calendar, etc.)
+  # NOTE: 'push' trigger REMOVED — was causing midnight Telegram messages
   workflow_dispatch:
     inputs:
       mode:
@@ -49,15 +54,17 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install gspread oauth2client requests pytz
+          pip install gspread oauth2client requests pytz yfinance
 
       - name: Run Trading Bot
         env:
           GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
+          # FIX: was TELEGRAM_TOKEN — now matches trading_bot.py variable name
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          # FIX: CHAT_ID_BASIC added — was missing, bot could not alert Basic channel
           CHAT_ID_BASIC:   ${{ secrets.CHAT_ID_BASIC }}
-          CHAT_ID_ADVANCE:    ${{ secrets.CHAT_ID_ADVANCE }}
-          CHAT_ID_PREMIUM:    ${{ secrets.CHAT_ID_PREMIUM }}
+          CHAT_ID_ADVANCE: ${{ secrets.CHAT_ID_ADVANCE }}
+          CHAT_ID_PREMIUM: ${{ secrets.CHAT_ID_PREMIUM }}
           BOT_MODE: ${{ github.event.inputs.mode || 'trade' }}
         run: |
           export BOT_MODE="${BOT_MODE:-trade}"
