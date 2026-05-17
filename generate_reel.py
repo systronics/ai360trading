@@ -28,7 +28,7 @@ from pathlib import Path
 import pytz
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 import edge_tts
-from moviepy.editor import ImageClip, AudioFileClip, CompositeAudioClip
+from moviepy.editor import ImageClip, AudioFileClip
 
 from human_touch import ht, seo
 
@@ -40,7 +40,6 @@ print(f"[MODE] generate_reel.py running in mode: {CONTENT_MODE.upper()}")
 # ─── CONFIG ───────────────────────────────────────────────────────────────────
 OUT = Path("output")
 IMAGE_DIR = Path("public/image")
-MUSIC_DIR = Path("public/music")
 SW, SH = 1080, 1920
 FPS = 30
 IST = pytz.timezone("Asia/Kolkata")
@@ -56,21 +55,6 @@ def get_font(path, size):
     if os.path.exists(path):
         return ImageFont.truetype(path, size)
     return ImageFont.load_default()
-
-
-def get_bg_music():
-    day = datetime.now().weekday()
-    music_map = {
-        0: "bgmusic1.mp3", 1: "bgmusic2.mp3", 2: "bgmusic3.mp3",
-        3: "bgmusic1.mp3", 4: "bgmusic2.mp3", 5: "bgmusic3.mp3",
-        6: "bgmusic1.mp3"
-    }
-    f = MUSIC_DIR / music_map[day]
-    if f.exists():
-        return f
-    for f in MUSIC_DIR.glob("*.mp3"):
-        return f
-    return None
 
 
 def generate_script():
@@ -329,17 +313,7 @@ async def generate_reel():
 
     print("🎞️ Rendering Final Reel...")
     voice_clip = AudioFileClip(str(audio_path))
-    music_file = get_bg_music()
-    if music_file:
-        try:
-            bg_m = AudioFileClip(str(music_file)).volumex(0.12).set_duration(voice_clip.duration)
-            final_audio = CompositeAudioClip([voice_clip, bg_m])
-            print(f"🎵 Music: {music_file.name}")
-        except Exception as e:
-            print(f"⚠️ Music error: {e}")
-            final_audio = voice_clip
-    else:
-        final_audio = voice_clip
+    final_audio = voice_clip  # TTS only — no background music (prevents Meta muting)
 
     video = (
         ImageClip(str(frame_path))
