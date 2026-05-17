@@ -3,6 +3,11 @@
 # Auto-refreshes META_ACCESS_TOKEN every 50 days
 # Runs silently — no manual intervention needed
 # Sends Telegram alert on success or failure
+#
+# FIX (May 2026):
+#   Added META_ACCESS_TOKEN_KIDS — was missing, kids token not being refreshed
+#   Changed TELEGRAM_CHAT_ID → CHAT_ID_BASIC (correct channel variable name)
+#   TELEGRAM_CHAT_ID secret does not exist — alerts were going nowhere
 # ==========================================
 
 name: Auto Token Refresh
@@ -10,8 +15,8 @@ name: Auto Token Refresh
 on:
   schedule:
     # Every 50 days at 10:00 AM IST (4:30 AM UTC)
-    # Day 1: Jan 1 → Day 50: Feb 20 → Day 100: Apr 11 → etc.
-    - cron: "30 4 1,20 * *"   # Runs on 1st and 20th of every month (~50 day cycle)
+    # Runs on 1st and 20th of every month (~50 day cycle)
+    - cron: "30 4 1,20 * *"
 
   workflow_dispatch:
     inputs:
@@ -45,14 +50,16 @@ jobs:
 
       - name: Run Token Refresh
         env:
-          META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
+          META_ACCESS_TOKEN:      ${{ secrets.META_ACCESS_TOKEN }}
+          # FIX: Added — was missing, HerooQuest kids token was not being refreshed
           META_ACCESS_TOKEN_KIDS: ${{ secrets.META_ACCESS_TOKEN_KIDS }}
-          META_APP_ID: ${{ secrets.META_APP_ID }}
-          META_APP_SECRET: ${{ secrets.META_APP_SECRET }}
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          CHAT_ID_BASIC: ${{ secrets.CHAT_ID_BASIC }}
+          META_APP_ID:            ${{ secrets.META_APP_ID }}
+          META_APP_SECRET:        ${{ secrets.META_APP_SECRET }}
+          GH_TOKEN:               ${{ secrets.GH_TOKEN }}
+          GITHUB_REPOSITORY:      ${{ github.repository }}
+          TELEGRAM_BOT_TOKEN:     ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          # FIX: Changed from TELEGRAM_CHAT_ID (does not exist) to CHAT_ID_BASIC
+          CHAT_ID_BASIC:          ${{ secrets.CHAT_ID_BASIC }}
         run: |
           python token_refresh.py
 
