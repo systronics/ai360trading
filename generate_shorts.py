@@ -5,23 +5,21 @@ Generates Short 2 (Trade Setup) + Short 3 (Global Market Pulse).
 
 VOICE ASSIGNMENTS:
   Short 2: hi-IN-MadhurNeural  — authoritative Hindi male, trade setups
-  Short 3: en-IN-NeerjaNeural  — Indian English female, market pulse (Hinglish-compatible)
-  (ZENO reel uses hi-IN-SwaraNeural — keep all three voices DISTINCT)
+  Short 3: en-IN-NeerjaNeural  — Indian English female, market pulse
+  ZENO reel uses hi-IN-SwaraNeural (in generate_reel.py — separate)
 
-NOTE: Edge TTS only has 2 hi-IN voices (Madhur + Swara).
-      en-IN-NeerjaNeural is Indian-accented English — works perfectly for
-      Hinglish scripts and sounds completely different from both Madhur and Swara.
+v3.1 FIXES (May 2026):
+  FIX 1 — Background music removed
+    REMOVED: MUSIC_DIR, get_bg_music(), mix_audio()
+    REMOVED: CompositeAudioClip, concatenate_audioclips imports
+    All mix_audio() calls replaced with voice_clip directly
+    Reason: public/music/ deleted — Meta was muting videos
 
-Upload: generate_shorts.py renders videos ONLY.
-        upload is done inside this script via upload_short() which calls
-        the YouTube API directly (no separate upload_youtube.py call needed
-        for shorts — shorts have their own upload logic here).
-        ZENO reel uses upload_youtube.py separately.
+  FIX 2 — Facebook page token fix
+    get_fb_page_token() uses FACEBOOK_PAGE_ID from GitHub secrets
+    Falls back to user token only if page not found
 
-SEO: All tags from seo.get_video_tags() — never hardcoded.
 Mode: market / weekend / holiday via CONTENT_MODE env var.
-
-Last updated: April 2026 — voice fix (Short 3 ≠ ZENO), full SEO meta
 """
 
 import os
@@ -37,9 +35,8 @@ import requests
 import yfinance as yf
 from PIL import Image, ImageDraw, ImageFont
 import edge_tts
-from moviepy.editor import (
-    ImageClip, AudioFileClip
-)
+# v3.1 FIX: Removed CompositeAudioClip, concatenate_audioclips — no longer needed
+from moviepy.editor import ImageClip, AudioFileClip
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
@@ -53,6 +50,7 @@ print(f"[MODE] generate_shorts.py running in mode: {CONTENT_MODE.upper()}")
 
 # ─── CONFIG ───────────────────────────────────────────────────────────────────
 OUT = Path("output")
+# v3.1 FIX: MUSIC_DIR removed — public/music/ deleted
 SW, SH = 1080, 1920
 FPS = 30
 IST = pytz.timezone("Asia/Kolkata")
@@ -60,12 +58,8 @@ now_ist = datetime.now(IST)
 
 os.makedirs(OUT, exist_ok=True)
 
-# Voice assignments — all three must be clearly distinct
-VOICE_SHORT2 = "hi-IN-MadhurNeural"   # authoritative Hindi male — trade setup
-VOICE_SHORT3 = "en-IN-NeerjaNeural"   # Indian English female — market pulse (Hinglish-compatible)
-# ZENO reel = hi-IN-SwaraNeural (defined in generate_reel.py)
-# NOTE: Edge TTS only has 2 hi-IN voices. en-IN-NeerjaNeural is Indian-accented
-#       English and handles Hinglish scripts perfectly — sounds distinct from both.
+VOICE_SHORT2 = "hi-IN-MadhurNeural"
+VOICE_SHORT3 = "en-IN-NeerjaNeural"
 
 BULL_GREEN  = (0, 210, 100)
 BEAR_RED    = (220, 55, 55)
@@ -117,6 +111,11 @@ def draw_text_outlined(draw, text, x, y, font, fill, outline=3, anchor="mm"):
                 draw.text((x+dx, y+dy), text, font=font, fill=(0,0,0), anchor=anchor)
     draw.text((x, y), text, font=font, fill=fill, anchor=anchor)
 
+# v3.1 FIX: get_bg_music() and mix_audio() REMOVED
+# All audio is TTS voice only — no background music
+# Prevents Meta muting videos in countries without music rights
+
+
 # ─── MARKET DATA ──────────────────────────────────────────────────────────────
 
 def fetch_market_data():
@@ -130,13 +129,12 @@ def fetch_market_data():
             "usdinr": {"val": "Stay Calm",     "chg": "Patience", "up": True, "raw": 0},
             "sp500":  {"val": "Build Wealth",  "chg": "Steady",   "up": True, "raw": 0},
         }
-
     tickers = {
         "nifty":  ("^NSEI",   "₹"),
         "btc":    ("BTC-USD", "$"),
-        "gold":   ("GC=F",   "$"),
-        "usdinr": ("INR=X",  "₹"),
-        "sp500":  ("^GSPC",  "$"),
+        "gold":   ("GC=F",    "$"),
+        "usdinr": ("INR=X",   "₹"),
+        "sp500":  ("^GSPC",   "$"),
     }
     data = {}
     for name, (sym, curr) in tickers.items():
@@ -173,7 +171,6 @@ def get_part1_url():
 
 # ══════════════════════════════════════════════════════════════════════════════
 # SHORT 2 — TRADE SETUP / EDUCATION CARD
-# Voice: Madhur (authoritative male)
 # ══════════════════════════════════════════════════════════════════════════════
 
 def make_short2_frame(script_data, market):
@@ -234,498 +231,465 @@ def make_short2_frame(script_data, market):
         draw.text((SW//2, strip_y+50), "📚 EDUCATION MODE", font=get_font(FONT_BOLD_PATHS, 44), fill=GOLD, anchor="mm")
     else:
         nc = BULL_GREEN if market["nifty"]["up"] else BEAR_RED
-        draw.text((120, strip_y+50),  "NIFTY",                font=get_font(FONT_BOLD_PATHS, 38), fill=(160, 180, 220), anchor="lm")
-        draw.text((SW//2, strip_y+50), market["nifty"]["val"],  font=get_font(FONT_BOLD_PATHS, 44), fill=WHITE,           anchor="mm")
-        draw.text((SW-120, strip_y+50),market["nifty"]["chg"], font=get_font(FONT_BOLD_PATHS, 40), fill=nc,              anchor="rm")
+        draw.text((120, strip_y+50),   "NIFTY",                 font=get_font(FONT_BOLD_PATHS, 38), fill=(160, 180, 220), anchor="lm")
+        draw.text((SW//2, strip_y+50), market["nifty"]["val"],   font=get_font(FONT_BOLD_PATHS, 44), fill=WHITE,           anchor="mm")
+        draw.text((SW-120, strip_y+50),market["nifty"]["chg"],  font=get_font(FONT_BOLD_PATHS, 40), fill=nc,              anchor="rm")
 
     insight = script_data.get("insight", "Learn, invest, grow — with discipline.")
     insight_lines, words, line = [], insight.split(), ""
     for w in words:
         test = (line + " " + w).strip()
-        if get_font(FONT_REG_PATHS, 36).getbbox(test)[2] < SW - 160: line = test
-        else: insight_lines.append(line); line = w
+        bbox = draw.textbbox((0,0), test, font=get_font(FONT_REG_PATHS, 34))
+        if bbox[2]-bbox[0] > SW-140:
+            if line: insight_lines.append(line)
+            line = w
+        else:
+            line = test
     if line: insight_lines.append(line)
+    iy = 1070
+    for il in insight_lines[:3]:
+        draw.text((SW//2, iy), il, font=get_font(FONT_REG_PATHS, 34), fill=(170, 190, 220), anchor="mm")
+        iy += 48
 
-    iy = 1090
-    for ln in insight_lines[:4]:
-        draw.text((SW//2, iy), ln, font=get_font(FONT_REG_PATHS, 36), fill=SOFT_WHITE, anchor="mm")
-        iy += 50
-
-    draw.text((SW//2, 1340), "📺 Full video link in description",
-              font=get_font(FONT_REG_PATHS, 34), fill=(140, 170, 220), anchor="mm")
-    draw.rounded_rectangle([(60, 1400), (SW-60, 1480)], radius=15, fill=(255, 180, 0, 20))
-    draw.text((SW//2, 1440), "⚠️ Educational content. Not financial advice.",
-              font=get_font(FONT_REG_PATHS, 30), fill=(200, 180, 100), anchor="mm")
-
-    draw.rounded_rectangle([(100, SH-350), (SW-100, SH-250)], radius=25, fill=accent)
-    cta = "📲 SUBSCRIBE FOR DAILY LEARNING" if CONTENT_MODE in ("holiday", "weekend") else "📲 SUBSCRIBE FOR DAILY SIGNALS"
-    draw_text_outlined(draw, cta, SW//2, SH-300, get_font(FONT_BOLD_PATHS, 36), (0, 0, 0), outline=1)
-    draw.text((SW//2, SH-190), "ai360trading.in • t.me/ai360trading",
-              font=get_font(FONT_REG_PATHS, 32), fill=(120, 150, 200), anchor="mm")
+    draw.text((SW//2, SH-200), "📱 t.me/ai360trading", font=get_font(FONT_BOLD_PATHS, 38), fill=accent, anchor="mm")
+    draw.text((SW//2, SH-140), "🌐 ai360trading.in",   font=get_font(FONT_REG_PATHS, 34),  fill=SOFT_WHITE, anchor="mm")
+    draw.text((SW//2, SH-80),  "⚠️ Educational Only — Not SEBI Advice",
+              font=get_font(FONT_REG_PATHS, 28), fill=(100, 120, 160), anchor="mm")
 
     path = OUT / f"short2_{now_ist.strftime('%Y%m%d')}.png"
-    img.save(str(path), quality=95)
+    img.save(str(path))
     return path
 
 
-def generate_short2_script(market):
-    from ai_client import ai
-
-    hook = ht.get_hook(mode=CONTENT_MODE, lang="hi")
-
-    if CONTENT_MODE == "holiday":
-        context = (f"Today is {HOLIDAY_NAME} — Indian market holiday. "
-                   f"Create educational investment lesson. Global audience: India, US, UK, Brazil, UAE.")
-    elif CONTENT_MODE == "weekend":
-        context = "Weekend — market closed. Educational investment lesson. No live trading data. Global audience."
-    else:
-        context = (f"Live market: Nifty {market['nifty']['val']} ({market['nifty']['chg']}), "
-                   f"BTC {market['btc']['val']}, Gold {market['gold']['val']}, "
-                   f"S&P500 {market['sp500']['val']}, USD/INR {market['usdinr']['val']}")
-
-    if CONTENT_MODE in ("holiday", "weekend"):
-        prompt = f"""Financial educator creating YouTube Shorts in Hinglish for ai360trading. Global audience: India, US, UK, Brazil.
-
-{context}
-
-Start the script with this hook: "{hook}"
-
-Respond ONLY with valid JSON:
-{{"stock":"FINANCIAL EDUCATION","sentiment":"positive","entry":"one key learning max 5 words","target":"what viewer gains max 5 words","sl":"one action max 5 words","horizon":"Long Term Wealth","insight":"inspiring Hinglish line max 15 words","script":"40-second Hinglish educational script. Use the hook. Lesson. CTA. Max 80 words."}}"""
-    else:
-        prompt = f"""Expert Indian stock market trader creating YouTube Shorts trade setup in Hinglish for ai360trading.
-
-{context}
-
-Start the script with this hook: "{hook}"
-
-Respond ONLY with valid JSON:
-{{"stock":"stock or index name","sentiment":"bullish or bearish or neutral","entry":"entry price","target":"target price","sl":"stop loss","horizon":"Intraday or Swing or Positional","insight":"one key Hinglish insight max 15 words","script":"40-second energetic Hinglish script. Use the hook. Setup. Subscribe CTA. Max 80 words."}}"""
-
-    print("🤖 Generating Short 2 script (Madhur voice)...")
-    try:
-        data = ai.generate_json(prompt, content_mode=CONTENT_MODE, lang="hi")
-        if data.get("script"):
-            data["script"] = ht.humanize(data["script"], lang="hi")
-        print(f"  ✅ Short 2: {data.get('stock')} — {data.get('sentiment')}")
-        return data
-    except Exception as e:
-        print(f"  ⚠️ Short 2 generation error: {e}")
-        return {
-            "stock": "FINANCIAL EDUCATION", "sentiment": "positive",
-            "entry": "Learn Investing", "target": "Build Wealth",
-            "sl": "Start Today", "horizon": "Long Term",
-            "insight": "Har din kuch seekho, financially grow karo.",
-            "script": "Bhaiyo! Aaj ka lesson — patience se wealth banao. Subscribe karo ai360trading!"
-        }
-
-
 # ══════════════════════════════════════════════════════════════════════════════
-# SHORT 3 — MARKET PULSE / WEEKEND WISDOM
-# Voice: Neerja (energetic female) — DISTINCT from Short 2 and ZENO reel
+# SHORT 3 — GLOBAL MARKET PULSE
 # ══════════════════════════════════════════════════════════════════════════════
 
 def make_short3_frame(script_data, market):
-    overall_up = market["nifty"]["up"]
-    accent = GOLD if CONTENT_MODE in ("holiday", "weekend") else (BULL_GREEN if overall_up else BEAR_RED)
+    sentiment = script_data.get("sentiment", "neutral").lower()
+    accent = GOLD if sentiment == "neutral" else (
+        BULL_GREEN if sentiment in ("bullish", "positive") else BEAR_RED)
 
-    img  = gradient_bg((15, 20, 40), (5, 8, 20))
+    img  = gradient_bg((5, 10, 22), (12, 22, 45))
     draw = ImageDraw.Draw(img, "RGBA")
 
     draw.rectangle([(0, 0), (SW, 12)], fill=accent)
     draw.rectangle([(0, SH-12), (SW, SH)], fill=accent)
+    draw_text_outlined(draw, "GLOBAL MARKET PULSE", SW//2, 80, get_font(FONT_BOLD_PATHS, 52), accent, outline=2)
+    draw.text((SW//2, 150), now_ist.strftime("%d %b %Y • %I:%M %p IST"),
+              font=get_font(FONT_REG_PATHS, 32), fill=(140, 160, 200), anchor="mm")
+    draw.rectangle([(60, 180), (SW-60, 183)], fill=accent)
 
-    header = {"holiday": "HOLIDAY SPECIAL", "weekend": "WEEKEND WISDOM"}.get(CONTENT_MODE, "MARKET PULSE")
-    draw_text_outlined(draw, header, SW//2, 85, get_font(FONT_BOLD_PATHS, 70), accent, outline=2)
-    draw.text((SW//2, 155), now_ist.strftime("%d %B %Y • %I:%M %p IST"),
-              font=get_font(FONT_REG_PATHS, 34), fill=(160, 185, 220), anchor="mm")
-    draw.text((SW//2, 205), "ai360trading.in", font=get_font(FONT_BOLD_PATHS, 30), fill=(100, 130, 180), anchor="mm")
-    draw.rectangle([(60, 230), (SW-60, 233)], fill=accent)
+    markets_data = [
+        ("🇮🇳 NIFTY",    market.get("nifty",  {})),
+        ("₿ BTC",         market.get("btc",    {})),
+        ("🥇 GOLD",       market.get("gold",   {})),
+        ("💵 USD/INR",    market.get("usdinr", {})),
+        ("🇺🇸 S&P 500",  market.get("sp500",  {})),
+    ]
 
-    draw.rounded_rectangle([(60, 255), (SW-60, 560)], radius=35, fill=(255, 255, 255, 12))
+    my = 230
+    for label, mkt in markets_data:
+        val   = mkt.get("val", "N/A")
+        chg   = mkt.get("chg", "0%")
+        is_up = mkt.get("up", True)
+        color = BULL_GREEN if is_up else BEAR_RED
+        icon  = "▲" if is_up else "▼"
 
-    if CONTENT_MODE in ("holiday", "weekend"):
-        draw.text((SW//2, 315), "TODAY'S LESSON", font=get_font(FONT_BOLD_PATHS, 48), fill=(180, 205, 240), anchor="mm")
-        draw_text_outlined(draw, script_data.get("mood_summary", "LEARN"), SW//2, 430, get_font(FONT_BOLD_PATHS, 80), WHITE, outline=2)
-        draw_text_outlined(draw, "& GROW", SW//2, 520, get_font(FONT_BOLD_PATHS, 65), accent, outline=2)
-    else:
-        draw.text((SW//2, 315), "NIFTY 50", font=get_font(FONT_BOLD_PATHS, 48), fill=(180, 205, 240), anchor="mm")
-        draw_text_outlined(draw, market["nifty"]["val"], SW//2, 430, get_font(FONT_BOLD_PATHS, 110), WHITE, outline=2)
-        draw_text_outlined(draw, market["nifty"]["chg"], SW//2, 520, get_font(FONT_BOLD_PATHS, 65), accent, outline=2)
+        draw.rounded_rectangle([(60, my), (SW-60, my+90)], radius=16, fill=(255,255,255,8))
+        draw.text((110, my+45), label, font=get_font(FONT_BOLD_PATHS, 34), fill=(160,180,220), anchor="lm")
+        draw.text((SW//2, my+45), val,  font=get_font(FONT_BOLD_PATHS, 42), fill=WHITE,        anchor="mm")
+        draw.text((SW-110, my+45), f"{icon}{chg}", font=get_font(FONT_BOLD_PATHS, 38), fill=color, anchor="rm")
+        my += 100
 
-    if CONTENT_MODE in ("holiday", "weekend"):
-        edu_items = [
-            ("📚 TOPIC",  script_data.get("key_level", "Investment Basics"), 580),
-            ("🌍 FOR",    "India • US • UK • Brazil • UAE",                  760),
-            ("💡 TODAY",  "Use this time to plan finances",                   940),
-            ("🎯 ACTION", "Subscribe for daily education",                    1120),
-        ]
-        for label, value, y in edu_items:
-            draw.rounded_rectangle([(60, y), (SW-60, y+155)], radius=22, fill=(0, 0, 0, 90))
-            draw.text((120, y+78),    label, font=get_font(FONT_BOLD_PATHS, 40), fill=(140, 165, 205), anchor="lm")
-            draw.text((SW-120, y+78), value, font=get_font(FONT_BOLD_PATHS, 34), fill=GOLD,            anchor="rm")
-    else:
-        assets = [
-            ("BITCOIN", market["btc"],    580),
-            ("GOLD",    market["gold"],   760),
-            ("S&P 500", market["sp500"],  940),
-            ("USD/INR", market["usdinr"], 1120),
-        ]
-        for label, mdata, y in assets:
-            uc = BULL_GREEN if mdata["up"] else BEAR_RED
-            draw.rounded_rectangle([(60, y), (SW-60, y+155)], radius=22, fill=(0, 0, 0, 90))
-            draw.text((120, y+78),     label,         font=get_font(FONT_BOLD_PATHS, 40), fill=(140, 165, 205), anchor="lm")
-            draw.text((SW-120, y+52),  mdata["val"],  font=get_font(FONT_BOLD_PATHS, 44), fill=WHITE,           anchor="rm")
-            draw.text((SW-120, y+108), mdata["chg"],  font=get_font(FONT_BOLD_PATHS, 38), fill=uc,              anchor="rm")
+    insight = script_data.get("insight", "Global markets shaping India's trading day.")
+    ilines, words, line = [], insight.split(), ""
+    for w in words:
+        test = (line + " " + w).strip()
+        bbox = draw.textbbox((0,0), test, font=get_font(FONT_REG_PATHS, 34))
+        if bbox[2]-bbox[0] > SW-140:
+            if line: ilines.append(line)
+            line = w
+        else:
+            line = test
+    if line: ilines.append(line)
+    iy = my + 30
+    for il in ilines[:3]:
+        draw.text((SW//2, iy), il, font=get_font(FONT_REG_PATHS, 34), fill=(170,190,220), anchor="mm")
+        iy += 48
 
-    mood_text = script_data.get("mood_summary", "Seekho, invest karo, grow karo.")
-    mood_y = 1310
-    draw.rounded_rectangle([(60, mood_y), (SW-60, mood_y+110)], radius=20, fill=(*accent, 25))
-    draw.text((SW//2, mood_y+55), f"💬 {mood_text}", font=get_font(FONT_REG_PATHS, 33), fill=SOFT_WHITE, anchor="mm")
-
-    key_level = script_data.get("key_level", "")
-    if key_level and CONTENT_MODE == "market":
-        draw.text((SW//2, 1460), f"🎯 Key Level: {key_level}",
-                  font=get_font(FONT_BOLD_PATHS, 36), fill=GOLD, anchor="mm")
-
-    draw.rounded_rectangle([(100, SH-350), (SW-100, SH-250)], radius=25, fill=accent)
-    cta = "🔔 SUBSCRIBE FOR DAILY LEARNING" if CONTENT_MODE in ("holiday", "weekend") else "🔔 SUBSCRIBE FOR DAILY UPDATES"
-    draw_text_outlined(draw, cta, SW//2, SH-300, get_font(FONT_BOLD_PATHS, 35), (0, 0, 0), outline=1)
-    draw.text((SW//2, SH-190), "ai360trading.in • t.me/ai360trading",
-              font=get_font(FONT_REG_PATHS, 32), fill=(110, 140, 190), anchor="mm")
+    draw.text((SW//2, SH-200), "📱 t.me/ai360trading", font=get_font(FONT_BOLD_PATHS, 38), fill=accent,    anchor="mm")
+    draw.text((SW//2, SH-140), "🌐 ai360trading.in",   font=get_font(FONT_REG_PATHS, 34),  fill=SOFT_WHITE, anchor="mm")
+    draw.text((SW//2, SH-80),  "⚠️ Educational Only — Not SEBI Advice",
+              font=get_font(FONT_REG_PATHS, 28), fill=(100,120,160), anchor="mm")
 
     path = OUT / f"short3_{now_ist.strftime('%Y%m%d')}.png"
-    img.save(str(path), quality=95)
+    img.save(str(path))
     return path
 
 
-def generate_short3_script(market):
-    from ai_client import ai
+# ══════════════════════════════════════════════════════════════════════════════
+# SCRIPT GENERATION
+# ══════════════════════════════════════════════════════════════════════════════
 
-    # Short 3 is deliberately about a DIFFERENT angle than Short 2
-    # Short 2 = specific trade setup | Short 3 = global macro picture
-    hook = ht.get_hook(mode=CONTENT_MODE, lang="hi")
+def generate_short2_script(market: dict, part1_url: str) -> dict:
+    from ai_client import ai
+    nifty_val = market.get("nifty", {}).get("val", "N/A")
+    nifty_chg = market.get("nifty", {}).get("chg", "0%")
 
     if CONTENT_MODE == "holiday":
-        context = (f"Today is {HOLIDAY_NAME} — Indian market holiday. "
-                   f"Educational overview: what should investors do on holidays? Global audience: India, US, UK, Brazil, UAE.")
+        topic = f"Market holiday special — {HOLIDAY_NAME}. Motivational investing lesson. No live data."
     elif CONTENT_MODE == "weekend":
-        context = "Weekend — market closed. What should traders prepare for next week? Weekly reflection and next-week strategy."
+        topic = "Weekend trading education — patience, discipline, risk management. No live signals."
     else:
-        context = (f"Live data: Nifty {market['nifty']['val']} ({market['nifty']['chg']}), "
-                   f"BTC {market['btc']['val']} ({market['btc']['chg']}), "
-                   f"Gold {market['gold']['val']} ({market['gold']['chg']}), "
-                   f"S&P500 {market['sp500']['val']} ({market['sp500']['chg']}), "
-                   f"USD/INR {market['usdinr']['val']}")
+        topic = f"Today's Nifty: {nifty_val} ({nifty_chg}). Top Nifty200 swing trade setup or learning."
+
+    cta = f"Full analysis: {part1_url}" if part1_url else "Subscribe for daily signals!"
+
+    prompt = f"""Create a 45-second Hindi trading short script for Indian retail traders.
+Topic: {topic}
+Mode: {CONTENT_MODE}
+
+Return ONLY valid JSON:
+{{
+  "title": "Short title max 8 words for YouTube",
+  "stock": "Stock name or topic (max 3 words, English only)",
+  "sentiment": "bullish or bearish or neutral",
+  "entry":   "Entry price or topic point",
+  "target":  "Target price or lesson",
+  "sl":      "Stop loss or action",
+  "horizon": "Timeframe",
+  "insight": "One powerful insight sentence (English, max 15 words)",
+  "script":  "45-second Hinglish spoken script 80-100 words — engaging",
+  "hashtags": "#tag1 #tag2 #tag3 (5 relevant tags)"
+}}"""
+
+    print("🤖 Generating Short 2 script (Madhur voice)...")
+    data = ai.generate_json(prompt, content_mode=CONTENT_MODE, lang="hi")
+    if data:
+        print(f"  ✅ Short 2: {data.get('stock')} — {data.get('sentiment')}")
+        return data
+    return {
+        "title": "Weekend Trading Education",
+        "stock": "FINANCIAL EDUCATION",
+        "sentiment": "positive",
+        "entry": "Learning",
+        "target": "Growth",
+        "sl": "Stay Disciplined",
+        "horizon": "Long Term",
+        "insight": "Patience and discipline are the real edge in markets.",
+        "script": "Doston, trading mein sabse important hai patience aur discipline. Market band ho ya open, seekhna kabhi band mat karo. Ek consistent trader hi long run mein jeetta hai. Subscribe karo aur join karo t.me/ai360trading.",
+        "hashtags": "#Trading #StockMarket #NiftyTrading #Investing #ai360trading"
+    }
+
+
+def generate_short3_script(market: dict) -> dict:
+    from ai_client import ai
+    btc_val  = market.get("btc",   {}).get("val", "N/A")
+    gold_val = market.get("gold",  {}).get("val", "N/A")
+    sp5_val  = market.get("sp500", {}).get("val", "N/A")
+    inr_val  = market.get("usdinr",{}).get("val", "N/A")
+    nifty_val= market.get("nifty", {}).get("val", "N/A")
 
     if CONTENT_MODE in ("holiday", "weekend"):
-        prompt = f"""Educational Indian market commentator for ai360trading YouTube Shorts. Global audience.
-Focus: BIG PICTURE — macro view, weekly strategy, investor psychology. NOT individual stock tips.
-
-{context}
-
-Start the script with this hook: "{hook}"
-
-Respond ONLY with valid JSON:
-{{"mood_summary":"inspiring Hinglish message max 8 words","key_level":"one investment action or topic max 5 words","script":"40-second inspiring Hinglish script. Big picture macro view. Hook. Weekly strategy. Subscribe CTA. Max 80 words."}}"""
+        mkt_context = "Market holiday/weekend — global investing wisdom, no specific calls."
     else:
-        prompt = f"""Energetic Indian market commentator for ai360trading YouTube Shorts.
-Focus: GLOBAL MACRO — Nifty + global cues + USD/INR + BTC. NOT a specific trade setup (Short 2 covers that).
+        mkt_context = f"Nifty:{nifty_val} | BTC:{btc_val} | Gold:{gold_val} | S&P500:{sp5_val} | USD/INR:{inr_val}"
 
-{context}
+    prompt = f"""Create a 45-second English/Hinglish global market pulse script for Indian traders.
+Market data: {mkt_context}
 
-Start the script with this hook: "{hook}"
-
-Respond ONLY with valid JSON:
-{{"mood_summary":"overall market mood Hinglish max 10 words","key_level":"most important Nifty support/resistance level today","script":"40-second energetic Hinglish script. Global picture. Hook. Nifty+BTC+Gold. Subscribe CTA. Max 80 words."}}"""
+Return ONLY valid JSON:
+{{
+  "title": "Global Market Pulse — short title",
+  "sentiment": "bullish or bearish or neutral",
+  "insight": "One key market insight sentence (English, max 15 words)",
+  "script": "45-second Hinglish/English script 80-100 words — global context",
+  "hashtags": "#GlobalMarkets #Bitcoin #Gold #SP500 #ai360trading"
+}}"""
 
     print("🤖 Generating Short 3 script (Neerja voice)...")
-    try:
-        data = ai.generate_json(prompt, content_mode=CONTENT_MODE, lang="hi")
-        if data.get("script"):
-            data["script"] = ht.humanize(data["script"], lang="hi")
-        print(f"  ✅ Short 3: {data.get('mood_summary')}")
+    data = ai.generate_json(prompt, content_mode=CONTENT_MODE, lang="en")
+    if data:
+        print(f"  ✅ Short 3: {data.get('sentiment')}")
         return data
-    except Exception as e:
-        print(f"  ⚠️ Short 3 generation error: {e}")
-        return {
-            "mood_summary": "Global market ka bada picture dekho",
-            "key_level": "Nifty 23000",
-            "script": "Bhaiyo! Global market mein kya ho raha hai? BTC, Gold, S&P500 — sab dekho. Subscribe karo ai360trading!"
-        }
+    return {
+        "title": "Weekend Market Wisdom",
+        "sentiment": "neutral",
+        "insight": "Global markets always reward the patient, disciplined investor.",
+        "script": "Friends, global markets move every day. Gold, Bitcoin, S&P 500 — all connected to India. The smart trader watches globally and acts locally. Stay disciplined. Subscribe for daily insights at ai360trading.in.",
+        "hashtags": "#GlobalMarkets #Bitcoin #Gold #SP500 #ai360trading"
+    }
 
 
-# ─── YOUTUBE AUTH ─────────────────────────────────────────────────────────────
+# ══════════════════════════════════════════════════════════════════════════════
+# TTS
+# ══════════════════════════════════════════════════════════════════════════════
+
+async def gen_tts_async(text: str, voice: str, path: str):
+    speed    = ht.get_tts_speed()
+    rate_str = f"+{int((speed-1)*100)}%" if speed >= 1 else f"{int((speed-1)*100)}%"
+    await edge_tts.Communicate(text, voice, rate=rate_str).save(path)
+
+def gen_tts(text: str, voice: str, path: str):
+    asyncio.run(gen_tts_async(text, voice, path))
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# VIDEO RENDER — TTS ONLY (no background music)
+# ══════════════════════════════════════════════════════════════════════════════
+
+def render_short(frame_path: Path, audio_path: str, out_path: str):
+    """
+    Render short video — TTS voice only.
+    v3.1 FIX: mix_audio() removed — no background music.
+    Prevents Meta muting videos in countries without music rights.
+    """
+    audio_clip = AudioFileClip(audio_path)
+    duration   = audio_clip.duration + 0.5
+    video      = ImageClip(str(frame_path)).set_duration(duration)
+    video      = video.set_audio(audio_clip)  # TTS only — no mix_audio()
+    video.write_videofile(out_path, fps=FPS, codec="libx264",
+                          audio_codec="aac", verbose=False, logger=None)
+    print(f"✅ Short rendered: {Path(out_path).name}")
+    return out_path
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# YOUTUBE UPLOAD
+# ══════════════════════════════════════════════════════════════════════════════
 
 def get_youtube_service():
     try:
         creds_json = os.environ.get("YOUTUBE_CREDENTIALS")
+        if not creds_json and os.path.exists("token.json"):
+            creds_json = open("token.json").read()
         if not creds_json:
-            if os.path.exists("token.json"):
-                with open("token.json") as f: creds_json = f.read()
-            else:
-                print("❌ No YouTube credentials"); return None
+            print("❌ No YouTube credentials")
+            return None
         creds = Credentials.from_authorized_user_info(json.loads(creds_json))
         return build("youtube", "v3", credentials=creds)
     except Exception as e:
-        print(f"❌ YouTube auth error: {e}"); return None
+        print(f"❌ YouTube auth: {e}")
+        return None
 
 
-def upload_short(youtube, video_path, title, description, tags):
-    """Upload a single short to YouTube. Returns video URL or None."""
-    if not youtube: return None
-
+def upload_short(video_path: str, title: str, description: str, tags: list) -> str:
+    youtube = get_youtube_service()
+    if not youtube: return ""
     body = {
-        "snippet": {
-            "title": title[:100],
-            "description": description,
-            "tags": tags[:30],
-            "categoryId": "27"  # Education — best for finance monetisation
-        },
-        "status": {
-            "privacyStatus": "public",
-            "selfDeclaredMadeForKids": False
-        }
+        "snippet": {"title": title[:100], "description": description, "tags": tags, "categoryId": "22"},
+        "status":  {"privacyStatus": "public", "selfDeclaredMadeForKids": False}
     }
-
-    media = MediaFileUpload(str(video_path), mimetype="video/mp4", resumable=True)
+    media = MediaFileUpload(video_path, mimetype="video/mp4", resumable=True)
     print(f"🚀 Uploading: {title[:60]}...")
     try:
-        request = youtube.videos().insert(part="snippet,status", body=body, media_body=media)
-        response = None
-        while response is None:
-            status, response = request.next_chunk()
-            if status: print(f"  {int(status.progress() * 100)}%")
-        vid_id  = response["id"]
-        vid_url = f"https://youtube.com/shorts/{vid_id}"
-        print(f"  ✅ YouTube: {vid_url}")
-        return vid_url
+        req  = youtube.videos().insert(part="snippet,status", body=body, media_body=media)
+        resp = None
+        while resp is None:
+            status, resp = req.next_chunk()
+            if status: print(f"  {int(status.progress()*100)}%")
+        vid_id = resp["id"]
+        print(f"  ✅ YouTube: https://youtube.com/shorts/{vid_id}")
+        return vid_id
     except Exception as e:
-        print(f"  ❌ YouTube upload failed: {e}"); return None
+        print(f"  ❌ YouTube upload failed: {e}")
+        return ""
 
 
-# ─── FACEBOOK SHARE ───────────────────────────────────────────────────────────
+# ══════════════════════════════════════════════════════════════════════════════
+# FACEBOOK PAGE TOKEN + SHARE
+# ══════════════════════════════════════════════════════════════════════════════
 
-def share_to_facebook(short2_url, short3_url, market):
-    token   = os.environ.get("META_ACCESS_TOKEN", "")
+def get_fb_page_token() -> str:
+    """Exchange user token for page token using FACEBOOK_PAGE_ID."""
+    user_token = os.environ.get("META_ACCESS_TOKEN", "")
+    page_id    = os.environ.get("FACEBOOK_PAGE_ID", "")
+    if not user_token or not page_id:
+        return user_token
+
+    try:
+        resp = requests.get(
+            "https://graph.facebook.com/v21.0/me/accounts",
+            params={"access_token": user_token},
+            timeout=15
+        )
+        data = resp.json().get("data", [])
+        for page in data:
+            if str(page.get("id")) == str(page_id):
+                print(f"  ✅ Page token retrieved for page {page_id}")
+                return page.get("access_token", user_token)
+        print(f"  ⚠️ Page {page_id} not found in /me/accounts — using user token")
+    except Exception as e:
+        print(f"  ⚠️ Page token fetch failed: {e}")
+
+    return user_token
+
+
+def share_to_facebook(video_path: str, caption: str) -> bool:
+    """Share Hindi short to Facebook Main Page only."""
     page_id = os.environ.get("FACEBOOK_PAGE_ID", "")
-    group_id= os.environ.get("FACEBOOK_GROUP_ID", "")
+    if not page_id:
+        print("⚠️ FACEBOOK_PAGE_ID not set — skipping Facebook share")
+        return False
 
-    if not token or not page_id:
-        print("⚠️ Facebook credentials missing — skipping share")
-        return
+    page_token = get_fb_page_token()
+    video_size = os.path.getsize(video_path)
 
-    if CONTENT_MODE == "holiday":
-        label = f"🎉 {HOLIDAY_NAME}" if HOLIDAY_NAME else "🎉 Market Holiday"
-        msg = f"📚 {label} — Market band hai, learning nahi!\n\nAaj ke educational shorts:\n\n"
-    elif CONTENT_MODE == "weekend":
-        msg = "📖 Weekend Learning Shorts — Financial education for everyone!\n\n"
-    else:
-        emoji = "📈" if market["nifty"]["up"] else "📉"
-        msg = (
-            f"{emoji} Aaj ke Market Shorts — Must Watch! 🔥\n\n"
-            f"Nifty: {market['nifty']['val']} ({market['nifty']['chg']})\n"
-            f"BTC: {market['btc']['val']} ({market['btc']['chg']})\n\n"
-        )
-
-    if short2_url: msg += f"📊 Trade Setup Short:\n{short2_url}\n\n"
-    if short3_url: msg += f"💹 Market Pulse Short:\n{short3_url}\n\n"
-
-    # Get SEO hashtags for FB post
-    tags = seo.get_video_tags(mode=CONTENT_MODE, is_short=True)
-    hashtag_str = " ".join([f"#{t}" for t in tags[:10]])
-
-    if CONTENT_MODE in ("holiday", "weekend"):
-        msg += (
-            "💡 Best time to learn and plan your next investment!\n"
-            "🌍 For investors: India, US, UK, Brazil, UAE\n"
-            "🌐 https://ai360trading.in\n📱 https://t.me/ai360trading\n\n"
-            f"#ai360trading #InvestmentEducation {hashtag_str}"
-        )
-    else:
-        msg += (
-            "Daily signals ke liye subscribe karo! 🔔\n"
-            "🌐 https://ai360trading.in\n📱 https://t.me/ai360trading\n\n"
-            f"#ai360trading #Nifty #StockMarket {hashtag_str}"
-        )
-
-    targets = [("Page", page_id)]
-    if group_id:
-        targets.append(("Group", group_id))
-
-    for label, entity_id in targets:
-        success = False
-        for attempt in range(1, FB_RETRY + 1):
-            try:
-                resp   = requests.post(
-                    f"https://graph.facebook.com/v21.0/{entity_id}/feed",
-                    data={"message": msg, "access_token": token},
-                    timeout=30
-                )
-                result = resp.json()
-                if "id" in result:
-                    print(f"  ✅ Facebook {label} shared — Post ID: {result['id']}")
-                    success = True
-                    break
-                else:
-                    error = result.get("error", {})
-                    code  = error.get("code", "?")
-                    emsg  = error.get("message", str(result))
-                    print(f"  ❌ Facebook {label} failed (attempt {attempt}/{FB_RETRY})")
-                    print(f"     Error {code}: {emsg}")
-                    if code == 200:
-                        print(f"     💡 FIX: Token needs 'publish_to_groups' permission scope.")
-                        break
-            except Exception as e:
-                print(f"  ⚠️ Facebook {label} error (attempt {attempt}/{FB_RETRY}): {e}")
-            if attempt < FB_RETRY:
+    for attempt in range(1, FB_RETRY+1):
+        try:
+            # Phase 1: Start upload session
+            init = requests.post(
+                f"https://graph.facebook.com/v21.0/{page_id}/video_reels",
+                data={"upload_phase": "start", "access_token": page_token},
+                timeout=30
+            ).json()
+            vid_id     = init.get("video_id")
+            upload_url = init.get("upload_url")
+            if not vid_id or not upload_url:
+                code = init.get("error", {}).get("code", "?")
+                msg  = init.get("error", {}).get("message", str(init))
+                print(f"  ❌ Facebook Page failed (attempt {attempt}/{FB_RETRY})")
+                print(f"     Error {code}: {msg}")
                 time.sleep(FB_RETRY_WAIT)
-        if not success:
-            print(f"  ✗ Facebook {label} — all attempts failed.")
+                continue
 
-
-# ─── BUILD SEO TITLE + DESCRIPTION ───────────────────────────────────────────
-
-def build_short_meta(short_num, script_data, market, part1_url, tags):
-    """Returns (title, description) for a short."""
-    today_str = now_ist.strftime("%d %b")
-    hashtag_str = " ".join([f"#{t}" for t in tags[:15]])
-
-    if short_num == 2:
-        # Short 2 — trade setup focused
-        if CONTENT_MODE in ("holiday", "weekend"):
-            label = f"{HOLIDAY_NAME} " if CONTENT_MODE == "holiday" and HOLIDAY_NAME else "Weekend "
-            title = f"📚 {label}Investing Lesson — ai360trading #{now_ist.strftime('%Y%m%d')[-4:]} #Shorts"
-            desc  = (
-                f"📚 {label}Special — {script_data.get('insight', '')}\n\n"
-                f"🌍 For investors: India, USA, UK, Brazil, UAE\n"
-                + (f"📊 Full video: {part1_url}\n" if part1_url else "")
-                + "🌐 https://ai360trading.in\n📱 https://t.me/ai360trading\n"
-                f"⚠️ Educational content only. Not financial advice.\n\n"
-                f"#Education #Investing #ai360trading {hashtag_str}"
+            # Phase 2: Binary upload
+            with open(video_path, "rb") as f:
+                video_data = f.read()
+            requests.post(
+                upload_url,
+                headers={"Authorization": f"OAuth {page_token}", "offset": "0", "file_size": str(video_size)},
+                data=video_data, timeout=300
             )
-        else:
-            title = (f"{'📈' if market['nifty']['up'] else '📉'} "
-                     f"{script_data.get('stock', 'Nifty')} Trade Setup — {today_str} #Shorts")
-            desc  = (
-                f"📊 Trade Setup: {script_data.get('stock', 'Nifty')}\n"
-                f"Entry: {script_data.get('entry', '')} | Target: {script_data.get('target', '')} | SL: {script_data.get('sl', '')}\n"
-                f"Horizon: {script_data.get('horizon', '')}\n\n"
-                f"💡 {script_data.get('insight', '')}\n\n"
-                f"🌍 For traders: India, USA, UK, Brazil, UAE\n"
-                + (f"📊 Full Analysis: {part1_url}\n" if part1_url else "")
-                + "🌐 https://ai360trading.in\n📱 https://t.me/ai360trading\n"
-                f"⚠️ Educational only. Not financial advice.\n\n"
-                f"#Trading #Nifty #StockMarket #ai360trading {hashtag_str}"
-            )
-    else:
-        # Short 3 — global macro focused
-        if CONTENT_MODE in ("holiday", "weekend"):
-            label = f"{HOLIDAY_NAME} " if CONTENT_MODE == "holiday" and HOLIDAY_NAME else "Weekend "
-            title = f"🌍 {label}Market Wisdom — ai360trading #{now_ist.strftime('%Y%m%d')[-4:]} #Shorts"
-            desc  = (
-                f"🌍 {label}Special — {script_data.get('mood_summary', '')}\n\n"
-                f"Big picture market view for global investors\n"
-                f"India • USA • UK • Brazil • UAE\n"
-                + (f"📊 Full video: {part1_url}\n" if part1_url else "")
-                + "🌐 https://ai360trading.in\n📱 https://t.me/ai360trading\n"
-                f"#InvestmentEducation #GlobalInvesting #ai360trading {hashtag_str}"
-            )
-        else:
-            title = (f"🌍 Market Pulse — Nifty {market['nifty']['val']} "
-                     f"{market['nifty']['chg']} | {today_str} #Shorts")
-            desc  = (
-                f"🌍 Global Market Pulse — {now_ist.strftime('%d %B %Y')}\n\n"
-                f"Nifty: {market['nifty']['val']} ({market['nifty']['chg']})\n"
-                f"BTC: {market['btc']['val']} ({market['btc']['chg']})\n"
-                f"Gold: {market['gold']['val']} ({market['gold']['chg']})\n"
-                f"S&P500: {market['sp500']['val']} | Key Level: {script_data.get('key_level', '')}\n\n"
-                f"💬 {script_data.get('mood_summary', '')}\n\n"
-                f"🌍 For traders: India, USA, UK, Brazil, UAE\n"
-                + (f"📊 Full Analysis: {part1_url}\n" if part1_url else "")
-                + "🌐 https://ai360trading.in\n📱 https://t.me/ai360trading\n"
-                f"#MarketPulse #GlobalInvesting #Nifty #ai360trading {hashtag_str}"
-            )
-    return title, desc
+
+            # Phase 3: Publish
+            finish = requests.post(
+                f"https://graph.facebook.com/v21.0/{page_id}/video_reels",
+                data={"upload_phase": "finish", "video_id": vid_id,
+                      "video_state": "PUBLISHED", "description": caption,
+                      "access_token": page_token},
+                timeout=30
+            ).json()
+            if finish.get("success") or finish.get("video_id"):
+                print(f"  ✅ Facebook Page reel published")
+                return True
+
+        except Exception as e:
+            print(f"  ⚠️ Facebook attempt {attempt}: {e}")
+        time.sleep(FB_RETRY_WAIT)
+
+    print("  ✗ Facebook Page — all attempts failed.")
+    return False
 
 
-# ─── MAIN ─────────────────────────────────────────────────────────────────────
+# ══════════════════════════════════════════════════════════════════════════════
+# BUILD TITLES + DESCRIPTIONS
+# ══════════════════════════════════════════════════════════════════════════════
 
-async def main():
+def build_title_short2(script_data: dict) -> str:
+    date_tag = now_ist.strftime("#%m%d")
+    if CONTENT_MODE == "holiday":
+        label = HOLIDAY_NAME if HOLIDAY_NAME else "Market Holiday"
+        return f"📚 {label} — ai360trading {date_tag} #Shorts"
+    elif CONTENT_MODE == "weekend":
+        return f"📚 Weekend Investing Lesson — ai360trading {date_tag} #Shorts"
+    stock = script_data.get("stock", "Nifty")
+    sent  = script_data.get("sentiment", "bullish").capitalize()
+    return f"📊 {stock} {sent} Setup — ai360trading {date_tag} #Shorts"
+
+def build_title_short3(script_data: dict) -> str:
+    date_tag = now_ist.strftime("#%m%d")
+    if CONTENT_MODE in ("holiday", "weekend"):
+        return f"🌍 Weekend Market Wisdom — ai360trading {date_tag} #Shorts"
+    return f"🌍 Global Market Pulse — ai360trading {date_tag} #Shorts"
+
+def build_desc(script_data: dict, short_num: int, part1_url: str) -> str:
+    tags   = seo.get_video_tags(mode=CONTENT_MODE, is_short=True)
+    yt_tags= seo.get_youtube_safe_tags(tags)
+    htags  = " ".join(f"#{t}" for t in yt_tags[:12])
+    insight= script_data.get("insight", "Daily market intelligence for Indian traders.")
+    cta    = f"\n▶️ Full Analysis: {part1_url}" if part1_url else ""
+    return (
+        f"💡 {insight}\n\n"
+        f"🌐 https://ai360trading.in\n"
+        f"📱 https://t.me/ai360trading{cta}\n\n"
+        f"⚠️ Educational only. Not SEBI registered.\n\n"
+        f"{htags}"
+    )
+
+def build_fb_caption(script_data: dict, short_num: int) -> str:
+    insight = script_data.get("insight", "Daily market intelligence.")
+    if CONTENT_MODE in ("holiday", "weekend"):
+        return (
+            f"📚 Weekend Learning!\n\n"
+            f"💡 {insight}\n\n"
+            f"🌐 ai360trading.in | 📱 t.me/ai360trading\n"
+            f"#ai360trading #StockMarket #Trading #WeekendLearning"
+        )
+    stock = script_data.get("stock", "Market")
+    sent  = script_data.get("sentiment", "").capitalize()
+    return (
+        f"📊 {stock} {sent} Signal!\n\n"
+        f"💡 {insight}\n\n"
+        f"🌐 ai360trading.in | 📱 t.me/ai360trading\n"
+        f"⚠️ Educational only.\n"
+        f"#ai360trading #StockMarket #{stock.replace(' ','')}"
+    )
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# MAIN
+# ══════════════════════════════════════════════════════════════════════════════
+
+def main():
     today    = now_ist.strftime("%Y%m%d")
-    youtube  = get_youtube_service()
-    part1_url= get_part1_url()
     market   = fetch_market_data()
+    part1_url= get_part1_url()
+    tags     = seo.get_video_tags(mode=CONTENT_MODE, is_short=True)
+    yt_tags  = seo.get_youtube_safe_tags(tags)
 
-    # Get SEO tags from human_touch system — never hardcoded
-    tags = seo.get_video_tags(mode=CONTENT_MODE, is_short=True)
+    short2_id = ""
+    short3_id = ""
 
-    # TTS speed variation from human_touch
-    tts_speed = ht.get_tts_speed()
-    rate_pct  = int((tts_speed - 1.0) * 100)
+    # ── SHORT 2 ───────────────────────────────────────────────────────────────
+    print(f"\n─── SHORT 2 (Madhur) ────────────────────────")
+    s2_data   = generate_short2_script(market, part1_url)
+    s2_frame  = make_short2_frame(s2_data, market)
+    s2_audio  = str(OUT / f"short2_audio_{today}.mp3")
+    s2_video  = str(OUT / f"short2_{today}.mp4")
+    gen_tts(s2_data.get("script", ""), VOICE_SHORT2, s2_audio)
+    render_short(s2_frame, s2_audio, s2_video)
 
-    # Short 2 rate (+10%) — authoritative and punchy
-    s2_rate = "+10%"
-    # Short 3 rate slightly different from Short 2 and ZENO reel
-    s3_rate = f"+{rate_pct + 5}%" if rate_pct + 5 >= 0 else f"{rate_pct + 5}%"
+    s2_title  = build_title_short2(s2_data)
+    s2_desc   = build_desc(s2_data, 2, part1_url)
+    short2_id = upload_short(s2_video, s2_title, s2_desc, yt_tags)
+    if short2_id:
+        print(f"  ✅ YouTube: https://youtube.com/shorts/{short2_id}")
+        # Facebook — Hindi only
+        share_to_facebook(s2_video, build_fb_caption(s2_data, 2))
 
-    # ── SHORT 2 — Trade Setup (Madhur — authoritative male) ──────────────────
-    print("\n─── SHORT 2 (Madhur) ────────────────────────")
-    s2_data  = generate_short2_script(market)
-    s2_frame = make_short2_frame(s2_data, market)
-
-    s2_audio_path = OUT / f"short2_voice_{today}.mp3"
-    await edge_tts.Communicate(
-        s2_data.get("script", "Aaj ka lesson dekhte hain!"),
-        VOICE_SHORT2, rate=s2_rate
-    ).save(str(s2_audio_path))
-
-    s2_voice    = AudioFileClip(str(s2_audio_path))
-    s2_duration = s2_voice.duration + 0.5
-    s2_audio    = s2_voice  # TTS only — no background music (prevents Meta muting)
-    s2_video_path = OUT / f"short2_{today}.mp4"
-    (ImageClip(str(s2_frame))
-     .set_duration(s2_duration)
-     .set_audio(s2_audio)
-     .write_videofile(str(s2_video_path), fps=FPS, codec="libx264", audio_codec="aac", logger=None))
-    print(f"✅ Short 2 rendered: {s2_video_path.name}")
-
-    s2_title, s2_desc = build_short_meta(2, s2_data, market, part1_url, tags)
-    short2_url = upload_short(youtube, s2_video_path, s2_title, s2_desc, tags)
-
-    # ── SHORT 3 — Market Pulse (Neerja — energetic female, ≠ ZENO reel) ──────
-    print("\n─── SHORT 3 (Neerja) ────────────────────────")
+    # ── SHORT 3 ───────────────────────────────────────────────────────────────
+    print(f"\n─── SHORT 3 (Neerja) ────────────────────────")
     s3_data  = generate_short3_script(market)
     s3_frame = make_short3_frame(s3_data, market)
+    s3_audio = str(OUT / f"short3_audio_{today}.mp3")
+    s3_video = str(OUT / f"short3_{today}.mp4")
+    gen_tts(s3_data.get("script", ""), VOICE_SHORT3, s3_audio)
+    render_short(s3_frame, s3_audio, s3_video)
 
-    s3_audio_path = OUT / f"short3_voice_{today}.mp3"
-    await edge_tts.Communicate(
-        s3_data.get("script", "Bhaiyo! Aaj ka global update!"),
-        VOICE_SHORT3, rate=s3_rate
-    ).save(str(s3_audio_path))
-
-    s3_voice    = AudioFileClip(str(s3_audio_path))
-    s3_duration = s3_voice.duration + 0.5
-    s3_audio    = s3_voice  # TTS only — no background music (prevents Meta muting)
-    s3_video_path = OUT / f"short3_{today}.mp4"
-    (ImageClip(str(s3_frame))
-     .set_duration(s3_duration)
-     .set_audio(s3_audio)
-     .write_videofile(str(s3_video_path), fps=FPS, codec="libx264", audio_codec="aac", logger=None))
-    print(f"✅ Short 3 rendered: {s3_video_path.name}")
-
-    s3_title, s3_desc = build_short_meta(3, s3_data, market, part1_url, tags)
-    short3_url = upload_short(youtube, s3_video_path, s3_title, s3_desc, tags)
-
-    # ── Facebook share ────────────────────────────────────────────────────────
-    share_to_facebook(short2_url, short3_url, market)
+    s3_title  = build_title_short3(s3_data)
+    s3_desc   = build_desc(s3_data, 3, part1_url)
+    short3_id = upload_short(s3_video, s3_title, s3_desc, yt_tags)
+    if short3_id:
+        print(f"  ✅ YouTube: https://youtube.com/shorts/{short3_id}")
 
     print(f"\n{'='*50}")
     print(f"✅ SHORTS DONE — {today} [{CONTENT_MODE.upper()}]")
-    print(f"   Short 2 (Madhur): {short2_url or 'upload failed'}")
-    print(f"   Short 3 (Neerja): {short3_url or 'upload failed'}")
+    print(f"   Short 2 (Madhur): {'https://youtube.com/shorts/'+short2_id if short2_id else 'upload failed'}")
+    print(f"   Short 3 (Neerja): {'https://youtube.com/shorts/'+short3_id if short3_id else 'upload failed'}")
     print(f"{'='*50}\n")
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
