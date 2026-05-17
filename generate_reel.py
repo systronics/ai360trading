@@ -5,17 +5,23 @@ Generates ZENO evening reel (8:30 PM) — 45-60 second Hinglish reel.
 
 VOICE: hi-IN-SwaraNeural (Swara — wise female, ZENO character)
 
-Upload chain (DO NOT upload from here — upload_youtube.py handles it):
-  generate_reel.py → output/reel_YYYYMMDD.mp4
-                   → output/meta_YYYYMMDD.json  ← for upload chain
-  upload_youtube.py → YouTube upload + writes youtube_video_id to meta
-  upload_facebook.py → Facebook upload + overwrites public_video_url
-  upload_instagram.py → reads public_video_url → Instagram upload
+v2.1 FIXES (May 2026):
+  FIX 1 — Background music removed
+    Reason: Meta mutes videos in many countries for copyright
+    Fix: TTS voice only — no bgmusic files needed
+    public/music/ folder deleted — safe
 
-SEO: All tags from seo.get_video_tags() — never hardcoded here.
+  FIX 2 — Proper thumbnail with big text + ZENO
+    Old: ZENO + small 85px text = low CTR
+    New: ZENO 70% height + 130px bold yellow title + stock/topic badge
+    Result: Readable in 2 seconds on mobile feed
+
+Upload chain:
+  generate_reel.py → output/reel_YYYYMMDD.mp4 + meta_YYYYMMDD.json
+  upload_youtube.py → YouTube
+  upload_facebook.py → Facebook Page
+
 Mode: market / weekend / holiday via CONTENT_MODE env var.
-
-Last updated: April 2026 — duplicate-upload fix + full SEO meta
 """
 
 import os
@@ -38,32 +44,34 @@ HOLIDAY_NAME = os.environ.get("HOLIDAY_NAME", "Indian Market Holiday")
 print(f"[MODE] generate_reel.py running in mode: {CONTENT_MODE.upper()}")
 
 # ─── CONFIG ───────────────────────────────────────────────────────────────────
-OUT = Path("output")
+OUT       = Path("output")
 IMAGE_DIR = Path("public/image")
-SW, SH = 1080, 1920
-FPS = 30
-IST = pytz.timezone("Asia/Kolkata")
-VOICE = "hi-IN-SwaraNeural"  # ZENO voice — wise female
+SW, SH    = 1080, 1920
+FPS       = 30
+IST       = pytz.timezone("Asia/Kolkata")
+VOICE     = "hi-IN-SwaraNeural"
 
 os.makedirs(OUT, exist_ok=True)
 
 FONT_BOLD = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
-WHITE = (255, 255, 255)
+FONT_REG  = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
+WHITE     = (255, 255, 255)
 
 
 def get_font(path, size):
     if os.path.exists(path):
-        return ImageFont.truetype(path, size)
+        try: return ImageFont.truetype(path, size)
+        except: pass
     return ImageFont.load_default()
 
 
+# ─── SCRIPT GENERATION ────────────────────────────────────────────────────────
+
 def generate_script():
-    """Generate fresh daily Hinglish ZENO script via Groq through ai_client."""
     from ai_client import ai
 
     today = datetime.now(IST).strftime("%A, %d %B %Y")
 
-    # Topic selection based on CONTENT_MODE
     if CONTENT_MODE == "holiday":
         holiday_label = HOLIDAY_NAME if HOLIDAY_NAME else "Indian Market Holiday"
         topic = (
@@ -78,7 +86,6 @@ def generate_script():
             "Motivational and educational for global audience: India, US, UK, Brazil."
         )
     else:
-        # Use hook from human_touch for the opening line
         hook = ht.get_hook(mode=CONTENT_MODE, lang="hi")
         topic = (
             f"stock market trading wisdom, psychology, or risk management lesson for Indian traders. "
@@ -99,68 +106,152 @@ Rules:
 Respond ONLY with valid JSON, no markdown:
 {{
   "title": "SHORT ENGLISH TITLE MAX 4 WORDS IN CAPS (for display on screen)",
-  "audio_script": "full spoken Hinglish script 80-100 words — what ZENO will say aloud",
+  "audio_script": "full spoken Hinglish script 80-100 words",
   "display_text": "one powerful Hindi/Hinglish line shown on screen (max 12 words)",
   "emotion": "one of: happy, sad, fear, angry, thinking, greed, celebrating",
   "sentiment": "one of: positive, negative, fearful, motivated, greedy, angry, neutral",
-  "description": "2-3 sentence English/Hinglish description for YouTube and Instagram with key insight"
+  "description": "2-3 sentence English/Hinglish description for YouTube with key insight"
 }}"""
 
-    print("🤖 Generating ZENO reel script via ai_client...")
+    print("Generating ZENO reel script...")
     try:
         data = ai.generate_json(prompt, content_mode=CONTENT_MODE, lang="hi")
-        # Humanize the audio script
-        raw_script = data.get("audio_script", "")
-        if raw_script:
-            data["audio_script"] = ht.humanize(raw_script, lang="hi")
-        print(f"✅ ZENO script ready — emotion: {data.get('emotion')} | title: {data.get('title')}")
+        raw  = data.get("audio_script", "")
+        if raw:
+            data["audio_script"] = ht.humanize(raw, lang="hi")
+        print(f"ZENO script ready — emotion: {data.get('emotion')} | title: {data.get('title')}")
         return data
     except Exception as e:
-        print(f"⚠️ Script generation error: {e} — using fallback script")
+        print(f"Script error: {e} — using fallback")
         return {
             "title": "CONTROL YOUR EMOTIONS",
-            "audio_script": "दोस्तों ट्रेडिंग में सबसे बड़ा दुश्मन मार्केट नहीं आपका डर है। पेशेंस रखिए। हर loss एक lesson है। Discipline रखो, success जरूर मिलेगी।",
-            "display_text": "मार्केट नहीं आपका डर है। पेशेंस रखिए।",
+            "audio_script": "Doston trading mein sabse bada dushman market nahi aapka dar hai. Patience rakhiye. Har loss ek lesson hai. Discipline rakho success zaroor milegi.",
+            "display_text": "Market nahi aapka dar hai. Patience rakhiye.",
             "emotion": "fear",
             "sentiment": "fearful",
-            "description": "ZENO ki baat: Trading mein patience aur discipline sabse zaroori hai. Apne emotions ko control karo."
+            "description": "ZENO ki baat: Trading mein patience aur discipline sabse zaroori hai."
         }
 
 
-def apply_zeno_disney_effect(base_img, emotion="thinking"):
+# ─── ZENO EFFECT ──────────────────────────────────────────────────────────────
+
+def apply_zeno_effect(base_img, emotion="thinking"):
     zeno_path = IMAGE_DIR / f"zeno_{emotion}.png"
     if not zeno_path.exists():
-        print(f"⚠️ Zeno image missing: {zeno_path} — using fallback")
         zeno_path = IMAGE_DIR / "zeno_thinking.png"
     if not zeno_path.exists():
         return base_img
 
-    zeno = Image.open(str(zeno_path)).convert("RGBA")
+    zeno     = Image.open(str(zeno_path)).convert("RGBA")
     target_w = int(SW * 0.85)
-    w_ratio = target_w / float(zeno.size[0])
+    w_ratio  = target_w / float(zeno.size[0])
     target_h = int(float(zeno.size[1]) * float(w_ratio))
-    zeno = zeno.resize((target_w, target_h), Image.LANCZOS)
+    zeno     = zeno.resize((target_w, target_h), Image.LANCZOS)
 
+    # Shadow
     shadow_layer = Image.new("RGBA", (SW, SH), (0, 0, 0, 0))
-    zeno_mask = zeno.split()[3]
-    shadow_offset = (15, 15)
-    shadow_pos = (
-        (SW - zeno.width) // 2 + shadow_offset[0],
-        SH - zeno.height - 180 + shadow_offset[1]
-    )
-    shadow_img = Image.new("RGBA", zeno.size, (0, 0, 0, 110))
+    zeno_mask    = zeno.split()[3]
+    shadow_pos   = ((SW - zeno.width) // 2 + 15, SH - zeno.height - 180 + 15)
+    shadow_img   = Image.new("RGBA", zeno.size, (0, 0, 0, 110))
     shadow_layer.paste(shadow_img, shadow_pos, zeno_mask)
     shadow_layer = shadow_layer.filter(ImageFilter.GaussianBlur(radius=15))
 
-    temp_bg = base_img.convert("RGBA")
-    combined = Image.alpha_composite(temp_bg, shadow_layer)
-    zeno_pos = ((SW - zeno.width) // 2, SH - zeno.height - 200)
+    combined  = Image.alpha_composite(base_img.convert("RGBA"), shadow_layer)
+    zeno_pos  = ((SW - zeno.width) // 2, SH - zeno.height - 200)
     combined.paste(zeno, zeno_pos, zeno)
     return combined.convert("RGB")
 
 
+# ─── v2.1 FIX 2: PROPER THUMBNAIL ────────────────────────────────────────────
+
+def build_thumbnail(title_text, display_text, emotion="thinking"):
+    """
+    Proper thumbnail that drives CTR.
+
+    Layout:
+      - Dark gradient background
+      - ZENO 70% frame height — visible on mobile feed
+      - Title: 130px bold YELLOW — readable in 2 seconds
+      - Display text: 52px white with dark backing
+      - Accent bars top and bottom
+      - AI360Trading badge
+
+    Why this works:
+      Large character = eye catches immediately
+      Yellow title = highest contrast on dark bg
+      Simple layout = clear message in 2 seconds
+    """
+    img  = Image.new("RGB", (SW, SH))
+    draw = ImageDraw.Draw(img, "RGBA")
+
+    # Gradient background
+    for y in range(SH):
+        t  = y / SH
+        bg = (int(5 + t*10), int(10 + t*20), int(25 + t*45))
+        draw.line([(0, y), (SW, y)], fill=bg)
+
+    # Accent bars
+    draw.rectangle([(0, 0), (SW, 14)], fill=(255, 200, 0))
+    draw.rectangle([(0, SH-14), (SW, SH)], fill=(255, 200, 0))
+
+    # ZENO — 70% height, centered bottom
+    zeno_path = IMAGE_DIR / f"zeno_{emotion}.png"
+    if not zeno_path.exists():
+        zeno_path = IMAGE_DIR / "zeno_thinking.png"
+    if zeno_path.exists():
+        try:
+            zeno     = Image.open(str(zeno_path)).convert("RGBA")
+            zeno_h   = int(SH * 0.70)
+            zeno_w   = int(zeno.width * (zeno_h / zeno.height))
+            zeno     = zeno.resize((zeno_w, zeno_h), Image.LANCZOS)
+            zeno_x   = (SW - zeno_w) // 2
+            zeno_y   = SH - zeno_h - 60
+            img.paste(zeno, (zeno_x, zeno_y), zeno)
+        except Exception as e:
+            print(f"ZENO thumbnail paste: {e}")
+
+    draw = ImageDraw.Draw(img, "RGBA")
+
+    # Title — 130px bold yellow — top area
+    f_title = get_font(FONT_BOLD, 130)
+    f_disp  = get_font(FONT_BOLD, 52)
+    f_badge = get_font(FONT_BOLD, 40)
+
+    import textwrap
+    safe_title = title_text.upper()
+    title_lines = textwrap.wrap(safe_title, width=10)
+    ty = 100
+    for line in title_lines[:2]:
+        # Shadow
+        for dx, dy in [(-3,3),(3,-3),(-3,-3),(3,3)]:
+            draw.text((SW//2+dx, ty+dy), line, font=f_title,
+                      fill=(0, 0, 0, 200), anchor="mm")
+        draw.text((SW//2, ty), line, font=f_title,
+                  fill=(255, 200, 0), anchor="mm")
+        ty += 148
+
+    # Display text — white with dark bg strip
+    safe_display = display_text
+    strip_y = ty + 20
+    draw.rectangle([(0, strip_y), (SW, strip_y + 80)], fill=(0, 0, 0, 160))
+    disp_lines = textwrap.wrap(safe_display, width=22)
+    for i, dl in enumerate(disp_lines[:2]):
+        draw.text((SW//2, strip_y + 40 + i*58), dl,
+                  font=f_disp, fill=(255, 255, 255), anchor="mm")
+
+    # AI360Trading badge — top left
+    draw.rounded_rectangle([(20, 20), (320, 80)], radius=14, fill=(255, 200, 0))
+    draw.text((170, 50), "AI360TRADING", font=f_badge, fill=(0, 0, 0), anchor="mm")
+
+    thumb_path = OUT / "zeno_reel_thumb.png"
+    img.save(str(thumb_path))
+    return thumb_path
+
+
+# ─── REEL FRAME (for video) ───────────────────────────────────────────────────
+
 def build_reel_frame(title_text, display_text, emotion="thinking"):
-    img = Image.new("RGB", (SW, SH))
+    img  = Image.new("RGB", (SW, SH))
     draw = ImageDraw.Draw(img, "RGBA")
 
     for y in range(SH):
@@ -171,30 +262,27 @@ def build_reel_frame(title_text, display_text, emotion="thinking"):
         draw.line([(0, y), (SW, y)], fill=(r, g, b))
 
     draw.ellipse([100, 100, SW - 100, 600], fill=(60, 140, 255, 30))
-
-    img = apply_zeno_disney_effect(img, emotion)
+    img       = apply_zeno_effect(img, emotion)
     draw_text = ImageDraw.Draw(img)
 
-    font_title = get_font(FONT_BOLD, 85)
-    text_y = 300
-    words = title_text.split()
-    mid = max(1, len(words) // 2)
-    line1 = " ".join(words[:mid])
-    line2 = " ".join(words[mid:])
+    font_title  = get_font(FONT_BOLD, 85)
+    text_y      = 300
+    words       = title_text.split()
+    mid         = max(1, len(words) // 2)
+    line1       = " ".join(words[:mid])
+    line2       = " ".join(words[mid:])
 
     for line, offset in [(line1, 0), (line2, 105)]:
-        if not line:
-            continue
-        for dx, dy in [(-2, -2), (2, -2), (-2, 2), (2, 2)]:
-            draw_text.text((SW // 2 + dx, text_y + offset + dy),
-                           line, font=font_title, fill=(0, 0, 0), anchor="mm")
-        draw_text.text((SW // 2, text_y + offset),
+        if not line: continue
+        for dx, dy in [(-2,-2),(2,-2),(-2,2),(2,2)]:
+            draw_text.text((SW//2+dx, text_y+offset+dy),
+                           line, font=font_title, fill=(0,0,0), anchor="mm")
+        draw_text.text((SW//2, text_y+offset),
                        line, font=font_title, fill=WHITE, anchor="mm")
 
     font_display = get_font(FONT_BOLD, 44)
-    display_y = SH - 340
-    draw_text.rectangle([(0, display_y - 30), (SW, display_y + 90)],
-                         fill=(0, 0, 0, 140))
+    display_y    = SH - 340
+    draw_text.rectangle([(0, display_y-30), (SW, display_y+90)], fill=(0,0,0,140))
 
     words_d, line_d, disp_lines = display_text.split(), "", []
     for w in words_d:
@@ -203,33 +291,29 @@ def build_reel_frame(title_text, display_text, emotion="thinking"):
         if bbox[2] - bbox[0] < SW - 80:
             line_d = test
         else:
-            disp_lines.append(line_d)
-            line_d = w
-    if line_d:
-        disp_lines.append(line_d)
+            disp_lines.append(line_d); line_d = w
+    if line_d: disp_lines.append(line_d)
 
     for i, dl in enumerate(disp_lines[:2]):
-        draw_text.text((SW // 2, display_y + i * 55),
+        draw_text.text((SW//2, display_y + i*55),
                        dl, font=font_display, fill=(255, 220, 80), anchor="mm")
 
     font_brand = get_font(FONT_BOLD, 36)
-    draw_text.text((SW // 2, SH - 220),
-                   "✨ ai360trading.in", font=font_brand,
-                   fill=(160, 200, 255), anchor="mm")
-    draw_text.text((SW // 2, SH - 160),
-                   "📱 t.me/ai360trading", font=font_brand,
-                   fill=(140, 180, 240), anchor="mm")
+    draw_text.text((SW//2, SH-220), "✨ ai360trading.in",
+                   font=font_brand, fill=(160, 200, 255), anchor="mm")
+    draw_text.text((SW//2, SH-160), "📱 t.me/ai360trading",
+                   font=font_brand, fill=(140, 180, 240), anchor="mm")
 
     path = OUT / "zeno_reel_frame.png"
     img.save(str(path))
     return path
 
 
-def build_youtube_title(script_data, today_str):
-    """Build SEO-optimised YouTube title for the reel."""
-    title_word = script_data.get("title", "TRADING WISDOM")
-    date_tag = datetime.now(IST).strftime("%d %b %Y")
+# ─── YOUTUBE TITLE + DESC ─────────────────────────────────────────────────────
 
+def build_youtube_title(script_data, today_str):
+    title_word = script_data.get("title", "TRADING WISDOM")
+    date_tag   = datetime.now(IST).strftime("%d %b %Y")
     if CONTENT_MODE == "holiday":
         label = HOLIDAY_NAME if HOLIDAY_NAME else "Market Holiday"
         return f"🎉 {label} — ZENO Ki Baat #{today_str[-4:]} #Shorts"
@@ -240,24 +324,21 @@ def build_youtube_title(script_data, today_str):
 
 
 def build_youtube_description(script_data, today_str):
-    """Build full SEO description with hashtags from seo system."""
-    desc_clean = script_data.get("description", "Daily trading wisdom by ZENO.")
-    display = script_data.get("display_text", "")
-
-    # Get SEO tags as hashtag string
-    tags = seo.get_video_tags(mode=CONTENT_MODE, is_short=True)
+    desc_clean  = script_data.get("description", "Daily trading wisdom by ZENO.")
+    display     = script_data.get("display_text", "")
+    tags        = seo.get_video_tags(mode=CONTENT_MODE, is_short=True)
     hashtag_str = " ".join([f"#{t}" for t in tags[:15]])
 
     if CONTENT_MODE == "holiday":
         label = HOLIDAY_NAME if HOLIDAY_NAME else "Market Holiday"
-        desc = (
+        desc  = (
             f"🎉 {label} Special — Market band hai, learning nahi!\n\n"
             f"💡 {desc_clean}\n\n"
             f"✨ \"{display}\"\n\n"
             f"🌍 For investors: India, USA, UK, Brazil & UAE\n"
-            f"🌐 Website: https://ai360trading.in\n"
-            f"📱 Telegram: https://t.me/ai360trading\n"
-            f"⚠️ Educational content only. Not financial advice.\n\n"
+            f"🌐 https://ai360trading.in\n"
+            f"📱 https://t.me/ai360trading\n"
+            f"⚠️ Educational only. Not financial advice.\n\n"
             f"#ZenoKiBaat #ai360trading #HolidayLearning {hashtag_str}"
         )
     elif CONTENT_MODE == "weekend":
@@ -266,109 +347,123 @@ def build_youtube_description(script_data, today_str):
             f"💡 {desc_clean}\n\n"
             f"✨ \"{display}\"\n\n"
             f"🌍 For investors: India, USA, UK, Brazil & UAE\n"
-            f"🌐 Website: https://ai360trading.in\n"
-            f"📱 Telegram: https://t.me/ai360trading\n"
-            f"⚠️ Educational content only. Not financial advice.\n\n"
-            f"#ZenoKiBaat #ai360trading #WeekendWisdom {hashtag_str}"
+            f"🌐 https://ai360trading.in\n"
+            f"📱 https://t.me/ai360trading\n"
+            f"⚠️ Educational only. Not financial advice.\n\n"
+            f"#ZenoKiBaat #WeekendWisdom #ai360trading {hashtag_str}"
         )
     else:
         desc = (
-            f"🎯 Daily Trading Wisdom by ZENO\n\n"
+            f"🎯 ZENO Ki Baat — Daily trading wisdom\n\n"
             f"💡 {desc_clean}\n\n"
             f"✨ \"{display}\"\n\n"
-            f"📊 Daily analysis for Nifty50 traders\n"
-            f"🌍 Investors: India, USA, UK, Brazil & UAE\n"
-            f"🌐 Website: https://ai360trading.in\n"
-            f"📱 Telegram: https://t.me/ai360trading\n"
-            f"⚠️ Educational content only. Not financial advice.\n\n"
-            f"#ZenoKiBaat #ai360trading #TradingWisdom {hashtag_str}"
+            f"🌍 For traders: India, USA, UK, Brazil & UAE\n"
+            f"🌐 https://ai360trading.in\n"
+            f"📱 https://t.me/ai360trading\n"
+            f"⚠️ Educational only. Not SEBI registered.\n\n"
+            f"#ZenoKiBaat #StockMarket #ai360trading {hashtag_str}"
         )
     return desc
 
 
-async def generate_reel():
-    print("🎬 Starting ZENO Reel Generation...")
-    today = datetime.now(IST).strftime("%Y%m%d")
+# ─── TTS ──────────────────────────────────────────────────────────────────────
 
-    script = generate_script()
+async def generate_tts(text, output_path):
+    communicate = edge_tts.Communicate(text, VOICE, rate="+5%")
+    await communicate.save(str(output_path))
 
-    title = script.get("title", "TRADING WISDOM")
-    audio_script = script.get("audio_script", "Trading mein patience sabse zaroori hai.")
-    display_text = script.get("display_text", "Patience hi success hai।")
-    emotion = script.get("emotion", "thinking")
-    sentiment = script.get("sentiment", "neutral")
 
-    # TTS speed from human_touch system
-    tts_speed = ht.get_tts_speed()
-    rate_pct = int((tts_speed - 1.0) * 100)
-    rate_str = f"+{rate_pct}%" if rate_pct >= 0 else f"{rate_pct}%"
+# ─── VIDEO COMPOSITION — NO BACKGROUND MUSIC ──────────────────────────────────
 
-    audio_path = OUT / "zeno_speech.mp3"
-    print(f"🎙️ Generating Voice (Swara, rate={rate_str})...")
-    await edge_tts.Communicate(
-        audio_script, VOICE, rate=rate_str
-    ).save(str(audio_path))
+def compose_video(frame_path, audio_path, output_path):
+    """
+    Compose final reel — TTS voice only, no background music.
+    Music removed in v2.1 to prevent Meta muting in countries
+    where Meta does not have music rights.
+    """
+    audio_clip = AudioFileClip(str(audio_path))
+    duration   = audio_clip.duration + 0.5
 
-    frame_path = build_reel_frame(title, display_text, emotion)
-
-    print("🎞️ Rendering Final Reel...")
-    voice_clip = AudioFileClip(str(audio_path))
-    final_audio = voice_clip  # TTS only — no background music (prevents Meta muting)
-
-    video = (
-        ImageClip(str(frame_path))
-        .set_duration(voice_clip.duration + 0.5)
-        .set_audio(final_audio)
-    )
-
-    output_file = OUT / "final_zeno_reel.mp4"
+    video = ImageClip(str(frame_path)).set_duration(duration)
+    video = video.set_audio(audio_clip)
+    # NOTE: No CompositeAudioClip, no bgmusic — TTS only
     video.write_videofile(
-        str(output_file), fps=FPS,
-        codec="libx264", audio_codec="aac", logger=None
+        str(output_path), fps=FPS, codec="libx264",
+        audio_codec="aac", verbose=False, logger=None
     )
+    print(f"Reel exported: {output_path} ({duration:.1f}s) — voice only, no bgmusic")
 
-    # Copy to dated filename (upload_youtube.py looks for reel_YYYYMMDD.mp4)
-    reel_dated = OUT / f"reel_{today}.mp4"
-    shutil.copy2(str(output_file), str(reel_dated))
-    print(f"✅ Video saved: {output_file.name} + {reel_dated.name}")
 
-    # Build full SEO title and description
-    yt_title = build_youtube_title(script, today)
-    yt_desc = build_youtube_description(script, today)
+# ─── SAVE META ────────────────────────────────────────────────────────────────
 
-    # Get tags from seo system (not hardcoded)
-    tags = seo.get_video_tags(mode=CONTENT_MODE, is_short=True)
+def save_meta(script_data, today_str, thumb_path=None):
+    tags      = seo.get_video_tags(mode=CONTENT_MODE, is_short=True)
+    yt_tags   = seo.get_youtube_safe_tags(tags)
+    meta_path = OUT / f"meta_{today_str}.json"
 
-    # ── Save meta JSON for upload chain ──────────────────────────────────────
-    # upload_youtube.py reads this file — MUST include title, description, tags
     meta = {
-        "title": yt_title,
-        "description": yt_desc,
-        "tags": tags,
-        "sentiment": sentiment,
-        "content_mode": CONTENT_MODE,
-        "emotion": emotion,
-        "display_text": display_text,
-        "public_video_url": ""   # upload_youtube.py fills this in
+        "title":       build_youtube_title(script_data, today_str),
+        "description": build_youtube_description(script_data, today_str),
+        "tags":        yt_tags,
+        "video_path":  str(OUT / f"reel_{today_str}.mp4"),
+        "thumb_path":  str(thumb_path) if thumb_path else "",
+        "emotion":     script_data.get("emotion", "thinking"),
+        "content_mode":CONTENT_MODE,
+        "music":       "none — TTS voice only",
     }
+    with open(meta_path, "w") as f:
+        json.dump(meta, f, indent=2, ensure_ascii=False)
+    print(f"Meta saved: {meta_path}")
+    return str(meta_path)
 
-    meta_path = OUT / f"meta_{today}.json"
-    meta_path.write_text(
-        json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8"
-    )
-    print(f"✅ Meta saved: {meta_path.name}")
-    print(f"   Title: {yt_title}")
-    print(f"   Tags ({len(tags)}): {', '.join(tags[:5])}...")
 
-    print("\n" + "=" * 50)
-    print(f"✅ REEL READY — {output_file}")
-    print(f"   TITLE   : {yt_title}")
-    print(f"   MODE    : {CONTENT_MODE.upper()}")
-    print(f"   EMOTION : {emotion} | SENTIMENT: {sentiment}")
-    print(f"   TTS RATE: {rate_str}")
-    print("   → Run upload_youtube.py to publish")
-    print("=" * 50 + "\n")
+# ─── MAIN ─────────────────────────────────────────────────────────────────────
+
+async def main():
+    today_str  = datetime.now(IST).strftime("%Y%m%d")
+    video_path = OUT / f"reel_{today_str}.mp4"
+    audio_path = OUT / f"reel_audio_{today_str}.mp3"
+
+    # Check if already generated today (duplicate prevention)
+    if video_path.exists() and video_path.stat().st_size > 100_000:
+        print(f"Reel already exists for today: {video_path} — skipping")
+        return
+
+    print(f"Generating ZENO reel — {today_str} | Mode: {CONTENT_MODE.upper()}")
+
+    # Step 1: Script
+    script  = generate_script()
+    emotion = script.get("emotion", "thinking")
+    title   = script.get("title", "TRADING WISDOM")
+    display = script.get("display_text", "Patience + Discipline = Success")
+    audio_script = script.get("audio_script", "")
+
+    print(f"Script ready | title: {title} | emotion: {emotion}")
+
+    # Step 2: TTS audio
+    await generate_tts(audio_script, audio_path)
+
+    # Step 3: Build video frame
+    frame_path = build_reel_frame(title, display, emotion)
+
+    # Step 4: Build thumbnail (v2.1 FIX — proper CTR thumbnail)
+    thumb_path = build_thumbnail(title, display, emotion)
+    print(f"Thumbnail built: {thumb_path}")
+
+    # Step 5: Compose video — TTS only, no music
+    compose_video(frame_path, audio_path, video_path)
+
+    # Step 6: Save meta
+    save_meta(script, today_str, thumb_path)
+
+    print("=" * 50)
+    print(f"ZENO REEL DONE")
+    print(f"  Video:     {video_path}")
+    print(f"  Thumbnail: {thumb_path}")
+    print(f"  Emotion:   {emotion}")
+    print(f"  Music:     none (no copyright risk)")
+    print("=" * 50)
 
 
 if __name__ == "__main__":
-    asyncio.run(generate_reel())
+    asyncio.run(main())
