@@ -13,9 +13,10 @@ numpy>=1.26.0
 # Groq = primary (free, fastest)
 groq>=1.0.0
 # Gemini = secondary fallback (free tier 1,500 req/day)
+# v2.3: Added google-genai (new SDK) alongside old SDK
+# google-genai needed for Veo 2 video generation
+google-genai>=1.0.0
 google-generativeai>=0.8.0
-huggingface-hub>=0.20.0
-stability-sdk>=0.8.0
 # Claude = tertiary fallback (pay-as-you-go — only fires if Groq + Gemini both fail)
 anthropic>=0.40.0
 # OpenAI = quaternary fallback (pay-as-you-go — last resort)
