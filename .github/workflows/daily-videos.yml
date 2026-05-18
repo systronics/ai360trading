@@ -1,5 +1,13 @@
 name: Daily Videos
 
+# ─────────────────────────────────────────────────────────
+# v2.1 FIXES (May 2026):
+#   REMOVED: python generate_analysis.py (file was DELETED)
+#   ADDED:   EDUCATION_LANG=hi and EDUCATION_LANG=en steps
+#   ADDED:   google-genai to pip install (for Gemini 2.5 + Veo 2)
+#   ADDED:   YOUTUBE_CREDENTIALS_EN for English education video
+# ─────────────────────────────────────────────────────────
+
 on:
   schedule:
     # Mon-Fri 7:30 AM IST = 2:00 AM UTC
@@ -22,7 +30,7 @@ on:
 jobs:
   daily-videos:
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 60
 
     steps:
       - name: Checkout
@@ -33,33 +41,22 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y --no-install-recommends \
-            ffmpeg \
-            fonts-dejavu \
-            fonts-liberation \
-            fonts-freefont-ttf \
-            fonts-ubuntu
-
-      - name: Install Python dependencies
+      - name: Install dependencies
         run: |
           pip install --upgrade pip
-          pip install --force-reinstall moviepy==1.0.3
           pip install \
             "Pillow>=10.3.0" \
             "imageio==2.9.0" \
+            "moviepy==1.0.3" \
             edge-tts \
             groq \
+            google-genai \
             google-generativeai \
             anthropic \
             openai \
             yfinance \
             pytz \
             requests \
-            gspread \
-            oauth2client \
             google-api-python-client \
             google-auth \
             google-auth-oauthlib
@@ -71,6 +68,7 @@ jobs:
         run: |
           if [ "$FORCED_MODE" != "auto" ] && [ -n "$FORCED_MODE" ]; then
             echo "CONTENT_MODE=$FORCED_MODE" >> $GITHUB_ENV
+            echo "mode=$FORCED_MODE" >> $GITHUB_OUTPUT
             echo "Using forced mode: $FORCED_MODE"
           else
             python indian_holidays.py
@@ -79,10 +77,8 @@ jobs:
       - name: Create output directory
         run: mkdir -p output
 
-      # ─── HINDI Education Video ─────────────────────────────────────────────
-      # 52-week course. Week auto-calculated from COURSE_START date.
-      # Uploads directly to Hindi YouTube channel.
-      - name: Generate + Upload Education Video (Hindi)
+      # ─── Education Video — Hindi ────────────────────────────────────────────
+      - name: Generate Education Video (Hindi)
         env:
           CONTENT_MODE:        ${{ env.CONTENT_MODE }}
           HOLIDAY_NAME:        ${{ env.HOLIDAY_NAME }}
@@ -92,14 +88,11 @@ jobs:
           ANTHROPIC_API_KEY:   ${{ secrets.ANTHROPIC_API_KEY }}
           OPENAI_API_KEY:      ${{ secrets.OPENAI_API_KEY }}
           YOUTUBE_CREDENTIALS: ${{ secrets.YOUTUBE_CREDENTIALS }}
-          GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
         run: python generate_education.py
 
-      # ─── ENGLISH Education Video ───────────────────────────────────────────
-      # Same course topic, same week — different language and voice (Jenny).
-      # Uploads to English YouTube channel (YOUTUBE_CREDENTIALS_EN).
-      # Phase 3: English channel. If YOUTUBE_CREDENTIALS_EN not set, upload skipped gracefully.
-      - name: Generate + Upload Education Video (English)
+      # ─── Education Video — English (Phase 3) ───────────────────────────────
+      # Skipped gracefully if YOUTUBE_CREDENTIALS_EN not set
+      - name: Generate Education Video (English)
         env:
           CONTENT_MODE:           ${{ env.CONTENT_MODE }}
           HOLIDAY_NAME:           ${{ env.HOLIDAY_NAME }}
@@ -109,13 +102,11 @@ jobs:
           ANTHROPIC_API_KEY:      ${{ secrets.ANTHROPIC_API_KEY }}
           OPENAI_API_KEY:         ${{ secrets.OPENAI_API_KEY }}
           YOUTUBE_CREDENTIALS_EN: ${{ secrets.YOUTUBE_CREDENTIALS_EN }}
-          GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
         run: python generate_education.py
 
       - name: Summary
-        if: always()
         run: |
-          echo "=== Daily Education Videos Complete ==="
+          echo "=== Daily Videos Complete ==="
           echo "Content mode: $CONTENT_MODE"
-          ls -lh output/education_video_*.mp4 2>/dev/null || echo "No education MP4s found"
+          ls -lh output/*.mp4 2>/dev/null || echo "No MP4 files found"
           ls -lh output/education_meta_*.json 2>/dev/null || echo "No meta files found"
