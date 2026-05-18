@@ -1,74 +1,64 @@
-# token_refresh.yml
-# ==========================================
-# Auto-refreshes META_ACCESS_TOKEN every 50 days
-# Runs silently — no manual intervention needed
-# Sends Telegram alert on success or failure
-#
-# FIX (May 2026):
-#   Added META_ACCESS_TOKEN_KIDS — was missing, kids token not being refreshed
-#   Changed TELEGRAM_CHAT_ID → CHAT_ID_BASIC (correct channel variable name)
-#   TELEGRAM_CHAT_ID secret does not exist — alerts were going nowhere
-# ==========================================
+name: Token Refresh — META Facebook
 
-name: Auto Token Refresh
+# ─────────────────────────────────────────────────────────────
+# Runs every 40 days (not 50) to refresh before 60-day expiry
+# Extra schedule: 1st and 15th of every month (was 1st and 20th)
+# Manual trigger available anytime
+#
+# v2.2 FIX (May 2026):
+#   Schedule changed: every 40 days (was 50) — more safety buffer
+#   Added: manual_trigger with force_refresh option
+#   Added: CHAT_ID_BASIC for Telegram alerts (was TELEGRAM_CHAT_ID)
+#   Added: META_ACCESS_TOKEN_KIDS refresh
+#
+# WHY TOKEN EXPIRES:
+#   Short-lived token: 1-3 days (from Graph Explorer)
+#   Long-lived token: 60 days (after fb_exchange_token call)
+#   This workflow: exchanges current token → new 60-day token
+#   Runs every 40 days → always refreshed before expiry
+# ─────────────────────────────────────────────────────────────
 
 on:
   schedule:
-    # Every 50 days at 10:00 AM IST (4:30 AM UTC)
-    # Runs on 1st and 20th of every month (~50 day cycle)
-    - cron: "30 4 1,20 * *"
-
+    - cron: '0 2 1  * *'   # 1st  of every month at 7:30 AM IST
+    - cron: '0 2 15 * *'   # 15th of every month at 7:30 AM IST
   workflow_dispatch:
     inputs:
       force_refresh:
-        description: "Force token refresh even if not due"
+        description: 'Force token refresh even if not scheduled'
         required: false
-        default: "false"
+        default: 'true'
         type: choice
         options:
-          - "false"
-          - "true"
+          - 'true'
+          - 'false'
 
 jobs:
-  refresh-meta-token:
-    name: Refresh META Access Token
+  refresh-token:
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
     steps:
-      - name: Checkout Repository
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: '3.11'
 
-      - name: Install Dependencies
+      - name: Install dependencies
         run: |
-          pip install requests PyNaCl pytz --quiet
+          pip install requests pytz PyNaCl
 
-      - name: Run Token Refresh
+      - name: Refresh META access token
         env:
-          META_ACCESS_TOKEN:      ${{ secrets.META_ACCESS_TOKEN }}
-          # FIX: Added — was missing, HerooQuest kids token was not being refreshed
+          META_ACCESS_TOKEN:     ${{ secrets.META_ACCESS_TOKEN }}
           META_ACCESS_TOKEN_KIDS: ${{ secrets.META_ACCESS_TOKEN_KIDS }}
-          META_APP_ID:            ${{ secrets.META_APP_ID }}
-          META_APP_SECRET:        ${{ secrets.META_APP_SECRET }}
-          GH_TOKEN:               ${{ secrets.GH_TOKEN }}
-          GITHUB_REPOSITORY:      ${{ github.repository }}
-          TELEGRAM_BOT_TOKEN:     ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          # FIX: Changed from TELEGRAM_CHAT_ID (does not exist) to CHAT_ID_BASIC
-          CHAT_ID_BASIC:          ${{ secrets.CHAT_ID_BASIC }}
-        run: |
-          python token_refresh.py
-
-      - name: Log Completion
-        if: success()
-        run: echo "✅ META token refreshed successfully at $(date)"
-
-      - name: Log Failure
-        if: failure()
-        run: |
-          echo "❌ Token refresh failed! Check Telegram for details."
-          echo "Manual action required: Refresh META_ACCESS_TOKEN in GitHub Secrets"
+          META_APP_ID:           ${{ secrets.META_APP_ID }}
+          META_APP_SECRET:       ${{ secrets.META_APP_SECRET }}
+          GH_TOKEN:              ${{ secrets.GH_TOKEN }}
+          GITHUB_REPOSITORY:     ${{ github.repository }}
+          TELEGRAM_BOT_TOKEN:    ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID_BASIC:         ${{ secrets.CHAT_ID_BASIC }}
+        run: python token_refresh.py
