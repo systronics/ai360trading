@@ -4,22 +4,18 @@ oauth2client>=4.1.3
 requests>=2.32.0
 pytz>=2025.1
 
-# MARKET DATA — GLOBAL
+# MARKET DATA
 yfinance>=0.2.40
 pandas>=2.0.0
 numpy>=1.26.0
 
-# AI SCRIPT GENERATION — PRIMARY + FULL FALLBACK CHAIN
-# Groq = primary (free, fastest)
+# AI SCRIPT GENERATION
 groq>=1.0.0
-# Gemini = secondary fallback (free tier 1,500 req/day)
-# v2.3: Added google-genai (new SDK) alongside old SDK
-# google-genai needed for Veo 2 video generation
+# FIX v2.3: Added google-genai (new SDK for Veo 2 video + Gemini 2.5)
+# Required by ai_client.py v2.4
 google-genai>=1.0.0
 google-generativeai>=0.8.0
-# Claude = tertiary fallback (pay-as-you-go — only fires if Groq + Gemini both fail)
 anthropic>=0.40.0
-# OpenAI = quaternary fallback (pay-as-you-go — last resort)
 openai>=1.50.0
 
 # VIDEO & AUDIO
