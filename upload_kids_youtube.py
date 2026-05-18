@@ -96,19 +96,62 @@ def read_meta() -> dict:
 
 
 def get_title(meta: dict) -> str:
-    """Extract title from meta — handles both old and new format."""
-    # New format (v2.1)
-    if meta.get("ep_title"):
-        ep    = meta.get("ep_title", "Story")
-        series = meta.get("series", "HerooQuest")
-        ep_num = meta.get("episode", 1)
-        return f"Heroo: {ep} | Episode {ep_num} | HerooQuest #KidsStories"
-    # Old format
-    if meta.get("title_en"):
-        return meta["title_en"][:100]
-    if meta.get("title_hi"):
-        return meta["title_hi"][:100]
-    return "HerooQuest — Heroo Ki Kahani | Kids Stories"
+    """
+    SEO title for HerooQuest videos.
+    Format: "[Topic Hindi Name] | Heroo Ep [N] | HerooQuest #KidsStories"
+    Parents search: "Guru Nanak story kids Hindi" → must match
+    """
+    ep_title   = meta.get("ep_title", meta.get("title_en", "Heroo Ki Kahani"))
+    topic_hi   = meta.get("topic_hi", "")
+    series     = meta.get("series", "HerooQuest")
+    ep_num     = meta.get("episode", 1)
+
+    # Use Hindi topic name if available (more searchable for Indian parents)
+    if topic_hi:
+        title = f"{topic_hi} | Ep {ep_num} | {series} 🌟 #KidsStories #HindiKahani"
+    else:
+        title = f"{ep_title} | Ep {ep_num} | {series} 🌟 #KidsStories"
+
+    return title[:100]
+
+
+def get_description(meta: dict) -> str:
+    """Full SEO description with hashtags in body."""
+    ep_title = meta.get("ep_title", meta.get("title_en", "Heroo Ki Kahani"))
+    topic_hi = meta.get("topic_hi", "")
+    topic_en = meta.get("topic_en", "")
+    moral    = meta.get("moral_en", "Every story has a lesson")
+    moral_hi = meta.get("moral_hi", "")
+    ep_num   = meta.get("episode", 1)
+    series   = meta.get("series", "HerooQuest")
+
+    return f"""🌟 {series} — Episode {ep_num}: {ep_title}
+
+{"📖 " + topic_hi if topic_hi else ""}
+{"📖 " + topic_en if topic_en else ""}
+
+💡 Aaj ki seekh / Today's Moral:
+{moral_hi if moral_hi else moral}
+
+🎬 Is episode mein Heroo sikhata hai:
+  • {moral}
+  • Ek exciting adventure through {topic_en or ep_title}
+  • Characters: Heroo + Arya in a magical world
+
+🔔 Subscribe karo — roz ek nayi kahani!
+👍 Like karo agar helpful laga
+📱 Parents: Share with your kids!
+
+🌍 For families in: India 🇮🇳 | USA 🇺🇸 | UAE 🇦🇪 | UK 🇬🇧
+
+Watch on HerooQuest: https://youtube.com/@HerooQuest
+
+⚠️ Child-safe content. Made for kids aged 4-12.
+
+#HerooQuest #KidsStories #HindiKahani #MoralStories #AnimatedStories
+#ChildrenEducation #BedtimeStories #KidsCartoon #PixarStyle #FamilyFriendly
+#KidsAnimation #HindiCartoon #ChildrenStories #Ep{ep_num}HerooQuest
+{"#" + topic_hi.replace(" ","") if topic_hi else ""} #HerooKiKahani"""
 
 
 def get_video_path(meta: dict) -> str:
