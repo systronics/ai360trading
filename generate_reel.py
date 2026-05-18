@@ -396,25 +396,64 @@ def compose_video(frame_path, audio_path, output_path):
 
 # ─── SAVE META ────────────────────────────────────────────────────────────────
 
-def save_meta(script_data, today_str, thumb_path=None):
-    tags      = seo.get_video_tags(mode=CONTENT_MODE, is_short=True)
-    yt_tags   = seo.get_youtube_safe_tags(tags)
-    meta_path = OUT / f"meta_{today_str}.json"
+def build_youtube_meta(script: dict, video_path: str, thumb_path: str) -> dict:
+    """Build YouTube-optimised meta for ZENO evening reel."""
+    from datetime import datetime
+    import pytz
 
-    meta = {
-        "title":       build_youtube_title(script_data, today_str),
-        "description": build_youtube_description(script_data, today_str),
-        "tags":        yt_tags,
-        "video_path":  str(OUT / f"reel_{today_str}.mp4"),
-        "thumb_path":  str(thumb_path) if thumb_path else "",
-        "emotion":     script_data.get("emotion", "thinking"),
-        "content_mode":CONTENT_MODE,
-        "music":       "none — TTS voice only",
+    IST       = pytz.timezone("Asia/Kolkata")
+    now       = datetime.now(IST)
+    date_str  = now.strftime("%d %B %Y")
+    date_short= now.strftime("%d %b")
+
+    title_raw  = script.get("title", "ZENO Ki Baat — Trading Wisdom")
+    topic      = script.get("topic", "Trading Psychology")
+    lesson     = script.get("lesson", "")
+
+    # SEO title: topic + lesson + date
+    title = f"🎯 {title_raw} | {date_short} | AI360Trading #Shorts"
+    title = title[:100]
+
+    # Description with full hashtags in body
+    description = f"""🎯 {date_str} | ZENO Ki Baat — Daily Trading Wisdom
+
+💡 Today's lesson: {topic}
+{f"📌 Key insight: {lesson}" if lesson else ""}
+
+📊 In this short:
+  • One trading principle explained in 60 seconds
+  • Real-world application for Indian stock market
+  • ZENO's wisdom for consistent profits
+
+🌍 For traders in: India 🇮🇳 | USA 🇺🇸 | UAE 🇦🇪 | UK 🇬🇧 | Brazil 🇧🇷
+
+📱 Free daily signals: https://t.me/ai360trading
+🌐 Website: https://ai360trading.in
+
+⚠️ Educational only. Not SEBI registered.
+
+#ZenoKiBaat #TradingWisdom #StockMarket #ai360trading #TradingTips
+#InvestingIndia #Nifty50 #TradingPsychology #ShareMarket #Shorts
+#StockMarketShorts #TraderMindset #FinancialEducation #WealthBuilding
+#IndianStockMarket"""
+
+    tags = [
+        "ai360trading", "ZenoKiBaat", "TradingWisdom", "StockMarket",
+        "TradingTips", "InvestingIndia", "Nifty50", "TradingPsychology",
+        "ShareMarket", "StockMarketShorts", "TraderMindset",
+        "FinancialEducation", "WealthBuilding", "IndianStockMarket",
+        "Shorts", "TradingForBeginners", "MarketWisdom",
+    ]
+
+    return {
+        "title":       title,
+        "description": description,
+        "tags":        tags[:30],
+        "topic":       topic,
+        "date":        now.strftime("%Y%m%d"),
+        "video_path":  video_path,
+        "thumb_path":  thumb_path,
     }
-    with open(meta_path, "w") as f:
-        json.dump(meta, f, indent=2, ensure_ascii=False)
-    print(f"Meta saved: {meta_path}")
-    return str(meta_path)
 
 
 # ─── MAIN ─────────────────────────────────────────────────────────────────────
