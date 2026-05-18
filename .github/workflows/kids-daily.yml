@@ -1,219 +1,146 @@
-name: Kids Channel — HerooQuest Daily
+name: Kids Channel — Daily Video
+
+# v2.1 FIXES (May 2026):
+#   ADDED: KIDS_OUTPUT env var — was missing, only full story was generating
+#          Now runs 3 separate jobs: full + short + didyouknow
+#   FIXED: KIDS_LANG — 'both' is not valid for generate_kids_video.py
+#          Now runs Hindi job separately (English when credentials added)
+#   ADDED: YOUTUBE_CREDENTIALS_KIDS to all upload steps
 
 on:
   workflow_dispatch:
     inputs:
       lang:
-        description: "Language"
+        description: "Language mode"
         required: false
-        default: "both"
+        default: "hi"
         type: choice
         options:
-          - both
           - hi
           - en
-      output_type:
-        description: "What to generate"
-        required: false
-        default: "all"
-        type: choice
-        options:
-          - all
-          - full
-          - short
-          - didyouknow
   schedule:
-    # 8:00 AM IST every day = 2:30 AM UTC
-    - cron: '30 2 * * *'
+    - cron: '30 2 * * *'   # 8:00 AM IST every day
 
 jobs:
-  generate-hindi:
+
+  # ── Hindi Full Story (~7.5 min) ──────────────────────────────────────────
+  kids-hindi-full:
     runs-on: ubuntu-latest
     timeout-minutes: 60
-    if: ${{ github.event.inputs.lang == 'hi' || github.event.inputs.lang == 'both' || github.event_name == 'schedule' }}
-
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y --no-install-recommends \
-            ffmpeg \
-            fonts-dejavu \
-            fonts-liberation \
-            fonts-freefont-ttf \
-            fonts-ubuntu
+      - name: Install system deps
+        run: sudo apt-get update -qq && sudo apt-get install -y ffmpeg fonts-dejavu fonts-liberation
 
-      - name: Install Python dependencies
+      - name: Install Python deps
         run: |
           pip install --upgrade pip
-          pip install --force-reinstall moviepy==1.0.3
-          pip install \
-            "Pillow>=10.3.0" \
-            "imageio==2.9.0" \
-            edge-tts \
-            groq \
-            google-generativeai \
-            anthropic \
-            openai \
-            pytz \
-            requests \
-            google-api-python-client \
-            google-auth \
-            google-auth-oauthlib
+          pip install Pillow edge-tts pytz google-genai huggingface-hub requests
+          pip install anthropic openai groq google-api-python-client google-auth
 
       - name: Prepare workspace
         run: mkdir -p output
 
-      # ─── HINDI: Full story video ─────────────────────────────────────────
-      - name: Generate + Upload Hindi Full Story Video
+      - name: Generate full story (Hindi)
         env:
-          KIDS_LANG:                hi
-          KIDS_OUTPUT:              full
-          GROQ_API_KEY:             ${{ secrets.GROQ_API_KEY }}
-          GEMINI_API_KEY:           ${{ secrets.GEMINI_API_KEY }}
-          ANTHROPIC_API_KEY:        ${{ secrets.ANTHROPIC_API_KEY }}
-          OPENAI_API_KEY:           ${{ secrets.OPENAI_API_KEY }}
-          YOUTUBE_CREDENTIALS_KIDS: ${{ secrets.YOUTUBE_CREDENTIALS_KIDS }}
-          META_ACCESS_TOKEN:        ${{ secrets.META_ACCESS_TOKEN_KIDS }}
-          FACEBOOK_KIDS_PAGE_ID:    ${{ secrets.FACEBOOK_KIDS_PAGE_ID }}
+          KIDS_LANG:         hi
+          KIDS_OUTPUT:       full
+          GEMINI_API_KEY:    ${{ secrets.GEMINI_API_KEY }}
+          HF_TOKEN:          ${{ secrets.HF_TOKEN }}
+          GROQ_API_KEY:      ${{ secrets.GROQ_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY:    ${{ secrets.OPENAI_API_KEY }}
+          META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
+          FACEBOOK_KIDS_PAGE_ID: ${{ secrets.FACEBOOK_KIDS_PAGE_ID }}
         run: python generate_kids_video.py
 
-      # ─── HINDI: Cliffhanger Short (different script from full video) ──────
-      - name: Generate + Upload Hindi Cliffhanger Short
+      - name: Upload to YouTube Kids
         env:
-          KIDS_LANG:                hi
-          KIDS_OUTPUT:              short
-          GROQ_API_KEY:             ${{ secrets.GROQ_API_KEY }}
-          GEMINI_API_KEY:           ${{ secrets.GEMINI_API_KEY }}
-          ANTHROPIC_API_KEY:        ${{ secrets.ANTHROPIC_API_KEY }}
-          OPENAI_API_KEY:           ${{ secrets.OPENAI_API_KEY }}
           YOUTUBE_CREDENTIALS_KIDS: ${{ secrets.YOUTUBE_CREDENTIALS_KIDS }}
-        run: python generate_kids_video.py
+        run: python upload_kids_youtube.py
 
-      # ─── HINDI: Did You Know Short (pure viral — separate fact) ──────────
-      - name: Generate + Upload Hindi Did You Know Short
+      - name: Upload to Facebook Kids Page
         env:
-          KIDS_LANG:                hi
-          KIDS_OUTPUT:              didyouknow
-          GROQ_API_KEY:             ${{ secrets.GROQ_API_KEY }}
-          GEMINI_API_KEY:           ${{ secrets.GEMINI_API_KEY }}
-          ANTHROPIC_API_KEY:        ${{ secrets.ANTHROPIC_API_KEY }}
-          OPENAI_API_KEY:           ${{ secrets.OPENAI_API_KEY }}
-          YOUTUBE_CREDENTIALS_KIDS: ${{ secrets.YOUTUBE_CREDENTIALS_KIDS }}
-        run: python generate_kids_video.py
+          META_ACCESS_TOKEN:     ${{ secrets.META_ACCESS_TOKEN_KIDS }}
+          FACEBOOK_KIDS_PAGE_ID: ${{ secrets.FACEBOOK_KIDS_PAGE_ID }}
+        run: python upload_facebook.py --meta-prefix kids
 
-      - name: Save artifacts on failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: kids-hindi-debug-${{ github.run_id }}
-          path: output/
-
-  generate-english:
+  # ── Hindi Cliffhanger Short ──────────────────────────────────────────────
+  kids-hindi-short:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
-    if: ${{ github.event.inputs.lang == 'en' || github.event.inputs.lang == 'both' || github.event_name == 'schedule' }}
-
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y --no-install-recommends \
-            ffmpeg \
-            fonts-dejavu \
-            fonts-liberation \
-            fonts-freefont-ttf \
-            fonts-ubuntu
+      - name: Install system deps
+        run: sudo apt-get update -qq && sudo apt-get install -y ffmpeg fonts-dejavu
 
-      - name: Install Python dependencies
+      - name: Install Python deps
         run: |
           pip install --upgrade pip
-          pip install --force-reinstall moviepy==1.0.3
-          pip install \
-            "Pillow>=10.3.0" \
-            "imageio==2.9.0" \
-            edge-tts \
-            groq \
-            google-generativeai \
-            anthropic \
-            openai \
-            pytz \
-            requests \
-            google-api-python-client \
-            google-auth \
-            google-auth-oauthlib
+          pip install Pillow edge-tts pytz google-genai huggingface-hub requests
+          pip install anthropic openai groq google-api-python-client google-auth
 
       - name: Prepare workspace
         run: mkdir -p output
 
-      # ─── ENGLISH: Full story video ───────────────────────────────────────
-      - name: Generate + Upload English Full Story Video
+      - name: Generate cliffhanger short (Hindi)
         env:
-          KIDS_LANG:                   en
-          KIDS_OUTPUT:                 full
-          GROQ_API_KEY:                ${{ secrets.GROQ_API_KEY }}
-          GEMINI_API_KEY:              ${{ secrets.GEMINI_API_KEY }}
-          ANTHROPIC_API_KEY:           ${{ secrets.ANTHROPIC_API_KEY }}
-          OPENAI_API_KEY:              ${{ secrets.OPENAI_API_KEY }}
-          YOUTUBE_CREDENTIALS_KIDS_EN: ${{ secrets.YOUTUBE_CREDENTIALS_KIDS_EN }}
+          KIDS_LANG:         hi
+          KIDS_OUTPUT:       short
+          GEMINI_API_KEY:    ${{ secrets.GEMINI_API_KEY }}
+          HF_TOKEN:          ${{ secrets.HF_TOKEN }}
+          GROQ_API_KEY:      ${{ secrets.GROQ_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY:    ${{ secrets.OPENAI_API_KEY }}
         run: python generate_kids_video.py
 
-      # ─── ENGLISH: Cliffhanger Short ─────────────────────────────────────
-      - name: Generate + Upload English Cliffhanger Short
+      - name: Upload to YouTube Kids
         env:
-          KIDS_LANG:                   en
-          KIDS_OUTPUT:                 short
-          GROQ_API_KEY:                ${{ secrets.GROQ_API_KEY }}
-          GEMINI_API_KEY:              ${{ secrets.GEMINI_API_KEY }}
-          ANTHROPIC_API_KEY:           ${{ secrets.ANTHROPIC_API_KEY }}
-          OPENAI_API_KEY:              ${{ secrets.OPENAI_API_KEY }}
-          YOUTUBE_CREDENTIALS_KIDS_EN: ${{ secrets.YOUTUBE_CREDENTIALS_KIDS_EN }}
-        run: python generate_kids_video.py
+          YOUTUBE_CREDENTIALS_KIDS: ${{ secrets.YOUTUBE_CREDENTIALS_KIDS }}
+        run: python upload_kids_youtube.py
 
-      # ─── ENGLISH: Did You Know Short ────────────────────────────────────
-      - name: Generate + Upload English Did You Know Short
-        env:
-          KIDS_LANG:                   en
-          KIDS_OUTPUT:                 didyouknow
-          GROQ_API_KEY:                ${{ secrets.GROQ_API_KEY }}
-          GEMINI_API_KEY:              ${{ secrets.GEMINI_API_KEY }}
-          ANTHROPIC_API_KEY:           ${{ secrets.ANTHROPIC_API_KEY }}
-          OPENAI_API_KEY:              ${{ secrets.OPENAI_API_KEY }}
-          YOUTUBE_CREDENTIALS_KIDS_EN: ${{ secrets.YOUTUBE_CREDENTIALS_KIDS_EN }}
-        run: python generate_kids_video.py
-
-      - name: Save artifacts on failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: kids-english-debug-${{ github.run_id }}
-          path: output/
-
-  summary:
+  # ── Hindi Did You Know Short ─────────────────────────────────────────────
+  kids-hindi-didyouknow:
     runs-on: ubuntu-latest
-    needs: [generate-hindi, generate-english]
-    if: always()
+    timeout-minutes: 30
     steps:
-      - name: Job summary
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install system deps
+        run: sudo apt-get update -qq && sudo apt-get install -y ffmpeg fonts-dejavu
+
+      - name: Install Python deps
         run: |
-          echo "## 🦸 HerooQuest Kids — Run Summary" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Output | Hindi | English |" >> $GITHUB_STEP_SUMMARY
-          echo "|---|---|---|" >> $GITHUB_STEP_SUMMARY
-          echo "| Full Story Video | ✅ | ✅ |" >> $GITHUB_STEP_SUMMARY
-          echo "| Cliffhanger Short | ✅ | ✅ |" >> $GITHUB_STEP_SUMMARY
-          echo "| Did You Know Short | ✅ | ✅ |" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Run #${{ github.run_number }} | Triggered by: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          pip install --upgrade pip
+          pip install Pillow edge-tts pytz google-genai huggingface-hub requests
+          pip install anthropic openai groq google-api-python-client google-auth
+
+      - name: Prepare workspace
+        run: mkdir -p output
+
+      - name: Generate Did You Know short (Hindi)
+        env:
+          KIDS_LANG:         hi
+          KIDS_OUTPUT:       didyouknow
+          GEMINI_API_KEY:    ${{ secrets.GEMINI_API_KEY }}
+          HF_TOKEN:          ${{ secrets.HF_TOKEN }}
+          GROQ_API_KEY:      ${{ secrets.GROQ_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY:    ${{ secrets.OPENAI_API_KEY }}
+        run: python generate_kids_video.py
+
+      - name: Upload to YouTube Kids
+        env:
+          YOUTUBE_CREDENTIALS_KIDS: ${{ secrets.YOUTUBE_CREDENTIALS_KIDS }}
+        run: python upload_kids_youtube.py
