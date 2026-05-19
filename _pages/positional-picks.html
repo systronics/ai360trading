@@ -35,18 +35,6 @@ meta-og:image: https://ai360trading.in/public/image/header.webp
     font-size: 15px;
     display: inline-block;
     box-shadow: 0 4px 15px rgba(0,136,204,0.3);
-    margin-right: 10px;
-  }
-  .btn-positional {
-    background: linear-gradient(135deg, #059669, #10b981);
-    color: white !important;
-    padding: 12px 28px;
-    border-radius: 50px;
-    text-decoration: none !important;
-    font-weight: bold;
-    font-size: 15px;
-    display: inline-block;
-    box-shadow: 0 4px 15px rgba(16,185,129,0.3);
   }
   .live-status {
     display: flex;
@@ -69,33 +57,28 @@ meta-og:image: https://ai360trading.in/public/image/header.webp
     50%  { opacity: 0.4; transform: scale(0.8); }
     100% { opacity: 1; transform: scale(1); }
   }
-  /* Tab navigation */
-  .tab-navigation {
+  .signal-legend {
     display: flex;
-    justify-content: center;
-    gap: 12px;
-    margin-bottom: 20px;
+    gap: 10px;
     flex-wrap: wrap;
+    margin: 16px 0 20px 0;
+    justify-content: center;
   }
-  .tab-btn {
-    padding: 11px 22px;
-    font-size: 14px;
-    font-weight: 800;
-    cursor: pointer;
-    border: 2px solid #059669;
-    background: white;
-    color: #059669;
-    border-radius: 50px;
-    transition: all 0.3s;
+  .legend-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
   }
-  .tab-btn.active { background: #059669; color: white; }
-  .tab-btn.etf-btn { border-color: #7c3aed; color: #7c3aed; }
-  .tab-btn.etf-btn.active { background: #7c3aed; color: white; }
-  .tab-btn.watch-btn { border-color: #d97706; color: #d97706; }
-  .tab-btn.watch-btn.active { background: #d97706; color: white; }
-  .tab-content { display: none; }
-  .tab-content.active { display: block; }
-  /* Terminal */
+  .badge-accumulate { background: #dbeafe; color: #1d4ed8; }
+  .badge-buydip     { background: #d1fae5; color: #065f46; }
+  .badge-buy        { background: #dcfce7; color: #15803d; }
+  .badge-sip        { background: #ede9fe; color: #6d28d9; }
+  .badge-hold       { background: #fef3c7; color: #92400e; }
+  .badge-exit       { background: #fee2e2; color: #991b1b; }
   .scroll-hint {
     display: none;
     text-align: center;
@@ -130,7 +113,6 @@ meta-og:image: https://ai360trading.in/public/image/header.webp
     border: none;
     display: block;
   }
-  /* Why positional section */
   .why-section {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
@@ -146,7 +128,6 @@ meta-og:image: https://ai360trading.in/public/image/header.webp
   }
   .why-card h3 { font-size: 15px !important; font-weight: 800; color: #059669; margin: 0 0 8px 0; }
   .why-card p  { font-size: 14px; color: #4a5568; margin: 0; line-height: 1.6; }
-  /* Strategy section */
   .strategy-section {
     background: #f0fdf4;
     border: 1px solid #bbf7d0;
@@ -166,43 +147,10 @@ meta-og:image: https://ai360trading.in/public/image/header.webp
     padding: 16px;
     border: 1px solid #d1fae5;
   }
-  .strategy-card .cap-type { font-size: 12px; font-weight: 800; color: #059669; text-transform: uppercase; letter-spacing: 1px; }
-  .strategy-card .cap-name { font-size: 16px; font-weight: 900; color: #0f172a; margin: 4px 0; }
-  .strategy-card .cap-desc { font-size: 13px; color: #64748b; line-height: 1.5; }
-  .strategy-card .return-badge {
-    display: inline-block;
-    margin-top: 8px;
-    padding: 3px 10px;
-    background: #d1fae5;
-    color: #065f46;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 800;
-  }
-  /* Signal legend */
-  .signal-legend {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin: 16px 0;
-    justify-content: center;
-  }
-  .legend-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-size: 13px;
-    font-weight: 700;
-  }
-  .badge-accumulate { background: #dbeafe; color: #1d4ed8; }
-  .badge-buydip     { background: #d1fae5; color: #065f46; }
-  .badge-buy        { background: #dcfce7; color: #15803d; }
-  .badge-sip        { background: #ede9fe; color: #6d28d9; }
-  .badge-hold       { background: #fef3c7; color: #92400e; }
-  .badge-exit       { background: #fee2e2; color: #991b1b; }
-  /* Broker section */
+  .strategy-card .cap-type   { font-size: 12px; font-weight: 800; color: #059669; text-transform: uppercase; letter-spacing: 1px; }
+  .strategy-card .cap-name   { font-size: 16px; font-weight: 900; color: #0f172a; margin: 4px 0; }
+  .strategy-card .cap-desc   { font-size: 13px; color: #64748b; line-height: 1.5; }
+  .strategy-card .return-badge { display: inline-block; margin-top: 8px; padding: 3px 10px; background: #d1fae5; color: #065f46; border-radius: 20px; font-size: 12px; font-weight: 800; }
   .broker-section {
     margin: 32px 0;
     padding: 25px;
@@ -219,28 +167,24 @@ meta-og:image: https://ai360trading.in/public/image/header.webp
   }
   .broker-card {
     display: flex; flex-direction: column; gap: 8px;
-    background: #fff;
-    border: 1px solid #e2e8f0;
-    border-radius: 10px;
-    padding: 18px;
-    text-decoration: none !important;
-    transition: all 0.3s ease;
+    background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px;
+    text-decoration: none !important; transition: all 0.3s ease;
     box-shadow: 0 2px 8px rgba(0,0,0,0.04);
   }
   .broker-card:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(0,98,255,0.12); border-color: #0062ff; }
   .broker-name { font-size: 16px; font-weight: 900; color: #0f172a; }
   .broker-desc { font-size: 13px; color: #64748b; line-height: 1.5; }
-  .broker-btn  { display: inline-block; margin-top: 5px; background: #0062ff; color: white !important; padding: 7px 14px; border-radius: 6px; font-size: 12px; font-weight: 800; text-align: center; }
+  .broker-btn  { display: inline-block; margin-top: 5px; background: #059669; color: white !important; padding: 7px 14px; border-radius: 6px; font-size: 12px; font-weight: 800; text-align: center; }
   .dashboard-disclaimer { margin-top: 28px; padding: 15px 20px; background: #fff5f5; border: 1px solid #fed7d7; border-radius: 8px; font-size: 13px; color: #744210; line-height: 1.7; }
   @media (max-width: 768px) {
     .scroll-hint { display: block; }
     iframe { height: 700px; }
     .why-section, .strategy-grid, .broker-grid { grid-template-columns: 1fr; }
-    .signal-legend { gap: 8px; }
+    .signal-legend { gap: 6px; }
+    .legend-badge { font-size: 11px; padding: 5px 10px; }
   }
 </style>
 
-<!-- Header -->
 <div class="picks-header">
   <h1>📈 Institutional Positional Picks</h1>
   <p>Long-term wealth compounding setups based on structural shifts</p>
@@ -251,7 +195,6 @@ meta-og:image: https://ai360trading.in/public/image/header.webp
   </div>
 </div>
 
-<!-- Signal Legend -->
 <div class="signal-legend">
   <span class="legend-badge badge-accumulate">🔵 ACCUMULATE — Buy slowly over months</span>
   <span class="legend-badge badge-buydip">🟢 BUY DIP — Wait for correction</span>
@@ -261,71 +204,23 @@ meta-og:image: https://ai360trading.in/public/image/header.webp
   <span class="legend-badge badge-exit">🔴 EXIT — Target hit or thesis broken</span>
 </div>
 
-<!-- Tab Navigation -->
-<div class="tab-navigation">
-  <button id="stocks-btn" class="tab-btn active" onclick="switchTab(event, 'stocks-tab', '#059669')">📊 STOCKS</button>
-  <button id="etf-btn"    class="tab-btn etf-btn"   onclick="switchTab(event, 'etf-tab', '#7c3aed')">🏦 ETF & MUTUAL FUNDS</button>
-  <button id="watch-btn"  class="tab-btn watch-btn" onclick="switchTab(event, 'watch-tab', '#d97706')">👁️ WATCHLIST</button>
-</div>
-
 <p class="scroll-hint">↔️ <strong>Expert View:</strong> Swipe left/right to view full data</p>
 
-<!-- STOCKS TAB -->
-<div id="stocks-tab" class="tab-content active">
-  <div class="terminal-wrapper">
-    <div class="terminal-scroll-container">
-      <!--
-        Sheet: ai360tradingRecomm (17qv8wKgxEDEylB74zUWzxCHESMhFWf8xz1tNzLSuRP8)
-        Tab: PositionalPicks (gid=1429720940)
-        Setup required: Add BUY/ACCUMULATE signals to PositionalPicks tab
-        Then: File → Share → Publish to web → PositionalPicks tab → Web page
-        Enable: Automatically republish when content changes
-      -->
-      <iframe
-        src="https://docs.google.com/spreadsheets/d/17qv8wKgxEDEylB74zUWzxCHESMhFWf8xz1tNzLSuRP8/pubhtml?gid=1429720940&single=true&widget=false&headers=false&chrome=false"
-        title="AI360Trading Positional Stock Picks"
-        loading="lazy"
-      ></iframe>
-    </div>
+<div class="terminal-wrapper">
+  <div class="terminal-scroll-container">
+    <!--
+      Sheet: ai360tradingRecomm
+      Tab:   PositionalPicks (gid=566178621)
+      Published URL confirmed working: ai360tradingRecomm : PositionalPicks ✅
+    -->
+    <iframe
+      src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRxCmYGRepK_DgUk-KMeudF4PoQ9B89msVkMeZmImFb-2QaXobqjOthwdMDlvxpHtu3S9UtyXo9SrOR/pubhtml?gid=566178621&single=true&widget=false&headers=false&chrome=false"
+      title="AI360Trading Positional Picks"
+      loading="lazy"
+    ></iframe>
   </div>
 </div>
 
-<!-- ETF TAB -->
-<div id="etf-tab" class="tab-content">
-  <div class="terminal-wrapper">
-    <div class="terminal-scroll-container">
-      <!--
-        Tab: ETFPicks (add this tab to ai360tradingRecomm sheet)
-        Get gid from URL after clicking the ETFPicks tab
-        Replace ETF_GID below with actual gid
-      -->
-      <iframe
-        src="https://docs.google.com/spreadsheets/d/17qv8wKgxEDEylB74zUWzxCHESMhFWf8xz1tNzLSuRP8/pubhtml?gid=1429720940&single=true&widget=false&headers=false&chrome=false"
-        title="AI360Trading ETF and Mutual Fund Picks"
-        loading="lazy"
-      ></iframe>
-    </div>
-  </div>
-</div>
-
-<!-- WATCHLIST TAB -->
-<div id="watch-tab" class="tab-content">
-  <div class="terminal-wrapper">
-    <div class="terminal-scroll-container">
-      <!--
-        Tab: Watchlist (add to ai360tradingRecomm)
-        Replace WATCHLIST_GID below with actual gid
-      -->
-      <iframe
-        src="https://docs.google.com/spreadsheets/d/17qv8wKgxEDEylB74zUWzxCHESMhFWf8xz1tNzLSuRP8/pubhtml?gid=1429720940&single=true&widget=false&headers=false&chrome=false"
-        title="AI360Trading Watchlist"
-        loading="lazy"
-      ></iframe>
-    </div>
-  </div>
-</div>
-
-<!-- Why Positional -->
 <div class="why-section">
   <div class="why-card">
     <h3>🕐 Holding Period: 3–36 Months</h3>
@@ -345,7 +240,6 @@ meta-og:image: https://ai360trading.in/public/image/header.webp
   </div>
 </div>
 
-<!-- Strategy Section -->
 <div class="strategy-section">
   <h2>🎯 Our Positional Strategy Framework</h2>
   <div class="strategy-grid">
@@ -358,25 +252,24 @@ meta-og:image: https://ai360trading.in/public/image/header.webp
     <div class="strategy-card">
       <span class="cap-type">Mid Cap</span>
       <div class="cap-name">Growth Leaders</div>
-      <div class="cap-desc">PERSISTENT, POLYCAB, HAL, TITAN. High growth businesses with 2–3 year runway. More volatility but better returns.</div>
+      <div class="cap-desc">PERSISTENT, POLYCAB, HAL, TITAN. High growth with 2–3 year runway. More volatility but better returns.</div>
       <span class="return-badge">20–35% annual target</span>
     </div>
     <div class="strategy-card">
       <span class="cap-type" style="color:#7c3aed;">ETF / Index</span>
       <div class="cap-name">Zero Research Needed</div>
-      <div class="cap-desc">NIFTYBEES, JUNIORBEES, MOM100. Best for beginners. Instant diversification. No stock picking required.</div>
+      <div class="cap-desc">NIFTYBEES, JUNIORBEES. Best for beginners. Instant diversification. No stock picking needed.</div>
       <span class="return-badge" style="background:#ede9fe;color:#6d28d9;">12–15% annual target</span>
     </div>
     <div class="strategy-card">
       <span class="cap-type" style="color:#d97706;">Thematic</span>
       <div class="cap-name">Sector Themes</div>
-      <div class="cap-desc">Defence (HAL/BEL), Renewable (NTPC/TATAPOWER), IT (TCS/PERSISTENT). 3–5 year structural themes in India.</div>
+      <div class="cap-desc">Defence (HAL/BEL), Renewable (NTPC/TATAPOWER), IT (TCS/PERSISTENT). 3–5 year structural themes.</div>
       <span class="return-badge" style="background:#fef3c7;color:#92400e;">25–50% over 3 years</span>
     </div>
   </div>
 </div>
 
-<!-- Brokers -->
 <div class="broker-section">
   <h3>🏦 Start Investing with Trusted Brokers</h3>
   <p>Open a free account and start building long-term wealth with these positional picks today.</p>
@@ -388,7 +281,7 @@ meta-og:image: https://ai360trading.in/public/image/header.webp
     </a>
     <a href="https://groww.in" class="broker-card" target="_blank" rel="nofollow">
       <span class="broker-name">🌱 Groww</span>
-      <span class="broker-desc">Best for beginners. Stocks + mutual funds + ETFs in one app. 5-minute account opening.</span>
+      <span class="broker-desc">Best for beginners. Stocks + mutual funds + ETFs in one app.</span>
       <span class="broker-btn">Open Free Account →</span>
     </a>
     <a href="https://kuvera.in" class="broker-card" target="_blank" rel="nofollow">
@@ -400,30 +293,5 @@ meta-og:image: https://ai360trading.in/public/image/header.webp
 </div>
 
 <div class="dashboard-disclaimer">
-  ⚠️ <strong>Disclaimer:</strong> AI360Trading is an educational platform. All positional picks shown are for educational and research purposes only. This is NOT SEBI-registered investment advice. Long-term investing involves risk — stock prices can fall significantly. Past performance does not guarantee future returns. Always consult a SEBI-registered financial advisor. Invest only what you can afford to stay invested for 3+ years.
+  ⚠️ <strong>Disclaimer:</strong> AI360Trading is an educational platform. All positional picks shown are for educational and research purposes only. This is NOT SEBI-registered investment advice. Long-term investing involves risk. Past performance does not guarantee future returns. Always consult a SEBI-registered financial advisor. Invest only what you can afford to stay invested for 3+ years.
 </div>
-
-<script>
-function switchTab(evt, tabName, color) {
-  // Hide all tabs
-  var tabs = document.getElementsByClassName("tab-content");
-  for (var i = 0; i < tabs.length; i++) tabs[i].classList.remove("active");
-
-  // Reset all buttons
-  var btns = document.getElementsByClassName("tab-btn");
-  for (var i = 0; i < btns.length; i++) {
-    btns[i].classList.remove("active");
-    var id = btns[i].id;
-    if      (id === "etf-btn")   { btns[i].style.background = "white"; btns[i].style.color = "#7c3aed"; }
-    else if (id === "watch-btn") { btns[i].style.background = "white"; btns[i].style.color = "#d97706"; }
-    else                         { btns[i].style.background = "white"; btns[i].style.color = "#059669"; }
-  }
-
-  // Activate selected
-  document.getElementById(tabName).classList.add("active");
-  var btn = evt.currentTarget;
-  btn.classList.add("active");
-  btn.style.background = color;
-  btn.style.color = "white";
-}
-</script>
