@@ -1,8 +1,12 @@
 ---
 layout: default
-title: "Institutional Positional Picks"
-description: "Institutional grade long-term positional picks focusing on Fundamental and Technical analysis."
+title: "Institutional Positional Picks | Long-Term Investment Signals"
+description: "AI-powered long-term stock picks for wealth compounding. Large cap, mid cap, small cap and ETF recommendations based on fundamental and technical analysis."
 permalink: /positional-picks/
+canonical: https://ai360trading.in/positional-picks/
+meta-og:title: "Positional Picks | Long-Term Investment Signals | AI360Trading"
+meta-og:description: "Long-term stock picks for wealth compounding. Large cap, mid cap, ETF recommendations."
+meta-og:image: https://ai360trading.in/public/image/header.webp
 ---
 
 <style>
@@ -11,180 +15,415 @@ permalink: /positional-picks/
     margin: 0 auto !important;
     padding: 0 15px !important;
   }
-
-  .trading-status {
+  .picks-header {
     text-align: center;
     margin-bottom: 25px;
-    padding: 30px 25px;
-    background: #eef4ff;
+    padding: 35px 25px;
+    background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
     border-radius: 12px;
-    border: none;
+    border: 1px solid #bbf7d0;
   }
-
+  .picks-header h1 { margin: 0 0 8px 0; color: #064e3b; font-size: 26px; font-weight: 900; }
+  .picks-header p  { font-size: 15px; color: #065f46; margin: 0 0 20px 0; }
+  .btn-tg {
+    background-color: #0088cc;
+    color: white !important;
+    padding: 12px 28px;
+    border-radius: 50px;
+    text-decoration: none !important;
+    font-weight: bold;
+    font-size: 15px;
+    display: inline-block;
+    box-shadow: 0 4px 15px rgba(0,136,204,0.3);
+    margin-right: 10px;
+  }
+  .btn-positional {
+    background: linear-gradient(135deg, #059669, #10b981);
+    color: white !important;
+    padding: 12px 28px;
+    border-radius: 50px;
+    text-decoration: none !important;
+    font-weight: bold;
+    font-size: 15px;
+    display: inline-block;
+    box-shadow: 0 4px 15px rgba(16,185,129,0.3);
+  }
+  .live-status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin: 16px 0 0 0;
+    color: #059669;
+    font-weight: bold;
+    font-size: 15px;
+  }
+  .blink {
+    height: 10px; width: 10px;
+    background-color: #059669;
+    border-radius: 50%;
+    animation: blink-animation 1.5s infinite;
+  }
+  @keyframes blink-animation {
+    0%   { opacity: 1; transform: scale(1); }
+    50%  { opacity: 0.4; transform: scale(0.8); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+  /* Tab navigation */
   .tab-navigation {
     display: flex;
     justify-content: center;
-    gap: 15px;
-    margin-bottom: 25px;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
   }
-
   .tab-btn {
-    padding: 12px 25px;
-    font-size: 15px;
-    font-weight: bold;
+    padding: 11px 22px;
+    font-size: 14px;
+    font-weight: 800;
     cursor: pointer;
-    border: 2px solid #0088cc;
+    border: 2px solid #059669;
     background: white;
-    color: #0088cc;
+    color: #059669;
     border-radius: 50px;
-    transition: 0.3s;
+    transition: all 0.3s;
   }
-
-  .tab-btn.active {
-    background: #0088cc;
-    color: white;
-  }
-
-  .terminal-wrapper {
-    position: relative;
-    width: 100%;
-    background: #fff;
-    border: 1px solid #e1e8ed;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-  }
-
-  .terminal-scroll-container {
-    width: 100%;
-    overflow-x: scroll;
-    overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .iframe-force-width {
-    width: 1100px;
-    display: block;
-    position: relative;
-  }
-
-  iframe {
-    width: 100%;
-    height: 850px;
-    border: none;
-    display: block;
-    pointer-events: none;
-  }
-
-  .touch-overlay {
-    display: none;
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    z-index: 10;
-    cursor: grab;
-  }
-
-  .tab-content {
-    display: none;
-  }
-
-  .tab-content.active {
-    display: block;
-  }
-
+  .tab-btn.active { background: #059669; color: white; }
+  .tab-btn.etf-btn { border-color: #7c3aed; color: #7c3aed; }
+  .tab-btn.etf-btn.active { background: #7c3aed; color: white; }
+  .tab-btn.watch-btn { border-color: #d97706; color: #d97706; }
+  .tab-btn.watch-btn.active { background: #d97706; color: white; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+  /* Terminal */
   .scroll-hint {
     display: none;
     text-align: center;
     font-size: 13px;
     color: #34495e;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
     padding: 10px;
     background: #f8f9fa;
     border: 1px dashed #cbd5e0;
     border-radius: 6px;
   }
-
+  .terminal-wrapper {
+    position: relative;
+    width: 100%;
+    border-radius: 12px;
+    border: 1px solid #bbf7d0;
+    background: #fff;
+    margin-bottom: 30px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    overflow: hidden;
+  }
+  .terminal-scroll-container {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+  iframe {
+    width: 100%;
+    min-width: 1100px;
+    height: 860px;
+    border: none;
+    display: block;
+  }
+  /* Why positional section */
+  .why-section {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 16px;
+    margin: 28px 0;
+  }
+  .why-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 18px 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+  .why-card h3 { font-size: 15px !important; font-weight: 800; color: #059669; margin: 0 0 8px 0; }
+  .why-card p  { font-size: 14px; color: #4a5568; margin: 0; line-height: 1.6; }
+  /* Strategy section */
+  .strategy-section {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 12px;
+    padding: 25px;
+    margin: 28px 0;
+  }
+  .strategy-section h2 { font-size: 20px; font-weight: 900; color: #064e3b; margin: 0 0 16px 0; }
+  .strategy-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+  }
+  .strategy-card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 16px;
+    border: 1px solid #d1fae5;
+  }
+  .strategy-card .cap-type { font-size: 12px; font-weight: 800; color: #059669; text-transform: uppercase; letter-spacing: 1px; }
+  .strategy-card .cap-name { font-size: 16px; font-weight: 900; color: #0f172a; margin: 4px 0; }
+  .strategy-card .cap-desc { font-size: 13px; color: #64748b; line-height: 1.5; }
+  .strategy-card .return-badge {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 3px 10px;
+    background: #d1fae5;
+    color: #065f46;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 800;
+  }
+  /* Signal legend */
+  .signal-legend {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 16px 0;
+    justify-content: center;
+  }
+  .legend-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .badge-accumulate { background: #dbeafe; color: #1d4ed8; }
+  .badge-buydip     { background: #d1fae5; color: #065f46; }
+  .badge-buy        { background: #dcfce7; color: #15803d; }
+  .badge-sip        { background: #ede9fe; color: #6d28d9; }
+  .badge-hold       { background: #fef3c7; color: #92400e; }
+  .badge-exit       { background: #fee2e2; color: #991b1b; }
+  /* Broker section */
+  .broker-section {
+    margin: 32px 0;
+    padding: 25px;
+    background: #f0f7ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 12px;
+  }
+  .broker-section h3 { font-size: 18px; font-weight: 900; color: #0f172a; margin: 0 0 6px 0; }
+  .broker-section p  { font-size: 14px; color: #64748b; margin: 0 0 18px 0; }
+  .broker-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+  }
+  .broker-card {
+    display: flex; flex-direction: column; gap: 8px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 18px;
+    text-decoration: none !important;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+  .broker-card:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(0,98,255,0.12); border-color: #0062ff; }
+  .broker-name { font-size: 16px; font-weight: 900; color: #0f172a; }
+  .broker-desc { font-size: 13px; color: #64748b; line-height: 1.5; }
+  .broker-btn  { display: inline-block; margin-top: 5px; background: #0062ff; color: white !important; padding: 7px 14px; border-radius: 6px; font-size: 12px; font-weight: 800; text-align: center; }
+  .dashboard-disclaimer { margin-top: 28px; padding: 15px 20px; background: #fff5f5; border: 1px solid #fed7d7; border-radius: 8px; font-size: 13px; color: #744210; line-height: 1.7; }
   @media (max-width: 768px) {
-    .touch-overlay { display: block; }
     .scroll-hint { display: block; }
     iframe { height: 700px; }
+    .why-section, .strategy-grid, .broker-grid { grid-template-columns: 1fr; }
+    .signal-legend { gap: 8px; }
   }
 </style>
 
-<div class="trading-status">
-  <h1 style="margin: 0 0 8px 0; color: #1e293b; font-size: 24px; font-weight: 900;">Institutional Positional Picks</h1>
-  <p style="font-size: 14px; color: #64748b; margin: 0;">Fundamental & Technical Research Signals</p>
+<!-- Header -->
+<div class="picks-header">
+  <h1>📈 Institutional Positional Picks</h1>
+  <p>Long-term wealth compounding setups based on structural shifts</p>
+  <a href="https://t.me/ai360trading" class="btn-tg">📣 Free Telegram Alerts</a>
+  <div class="live-status">
+    <div class="blink"></div>
+    LONG-TERM RESEARCH: TRACKING 200+ STOCKS
+  </div>
 </div>
 
+<!-- Signal Legend -->
+<div class="signal-legend">
+  <span class="legend-badge badge-accumulate">🔵 ACCUMULATE — Buy slowly over months</span>
+  <span class="legend-badge badge-buydip">🟢 BUY DIP — Wait for correction</span>
+  <span class="legend-badge badge-buy">✅ BUY — Good entry now</span>
+  <span class="legend-badge badge-sip">🟣 SIP — Monthly fixed investment</span>
+  <span class="legend-badge badge-hold">🟡 HOLD — Stay invested</span>
+  <span class="legend-badge badge-exit">🔴 EXIT — Target hit or thesis broken</span>
+</div>
+
+<!-- Tab Navigation -->
 <div class="tab-navigation">
-  <button id="buy-btn" class="tab-btn active" onclick="switchTab(event, 'buy-tab')">📈 BUY SIGNALS</button>
-  <button id="sell-btn" class="tab-btn" onclick="switchTab(event, 'sell-tab')" style="border-color: #cc0000; color: #cc0000;">📉 SELL SIGNALS</button>
+  <button id="stocks-btn" class="tab-btn active" onclick="switchTab(event, 'stocks-tab', '#059669')">📊 STOCKS</button>
+  <button id="etf-btn"    class="tab-btn etf-btn"   onclick="switchTab(event, 'etf-tab', '#7c3aed')">🏦 ETF & MUTUAL FUNDS</button>
+  <button id="watch-btn"  class="tab-btn watch-btn" onclick="switchTab(event, 'watch-tab', '#d97706')">👁️ WATCHLIST</button>
 </div>
 
-<p class="scroll-hint">↔️ <b>Expert View:</b> Swipe left/right to view full data</p>
+<p class="scroll-hint">↔️ <strong>Expert View:</strong> Swipe left/right to view full data</p>
 
-<div id="buy-tab" class="tab-content active">
+<!-- STOCKS TAB -->
+<div id="stocks-tab" class="tab-content active">
   <div class="terminal-wrapper">
-    <div class="terminal-scroll-container" id="buy-scroll">
-      <div class="iframe-force-width">
-        <div class="touch-overlay" data-scroll="buy-scroll"></div>
-        <iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRxCmYGRepK_DgUk-KMeudF4PoQ9B89msVkMeZmImFb-2QaXobqjOthwdMDlvxpHtu3S9UtyXo9SrOR/pubhtml?gid=1076123104&single=true&headers=false&chrome=false&widget=false"></iframe>
-      </div>
+    <div class="terminal-scroll-container">
+      <!--
+        Sheet: ai360tradingRecomm (17qv8wKgxEDEylB74zUWzxCHESMhFWf8xz1tNzLSuRP8)
+        Tab: PositionalPicks (gid=1429720940)
+        Setup required: Add BUY/ACCUMULATE signals to PositionalPicks tab
+        Then: File → Share → Publish to web → PositionalPicks tab → Web page
+        Enable: Automatically republish when content changes
+      -->
+      <iframe
+        src="https://docs.google.com/spreadsheets/d/17qv8wKgxEDEylB74zUWzxCHESMhFWf8xz1tNzLSuRP8/pubhtml?gid=1429720940&single=true&widget=false&headers=false&chrome=false"
+        title="AI360Trading Positional Stock Picks"
+        loading="lazy"
+      ></iframe>
     </div>
   </div>
 </div>
 
-<div id="sell-tab" class="tab-content">
+<!-- ETF TAB -->
+<div id="etf-tab" class="tab-content">
   <div class="terminal-wrapper">
-    <div class="terminal-scroll-container" id="sell-scroll">
-      <div class="iframe-force-width">
-        <div class="touch-overlay" data-scroll="sell-scroll"></div>
-        <iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRxCmYGRepK_DgUk-KMeudF4PoQ9B89msVkMeZmImFb-2QaXobqjOthwdMDlvxpHtu3S9UtyXo9SrOR/pubhtml?gid=8115561&single=true&headers=false&chrome=false&widget=false"></iframe>
-      </div>
+    <div class="terminal-scroll-container">
+      <!--
+        Tab: ETFPicks (add this tab to ai360tradingRecomm sheet)
+        Get gid from URL after clicking the ETFPicks tab
+        Replace ETF_GID below with actual gid
+      -->
+      <iframe
+        src="https://docs.google.com/spreadsheets/d/17qv8wKgxEDEylB74zUWzxCHESMhFWf8xz1tNzLSuRP8/pubhtml?gid=1429720940&single=true&widget=false&headers=false&chrome=false"
+        title="AI360Trading ETF and Mutual Fund Picks"
+        loading="lazy"
+      ></iframe>
     </div>
   </div>
+</div>
+
+<!-- WATCHLIST TAB -->
+<div id="watch-tab" class="tab-content">
+  <div class="terminal-wrapper">
+    <div class="terminal-scroll-container">
+      <!--
+        Tab: Watchlist (add to ai360tradingRecomm)
+        Replace WATCHLIST_GID below with actual gid
+      -->
+      <iframe
+        src="https://docs.google.com/spreadsheets/d/17qv8wKgxEDEylB74zUWzxCHESMhFWf8xz1tNzLSuRP8/pubhtml?gid=1429720940&single=true&widget=false&headers=false&chrome=false"
+        title="AI360Trading Watchlist"
+        loading="lazy"
+      ></iframe>
+    </div>
+  </div>
+</div>
+
+<!-- Why Positional -->
+<div class="why-section">
+  <div class="why-card">
+    <h3>🕐 Holding Period: 3–36 Months</h3>
+    <p>Positional picks are based on structural business shifts. Hold for full thesis to play out — minimum 3 months, ideal 1–3 years.</p>
+  </div>
+  <div class="why-card">
+    <h3>🏛️ Institutional Grade Research</h3>
+    <p>Each pick is based on FII accumulation, earnings momentum, sector rotation and technical structure confirmation.</p>
+  </div>
+  <div class="why-card">
+    <h3>📉 Defined Stop Loss</h3>
+    <p>Every pick has a stop loss. Exit discipline is as important as entry. Protect capital first — profits follow.</p>
+  </div>
+  <div class="why-card">
+    <h3>🌍 Global + India Macro</h3>
+    <p>Picks consider global sector trends — IT, Defence, Renewable Energy, Healthcare — not just Indian market signals.</p>
+  </div>
+</div>
+
+<!-- Strategy Section -->
+<div class="strategy-section">
+  <h2>🎯 Our Positional Strategy Framework</h2>
+  <div class="strategy-grid">
+    <div class="strategy-card">
+      <span class="cap-type">Large Cap</span>
+      <div class="cap-name">Safe & Steady</div>
+      <div class="cap-desc">HDFC Bank, TCS, Reliance, Sun Pharma. Low volatility, consistent growth. Good for conservative investors.</div>
+      <span class="return-badge">12–18% annual target</span>
+    </div>
+    <div class="strategy-card">
+      <span class="cap-type">Mid Cap</span>
+      <div class="cap-name">Growth Leaders</div>
+      <div class="cap-desc">PERSISTENT, POLYCAB, HAL, TITAN. High growth businesses with 2–3 year runway. More volatility but better returns.</div>
+      <span class="return-badge">20–35% annual target</span>
+    </div>
+    <div class="strategy-card">
+      <span class="cap-type" style="color:#7c3aed;">ETF / Index</span>
+      <div class="cap-name">Zero Research Needed</div>
+      <div class="cap-desc">NIFTYBEES, JUNIORBEES, MOM100. Best for beginners. Instant diversification. No stock picking required.</div>
+      <span class="return-badge" style="background:#ede9fe;color:#6d28d9;">12–15% annual target</span>
+    </div>
+    <div class="strategy-card">
+      <span class="cap-type" style="color:#d97706;">Thematic</span>
+      <div class="cap-name">Sector Themes</div>
+      <div class="cap-desc">Defence (HAL/BEL), Renewable (NTPC/TATAPOWER), IT (TCS/PERSISTENT). 3–5 year structural themes in India.</div>
+      <span class="return-badge" style="background:#fef3c7;color:#92400e;">25–50% over 3 years</span>
+    </div>
+  </div>
+</div>
+
+<!-- Brokers -->
+<div class="broker-section">
+  <h3>🏦 Start Investing with Trusted Brokers</h3>
+  <p>Open a free account and start building long-term wealth with these positional picks today.</p>
+  <div class="broker-grid">
+    <a href="https://bit.ly/2VK6k5F" class="broker-card" target="_blank" rel="nofollow">
+      <span class="broker-name">📊 Zerodha</span>
+      <span class="broker-desc">India's #1 broker. Zero brokerage on equity delivery. Perfect for long-term investors.</span>
+      <span class="broker-btn">Open Free Account →</span>
+    </a>
+    <a href="https://groww.in" class="broker-card" target="_blank" rel="nofollow">
+      <span class="broker-name">🌱 Groww</span>
+      <span class="broker-desc">Best for beginners. Stocks + mutual funds + ETFs in one app. 5-minute account opening.</span>
+      <span class="broker-btn">Open Free Account →</span>
+    </a>
+    <a href="https://kuvera.in" class="broker-card" target="_blank" rel="nofollow">
+      <span class="broker-name">💎 Kuvera</span>
+      <span class="broker-desc">Best for mutual funds and ETFs. Direct plans, zero commission. Free goal-based investing.</span>
+      <span class="broker-btn">Open Free Account →</span>
+    </a>
+  </div>
+</div>
+
+<div class="dashboard-disclaimer">
+  ⚠️ <strong>Disclaimer:</strong> AI360Trading is an educational platform. All positional picks shown are for educational and research purposes only. This is NOT SEBI-registered investment advice. Long-term investing involves risk — stock prices can fall significantly. Past performance does not guarantee future returns. Always consult a SEBI-registered financial advisor. Invest only what you can afford to stay invested for 3+ years.
 </div>
 
 <script>
-function switchTab(evt, tabName) {
-  var i, tabcontent, tablinks;
-  tabcontent = document.getElementsByClassName("tab-content");
-  for (i = 0; i < tabcontent.length; i++) {
-    tabcontent[i].classList.remove("active");
+function switchTab(evt, tabName, color) {
+  // Hide all tabs
+  var tabs = document.getElementsByClassName("tab-content");
+  for (var i = 0; i < tabs.length; i++) tabs[i].classList.remove("active");
+
+  // Reset all buttons
+  var btns = document.getElementsByClassName("tab-btn");
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].classList.remove("active");
+    var id = btns[i].id;
+    if      (id === "etf-btn")   { btns[i].style.background = "white"; btns[i].style.color = "#7c3aed"; }
+    else if (id === "watch-btn") { btns[i].style.background = "white"; btns[i].style.color = "#d97706"; }
+    else                         { btns[i].style.background = "white"; btns[i].style.color = "#059669"; }
   }
-  tablinks = document.getElementsByClassName("tab-btn");
-  for (i = 0; i < tablinks.length; i++) {
-    tablinks[i].classList.remove("active");
-    tablinks[i].style.backgroundColor = "white";
-    tablinks[i].style.color = (tablinks[i].id === "sell-btn") ? "#cc0000" : "#0088cc";
-  }
+
+  // Activate selected
   document.getElementById(tabName).classList.add("active");
   var btn = evt.currentTarget;
   btn.classList.add("active");
-  btn.style.backgroundColor = (btn.id === "sell-btn") ? "#cc0000" : "#0088cc";
+  btn.style.background = color;
   btn.style.color = "white";
 }
-
-document.querySelectorAll('.touch-overlay').forEach(function(overlay) {
-  var startX, startY, startScrollLeft;
-
-  overlay.addEventListener('touchstart', function(e) {
-    var scrollEl = document.getElementById(overlay.dataset.scroll);
-    startX = e.touches[0].clientX;
-    startY = e.touches[0].clientY;
-    startScrollLeft = scrollEl.scrollLeft;
-  }, { passive: true });
-
-  overlay.addEventListener('touchmove', function(e) {
-    var scrollEl = document.getElementById(overlay.dataset.scroll);
-    var dx = startX - e.touches[0].clientX;
-    var dy = startY - e.touches[0].clientY;
-
-    if (Math.abs(dx) > Math.abs(dy)) {
-      e.preventDefault();
-      scrollEl.scrollLeft = startScrollLeft + dx;
-    }
-  }, { passive: false });
-});
 </script>
