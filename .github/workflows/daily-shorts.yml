@@ -1,15 +1,17 @@
 name: "Daily Shorts — AI360Trading (Short 2 + Short 3)"
 
 # v2.1 FIX (May 2026):
-#   Added GEMINI_API_KEY, ANTHROPIC_API_KEY, OPENAI_API_KEY to env
-#   Without these, when Groq hits daily limit (happens by 11:30 AM)
-#   no fallback provider is available → shorts use generic template
+#   FIXED: Only GROQ_API_KEY was passed — now all 4 AI keys passed
+#   When Groq hits daily limit (100k tokens) → Gemini → Anthropic → OpenAI
+#   KEPT: Everything else unchanged from existing working version
 
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 6 * * 1-5"    # Mon-Fri 11:30 AM IST
-    - cron: "0 8 * * 6,0"    # Sat-Sun 1:30 PM IST
+    # Mon-Fri: 11:30 AM IST (06:00 UTC)
+    - cron: "0 6 * * 1-5"
+    # Sat-Sun: 1:30 PM IST (08:00 UTC)
+    - cron: "0 8 * * 6,0"
 
 jobs:
   build-and-upload:
@@ -32,7 +34,8 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends \
-            ffmpeg fonts-dejavu fonts-liberation fonts-freefont-ttf fonts-ubuntu imagemagick
+            ffmpeg fonts-dejavu fonts-liberation \
+            fonts-freefont-ttf fonts-ubuntu imagemagick
           sudo sed -i 's/rights="none" pattern="@\*"/rights="read|write" pattern="@*"/g' /etc/ImageMagick-6/policy.xml || true
 
       - name: Install Python dependencies
@@ -55,10 +58,10 @@ jobs:
               mode = get_day_mode()
               holiday_name = get_holiday_name() if mode == "holiday" else ""
           except Exception as e:
-              print(f"[WARN] indian_holidays error: {e} — defaulting to market")
+              print(f"[WARN] {e} — defaulting to market")
               mode = "market"
               holiday_name = ""
-          print(f"[MODE] Shorts content mode: {mode.upper()}")
+          print(f"[MODE] Shorts mode: {mode.upper()}")
           with open(os.environ["GITHUB_ENV"], "a") as f:
               f.write(f"CONTENT_MODE={mode}\n")
               f.write(f"HOLIDAY_NAME={holiday_name}\n")
@@ -72,7 +75,7 @@ jobs:
 
       - name: Generate + Upload Short 2 + Short 3
         env:
-          # FIX: All 4 AI providers passed — fallback chain works fully
+          # FIX v2.1: All 4 AI keys — fallback chain works fully
           GROQ_API_KEY:        ${{ secrets.GROQ_API_KEY }}
           GEMINI_API_KEY:      ${{ secrets.GEMINI_API_KEY }}
           ANTHROPIC_API_KEY:   ${{ secrets.ANTHROPIC_API_KEY }}
@@ -80,6 +83,7 @@ jobs:
           YOUTUBE_CREDENTIALS: ${{ secrets.YOUTUBE_CREDENTIALS }}
           META_ACCESS_TOKEN:   ${{ secrets.META_ACCESS_TOKEN }}
           FACEBOOK_PAGE_ID:    ${{ secrets.FACEBOOK_PAGE_ID }}
+          FACEBOOK_GROUP_ID:   ${{ secrets.FACEBOOK_GROUP_ID }}
           CONTENT_MODE:        ${{ env.CONTENT_MODE }}
           HOLIDAY_NAME:        ${{ env.HOLIDAY_NAME }}
         run: |
@@ -87,10 +91,12 @@ jobs:
           python generate_shorts.py
           echo "✅ Hindi short done"
 
-      - name: Upload artifacts
+      - name: Upload artifacts for debug
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: daily-shorts-${{ github.run_id }}
-          path: output/short*.mp4
+          path: |
+            output/short2_*.mp4
+            output/short3_*.mp4
           retention-days: 3
