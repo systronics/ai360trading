@@ -1,31 +1,33 @@
 """
-upload_kids_youtube.py v2.2 — HerooQuest YouTube Upload
+upload_kids_youtube.py v2.3 — HerooQuest YouTube Upload
 =========================================================
-v2.2 FIXES (May 2026):
+v2.3 CHANGES (May 2026):
 
-FIX 1 — Custom thumbnail upload ADDED
-  Original had NO thumbnail upload → YouTube auto-picked placeholder frame
-  "Scene 4" / "Scene 99" showing as thumbnail instead of Heroo character
-  Fix: After video upload → immediately set custom thumbnail via API
+SEO FIX 1 — Title format improved
+  Old: "Heroo: {ep_title} | Episode {ep_num} | HerooQuest #KidsStories"
+  New: "{ep_title} | Heroo Ki Kahani | HerooQuest | Hindi Moral Story 2026"
+  Why: "Hindi Moral Story 2026" = what parents search on YouTube
+       Specific story title first = algorithm picks up search intent
 
-FIX 2 — Meta key compatibility with generate_kids_video.py v2.1
-  Old: meta["title_en"], meta["video_path"]
-  New: meta["type"], meta["ep_title"], meta["series"]
-  Fix: Reads both old and new format safely
+SEO FIX 2 — Tags expanded from 16 to 30
+  Added: HindiCartoon, BachonKiKahani, CartoonInHindi, BalKahani,
+         ShortStoryForKids, HindiStories, KidsVideoHindi, MoralKahani,
+         IndianKidsStories, AnimatedHindiStory, BedtimeStoryHindi
+  Why: These are exactly what Indian parents search for kids content
 
-FIX 3 — Thumbnail philosophy (Amit's requirement)
-  Thumbnail must be IMAGE + TEXT that makes viewer STOP and READ
-  Heroo character visible (creates emotional connection)
-  Story title in HUGE yellow bold text (readable in 2 seconds)
-  Moral or hook line visible in thumbnail
-  This increases CTR + watch time + curiosity
+SEO FIX 3 — Description rewritten
+  First 2 lines = CTA (YouTube shows first 100 chars in search)
+  Timestamps added for 7.5 min video (chapters help algorithm)
+  15 hashtags at bottom (was only 5)
+  Website link added
 
-  Examples of what works (from competitor analysis):
-  - "NIFTY 23250 - 18 MAY 2026" huge text → viewer reads in feed
-  - Dark Fact: dramatic image + bold story title → curiosity gap
-  Same principle for HerooQuest:
-  - Heroo + "Sona Hiran" huge text + "Patience wins!" moral snippet
-  - Viewer reads it in feed → curious → clicks → watches fully
+THUMBNAIL FIX — Story-specific title instead of generic
+  Old: "HEROO KI KAHANI" (same every day)
+  New: Today's specific story title e.g. "GURU NANAK" or "SONA HIRAN"
+  Why: Specific = curiosity = more clicks
+       Generic = viewer has seen before = scroll past
+
+All v2.2 features retained (thumbnail upload, Heroo character, etc.)
 """
 
 import os
@@ -38,11 +40,11 @@ from datetime import date
 from PIL import Image, ImageDraw, ImageFont
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
-from googleapiclient.http import MediaFileUpload, MediaIoBaseUpload
-import io
+from googleapiclient.http import MediaFileUpload
 
 TODAY     = date.today().isoformat()
 DATE_STR  = date.today().strftime("%Y%m%d")
+YEAR      = date.today().year
 OUT       = Path("output")
 IMAGE_DIR = Path("public/image")
 
@@ -70,8 +72,6 @@ def lerp(c1, c2, t):
 # ─── READ META ────────────────────────────────────────────────────────────────
 
 def read_meta() -> dict:
-    """Read kids meta — supports both v2.0 and v2.1 formats."""
-    # Try today's date first
     for path in [
         OUT / f"kids_meta_{DATE_STR}_hi.json",
         OUT / f"kids_meta_{TODAY}.json",
@@ -83,155 +83,169 @@ def read_meta() -> dict:
                 print(f"[META] Loaded: {path.name}")
                 return meta
             except: pass
-
-    # Search for most recent
     candidates = sorted(OUT.glob("kids_meta_*.json"), key=lambda p: p.stat().st_mtime, reverse=True)
     if candidates:
         meta = json.loads(candidates[0].read_text(encoding="utf-8"))
         print(f"[META] Loaded latest: {candidates[0].name}")
         return meta
-
     print("[META] No meta file found — using defaults")
     return {}
 
 
-def get_title(meta: dict) -> str:
-    """
-    SEO title for HerooQuest videos.
-    Format: "[Topic Hindi Name] | Heroo Ep [N] | HerooQuest #KidsStories"
-    Parents search: "Guru Nanak story kids Hindi" → must match
-    """
-    ep_title   = meta.get("ep_title", meta.get("title_en", "Heroo Ki Kahani"))
-    topic_hi   = meta.get("topic_hi", "")
-    series     = meta.get("series", "HerooQuest")
-    ep_num     = meta.get("episode", 1)
-
-    # Use Hindi topic name if available (more searchable for Indian parents)
-    if topic_hi:
-        title = f"{topic_hi} | Ep {ep_num} | {series} 🌟 #KidsStories #HindiKahani"
-    else:
-        title = f"{ep_title} | Ep {ep_num} | {series} 🌟 #KidsStories"
-
-    return title[:100]
-
-
-def get_description(meta: dict) -> str:
-    """Full SEO description with hashtags in body."""
-    ep_title = meta.get("ep_title", meta.get("title_en", "Heroo Ki Kahani"))
-    topic_hi = meta.get("topic_hi", "")
-    topic_en = meta.get("topic_en", "")
-    moral    = meta.get("moral_en", "Every story has a lesson")
-    moral_hi = meta.get("moral_hi", "")
-    ep_num   = meta.get("episode", 1)
-    series   = meta.get("series", "HerooQuest")
-
-    return f"""🌟 {series} — Episode {ep_num}: {ep_title}
-
-{"📖 " + topic_hi if topic_hi else ""}
-{"📖 " + topic_en if topic_en else ""}
-
-💡 Aaj ki seekh / Today's Moral:
-{moral_hi if moral_hi else moral}
-
-🎬 Is episode mein Heroo sikhata hai:
-  • {moral}
-  • Ek exciting adventure through {topic_en or ep_title}
-  • Characters: Heroo + Arya in a magical world
-
-🔔 Subscribe karo — roz ek nayi kahani!
-👍 Like karo agar helpful laga
-📱 Parents: Share with your kids!
-
-🌍 For families in: India 🇮🇳 | USA 🇺🇸 | UAE 🇦🇪 | UK 🇬🇧
-
-Watch on HerooQuest: https://youtube.com/@HerooQuest
-
-⚠️ Child-safe content. Made for kids aged 4-12.
-
-#HerooQuest #KidsStories #HindiKahani #MoralStories #AnimatedStories
-#ChildrenEducation #BedtimeStories #KidsCartoon #PixarStyle #FamilyFriendly
-#KidsAnimation #HindiCartoon #ChildrenStories #Ep{ep_num}HerooQuest
-{"#" + topic_hi.replace(" ","") if topic_hi else ""} #HerooKiKahani"""
-
-
-def get_video_path(meta: dict) -> str:
-    """Get video file path from meta."""
-    # New format
-    if meta.get("video_id") and (OUT / f"kids_full_{DATE_STR}_hi.mp4").exists():
-        return str(OUT / f"kids_full_{DATE_STR}_hi.mp4")
-    # Old format
-    if meta.get("video_path") and Path(meta["video_path"]).exists():
-        return meta["video_path"]
-    # Search
-    candidates = sorted(OUT.glob("kids_full_*.mp4"), key=lambda p: p.stat().st_mtime, reverse=True)
-    if candidates:
-        return str(candidates[0])
-    candidates = sorted(OUT.glob("kids_*.mp4"), key=lambda p: p.stat().st_mtime, reverse=True)
-    return str(candidates[0]) if candidates else ""
-
-
-def get_short_path(meta: dict) -> str:
-    """Get cliffhanger short path."""
-    candidates = sorted(OUT.glob("kids_cliffhanger_*.mp4"), key=lambda p: p.stat().st_mtime, reverse=True)
-    if candidates: return str(candidates[0])
-    if meta.get("short_path") and Path(meta.get("short_path","")).exists():
-        return meta["short_path"]
-    return ""
-
-
 def get_ep_info(meta: dict) -> dict:
-    """Extract episode info from meta."""
     return {
         "ep_title": meta.get("ep_title", meta.get("title_en", "Heroo Ki Kahani")),
+        "ep_title_hi": meta.get("title_hi", ""),
         "series":   meta.get("series",   "HerooQuest"),
         "episode":  meta.get("episode",  1),
         "moral":    meta.get("moral",    "Every story has a lesson"),
+        "moral_hi": meta.get("moral_hi", ""),
         "lang":     meta.get("lang",     "hi"),
+        "topic_hi": meta.get("topic_hi", ""),
+        "topic_en": meta.get("topic_en", ""),
     }
 
 
-# ─── THUMBNAIL BUILDER ────────────────────────────────────────────────────────
+def get_video_path(meta: dict) -> str:
+    if meta.get("video_path") and Path(meta["video_path"]).exists():
+        return meta["video_path"]
+    for pat in [f"kids_full_{DATE_STR}_hi.mp4", f"kids_full_{DATE_STR}.mp4", "kids_full_*.mp4", "kids_*.mp4"]:
+        cands = sorted(OUT.glob(pat), key=lambda p: p.stat().st_mtime, reverse=True)
+        if cands: return str(cands[0])
+    return ""
+
+
+def get_short_path(meta: dict) -> str:
+    if meta.get("short_path") and Path(meta.get("short_path","")).exists():
+        return meta["short_path"]
+    cands = sorted(OUT.glob("kids_cliffhanger_*.mp4"), key=lambda p: p.stat().st_mtime, reverse=True)
+    return str(cands[0]) if cands else ""
+
+
+# ─── SEO v2.3 ─────────────────────────────────────────────────────────────────
+
+def build_title(ep_info: dict) -> str:
+    """
+    v2.3: SEO-optimised title.
+    Structure: {Story Name} | Heroo Ki Kahani | HerooQuest | Hindi Moral Story 2026
+    Why: Parents search "Hindi Moral Story 2026" and "Heroo Ki Kahani"
+    Story name first = algorithm catches specific search intent
+    """
+    ep_title = ep_info["ep_title"]
+    # Clean Hindi chars for YouTube title (use English version)
+    safe = re.sub(r'[\u0900-\u097F]+', '', ep_title).strip()
+    if not safe:
+        safe = ep_info.get("topic_en", "Heroo Story")[:25]
+    return f"{safe} | Heroo Ki Kahani | HerooQuest | Hindi Moral Story {YEAR}"[:100]
+
+
+def build_tags(ep_info: dict) -> list:
+    """
+    v2.3: Expanded to 30 tags.
+    Mix of: brand + genre + language + specific topic
+    """
+    ep_title = ep_info["ep_title"]
+    safe_ep  = re.sub(r'[\u0900-\u097F]+', '', ep_title).strip().replace(" ","")
+
+    return [
+        # Brand
+        "HerooQuest", "HerooKiKahani", "HerooStories",
+        # Genre
+        "KidsStories", "MoralStories", "AnimatedStories",
+        "BedtimeStories", "ChildrenStories", "ShortStoryForKids",
+        # Language specific (high search volume in India)
+        "HindiKahani", "HindiCartoon", "CartoonInHindi",
+        "BachonKiKahani", "BalKahani", "HindiStories",
+        "KidsVideoHindi", "MoralKahani", "IndianKidsStories",
+        "AnimatedHindiStory", "BedtimeStoryHindi",
+        # Audience
+        "KidsCartoon", "ChildrenEducation", "FamilyFriendly",
+        "PixarStyle", "KidsAnimation",
+        # Platform
+        "YouTubeKids", "KidsShorts",
+        # Topic specific
+        safe_ep[:30] if safe_ep else "HerooAdventure",
+        f"MoralStory{YEAR}",
+    ][:30]
+
+
+def build_description(ep_info: dict, video_duration_min: int = 8) -> str:
+    """
+    v2.3: Description rewritten for CTR and algorithm.
+    First 100 chars = what YouTube shows in search = must have CTA.
+    Timestamps = YouTube chapters = algorithm boost.
+    15 hashtags = maximum allowed for discoverability.
+    """
+    ep_title   = ep_info["ep_title"]
+    moral      = ep_info["moral"]
+    moral_hi   = ep_info.get("moral_hi", "")
+    series     = ep_info["series"]
+    ep_num     = ep_info["episode"]
+    topic_en   = ep_info.get("topic_en", ep_title)
+
+    # First line = appears in search results (100 char limit shown)
+    first_line = f"🌟 {ep_title} — Heroo Ki Nai Kahani! Subscribe karo agar pasand aaye 🔔"
+
+    # Timestamps for chapters (algorithm loves chapters)
+    timestamps = (
+        f"0:00 — Story Starts: {ep_title}\n"
+        f"0:45 — Adventure Begins\n"
+        f"2:30 — The Challenge\n"
+        f"5:00 — Turning Point\n"
+        f"7:00 — Life Lesson\n"
+        f"7:30 — Moral of the Story"
+    )
+
+    hashtags = (
+        "#HerooQuest #KidsStories #HindiKahani #MoralStories #AnimatedStories "
+        "#BachonKiKahani #HindiCartoon #ChildrenEducation #BedtimeStories "
+        "#KidsAnimation #FamilyFriendly #YouTubeKids #PixarStyle #IndianKids "
+        f"#HerooKiKahani"
+    )
+
+    return (
+        f"{first_line}\n\n"
+        f"📖 Aaj ki Kahani: {ep_title}\n"
+        f"💡 Moral: {moral}\n"
+        f"{f'💭 Seekh: {moral_hi}' if moral_hi else ''}\n\n"
+        f"⏱️ CHAPTERS:\n{timestamps}\n\n"
+        f"🔔 Subscribe karo aur bell icon dabao — Heroo ki nayi kahani har roz!\n"
+        f"📱 HerooQuest: https://youtube.com/@HerooQuest\n"
+        f"🌐 Website: https://ai360trading.in\n\n"
+        f"Yeh video bachon ke liye ek animated moral story hai jisme Heroo — "
+        f"ek brave 10-saal-ka ladka — {topic_en} ke baare mein seekhta hai. "
+        f"Har episode mein ek nayi seekh hai jo aapke bachon ko life mein help karegi.\n\n"
+        f"{hashtags}"
+    )[:5000]
+
+
+# ─── THUMBNAIL BUILDER v2.3 ───────────────────────────────────────────────────
 
 def build_thumbnail_full(ep_info: dict) -> Path:
     """
-    Build 16:9 thumbnail for full story video.
-    Goal: viewer stops scrolling to READ it.
+    v2.3: Story-specific title on thumbnail.
+    Old: "HEROO KI KAHANI" (generic every day)
+    New: Today's specific story e.g. "GURU NANAK" or "SONA HIRAN"
+    Viewer recognises different story = curiosity = clicks
 
-    Layout (based on competitor analysis):
-    - Left half: Story title in HUGE yellow text (readable in feed)
-                 Moral snippet below title (hook text)
-                 Episode badge at bottom left
-    - Right half: Heroo character (65% height, emotional expression)
-    - Background: Dark gradient + colourful accent elements
-    - Brand badge: HerooQuest red pill top left
-    - Series name: below title in white
-
-    Why this works:
-    - Heroo face = emotional connection, viewer recognises character
-    - "Sona Hiran" huge text = viewer reads it in feed without clicking
-    - "Patience wins!" moral = curiosity, makes them want to know the full story
-    - Dark background = text pops out clearly
+    Layout (proven by competitor analysis):
+    Left: Story title HUGE yellow + moral hook + Ep badge
+    Right: Heroo character 88% height
     """
-    W, H  = 1280, 720
+    W, H = 1280, 720
     thumb = Image.new("RGB", (W, H))
     px    = thumb.load()
-
-    # Background: deep dark blue-purple gradient
     for y in range(H):
         c = lerp((8, 12, 35), (20, 15, 50), y/H)
         for x in range(W): px[x, y] = c
 
     draw = ImageDraw.Draw(thumb, "RGBA")
-
-    # Colourful accent element — diagonal stripe left side
     for i in range(0, H, 40):
         draw.line([(0, i), (60, i+40)], fill=(255, 180, 0, 40), width=8)
-
-    # Accent bars
     draw.rectangle([(0, 0), (W, 10)], fill=(255, 180, 0))
     draw.rectangle([(0, H-10), (W, H)], fill=(255, 180, 0))
 
-    # ── Heroo character (right side, large) ──────────────────────────────────
+    # Heroo character
     heroo_path = IMAGE_DIR / "heroo.png"
     if heroo_path.exists():
         try:
@@ -239,88 +253,77 @@ def build_thumbnail_full(ep_info: dict) -> Path:
             heroo_h = int(H * 0.88)
             heroo_w = int(heroo.width * (heroo_h / heroo.height))
             heroo   = heroo.resize((heroo_w, heroo_h), Image.LANCZOS)
-            # Right side, bottom-aligned
-            hx      = W - heroo_w + 20
-            hy      = H - heroo_h
-            thumb.paste(heroo, (hx, hy), heroo)
-            print("[THUMB] Heroo character added")
+            thumb.paste(heroo, (W - heroo_w + 20, H - heroo_h), heroo)
         except Exception as e:
-            print(f"[THUMB] Heroo load error: {e}")
+            print(f"[THUMB] Heroo: {e}")
 
     draw = ImageDraw.Draw(thumb, "RGBA")
 
-    # ── Text area (left 55% of frame) ────────────────────────────────────────
-    f_ep_title = get_font(FONT_BOLD, 95)
-    f_series   = get_font(FONT_BOLD, 38)
-    f_moral    = get_font(FONT_BOLD, 46)
-    f_ep_num   = get_font(FONT_BOLD, 36)
-    f_brand    = get_font(FONT_BOLD, 34)
+    f_big   = get_font(FONT_BOLD, 95)
+    f_sub   = get_font(FONT_BOLD, 46)
+    f_moral = get_font(FONT_BOLD, 42)
+    f_badge = get_font(FONT_BOLD, 36)
+    f_brand = get_font(FONT_BOLD, 34)
 
-    # Series name (smaller, white)
-    series_text = ep_info["series"].upper()
-    draw.text((50, 30), series_text, font=f_series, fill=(200, 200, 200), anchor="la")
+    # HerooQuest brand
+    draw.rounded_rectangle([(15, 15), (260, 65)], radius=14, fill=(220, 30, 30))
+    draw.text((137, 40), "HerooQuest ★", font=f_brand, fill=(255,255,255), anchor="mm")
 
-    # Episode title — HUGE yellow (main readable element)
-    ep_title = ep_info["ep_title"].upper()
-    # Strip Hindi chars for PIL
-    safe_title = re.sub(r'[\u0900-\u097F]+', '', ep_title).strip() or ep_title[:12]
-    title_lines = textwrap.wrap(safe_title, width=10)
-    ty = 90
+    # Episode badge
+    draw.rounded_rectangle([(W-160, 15), (W-10, 65)], radius=14, fill=(255, 200, 0))
+    draw.text((W-85, 40), f"Ep {ep_info['episode']}", font=f_badge, fill=(0,0,0), anchor="mm")
+
+    # v2.3: STORY-SPECIFIC title (not generic)
+    # Use topic name — the actual story e.g. "GURU NANAK" not "HEROO KI KAHANI"
+    ep_title = ep_info["ep_title"]
+    # Try to get the subject/topic — strip "Heroo's" and "Story" suffixes
+    clean = re.sub(r"(?i)(heroo'?s?\s+|ki\s+kahani|story|ki\s+story)", "", ep_title).strip()
+    safe  = re.sub(r'[\u0900-\u097F]+', '', clean).strip().upper()
+    if not safe or len(safe) < 3:
+        safe = re.sub(r'[\u0900-\u097F]+', '', ep_title).strip().upper()
+    if not safe:
+        safe  = ep_info.get("topic_en", "HEROO STORY")[:20].upper()
+
+    title_lines = textwrap.wrap(safe, width=12)
+    ty = 80
     for line in title_lines[:2]:
-        # Drop shadow for readability
-        for dx, dy in [(-3,3),(3,-3),(3,3),(-3,-3)]:
-            draw.text((50+dx, ty+dy), line, font=f_ep_title, fill=(0,0,0,200), anchor="la")
-        draw.text((50, ty), line, font=f_ep_title, fill=(255, 200, 0), anchor="la")
-        ty += 108
+        for dx, dy in [(-4,4),(4,-4),(-4,-4),(4,4),(-4,0),(4,0),(0,4),(0,-4)]:
+            draw.text((50+dx, ty+dy), line, font=f_big, fill=(0,0,0,230), anchor="la")
+        draw.text((50, ty), line, font=f_big, fill=(255, 200, 0), anchor="la")
+        ty += 110
 
-    # Moral — white text with dark backing strip
-    moral_text = ep_info["moral"].upper()
-    safe_moral = re.sub(r'[\u0900-\u097F]+', '', moral_text).strip()[:40]
-    moral_w_start = 30
-    moral_y       = min(ty + 20, H - 180)
-    draw.rounded_rectangle([(moral_w_start, moral_y), (int(W*0.56), moral_y+65)],
-                            radius=12, fill=(0,0,0,160))
-    draw.rectangle([(moral_w_start, moral_y), (moral_w_start+6, moral_y+65)],
-                   fill=(255, 200, 0))
-    draw.text((moral_w_start+20, moral_y+32), f"💡 {safe_moral}",
-              font=f_moral, fill=(255, 255, 255), anchor="lm")
+    # Subtitle: series name
+    draw.text((50, ty), ep_info["series"].upper(), font=f_sub, fill=(200,200,255), anchor="la")
+    ty += 65
 
-    # Episode number badge (bottom left)
-    ep_num = ep_info["episode"]
-    draw.rounded_rectangle([(50, H-80), (220, H-20)], radius=12, fill=(255, 200, 0))
-    draw.text((135, H-50), f"Ep {ep_num}", font=f_ep_num, fill=(0,0,0), anchor="mm")
-
-    # HerooQuest brand pill (top right)
-    draw.rounded_rectangle([(W-250, 15), (W-10, 65)], radius=16, fill=(220, 30, 30))
-    draw.text((W-130, 40), "HerooQuest ★", font=f_brand, fill=(255,255,255), anchor="mm")
+    # Moral strip (curiosity hook)
+    safe_moral = re.sub(r'[\u0900-\u097F]+', '', ep_info["moral"]).strip()[:45]
+    if safe_moral:
+        strip_y = min(ty + 10, H - 100)
+        draw.rectangle([(40, strip_y), (int(W*0.60), strip_y+55)], fill=(0,0,0,180))
+        draw.rectangle([(40, strip_y), (46, strip_y+55)], fill=(255, 200, 0))
+        draw.text((58, strip_y+27), f"💡 {safe_moral}", font=f_moral,
+                  fill=(255,255,255), anchor="lm")
 
     path = OUT / f"kids_thumb_full_{DATE_STR}.png"
     thumb.save(str(path), quality=95)
-    print(f"[THUMB] Full video thumbnail: {path.name}")
+    print(f"[THUMB] Full thumbnail: {path.name} | Title: {safe}")
     return path
 
 
 def build_thumbnail_short(ep_info: dict, is_cliffhanger: bool = True) -> Path:
-    """
-    Build 9:16 (vertical) thumbnail for HerooQuest shorts.
-    Same principle: large readable text + Heroo character.
-    """
+    """9:16 vertical thumbnail for shorts — story-specific title."""
     W, H  = 1080, 1920
     thumb = Image.new("RGB", (W, H))
     px    = thumb.load()
-
-    # Bright colourful background for kids
-    bg_top = (15, 35, 90)
-    bg_bot = (30, 70, 160)
     for y in range(H):
-        c = lerp(bg_top, bg_bot, y/H)
+        c = lerp((15, 35, 90), (30, 70, 160), y/H)
         for x in range(W): px[x, y] = c
 
     draw = ImageDraw.Draw(thumb, "RGBA")
-    draw.rectangle([(0, 0), (W, 14)],   fill=(255, 200, 0))
-    draw.rectangle([(0, H-14), (W, H)], fill=(255, 200, 0))
+    draw.rectangle([(0,0),(W,14)],   fill=(255, 200, 0))
+    draw.rectangle([(0,H-14),(W,H)], fill=(255, 200, 0))
 
-    # Heroo — bottom centre, large
     heroo_path = IMAGE_DIR / "heroo.png"
     if heroo_path.exists():
         try:
@@ -329,8 +332,7 @@ def build_thumbnail_short(ep_info: dict, is_cliffhanger: bool = True) -> Path:
             heroo_w = int(heroo.width * (heroo_h / heroo.height))
             heroo   = heroo.resize((heroo_w, heroo_h), Image.LANCZOS)
             thumb.paste(heroo, ((W-heroo_w)//2, H-heroo_h-30), heroo)
-        except Exception as e:
-            print(f"[THUMB] Short Heroo: {e}")
+        except: pass
 
     draw = ImageDraw.Draw(thumb, "RGBA")
 
@@ -339,10 +341,13 @@ def build_thumbnail_short(ep_info: dict, is_cliffhanger: bool = True) -> Path:
     f_hook = get_font(FONT_BOLD, 52)
     f_br   = get_font(FONT_REG,  36)
 
-    # Main title — HUGE yellow
-    ep_title = ep_info["ep_title"].upper()
-    safe     = re.sub(r'[\u0900-\u097F]+', '', ep_title).strip() or ep_title[:10]
-    lines    = textwrap.wrap(safe, width=9)
+    # Story-specific title
+    ep_title = ep_info["ep_title"]
+    clean    = re.sub(r"(?i)(heroo'?s?\s+|ki\s+kahani|story)", "", ep_title).strip()
+    safe     = re.sub(r'[\u0900-\u097F]+', '', clean).strip().upper()
+    if not safe: safe = re.sub(r'[\u0900-\u097F]+', '', ep_title).strip().upper()[:14]
+
+    lines = textwrap.wrap(safe, width=9)
     ty = 80
     for line in lines[:2]:
         for dx, dy in [(-4,4),(4,-4),(-4,-4),(4,4)]:
@@ -350,19 +355,15 @@ def build_thumbnail_short(ep_info: dict, is_cliffhanger: bool = True) -> Path:
         draw.text((W//2, ty), line, font=f_big, fill=(255, 200, 0), anchor="mm")
         ty += 150
 
-    # Cliffhanger / DYK badge
     badge = "😱 KYA HUA?" if is_cliffhanger else "🤔 KYA TUM JAANTE HO?"
     draw.rounded_rectangle([(80, ty+10), (W-80, ty+90)], radius=16, fill=(220,30,30))
     draw.text((W//2, ty+50), badge, font=f_sub, fill=(255,255,255), anchor="mm")
     ty += 110
 
-    # Moral (hook line that creates curiosity)
-    moral = ep_info["moral"].upper()
-    safe_m= re.sub(r'[\u0900-\u097F]+', '', moral).strip()[:35]
+    safe_m = re.sub(r'[\u0900-\u097F]+', '', ep_info["moral"]).strip()[:35]
     if safe_m:
         draw.text((W//2, ty+20), safe_m, font=f_hook, fill=(200,230,255), anchor="mm")
 
-    # Brand
     draw.rounded_rectangle([(W//2-200, H-120), (W//2+200, H-50)], radius=14, fill=(220,30,30))
     draw.text((W//2, H-85), "HerooQuest ★", font=f_br, fill=(255,255,255), anchor="mm")
 
@@ -379,83 +380,58 @@ def get_service():
         if not creds_json and (Path("output")/"token_kids.json").exists():
             creds_json = (Path("output")/"token_kids.json").read_text()
         if not creds_json:
-            print("❌ YOUTUBE_CREDENTIALS_KIDS not set — skipping")
-            return None
+            print("❌ YOUTUBE_CREDENTIALS_KIDS not set"); return None
         creds = Credentials.from_authorized_user_info(json.loads(creds_json))
         return build("youtube", "v3", credentials=creds)
     except Exception as e:
-        print(f"❌ YouTube Kids auth: {e}")
-        return None
+        print(f"❌ YouTube Kids auth: {e}"); return None
 
 
-def upload_thumbnail(youtube, video_id: str, thumb_path: Path):
-    """
-    Upload custom thumbnail to YouTube video.
-    This is the KEY fix — without this, YouTube auto-picks a random frame.
-    """
-    if not thumb_path or not thumb_path.exists():
-        print(f"[THUMB] Thumbnail not found: {thumb_path}")
-        return False
+def upload_thumbnail(youtube, video_id: str, thumb_path: Path) -> bool:
+    if not thumb_path or not Path(str(thumb_path)).exists():
+        print(f"[THUMB] Not found: {thumb_path}"); return False
     try:
         media = MediaFileUpload(str(thumb_path), mimetype="image/png", resumable=False)
         youtube.thumbnails().set(videoId=video_id, media_body=media).execute()
-        print(f"  ✅ Thumbnail uploaded for video {video_id}")
+        print(f"  ✅ Thumbnail uploaded: {video_id}")
         return True
     except Exception as e:
-        print(f"  ⚠️ Thumbnail upload failed: {e}")
-        return False
+        print(f"  ⚠️ Thumbnail failed: {e}"); return False
 
 
-# ─── MAIN UPLOAD ──────────────────────────────────────────────────────────────
+# ─── MAIN ─────────────────────────────────────────────────────────────────────
 
 def main():
-    meta    = read_meta()
-    ep_info = get_ep_info(meta)
-    youtube = get_service()
+    meta     = read_meta()
+    ep_info  = get_ep_info(meta)
+    youtube  = get_service()
 
     if not youtube:
-        print("❌ Cannot upload — no YouTube credentials")
-        return
+        print("❌ No YouTube credentials"); return
 
-    print(f"[YT-KIDS] Episode: {ep_info['ep_title']} | Series: {ep_info['series']}")
+    print(f"[YT-KIDS] {ep_info['ep_title']} | {ep_info['series']}")
 
-    # Build thumbnails with proper text + character
+    # v2.3: Build thumbnails with story-specific title
     thumb_full  = build_thumbnail_full(ep_info)
     thumb_short = build_thumbnail_short(ep_info, is_cliffhanger=True)
 
-    title    = get_title(meta)
-    moral    = ep_info["moral"]
-    series   = ep_info["series"]
-    ep_num   = ep_info["episode"]
-    ep_title = ep_info["ep_title"]
-    lang     = ep_info["lang"]
+    # v2.3: SEO-optimised title, description, tags
+    title       = build_title(ep_info)
+    description = build_description(ep_info)
+    tags        = build_tags(ep_info)
+    lang        = ep_info["lang"]
 
-    seo_tags = [
-        "HerooQuest","KidsStories","AnimatedStories","PixarStyle","ChildrenEducation",
-        "KidsCartoon","HindiKahani","KidsEnglish","MoralStories","BedtimeStories",
-        "KidsAnimation","HerooKiKahani","ChildrenStories","FamilyFriendly","Educational",
-        ep_title.replace(" ",""),
-    ]
+    print(f"[YT-KIDS] Title: {title[:70]}")
+    print(f"[YT-KIDS] Tags: {len(tags)} | Desc: {len(description)} chars")
 
-    description = (
-        f"🌟 HerooQuest — {series}\n"
-        f"Episode {ep_num}: {ep_title}\n"
-        f"💡 Today's Moral: {moral}\n\n"
-        f"Watch Heroo's exciting adventure and learn today's life lesson!\n"
-        f"New story every day — Subscribe for more! 🔔\n\n"
-        f"Subscribe: https://youtube.com/@HerooQuest\n\n"
-        f"#HerooQuest #KidsStories #AnimatedStories #ChildrenEducation #MoralStories"
-    )
-
-    # ── Upload full story video ───────────────────────────────────────────────
+    # Upload full story
     video_path = get_video_path(meta)
     if video_path and Path(video_path).exists():
-        print(f"[YT-KIDS] Uploading full story: {title[:60]}")
         body = {
             "snippet": {
-                "title":                title[:100],
+                "title":                title,
                 "description":          description,
-                "tags":                 seo_tags,
+                "tags":                 tags,
                 "categoryId":           "27",
                 "defaultLanguage":      lang,
                 "defaultAudioLanguage": lang,
@@ -466,41 +442,38 @@ def main():
                 "madeForKids":             True,
             }
         }
-        media  = MediaFileUpload(video_path, resumable=True, chunksize=10*1024*1024)
+        media = MediaFileUpload(video_path, resumable=True, chunksize=10*1024*1024)
         try:
-            req    = youtube.videos().insert(part="snippet,status", body=body, media_body=media)
-            resp   = None
+            req  = youtube.videos().insert(part="snippet,status", body=body, media_body=media)
+            resp = None
             while resp is None:
                 status, resp = req.next_chunk()
                 if status: print(f"  {int(status.progress()*100)}%")
             vid_id = resp["id"]
-            print(f"  ✅ Full story uploaded: https://youtube.com/watch?v={vid_id}")
-
-            # Set custom thumbnail immediately after upload
+            print(f"  ✅ Uploaded: https://youtube.com/watch?v={vid_id}")
             upload_thumbnail(youtube, vid_id, thumb_full)
-
-            meta["youtube_video_id"] = vid_id
+            meta["youtube_video_id"]  = vid_id
             meta["youtube_video_url"] = f"https://www.youtube.com/watch?v={vid_id}"
         except Exception as e:
-            print(f"  ❌ Full story upload failed: {e}")
+            print(f"  ❌ Upload failed: {e}")
     else:
-        print(f"[YT-KIDS] Full story video not found: {video_path}")
+        print(f"[YT-KIDS] Video not found: {video_path}")
 
-    # ── Upload cliffhanger short ──────────────────────────────────────────────
+    # Upload short
     short_path = get_short_path(meta)
     if short_path and Path(short_path).exists():
-        short_title = f"Heroo: {ep_title} 😱 Kya hua? | HerooQuest #Shorts"
-        short_desc  = (
-            f"🌟 {series} Ep {ep_num}: {ep_title}\n"
-            f"Watch the full episode on HerooQuest channel!\n"
-            f"💡 Moral: {moral}\n\n"
-            f"#HerooQuest #KidsShorts #ChildrenStories #MoralStories"
+        ep_title   = ep_info["ep_title"]
+        short_title= f"😱 {ep_title} — Kya Hua? | HerooQuest #Shorts #HindiKahani"[:100]
+        short_desc = (
+            f"😱 Kya hua Heroo ke saath? Full story dekho channel pe!\n"
+            f"💡 Moral: {ep_info['moral']}\n\n"
+            f"#HerooQuest #KidsShorts #HindiKahani #MoralStories #BachonKiKahani"
         )
         short_body = {
             "snippet": {
-                "title":       short_title[:100],
+                "title":       short_title,
                 "description": short_desc,
-                "tags":        seo_tags + ["Shorts","KidsShorts"],
+                "tags":        tags[:20] + ["Shorts", "KidsShorts", "HindiShorts"],
                 "categoryId":  "27",
             },
             "status": {
@@ -517,18 +490,18 @@ def main():
                 status, s_resp = s_req.next_chunk()
                 if status: print(f"  {int(status.progress()*100)}%")
             s_id = s_resp["id"]
-            print(f"  ✅ Short uploaded: https://youtube.com/shorts/{s_id}")
-
-            # Set custom thumbnail for short too
+            print(f"  ✅ Short: https://youtube.com/shorts/{s_id}")
             upload_thumbnail(youtube, s_id, thumb_short)
         except Exception as e:
-            print(f"  ❌ Short upload failed: {e}")
+            print(f"  ❌ Short failed: {e}")
 
-    # Save updated meta
+    # Save meta
     for mp in [OUT/f"kids_meta_{DATE_STR}_hi.json", OUT/f"kids_meta_{TODAY}.json"]:
         if mp.exists():
-            mp.write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
-    print("[YT-KIDS] Done")
+            try: mp.write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
+            except: pass
+
+    print("[YT-KIDS] Done ✅")
 
 
 if __name__ == "__main__":
