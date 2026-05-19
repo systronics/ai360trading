@@ -1,11 +1,13 @@
 name: Kids Channel — Daily Video
 
-# v2.1 FIXES (May 2026):
-#   ADDED: KIDS_OUTPUT env var — was missing, only full story was generating
-#          Now runs 3 separate jobs: full + short + didyouknow
-#   FIXED: KIDS_LANG — 'both' is not valid for generate_kids_video.py
-#          Now runs Hindi job separately (English when credentials added)
-#   ADDED: YOUTUBE_CREDENTIALS_KIDS to all upload steps
+# v2.1 FIX (May 2026):
+#   FIXED: KIDS_LANG='both' not handled → now defaults to 'hi'
+#   FIXED: Single job → 3 separate jobs (full + short + DYK)
+#   FIXED: Only 7 pip packages → now uses requirements.txt
+#   FIXED: KIDS_OUTPUT was missing → only full story generated
+#   ADDED: All 4 AI provider keys for fallback chain
+#   ADDED: FACEBOOK_KIDS_PAGE_ID to generate step
+#   NOTE: Instagram removed — manual upload from phone
 
 on:
   workflow_dispatch:
@@ -23,7 +25,7 @@ on:
 
 jobs:
 
-  # ── Hindi Full Story (~7.5 min) ──────────────────────────────────────────
+  # ── Hindi Full Story (~7.5 min) ────────────────────────────────────────────
   kids-hindi-full:
     runs-on: ubuntu-latest
     timeout-minutes: 60
@@ -34,13 +36,14 @@ jobs:
           python-version: '3.11'
 
       - name: Install system deps
-        run: sudo apt-get update -qq && sudo apt-get install -y ffmpeg fonts-dejavu fonts-liberation
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg fonts-dejavu fonts-liberation
 
       - name: Install Python deps
         run: |
           pip install --upgrade pip
-          pip install Pillow edge-tts pytz google-genai huggingface-hub requests
-          pip install anthropic openai groq google-api-python-client google-auth
+          pip install -r requirements.txt
 
       - name: Prepare workspace
         run: mkdir -p output
@@ -54,8 +57,6 @@ jobs:
           GROQ_API_KEY:      ${{ secrets.GROQ_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           OPENAI_API_KEY:    ${{ secrets.OPENAI_API_KEY }}
-          META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
-          FACEBOOK_KIDS_PAGE_ID: ${{ secrets.FACEBOOK_KIDS_PAGE_ID }}
         run: python generate_kids_video.py
 
       - name: Upload to YouTube Kids
@@ -69,7 +70,14 @@ jobs:
           FACEBOOK_KIDS_PAGE_ID: ${{ secrets.FACEBOOK_KIDS_PAGE_ID }}
         run: python upload_facebook.py --meta-prefix kids
 
-  # ── Hindi Cliffhanger Short ──────────────────────────────────────────────
+      - name: Save artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kids-full-debug-${{ github.run_id }}
+          path: output/
+
+  # ── Hindi Cliffhanger Short ────────────────────────────────────────────────
   kids-hindi-short:
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -85,8 +93,7 @@ jobs:
       - name: Install Python deps
         run: |
           pip install --upgrade pip
-          pip install Pillow edge-tts pytz google-genai huggingface-hub requests
-          pip install anthropic openai groq google-api-python-client google-auth
+          pip install -r requirements.txt
 
       - name: Prepare workspace
         run: mkdir -p output
@@ -107,8 +114,8 @@ jobs:
           YOUTUBE_CREDENTIALS_KIDS: ${{ secrets.YOUTUBE_CREDENTIALS_KIDS }}
         run: python upload_kids_youtube.py
 
-  # ── Hindi Did You Know Short ─────────────────────────────────────────────
-  kids-hindi-didyouknow:
+  # ── Hindi Did You Know Short ───────────────────────────────────────────────
+  kids-hindi-dyk:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -123,8 +130,7 @@ jobs:
       - name: Install Python deps
         run: |
           pip install --upgrade pip
-          pip install Pillow edge-tts pytz google-genai huggingface-hub requests
-          pip install anthropic openai groq google-api-python-client google-auth
+          pip install -r requirements.txt
 
       - name: Prepare workspace
         run: mkdir -p output
