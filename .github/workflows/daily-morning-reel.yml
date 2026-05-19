@@ -1,146 +1,77 @@
-name: AI360 Daily Morning Reel (7:00 AM IST)
+name: Daily Morning Reel — AI360Trading
+
+# v2.2 TIMING FIX (May 2026):
+#   Morning reel now runs 7 DAYS a week (was Mon-Fri only)
+#   Weekends: people have MORE free time = higher watch time
+#   Saturday/Sunday content = "Weekend Market Prep" topic from MORNING_REEL_TOPICS
 
 on:
   schedule:
-    - cron: "30 1 * * *"   # 7:00 AM IST (01:30 UTC)
+    - cron: '30 1 * * *'   # Every day 7:00 AM IST = 1:30 AM UTC
   workflow_dispatch:
     inputs:
       content_mode:
-        description: "Override content mode (leave blank for auto-detect)"
+        description: 'Force content mode'
         required: false
-        default: ""
+        default: 'auto'
         type: choice
         options:
-          - ""
+          - auto
           - market
           - weekend
           - holiday
 
 jobs:
-  generate-and-post:
+  morning-reel:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 30
 
     steps:
-      # ── 1. Checkout ────────────────────────────────────────────────────────
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      # ── 2. Python setup ────────────────────────────────────────────────────
-      - name: Set up Python 3.11
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
-          cache: "pip"
+          python-version: '3.11'
 
-      # ── 3. System dependencies ─────────────────────────────────────────────
-      - name: Install system dependencies
+      - name: Install dependencies
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y -qq ffmpeg imagemagick
-          sudo sed -i 's/rights="none" pattern="@\*"/rights="read|write" pattern="@\*"/g' /etc/ImageMagick-6/policy.xml || true
-
-      # ── 4. Python dependencies ─────────────────────────────────────────────
-      - name: Install Python dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install --force-reinstall moviepy==1.0.3
+          sudo apt-get install -y --no-install-recommends ffmpeg fonts-dejavu fonts-liberation
+          pip install --upgrade pip
           pip install -r requirements.txt
 
-      # ── 5. Workspace ───────────────────────────────────────────────────────
-      - name: Prepare workspace
+      - name: Create output directory
         run: mkdir -p output
 
-      # ── 6. AUTO-DETECT CONTENT MODE ────────────────────────────────────────
       - name: Detect content mode
-        id: detect_mode
-        env:
-          MANUAL_OVERRIDE: ${{ github.event.inputs.content_mode }}
         run: |
-          if [ -n "$MANUAL_OVERRIDE" ]; then
-            echo "🔧 Manual override: $MANUAL_OVERRIDE"
-            echo "CONTENT_MODE=$MANUAL_OVERRIDE" >> $GITHUB_ENV
-            echo "HOLIDAY_NAME=" >> $GITHUB_ENV
+          if [ "${{ github.event.inputs.content_mode }}" != "auto" ] && [ -n "${{ github.event.inputs.content_mode }}" ]; then
+            echo "CONTENT_MODE=${{ github.event.inputs.content_mode }}" >> $GITHUB_ENV
           else
-            python - <<'EOF'
-          import os, sys
-          sys.path.insert(0, ".")
-          try:
-              from indian_holidays import get_day_mode, get_holiday_name
-              mode = get_day_mode()
-              holiday = get_holiday_name() if mode == "holiday" else ""
-          except Exception as e:
-              print(f"[WARN] indian_holidays error: {e} — defaulting to market")
-              mode = "market"
-              holiday = ""
-
-          print(f"  ✅ Auto-detected mode: {mode.upper()}")
-          if holiday:
-              print(f"  📅 Holiday: {holiday}")
-
-          with open(os.environ["GITHUB_ENV"], "a") as f:
-              f.write(f"CONTENT_MODE={mode}\n")
-              f.write(f"HOLIDAY_NAME={holiday}\n")
-          EOF
+            python indian_holidays.py
           fi
 
-      - name: Show active mode
-        run: |
-          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-          echo "  CONTENT MODE : $CONTENT_MODE"
-          echo "  HOLIDAY NAME : $HOLIDAY_NAME"
-          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-
-      # ── 7. Generate Morning Reel ───────────────────────────────────────────
-      - name: Generate Morning Reel
+      - name: Generate morning reel
         env:
-          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-          CONTENT_MODE: ${{ env.CONTENT_MODE }}
-          HOLIDAY_NAME: ${{ env.HOLIDAY_NAME }}
+          CONTENT_MODE:      ${{ env.CONTENT_MODE }}
+          HOLIDAY_NAME:      ${{ env.HOLIDAY_NAME }}
+          GROQ_API_KEY:      ${{ secrets.GROQ_API_KEY }}
+          GEMINI_API_KEY:    ${{ secrets.GEMINI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY:    ${{ secrets.OPENAI_API_KEY }}
         run: python generate_reel_morning.py
 
-      # ── 8. Upload to YouTube ───────────────────────────────────────────────
-      # NOTE: No playlist assigned yet — add PLAYLIST_MORNING_REEL secret later
-      #       when channel has enough subscribers and playlist is created.
-      - name: Upload Morning Reel to YouTube
+      - name: Upload to YouTube
         env:
           YOUTUBE_CREDENTIALS: ${{ secrets.YOUTUBE_CREDENTIALS }}
           CONTENT_MODE:        ${{ env.CONTENT_MODE }}
         run: python upload_youtube.py --type morning
 
-      # ── 9. Post to Facebook Page ───────────────────────────────────────────
-      # Facebook Group permanently removed — requires Meta App Review, zero ad revenue
-      - name: Post Morning Reel to Facebook Page
+      - name: Post to Facebook
         env:
           META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
           FACEBOOK_PAGE_ID:  ${{ secrets.FACEBOOK_PAGE_ID }}
           CONTENT_MODE:      ${{ env.CONTENT_MODE }}
-          HOLIDAY_NAME:      ${{ env.HOLIDAY_NAME }}
         run: python upload_facebook.py --meta-prefix morning
-
-      # ── 10. Instagram — manual only ───────────────────────────────────────
-      # API permanently removed. Download artifact and post manually from phone.
-
-      # ── 11. Save artifacts ─────────────────────────────────────────────────
-      - name: Upload morning reel artifact (for Instagram manual post)
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: morning-reel-${{ github.run_number }}-${{ env.CONTENT_MODE }}
-          path: |
-            output/morning_reel_*.mp4
-            output/morning_reel_meta_*.json
-          retention-days: 7
-
-      # ── 12. Summary ────────────────────────────────────────────────────────
-      - name: Job summary
-        if: always()
-        run: |
-          echo "## 🌅 Morning Reel — Run Summary" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Field | Value |" >> $GITHUB_STEP_SUMMARY
-          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
-          echo "| Mode | \`$CONTENT_MODE\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| Holiday | $HOLIDAY_NAME |" >> $GITHUB_STEP_SUMMARY
-          echo "| Run # | ${{ github.run_number }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Triggered by | ${{ github.event_name }} |" >> $GITHUB_STEP_SUMMARY
