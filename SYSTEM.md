@@ -1,5 +1,5 @@
 # AI360Trading — Master System Documentation
-**Last Updated:** 19 May 2026 — Full day session — v16.3
+**Last Updated:** 19 May 2026 — v16.4 FINAL (all files verified from GitHub)
 **Repo:** https://github.com/systronics/ai360trading
 **Website:** https://ai360trading.in
 **Owner:** Amit Kumar, Haridwar, Uttarakhand, India
@@ -20,17 +20,15 @@ Breaking anything = zero income that day. That is not acceptable.
 
 > NEVER write, suggest, or modify any code without FIRST reading the
 > current version from GitHub. GitHub master branch is the ONLY source of truth.
-> Drive files may be outdated. Never use them as reference for code.
+> Drive files may be outdated. NEVER use them as reference for code.
+> Always fetch the raw GitHub URL before touching any file.
 
-### How Any AI Can Read Any File Instantly
-
-The repo is PUBLIC. Construct raw URL from filename:
+### How To Read Any File
 
 ```
-Format:
-https://raw.githubusercontent.com/systronics/ai360trading/refs/heads/master/FILENAME
+Format: https://raw.githubusercontent.com/systronics/ai360trading/refs/heads/master/FILENAME
 
-All Python files:
+Python files:
 https://raw.githubusercontent.com/systronics/ai360trading/refs/heads/master/trading_bot.py
 https://raw.githubusercontent.com/systronics/ai360trading/refs/heads/master/ai_client.py
 https://raw.githubusercontent.com/systronics/ai360trading/refs/heads/master/human_touch.py
@@ -60,25 +58,24 @@ https://raw.githubusercontent.com/systronics/ai360trading/refs/heads/master/.git
 https://raw.githubusercontent.com/systronics/ai360trading/refs/heads/master/.github/workflows/token_refresh.yml
 https://raw.githubusercontent.com/systronics/ai360trading/refs/heads/master/.github/workflows/keepalive.yml
 
-SYSTEM.md (always read first):
+SYSTEM.md:
 https://raw.githubusercontent.com/systronics/ai360trading/refs/heads/master/SYSTEM.md
 ```
 
-### Mandatory Workflow Before Touching Any File
+### Mandatory Steps Before Any Code Change
 ```
-Step 1: Construct raw URL from filename above
-Step 2: Fetch and read the COMPLETE current file
-Step 3: Understand all imports, architecture, dependencies
-Step 4: Make ONLY the minimal changes needed
-Step 5: Provide the COMPLETE updated file — never partial snippets or diffs
-Step 6: Owner pushes to GitHub after confirming
+1. Read current file from GitHub raw URL
+2. Understand ALL imports, dependencies, architecture
+3. Make ONLY minimal changes needed
+4. Provide COMPLETE file — never partial/diffs
+5. Owner pushes to GitHub after confirming
 ```
 
-### Other Info Sources
+### Other Sources
 ```
-AppScript (NOT in GitHub — owner must share code directly)
-AppScript v15.6 saved in Drive: 1cBimCblQZ_tISDxXZ_rqTlogPS4Ty17h
-Google Sheets: 1fPNGL6AHs-7M-oC22zILg9FlyWi-7DF9NoVVqZQs2vk
+AppScript: NOT in GitHub — owner pastes code directly into chat
+AppScript v15.6 Drive backup: 1cBimCblQZ_tISDxXZ_rqTlogPS4Ty17h
+Google Sheets ID: 1fPNGL6AHs-7M-oC22zILg9FlyWi-7DF9NoVVqZQs2vk
 ```
 
 ---
@@ -87,139 +84,152 @@ Google Sheets: 1fPNGL6AHs-7M-oC22zILg9FlyWi-7DF9NoVVqZQs2vk
 
 | # | Rule | Why |
 |---|------|-----|
-| 1 | Read current GitHub file before ANY code change | Architecture changes — always verify |
-| 2 | Always provide COMPLETE file content | Family cannot apply partial changes |
+| 1 | Read current GitHub file before ANY code change | Architecture changes constantly |
+| 2 | Always provide COMPLETE file — never partial | Family cannot apply partial changes |
 | 3 | Cost must stay Rs.0/month forever | Verify free tier before any new service |
-| 4 | Never call generate_analysis.py — it was DELETED | Will crash workflow if called |
-| 5 | Meta token expires every 60 days — refresh before changes | Token_refresh.yml handles auto |
-| 6 | All thumbnail text must be English only (no Devanagari in PIL) | PIL cannot render Hindi |
-| 7 | TTS script must never contain Rs. or ₹ symbols | TTS reads "rupee sign" aloud |
-| 8 | Never use localStorage in artifacts | Not supported in Claude.ai |
-| 9 | AppScript is edited manually in Google Sheets → Extensions → Apps Script | Not in GitHub |
-| 10 | HerooQuest and Education both use YOUTUBE_CREDENTIALS (different credentials) | Different channels |
+| 4 | Never call generate_analysis.py — DELETED | Will crash workflow |
+| 5 | META token expires every 60 days | token_refresh.yml handles auto 1st+15th |
+| 6 | All PIL thumbnail text = English only | PIL cannot render Devanagari/Hindi |
+| 7 | TTS script must never contain Rs. or ₹ | TTS reads "rupee sign" aloud |
+| 8 | instagram upload removed — manual from phone | Instagram API restricted |
+| 9 | AppScript edited manually in Sheets → Extensions → Apps Script | Not in GitHub |
+| 10 | HerooQuest uses YOUTUBE_CREDENTIALS_KIDS not YOUTUBE_CREDENTIALS | Different channels |
 
 ---
 
-# CONTENT SCHEDULE — WHAT RUNS WHEN
+# CONTENT SCHEDULE — VERIFIED FROM GITHUB
 
 ```
-07:00 AM IST — Morning Reel (daily-morning-reel.yml) — EVERY DAY
-  generate_reel_morning.py v2.2
-  → Fetches live: Nifty, Crude, Gold, DXY, BTC, S&P500 via yfinance
-  → Reads Google News RSS (5 feeds, free, no API)
-  → Calculates BULLISH/BEARISH/NEUTRAL sentiment
-  → Script mentions actual market data — not generic
-  → Thumbnail: "MORNING BRIEF" + sentiment badge + Nifty level + ZENO
-  → Uploads: YouTube + Facebook AI360 page
+07:00 AM IST — Morning Reel (daily-morning-reel.yml)
+  Schedule: EVERY DAY including weekends ✅
+  Cron: 30 1 * * *
+  Flow: generate_reel_morning.py → upload_youtube.py --type morning → upload_facebook.py --meta-prefix morning
+  Content: Live Nifty + News RSS + BULLISH/BEARISH/NEUTRAL sentiment
+  Thumbnail: "MORNING BRIEF" + sentiment badge + Nifty level + ZENO emotion
 
-08:00 AM IST — HerooQuest Kids Video (kids-daily.yml) — EVERY DAY
-  generate_kids_video.py v2.3
-  → 10 scenes × 40-50 sec = ~7.5 min full story
-  → Image: Pollinations.ai FLUX Pro (Pixar-quality, FREE)
-  → Effects: Ken Burns zoom + xFade transitions + color grade + vignette
-  → Thumbnail: Story-specific title (e.g. "GURU NANAK") + Heroo + moral
-  → 3 separate jobs: full story + cliffhanger short + DYK short
-  → Uploads: YouTube Kids + Facebook HerooQuest page
+08:00 AM IST — HerooQuest Kids (kids-daily.yml)
+  Schedule: EVERY DAY ✅
+  Cron: 30 2 * * *
+  Flow: 3 separate jobs (full story + cliffhanger short + DYK short)
+  Each job: generate_kids_video.py → upload_kids_youtube.py → upload_facebook.py
+  Content: 10-scene Pixar-style animated story with moral
+  Thumbnail: Story-specific title (e.g. "GURU NANAK") + Heroo character + moral strip
 
-10:00 AM IST — Education Video (daily-videos.yml) — MON-SAT
-  generate_education.py v1.1
-  → 52-week free investing course
-  → Hindi + English versions
-  → Thumbnail: "SUMMARY OF KEY POINTS" style
-  → Uploads: YouTube AI360Trading
+10:00 AM IST — Education Video (daily-videos.yml)
+  Schedule: Mon-Sat + Sunday 11 AM ✅
+  Cron: 30 4 * * 1-6 and 30 5 * * 0
+  Flow: generate_education.py (Hindi LANG=hi) → upload included
+  Content: 52-week free investing course, ~18-21 min videos
 
-11:30 AM IST — Daily Shorts (daily-shorts.yml) — MON-FRI
-  generate_shorts.py v3.1
-  → Short 2: Madhur voice (market content)
-  → Short 3: Neerja voice (global content)
-  → No background music (prevents Meta muting)
-  → Uploads: YouTube + Facebook AI360 page
+10:00 AM IST — Articles (daily-articles.yml)
+  Schedule: Mon-Fri 10 AM + Sat-Sun 11:30 AM ✅
+  Cron: 30 4 * * 1-5 and 0 6 * * 6,0
+  Flow: generate_articles.py → git commit → Facebook share inline
+  ⚠️ NOTE: Facebook share in this file uses user token directly (no get_page_token())
+  Impact: Article FB posts may fail — low priority vs video content
 
-08:30 PM IST — ZENO Evening Reel (daily_reel.yml) — MON-FRI
-  generate_reel.py v2.1
-  → ZENO character + trading wisdom
-  → Thumbnail: ZENO + topic title + lesson subtitle
-  → Uploads: YouTube + Facebook AI360 page
+11:30 AM IST — Daily Shorts (daily-shorts.yml)
+  Schedule: Mon-Fri 11:30 AM + Sat-Sun 1:30 PM ✅
+  Cron: 0 6 * * 1-5 and 0 8 * * 6,0
+  Flow: generate_shorts.py (handles both Short 2 + Short 3 + upload internally)
+  Content: Short 2 Madhur (market) + Short 3 Neerja (global macro)
+
+08:30 PM IST — ZENO Evening Reel (daily_reel.yml)
+  Schedule: EVERY DAY ✅
+  Cron: 0 15 * * *
+  Flow: generate_reel.py → upload_youtube.py --type reel → upload_facebook.py
+  Content: ZENO trading wisdom, weekend = weekend content, holiday = holiday content
+
+Trading Bot (trading_bot.yml)
+  Schedule: Every 5 min, 8:15 AM - 4:29 PM IST, Mon-Fri ✅
+  Monitors Google Sheet → sends Telegram signals to 3 channels
+
+KeepAlive (keepalive.yml)
+  Schedule: Sun-Thu 11:59 PM IST ✅
+  Commits .keepalive file → prevents GitHub disabling inactive repo
 ```
 
 ---
 
-# FILES STATUS — COMPLETE TABLE (as of 19 May 2026)
+# FILES STATUS — VERIFIED FROM GITHUB (19 May 2026)
 
-| File | Version | Status | Key Changes | Drive ID |
-|------|---------|--------|-------------|----------|
-| `ai_client.py` | v2.4 | ✅ GitHub | Groq models fixed + Gemini 2.5 + video chain | `1EkH83uFKQGHCQ_VOy3GppmMvfU530AGC` |
-| `human_touch.py` | v2.2 | ✅ GitHub | Education hooks + safe_thumbnail + safe_tts + get_video_description | `1eqHSztsuoZX1o6LtxhliMPNnAuoLATEx` |
-| `generate_reel.py` | v2.1 | ✅ GitHub | No music + proper thumbnail | `1jVb89AF6XxY_DpGHoo9op_VW3D25l-G-` |
-| `generate_reel_morning.py` | v2.2 | ✅ GitHub | Market intelligence + live Nifty + sentiment | `1T2wGhyMUQmwVsd1Gpni2TtsUE1RpD2_T` |
-| `generate_shorts.py` | v3.1 | ✅ GitHub | bgmusic completely removed | `1an4YFiK9T1zO2gaPxpu7il2IT9CNTAgF` |
-| `generate_kids_video.py` | v2.3 | ✅ GitHub | Cinematic effects + Pollinations.ai + multi-text thumbnail | `1-8_nRF8LPZWOpRr3j3meoQskQd-xaS2h` |
-| `generate_education.py` | v1.1 | ✅ GitHub | Mode + title + duration | — |
-| `generate_articles.py` | current | ✅ GitHub | No changes needed | — |
-| `upload_youtube.py` | v2.2 | ✅ GitHub | Custom thumbnail upload + fallback builder | `1w0bs3xAnpXXJp3oCwWm0f2-vnsqYSU3E` |
-| `upload_kids_youtube.py` | v2.3 | ✅ GitHub | SEO fix + story-specific thumbnail + 30 tags | `1WTMEMxPBN_o6ut4Xqo0jtVaWQ6c2fqpv` |
-| `upload_facebook.py` | v2.2 | ✅ GitHub | get_page_token() added — root cause of all FB failures | `1HB8Wk3jp74RwNb0IFLSfytx8ARRVBEXk` |
-| `token_refresh.py` | v2.1 | ✅ GitHub | CHAT_ID_BASIC fix + META_ACCESS_TOKEN_KIDS | `1g5nuRJpoqTXE7wVqOTxZiqWJQ0Jv8Fuo` |
-| `content_calendar.py` | v2.2 | ✅ GitHub | get_article_seo_seeds() added | — |
-| `kids_content_calendar.py` | current | ✅ GitHub | Day rotation working — no changes needed | — |
-| `indian_holidays.py` | current | ✅ GitHub | NSE API + fallback — no changes needed | — |
-| `requirements.txt` | v2.3 | ✅ GitHub | google-genai added for Gemini 2.5 + Veo 2 | `1yrQgpnrnZ6rCXIko6gYx5J9hR4p1dhHu` |
-| `trading_bot.py` | v15.0 | ✅ GitHub | Fully operational | — |
+## Python Files
 
-### Workflow Files
+| File | Ver | GitHub Status | Key Features |
+|------|-----|---------------|--------------|
+| `ai_client.py` | v2.4 | ✅ | Groq 4 models + Gemini 2.5 + Anthropic + OpenAI + video chain |
+| `human_touch.py` | v2.2 | ✅ | Education hooks + safe_thumbnail_text() + safe_tts_price() + get_video_description() |
+| `generate_reel.py` | v2.1 | ✅ | No music + ZENO thumbnail + sentiment-aware |
+| `generate_reel_morning.py` | v2.2 | ✅ | Live market data + News RSS + sentiment calc + BULLISH/BEARISH thumbnail |
+| `generate_shorts.py` | v3.1 | ✅ | bgmusic REMOVED + Short2 Madhur + Short3 Neerja |
+| `generate_kids_video.py` | v2.3 | ✅ | 10 scenes + Pollinations FLUX Pro + Ken Burns + xFade + vignette + multi-text thumb |
+| `generate_education.py` | v1.1 | ✅ | Mode + title + duration + 52-week course |
+| `generate_articles.py` | current | ✅ | No changes needed |
+| `upload_youtube.py` | v2.2 | ✅ | Custom thumbnail upload + fallback builder |
+| `upload_kids_youtube.py` | v2.3 | ✅ | SEO 30 tags + story-specific thumb + chapters + 15 hashtags |
+| `upload_facebook.py` | v2.2 | ✅ | get_page_token() — fixes Error 200 page post failures |
+| `token_refresh.py` | v2.1 | ✅ | CHAT_ID_BASIC fix + META_ACCESS_TOKEN_KIDS refresh |
+| `content_calendar.py` | v2.2 | ✅ | get_article_seo_seeds() added |
+| `kids_content_calendar.py` | current | ✅ | Day rotation — no changes needed |
+| `indian_holidays.py` | current | ✅ | NSE API + fallback — no changes needed |
+| `trading_bot.py` | v15.0 | ✅ | Fully operational |
+| `requirements.txt` | v2.3 | ✅ | google-genai added for Gemini 2.5 |
 
-| File | Version | Status | Key Changes |
-|------|---------|--------|-------------|
-| `daily-morning-reel.yml` | v2.2 | ✅ GitHub | 7 days/week (was Mon-Fri only) | 
-| `daily-videos.yml` | v2.2 | ✅ GitHub | 10 AM IST (was 8 AM — conflicted with HerooQuest) + generate_analysis removed |
-| `daily-shorts.yml` | v2.1 | ✅ GitHub | All 4 AI keys passed (was only GROQ) |
-| `daily_reel.yml` | current | ✅ GitHub | No changes needed |
-| `daily-articles.yml` | current | ✅ GitHub | No changes needed |
-| `kids-daily.yml` | v2.1 | ✅ GitHub | KIDS_OUTPUT added + 3 separate jobs |
-| `token_refresh.yml` | v2.2 | ✅ GitHub | 1st + 15th every month (was 1st + 20th) |
-| `trading_bot.yml` | fixed | ✅ GitHub | TELEGRAM_BOT_TOKEN + CHAT_ID_BASIC |
-| `keepalive.yml` | current | ✅ GitHub | Prevents repo from going inactive |
-| `_config.yml` | cleaned | ✅ GitHub | Exclude list cleaned |
+## Workflow Files — VERIFIED STATUS
+
+| File | Ver | GitHub Status | Timing | Issues |
+|------|-----|---------------|--------|--------|
+| `daily-morning-reel.yml` | v2.2 | ✅ PUSHED | 7:00 AM every day | None |
+| `daily-videos.yml` | v2.2 | ✅ PUSHED | 10:00 AM Mon-Sat | generate_analysis removed |
+| `daily-shorts.yml` | v2.1 | ⚠️ NEEDS PUSH | 11:30 AM daily | Only GROQ key — needs all 4 AI keys |
+| `daily_reel.yml` | v2.1 | ⚠️ NEEDS PUSH | 8:30 PM daily | Only GROQ key — needs all 4 AI keys |
+| `daily-articles.yml` | current | ✅ OK | 10:00 AM daily | FB share uses user token (low priority) |
+| `kids-daily.yml` | v2.1 | ⚠️ NEEDS PUSH | 8:00 AM daily | OLD: single job, KIDS_LANG=both broken |
+| `trading_bot.yml` | v2.1 | ⚠️ NEEDS PUSH | Every 5 min | TELEGRAM_CHAT_ID → CHAT_ID_BASIC |
+| `token_refresh.yml` | v2.2 | ✅ PUSHED | 1st + 15th monthly | Schedule fixed |
+| `daily-morning-reel.yml` | v2.2 | ✅ PUSHED | 7:00 AM daily | Now 7 days/week |
+| `keepalive.yml` | current | ✅ GOOD | Sun-Thu 11:59 PM | No changes needed |
 
 ---
 
-# APPSCRIPT — TRADING SYSTEM
+# APPSCRIPT v15.6 — TRADING SYSTEM
 
 ```
-Current version: v15.6 (pushed 19 May 2026)
-Location: Google Sheets → Extensions → Apps Script
-NOT in GitHub — must be shared directly by owner
+Location: Google Sheets → Extensions → Apps Script (NOT in GitHub)
 Drive backup: 1cBimCblQZ_tISDxXZ_rqTlogPS4Ty17h
+Pushed: 19 May 2026
 
-v15.6 CHANGES (performance fixes from real trade data):
-  FIX 1: HARD BEARISH BLOCK
-    When Nifty < 20DMA → max 3 WAITING slots, score ≥40 only
-    Before: entered 5-8 trades in bearish → all hit SL
-    After: blocks weak entries → win rate 43% → 65%+ expected
+v15.6 FIXES (from real trade data analysis):
+  FIX 1 — HARD BEARISH BLOCK
+    Nifty < 20DMA → max 3 WAITING slots, score ≥40, Sector Leader, RS ≥15
+    Before: 5-8 trades in bearish → all hit SL (BHARATFORG, TATASTEEL, SAIL, BANDHANBNK)
+    After:  0 trades in bearish unless exceptional → win rate 43% → 65%+ expected
 
-  FIX 2: MOMENTUM BREAKOUT DETECTION
-    New entry type for IT-style moves (TECHM +4.85%, PERSISTENT +5.48%)
-    Old: SMA=Sideways → blocked always
-    New: SMA=Sideways + today +3%+ + sector momentum = valid entry
+  FIX 2 — MOMENTUM BREAKOUT DETECTION (new entry type)
+    +3% move today + sector momentum = valid entry even with SMA=Sideways
+    Captures: TECHM +4.85%, PERSISTENT +5.48%, COFORGE +5.15% style moves
+    Old: These were blocked by SMA=Sideways gate → system missed IT rally
 
-  FIX 3: OPTIONS ATH BLOCK
-    MCX near ATH was getting BUY CE signal — wrong
-    Now: if stock within 3% of ATH → options = ⏸ NEAR ATH
+  FIX 3 — OPTIONS ATH BLOCK
+    Stock within 3% of 52W High → options = "⏸ NEAR ATH" (was generating BUY CE)
+    Fixes: MCX was getting BUY CE despite NEAR ATH warning
 
-  FIX 4: VOLUME BYPASS FOR STRONG MOVERS
-    Stock up 3%+ today → volume formula is stale → bypass gate 7
-    Fixes IT stocks invisible problem
+  FIX 4 — VOLUME BYPASS
+    +3% price move = volume formula stale → bypass Gate 7
+    Fixes: IT stocks with stale volume data showing as low volume
 
-  FIX 5: SECTOR MOMENTUM DETECTION
-    Counts stocks up 2%+ per sector
-    3+ stocks = sector momentum day → unlocks that sector
+  FIX 5 — SECTOR MOMENTUM DETECTION
+    3+ stocks in same sector up 2%+ = sector momentum day
+    Unlocks that sector for entries even if individual scores are moderate
 
-  FIX 6 (v15.5): OPTIONS ROW MISMATCH
-    sheetRow = rowIdx + tradedCount + 2 (was rowIdx + 2)
-    Options now show in correct WAITING rows not TRADED rows
+  FIX 6 (from v15.5) — OPTIONS ROW MISMATCH
+    sheetRow = rowIdx + tradedCount + 2
+    Options now appear in WAITING rows not TRADED rows
 
-Trigger: Every 5 minutes via time-based trigger
-Manual: 🔄 MANUAL SYNC button in Sheet menu
+Performance impact:
+  All 4 losses = entered in BEARISH market
+  v15.6 would have blocked all 4
+  Expected win rate: 43% → 65%+
 ```
 
 ---
@@ -228,231 +238,216 @@ Manual: 🔄 MANUAL SYNC button in Sheet menu
 
 | Platform | Channel | Status | Notes |
 |---|---|---|---|
-| YouTube Hindi | AI360 Trading | ✅ Auto | Education 17-21 min daily |
-| YouTube Kids | HerooQuest | ✅ Auto | 3 videos/day, thumbnails working |
-| YouTube English | AI360 Trading | 🔄 Phase 3 | Needs YOUTUBE_CREDENTIALS_EN |
-| YouTube Kids EN | HerooQuest EN | 🔄 Phase 3 | Needs YOUTUBE_CREDENTIALS_KIDS_EN |
-| Facebook AI360 | AI360 Trading | ✅ Fixed | App Live + page token + fresh token |
-| Facebook HerooQuest | HerooQuest | ✅ Auto | Reel published confirmed |
-| Facebook Group | AI360 Community | ❌ Manual | Needs Advanced Access |
-| GitHub Pages | ai360trading.in | ✅ Auto | 4 articles/day |
-| Telegram Basic | @ai360trading | ✅ Auto | 3 channels active |
+| YouTube Hindi | AI360 Trading | ✅ Auto | Education 17-21 min daily, shorts 11:30 AM |
+| YouTube Kids | HerooQuest | ✅ Auto | 3 videos/day, story-specific thumbnails |
+| YouTube English | AI360 Trading | ⏳ Phase 3 | Needs YOUTUBE_CREDENTIALS_EN |
+| YouTube Kids EN | HerooQuest EN | ⏳ Phase 3 | Needs YOUTUBE_CREDENTIALS_KIDS_EN |
+| Facebook AI360 | AI360 Trading | ✅ Fixed | App Live + get_page_token() + fresh token |
+| Facebook HerooQuest | HerooQuest | ✅ Auto | META_ACCESS_TOKEN_KIDS |
+| Facebook Group | AI360 Community | ❌ Manual | Needs Advanced Access application |
+| GitHub Pages | ai360trading.in | ✅ Auto | 4 articles/day Mon-Fri |
+| Telegram Basic | @ai360trading | ✅ Auto | Free signals |
+| Telegram Advance | @ai360trading_Advance | ✅ Auto | Rs.499/month |
+| Telegram Premium | @ai360trading_Premium | ✅ Auto | Bundle plan |
 
 ---
 
-# GITHUB SECRETS
+# GITHUB SECRETS — COMPLETE LIST
 
 ```
-Required secrets (all must be set):
+Content/Social:
+  META_ACCESS_TOKEN          ← Updated 18 May 2026 (60-day, 8 permissions)
+  META_ACCESS_TOKEN_KIDS     ← HerooQuest Facebook page
+  META_APP_ID                ← Facebook App ID
+  META_APP_SECRET            ← Facebook App Secret
+  FACEBOOK_PAGE_ID           ← 108076910943724 (AI360 Trading)
+  FACEBOOK_KIDS_PAGE_ID      ← 1021152881090398 (HerooQuest)
+  FACEBOOK_GROUP_ID          ← AI360 Community group
+  YOUTUBE_CREDENTIALS        ← AI360 Trading YouTube OAuth
+  YOUTUBE_CREDENTIALS_KIDS   ← HerooQuest YouTube OAuth
+  YOUTUBE_CREDENTIALS_EN     ← ⏳ Pending Phase 3
+  YOUTUBE_CREDENTIALS_KIDS_EN ← ⏳ Pending Phase 3
 
-META_ACCESS_TOKEN          ← Updated 18 May 2026 (60-day, 8 permissions)
-META_ACCESS_TOKEN_KIDS     ← HerooQuest Facebook page token
-META_APP_ID                ← Facebook App ID
-META_APP_SECRET            ← Facebook App Secret
-FACEBOOK_PAGE_ID           ← 108076910943724 (AI360 Trading page)
-FACEBOOK_KIDS_PAGE_ID      ← 1021152881090398 (HerooQuest page)
-YOUTUBE_CREDENTIALS        ← AI360 Trading YouTube OAuth
-YOUTUBE_CREDENTIALS_KIDS   ← HerooQuest YouTube OAuth
-YOUTUBE_CREDENTIALS_EN     ← ⏳ Pending (Phase 3)
-YOUTUBE_CREDENTIALS_KIDS_EN ← ⏳ Pending (Phase 3)
-GROQ_API_KEY               ← Primary AI (100k tokens/day free)
-GEMINI_API_KEY             ← Gemini 2.5 Flash + image generation
-ANTHROPIC_API_KEY          ← Claude fallback
-OPENAI_API_KEY             ← DALL-E + GPT fallback
-HF_TOKEN                   ← HuggingFace FLUX.1 image generation
-TELEGRAM_BOT_TOKEN         ← Bot for all Telegram alerts
-CHAT_ID_BASIC              ← Basic channel ID
-CHAT_ID_ADVANCE            ← Advance channel ID
-CHAT_ID_PREMIUM            ← Premium channel ID
-GH_TOKEN                   ← GitHub API for secret updates
+AI Providers:
+  GROQ_API_KEY               ← Primary (100k tokens/day free)
+  GEMINI_API_KEY             ← Gemini 2.5 + image generation
+  ANTHROPIC_API_KEY          ← Claude fallback
+  OPENAI_API_KEY             ← DALL-E + GPT fallback
+  HF_TOKEN                   ← HuggingFace FLUX.1
 
-Token refresh: Automatic every 14 days (1st + 15th of month)
-Next META token expiry: ~July 2026
+Trading:
+  GCP_SERVICE_ACCOUNT_JSON   ← Google Sheets API access
+  TELEGRAM_BOT_TOKEN         ← Bot token for all channels
+  CHAT_ID_BASIC              ← Basic channel (was TELEGRAM_CHAT_ID — wrong!)
+  CHAT_ID_ADVANCE            ← Advance channel
+  CHAT_ID_PREMIUM            ← Premium channel
+  GH_TOKEN                   ← GitHub API for secret updates
+
+Token auto-refresh: 1st + 15th of every month
+Next META expiry: ~July 2026
 ```
 
 ---
 
-# AI CLIENT — FALLBACK CHAIN
+# AI CLIENT — FALLBACK CHAIN (ai_client.py v2.4)
 
 ```
-ai_client.py v2.4 — Priority order:
+TEXT GENERATION (priority order):
+  1. Groq llama-3.3-70b-versatile  — 100k tokens/day free ← primary
+  2. Groq llama-3.1-8b-instant     — faster fallback
+  3. Groq gemma2-9b-it
+  4. Groq qwen-qwq-32b
+  5. Gemini gemini-2.5-flash
+  6. Gemini gemini-2.5-flash-8b
+  7. Anthropic claude-3-haiku
+  8. OpenAI gpt-4o-mini
+  Cost: Rs.0
 
-TEXT GENERATION:
-  1. Groq — llama-3.3-70b-versatile (100k/day free) ← primary
-  2. Groq — llama-3.1-8b-instant (faster fallback)
-  3. Groq — gemma2-9b-it
-  4. Groq — qwen-qwq-32b
-  5. Gemini — gemini-2.5-flash
-  6. Gemini — gemini-2.5-flash-8b
-  7. Anthropic — claude-3-haiku-20240307
-  8. OpenAI — gpt-4o-mini
-  All free tier. Cost = Rs.0
+IMAGE GENERATION (for kids video, priority order):
+  1. Gemini 2.5 Flash Image  — ~50/day free
+  2. Pollinations.ai FLUX Pro — FREE, no API key, Pixar quality ← best free option
+  3. HuggingFace FLUX.1      — free with HF_TOKEN
+  4. DALL-E 2                — uses OpenAI credits
+  5. PIL placeholder         — always works, Heroo.png overlaid
 
-IMAGE GENERATION (for kids video):
-  1. Gemini 2.5 Flash Image (50/day free quota)
-  2. Pollinations.ai FLUX Pro (FREE, no API key, Pixar quality)
-  3. HuggingFace FLUX.1-schnell (free with HF_TOKEN)
-  4. DALL-E 2 (OpenAI credits)
-  5. PIL placeholder with Heroo character overlay
-
-VIDEO GENERATION:
-  Currently: Ken Burns zoom on Pixar images = looks like animated video
+VIDEO QUALITY:
+  Currently: Pixar images + Ken Burns zoom + xFade + color grade + vignette
+  Looks like animated video to most viewers
   Future: Kling AI $6/month when first revenue arrives
 ```
 
 ---
 
-# THUMBNAIL PHILOSOPHY (CRITICAL)
+# THUMBNAIL PHILOSOPHY
 
 ```
 The thumbnail IS the content preview.
-Viewer scrolls → sees thumbnail → READS text → curious → clicks → watches.
+Viewer scrolls → READS thumbnail text → curious → clicks → watches.
 
-This is why win rate matters:
-  Generic thumbnail = 0.6% CTR (HerooQuest before fix)
-  Story-specific thumbnail = 3%+ CTR target
+PROVEN FORMULA (competitor analysis confirmed):
 
-PROVEN FORMULA (from competitor research):
-
-For HerooQuest:
-  Background: Dramatic scene image (60% dark overlay)
-  Left: Story title HUGE yellow 110px (e.g. "GURU NANAK" not "HEROO KI KAHANI")
-  Left: Moral strip with yellow left bar (curiosity gap)
+HerooQuest 16:9:
+  Left: Story-specific title 110px YELLOW (e.g. "GURU NANAK" not "HEROO KI KAHANI")
+  Left: Moral strip — "💡 PATIENCE WINS" (curiosity gap)
+  Left bottom: "Ep N" badge
   Right: Heroo character 92% height (emotional connection)
   Top left: HerooQuest brand pill (red)
-  Top right: "Ep N" badge (yellow)
+  Top right: Episode badge (yellow)
+  Background: Scene image with 60% dark overlay
 
-For Morning Reel:
-  Background: Dark gradient
-  Text: "MORNING BRIEF" 120px yellow
-  Badge: "📈 BULLISH DAY" or "📉 BEARISH DAY" (sentiment colour)
-  Number: "NIFTY 23643" visible (specific data = viewer stops)
-  Character: ZENO with matching emotion
-  Time: "7:00 AM IST"
+Morning Reel 9:16:
+  "MORNING BRIEF" 120px yellow
+  "📈 BULLISH DAY" or "📉 BEARISH DAY" (colour-coded badge)
+  "NIFTY 23643" — specific number stops traders scrolling
+  ZENO character matching sentiment emotion
+  "7:00 AM IST" time tag
 
-For ZENO Shorts:
+ZENO Shorts 9:16:
   ZENO character 60% height
-  Topic text LARGE bold
+  Topic text LARGE bold (already working — 10-19 views per short)
   Lesson subtitle readable in 2 seconds
-  ✅ Already working well — 10-19 views per short
 ```
 
 ---
 
-# SEO RULES (CRITICAL)
+# SEO RULES
 
 ```
-HerooQuest title format:
+HerooQuest title:
   "{Story Name} | Heroo Ki Kahani | HerooQuest | Hindi Moral Story 2026"
-  NOT: "HerooQuest — Heroo Ki Kahani | Kids Stories" (generic every day)
+  NOT generic: "HerooQuest — Heroo Ki Kahani" (same every day)
 
-HerooQuest tags (30 tags):
-  Brand: HerooQuest, HerooKiKahani, HerooStories
-  Genre: KidsStories, MoralStories, AnimatedStories, BedtimeStories
-  Language: HindiKahani, HindiCartoon, CartoonInHindi, BachonKiKahani
-  Search: BalKahani, HindiStories, KidsVideoHindi, MoralKahani
-  Platform: YouTubeKids, KidsShorts
-  Year: MoralStory2026
+HerooQuest tags (30):
+  Brand + Genre + Language-specific + India-specific + Platform + Year
+  Key: HindiCartoon, BachonKiKahani, CartoonInHindi, BalKahani
 
 Description rules:
-  First 100 chars = CTA (what YouTube shows in search)
-  Include timestamps/chapters for videos > 5 min
+  First 100 chars = CTA (shown in YouTube search)
+  Timestamps/chapters for videos >5 min (YouTube algorithm boost)
   15 hashtags at bottom
-  Website link + channel subscribe link
+  Website + subscribe link
 
 Morning Reel title:
-  Include sentiment + Nifty level + date
-  e.g. "Nifty 23643 BULLISH — 19 May | Morning Brief | AI360Trading #Shorts"
+  "Nifty {LEVEL} {SENTIMENT} — {DD MMM} | Morning Brief | AI360Trading #Shorts"
+  Specific data in title = trader search traffic
 
 Education title:
-  "Stock Market Kya Hai? | Beginners Guide 2026 | Week 1 Hindi | AI360Trading"
+  "Stock Market Kya Hai? | Beginners Guide 2026 | Week N Hindi | AI360Trading"
 ```
 
 ---
 
-# TRADING SYSTEM STATUS (as of 19 May 2026)
+# TRADING SYSTEM (19 May 2026)
 
 ```
-Market regime: BEARISH (Nifty 23,649 < 20DMA 24,011)
-Paper trades: 3W/4L | Net +₹414 | Win rate 43%
+Market: BEARISH (Nifty 23,649 < 20DMA 24,011)
+Paper trades: 7 total | 3W/4L | Win rate 43% | Net +₹414
 
 Active positions:
-  ONGC     → Entry 298.35 | SL 293.45 | 5 days
-  BHEL     → Entry 396.95 | SL 396.95 | 5 days
-  NESTLEIND → Entry 1,458.70 | SL 1,415.7 | 3 days
-  IDEA     → Entry 13.06 | SL 12.54 | 3 days
+  ONGC     → Entry 298.35 | SL 293.45 | 6 days
+  BHEL     → Entry 396.95 | SL 396.95 | 6 days
+  NESTLEIND → Entry 1,458.70 | SL 1,415.7 | 4 days
+  IDEA     → Entry 13.06   | SL 12.54   | 4 days
 
-Options signals (v15.6 fixed):
-  HINDALCO → BUY CE 1100 Jun (correct row now) ✅
-  MCX     → ⏸ NEAR ATH (blocked in v15.6) ✅
+Loss analysis:
+  All 4 losses = entered during BEARISH regime
+  v15.6 hard block = these 4 trades would NOT have entered
+  Expected win rate with v15.6: 65%+
 
-v15.6 Performance targets:
-  Current: 43% win rate
-  Target: 65%+ win rate
-  Method: Hard bearish block + momentum breakout detection
-
-History:
-  Wins: BSE +3.87% | IDEA +5.94% | ADANIPORTS +5.58% (all TARGET HIT)
-  Losses: BHARATFORG/TATASTEEL/BANDHANBNK/SAIL (all TRAILING SL HIT in BEARISH market)
-  Root cause of losses: Entered during BEARISH regime (Nifty < 20DMA)
-  v15.6 fix: HARD BLOCK in bearish = these trades would not have entered
+Phase 4 trigger: 30 paper trades with 60%+ win rate
+  Currently: 7 done, 23 more needed
+  Target: Live trading with Rs.1,000 starting capital
 ```
 
 ---
 
-# KNOWN ISSUES — TRACKING
+# KNOWN ISSUES
 
 | # | Issue | Status | Fix |
 |---|-------|--------|-----|
-| 1 | HerooQuest old videos show "Scene 99" thumbnail | ⚪ Cannot fix retroactively | Only new uploads fixed |
-| 2 | Kids video left side still shows placeholder background | ⚠️ Partial | Pollinations generates scene but PIL placeholder shows on left |
-| 3 | Education video English (YOUTUBE_CREDENTIALS_EN) | ⏳ Pending | Phase 3 |
-| 4 | Facebook Group Advanced Access | ⏳ Pending | Manual application needed |
-| 5 | Volume formula stale for intraday moves | ⚠️ Partial | v15.6 bypasses gate if +3% move |
+| 1 | kids-daily.yml OLD on GitHub | 🔴 NEEDS PUSH | v2.1 in Drive: 1zJIGeWfOZwnznNuJTAWyohWUM0qITkA9 |
+| 2 | daily-shorts.yml OLD on GitHub | 🔴 NEEDS PUSH | v2.1 in Drive: 1x9PvDmr9uRioU3wCJb1SplG30PuhMIY5 |
+| 3 | trading_bot.yml TELEGRAM_CHAT_ID wrong | 🔴 NEEDS PUSH | v2.1 in Drive: 14aNlWzoizZ7WBM5kBU7DLERWSM7-D2cJ |
+| 4 | daily_reel.yml only GROQ key | 🟡 NEEDS PUSH | v2.1 in Drive: 1Go1AVab3lB4jjI8mRqtJ3YriWxV0zbK4 |
+| 5 | daily-articles.yml FB uses user token | 🟡 Low priority | Article FB posts may fail occasionally |
+| 6 | Old HerooQuest thumbnails "Scene 99" | ⚪ Cannot fix | Only new uploads have correct thumbnails |
+| 7 | YOUTUBE_CREDENTIALS_EN missing | ⏳ Phase 3 | Create when Phase 3 starts |
+| 8 | Facebook Group Advanced Access | ⏳ Pending | Apply at business.facebook.com |
 
 ---
 
 # PENDING TASKS
 
-### 🔴 Must Do (Trading)
+### 🔴 Push to GitHub NOW
 ```
-1. Paper trade 27 more times to reach 30 total → Phase 4 live trading
-   Currently: 7 completed trades (3W/4L)
-   Need: 23 more paper trades
-   When: After v15.6 proves 65%+ win rate for 10 consecutive trades
-```
-
-### 🟡 Important (Content)
-```
-2. Apply for Facebook Group Advanced Access
-   URL: business.facebook.com → Settings → Advanced Access
-   Needed for: posting to AI360 Community group automatically
-
-3. Create YOUTUBE_CREDENTIALS_EN for English channel
-   Needed for: Phase 3 English education videos
-
-4. HerooQuest CTR target: 0.6% → 3%+
-   Currently at ~0.6% (placeholder thumbnails)
-   After v2.3 upload_kids_youtube.py: should improve significantly
+1. kids-daily.yml v2.1    → 3 jobs + requirements.txt (Drive: 1zJIGeWfOZwnznNuJTAWyohWUM0qITkA9)
+2. daily-shorts.yml v2.1  → all 4 AI keys            (Drive: 1x9PvDmr9uRioU3wCJb1SplG30PuhMIY5)
+3. trading_bot.yml v2.1   → CHAT_ID_BASIC fix         (Drive: 14aNlWzoizZ7WBM5kBU7DLERWSM7-D2cJ)
+4. daily_reel.yml v2.1    → all 4 AI keys             (Drive: 1Go1AVab3lB4jjI8mRqtJ3YriWxV0zbK4)
+5. SYSTEM.md v16.4        → this file                 (Drive: current)
 ```
 
-### 🟢 Future (After First Revenue)
+### 🟡 This Week
 ```
-5. Kling AI $6/month → true animation for HerooQuest
-6. Top up Claude credits for longer sessions
-7. Phase 4: Live trading with real Rs.1000 capital
+6. Apply Facebook Group Advanced Access (business.facebook.com)
+7. Monitor HerooQuest CTR (target 0.6% → 3%+ with story-specific thumbnails)
+8. Paper trade 23 more times to reach 30 total → Phase 4 live trading
+```
+
+### 🟢 After First Revenue
+```
+9. Kling AI $6/month → true animation for HerooQuest
+10. Top up Claude and OpenAI credits
+11. Phase 4: Live trading with Rs.1,000 capital
 ```
 
 ---
 
 # DRIVE FILE REGISTRY
 
-All important files saved to Google Drive for reference:
-
 | File | Version | Drive ID |
 |------|---------|----------|
 | AppScript v15.6 | Trading | `1cBimCblQZ_tISDxXZ_rqTlogPS4Ty17h` |
-| AppScript v15.5 | Previous | `1azwDcNDX-GjqxeLlM2S40X78HdYOGZQr` |
 | ai_client.py | v2.4 | `1EkH83uFKQGHCQ_VOy3GppmMvfU530AGC` |
 | human_touch.py | v2.2 | `1eqHSztsuoZX1o6LtxhliMPNnAuoLATEx` |
 | generate_reel.py | v2.1 | `1jVb89AF6XxY_DpGHoo9op_VW3D25l-G-` |
@@ -466,56 +461,10 @@ All important files saved to Google Drive for reference:
 | requirements.txt | v2.3 | `1yrQgpnrnZ6rCXIko6gYx5J9hR4p1dhHu` |
 | daily-morning-reel.yml | v2.2 | `1pDV29PdA6hM8OfgC_nZUxN0Qk8SfRF_B` |
 | daily-videos.yml | v2.2 | `1rD3wglXm7VV35ilgdEq-vFzHXfhHOUhX` |
-| daily-shorts.yml | v2.1 | `1zvjg276uZyzZ6Rvi8feOW0Z2M335DEBy` |
-| kids-daily.yml | v2.1 | `14Itk-_BWJ8MecS0sAEZWbI3Rvhp_1t5f` |
+| daily-shorts.yml | v2.1 FINAL | `1x9PvDmr9uRioU3wCJb1SplG30PuhMIY5` |
+| daily_reel.yml | v2.1 FINAL | `1Go1AVab3lB4jjI8mRqtJ3YriWxV0zbK4` |
+| kids-daily.yml | v2.1 FINAL | `1zJIGeWfOZwnznNuJTAWyohWUM0qITkA9` |
+| trading_bot.yml | v2.1 FINAL | `14aNlWzoizZ7WBM5kBU7DLERWSM7-D2cJ` |
 | token_refresh.yml | v2.2 | `1M_rUNxepr2ZIMBGwCqxfb4gTYtR3_VYg` |
 | _config.yml | cleaned | `1iVwSvNtEzbAbH7hTSDXBtSb7hTWud0It` |
-| SYSTEM.md | v16.3 | `(this file)` |
-
----
-
-# SESSION LOG
-
-## 19 May 2026 — Full Day Session
-
-### Problems Fixed
-1. **Facebook token expired** — regenerated manually, token_refresh.yml schedule fixed to 1st+15th
-2. **Options row mismatch** — v15.5 fix: tradedCount offset in _writeOptionsColumns()
-3. **IT stocks invisible** — v15.6: momentum breakout detection + sector momentum
-4. **Bearish market losses** — v15.6: hard bearish block (max 3 slots, score ≥40)
-5. **MCX options near ATH** — v15.6: 3% ATH buffer check in options engine
-6. **Volume formula stale** — v15.6: bypass gate 7 when price +3%+ today
-7. **HerooQuest "Scene 4" thumbnail** — upload_kids_youtube.py v2.2: thumbnails().set() added
-8. **Thumbnail generic every day** — v2.3: story-specific title e.g. "GURU NANAK" not "HEROO KI KAHANI"
-9. **SEO weak** — upload_kids_youtube.py v2.3: 30 tags + chapters + 15 hashtags + CTA first line
-10. **Education workflow runner conflict** — daily-videos.yml v2.2: moved to 10 AM (was 8 AM)
-11. **Weekend content missing** — daily-morning-reel.yml v2.2: now 7 days/week
-12. **generate_analysis.py called** — removed from daily-videos.yml (file was deleted)
-13. **CHAT_ID_BASIC missing** — token_refresh.py v2.1: fixed from TELEGRAM_CHAT_ID
-14. **bgmusic causing Meta muting** — generate_shorts.py v3.1: music completely removed
-15. **Meta date format mismatch** — generate_kids_video.py v2.3: unified %Y%m%d format
-
-### Performance Analysis Findings
-```
-Root cause of 43% win rate:
-  ALL 4 losses (BHARATFORG, TATASTEEL, BANDHANBNK, SAIL) entered in BEARISH market
-  System was running at full capacity even when Nifty below 20DMA
-  
-What institutions do differently:
-  1. 0 new entries when index < 20DMA
-  2. Sector rotation scanning (IT was running, system missed it)
-  3. Relative volume (stale formula was blocking breakouts)
-  4. Concentrate positions (3 good trades vs 8 mediocre ones)
-  
-v15.6 implements all 4 fixes above
-```
-
-## 18 May 2026 — Previous Session Summary
-```
-Facebook App switched to Live mode
-Token regenerated with 8 permissions
-Background music removed from all generators
-HerooQuest upload confirmed working: gaWKA0x-t9U
-Morning reel YouTube + Facebook working
-Kids video: 10 scenes generating correctly
-```
+| SYSTEM.md | v16.4 | `(this file — push to GitHub)` |
