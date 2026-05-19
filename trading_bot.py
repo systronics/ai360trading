@@ -1114,7 +1114,7 @@ def main():
             send_market_close_summary(log, hist, mem, now, is_bullish, nifty_pct)
 
     try:
-        log.update("T4", [[mem]])
+        log.update([[mem]], "Y1")
         print(f"[MEM] T4 saved: {len(mem):,} chars")
     except Exception as e:
         print(f"[MEM] T4 save: {e}")
