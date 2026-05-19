@@ -22,17 +22,8 @@ meta-og:image: https://ai360trading.in/public/image/header.webp
     background: linear-gradient(135deg, #eef4ff 0%, #f0f7ff 100%);
     border-radius: 12px;
   }
-  .dashboard-header h1 {
-    margin: 0 0 8px 0;
-    color: #1e293b;
-    font-size: 26px;
-    font-weight: 900;
-  }
-  .dashboard-header p {
-    font-size: 14px;
-    color: #64748b;
-    margin: 0 0 20px 0;
-  }
+  .dashboard-header h1 { margin: 0 0 8px 0; color: #1e293b; font-size: 26px; font-weight: 900; }
+  .dashboard-header p  { font-size: 14px; color: #64748b; margin: 0 0 20px 0; }
   .btn-tg {
     background-color: #0088cc;
     color: white !important;
@@ -43,7 +34,6 @@ meta-og:image: https://ai360trading.in/public/image/header.webp
     font-size: 15px;
     box-shadow: 0 4px 15px rgba(0,136,204,0.3);
     display: inline-block;
-    transition: 0.3s;
   }
   .live-status {
     display: flex;
@@ -56,8 +46,7 @@ meta-og:image: https://ai360trading.in/public/image/header.webp
     font-size: 15px;
   }
   .blink {
-    height: 10px;
-    width: 10px;
+    height: 10px; width: 10px;
     background-color: #2ecc71;
     border-radius: 50%;
     animation: blink-animation 1.5s infinite;
@@ -95,8 +84,6 @@ meta-og:image: https://ai360trading.in/public/image/header.webp
     -webkit-overflow-scrolling: touch;
     touch-action: pan-x;
   }
-  /* FIX: Use direct pubhtml URL (not 2PACX cached URL) */
-  /* pubhtml always shows current sheet data */
   iframe {
     width: 100%;
     min-width: 1100px;
@@ -127,8 +114,8 @@ meta-og:image: https://ai360trading.in/public/image/header.webp
     font-weight: 800;
     margin-right: 6px;
   }
-  .badge-waiting  { background: #fef3c7; color: #92400e; }
-  .badge-traded   { background: #d1fae5; color: #065f46; }
+  .badge-waiting { background: #fef3c7; color: #92400e; }
+  .badge-traded  { background: #d1fae5; color: #065f46; }
   .broker-section {
     margin: 32px 0;
     padding: 25px;
@@ -180,23 +167,14 @@ meta-og:image: https://ai360trading.in/public/image/header.webp
 
 <div class="terminal-wrapper">
   <div class="terminal-scroll-container">
-    <!--
-      FIX (May 2026): Changed from 2PACX cached URL to direct pubhtml URL
-      2PACX URL: cached, shows blank after AppScript clears+rewrites sheet
-      pubhtml URL: always shows CURRENT sheet data, no cache issue
-      Sheet: Ai360tradingAlgo (1fPNGL6AHs-7M-oC22zILg9FlyWi-7DF9NoVVqZQs2vk)
-      Tab:   AlertLog (gid=1037713694)
-      Access: Anyone with link — Viewer (confirmed)
-    -->
     <iframe
-      src="https://docs.google.com/spreadsheets/d/1fPNGL6AHs-7M-oC22zILg9FlyWi-7DF9NoVVqZQs2vk/pubhtml?gid=1037713694&single=true&widget=false&headers=false&chrome=false"
+      src="https://docs.google.com/spreadsheets/d/e/2PACX-1vQyI_2dA66bYzzsxZNW9yqSAkmi8_TxLA7PK_x6vtI9uqSbUNz-M5FXrYIt4rsP5B7kl6Mrfi5AUpsp/pubhtml?gid=1037713694&single=true&widget=false&headers=false&chrome=false"
       title="AI360Trading Swing Signal Dashboard"
       loading="lazy"
     ></iframe>
   </div>
 </div>
 
-<!-- How It Works -->
 <div class="dashboard-features">
   <div class="feature-card">
     <h3>🎯 Nifty 200 Stocks</h3>
@@ -220,7 +198,6 @@ meta-og:image: https://ai360trading.in/public/image/header.webp
   </div>
 </div>
 
-<!-- Broker Section -->
 <div class="broker-section">
   <h3>🏦 Start Trading with Trusted Brokers</h3>
   <p>Open a free trading account and start acting on these signals today.</p>
