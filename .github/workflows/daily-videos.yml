@@ -1,19 +1,18 @@
-name: Daily Videos
+name: Daily Videos — Education
 
-# ─────────────────────────────────────────────────────────
-# v2.1 FIXES (May 2026):
-#   REMOVED: python generate_analysis.py (file was DELETED)
-#   ADDED:   EDUCATION_LANG=hi and EDUCATION_LANG=en steps
-#   ADDED:   google-genai to pip install (for Gemini 2.5 + Veo 2)
-#   ADDED:   YOUTUBE_CREDENTIALS_EN for English education video
-# ─────────────────────────────────────────────────────────
+# v2.2 TIMING FIX (May 2026):
+#   Changed from 8:00 AM to 10:00 AM IST
+#   Reason: HerooQuest runs at 8:00 AM — same time = runner conflict
+#   Education at 10:00 AM = separate runner slot = no conflict
+#   10 AM IST = post-morning-rush = viewers have settled at desk
+#   Better watch time than 8 AM (viewers commuting at 8 AM)
 
 on:
   schedule:
-    # Mon-Fri 7:30 AM IST = 2:00 AM UTC
-    - cron: '0 2 * * 1-5'
-    # Sat-Sun 9:30 AM IST = 4:00 AM UTC
-    - cron: '0 4 * * 0,6'
+    # Mon-Sat 10:00 AM IST = 4:30 AM UTC
+    - cron: '30 4 * * 1-6'
+    # Sunday 11:00 AM IST = 5:30 AM UTC (weekend learners)
+    - cron: '30 5 * * 0'
   workflow_dispatch:
     inputs:
       content_mode:
@@ -28,7 +27,7 @@ on:
           - holiday
 
 jobs:
-  daily-videos:
+  education-hindi:
     runs-on: ubuntu-latest
     timeout-minutes: 60
 
@@ -41,43 +40,28 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install dependencies
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            ffmpeg fonts-dejavu fonts-liberation fonts-freefont-ttf imagemagick
+
+      - name: Install Python dependencies
         run: |
           pip install --upgrade pip
-          pip install \
-            "Pillow>=10.3.0" \
-            "imageio==2.9.0" \
-            "moviepy==1.0.3" \
-            edge-tts \
-            groq \
-            google-genai \
-            google-generativeai \
-            anthropic \
-            openai \
-            yfinance \
-            pytz \
-            requests \
-            google-api-python-client \
-            google-auth \
-            google-auth-oauthlib
-
-      - name: Detect content mode
-        id: mode
-        env:
-          FORCED_MODE: ${{ github.event.inputs.content_mode }}
-        run: |
-          if [ "$FORCED_MODE" != "auto" ] && [ -n "$FORCED_MODE" ]; then
-            echo "CONTENT_MODE=$FORCED_MODE" >> $GITHUB_ENV
-            echo "mode=$FORCED_MODE" >> $GITHUB_OUTPUT
-            echo "Using forced mode: $FORCED_MODE"
-          else
-            python indian_holidays.py
-          fi
+          pip install -r requirements.txt
 
       - name: Create output directory
         run: mkdir -p output
 
-      # ─── Education Video — Hindi ────────────────────────────────────────────
+      - name: Detect content mode
+        run: |
+          if [ "${{ github.event.inputs.content_mode }}" != "auto" ] && [ -n "${{ github.event.inputs.content_mode }}" ]; then
+            echo "CONTENT_MODE=${{ github.event.inputs.content_mode }}" >> $GITHUB_ENV
+          else
+            python indian_holidays.py
+          fi
+
       - name: Generate Education Video (Hindi)
         env:
           CONTENT_MODE:        ${{ env.CONTENT_MODE }}
@@ -90,8 +74,6 @@ jobs:
           YOUTUBE_CREDENTIALS: ${{ secrets.YOUTUBE_CREDENTIALS }}
         run: python generate_education.py
 
-      # ─── Education Video — English (Phase 3) ───────────────────────────────
-      # Skipped gracefully if YOUTUBE_CREDENTIALS_EN not set
       - name: Generate Education Video (English)
         env:
           CONTENT_MODE:           ${{ env.CONTENT_MODE }}
@@ -106,7 +88,6 @@ jobs:
 
       - name: Summary
         run: |
-          echo "=== Daily Videos Complete ==="
-          echo "Content mode: $CONTENT_MODE"
-          ls -lh output/*.mp4 2>/dev/null || echo "No MP4 files found"
-          ls -lh output/education_meta_*.json 2>/dev/null || echo "No meta files found"
+          echo "=== Education Videos Done ==="
+          echo "Mode: $CONTENT_MODE"
+          ls -lh output/*.mp4 2>/dev/null | tail -5
