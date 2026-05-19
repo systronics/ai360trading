@@ -204,7 +204,7 @@ def clean_mem(mem):
     if len(result)>20000:
         parts=[p for p in result.split(",") if p.strip()]
         result=",".join(parts[-100:])
-    print(f"[MEM] T4: {len(result):,} chars")
+    print(f"[MEM] Y1: {len(result):,} chars")
     return result
 
 
@@ -942,7 +942,7 @@ def _clear_mem_keys(mem, key):
 def send_good_morning(log_sheet, is_bullish, nifty_cmp, nifty_dma, nifty_pct, now):
     try:
         rows    = log_sheet.get_all_values()
-        mem_val = rows[3][19] if len(rows)>3 and len(rows[3])>19 else ""
+        mem_val = rows[0][24] if len(rows)>0 and len(rows[0])>24 else ""
     except: mem_val = ""
     flag_key = now.strftime("%Y-%m-%d") + "_AM"
     if flag_key in mem_val: return
@@ -985,7 +985,7 @@ def send_good_morning(log_sheet, is_bullish, nifty_cmp, nifty_dma, nifty_pct, no
 def send_midday_pulse(log_sheet, mem, now, is_bullish):
     try:
         rows   = log_sheet.get_all_values()
-        t4_val = rows[3][19] if len(rows)>3 and len(rows[3])>19 else ""
+        t4_val = rows[0][24] if len(rows)>0 and len(rows[0])>24 else ""
         if (now.strftime("%Y-%m-%d") + "_MD") in t4_val: return
     except: return
     try:
@@ -1018,7 +1018,7 @@ def send_midday_pulse(log_sheet, mem, now, is_bullish):
 def send_market_close_summary(log_sheet, hist_sheet, mem, now, is_bullish, nifty_pct):
     try:
         rows   = log_sheet.get_all_values()
-        t4_val = rows[3][19] if len(rows)>3 and len(rows[3])>19 else ""
+        t4_val = rows[0][24] if len(rows)>0 and len(rows[0])>24 else ""
         if (now.strftime("%Y-%m-%d") + "_PM") in t4_val: return
     except: return
     try:
@@ -1089,9 +1089,9 @@ def main():
 
     try:
         rows = log.get_all_values()
-        mem  = rows[3][C_SYS_CTRL] if len(rows)>3 and len(rows[3])>C_SYS_CTRL else ""
+        mem  = rows[0][24] if len(rows)>0 and len(rows[0])>24 else ""
     except Exception as e:
-        print(f"[MEM] T4 read: {e}"); mem = ""
+        print(f"[MEM] Y1 read: {e}"); mem = ""
 
     mem = clean_mem(mem)
 
@@ -1115,9 +1115,9 @@ def main():
 
     try:
         log.update([[mem]], "Y1")
-        print(f"[MEM] T4 saved: {len(mem):,} chars")
+        print(f"[MEM] Y1 saved: {len(mem):,} chars")
     except Exception as e:
-        print(f"[MEM] T4 save: {e}")
+        print(f"[MEM] Y1 save: {e}")
 
     print(f"[DONE] {time_str} IST | Bullish:{is_bullish} | Entries:{today_entries}")
 
