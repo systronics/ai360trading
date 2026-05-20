@@ -175,11 +175,6 @@ def build_thumbnail(title_text, display_text, emotion="thinking"):
       - Display text: 52px white with dark backing
       - Accent bars top and bottom
       - AI360Trading badge
-
-    Why this works:
-      Large character = eye catches immediately
-      Yellow title = highest contrast on dark bg
-      Simple layout = clear message in 2 seconds
     """
     img  = Image.new("RGB", (SW, SH))
     draw = ImageDraw.Draw(img, "RGBA")
@@ -218,8 +213,8 @@ def build_thumbnail(title_text, display_text, emotion="thinking"):
     f_badge = get_font(FONT_BOLD, 40)
 
     import textwrap
-    safe_title = title_text.upper()
-    title_lines = textwrap.wrap(safe_title, width=10)
+    safe_title   = title_text.upper()
+    title_lines  = textwrap.wrap(safe_title, width=10)
     ty = 100
     for line in title_lines[:2]:
         # Shadow
@@ -299,7 +294,7 @@ def build_reel_frame(title_text, display_text, emotion="thinking"):
                        dl, font=font_display, fill=(255, 220, 80), anchor="mm")
 
     font_brand = get_font(FONT_BOLD, 36)
-    draw_text.text((SW//2, SH-220), "✨ ai360trading.in",
+    draw_text.text((SW//2, SH-220), "✦ ai360trading.in",
                    font=font_brand, fill=(160, 200, 255), anchor="mm")
     draw_text.text((SW//2, SH-160), "📱 t.me/ai360trading",
                    font=font_brand, fill=(140, 180, 240), anchor="mm")
@@ -334,7 +329,7 @@ def build_youtube_description(script_data, today_str):
         desc  = (
             f"🎉 {label} Special — Market band hai, learning nahi!\n\n"
             f"💡 {desc_clean}\n\n"
-            f"✨ \"{display}\"\n\n"
+            f'✦ "{display}"\n\n'
             f"🌍 For investors: India, USA, UK, Brazil & UAE\n"
             f"🌐 https://ai360trading.in\n"
             f"📱 https://t.me/ai360trading\n"
@@ -345,7 +340,7 @@ def build_youtube_description(script_data, today_str):
         desc = (
             f"📚 Weekend Learning Special\n\n"
             f"💡 {desc_clean}\n\n"
-            f"✨ \"{display}\"\n\n"
+            f'✦ "{display}"\n\n'
             f"🌍 For investors: India, USA, UK, Brazil & UAE\n"
             f"🌐 https://ai360trading.in\n"
             f"📱 https://t.me/ai360trading\n"
@@ -356,7 +351,7 @@ def build_youtube_description(script_data, today_str):
         desc = (
             f"🎯 ZENO Ki Baat — Daily trading wisdom\n\n"
             f"💡 {desc_clean}\n\n"
-            f"✨ \"{display}\"\n\n"
+            f'✦ "{display}"\n\n'
             f"🌍 For traders: India, USA, UK, Brazil & UAE\n"
             f"🌐 https://ai360trading.in\n"
             f"📱 https://t.me/ai360trading\n"
@@ -396,64 +391,25 @@ def compose_video(frame_path, audio_path, output_path):
 
 # ─── SAVE META ────────────────────────────────────────────────────────────────
 
-def build_youtube_meta(script: dict, video_path: str, thumb_path: str) -> dict:
-    """Build YouTube-optimised meta for ZENO evening reel."""
-    from datetime import datetime
-    import pytz
+def save_meta(script_data, today_str, thumb_path=None):
+    tags      = seo.get_video_tags(mode=CONTENT_MODE, is_short=True)
+    yt_tags   = seo.get_youtube_safe_tags(tags)
+    meta_path = OUT / f"meta_{today_str}.json"
 
-    IST       = pytz.timezone("Asia/Kolkata")
-    now       = datetime.now(IST)
-    date_str  = now.strftime("%d %B %Y")
-    date_short= now.strftime("%d %b")
-
-    title_raw  = script.get("title", "ZENO Ki Baat — Trading Wisdom")
-    topic      = script.get("topic", "Trading Psychology")
-    lesson     = script.get("lesson", "")
-
-    # SEO title: topic + lesson + date
-    title = f"🎯 {title_raw} | {date_short} | AI360Trading #Shorts"
-    title = title[:100]
-
-    # Description with full hashtags in body
-    description = f"""🎯 {date_str} | ZENO Ki Baat — Daily Trading Wisdom
-
-💡 Today's lesson: {topic}
-{f"📌 Key insight: {lesson}" if lesson else ""}
-
-📊 In this short:
-  • One trading principle explained in 60 seconds
-  • Real-world application for Indian stock market
-  • ZENO's wisdom for consistent profits
-
-🌍 For traders in: India 🇮🇳 | USA 🇺🇸 | UAE 🇦🇪 | UK 🇬🇧 | Brazil 🇧🇷
-
-📱 Free daily signals: https://t.me/ai360trading
-🌐 Website: https://ai360trading.in
-
-⚠️ Educational only. Not SEBI registered.
-
-#ZenoKiBaat #TradingWisdom #StockMarket #ai360trading #TradingTips
-#InvestingIndia #Nifty50 #TradingPsychology #ShareMarket #Shorts
-#StockMarketShorts #TraderMindset #FinancialEducation #WealthBuilding
-#IndianStockMarket"""
-
-    tags = [
-        "ai360trading", "ZenoKiBaat", "TradingWisdom", "StockMarket",
-        "TradingTips", "InvestingIndia", "Nifty50", "TradingPsychology",
-        "ShareMarket", "StockMarketShorts", "TraderMindset",
-        "FinancialEducation", "WealthBuilding", "IndianStockMarket",
-        "Shorts", "TradingForBeginners", "MarketWisdom",
-    ]
-
-    return {
-        "title":       title,
-        "description": description,
-        "tags":        tags[:30],
-        "topic":       topic,
-        "date":        now.strftime("%Y%m%d"),
-        "video_path":  video_path,
-        "thumb_path":  thumb_path,
+    meta = {
+        "title":        build_youtube_title(script_data, today_str),
+        "description":  build_youtube_description(script_data, today_str),
+        "tags":         yt_tags,
+        "video_path":   str(OUT / f"reel_{today_str}.mp4"),
+        "thumb_path":   str(thumb_path) if thumb_path else "",
+        "emotion":      script_data.get("emotion", "thinking"),
+        "content_mode": CONTENT_MODE,
+        "music":        "none — TTS voice only",
     }
+    with open(meta_path, "w") as f:
+        json.dump(meta, f, indent=2, ensure_ascii=False)
+    print(f"Meta saved: {meta_path}")
+    return str(meta_path)
 
 
 # ─── MAIN ─────────────────────────────────────────────────────────────────────
