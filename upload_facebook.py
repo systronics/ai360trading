@@ -1,36 +1,21 @@
 """
 upload_facebook.py — AI360Trading
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Uploads reels and articles to Facebook Page + Instagram + Kids Page.
+v2.4 FIX (May 2026) — Instagram resumable upload corrected:
+  Old: POST /{ig_id}/media with bytes → Error: video_url required
+  New: Correct 3-step resumable upload flow:
+    Step 1: POST /{ig_id}/media?media_type=REELS&upload_type=resumable
+            → Returns: id (container_id) + uri (upload_url)
+    Step 2: POST video bytes to uri with correct headers
+    Step 3: Poll container status until FINISHED
+    Step 4: POST /{ig_id}/media_publish?creation_id=container_id
 
-Supports --meta-prefix flag:
-  (no flag)          → ZENO reel    → reel_*.mp4        → Main Page + Instagram
-  --meta-prefix morning → Morning reel → morning_reel_*.mp4 → Main Page + Instagram
-  --meta-prefix kids    → Kids video   → kids_*.mp4         → Kids Page
-
-v2.3 NEW (May 2026) — INSTAGRAM REELS AUTO-UPLOAD:
-  Added upload_reel_to_instagram() function
+v2.3 (May 2026):
+  Added Instagram Reels upload
   Instagram Business Account ID: 17841400933677509
-  Uses 3-step Instagram Graph API flow:
-    Step 1: Create media container (/ig_id/media)
-    Step 2: Wait for video processing (poll status)
-    Step 3: Publish container (/ig_id/media_publish)
-  Requirements met:
-    ✅ Instagram converted to Professional account
-    ✅ Instagram linked to Facebook Page 108076910943724
-    ✅ instagram_content_publish permission in token
-    ✅ INSTAGRAM_BUSINESS_ACCOUNT_ID secret added
 
-  New GitHub secret required:
-    INSTAGRAM_BUSINESS_ACCOUNT_ID = 17841400933677509
-
-v2.2 FIX (May 2026):
+v2.2 (May 2026):
   Added get_page_token() — exchanges user token for page token
-  Root cause of all Facebook posting failures:
-    upload_reel_to_page() was using META_ACCESS_TOKEN (user token) directly
-    Facebook requires a PAGE token for page posts since app went Live
-    Page token is obtained by calling /me/accounts → match by page_id
-  Fix: get_page_token() called at start of every upload → page token used
 """
 
 import os
@@ -53,27 +38,20 @@ def parse_args():
 
 # ─── CONFIG ───────────────────────────────────────────────────────────────────
 
-META_ACCESS_TOKEN            = os.environ.get("META_ACCESS_TOKEN", "")
-FACEBOOK_PAGE_ID             = os.environ.get("FACEBOOK_PAGE_ID", "")
-FACEBOOK_KIDS_PAGE_ID        = os.environ.get("FACEBOOK_KIDS_PAGE_ID", "")
+META_ACCESS_TOKEN             = os.environ.get("META_ACCESS_TOKEN", "")
+FACEBOOK_PAGE_ID              = os.environ.get("FACEBOOK_PAGE_ID", "")
+FACEBOOK_KIDS_PAGE_ID         = os.environ.get("FACEBOOK_KIDS_PAGE_ID", "")
 INSTAGRAM_BUSINESS_ACCOUNT_ID = os.environ.get("INSTAGRAM_BUSINESS_ACCOUNT_ID", "17841400933677509")
-CONTENT_MODE                 = os.environ.get("CONTENT_MODE", "market").lower()
-HOLIDAY_NAME                 = os.environ.get("HOLIDAY_NAME", "")
-OUTPUT_DIR                   = Path("output")
-GRAPH_BASE                   = "https://graph.facebook.com/v21.0"
-MAX_RETRIES                  = 3
-RETRY_DELAY                  = 10
+CONTENT_MODE                  = os.environ.get("CONTENT_MODE", "market").lower()
+HOLIDAY_NAME                  = os.environ.get("HOLIDAY_NAME", "")
+OUTPUT_DIR                    = Path("output")
+GRAPH_BASE                    = "https://graph.facebook.com/v21.0"
+MAX_RETRIES                   = 3
+RETRY_DELAY                   = 10
 
-# ─── v2.2 FIX: GET PAGE TOKEN ─────────────────────────────────────────────────
+# ─── GET PAGE TOKEN ───────────────────────────────────────────────────────────
 
 def get_page_token(page_id: str, user_token: str) -> str:
-    """
-    Exchange user token for page-specific token.
-    This is REQUIRED for page posts when app is in Live mode.
-
-    Calls /me/accounts → finds page by ID → returns page access_token
-    Falls back to user_token if exchange fails (with warning).
-    """
     if not user_token or not page_id:
         return user_token
     try:
@@ -104,7 +82,6 @@ def verify_token():
     return True
 
 def post_to_page(page_id: str, label: str, data: dict, token: str) -> bool:
-    """Post text/link to Facebook Page feed with retry."""
     for attempt in range(1, MAX_RETRIES + 1):
         try:
             resp   = requests.post(
@@ -116,11 +93,9 @@ def post_to_page(page_id: str, label: str, data: dict, token: str) -> bool:
             if "id" in result:
                 print(f"  ✅ {label} posted — ID: {result['id']}")
                 return True
-            error  = result.get("error", {})
-            code   = error.get("code", "?")
-            msg    = error.get("message", str(result))
+            error = result.get("error", {})
             print(f"  ❌ {label} failed (attempt {attempt}/{MAX_RETRIES})")
-            print(f"     Error {code}: {msg}")
+            print(f"     Error {error.get('code','?')}: {error.get('message', str(result))}")
         except requests.exceptions.Timeout:
             print(f"  ⏱️ {label} timed out (attempt {attempt})")
         except Exception as e:
@@ -134,10 +109,6 @@ def post_to_page(page_id: str, label: str, data: dict, token: str) -> bool:
 
 def upload_reel_to_page(page_id: str, page_label: str,
                         video_path: Path, caption: str, token: str) -> str | None:
-    """
-    Upload video as Facebook Reel using 3-phase upload.
-    v2.2: Uses page token (not user token) — required for Live app mode.
-    """
     print(f"\n🎬 Uploading Facebook Reel to {page_label}: {video_path.name}")
 
     video_id   = None
@@ -207,32 +178,24 @@ def upload_reel_to_page(page_id: str, page_label: str,
     print(f"  ❌ Reel publish failed after {MAX_RETRIES} attempts")
     return None
 
-# ─── v2.3 NEW: UPLOAD REEL TO INSTAGRAM ──────────────────────────────────────
+# ─── v2.4 FIX: UPLOAD REEL TO INSTAGRAM (correct resumable upload) ────────────
 
 def upload_reel_to_instagram(ig_account_id: str, video_path: Path,
                               caption: str, token: str) -> str | None:
     """
-    Upload video as Instagram Reel using 3-step Instagram Graph API.
+    Correct Instagram Reels upload using resumable upload protocol.
 
-    Step 1: Create media container
-      POST /{ig_id}/media with video_url + caption + media_type=REELS
-      Returns: container_id
+    v2.4 FIX:
+      Old (wrong): POST /{ig_id}/media with video bytes → Error: video_url required
+      New (correct): Use upload_type=resumable to get upload_url from Instagram
+                     then POST video bytes to that upload_url
+                     then poll status → publish
 
-    Step 2: Wait for video processing
-      GET /{container_id}?fields=status_code
-      Poll until status_code = FINISHED (max 5 min)
-
-    Step 3: Publish container
-      POST /{ig_id}/media_publish with creation_id=container_id
-      Returns: ig_post_id
-
-    NOTE: Instagram requires a PUBLIC video URL, not a file upload.
-    We use Facebook's video hosting: upload to FB first, get URL, then post to IG.
-    OR: host the video temporarily at a public URL.
-
-    Since we already upload to Facebook, we use the FB video URL approach:
-    After FB upload succeeds → get video URL → use for Instagram.
-    If FB upload fails → skip Instagram (cannot post without public URL).
+    Step 1: POST /{ig_id}/media with upload_type=resumable
+            → Returns: id (container_id) + uri (upload_url from Instagram)
+    Step 2: POST video bytes to uri with Authorization header
+    Step 3: Poll container status until FINISHED (max 5 min)
+    Step 4: POST /{ig_id}/media_publish
     """
     if not ig_account_id:
         print("  ⚠️ INSTAGRAM_BUSINESS_ACCOUNT_ID not set — skipping Instagram")
@@ -240,83 +203,85 @@ def upload_reel_to_instagram(ig_account_id: str, video_path: Path,
 
     print(f"\n📸 Uploading Instagram Reel: {video_path.name}")
 
-    # Instagram requires video hosted at a public URL
-    # We use a workaround: host on Facebook CDN via page video upload
-    # then reference in Instagram container
-    # Alternative: use a temp file hosting service
-    # For now: upload to FB first (done in main), then get the video URL
-
-    # Actually the cleanest approach is to upload directly using
-    # multipart form upload to Instagram's resumable upload endpoint
-    # But that requires the video to be accessible via public HTTPS URL
-
-    # APPROACH: Use Instagram's direct upload via resumable upload
-    # Step 1: Initialize upload session
+    # Step 1: Create container with upload_type=resumable
+    # This returns the upload_url (uri) without needing a public video_url
     try:
         init_resp = requests.post(
             f"{GRAPH_BASE}/{ig_account_id}/media",
-            params={
-                "media_type":    "REELS",
-                "caption":       caption,
-                "access_token":  token,
+            data={
+                "media_type":   "REELS",
+                "upload_type":  "resumable",   # v2.4 FIX: was missing this
+                "caption":      caption,
                 "share_to_feed": "true",
+                "access_token": token,
             },
             timeout=30
         ).json()
 
         container_id = init_resp.get("id")
-        upload_url   = init_resp.get("uri")  # resumable upload URL
+        upload_url   = init_resp.get("uri")  # Instagram returns upload URL here
 
         if not container_id:
             error = init_resp.get("error", {})
             print(f"  ❌ IG container creation failed: {error.get('code')} {error.get('message','')}")
+            print(f"     Full response: {init_resp}")
             return None
 
         print(f"  ✅ IG container created: {container_id}")
 
-        # If we got a resumable upload URL, upload the video bytes
-        if upload_url:
-            with open(video_path, "rb") as f:
-                video_bytes = f.read()
-            file_size = len(video_bytes)
-            print(f"  📤 Uploading to Instagram ({file_size/1_000_000:.1f} MB)...")
-            up_resp = requests.post(
-                upload_url,
-                headers={
-                    "Authorization":   f"OAuth {token}",
-                    "Content-Type":    "application/octet-stream",
-                    "offset":          "0",
-                    "file_size":       str(file_size),
-                },
-                data=video_bytes,
-                timeout=300
-            )
-            if up_resp.status_code not in (200, 201):
-                print(f"  ❌ IG video upload failed: {up_resp.status_code} {up_resp.text[:200]}")
-                return None
-            print(f"  ✅ IG video upload complete")
+        if not upload_url:
+            print(f"  ❌ No upload_url (uri) returned from Instagram")
+            return None
 
     except Exception as e:
         print(f"  ❌ IG Step 1 error: {e}")
         return None
 
-    # Step 2: Poll for processing (max 5 minutes)
+    # Step 2: Upload video bytes to the Instagram upload URL
+    try:
+        with open(video_path, "rb") as f:
+            video_bytes = f.read()
+        file_size = len(video_bytes)
+        print(f"  📤 Uploading to Instagram ({file_size/1_000_000:.1f} MB)...")
+
+        up_resp = requests.post(
+            upload_url,
+            headers={
+                "Authorization":   f"OAuth {token}",
+                "Content-Type":    "application/octet-stream",
+                "offset":          "0",
+                "file_size":       str(file_size),
+            },
+            data=video_bytes,
+            timeout=300
+        )
+
+        if up_resp.status_code not in (200, 201):
+            print(f"  ❌ IG video upload failed: {up_resp.status_code} — {up_resp.text[:200]}")
+            return None
+
+        print(f"  ✅ IG video upload complete")
+
+    except Exception as e:
+        print(f"  ❌ IG Step 2 error: {e}")
+        return None
+
+    # Step 3: Poll status (max 5 minutes = 30 × 10s)
     print(f"  ⏳ Waiting for Instagram video processing...")
-    max_polls = 30  # 30 × 10s = 5 min
-    for poll in range(max_polls):
+    for poll in range(30):
         time.sleep(10)
         try:
             status_resp = requests.get(
                 f"{GRAPH_BASE}/{container_id}",
-                params={"fields": "status_code", "access_token": token},
+                params={"fields": "status_code,status", "access_token": token},
                 timeout=15
             ).json()
             status = status_resp.get("status_code", "")
-            print(f"  ⏳ IG status ({poll+1}/{max_polls}): {status}")
+            print(f"  ⏳ IG processing ({poll+1}/30): {status}")
             if status == "FINISHED":
                 break
             elif status == "ERROR":
-                print(f"  ❌ IG processing error")
+                print(f"  ❌ IG processing error: {status_resp.get('status','')}")
                 return None
         except Exception as e:
             print(f"  ⚠️ IG status poll error: {e}")
@@ -324,11 +289,11 @@ def upload_reel_to_instagram(ig_account_id: str, video_path: Path,
         print(f"  ❌ IG processing timeout after 5 minutes")
         return None
 
-    # Step 3: Publish
+    # Step 4: Publish
     try:
         pub_resp = requests.post(
             f"{GRAPH_BASE}/{ig_account_id}/media_publish",
-            params={
+            data={
                 "creation_id":  container_id,
                 "access_token": token,
             },
@@ -338,7 +303,6 @@ def upload_reel_to_instagram(ig_account_id: str, video_path: Path,
         ig_post_id = pub_resp.get("id")
         if ig_post_id:
             print(f"  ✅ Instagram Reel published — ID: {ig_post_id}")
-            print(f"  ✅ Instagram: https://www.instagram.com/p/{ig_post_id}/")
             return ig_post_id
         else:
             error = pub_resp.get("error", {})
@@ -346,13 +310,12 @@ def upload_reel_to_instagram(ig_account_id: str, video_path: Path,
             return None
 
     except Exception as e:
-        print(f"  ❌ IG Step 3 error: {e}")
+        print(f"  ❌ IG Step 4 error: {e}")
         return None
 
 # ─── META FILE RESOLVER ───────────────────────────────────────────────────────
 
 def resolve_meta_and_video(prefix: str):
-    """Find the latest meta JSON and video MP4 for given prefix."""
     today = datetime.now().strftime("%Y%m%d")
 
     if prefix == "morning":
@@ -361,7 +324,7 @@ def resolve_meta_and_video(prefix: str):
     elif prefix == "kids":
         meta_patterns  = [f"kids_meta_{today}_hi.json", f"kids_meta_{today}.json", "kids_meta_*.json"]
         video_patterns = [f"kids_full_{today}_hi.mp4", f"kids_full_{today}.mp4", "kids_full_*.mp4"]
-    else:  # ZENO reel
+    else:
         meta_patterns  = [f"meta_{today}.json", "meta_*.json"]
         video_patterns = [f"reel_{today}.mp4", "reel_*.mp4"]
 
@@ -394,9 +357,9 @@ def build_caption(meta: dict, prefix: str) -> str:
             f"#HerooQuest #KidsStories #AnimatedStories #HindiKahani"
         )
 
-    title   = meta.get("title", "")
-    desc    = meta.get("description", "")
-    mode    = CONTENT_MODE
+    title = meta.get("title", "")
+    desc  = meta.get("description", "")
+    mode  = CONTENT_MODE
 
     if mode == "holiday":
         label = HOLIDAY_NAME or "Market Holiday"
@@ -426,7 +389,6 @@ def build_caption(meta: dict, prefix: str) -> str:
 # ─── RSS ARTICLE SHARE ────────────────────────────────────────────────────────
 
 def share_articles_from_rss(page_id: str, token: str):
-    """Share latest articles from RSS feed to page."""
     rss_url = "https://ai360trading.in/feed.xml"
     try:
         resp = requests.get(rss_url, timeout=15)
@@ -438,12 +400,12 @@ def share_articles_from_rss(page_id: str, token: str):
         if not items:
             print("  ⚠️ No articles found in RSS feed.")
             return
-        # Share most recent article
-        item       = items[0]
-        title_txt  = item.findtext("title", "").strip()
-        link       = item.findtext("link", "").strip()
+        item      = items[0]
+        title_txt = item.findtext("title", "").strip()
+        link      = item.findtext("link", "").strip()
         if title_txt and link:
-            post_to_page(page_id, "Article", {"message": f"📰 {title_txt}\n\n{link}", "link": link}, token)
+            post_to_page(page_id, "Article",
+                         {"message": f"📰 {title_txt}\n\n{link}", "link": link}, token)
     except Exception as e:
         print(f"  ⚠️ RSS article share error: {e}")
 
@@ -454,7 +416,7 @@ def main():
     prefix = args.meta_prefix
 
     print("=" * 60)
-    print(f"  upload_facebook.py v2.3 — MODE: {CONTENT_MODE.upper()} | PREFIX: '{prefix}'")
+    print(f"  upload_facebook.py v2.4 — MODE: {CONTENT_MODE.upper()} | PREFIX: '{prefix}'")
     print("=" * 60)
 
     if not verify_token():
@@ -462,7 +424,6 @@ def main():
 
     meta_path, video_path = resolve_meta_and_video(prefix)
 
-    # Load meta
     meta = {}
     if meta_path and meta_path.exists():
         try:
@@ -470,7 +431,7 @@ def main():
             print(f"📂 Meta file: {meta_path.name}")
         except: pass
 
-    # ── Kids Page ──────────────────────────────────────────────────────────────
+    # ── Kids Page ─────────────────────────────────────────────────────────────
     if prefix == "kids":
         kids_token   = os.environ.get("META_ACCESS_TOKEN", META_ACCESS_TOKEN)
         kids_page_id = FACEBOOK_KIDS_PAGE_ID
@@ -479,23 +440,21 @@ def main():
             print("⚠️ FACEBOOK_KIDS_PAGE_ID not set — skipping kids upload")
             return
 
-        # Exchange for page token
         page_token = get_page_token(kids_page_id, kids_token)
 
         if video_path and video_path.exists():
             caption = build_caption(meta, "kids")
             upload_reel_to_page(kids_page_id, "HerooQuest Kids Page",
-                                 video_path, caption, page_token)
+                                video_path, caption, page_token)
         else:
             print("⚠️ Kids video not found — skipping Facebook Kids upload")
         return
 
-    # ── Main Page + Instagram ──────────────────────────────────────────────────
+    # ── Main Page + Instagram ─────────────────────────────────────────────────
     if not FACEBOOK_PAGE_ID:
         print("⚠️ FACEBOOK_PAGE_ID not set — skipping main page upload")
         return
 
-    # v2.2 FIX: Exchange user token for page token
     page_token = get_page_token(FACEBOOK_PAGE_ID, META_ACCESS_TOKEN)
 
     if video_path and video_path.exists():
@@ -503,32 +462,29 @@ def main():
         caption = build_caption(meta, prefix)
 
         # Facebook upload
-        fb_video_id = upload_reel_to_page(FACEBOOK_PAGE_ID, "AI360Trading Page",
-                                           video_path, caption, page_token)
+        upload_reel_to_page(FACEBOOK_PAGE_ID, "AI360Trading Page",
+                            video_path, caption, page_token)
 
-        # v2.3 NEW: Instagram upload (after Facebook succeeds)
+        # Instagram upload (v2.4: correct resumable upload)
         if INSTAGRAM_BUSINESS_ACCOUNT_ID:
-            # Build Instagram caption (shorter, more hashtags)
-            ig_caption = build_caption(meta, prefix)
-            ig_caption += "\n\n#Reels #InstagramReels #StockMarketIndia #NiftyTrading"
+            ig_caption = caption + "\n\n#Reels #InstagramReels #StockMarketIndia"
             upload_reel_to_instagram(
                 INSTAGRAM_BUSINESS_ACCOUNT_ID,
                 video_path,
                 ig_caption,
-                page_token  # Page token works for IG too when linked
+                page_token
             )
         else:
             print("  ⚠️ INSTAGRAM_BUSINESS_ACCOUNT_ID not set — skipping Instagram")
-
     else:
         print(f"⚠️ Video not found for prefix '{prefix}' — skipping reel upload")
 
-    # Share latest article from RSS
+    # RSS articles
     print(f"📰 Fetching articles from RSS: https://ai360trading.in/feed.xml")
     share_articles_from_rss(FACEBOOK_PAGE_ID, page_token)
 
     print("=" * 60)
-    print("  upload_facebook.py — DONE")
+    print("  upload_facebook.py v2.4 — DONE")
     print("=" * 60)
 
 if __name__ == "__main__":
