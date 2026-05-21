@@ -339,15 +339,18 @@ def main():
 
     # ── Set custom thumbnail ──────────────────────────────────────────────────
     # Try thumb_path from meta first (built by reel generator)
-    thumb_path = meta.get("thumb_path","")
-    if thumb_path and Path(thumb_path).exists():
-        print(f"[THUMB] Using meta thumbnail: {Path(thumb_path).name}")
-        upload_thumbnail(youtube, video_id, Path(thumb_path))
+    is_short = reel_type in ("reel", "morning", "short")
+    if is_short:
+        print(f"[THUMB] Skipping — YouTube Shorts thumbnail not supported via API")
     else:
-        # Build fallback thumbnail
-        print("[THUMB] Building fallback thumbnail...")
-        fb_thumb = build_fallback_thumbnail(reel_type, meta)
-        upload_thumbnail(youtube, video_id, fb_thumb)
+        thumb_path = meta.get("thumb_path","")
+        if thumb_path and Path(thumb_path).exists():
+            print(f"[THUMB] Using meta thumbnail: {Path(thumb_path).name}")
+            upload_thumbnail(youtube, video_id, Path(thumb_path))
+        else:
+            print("[THUMB] Building fallback thumbnail...")
+            fb_thumb = build_fallback_thumbnail(reel_type, meta)
+            upload_thumbnail(youtube, video_id, fb_thumb)
 
     # Save meta
     meta["youtube_video_id"] = video_id
