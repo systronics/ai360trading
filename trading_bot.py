@@ -1064,7 +1064,33 @@ def send_market_close_summary(log_sheet, hist_sheet, mem, now, is_bullish, nifty
 # MAIN
 # ══════════════════════════════════════════════════════════════════════════════
 
+def send_test_messages():
+    now = datetime.now(IST)
+    msg = (
+        f"✅ <b>TEST MESSAGE — AI360 Trading Bot v15.0</b>\n"
+        f"━━━━━━━━━━━━━━━━━━━━\n"
+        f"Time: {now.strftime('%d %b %Y %H:%M')} IST\n"
+        f"Token: {'✅ OK' if TG_TOKEN else '❌ MISSING'}\n\n"
+        f"If you see this, Telegram is working! 🎉"
+    )
+    r1 = send_basic(msg.replace("TEST MESSAGE", "TEST — BASIC CHANNEL"))
+    r2 = send_advance(msg.replace("TEST MESSAGE", "TEST — ADVANCE CHANNEL"))
+    r3 = send_premium(msg.replace("TEST MESSAGE", "TEST — PREMIUM CHANNEL"))
+    print(f"[TEST] Basic:{r1} | Advance:{r2} | Premium:{r3}")
+    print(f"[TEST] Token present: {bool(TG_TOKEN)}")
+    print(f"[TEST] CHAT_BASIC: {'set' if CHAT_BASIC else 'MISSING'}")
+    print(f"[TEST] CHAT_ADVANCE: {'set' if CHAT_ADVANCE else 'MISSING'}")
+    print(f"[TEST] CHAT_PREMIUM: {'set' if CHAT_PREMIUM else 'MISSING'}")
+
+
 def main():
+    bot_mode = os.environ.get('BOT_MODE', 'trade')
+
+    if bot_mode == 'test_telegram':
+        print("[MODE] test_telegram — sending test messages")
+        send_test_messages()
+        return
+
     now      = datetime.now(IST)
     today_s  = now.strftime("%Y-%m-%d")
     time_str = now.strftime("%H:%M")
