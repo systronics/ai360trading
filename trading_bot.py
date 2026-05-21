@@ -940,13 +940,10 @@ def _clear_mem_keys(mem, key):
 # GOOD MORNING — 8:45 AM
 # ══════════════════════════════════════════════════════════════════════════════
 
-def send_good_morning(log_sheet, is_bullish, nifty_cmp, nifty_dma, nifty_pct, now):
-    try:
-        rows    = log_sheet.get_all_values()
-        mem_val = rows[0][24] if len(rows)>0 and len(rows[0])>24 else ""
-    except: mem_val = ""
+def send_good_morning(log_sheet, mem, is_bullish, nifty_cmp, nifty_dma, nifty_pct, now):
     flag_key = now.strftime("%Y-%m-%d") + "_AM"
-    if flag_key in mem_val: return
+    if flag_key in mem:
+        print(f"[GM] Already sent today — skip"); return mem
 
     waiting = 0; traded = 0; waiting_stocks = []
     try:
@@ -977,6 +974,7 @@ def send_good_morning(log_sheet, is_bullish, nifty_cmp, nifty_dma, nifty_pct, no
     msg_basic = f"🌅 Good Morning!\nMarket: {regime} | Nifty: ₹{nifty_cmp:.0f}\nSignals: {waiting}\n📱 ai360trading.in/membership"
     send_advance_and_premium(msg_adv); send_basic(msg_basic)
     print(f"[GM] Sent — {waiting} waiting, {traded} active")
+    return _mem_set(mem, flag_key, "1")
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -984,11 +982,9 @@ def send_good_morning(log_sheet, is_bullish, nifty_cmp, nifty_dma, nifty_pct, no
 # ══════════════════════════════════════════════════════════════════════════════
 
 def send_midday_pulse(log_sheet, mem, now, is_bullish):
-    try:
-        rows   = log_sheet.get_all_values()
-        t4_val = rows[0][24] if len(rows)>0 and len(rows[0])>24 else ""
-        if (now.strftime("%Y-%m-%d") + "_MD") in t4_val: return
-    except: return
+    flag_key = now.strftime("%Y-%m-%d") + "_MD"
+    if flag_key in mem:
+        print(f"[MIDDAY] Already sent today — skip"); return mem
     try:
         rows = log_sheet.get_all_values(); open_trades = []; total_pnl = 0.0
         for row in rows[1:22]:
@@ -1008,8 +1004,9 @@ def send_midday_pulse(log_sheet, mem, now, is_bullish):
             f"<i>Entry window ends {'2:30 PM' if is_bullish else '11:00 AM'}</i>"
         )
         send_advance_and_premium(msg); print(f"[MIDDAY] {len(open_trades)} trades, ₹{total_pnl:+.0f}")
+        return _mem_set(mem, flag_key, "1")
     except Exception as e:
-        print(f"[MIDDAY] {e}")
+        print(f"[MIDDAY] {e}"); return mem
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -1017,11 +1014,9 @@ def send_midday_pulse(log_sheet, mem, now, is_bullish):
 # ══════════════════════════════════════════════════════════════════════════════
 
 def send_market_close_summary(log_sheet, hist_sheet, mem, now, is_bullish, nifty_pct):
-    try:
-        rows   = log_sheet.get_all_values()
-        t4_val = rows[0][24] if len(rows)>0 and len(rows[0])>24 else ""
-        if (now.strftime("%Y-%m-%d") + "_PM") in t4_val: return
-    except: return
+    flag_key = now.strftime("%Y-%m-%d") + "_PM"
+    if flag_key in mem:
+        print(f"[CLOSE] Already sent today — skip"); return mem
     try:
         rows = log_sheet.get_all_values(); open_list = []; total_unrl = 0.0
         for row in rows[1:22]:
@@ -1056,8 +1051,9 @@ def send_market_close_summary(log_sheet, hist_sheet, mem, now, is_bullish, nifty
         msg_basic = f"Market closed.\nWins: {wins} | Losses: {losses}\nOpen: {len(open_list)}\nFull report → Advance/Premium"
         send_advance_and_premium(msg_adv); send_basic(msg_basic)
         print(f"[CLOSE] {wins}W {losses}L, {len(open_list)} overnight")
+        return _mem_set(mem, flag_key, "1")
     except Exception as e:
-        print(f"[CLOSE] {e}")
+        print(f"[CLOSE] {e}"); return mem
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -1126,7 +1122,7 @@ def main():
     today_entries = sum(1 for p in mem.split(",") if p.strip().startswith(today_s + "_ENTRY_"))
 
     if "08:44" <= time_str <= "08:52":
-        send_good_morning(log, is_bullish, nifty_cmp, nifty_dma, nifty_pct, now)
+        mem = send_good_morning(log, mem, is_bullish, nifty_cmp, nifty_dma, nifty_pct, now)
 
     if is_market_hours(now):
         mem, today_entries = step_a_enter_trades(
@@ -1135,10 +1131,10 @@ def main():
         mem = step_b_monitor_trades(log, hist, nifty, mem, now, is_bullish)
 
         if "12:28" <= time_str <= "12:38":
-            send_midday_pulse(log, mem, now, is_bullish)
+            mem = send_midday_pulse(log, mem, now, is_bullish)
 
         if "15:15" <= time_str <= "15:45":
-            send_market_close_summary(log, hist, mem, now, is_bullish, nifty_pct)
+            mem = send_market_close_summary(log, hist, mem, now, is_bullish, nifty_pct)
 
     try:
         log.update([[mem]], "Y1")
