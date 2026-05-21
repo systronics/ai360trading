@@ -526,8 +526,30 @@ def get_fb_page_token() -> str:
     return user_token
 
 
+def _fb_videos_fallback(page_id: str, page_token: str, video_path: str, caption: str) -> bool:
+    """Fallback: POST to /videos endpoint (no Reels format, but no special permissions needed)."""
+    print("  🔄 Trying /videos fallback...")
+    try:
+        with open(video_path, "rb") as f:
+            video_data = f.read()
+        resp = requests.post(
+            f"https://graph.facebook.com/v21.0/{page_id}/videos",
+            data={"description": caption, "access_token": page_token},
+            files={"source": ("video.mp4", video_data, "video/mp4")},
+            timeout=180
+        ).json()
+        if resp.get("id"):
+            print(f"  ✅ Facebook video posted via /videos — ID: {resp['id']}")
+            return True
+        error = resp.get("error", {})
+        print(f"  ❌ /videos also failed: {error.get('code')} {error.get('message','')}")
+    except Exception as e:
+        print(f"  ❌ /videos fallback error: {e}")
+    return False
+
+
 def share_to_facebook(video_path: str, caption: str) -> bool:
-    """Share Hindi short to Facebook Main Page only."""
+    """Share Hindi short to Facebook Main Page — tries /video_reels, falls back to /videos."""
     page_id = os.environ.get("FACEBOOK_PAGE_ID", "")
     if not page_id:
         print("⚠️ FACEBOOK_PAGE_ID not set — skipping Facebook share")
@@ -535,6 +557,7 @@ def share_to_facebook(video_path: str, caption: str) -> bool:
 
     page_token = get_fb_page_token()
     video_size = os.path.getsize(video_path)
+    reels_perm_error = False
 
     for attempt in range(1, FB_RETRY+1):
         try:
@@ -549,8 +572,10 @@ def share_to_facebook(video_path: str, caption: str) -> bool:
             if not vid_id or not upload_url:
                 code = init.get("error", {}).get("code", "?")
                 msg  = init.get("error", {}).get("message", str(init))
-                print(f"  ❌ Facebook Page failed (attempt {attempt}/{FB_RETRY})")
-                print(f"     Error {code}: {msg}")
+                print(f"  ❌ Facebook /video_reels failed (attempt {attempt}/{FB_RETRY}): {code} — {msg}")
+                if code in (200, "200") or "permission" in str(msg).lower():
+                    reels_perm_error = True
+                    break  # no point retrying permission errors
                 time.sleep(FB_RETRY_WAIT)
                 continue
 
@@ -579,8 +604,8 @@ def share_to_facebook(video_path: str, caption: str) -> bool:
             print(f"  ⚠️ Facebook attempt {attempt}: {e}")
         time.sleep(FB_RETRY_WAIT)
 
-    print("  ✗ Facebook Page — all attempts failed.")
-    return False
+    # Fallback to /videos if reels permission error
+    return _fb_videos_fallback(page_id, page_token, video_path, caption)
 
 
 # ══════════════════════════════════════════════════════════════════════════════

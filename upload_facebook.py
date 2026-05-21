@@ -107,6 +107,28 @@ def post_to_page(page_id: str, label: str, data: dict, token: str) -> bool:
 
 # ─── UPLOAD REEL TO FACEBOOK ──────────────────────────────────────────────────
 
+def _videos_fallback(page_id: str, page_label: str, video_path: Path, caption: str, token: str) -> str | None:
+    """Fallback: POST to /videos endpoint when /video_reels returns permission error."""
+    print(f"  🔄 {page_label}: trying /videos fallback...")
+    try:
+        with open(video_path, "rb") as f:
+            video_data = f.read()
+        resp = requests.post(
+            f"{GRAPH_BASE}/{page_id}/videos",
+            data={"description": caption, "access_token": token},
+            files={"source": ("video.mp4", video_data, "video/mp4")},
+            timeout=180
+        ).json()
+        if resp.get("id"):
+            print(f"  ✅ {page_label} video posted via /videos — ID: {resp['id']}")
+            return resp["id"]
+        error = resp.get("error", {})
+        print(f"  ❌ /videos also failed: {error.get('code')} {error.get('message','')}")
+    except Exception as e:
+        print(f"  ❌ /videos fallback error: {e}")
+    return None
+
+
 def upload_reel_to_page(page_id: str, page_label: str,
                         video_path: Path, caption: str, token: str) -> str | None:
     print(f"\n🎬 Uploading Facebook Reel to {page_label}: {video_path.name}")
@@ -128,15 +150,20 @@ def upload_reel_to_page(page_id: str, page_label: str,
                 print(f"  ✅ Upload session started — video_id: {video_id}")
                 break
             error = init.get("error", {})
-            print(f"  ⚠️ Phase 1 failed (attempt {attempt}): {error.get('code')} {error.get('message','')}")
+            code  = error.get("code", "")
+            msg   = error.get("message", "")
+            print(f"  ⚠️ Phase 1 failed (attempt {attempt}): {code} {msg}")
+            if code in (200, "200") or "permission" in str(msg).lower():
+                print(f"  ⚠️ Permission error on /video_reels — trying /videos fallback")
+                return _videos_fallback(page_id, page_label, video_path, caption, token)
         except Exception as e:
             print(f"  ⚠️ Phase 1 error (attempt {attempt}): {e}")
         if attempt < MAX_RETRIES:
             time.sleep(RETRY_DELAY)
 
     if not video_id or not upload_url:
-        print("  ❌ Could not start upload session — aborting.")
-        return None
+        print("  ❌ Could not start upload session — trying /videos fallback")
+        return _videos_fallback(page_id, page_label, video_path, caption, token)
 
     # Phase 2: Binary upload
     try:
