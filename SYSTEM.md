@@ -1,6 +1,6 @@
 # AI360Trading — Master System Documentation
 
-**Last Updated:** May 2026 — Trading Bot v13.5 + AppScript v14.0
+**Last Updated:** May 2026 — Trading Bot v15.0 + AppScript v14.0
 **Status:** Phase 1 ✅ Complete | Phase 2 ✅ Complete | Phase 3 🔄 Planned | Phase 4 (Dhan Live) 📋 Planned
 **Primary Audience:** Bilingual Hindi + English — Indian retail traders + global investors
 
@@ -588,8 +588,8 @@ This list is verified against actual GitHub Secrets as of May 2026.
 
 | Secret | Purpose | Notes |
 | --- | --- | --- |
-| `TELEGRAM_BOT_TOKEN` | Bot authentication token | ✅ Confirmed secret name — code reads this correctly |
-| `TELEGRAM_CHAT_ID` | Free channel (@ai360trading) | ✅ |
+| `TELEGRAM_BOT_TOKEN` | Bot authentication token | ✅ Workflow exports as `TELEGRAM_BOT_TOKEN` — code reads this correctly |
+| `CHAT_ID_BASIC` | Free channel (@ai360trading) | ✅ (was TELEGRAM_CHAT_ID — renamed in v2.1 workflow fix) |
 | `CHAT_ID_ADVANCE` | Advance signals channel (₹499/month) | ✅ |
 | `CHAT_ID_PREMIUM` | Premium signals channel (bundle) | ✅ |
 

@@ -140,8 +140,8 @@ def _send_one(chat_id, msg):
 def send_basic(msg):               return _send_one(CHAT_BASIC, msg)
 def send_advance(msg):             return _send_one(CHAT_ADVANCE, msg)
 def send_premium(msg):             return _send_one(CHAT_PREMIUM, msg)
-def send_advance_and_premium(msg): return _send_one(CHAT_ADVANCE, msg) or _send_one(CHAT_PREMIUM, msg)
-def send_all(msg):                 return _send_one(CHAT_BASIC, msg) or _send_one(CHAT_ADVANCE, msg) or _send_one(CHAT_PREMIUM, msg)
+def send_advance_and_premium(msg): _send_one(CHAT_ADVANCE, msg); return _send_one(CHAT_PREMIUM, msg)
+def send_all(msg):                 send_basic(msg); send_advance(msg); return send_premium(msg)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -780,6 +780,7 @@ def step_a_enter_trades(log_sheet, nifty_sheet, bm_sheet, mem, now, is_bullish, 
         mem = set_last_price(mem, key, cp)
         mem = set_max_price(mem, key, cp)
         today_entries += 1
+        mem = _mem_set(mem, f"{now.strftime('%Y-%m-%d')}_ENTRY_{key}", "1")
 
         print(f"[ENTRY] {sym} @ ₹{cp:.2f} | RSI:{rsi_val} | Nifty:{nifty_pct:+.2f}% | #{today_entries}")
 
