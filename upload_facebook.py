@@ -390,22 +390,28 @@ def build_caption(meta: dict, prefix: str) -> str:
 
 def share_articles_from_rss(page_id: str, token: str):
     rss_url = "https://ai360trading.in/feed.xml"
+    ATOM_NS = "http://www.w3.org/2005/Atom"
     try:
         resp = requests.get(rss_url, timeout=15)
         if not resp.ok:
             print(f"  ⚠️ RSS fetch failed: {resp.status_code}")
             return
-        root  = ET.fromstring(resp.content)
-        items = root.findall(".//item")
-        if not items:
-            print("  ⚠️ No articles found in RSS feed.")
+        root = ET.fromstring(resp.content)
+        # Feed is Atom format — uses <entry> with namespace, not <item>
+        entries = root.findall(f"{{{ATOM_NS}}}entry")
+        if not entries:
+            print("  ⚠️ No articles found in feed.")
             return
-        item      = items[0]
-        title_txt = item.findtext("title", "").strip()
-        link      = item.findtext("link", "").strip()
+        entry     = entries[0]
+        title_txt = (entry.findtext(f"{{{ATOM_NS}}}title", "") or "").strip()
+        link_el   = entry.find(f"{{{ATOM_NS}}}link[@rel='alternate']") or entry.find(f"{{{ATOM_NS}}}link")
+        link      = link_el.get("href", "").strip() if link_el is not None else ""
         if title_txt and link:
+            print(f"  📰 Sharing: {title_txt[:60]}...")
             post_to_page(page_id, "Article",
                          {"message": f"📰 {title_txt}\n\n{link}", "link": link}, token)
+        else:
+            print(f"  ⚠️ Article missing title or link — skipping")
     except Exception as e:
         print(f"  ⚠️ RSS article share error: {e}")
 
