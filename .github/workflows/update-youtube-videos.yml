@@ -1,0 +1,69 @@
+name: Update YouTube Video List
+# Runs every Sunday 6 AM IST (0:30 UTC) — fetches latest 8 videos from channel RSS
+# No API key needed — YouTube provides a public RSS feed for every channel
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "30 0 * * 0"
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout master
+        uses: actions/checkout@v4
+        with:
+          ref: master
+
+      - name: Fetch latest videos from YouTube RSS
+        run: |
+          python - <<'EOF'
+          import json, requests, xml.etree.ElementTree as ET
+
+          CHANNEL_ID = "UC9dAJakbfPXk8zL31AVuTfA"
+          RSS_URL    = f"https://www.youtube.com/feeds/videos.xml?channel_id={CHANNEL_ID}"
+
+          try:
+              r = requests.get(RSS_URL, timeout=12, headers={"User-Agent": "Mozilla/5.0"})
+              r.raise_for_status()
+              root = ET.fromstring(r.content)
+          except Exception as e:
+              print(f"❌ RSS fetch failed: {e}")
+              exit(0)
+
+          ns = {
+              "atom":  "http://www.w3.org/2005/Atom",
+              "yt":    "http://www.youtube.com/xml/schemas/2015",
+              "media": "http://search.yahoo.com/mrss/",
+          }
+
+          videos = []
+          for entry in root.findall("atom:entry", ns):
+              try:
+                  vid_id    = entry.find("yt:videoId",  ns).text
+                  title_el  = entry.find("atom:title",  ns)
+                  pub_el    = entry.find("atom:published", ns)
+                  title     = title_el.text  if title_el  is not None else "Untitled"
+                  published = pub_el.text[:10] if pub_el is not None else ""
+                  videos.append({"id": vid_id, "title": title, "published": published})
+              except Exception:
+                  continue
+
+          videos = videos[:8]
+          with open("_data/youtube_videos.json", "w", encoding="utf-8") as f:
+              json.dump(videos, f, indent=2, ensure_ascii=False)
+
+          print(f"✅ Saved {len(videos)} videos to _data/youtube_videos.json")
+          for v in videos:
+              print(f"   [{v['published']}] {v['title'][:60]}")
+          EOF
+
+      - name: Commit updated video list
+        run: |
+          git config --local user.email "admin@ai360trading.in"
+          git config --local user.name "AI360-Automation"
+          git add _data/youtube_videos.json
+          git diff --cached --quiet || git commit -m "🎥 Update YouTube video list: $(date +'%Y-%m-%d')"
+          git push origin master

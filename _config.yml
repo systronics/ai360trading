@@ -29,7 +29,6 @@ highlighter: rouge
 permalink: /:year/:month/:day/:title/
 
 # Social Media
-twitter_username: ai360trading
 telegram_username: ai360trading
 facebook_username: ai360trading.official
 youtube_username: ai360trading
@@ -76,7 +75,7 @@ exclude:
   - indian_holidays.py
   - token_refresh.py
   - requirements.txt
-  - SYSTEM.md
+  - .internal-ops.md
   - README.md
   - LICENSE.md
   - Gemfile

@@ -1,62 +1,182 @@
 ---
 layout: default
-title: "AI360 Masterclass: Video Tutorials"
-description: "Learn Stock market with Live turorial videos from Basic to Advance Course"
+title: "Trading Academy — Free Video Tutorials | AI360Trading"
+description: "Free stock market and crypto trading video tutorials by AI360Trading. Learn NIFTY, S&P 500, Bitcoin, swing trading and personal finance — beginner to advanced."
 permalink: /tutorial-videos/
 ---
 
-<div class="learning-header" style="text-align:center; padding: 20px; background: #f8f9fa; border-radius:12px; margin-bottom: 20px; border: 1px solid #eee;">
-  <h1 style="margin:0; font-size: 1.8em;">🎥 Tutorial Videos</h1>
-  <p style="color: #666;">Learn Algo Trading & Price Action</p>
-  
-  <div style="margin-top: 10px;">
-    <script src="https://apis.google.com/js/platform.js"></script>
-    <div class="g-ytsubscribe" data-channelid="UC9dAJakbfPXk8zL31AVuTfA" data-layout="default" data-count="default"></div>
+<div class="academy-wrapper">
+
+  <!-- HEADER -->
+  <div class="academy-hero">
+    <div class="academy-badge">🎥 Free Trading Academy</div>
+    <h1 class="academy-title">Learn Markets — Free Video Tutorials</h1>
+    <p class="academy-sub">Real analysis. Real trades. No paid course required.</p>
+    <a href="https://youtube.com/@ai360trading" target="_blank" rel="noopener" class="yt-subscribe-btn">
+      ▶ Subscribe on YouTube — Free
+    </a>
   </div>
-</div>
 
-<div style="background: #eef2f3; padding: 15px; border-radius: 8px; margin-bottom: 25px;">
-  <strong style="display:block; margin-bottom: 5px;">Expert Navigation:</strong>
-  <ul style="margin: 0; padding-left: 20px; font-size: 14px; line-height: 1.8;">
-    <li><a href="#featured-training">Featured Masterclass</a></li>
-    <li><a href="#curated-lessons">Curated Strategy Lessons</a></li>
-    <li><a href="https://www.youtube.com/@ai360trading/live" target="_blank" style="color: #d32f2f; font-weight: bold;">🔴 Watch Live Market Monitoring</a></li>
-  </ul>
-</div>
-
-<h2 id="featured-training">📺 Featured Training</h2>
-<div class="video-container" style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); background: #000;">
-  <iframe 
-    id="mainPlayer"
-    style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border:0;"
-    src="https://www.youtube.com/embed?listType=user_uploads&list=ai360trading" 
-    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-    allowfullscreen>
-  </iframe>
-</div>
-
-<hr style="margin: 40px 0; border: 0; border-top: 1px solid #eee;">
-
-<h2 id="curated-lessons">📚 Hand-Picked Course Content</h2>
-<p style="color: #666; font-style: italic; margin-bottom: 20px;">Manual research and logic breakdown behind our trading systems.</p>
-
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
-  <div style="background: #fff; padding: 15px; border: 1px solid #e1e8ed; border-radius: 8px; border-left: 4px solid #2ecc71;">
-    <h4 style="margin-top: 0;">🛠️ Algo Basics</h4>
-    <p style="font-size: 14px; color: #444;">Establishing core logic for paper trades and risk-free system testing.</p>
+  <!-- FEATURED PLAYER: latest uploads from channel -->
+  <div class="featured-section">
+    <h2 class="section-title">📺 Latest Videos</h2>
+    <div class="player-wrap">
+      <iframe
+        src="https://www.youtube.com/embed/videoseries?list=UU9dAJakbfPXk8zL31AVuTfA&rel=0&modestbranding=1"
+        title="AI360Trading Latest Videos"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen
+        loading="lazy">
+      </iframe>
+    </div>
+    <p class="player-note">Use the playlist arrow (▶) to browse all videos inside the player above.</p>
   </div>
-  
-  <div style="background: #fff; padding: 15px; border: 1px solid #e1e8ed; border-radius: 8px; border-left: 4px solid #3498db;">
-    <h4 style="margin-top: 0;">📊 Daily Analysis</h4>
-    <p style="font-size: 14px; color: #444;">In-depth technical analysis of Nifty 50 and BankNifty daily structures.</p>
+
+  <!-- THUMBNAIL GRID: populated by update-youtube-videos.yml workflow weekly -->
+  {% if site.data.youtube_videos and site.data.youtube_videos.size > 0 %}
+  <div class="thumb-section">
+    <h2 class="section-title">🕐 Recent Uploads</h2>
+    <div class="thumb-grid">
+      {% for video in site.data.youtube_videos limit: 8 %}
+      <a href="https://www.youtube.com/watch?v={{ video.id }}" target="_blank" rel="noopener" class="thumb-card">
+        <div class="thumb-img-wrap">
+          <img
+            src="https://img.youtube.com/vi/{{ video.id }}/hqdefault.jpg"
+            alt="{{ video.title | escape }}"
+            loading="lazy"
+            width="320"
+            height="180">
+          <div class="thumb-play-icon">▶</div>
+        </div>
+        <div class="thumb-meta">
+          <p class="thumb-title">{{ video.title | truncate: 70 }}</p>
+          {% if video.published %}
+          <span class="thumb-date">{{ video.published }}</span>
+          {% endif %}
+        </div>
+      </a>
+      {% endfor %}
+    </div>
   </div>
-  
-  <div style="background: #fff; padding: 15px; border: 1px solid #e1e8ed; border-radius: 8px; border-left: 4px solid #f1c40f;">
-    <h4 style="margin-top: 0;">🕯️ Price Action</h4>
-    <p style="font-size: 14px; color: #444;">Decoding supply/demand zones and high-probability candle patterns.</p>
+  {% endif %}
+
+  <!-- TOPICS COVERED -->
+  <div class="topics-section">
+    <h2 class="section-title">📚 What You Will Learn</h2>
+    <div class="topics-grid">
+      <div class="topic-card topic-blue">
+        <div class="topic-icon">📊</div>
+        <h3>Stock Market Basics</h3>
+        <p>NIFTY 50, S&P 500, FTSE 100 — how indices work, how to read charts, support and resistance.</p>
+      </div>
+      <div class="topic-card topic-orange">
+        <div class="topic-icon">₿</div>
+        <h3>Bitcoin and Crypto</h3>
+        <p>BTC price action, Fear and Greed Index, on-chain analysis and crypto risk management.</p>
+      </div>
+      <div class="topic-card topic-green">
+        <div class="topic-icon">📈</div>
+        <h3>Swing Trading</h3>
+        <p>Entry and exit logic, stop-loss placement, position sizing — real setups from AI360Trading signals.</p>
+      </div>
+      <div class="topic-card topic-purple">
+        <div class="topic-icon">🤖</div>
+        <h3>AI and Algo Basics</h3>
+        <p>How algorithmic trading works, free AI screeners, how to use data instead of emotion.</p>
+      </div>
+      <div class="topic-card topic-yellow">
+        <div class="topic-icon">💰</div>
+        <h3>Personal Finance</h3>
+        <p>SIP vs lump sum, term insurance, PPF vs ELSS, emergency fund — practical Indian and global advice.</p>
+      </div>
+      <div class="topic-card topic-red">
+        <div class="topic-icon">🔴</div>
+        <h3>Live Market Analysis</h3>
+        <p>Daily market morning sessions — NIFTY and global outlook with real-time data.</p>
+        <a href="https://www.youtube.com/@ai360trading/live" target="_blank" rel="noopener" class="live-link">Watch Live →</a>
+      </div>
+    </div>
   </div>
+
+  <!-- CTA -->
+  <div class="academy-cta">
+    <div class="cta-icon">🎓</div>
+    <h3>Never Miss a Video</h3>
+    <p>Subscribe free — new market analysis videos every trading day.</p>
+    <div class="cta-btns">
+      <a href="https://youtube.com/@ai360trading" target="_blank" rel="noopener" class="btn-primary">▶ Subscribe on YouTube</a>
+      <a href="https://t.me/ai360trading" target="_blank" rel="noopener" class="btn-secondary">📣 Telegram Alerts</a>
+    </div>
+  </div>
+
+  <!-- DISCLAIMER -->
+  <p class="academy-disclaimer">All videos are for educational purposes only. AI360Trading is not SEBI registered. Please read our <a href="/disclaimer/">Disclaimer</a> before making any investment decisions.</p>
+
 </div>
 
-<div style="margin-top: 30px; padding: 15px; background: #fffbe6; border-left: 5px solid #ffe58f; border-radius: 4px;">
-  <strong>💡 Expert Note:</strong> While our systems scan thousands of data points per second, always verify final entries against your personal trade plan.
-</div>
+<style>
+  .academy-wrapper { max-width: 900px; margin: 0 auto; }
+
+  .academy-hero { text-align: center; padding: 30px 20px 20px; margin-bottom: 30px; }
+  .academy-badge { display: inline-block; background: #fff0f0; color: #e00; font-size: 13px; font-weight: 700; padding: 5px 14px; border-radius: 20px; margin-bottom: 14px; border: 1px solid #fca5a5; }
+  .academy-title { font-size: 28px; font-weight: 900; color: #0f172a; margin-bottom: 10px; }
+  .academy-sub { font-size: 16px; color: #64748b; margin-bottom: 20px; }
+  .yt-subscribe-btn { display: inline-block; background: #ff0000; color: #fff !important; font-weight: 800; font-size: 15px; padding: 12px 28px; border-radius: 8px; text-decoration: none; transition: 0.2s; }
+  .yt-subscribe-btn:hover { background: #cc0000; transform: translateY(-2px); }
+
+  .featured-section, .thumb-section, .topics-section { margin-bottom: 40px; }
+  .section-title { font-size: 20px; font-weight: 800; color: #0f172a; margin-bottom: 18px; border-left: 4px solid #0062ff; padding-left: 12px; }
+
+  .player-wrap { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 12px; box-shadow: 0 6px 24px rgba(0,0,0,0.10); background: #000; }
+  .player-wrap iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
+  .player-note { font-size: 12px; color: #94a3b8; margin-top: 10px; text-align: center; }
+
+  .thumb-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 18px; }
+  .thumb-card { display: block; text-decoration: none; background: #fff; border-radius: 10px; border: 1px solid #e2e8f0; overflow: hidden; transition: 0.2s; }
+  .thumb-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.10); border-color: #0062ff; }
+  .thumb-img-wrap { position: relative; }
+  .thumb-img-wrap img { width: 100%; height: 160px; object-fit: cover; display: block; }
+  .thumb-play-icon { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); background: rgba(0,0,0,0.65); color: #fff; font-size: 22px; width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; opacity: 0; transition: 0.2s; }
+  .thumb-card:hover .thumb-play-icon { opacity: 1; }
+  .thumb-meta { padding: 10px 12px 12px; }
+  .thumb-title { font-size: 13px; font-weight: 700; color: #0f172a; margin: 0 0 6px 0; line-height: 1.4; }
+  .thumb-date { font-size: 11px; color: #94a3b8; font-weight: 600; }
+
+  .topics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .topic-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; }
+  .topic-icon { font-size: 28px; margin-bottom: 10px; }
+  .topic-card h3 { font-size: 15px; font-weight: 800; color: #0f172a; margin-bottom: 8px; }
+  .topic-card p { font-size: 13px; color: #475569; line-height: 1.6; margin: 0; }
+  .topic-blue   { border-top: 3px solid #0062ff; }
+  .topic-orange { border-top: 3px solid #f7931a; }
+  .topic-green  { border-top: 3px solid #10b981; }
+  .topic-purple { border-top: 3px solid #8b5cf6; }
+  .topic-yellow { border-top: 3px solid #f59e0b; }
+  .topic-red    { border-top: 3px solid #ef4444; }
+  .live-link { display: inline-block; margin-top: 8px; font-size: 12px; font-weight: 700; color: #ef4444 !important; text-decoration: none; }
+  .live-link:hover { text-decoration: underline; }
+
+  .academy-cta { background: #0f172a; border-radius: 14px; padding: 36px 30px; text-align: center; margin: 40px 0 20px; color: #fff; }
+  .cta-icon { font-size: 36px; margin-bottom: 12px; }
+  .academy-cta h3 { font-size: 22px; font-weight: 900; color: #fff; margin-bottom: 10px; }
+  .academy-cta p { color: #94a3b8; font-size: 15px; margin-bottom: 20px; }
+  .cta-btns { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+  .btn-primary { background: #ff0000; color: #fff !important; padding: 12px 26px; border-radius: 8px; font-weight: 800; font-size: 14px; text-decoration: none; transition: 0.2s; }
+  .btn-primary:hover { background: #cc0000; }
+  .btn-secondary { background: #0088cc; color: #fff !important; padding: 12px 26px; border-radius: 8px; font-weight: 800; font-size: 14px; text-decoration: none; transition: 0.2s; }
+  .btn-secondary:hover { background: #006fa8; }
+
+  .academy-disclaimer { font-size: 12px; color: #94a3b8; text-align: center; margin-top: 20px; margin-bottom: 40px; line-height: 1.6; }
+  .academy-disclaimer a { color: #0062ff; text-decoration: none; }
+
+  @media (max-width: 768px) {
+    .academy-title { font-size: 22px; }
+    .topics-grid { grid-template-columns: repeat(2, 1fr); }
+    .thumb-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 480px) {
+    .topics-grid { grid-template-columns: 1fr; }
+    .thumb-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .academy-cta { padding: 24px 16px; }
+  }
+</style>
