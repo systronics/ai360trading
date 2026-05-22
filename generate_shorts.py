@@ -8,23 +8,26 @@ VOICE ASSIGNMENTS:
   Short 3: en-IN-NeerjaNeural  — Indian English female, market pulse
   ZENO reel uses hi-IN-SwaraNeural (in generate_reel.py — separate)
 
+UPLOAD TARGETS:
+  Short 2 (Hindi):   YouTube ✅ | Facebook AI360Trading Page ✅ | Instagram ✅
+  Short 3 (English): YouTube ✅ | Facebook AI360Trading Page ✅ | Instagram ✅
+
+v3.3 (May 2026):
+  ADD — Instagram Reels upload for Short 2 + Short 3
+    Uses same resumable upload flow as upload_facebook.py v2.5
+    INSTAGRAM_BUSINESS_ACCOUNT_ID from GitHub Secrets
+    Polls until FINISHED (max 5 min) then publishes
+    On failure: saves caption to output/instagram_short_caption.txt
+
 v3.2 FIX (May 2026):
   FIX — get_fb_page_token() updated to match upload_facebook.py v2.5
     Primary: GET /{page_id}?fields=access_token (direct — avoids pagination)
     Fallback: /me/accounts with limit=200
-    Reason: /me/accounts alone was returning empty — page not found
-    Result: Facebook shorts now upload correctly
 
 v3.1 FIXES (May 2026):
   FIX 1 — Background music removed
     REMOVED: MUSIC_DIR, get_bg_music(), mix_audio()
-    REMOVED: CompositeAudioClip, concatenate_audioclips imports
-    All mix_audio() calls replaced with voice_clip directly
     Reason: public/music/ deleted — Meta was muting videos
-
-  FIX 2 — Facebook page token fix
-    get_fb_page_token() uses FACEBOOK_PAGE_ID from GitHub secrets
-    Falls back to user token only if page not found
 
 Mode: market / weekend / holiday via CONTENT_MODE env var.
 """
@@ -42,7 +45,6 @@ import requests
 import yfinance as yf
 from PIL import Image, ImageDraw, ImageFont
 import edge_tts
-# v3.1 FIX: Removed CompositeAudioClip, concatenate_audioclips — no longer needed
 from moviepy.editor import ImageClip, AudioFileClip
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
@@ -57,7 +59,6 @@ print(f"[MODE] generate_shorts.py running in mode: {CONTENT_MODE.upper()}")
 
 # ─── CONFIG ───────────────────────────────────────────────────────────────────
 OUT = Path("output")
-# v3.1 FIX: MUSIC_DIR removed — public/music/ deleted
 SW, SH = 1080, 1920
 FPS = 30
 IST = pytz.timezone("Asia/Kolkata")
@@ -91,6 +92,10 @@ FB_RETRY      = 3
 FB_RETRY_WAIT = 8
 GRAPH_BASE    = "https://graph.facebook.com/v21.0"
 
+INSTAGRAM_BUSINESS_ACCOUNT_ID = os.environ.get("INSTAGRAM_BUSINESS_ACCOUNT_ID", "17841400933677509")
+IG_POLL_MAX  = 30
+IG_POLL_WAIT = 10
+
 
 # ─── HELPERS ──────────────────────────────────────────────────────────────────
 
@@ -118,10 +123,6 @@ def draw_text_outlined(draw, text, x, y, font, fill, outline=3, anchor="mm"):
             if dx != 0 or dy != 0:
                 draw.text((x+dx, y+dy), text, font=font, fill=(0,0,0), anchor=anchor)
     draw.text((x, y), text, font=font, fill=fill, anchor=anchor)
-
-# v3.1 FIX: get_bg_music() and mix_audio() REMOVED
-# All audio is TTS voice only — no background music
-# Prevents Meta muting videos in countries without music rights
 
 
 # ─── MARKET DATA ──────────────────────────────────────────────────────────────
@@ -229,8 +230,8 @@ def make_short2_frame(script_data, market):
 
     ly = box_top + 60
     for label, value, color in levels:
-        draw.text((120, ly),    label,     font=get_font(FONT_BOLD_PATHS, 36), fill=(150, 170, 210), anchor="lm")
-        draw.text((SW-120, ly), str(value),font=get_font(FONT_BOLD_PATHS, 42), fill=color,           anchor="rm")
+        draw.text((120, ly),    label,      font=get_font(FONT_BOLD_PATHS, 36), fill=(150, 170, 210), anchor="lm")
+        draw.text((SW-120, ly), str(value), font=get_font(FONT_BOLD_PATHS, 42), fill=color,           anchor="rm")
         ly += 88
 
     strip_y = 930
@@ -239,9 +240,9 @@ def make_short2_frame(script_data, market):
         draw.text((SW//2, strip_y+50), "📚 EDUCATION MODE", font=get_font(FONT_BOLD_PATHS, 44), fill=GOLD, anchor="mm")
     else:
         nc = BULL_GREEN if market["nifty"]["up"] else BEAR_RED
-        draw.text((120, strip_y+50),   "NIFTY",                 font=get_font(FONT_BOLD_PATHS, 38), fill=(160, 180, 220), anchor="lm")
-        draw.text((SW//2, strip_y+50), market["nifty"]["val"],   font=get_font(FONT_BOLD_PATHS, 44), fill=WHITE,           anchor="mm")
-        draw.text((SW-120, strip_y+50),market["nifty"]["chg"],  font=get_font(FONT_BOLD_PATHS, 40), fill=nc,              anchor="rm")
+        draw.text((120, strip_y+50),    "NIFTY",                 font=get_font(FONT_BOLD_PATHS, 38), fill=(160, 180, 220), anchor="lm")
+        draw.text((SW//2, strip_y+50),  market["nifty"]["val"],  font=get_font(FONT_BOLD_PATHS, 44), fill=WHITE,           anchor="mm")
+        draw.text((SW-120, strip_y+50), market["nifty"]["chg"],  font=get_font(FONT_BOLD_PATHS, 40), fill=nc,              anchor="rm")
 
     insight = script_data.get("insight", "Learn, invest, grow — with discipline.")
     insight_lines, words, line = [], insight.split(), ""
@@ -259,7 +260,7 @@ def make_short2_frame(script_data, market):
         draw.text((SW//2, iy), il, font=get_font(FONT_REG_PATHS, 34), fill=(170, 190, 220), anchor="mm")
         iy += 48
 
-    draw.text((SW//2, SH-200), "📱 t.me/ai360trading", font=get_font(FONT_BOLD_PATHS, 38), fill=accent, anchor="mm")
+    draw.text((SW//2, SH-200), "📱 t.me/ai360trading", font=get_font(FONT_BOLD_PATHS, 38), fill=accent,    anchor="mm")
     draw.text((SW//2, SH-140), "🌐 ai360trading.in",   font=get_font(FONT_REG_PATHS, 34),  fill=SOFT_WHITE, anchor="mm")
     draw.text((SW//2, SH-80),  "⚠️ Educational Only — Not SEBI Advice",
               font=get_font(FONT_REG_PATHS, 28), fill=(100, 120, 160), anchor="mm")
@@ -289,11 +290,11 @@ def make_short3_frame(script_data, market):
     draw.rectangle([(60, 180), (SW-60, 183)], fill=accent)
 
     markets_data = [
-        ("🇮🇳 NIFTY",    market.get("nifty",  {})),
-        ("₿ BTC",         market.get("btc",    {})),
-        ("🥇 GOLD",       market.get("gold",   {})),
-        ("💵 USD/INR",    market.get("usdinr", {})),
-        ("🇺🇸 S&P 500",  market.get("sp500",  {})),
+        ("🇮🇳 NIFTY",   market.get("nifty",  {})),
+        ("₿ BTC",        market.get("btc",    {})),
+        ("🥇 GOLD",      market.get("gold",   {})),
+        ("💵 USD/INR",   market.get("usdinr", {})),
+        ("🇺🇸 S&P 500", market.get("sp500",  {})),
     ]
 
     my = 230
@@ -305,9 +306,9 @@ def make_short3_frame(script_data, market):
         icon  = "▲" if is_up else "▼"
 
         draw.rounded_rectangle([(60, my), (SW-60, my+90)], radius=16, fill=(255,255,255,8))
-        draw.text((110, my+45), label, font=get_font(FONT_BOLD_PATHS, 34), fill=(160,180,220), anchor="lm")
-        draw.text((SW//2, my+45), val,  font=get_font(FONT_BOLD_PATHS, 42), fill=WHITE,        anchor="mm")
-        draw.text((SW-110, my+45), f"{icon}{chg}", font=get_font(FONT_BOLD_PATHS, 38), fill=color, anchor="rm")
+        draw.text((110, my+45),    label,          font=get_font(FONT_BOLD_PATHS, 34), fill=(160,180,220), anchor="lm")
+        draw.text((SW//2, my+45),  val,            font=get_font(FONT_BOLD_PATHS, 42), fill=WHITE,         anchor="mm")
+        draw.text((SW-110, my+45), f"{icon}{chg}", font=get_font(FONT_BOLD_PATHS, 38), fill=color,         anchor="rm")
         my += 100
 
     insight = script_data.get("insight", "Global markets shaping India's trading day.")
@@ -393,11 +394,11 @@ Return ONLY valid JSON:
 
 def generate_short3_script(market: dict) -> dict:
     from ai_client import ai
-    btc_val  = market.get("btc",   {}).get("val", "N/A")
-    gold_val = market.get("gold",  {}).get("val", "N/A")
-    sp5_val  = market.get("sp500", {}).get("val", "N/A")
-    inr_val  = market.get("usdinr",{}).get("val", "N/A")
-    nifty_val= market.get("nifty", {}).get("val", "N/A")
+    btc_val   = market.get("btc",    {}).get("val", "N/A")
+    gold_val  = market.get("gold",   {}).get("val", "N/A")
+    sp5_val   = market.get("sp500",  {}).get("val", "N/A")
+    inr_val   = market.get("usdinr", {}).get("val", "N/A")
+    nifty_val = market.get("nifty",  {}).get("val", "N/A")
 
     if CONTENT_MODE in ("holiday", "weekend"):
         mkt_context = "Market holiday/weekend — global investing wisdom, no specific calls."
@@ -444,19 +445,14 @@ def gen_tts(text: str, voice: str, path: str):
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# VIDEO RENDER — TTS ONLY (no background music)
+# VIDEO RENDER — TTS ONLY
 # ══════════════════════════════════════════════════════════════════════════════
 
 def render_short(frame_path: Path, audio_path: str, out_path: str):
-    """
-    Render short video — TTS voice only.
-    v3.1 FIX: mix_audio() removed — no background music.
-    Prevents Meta muting videos in countries without music rights.
-    """
     audio_clip = AudioFileClip(audio_path)
     duration   = audio_clip.duration + 0.5
     video      = ImageClip(str(frame_path)).set_duration(duration)
-    video      = video.set_audio(audio_clip)  # TTS only — no mix_audio()
+    video      = video.set_audio(audio_clip)
     video.write_videofile(out_path, fps=FPS, codec="libx264",
                           audio_codec="aac", verbose=False, logger=None)
     print(f"✅ Short rendered: {Path(out_path).name}")
@@ -506,23 +502,15 @@ def upload_short(video_path: str, title: str, description: str, tags: list) -> s
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# v3.2 FIX: FACEBOOK PAGE TOKEN — matches upload_facebook.py v2.5
+# FACEBOOK PAGE TOKEN — v3.2 matches upload_facebook.py v2.5
 # ══════════════════════════════════════════════════════════════════════════════
 
 def get_fb_page_token() -> str:
-    """
-    Exchange user token for page token.
-    v3.2 FIX: matches upload_facebook.py v2.5 logic.
-      Primary:  GET /{page_id}?fields=access_token (direct — avoids pagination gaps)
-      Fallback: GET /me/accounts with limit=200
-    Old v3.1 only used /me/accounts which was returning empty — causing #200 permission error.
-    """
     user_token = os.environ.get("META_ACCESS_TOKEN", "")
     page_id    = os.environ.get("FACEBOOK_PAGE_ID", "")
     if not user_token or not page_id:
         return user_token
 
-    # Primary: direct page token fetch (avoids pagination gaps in /me/accounts)
     try:
         resp = requests.get(
             f"{GRAPH_BASE}/{page_id}",
@@ -540,7 +528,6 @@ def get_fb_page_token() -> str:
     except Exception as e:
         print(f"  ⚠️ Direct page token fetch failed: {e}")
 
-    # Fallback: list all pages with limit=200
     try:
         resp = requests.get(
             f"{GRAPH_BASE}/me/accounts",
@@ -559,12 +546,11 @@ def get_fb_page_token() -> str:
     except Exception as e:
         print(f"  ⚠️ /me/accounts lookup failed: {e}")
 
-    print(f"  ⚠️ Falling back to user token (page token unavailable)")
+    print(f"  ⚠️ Falling back to user token")
     return user_token
 
 
 def _fb_videos_fallback(page_id: str, page_token: str, video_path: str, caption: str) -> bool:
-    """Fallback: POST to /videos endpoint (no Reels format, but no special permissions needed)."""
     print("  🔄 Trying /videos fallback...")
     try:
         with open(video_path, "rb") as f:
@@ -586,7 +572,6 @@ def _fb_videos_fallback(page_id: str, page_token: str, video_path: str, caption:
 
 
 def share_to_facebook(video_path: str, caption: str) -> bool:
-    """Share Hindi short to Facebook Main Page — tries /video_reels, falls back to /videos."""
     page_id = os.environ.get("FACEBOOK_PAGE_ID", "")
     if not page_id:
         print("⚠️ FACEBOOK_PAGE_ID not set — skipping Facebook share")
@@ -594,11 +579,9 @@ def share_to_facebook(video_path: str, caption: str) -> bool:
 
     page_token = get_fb_page_token()
     video_size = os.path.getsize(video_path)
-    reels_perm_error = False
 
     for attempt in range(1, FB_RETRY+1):
         try:
-            # Phase 1: Start upload session
             init = requests.post(
                 f"{GRAPH_BASE}/{page_id}/video_reels",
                 data={"upload_phase": "start", "access_token": page_token},
@@ -611,12 +594,10 @@ def share_to_facebook(video_path: str, caption: str) -> bool:
                 msg  = init.get("error", {}).get("message", str(init))
                 print(f"  ❌ Facebook /video_reels failed (attempt {attempt}/{FB_RETRY}): {code} — {msg}")
                 if code in (200, "200") or "permission" in str(msg).lower():
-                    reels_perm_error = True
-                    break  # no point retrying permission errors
+                    break
                 time.sleep(FB_RETRY_WAIT)
                 continue
 
-            # Phase 2: Binary upload
             with open(video_path, "rb") as f:
                 video_data = f.read()
             requests.post(
@@ -625,7 +606,6 @@ def share_to_facebook(video_path: str, caption: str) -> bool:
                 data=video_data, timeout=300
             )
 
-            # Phase 3: Publish
             finish = requests.post(
                 f"{GRAPH_BASE}/{page_id}/video_reels",
                 data={"upload_phase": "finish", "video_id": vid_id,
@@ -641,12 +621,160 @@ def share_to_facebook(video_path: str, caption: str) -> bool:
             print(f"  ⚠️ Facebook attempt {attempt}: {e}")
         time.sleep(FB_RETRY_WAIT)
 
-    # Fallback to /videos if reels permission error
     return _fb_videos_fallback(page_id, page_token, video_path, caption)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# BUILD TITLES + DESCRIPTIONS
+# v3.3 NEW: INSTAGRAM REELS UPLOAD
+# ══════════════════════════════════════════════════════════════════════════════
+
+def _save_ig_caption_fallback(caption: str, short_label: str = ""):
+    fallback_path = OUT / "instagram_short_caption.txt"
+    try:
+        with open(fallback_path, "a", encoding="utf-8") as f:
+            f.write(f"\n{'='*50}\n")
+            f.write(f"Short: {short_label} | {datetime.now().strftime('%Y-%m-%d %H:%M')}\n")
+            f.write(caption + "\n")
+        print(f"  📝 IG caption saved to {fallback_path.name} for manual posting")
+    except Exception as e:
+        print(f"  ⚠️ Could not save IG caption: {e}")
+
+
+def upload_to_instagram(video_path: str, caption: str, short_label: str = "") -> bool:
+    """
+    Upload short to Instagram Reels.
+    Uses same resumable upload flow as upload_facebook.py v2.5.
+    Step 1: Create container with upload_type=resumable
+    Step 2: Upload video bytes to upload_url
+    Step 3: Poll status until FINISHED
+    Step 4: Publish
+    """
+    ig_account_id = INSTAGRAM_BUSINESS_ACCOUNT_ID
+    if not ig_account_id:
+        print(f"  ⚠️ INSTAGRAM_BUSINESS_ACCOUNT_ID not set — skipping Instagram {short_label}")
+        return False
+
+    token = get_fb_page_token()
+    print(f"\n📸 Uploading Instagram Reel {short_label}: {Path(video_path).name}")
+
+    # Step 1: Create container
+    try:
+        ig_caption = caption + "\n\n#Reels #InstagramReels #StockMarketIndia #ai360trading"
+        init_resp  = requests.post(
+            f"{GRAPH_BASE}/{ig_account_id}/media",
+            data={
+                "media_type":    "REELS",
+                "upload_type":   "resumable",
+                "caption":       ig_caption,
+                "share_to_feed": "true",
+                "access_token":  token,
+            },
+            timeout=30
+        ).json()
+
+        container_id = init_resp.get("id")
+        upload_url   = init_resp.get("uri")
+
+        if not container_id:
+            error = init_resp.get("error", {})
+            print(f"  ❌ IG container failed: {error.get('code')} {error.get('message','')}")
+            _save_ig_caption_fallback(caption, short_label)
+            return False
+
+        print(f"  ✅ IG container created: {container_id}")
+
+        if not upload_url:
+            print(f"  ❌ No upload_url from Instagram")
+            _save_ig_caption_fallback(caption, short_label)
+            return False
+
+    except Exception as e:
+        print(f"  ❌ IG Step 1 error: {e}")
+        _save_ig_caption_fallback(caption, short_label)
+        return False
+
+    # Step 2: Upload video bytes
+    try:
+        with open(video_path, "rb") as f:
+            video_bytes = f.read()
+        file_size = len(video_bytes)
+        print(f"  📤 Uploading to Instagram ({file_size/1_000_000:.1f} MB)...")
+
+        up_resp = requests.post(
+            upload_url,
+            headers={
+                "Authorization": f"OAuth {token}",
+                "Content-Type":  "video/mp4",
+                "offset":        "0",
+                "file_size":     str(file_size),
+            },
+            data=video_bytes,
+            timeout=300
+        )
+
+        if up_resp.status_code not in (200, 201):
+            print(f"  ❌ IG video upload failed: {up_resp.status_code} — {up_resp.text[:200]}")
+            _save_ig_caption_fallback(caption, short_label)
+            return False
+
+        print(f"  ✅ IG video upload complete")
+
+    except Exception as e:
+        print(f"  ❌ IG Step 2 error: {e}")
+        _save_ig_caption_fallback(caption, short_label)
+        return False
+
+    # Step 3: Poll status
+    print(f"  ⏳ Waiting for Instagram processing...")
+    for poll in range(IG_POLL_MAX):
+        time.sleep(IG_POLL_WAIT)
+        try:
+            status_resp = requests.get(
+                f"{GRAPH_BASE}/{container_id}",
+                params={"fields": "status_code,status", "access_token": token},
+                timeout=15
+            ).json()
+            status = status_resp.get("status_code", "")
+            print(f"  ⏳ IG processing ({poll+1}/{IG_POLL_MAX}): {status}")
+            if status == "FINISHED":
+                break
+            elif status == "ERROR":
+                print(f"  ❌ IG processing error: {status_resp.get('status','')}")
+                _save_ig_caption_fallback(caption, short_label)
+                return False
+        except Exception as e:
+            print(f"  ⚠️ IG poll error: {e}")
+    else:
+        print(f"  ❌ IG processing timeout")
+        _save_ig_caption_fallback(caption, short_label)
+        return False
+
+    # Step 4: Publish
+    try:
+        pub_resp = requests.post(
+            f"{GRAPH_BASE}/{ig_account_id}/media_publish",
+            data={"creation_id": container_id, "access_token": token},
+            timeout=30
+        ).json()
+
+        ig_post_id = pub_resp.get("id")
+        if ig_post_id:
+            print(f"  ✅ Instagram Reel published {short_label} — ID: {ig_post_id}")
+            return True
+        else:
+            error = pub_resp.get("error", {})
+            print(f"  ❌ IG publish failed: {error.get('code')} {error.get('message','')}")
+            _save_ig_caption_fallback(caption, short_label)
+            return False
+
+    except Exception as e:
+        print(f"  ❌ IG Step 4 error: {e}")
+        _save_ig_caption_fallback(caption, short_label)
+        return False
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# BUILD TITLES + DESCRIPTIONS + CAPTIONS
 # ══════════════════════════════════════════════════════════════════════════════
 
 def build_title_short2(script_data: dict) -> str:
@@ -667,11 +795,11 @@ def build_title_short3(script_data: dict) -> str:
     return f"🌍 Global Market Pulse — ai360trading {date_tag} #Shorts"
 
 def build_desc(script_data: dict, short_num: int, part1_url: str) -> str:
-    tags   = seo.get_video_tags(mode=CONTENT_MODE, is_short=True)
-    yt_tags= seo.get_youtube_safe_tags(tags)
-    htags  = " ".join(f"#{t}" for t in yt_tags[:12])
-    insight= script_data.get("insight", "Daily market intelligence for Indian traders.")
-    cta    = f"\n▶️ Full Analysis: {part1_url}" if part1_url else ""
+    tags    = seo.get_video_tags(mode=CONTENT_MODE, is_short=True)
+    yt_tags = seo.get_youtube_safe_tags(tags)
+    htags   = " ".join(f"#{t}" for t in yt_tags[:12])
+    insight = script_data.get("insight", "Daily market intelligence for Indian traders.")
+    cta     = f"\n▶️ Full Analysis: {part1_url}" if part1_url else ""
     return (
         f"💡 {insight}\n\n"
         f"🌐 https://ai360trading.in\n"
@@ -699,27 +827,63 @@ def build_fb_caption(script_data: dict, short_num: int) -> str:
         f"#ai360trading #StockMarket #{stock.replace(' ','')}"
     )
 
+def build_ig_caption_short2(script_data: dict) -> str:
+    insight = script_data.get("insight", "Daily market intelligence.")
+    stock   = script_data.get("stock", "Market")
+    sent    = script_data.get("sentiment", "").capitalize()
+    if CONTENT_MODE in ("holiday", "weekend"):
+        return (
+            f"📚 Weekend Learning!\n\n"
+            f"💡 {insight}\n\n"
+            f"🌐 ai360trading.in | 📱 t.me/ai360trading\n"
+            f"#ai360trading #StockMarket #Trading #Investing"
+        )
+    return (
+        f"📊 {stock} {sent} Setup!\n\n"
+        f"💡 {insight}\n\n"
+        f"🌐 ai360trading.in | 📱 t.me/ai360trading\n"
+        f"⚠️ Educational only.\n"
+        f"#ai360trading #Nifty50 #StockMarket #TradingIndia"
+    )
+
+def build_ig_caption_short3(script_data: dict) -> str:
+    insight = script_data.get("insight", "Global markets shaping India's trading day.")
+    if CONTENT_MODE in ("holiday", "weekend"):
+        return (
+            f"🌍 Global Market Wisdom!\n\n"
+            f"💡 {insight}\n\n"
+            f"🌐 ai360trading.in | 📱 t.me/ai360trading\n"
+            f"#GlobalMarkets #Bitcoin #Gold #SP500 #ai360trading"
+        )
+    return (
+        f"🌍 Global Market Pulse!\n\n"
+        f"💡 {insight}\n\n"
+        f"🌐 ai360trading.in | 📱 t.me/ai360trading\n"
+        f"⚠️ Educational only.\n"
+        f"#GlobalMarkets #Bitcoin #Gold #Nifty #ai360trading"
+    )
+
 
 # ══════════════════════════════════════════════════════════════════════════════
 # MAIN
 # ══════════════════════════════════════════════════════════════════════════════
 
 def main():
-    today    = now_ist.strftime("%Y%m%d")
-    market   = fetch_market_data()
-    part1_url= get_part1_url()
-    tags     = seo.get_video_tags(mode=CONTENT_MODE, is_short=True)
-    yt_tags  = seo.get_youtube_safe_tags(tags)
+    today     = now_ist.strftime("%Y%m%d")
+    market    = fetch_market_data()
+    part1_url = get_part1_url()
+    tags      = seo.get_video_tags(mode=CONTENT_MODE, is_short=True)
+    yt_tags   = seo.get_youtube_safe_tags(tags)
 
     short2_id = ""
     short3_id = ""
 
-    # ── SHORT 2 ───────────────────────────────────────────────────────────────
+    # ── SHORT 2 (Madhur — Hindi Trade Setup) ──────────────────────────────────
     print(f"\n─── SHORT 2 (Madhur) ────────────────────────")
-    s2_data   = generate_short2_script(market, part1_url)
-    s2_frame  = make_short2_frame(s2_data, market)
-    s2_audio  = str(OUT / f"short2_audio_{today}.mp3")
-    s2_video  = str(OUT / f"short2_{today}.mp4")
+    s2_data  = generate_short2_script(market, part1_url)
+    s2_frame = make_short2_frame(s2_data, market)
+    s2_audio = str(OUT / f"short2_audio_{today}.mp3")
+    s2_video = str(OUT / f"short2_{today}.mp4")
     gen_tts(s2_data.get("script", ""), VOICE_SHORT2, s2_audio)
     render_short(s2_frame, s2_audio, s2_video)
 
@@ -728,10 +892,14 @@ def main():
     short2_id = upload_short(s2_video, s2_title, s2_desc, yt_tags)
     if short2_id:
         print(f"  ✅ YouTube: https://youtube.com/shorts/{short2_id}")
-        # Facebook — Hindi only
-        share_to_facebook(s2_video, build_fb_caption(s2_data, 2))
 
-    # ── SHORT 3 ───────────────────────────────────────────────────────────────
+    print(f"  📘 Short 2 → Facebook...")
+    share_to_facebook(s2_video, build_fb_caption(s2_data, 2))
+
+    print(f"  📸 Short 2 → Instagram...")
+    upload_to_instagram(s2_video, build_ig_caption_short2(s2_data), short_label="Short2")
+
+    # ── SHORT 3 (Neerja — Global Market Pulse) ────────────────────────────────
     print(f"\n─── SHORT 3 (Neerja) ────────────────────────")
     s3_data  = generate_short3_script(market)
     s3_frame = make_short3_frame(s3_data, market)
@@ -746,10 +914,16 @@ def main():
     if short3_id:
         print(f"  ✅ YouTube: https://youtube.com/shorts/{short3_id}")
 
+    print(f"  📘 Short 3 → Facebook...")
+    share_to_facebook(s3_video, build_fb_caption(s3_data, 3))
+
+    print(f"  📸 Short 3 → Instagram...")
+    upload_to_instagram(s3_video, build_ig_caption_short3(s3_data), short_label="Short3")
+
     print(f"\n{'='*50}")
     print(f"✅ SHORTS DONE — {today} [{CONTENT_MODE.upper()}]")
-    print(f"   Short 2 (Madhur): {'https://youtube.com/shorts/'+short2_id if short2_id else 'upload failed'}")
-    print(f"   Short 3 (Neerja): {'https://youtube.com/shorts/'+short3_id if short3_id else 'upload failed'}")
+    print(f"   Short 2 (Madhur): {'https://youtube.com/shorts/'+short2_id if short2_id else 'FAILED'}")
+    print(f"   Short 3 (Neerja): {'https://youtube.com/shorts/'+short3_id if short3_id else 'FAILED'}")
     print(f"{'='*50}\n")
 
 
