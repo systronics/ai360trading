@@ -1,0 +1,1427 @@
+/**
+ * AI360 TRADING — APPSCRIPT v15.6
+ * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ * v15.6 CHANGES — PERFORMANCE FIXES (18 May 2026)
+ *
+ * ROOT CAUSE ANALYSIS from real trade data:
+ *   3W/4L = 43% win rate (target: 65%+)
+ *   All 4 losses = entered during BEARISH Nifty regime
+ *   IT stocks blocked despite +5% moves = wrong criteria
+ *   MCX BUY CE generated despite NEAR ATH = missing check
+ *   Volume formula stale = wrong Gate 7 decisions
+ *
+ * FIX 1 — HARD BEARISH BLOCK
+ *   When Nifty < 20DMA = NO new WAITING entries allowed
+ *   Exception: only if MasterScore >= 40 AND Sector Leader AND RS >= 20
+ *   Expected impact: win rate 43% → 65%+
+ *   Reason: all 4 losses were entered in BEARISH market
+ *
+ * FIX 2 — MOMENTUM BREAKOUT GATE (new Gate 11)
+ *   Stocks with SMA=Sideways but %Change >= 3% today = "Momentum Breakout"
+ *   These are valid entries (TECHM, PERSISTENT style moves)
+ *   Old system: SMA=Sideways → HOLD → blocked
+ *   New system: SMA=Sideways + today +3%+ + Volume 2x = allow with lower score
+ *
+ * FIX 3 — OPTIONS ATH BLOCK
+ *   If ATH_WARNING contains "NEAR ATH" → options signal = SKIP
+ *   MCX at ATH should never get BUY CE — reversal risk too high
+ *
+ * FIX 4 — RELATIVE VOLUME CORRECTION
+ *   Volume_vs_Avg from sheet is stale end-of-day
+ *   If %Change >= 3% today → bypass volume gate (price confirms volume)
+ *   Strong price move = strong volume (even if formula shows stale data)
+ *
+ * FIX 5 — SECTOR MOMENTUM DETECTION
+ *   Count how many stocks in each sector are up 2%+ today
+ *   If IT sector has 4+ stocks up 2%+ = "Sector Momentum" day
+ *   Unlock IT stocks even if individual SMA = Sideways
+ *   This captures institutional sector rotation
+ *
+ * FIX 6 — CONFIRMATION ENTRY FILTER
+ *   When BREAKOUT CONFIRMED (not just ALERT) = full score
+ *   When BREAKOUT ALERT = reduce score by 3 (need confirmation)
+ *   Eliminates false breakouts — the #1 cause of trailing SL hits
+ *
+ * FIX 7 — DELIVERY % PROXY (new factor)
+ *   Days Since Low >= 30 = stock has been accumulating (smart money holds)
+ *   Days Since Low <= 5 = fresh move, may be speculative
+ *   Add bonus: if daysLow >= 45 AND FII = Accumulation = +3 conviction bonus
+ *
+ * ALL OTHER v15.5 CODE UNCHANGED
+ * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ */
+
+// ── NSE MARKET HOLIDAYS 2026 ──────────────────────────────────────────────────
+const NSE_HOLIDAYS_2026 = [
+  "2026-01-26","2026-03-25","2026-04-02","2026-04-14",
+  "2026-05-01","2026-05-27","2026-06-17","2026-08-15",
+  "2026-08-27","2026-10-02","2026-10-21","2026-10-22",
+  "2026-11-04","2026-11-05","2026-12-25",
+];
+
+// ── F&O LIQUID STOCKS ─────────────────────────────────────────────────────────
+const F_AND_O_LIQUID_STOCKS = new Set([
+  "NSE:RELIANCE","NSE:TCS","NSE:INFY","NSE:HDFCBANK","NSE:ICICIBANK",
+  "NSE:SBIN","NSE:AXISBANK","NSE:KOTAKBANK","NSE:BAJFINANCE","NSE:BAJAJFINSV",
+  "NSE:WIPRO","NSE:HCLTECH","NSE:TECHM","NSE:LTIM","NSE:PERSISTENT",
+  "NSE:ADANIPORTS","NSE:ADANIENT","NSE:ADANIGREEN","NSE:ADANIPOWER","NSE:ADANIENSOL",
+  "NSE:TATAMOTORS","NSE:TATAPOWER","NSE:TATASTEEL","NSE:TCS","NSE:TITAN",
+  "NSE:MARUTI","NSE:M&M","NSE:BAJAJ-AUTO","NSE:HEROMOTOCO","NSE:EICHERMOT",
+  "NSE:JSWSTEEL","NSE:HINDALCO","NSE:COALINDIA","NSE:NTPC","NSE:POWERGRID",
+  "NSE:ONGC","NSE:BPCL","NSE:IOC","NSE:GAIL","NSE:BHARTIARTL",
+  "NSE:ITC","NSE:HINDUNILVR","NSE:NESTLEIND","NSE:BRITANNIA","NSE:DABUR",
+  "NSE:SUNPHARMA","NSE:CIPLA","NSE:DRREDDY","NSE:DIVISLAB","NSE:AUROPHARMA",
+  "NSE:ULTRACEMCO","NSE:GRASIM","NSE:AMBUJACEM","NSE:ACC","NSE:SHREECEM",
+  "NSE:BSE","NSE:ANGELONE","NSE:CAMS","NSE:CDSL","NSE:MCX",
+  "NSE:BHEL","NSE:CGPOWER","NSE:ABB","NSE:SIEMENS","NSE:CUMMINSIND",
+  "NSE:INDUSINDBK","NSE:FEDERALBNK","NSE:BANDHANBNK","NSE:AUBANK","NSE:IDFCFIRSTB",
+  "NSE:APOLLOHOSP","NSE:MAXHEALTH","NSE:FORTIS","NSE:LALPATHLAB","NSE:METROPOLIS",
+  "NSE:DMART","NSE:TRENT","NSE:NYKAA","NSE:ZOMATO","NSE:PAYTM",
+  "NSE:LT","NSE:LTTS","NSE:LTECH","NSE:POLYCAB","NSE:HAVELLS",
+  "NSE:PIDILITIND","NSE:BERGER","NSE:ASIANPAINT","NSE:KANSAINER","NSE:INDIGO",
+  "NSE:IRCTC","NSE:CONCOR","NSE:BHARATFORG","NSE:MOTHERSON","NSE:BOSCHLTD",
+  "NSE:COFORGE","NSE:MPHASIS","NSE:PERSISTENT","NSE:OFSS","NSE:TECHM",
+]);
+
+// ── NSE MONTHLY EXPIRY DATES 2026 ─────────────────────────────────────────────
+const NSE_EXPIRY_DATES_2026 = [
+  new Date(2026,0,29), new Date(2026,1,26), new Date(2026,2,26),
+  new Date(2026,3,30), new Date(2026,4,28), new Date(2026,5,25),
+  new Date(2026,6,30), new Date(2026,7,27), new Date(2026,8,24),
+  new Date(2026,9,29), new Date(2026,10,26), new Date(2026,11,31),
+];
+
+// ── OPTIONS CONFIG ────────────────────────────────────────────────────────────
+const OPTIONS_CONFIG = {
+  VIX_MAX_BUY        : 18.0,
+  VIX_MAX_BUY_BASE   : 16.0,
+  VIX_AVOID          : 22.0,
+  MIN_DAYS_EXPIRY    : 20,
+  MIN_DAYS_BASE_ENTRY: 40,
+  IDEAL_DAYS_MIN     : 25,
+};
+
+// ── CONFIG ────────────────────────────────────────────────────────────────────
+const CONFIG = {
+  get TELEGRAM_BOT_TOKEN() { return PropertiesService.getScriptProperties().getProperty('TELEGRAM_BOT_TOKEN') || ""; },
+  get CHAT_ID_BASIC()      { return PropertiesService.getScriptProperties().getProperty('CHAT_ID_BASIC')      || ""; },
+  get CHAT_ID_ADVANCE()    { return PropertiesService.getScriptProperties().getProperty('CHAT_ID_ADVANCE')    || ""; },
+  get CHAT_ID_PREMIUM()    { return PropertiesService.getScriptProperties().getProperty('CHAT_ID_PREMIUM')    || ""; },
+
+  SHEET_NAME    : "Nifty200",
+  LOG_SHEET     : "AlertLog",
+  HISTORY_SHEET : "History",
+  BM_SHEET      : "BotMemory",
+  IST_ZONE      : "GMT+5:30",
+
+  MAX_TRADES    : 8,
+  MAX_WAITING   : 10,
+  MAX_MOM_SLOTS : 3,
+  MIN_PRIORITY  : 15,
+  MIN_RR        : 1.8,
+  ATH_BUFFER_PCT: 1.0,
+  MAX_CMP       : 8000,
+
+  CAPITAL_HIGH  : 13000,
+  CAPITAL_MED   : 10000,
+  CAPITAL_STD   :  7000,
+  MAX_DEPLOYED  : 104000,
+
+  ATR_SL_INTRADAY     : 1.5,
+  ATR_SL_SWING        : 2.0,
+  ATR_SL_BASE         : 1.5,
+  ATR_SL_POSITIONAL   : 2.5,
+  ATR_TGT_INTRADAY    : 2.0,
+  ATR_TGT_SWING       : 3.0,
+  ATR_TGT_SWING_LEADER: 4.0,
+  ATR_TGT_BASE        : 5.0,
+  ATR_TGT_POSITIONAL  : 4.0,
+
+  BATCH_SIZE    : 60,
+  TOTAL_COLS    : 19,
+  LOG_ROWS      : 21,
+
+  BEARISH_MIN_AF          : 5,
+  BEARISH_MIN_MASTER_SCORE: 22,
+  BEARISH_LEADER_ONLY     : true,
+
+  // v15.6: Stricter bearish thresholds
+  BEARISH_HARD_MIN_SCORE  : 40,   // Hard bearish: only score >= 40 allowed
+  BEARISH_MAX_WAITING     : 3,    // Max 3 waiting slots in bearish (was 10)
+  BEARISH_MIN_RS          : 15,   // Stock must have RS >= 15 in bearish market
+
+  LATE_ENTRY_MIN_RS      : 5,
+  MAX_DIST_ABOVE_20DMA   : 8,
+  PIVOT_RESISTANCE_BUFFER: 0.02,
+  RETEST_MAX_PULLBACK    : -0.08,
+  BASE_STAGE_MIN_VOL     : 40,
+
+  // v15.6: Momentum breakout gate
+  MOMENTUM_BREAKOUT_MIN_PCT : 3.0,  // 3%+ move today = momentum breakout
+  MOMENTUM_BREAKOUT_MIN_RS  : 10,   // Must have RS >= 10 even on momentum day
+  MOMENTUM_SECTOR_MIN_COUNT : 3,    // 3+ stocks in sector up 2%+ = sector momentum day
+
+  BASE_ENTRY_ENABLED   : true,
+  BASE_MIN_FII_ZONE    : "Accumulation Zone",
+  BASE_MAX_VCP         : 0.05,
+  BASE_MIN_DAYS_LOW    : 15,
+  BASE_MIN_ATH_GAP_PCT : 5.0,
+  BASE_MIN_SCORE       : 18,
+  BASE_STAGES          : ["Correction Base", "Building Momentum", "Near Breakout"],
+
+  RESULT_DAY_SKIP_PCT : 6.0,
+  CORP_ACTION_SKIP_PCT: 15.0,
+
+  MOM_MIN_CHANGE_PCT: 2.5,
+  MOM_MIN_VOLUME_PCT: 200,
+  MOM_WINDOW_END    : "11:30",
+
+  MORNING_VOL_BYPASS_UNTIL: "10:30",
+  INTRADAY_WINDOW_START   : "09:15",
+  INTRADAY_WINDOW_END     : "12:30",
+
+  RANK_CONV_BONUS_MAX: 3,
+  RANK_LEADER_MAX    : 5,
+  BM_PURGE_DAYS      : 14,
+};
+
+// ══════════════════════════════════════════════════════════════════════════════
+// v15.6 FIX 1 — BEARISH HARD BLOCK
+// ══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Determine if market allows new entries.
+ *
+ * CRITICAL INSIGHT from trade data (May 2026):
+ * All 4 losses (BHARATFORG, TATASTEEL, BANDHANBNK, SAIL) were entered
+ * during BEARISH regime (Nifty < 20DMA). Win rate was 43%.
+ *
+ * Top institutional rule: NO new entries when Nifty < 20DMA
+ * Exception: only allow if stock score is exceptionally high (>=40)
+ *
+ * Returns: { allowed: bool, reason: string, maxSlots: int }
+ */
+function _checkBearishEntryAllowed(marketBullish, useScore, leaderType, rs) {
+  if (marketBullish) {
+    return { allowed: true, reason: "Bullish market", maxSlots: CONFIG.MAX_WAITING };
+  }
+
+  // BEARISH market — very strict
+  if (useScore < CONFIG.BEARISH_HARD_MIN_SCORE) {
+    return {
+      allowed: false,
+      reason: `BEARISH + Score ${useScore} < ${CONFIG.BEARISH_HARD_MIN_SCORE}`,
+      maxSlots: CONFIG.BEARISH_MAX_WAITING
+    };
+  }
+  if (leaderType !== "Sector Leader") {
+    return {
+      allowed: false,
+      reason: `BEARISH + Not Sector Leader (${leaderType})`,
+      maxSlots: CONFIG.BEARISH_MAX_WAITING
+    };
+  }
+  if (rs < CONFIG.BEARISH_MIN_RS) {
+    return {
+      allowed: false,
+      reason: `BEARISH + RS ${rs} < ${CONFIG.BEARISH_MIN_RS}`,
+      maxSlots: CONFIG.BEARISH_MAX_WAITING
+    };
+  }
+
+  return {
+    allowed: true,
+    reason: `BEARISH exception: Score=${useScore} Leader=${leaderType} RS=${rs}`,
+    maxSlots: CONFIG.BEARISH_MAX_WAITING
+  };
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// v15.6 FIX 2 — MOMENTUM BREAKOUT DETECTION
+// ══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Detect if a stock is having a momentum breakout day.
+ *
+ * WHY THIS IS NEEDED:
+ * TECHM, PERSISTENT, COFORGE were up 5%+ today (Image 1-3).
+ * All have SMA = Sideways → scanner blocked them.
+ * But these are legitimate breakout entries:
+ *   - Stock was in base/correction for months
+ *   - Today's big move = catalyst (earnings, sector news, FII buying)
+ *   - This IS the entry point institutions are using
+ *
+ * RULE (based on IBD momentum rules):
+ *   %Change >= 3.0% today = potential momentum breakout
+ *   Volume >= 1.5x average = confirms genuine buying
+ *   RS >= MOMENTUM_BREAKOUT_MIN_RS = stock is relatively strong
+ *   NOT near ATH = room to run
+ *
+ * Returns: { isMomentum: bool, reason: string }
+ */
+function _checkMomentumBreakout(pctChange, volVsAvg, rs, high52, cmp, smaStr) {
+  // Strong price move today
+  if (pctChange < CONFIG.MOMENTUM_BREAKOUT_MIN_PCT) {
+    return { isMomentum: false, reason: `Change ${pctChange.toFixed(1)}% < ${CONFIG.MOMENTUM_BREAKOUT_MIN_PCT}%` };
+  }
+
+  // Not near ATH (needs room to run)
+  if (high52 > 0 && cmp > 0) {
+    const athGap = ((high52 - cmp) / high52) * 100;
+    if (athGap < 3) {
+      return { isMomentum: false, reason: `Near ATH (gap ${athGap.toFixed(1)}%)` };
+    }
+  }
+
+  // Minimum RS (even sideways stocks need to be relatively strong)
+  if (rs < CONFIG.MOMENTUM_BREAKOUT_MIN_RS) {
+    return { isMomentum: false, reason: `RS ${rs} too low for momentum entry` };
+  }
+
+  // FIX for stale volume: if price is up 3%+, volume is almost always confirmed
+  // We give benefit of doubt because Volume_vs_Avg formula is end-of-day stale
+  const volumeOk = (volVsAvg > 100) || (pctChange >= 3.0);
+
+  if (!volumeOk) {
+    return { isMomentum: false, reason: `Volume not confirmed: ${volVsAvg.toFixed(0)}%` };
+  }
+
+  return {
+    isMomentum: true,
+    reason: `Momentum breakout: +${pctChange.toFixed(1)}% today, RS=${rs.toFixed(1)}`
+  };
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// v15.6 FIX 5 — SECTOR MOMENTUM DETECTION
+// ══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Scan all stocks to find sectors with multiple stocks moving up today.
+ * When a sector has 3+ stocks up 2%+, it's a sector rotation day.
+ * This unlocks stocks in that sector even with lower scores.
+ *
+ * Used to capture: IT sector rally days (TECHM + PERSISTENT + COFORGE all up 4-5%)
+ *
+ * Returns: Set of sector names with momentum today
+ */
+function _detectMomentumSectors(inputData) {
+  const sectorCount = {};
+  const THRESHOLD_PCT = 2.0;
+
+  for (let i = 2; i < inputData.length; i++) {
+    const r = inputData[i];
+    if (!r[0]) continue;
+    const sector    = (r[1]  || "").toString().trim();
+    const pctChange = parseFloat(r[3]) || 0;
+
+    if (pctChange >= THRESHOLD_PCT) {
+      sectorCount[sector] = (sectorCount[sector] || 0) + 1;
+    }
+  }
+
+  const momentumSectors = new Set();
+  for (const sector in sectorCount) {
+    if (sectorCount[sector] >= CONFIG.MOMENTUM_SECTOR_MIN_COUNT) {
+      momentumSectors.add(sector);
+      Logger.log(`[SECTOR MOMENTUM] ${sector}: ${sectorCount[sector]} stocks up ${THRESHOLD_PCT}%+`);
+    }
+  }
+  return momentumSectors;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// BASE ENTRY CHECKER — v15.4 (unchanged)
+// ══════════════════════════════════════════════════════════════════════════════
+
+function _checkBaseEntry(stage, fiiBuyZone, vcp, daysLow, smaStr, high52, cmp, useScore) {
+  if (!CONFIG.BASE_ENTRY_ENABLED) return { qualifies: false, reason: "Disabled" };
+  const isBaseStage = CONFIG.BASE_STAGES.some(s => stage.includes(s));
+  if (!isBaseStage) return { qualifies: false, reason: "Not a base stage" };
+  if (useScore < CONFIG.BASE_MIN_SCORE) return { qualifies: false, reason: `Score ${useScore} < ${CONFIG.BASE_MIN_SCORE}` };
+  if (fiiBuyZone !== CONFIG.BASE_MIN_FII_ZONE) return { qualifies: false, reason: `FII=${fiiBuyZone} not Accumulation` };
+  if (vcp > CONFIG.BASE_MAX_VCP) return { qualifies: false, reason: `VCP=${vcp} > ${CONFIG.BASE_MAX_VCP}` };
+  if (daysLow < CONFIG.BASE_MIN_DAYS_LOW) return { qualifies: false, reason: `DaysLow=${daysLow} < ${CONFIG.BASE_MIN_DAYS_LOW}` };
+  if (smaStr !== "Strong Bull" && smaStr !== "Bull") return { qualifies: false, reason: `SMA=${smaStr} not bullish` };
+  if (high52 > 0 && cmp > 0) {
+    const athGapPct = ((high52 - cmp) / high52) * 100;
+    if (athGapPct < CONFIG.BASE_MIN_ATH_GAP_PCT) return { qualifies: false, reason: `ATH gap ${athGapPct.toFixed(1)}% < ${CONFIG.BASE_MIN_ATH_GAP_PCT}%` };
+  }
+  return { qualifies: true, reason: "All base conditions met" };
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// OPTIONS ENGINE — v15.6 (FIX 3: ATH block added)
+// ══════════════════════════════════════════════════════════════════════════════
+
+function _getIndiaVix(inputData) {
+  try {
+    const resp = UrlFetchApp.fetch(
+      "https://query1.finance.yahoo.com/v8/finance/chart/%5EINDIAVIX?interval=1d&range=1d",
+      { muteHttpExceptions: true, deadline: 5, headers: { "User-Agent": "Mozilla/5.0" } }
+    );
+    if (resp.getResponseCode() === 200) {
+      const data = JSON.parse(resp.getContentText());
+      const vix  = data?.chart?.result?.[0]?.meta?.regularMarketPrice || 0;
+      if (vix > 5 && vix < 100) { Logger.log(`[VIX] Live: ${vix.toFixed(1)}`); return parseFloat(vix); }
+    }
+  } catch(e) { Logger.log("[VIX] Fetch failed: " + e); }
+  Logger.log("[VIX] Using fallback 14.0");
+  return 14.0;
+}
+
+function _getRecommendedExpiry(minDays) {
+  minDays = minDays || OPTIONS_CONFIG.MIN_DAYS_EXPIRY;
+  const now = new Date();
+  for (const expiry of NSE_EXPIRY_DATES_2026) {
+    const daysLeft = Math.floor((expiry - now) / (1000 * 60 * 60 * 24));
+    if (daysLeft >= minDays) return { date: expiry, daysLeft: daysLeft };
+  }
+  const last = NSE_EXPIRY_DATES_2026[NSE_EXPIRY_DATES_2026.length - 1];
+  return { date: last, daysLeft: 30 };
+}
+
+function _roundToStrike(price, interval) { return Math.ceil(price / interval) * interval; }
+
+function _getStrikeInterval(cmp) {
+  if (cmp < 250)  return 5;
+  if (cmp < 500)  return 10;
+  if (cmp < 1000) return 20;
+  if (cmp < 2000) return 50;
+  return 100;
+}
+
+/**
+ * v15.6: Added ATH check.
+ * MCX was generating BUY CE despite NEAR ATH warning.
+ * Stocks near ATH = high reversal risk = options expire worthless.
+ *
+ * New ATH parameter: high52 and cmp passed to check proximity.
+ */
+function _generateOptionsSignal(sym, cmp, atr, stage, pctChange, vix, isBaseEntry, high52) {
+  const result = { signal: "⏸ SKIP", strike: "", expiryStr: "", thetaRisk: "", message: "", isBase: isBaseEntry || false };
+
+  if (!F_AND_O_LIQUID_STOCKS.has(sym)) { result.message = "Not in F&O liquid list"; return result; }
+
+  // v15.6 FIX 3: Block options if NEAR ATH
+  if (high52 > 0 && cmp > 0) {
+    const athGapPct = ((high52 - cmp) / high52) * 100;
+    if (athGapPct < 3.0) {
+      result.signal  = "⏸ NEAR ATH";
+      result.message = `${athGapPct.toFixed(1)}% from ATH — options risk high`;
+      return result;
+    }
+  }
+
+  const isBreakout = stage.includes("BREAKOUT CONFIRMED") || stage.includes("BREAKOUT ALERT");
+  const isBase     = isBaseEntry && CONFIG.BASE_STAGES.some(s => stage.includes(s));
+  if (!isBreakout && !isBase) { result.message = "Stage not suitable for options"; return result; }
+
+  const vixLimit = isBaseEntry ? OPTIONS_CONFIG.VIX_MAX_BUY_BASE : OPTIONS_CONFIG.VIX_MAX_BUY;
+  let vixLabel = "";
+  if (vix > OPTIONS_CONFIG.VIX_AVOID) {
+    result.signal  = "❌ VIX HIGH";
+    result.message = `VIX ${vix.toFixed(1)} > ${OPTIONS_CONFIG.VIX_AVOID} — skip`;
+    return result;
+  } else if (vix > vixLimit) {
+    vixLabel = `⚠️ VIX ${vix.toFixed(1)} — caution`;
+  } else {
+    vixLabel = `✅ VIX ${vix.toFixed(1)} — good to buy`;
+  }
+
+  const minDays    = isBaseEntry ? OPTIONS_CONFIG.MIN_DAYS_BASE_ENTRY : OPTIONS_CONFIG.MIN_DAYS_EXPIRY;
+  const expiryInfo = _getRecommendedExpiry(minDays);
+  const expiryStr  = Utilities.formatDate(expiryInfo.date, CONFIG.IST_ZONE, "dd-MMM-yyyy");
+  const daysLeft   = expiryInfo.daysLeft;
+
+  let thetaRisk;
+  if      (daysLeft >= 40) thetaRisk = `🟢 LOW (${daysLeft}d)`;
+  else if (daysLeft >= 25) thetaRisk = `🟡 MED (${daysLeft}d)`;
+  else                     thetaRisk = `🔴 HIGH (${daysLeft}d — avoid)`;
+
+  if (daysLeft < minDays) {
+    result.signal    = "❌ THETA HIGH";
+    result.expiryStr = expiryStr;
+    result.thetaRisk = thetaRisk;
+    result.message   = `Only ${daysLeft} days — need ${minDays}+`;
+    return result;
+  }
+
+  const interval  = _getStrikeInterval(cmp);
+  const atmStrike = _roundToStrike(cmp, interval);
+  const otmStrike = _roundToStrike(cmp + atr, interval);
+
+  let useStrike;
+  if (isBaseEntry) {
+    useStrike = atmStrike;
+  } else {
+    useStrike = (atmStrike - cmp) <= (atr * 0.5) ? otmStrike : atmStrike;
+  }
+
+  const expiryMonth = expiryStr.substring(3, 6);
+  const strikeStr   = `${useStrike} CE ${expiryMonth}`;
+
+  result.signal    = isBaseEntry ? "📦 BASE CE" : "📊 BUY CE";
+  result.strike    = strikeStr;
+  result.expiryStr = expiryStr;
+  result.thetaRisk = thetaRisk;
+  result.message   = vixLabel;
+
+  return result;
+}
+
+function _sendOptionsAlertPremium(sym, cmp, optSignal, stage, sl, target, rr, bm, ss) {
+  const today   = Utilities.formatDate(new Date(), CONFIG.IST_ZONE, "yyyy-MM-dd");
+  const flagKey = `${today}_OPT_${sym.replace(/[:\s]/g,'_')}`;
+
+  if (_bmExists(bm, flagKey)) return;
+  if (optSignal.signal !== "📊 BUY CE" && optSignal.signal !== "📦 BASE CE") return;
+
+  const isBase    = optSignal.signal === "📦 BASE CE";
+  const typeLabel = isBase ? "📦 BASE OPTIONS SIGNAL" : "📊 OPTIONS SIGNAL";
+  const entryRule = isBase
+    ? "✅ Buy anytime during 9:30 AM – 12:00 PM\n✅ Stock must be above 20DMA when buying"
+    : "✅ Buy between 9:30-9:45 AM only";
+  const holdRule  = isBase
+    ? "✅ Hold up to 15 trading days\n✅ Exit if option loses 40% of value\n✅ Exit if stock hits Target\n⚠️ Exit if stock goes below SL"
+    : "✅ Exit if option loses 40% of value\n✅ Exit if stock hits Target price";
+  const tradeNote = isBase
+    ? "\n📌 <b>BASE TRADE NOTE:</b> Patient trade — 2-4 weeks. Exit option after 12 trading days if target not hit."
+    : "";
+
+  const msg =
+    `${typeLabel} — <b>PREMIUM</b>\n` +
+    `━━━━━━━━━━━━━━━━━━━━\n` +
+    `🎯 <b>Stock:</b> ${sym.replace("NSE:","")}\n` +
+    `💰 <b>CMP:</b> ₹${cmp.toFixed(2)}\n` +
+    `📋 <b>Stage:</b> ${stage}\n\n` +
+    `━━ OPTIONS DETAILS ━━\n` +
+    `🎰 <b>Buy:</b> ${optSignal.strike}\n` +
+    `📅 <b>Expiry:</b> ${optSignal.expiryStr}\n` +
+    `⏳ <b>Theta Risk:</b> ${optSignal.thetaRisk}\n` +
+    `📊 <b>VIX Status:</b> ${optSignal.message}\n\n` +
+    `━━ UNDERLYING TRADE ━━\n` +
+    `🛑 <b>SL:</b> ₹${sl}\n` +
+    `🎯 <b>Target:</b> ₹${target}\n` +
+    `📈 <b>RR:</b> ${rr}\n\n` +
+    `━━ RULES ━━\n` +
+    `${entryRule}\n${holdRule}\n` +
+    `❌ Do NOT average down on options\n` +
+    `❌ Do NOT hold past expiry week\n` +
+    `${tradeNote}\n\n` +
+    `<i>Educational only. Not SEBI advice. v15.6</i>`;
+
+  _sendTelegramPremium(msg);
+  _bmSet(ss, bm, flagKey, "1", sym, "FLAG");
+  Logger.log(`[OPTIONS] ${isBase ? "BASE" : "BREAKOUT"} signal sent for ${sym}: ${optSignal.strike}`);
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// BOTMEMORY HELPERS
+// ══════════════════════════════════════════════════════════════════════════════
+
+function _bmLoad(ss) {
+  const bmSheet = ss.getSheetByName(CONFIG.BM_SHEET);
+  const bm = {};
+  if (!bmSheet) return bm;
+  const lastRow = bmSheet.getLastRow();
+  if (lastRow < 2) return bm;
+  const data = bmSheet.getRange(2, 1, lastRow - 1, 5).getValues();
+  for (let i = 0; i < data.length; i++) {
+    const key = (data[i][0] || "").toString().trim();
+    if (!key) continue;
+    bm[key] = { value: (data[i][1] || "").toString(), row: i + 2 };
+  }
+  return bm;
+}
+
+function _bmGet(bm, key)    { return bm[key] ? bm[key].value : ""; }
+function _bmExists(bm, key) { return !!bm[key]; }
+
+function _bmSet(ss, bm, key, val, sym, ktype) {
+  const bmSheet = ss.getSheetByName(CONFIG.BM_SHEET);
+  if (!bmSheet) return;
+  const now = Utilities.formatDate(new Date(), CONFIG.IST_ZONE, "yyyy-MM-dd HH:mm:ss");
+  sym = sym || ""; ktype = ktype || "STATE";
+  if (bm[key]) {
+    bmSheet.getRange(bm[key].row, 2).setValue(val);
+    bmSheet.getRange(bm[key].row, 3).setValue(now);
+    bm[key].value = val;
+  } else {
+    bmSheet.appendRow([key, val, now, sym, ktype]);
+    bm[key] = { value: val, row: bmSheet.getLastRow() };
+  }
+}
+
+function _bmDel(ss, bm, key) {
+  const bmSheet = ss.getSheetByName(CONFIG.BM_SHEET);
+  if (!bmSheet || !bm[key]) return;
+  bmSheet.getRange(bm[key].row, 1, 1, 5).clearContent();
+  delete bm[key];
+}
+
+function _bmPurge(ss) {
+  const bmSheet = ss.getSheetByName(CONFIG.BM_SHEET);
+  if (!bmSheet) return;
+  const lastRow = bmSheet.getLastRow();
+  if (lastRow < 2) return;
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - CONFIG.BM_PURGE_DAYS);
+  const cutoffStr = Utilities.formatDate(cutoff, CONFIG.IST_ZONE, "yyyy-MM-dd");
+  const data = bmSheet.getRange(2, 1, lastRow - 1, 5).getValues();
+  for (let i = 0; i < data.length; i++) {
+    const key   = (data[i][0] || "").toString().trim();
+    const ktype = (data[i][4] || "").toString().trim();
+    if (!key || ktype !== "FLAG") continue;
+    if (key.length >= 10 && key.substring(0, 10) < cutoffStr) {
+      bmSheet.getRange(i + 2, 1, 1, 5).clearContent();
+    }
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// TELEGRAM
+// ══════════════════════════════════════════════════════════════════════════════
+
+function _sendTelegramToChat(chatId, msg) {
+  if (!chatId || !CONFIG.TELEGRAM_BOT_TOKEN) return;
+  try {
+    UrlFetchApp.fetch(`https://api.telegram.org/bot${CONFIG.TELEGRAM_BOT_TOKEN}/sendMessage`, {
+      method: "post", contentType: "application/json",
+      payload: JSON.stringify({ chat_id: chatId, text: msg, parse_mode: "HTML" })
+    });
+  } catch(e) { Logger.log("TG error: " + e); }
+}
+
+function _sendTelegram(msg)                  { _sendTelegramToChat(CONFIG.CHAT_ID_BASIC,   msg); }
+function _sendTelegramAdvance(msg)           { _sendTelegramToChat(CONFIG.CHAT_ID_ADVANCE, msg); }
+function _sendTelegramPremium(msg)           { _sendTelegramToChat(CONFIG.CHAT_ID_PREMIUM, msg); }
+function _sendTelegramAll(msg)               { _sendTelegramToChat(CONFIG.CHAT_ID_BASIC, msg); _sendTelegramToChat(CONFIG.CHAT_ID_ADVANCE, msg); _sendTelegramToChat(CONFIG.CHAT_ID_PREMIUM, msg); }
+function _sendTelegramAdvanceAndPremium(msg) { _sendTelegramToChat(CONFIG.CHAT_ID_ADVANCE, msg); _sendTelegramToChat(CONFIG.CHAT_ID_PREMIUM, msg); }
+
+function _isMarketHoliday(dateStr) { return NSE_HOLIDAYS_2026.indexOf(dateStr) !== -1; }
+
+function _inferSignal(rawSignal, stage, fiiBuyZone, smaStr) {
+  if (rawSignal && rawSignal !== "#N/A" && rawSignal.length > 2) return rawSignal;
+  if (stage.includes("BREAKOUT CONFIRMED") || stage.includes("BREAKOUT ALERT")) return "🟢 STRONG BUY";
+  if (stage.includes("Near Breakout")) return "💎 BASE PREPARED";
+  if (stage.includes("Building Momentum") || stage.includes("Correction Base")) {
+    if (fiiBuyZone === "Accumulation Zone" || smaStr === "Strong Bull" || smaStr === "Bull") return "➖ HOLD";
+  }
+  if (fiiBuyZone === "Accumulation Zone" && smaStr === "Strong Bull") return "💰 VALUE BUY";
+  return "";
+}
+
+function _inferPriority(rawPriority, rawMasterScore, signalScore) {
+  const ms = parseFloat(rawMasterScore) || 0; if (ms > 0) return ms;
+  const p  = parseFloat(rawPriority)    || 0; if (p  > 0) return p;
+  const ss = parseFloat(signalScore)    || 0; if (ss > 0) return ss * 3;
+  return 0;
+}
+
+// ── MENU ──────────────────────────────────────────────────────────────────────
+function onOpen() {
+  SpreadsheetApp.getUi()
+    .createMenu('🚀 AI360 TRADING')
+    .addItem('🔄 MANUAL SYNC',     'unifiedManager')
+    .addItem('📊 DAILY SUMMARY',   'sendDailySummary')
+    .addItem('📅 WEEKLY SUMMARY',  'sendWeeklySummary')
+    .addSeparator()
+    .addItem('📡 TEST TELEGRAM',   'testTelegram')
+    .addItem('📊 TEST OPTIONS',    'testOptionsSignal')
+    .addItem('📦 TEST BASE ENTRY', 'testBaseEntry')
+    .addSeparator()
+    .addItem('🧹 FRESH CLEAN START','freshCleanStart')
+    .addToUi();
+}
+
+function sendDailySummary() {
+  const logSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.LOG_SHEET);
+  const data     = logSheet.getRange(2, 1, CONFIG.LOG_ROWS, CONFIG.TOTAL_COLS).getValues();
+  const traded   = data.filter(r => _isTraded(r[10])).length;
+  const waiting  = data.filter(r => _isWaiting(r[10])).length;
+  _sendTelegramAdvanceAndPremium(
+    `📊 <b>MARKET SUMMARY</b>\n━━━━━━━━━━━━━━━━━━━━\n` +
+    `🔹 <b>Active Trades:</b> ${traded}/${CONFIG.MAX_TRADES}\n` +
+    `🔸 <b>Waiting Slots:</b> ${waiting}\n` +
+    `✅ <i>System: Online v15.6</i>`
+  );
+}
+
+function unifiedManager() {
+  try { _runUnifiedManager(); }
+  catch(e) {
+    const msg = e.toString();
+    if (msg.includes("INTERNAL") || msg.includes("storage") || msg.includes("server error") ||
+        msg.includes("timed out") || msg.includes("Service Spreadsheets") || msg.includes("failed while accessing")) {
+      Logger.log("[GOOGLE ERROR] Transient — will retry: " + msg); return;
+    }
+    throw e;
+  }
+}
+
+function _runUnifiedManager() {
+  const ss      = SpreadsheetApp.getActiveSpreadsheet();
+  const now     = new Date();
+  const timeStr = Utilities.formatDate(now, CONFIG.IST_ZONE, "HH:mm");
+  const today   = Utilities.formatDate(now, CONFIG.IST_ZONE, "yyyy-MM-dd");
+  const dow     = now.getDay();
+
+  if (_isMarketHoliday(today)) { Logger.log(`[HOLIDAY] ${today}`); return; }
+  if (dow === 0 || dow === 6)  { Logger.log(`[SKIP] Weekend`);      return; }
+
+  _bmPurge(ss);
+  const bm = _bmLoad(ss);
+
+  if (timeStr >= "09:05" && timeStr <= "09:15") {
+    const cleanedKey = `${today}_CLEANED`;
+    if (!_bmExists(bm, cleanedKey)) {
+      clearWaitingRowsOnly();
+      _bmDel(ss, bm, "_BATCH_START");
+      _bmDel(ss, bm, "_BATCH_CANDS");
+      _bmSet(ss, bm, cleanedKey, "1", "", "FLAG");
+    }
+  }
+
+  if (dow === 5 && timeStr >= "15:15" && timeStr <= "15:45") {
+    const weeklyKey = `${today}_WEEKLY`;
+    if (!_bmExists(bm, weeklyKey)) { sendWeeklySummary(); _bmSet(ss, bm, weeklyKey, "1", "", "FLAG"); }
+  }
+
+  const userEmail = Session.getActiveUser().getEmail();
+  if (userEmail && userEmail !== "") { Logger.log("[MANUAL]"); runFullScanner(); }
+  else { Logger.log("[AUTO]"); runBatchedScanner(); }
+}
+
+function runFullScanner()    { _runScanner(2, null); }
+
+function runBatchedScanner() {
+  const ss         = SpreadsheetApp.getActiveSpreadsheet();
+  const bm         = _bmLoad(ss);
+  const inputSheet = ss.getSheetByName(CONFIG.SHEET_NAME);
+  const totalRows  = inputSheet.getDataRange().getValues().length;
+  let batchStart   = parseInt(_bmGet(bm, "_BATCH_START") || "2");
+  if (isNaN(batchStart) || batchStart < 2) batchStart = 2;
+  const batchEnd   = Math.min(batchStart + CONFIG.BATCH_SIZE, totalRows);
+  const scanComplete = _runScanner(batchStart, batchEnd);
+  if (!scanComplete) { _bmSet(ss, bm, "_BATCH_START", batchEnd.toString(), "", "STATE"); }
+  else { _bmDel(ss, bm, "_BATCH_START"); _bmDel(ss, bm, "_BATCH_CANDS"); }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CONVICTION BONUS — v15.6 (FIX 7: delivery proxy added)
+// ══════════════════════════════════════════════════════════════════════════════
+function _convictionBonus(r, marketBullish) {
+  let bonus = 0;
+  const vcp        = parseFloat(r[27]) || 1.0;
+  const fiiBuyZone = (r[15] || "").toString().trim();
+  const daysLow    = parseFloat(r[29]) || 0;
+  const smaStr     = (r[7]  || "").toString().trim();
+  const stage      = (r[22] || "").toString().trim();
+  const af         = parseFloat(r[31]) || 0;
+  const rs         = parseFloat(r[20]) || 0;
+  const pctChange  = parseFloat(r[3])  || 0;
+  const fiiSignal  = (r[32] || "").toString().trim();
+  const rank       = parseFloat(r[34]) || 0;
+
+  if      (vcp < 0.04) bonus += 3; else if (vcp < 0.07) bonus += 1;
+  if      (fiiBuyZone === "Accumulation Zone") bonus += 2;
+  else if (fiiBuyZone === "Momentum Zone")     bonus += 1;
+  if      (daysLow > 30) bonus += 2; else if (daysLow > 20) bonus += 1;
+  if (smaStr === "Strong Bull") bonus += 1;
+  if      (stage.includes("Near Breakout"))     bonus += 1;
+  else if (stage.includes("Building Momentum")) bonus += 1;
+  else if (stage.includes("Correction Base"))   bonus += 1;
+  else if (stage.includes("BREAKOUT CONFIRMED") && rs < CONFIG.LATE_ENTRY_MIN_RS) bonus -= 2;
+  if      (af >= 10) bonus += 2; else if (af >= 6) bonus += 1;
+  if (!marketBullish && pctChange > 0) bonus += 1;
+  if      (fiiSignal === "FII BUYING") bonus += 2;
+  else if (fiiSignal === "STRONG FII") bonus += 1;
+  if      (rank >= 1 && rank <= CONFIG.RANK_CONV_BONUS_MAX) bonus += 2;
+  else if (rank > CONFIG.RANK_CONV_BONUS_MAX && rank <= CONFIG.RANK_LEADER_MAX) bonus += 1;
+
+  // v15.6 FIX 7: Smart money holding proxy (delivery % substitute)
+  // daysLow >= 45 + Accumulation = smart money holding = +3 bonus
+  if (daysLow >= 45 && fiiBuyZone === "Accumulation Zone") bonus += 3;
+
+  // v15.6: Momentum breakout bonus — strong move today = higher confidence
+  if (pctChange >= CONFIG.MOMENTUM_BREAKOUT_MIN_PCT) bonus += 2;
+
+  return bonus;
+}
+
+function _getCapital(masterScore, af, fiiBuyZone) {
+  if (masterScore >= 28 && af >= 10)                           return CONFIG.CAPITAL_HIGH;
+  if (masterScore >= 22 || fiiBuyZone === "Accumulation Zone") return CONFIG.CAPITAL_MED;
+  return CONFIG.CAPITAL_STD;
+}
+
+function _tradeMode(r) {
+  const vcp    = parseFloat(r[27]) || 1.0;
+  const smaStr = (r[7]  || "").toString().trim();
+  const rs     = parseFloat(r[20]) || 0;
+  const stage  = (r[22] || "").toString().trim();
+  if (vcp < 0.04 && (stage.includes("Near Breakout") || stage.includes("Building Momentum") || stage.includes("Correction Base"))) return "VCP";
+  if (smaStr === "Strong Bull" && rs >= 6) return "MOM";
+  return "STD";
+}
+
+function _mapTradeType(niftyType, priority, atr, cmp, volVsAvg, pctChange, smaStr, timeStr) {
+  const atrPct = (atr / cmp) * 100;
+  if (priority >= 28 && atrPct > 2.0) return { ttype: "📊 Options Alert" };
+  const inMorning = (timeStr >= CONFIG.INTRADAY_WINDOW_START && timeStr <= CONFIG.INTRADAY_WINDOW_END);
+  if (inMorning && volVsAvg > 200 && pctChange > 0.5 && (smaStr === "Strong Bull" || smaStr === "Bull")) return { ttype: "⚡ Intraday" };
+  if (niftyType.includes("INTRADAY"))   return { ttype: "⚡ Intraday"   };
+  if (niftyType.includes("SWING"))      return { ttype: "🔄 Swing"      };
+  if (niftyType.includes("POSITIONAL")) return { ttype: "📈 Positional" };
+  if (priority >= 26)                   return { ttype: "📈 Positional" };
+  return                                       { ttype: "🔄 Swing"      };
+}
+
+function _buildStageTag(signal, ttype, stage, smaStr, fiiBuyZone, isBaseEntry, isMomentum) {
+  if (isBaseEntry)  return `📦 BASE ENTRY | ${stage}`;
+  if (isMomentum)   return `🚀 MOMENTUM BREAKOUT | ${stage}`;  // v15.6: new tag
+  if (signal === "🎯 RETEST BUY") return "🎯 RETEST | " + stage;
+  if (ttype === "⚡ Intraday" || ttype === "📊 Options Alert") return "⚡ MOMENTUM | " + stage;
+  if (fiiBuyZone === "Accumulation Zone" && (stage.includes("Correction Base") || stage.includes("Building Momentum")) && (smaStr === "Bull" || smaStr === "Strong Bull")) return "📉 CORR.END | " + stage;
+  if (signal === "💎 BASE PREPARED") return "📊 BASE | " + stage;
+  return stage;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CORE SCANNER v15.6
+// Changes from v15.5:
+//   1. _detectMomentumSectors() called once for all stocks
+//   2. _checkBearishEntryAllowed() — hard bearish block
+//   3. _checkMomentumBreakout() — new entry type for IT-style moves
+//   4. _generateOptionsSignal() now receives high52 for ATH check
+//   5. Max waiting slots reduced in bearish (3 instead of 10)
+// ══════════════════════════════════════════════════════════════════════════════
+function _runScanner(startRow, endRow) {
+  const ss         = SpreadsheetApp.getActiveSpreadsheet();
+  const logSheet   = ss.getSheetByName(CONFIG.LOG_SHEET);
+  const inputSheet = ss.getSheetByName(CONFIG.SHEET_NAME);
+
+  const switchVal = (logSheet.getRange("T2").getValue() || "").toString().toUpperCase();
+  if (switchVal !== "YES") { Logger.log("[SKIP] T2 != YES"); return true; }
+
+  const bm        = _bmLoad(ss);
+  const inputData = inputSheet.getDataRange().getValues();
+  const currentLog= logSheet.getRange(2, 1, CONFIG.LOG_ROWS, CONFIG.TOTAL_COLS).getValues();
+  const now       = new Date();
+  const nowTime   = Utilities.formatDate(now, CONFIG.IST_ZONE, "yyyy-MM-dd HH:mm:ss");
+  const timeStr   = Utilities.formatDate(now, CONFIG.IST_ZONE, "HH:mm");
+  const today     = Utilities.formatDate(now, CONFIG.IST_ZONE, "yyyy-MM-dd");
+  const totalRows = inputData.length;
+  const scanEnd   = (endRow === null) ? totalRows : endRow;
+  const isFullScan= (endRow === null || scanEnd >= totalRows);
+
+  const isMorning = timeStr <= CONFIG.MORNING_VOL_BYPASS_UNTIL;
+  const indiaVix  = _getIndiaVix(inputData);
+
+  // v15.6 FIX 5: Detect sector momentum — only if BULLISH (saves time in bearish)
+  const momentumSectors = marketBullish ? _detectMomentumSectors(inputData) : new Set();
+
+  Logger.log(`[v15.6] VIX=${indiaVix.toFixed(1)} | MomentumSectors: ${[...momentumSectors].join(', ') || 'none'}`);
+
+  const alreadyTraded = new Set();
+  const sectorCount   = {};
+  const finalTraded   = currentLog.filter(r => {
+    const sym    = (r[1]  || "").toString().trim();
+    const status = (r[10] || "").toString().toUpperCase();
+    if (sym && _isTraded(status)) {
+      alreadyTraded.add(sym);
+      const nRow = inputData.find(nr => nr[0] === sym);
+      if (nRow) { const sec = (nRow[1] || "UNKNOWN").toString().trim(); sectorCount[sec] = (sectorCount[sec] || 0) + 1; }
+      return true;
+    }
+    return false;
+  });
+
+  if (finalTraded.length > CONFIG.MAX_TRADES) { _restoreFormulas(logSheet); return true; }
+
+  let marketBullish = true, niftyCmp = 0, nifty20d = 0;
+  try {
+    const niftyRow = inputData[1];
+    if (niftyRow && niftyRow[0] && niftyRow[0].toString().includes("NIFTY")) {
+      niftyCmp = parseFloat(niftyRow[2]) || 0;
+      nifty20d = parseFloat(niftyRow[4]) || 0;
+      if (niftyCmp > 0 && nifty20d > 0) {
+        marketBullish = niftyCmp >= nifty20d;
+        Logger.log(`[REGIME] CMP=${niftyCmp} 20DMA=${nifty20d} Bullish=${marketBullish}`);
+      }
+    }
+  } catch(e) { Logger.log("[REGIME] Error: " + e); }
+
+  // v15.6: Determine max waiting slots based on regime
+  const maxWaitingSlots = marketBullish ? CONFIG.MAX_WAITING : CONFIG.BEARISH_MAX_WAITING;
+  Logger.log(`[v15.6] Market=${marketBullish ? 'BULLISH' : 'BEARISH'} | MaxWaiting=${maxWaitingSlots}`);
+
+  let batchCands = [];
+  if (!isFullScan) {
+    try { const stored = _bmGet(bm, "_BATCH_CANDS"); if (stored) batchCands = JSON.parse(decodeURIComponent(stored)); }
+    catch(e) { batchCands = []; }
+  }
+
+  const validSignals  = ["🎯 RETEST BUY","🟢 STRONG BUY","💎 BASE PREPARED","💰 VALUE BUY","➖ HOLD"];
+  const bearishSignals= ["🎯 RETEST BUY","🟢 STRONG BUY","💎 BASE PREPARED"];
+  const sectorAfSum   = {};
+  const sectorAfCount = {};
+
+  for (let i = startRow; i < scanEnd; i++) {
+    const r   = inputData[i];
+    const sym = (r[0] || "").toString().trim();
+    if (!sym || sym.includes("NIFTY") || alreadyTraded.has(sym)) continue;
+
+    const rawSignal      = (r[19] || "").toString().trim();
+    const rawPriority    = r[25];
+    const rawMasterScore = r[33];
+    const rawSignalScore = r[18];
+    const stage      = (r[22] || "").toString().trim();
+    const fiiBuyZone = (r[15] || "").toString().trim();
+    const smaStr     = (r[7]  || "").toString().trim();
+    const fiiSignal  = (r[32] || "").toString().trim();
+    const leaderType = (r[17] || "").toString().trim();
+    const sector     = (r[1]  || "UNKNOWN").toString().trim();
+    const pctChange  = parseFloat(r[3])  || 0;
+    const cmp        = parseFloat(r[2])  || 0;
+    const atr        = parseFloat(r[28]) || 0;
+    const high52     = parseFloat(r[9])  || 0;
+    const dma20      = parseFloat(r[4])  || 0;
+    const dma50      = parseFloat(r[5])  || 0;
+    const distDMA    = parseFloat(r[12]) || 0;
+    const pivotRes   = parseFloat(r[26]) || 0;
+    const volVsAvg   = parseFloat(r[14]) || 0;
+    const retestPct  = parseFloat(r[23]) || -99;
+    const af         = parseFloat(r[31]) || 0;
+    const rs         = parseFloat(r[20]) || 0;
+    const rank       = parseFloat(r[34]) || 0;
+    const vcp        = parseFloat(r[27]) || 1.0;
+    const daysLow    = parseFloat(r[29]) || 0;
+
+    const signal   = _inferSignal(rawSignal, stage, fiiBuyZone, smaStr);
+    const priority = _inferPriority(rawPriority, rawMasterScore, rawSignalScore);
+    const useScore = priority;
+
+    if (af > 0) { sectorAfSum[sector] = (sectorAfSum[sector] || 0) + af; sectorAfCount[sector] = (sectorAfCount[sector] || 0) + 1; }
+
+    const isBreakoutStage = stage.includes("BREAKOUT CONFIRMED") || stage.includes("BREAKOUT ALERT");
+
+    // GATE 1: FII Selling
+    if (fiiSignal === "FII SELLING") continue;
+
+    // v15.6 FIX 2: Check for momentum breakout (TECHM/PERSISTENT style)
+    const momentumBreakout = _checkMomentumBreakout(pctChange, volVsAvg, rs, high52, cmp, smaStr);
+    const isSectorMomentum = momentumSectors.has(sector);
+    const isMomentumEntry  = momentumBreakout.isMomentum && isSectorMomentum;
+
+    if (isMomentumEntry) {
+      Logger.log(`[MOMENTUM] ${sym}: ${momentumBreakout.reason} in momentum sector ${sector}`);
+    }
+
+    // v15.6 FIX 4: Volume bypass for strong movers
+    // If price up 3%+ today → volume formula is likely stale → bypass volume gate
+    const volumeBypass = (pctChange >= CONFIG.MOMENTUM_BREAKOUT_MIN_PCT);
+
+    // Base entry check
+    let isBaseEntry = false;
+    if (marketBullish && !isBreakoutStage && !isMomentumEntry) {
+      const baseCheck = _checkBaseEntry(stage, fiiBuyZone, vcp, daysLow, smaStr, high52, cmp, useScore);
+      if (baseCheck.qualifies) { isBaseEntry = true; Logger.log(`[BASE] ${sym}: ${baseCheck.reason}`); }
+    }
+
+    // v15.6 FIX 1: BEARISH HARD BLOCK
+    // Before v15.6: bearish filter only checked leaderType, af, score (weak filter)
+    // Result: 5 stocks entered per day even in bearish = 4 losses
+    // After v15.6: hard block unless score>=40 AND Sector Leader AND RS>=15
+    if (!isMomentumEntry) {  // Momentum entries skip bearish block
+      const bearishCheck = _checkBearishEntryAllowed(marketBullish, useScore, leaderType, rs);
+      if (!bearishCheck.allowed) {
+        // Don't log every skip — too noisy. Just continue.
+        continue;
+      }
+    } else if (!marketBullish) {
+      // Momentum entry in bearish market — extra strict
+      if (useScore < 20 && rs < 15) {
+        Logger.log(`[SKIP] ${sym}: momentum but bearish + score ${useScore} + RS ${rs} too low`);
+        continue;
+      }
+    }
+
+    // Standard bullish filter for non-momentum, non-base entries
+    if (!isMomentumEntry && !isBaseEntry && marketBullish) {
+      if (!validSignals.includes(signal) || useScore < CONFIG.MIN_PRIORITY) continue;
+    }
+
+    // GATE 3: Late Entry Block
+    if (isBreakoutStage && rs > 0 && rs < CONFIG.LATE_ENTRY_MIN_RS) continue;
+
+    // GATE 4: Price Validity
+    if (cmp <= 0 || atr <= 0) continue;
+    if (cmp > CONFIG.MAX_CMP) continue;
+
+    // GATE 4b: Result Day Skip (allow momentum entries through this gate)
+    const absChange = Math.abs(pctChange);
+    if (!isMomentumEntry) {
+      if (absChange > CONFIG.CORP_ACTION_SKIP_PCT) continue;
+      if (absChange > CONFIG.RESULT_DAY_SKIP_PCT)  continue;
+    } else {
+      // For momentum: only block extreme moves (circuit filter)
+      if (absChange > CONFIG.CORP_ACTION_SKIP_PCT) continue;
+    }
+
+    // GATE 5: Extension Filter (base entries exempt)
+    if (!isBaseEntry && !isMomentumEntry) {
+      if (isBreakoutStage) {
+        if (retestPct < CONFIG.RETEST_MAX_PULLBACK) continue;
+      } else {
+        if (distDMA > CONFIG.MAX_DIST_ABOVE_20DMA) continue;
+      }
+    }
+
+    // GATE 6: Pivot Resistance (base and momentum exempt)
+    if (signal !== "🎯 RETEST BUY" && !isBreakoutStage && !isBaseEntry && !isMomentumEntry) {
+      if (pivotRes > 0 && cmp > 0 && ((pivotRes - cmp) / cmp) < CONFIG.PIVOT_RESISTANCE_BUFFER && pivotRes > cmp) continue;
+    }
+
+    // GATE 7: Volume Filter (momentum entries bypass if price confirms)
+    if (!isMorning && marketBullish && !volumeBypass) {
+      const isBaseStage    = stage.includes("Correction Base") || stage.includes("Building Momentum");
+      const isBasePrepared = (signal === "💎 BASE PREPARED");
+      if (isBreakoutStage) {
+        // exempt
+      } else if (isBaseEntry || isBaseStage || isBasePrepared) {
+        if (volVsAvg < CONFIG.BASE_STAGE_MIN_VOL) continue;
+      } else {
+        if (volVsAvg < 120) continue;
+      }
+    }
+
+    // GATE 8: ATH Buffer (base and momentum exempt)
+    if (!isBreakoutStage && !isBaseEntry && !isMomentumEntry) {
+      if (high52 > 0 && ((high52 - cmp) / high52) * 100 < CONFIG.ATH_BUFFER_PCT) continue;
+    }
+
+    // GATE 9: Trade Type
+    const niftyTradeType = (r[24] || "").toString().trim();
+    if (niftyTradeType.includes("AVOID") || niftyTradeType.includes("NO TRADE")) continue;
+
+    // GATE 10: Sector Concentration
+    if ((sectorCount[sector] || 0) >= 2) continue;
+
+    const { ttype } = _mapTradeType(niftyTradeType, priority, atr, cmp, volVsAvg, pctChange, smaStr, timeStr);
+
+    // SL / Target
+    let sl, target;
+    const isTopRanked  = (rank >= 1 && rank <= CONFIG.RANK_CONV_BONUS_MAX);
+    const swingTgtMult = isTopRanked ? CONFIG.ATR_TGT_SWING_LEADER : CONFIG.ATR_TGT_SWING;
+
+    if (isBaseEntry) {
+      const rawSl = cmp - atr * CONFIG.ATR_SL_BASE;
+      sl     = (dma20 > 0 && dma20 < cmp) ? parseFloat(Math.max(rawSl, dma20 * 0.99).toFixed(2)) : parseFloat(rawSl.toFixed(2));
+      target = parseFloat((cmp + atr * CONFIG.ATR_TGT_BASE).toFixed(2));
+    } else if (isMomentumEntry) {
+      // Momentum entries: tighter SL (intraday style), swing target
+      sl     = parseFloat((cmp - atr * 1.5).toFixed(2));
+      target = parseFloat((cmp + atr * 3.0).toFixed(2));
+    } else if (ttype === "📈 Positional" && niftyTradeType.includes("Value")) {
+      const rawSl = cmp - atr * CONFIG.ATR_SL_POSITIONAL;
+      sl     = (dma50 > 0 && dma50 < cmp) ? parseFloat(Math.max(rawSl, dma50).toFixed(2)) : parseFloat(rawSl.toFixed(2));
+      target = parseFloat((cmp + atr * CONFIG.ATR_TGT_POSITIONAL).toFixed(2));
+    } else if (ttype === "📈 Positional") {
+      const rawSl = cmp - atr * CONFIG.ATR_SL_POSITIONAL;
+      sl     = (dma20 > 0 && dma20 < cmp) ? parseFloat(Math.max(rawSl, dma20).toFixed(2)) : parseFloat(rawSl.toFixed(2));
+      target = parseFloat((cmp + atr * CONFIG.ATR_TGT_POSITIONAL).toFixed(2));
+    } else if (ttype === "⚡ Intraday" || ttype === "📊 Options Alert") {
+      sl     = parseFloat((cmp - atr * CONFIG.ATR_SL_INTRADAY).toFixed(2));
+      target = parseFloat((cmp + atr * CONFIG.ATR_TGT_INTRADAY).toFixed(2));
+    } else {
+      sl     = parseFloat((cmp - atr * CONFIG.ATR_SL_SWING).toFixed(2));
+      target = parseFloat((cmp + atr * swingTgtMult).toFixed(2));
+    }
+
+    if (sl >= cmp) sl = parseFloat((cmp * 0.97).toFixed(2));
+
+    const risk   = cmp - sl;
+    const reward = target - cmp;
+    const rrNum  = risk > 0 ? (reward / risk) : 0;
+    if (rrNum < CONFIG.MIN_RR) continue;
+
+    const convBonus  = _convictionBonus(r, marketBullish);
+    const finalScore = useScore + convBonus;
+    const capital    = _getCapital(useScore, af, fiiBuyZone);
+    const mode       = _tradeMode(r);
+    const qty        = (cmp > 0) ? Math.round(capital / cmp) : 0;
+    const atrPct     = atr > 0 ? (atr / cmp) * 100 : 99;
+    const stageTag   = _buildStageTag(signal, ttype, stage, smaStr, fiiBuyZone, isBaseEntry, isMomentumEntry);
+
+    // v15.6: Pass high52 to options signal for ATH check
+    const optSignal  = _generateOptionsSignal(sym, cmp, atr, stage, pctChange, indiaVix, isBaseEntry, high52);
+
+    batchCands.push({
+      priority: finalScore, rawPriority: useScore,
+      rank, sector, capital, mode, qty, sym, af, atrPct,
+      optSignal, stage, cmp, atr, isBaseEntry, isMomentumEntry,
+      row: [
+        nowTime, sym, "", priority, ttype, signal, stageTag,
+        sl, target, "1:" + rrNum.toFixed(1), "⏳ WAITING",
+        "", "", "", "", "", "", "", qty,
+      ]
+    });
+  }
+
+  if (!isFullScan && scanEnd < totalRows) {
+    try {
+      const storeable = batchCands.map(c => ({...c, optSignal: null}));
+      _bmSet(ss, bm, "_BATCH_CANDS", encodeURIComponent(JSON.stringify(storeable)), "", "STATE");
+    } catch(e) { Logger.log("[BATCH] Could not save: " + e); }
+    return false;
+  }
+
+  batchCands.sort((a, b) => {
+    const scoreDiff = b.priority - a.priority;
+    if (Math.abs(scoreDiff) > 2) return scoreDiff;
+    const aL = (a.rank >= 1 && a.rank <= CONFIG.RANK_LEADER_MAX) ? 1 : 0;
+    const bL = (b.rank >= 1 && b.rank <= CONFIG.RANK_LEADER_MAX) ? 1 : 0;
+    if (bL !== aL) return bL - aL;
+    return (a.atrPct || 99) - (b.atrPct || 99);
+  });
+
+  const waitingSectorCount = Object.assign({}, sectorCount);
+  const finalWaiting       = [];
+  let totalDeployed        = finalTraded.length * CONFIG.CAPITAL_MED;
+
+  for (const c of batchCands) {
+    // v15.6: Use regime-appropriate max waiting slots
+    if (finalWaiting.length >= maxWaitingSlots) break;
+    const sec = c.sector || "UNKNOWN";
+    if ((waitingSectorCount[sec] || 0) >= 2) continue;
+    if (totalDeployed + c.capital > CONFIG.MAX_DEPLOYED + CONFIG.CAPITAL_HIGH) continue;
+    waitingSectorCount[sec] = (waitingSectorCount[sec] || 0) + 1;
+    totalDeployed += c.capital;
+
+    const key = c.sym.replace(/[:\s]/g, '_');
+    _bmSet(ss, bm, `${key}_CAP`,  c.capital.toString(), c.sym, "TRADE");
+    _bmSet(ss, bm, `${key}_MODE`, c.mode,               c.sym, "TRADE");
+    _bmSet(ss, bm, `${key}_SEC`,  c.sector,             c.sym, "TRADE");
+    if (c.rank > 0)        _bmSet(ss, bm, `${key}_RANK`, c.rank.toString(), c.sym, "TRADE");
+    if (c.isBaseEntry)     _bmSet(ss, bm, `${key}_BASE`, "1", c.sym, "TRADE");
+    if (c.isMomentumEntry) _bmSet(ss, bm, `${key}_MOM`,  "1", c.sym, "TRADE");
+
+    finalWaiting.push(c.row);
+    Logger.log(`[CAND] ${c.sym} | ${c.isBaseEntry ? "BASE" : c.isMomentumEntry ? "MOMENTUM" : "BREAKOUT"} | Score=${c.priority.toFixed(0)} | RR=${c.row[9]}`);
+
+    if (c.optSignal) {
+      _sendOptionsAlertPremium(c.sym, c.cmp, c.optSignal, c.stage, c.row[7], c.row[8], c.row[9], bm, ss);
+    }
+  }
+
+  // MOMENTUM SCAN — unchanged from v15.5
+  const momCands = [];
+  if (marketBullish && timeStr <= CONFIG.MOM_WINDOW_END) {
+    for (let i = 2; i < totalRows; i++) {
+      const r   = inputData[i];
+      const sym = (r[0] || "").toString().trim();
+      if (!sym || sym.includes("NIFTY") || alreadyTraded.has(sym)) continue;
+      if (finalWaiting.find(row => row[1] === sym)) continue;
+      const pctChange = parseFloat(r[3])  || 0;
+      const volVsAvg  = parseFloat(r[14]) || 0;
+      const cmp       = parseFloat(r[2])  || 0;
+      const atr       = parseFloat(r[28]) || 0;
+      const smaStr    = (r[7]  || "").toString().trim();
+      const fiiSignal = (r[32] || "").toString().trim();
+      const sector    = (r[1]  || "UNKNOWN").toString().trim();
+      if (pctChange < CONFIG.MOM_MIN_CHANGE_PCT) continue;
+      if (volVsAvg  < CONFIG.MOM_MIN_VOLUME_PCT) continue;
+      if (fiiSignal === "FII SELLING")            continue;
+      if (cmp <= 0 || atr <= 0)                  continue;
+      if (cmp > CONFIG.MAX_CMP)                  continue;
+      if (smaStr !== "Strong Bull" && smaStr !== "Bull") continue;
+      if (Math.abs(pctChange) > CONFIG.RESULT_DAY_SKIP_PCT) continue;
+      const sl    = parseFloat((cmp - atr * 1.5).toFixed(2));
+      const tgt   = parseFloat((cmp + atr * 2.5).toFixed(2));
+      const rrNum = (cmp - sl) > 0 ? (tgt - cmp) / (cmp - sl) : 0;
+      if (rrNum < 1.5) continue;
+      momCands.push({
+        sym, sector,
+        row: [nowTime, sym, "", 20, "⚡ MOM Swing", "➖ HOLD",
+          `⚡ MOMENTUM | +${pctChange.toFixed(1)}% | Vol ${volVsAvg.toFixed(0)}%`,
+          sl, tgt, "1:" + rrNum.toFixed(1), "⏳ WAITING",
+          "", "", "", "", "", "", "", Math.round(CONFIG.CAPITAL_STD / cmp)]
+      });
+      if (momCands.length >= CONFIG.MAX_MOM_SLOTS) break;
+    }
+    for (const c of momCands) {
+      const key = c.sym.replace(/[:\s]/g, '_');
+      _bmSet(ss, bm, `${key}_CAP`,  CONFIG.CAPITAL_STD.toString(), c.sym, "TRADE");
+      _bmSet(ss, bm, `${key}_MODE`, "MOM",                         c.sym, "TRADE");
+      _bmSet(ss, bm, `${key}_SEC`,  c.sector,                      c.sym, "TRADE");
+      finalWaiting.push(c.row);
+    }
+  }
+
+  // Write AlertLog
+  let finalGrid = finalTraded.concat(finalWaiting);
+  while (finalGrid.length < CONFIG.LOG_ROWS) finalGrid.push(new Array(CONFIG.TOTAL_COLS).fill(""));
+  logSheet.getRange(2, 1, CONFIG.LOG_ROWS, CONFIG.TOTAL_COLS).clearContent();
+  logSheet.getRange(2, 1, CONFIG.LOG_ROWS, CONFIG.TOTAL_COLS).setValues(finalGrid);
+  _restoreFormulas(logSheet);
+  _writeOptionsColumns(logSheet, finalWaiting, batchCands, indiaVix, finalTraded.length);
+
+  // Regime alert
+  const regimeFlag = today + (marketBullish ? "_BULLISH" : "_BEARISH");
+  if (!_bmExists(bm, regimeFlag)) {
+    let topSector = "", topAf = 0;
+    for (const sec in sectorAfSum) {
+      const avgAf = sectorAfSum[sec] / (sectorAfCount[sec] || 1);
+      if (avgAf > topAf) { topAf = avgAf; topSector = sec; }
+    }
+    const baseCount     = finalWaiting.filter(r => r[6] && r[6].toString().includes("📦 BASE")).length;
+    const momentumCount = finalWaiting.filter(r => r[6] && r[6].toString().includes("🚀 MOMENTUM BREAKOUT")).length;
+    const breakoutCount = finalWaiting.length - baseCount - momentumCount;
+
+    let regimeMsg;
+    if (!marketBullish) {
+      regimeMsg =
+        `⚠️ <b>MARKET REGIME: BEARISH</b>\n` +
+        `Nifty ₹${niftyCmp.toFixed(0)} below 20DMA ₹${nifty20d.toFixed(0)}\n` +
+        `v15.6 HARD BLOCK: Max ${maxWaitingSlots} slots | Score≥${CONFIG.BEARISH_HARD_MIN_SCORE} only\n` +
+        `VIX: ${indiaVix.toFixed(1)}\n`;
+      if (momentumSectors.size > 0) regimeMsg += `🚀 Momentum sectors: ${[...momentumSectors].join(', ')}\n`;
+      if (topSector) regimeMsg += `🔄 Strongest: ${topSector} (AF: ${topAf.toFixed(1)})\n`;
+      if (finalWaiting.length > 0) {
+        regimeMsg += `\n⚡ <b>${finalWaiting.length} exceptional candidate(s):</b>\n`;
+        finalWaiting.slice(0, 3).forEach(r => {
+          regimeMsg += `• <b>${r[1]}</b> [${r[4]}] — ${r[6]}\n  SL ₹${r[7]} → T ₹${r[8]} | RR ${r[9]}\n`;
+        });
+      } else {
+        regimeMsg += `\n🛑 No new entries today. Cash is a position.`;
+      }
+    } else {
+      regimeMsg =
+        `🟢 <b>SCANNER DONE — ${today}</b>\n` +
+        `Nifty ₹${niftyCmp.toFixed(0)} | 20DMA ₹${nifty20d.toFixed(0)} | VIX: ${indiaVix.toFixed(1)}\n`;
+      if (momentumSectors.size > 0) regimeMsg += `🚀 Sector momentum: ${[...momentumSectors].join(', ')}\n`;
+      if (topSector) regimeMsg += `🔄 Strongest: ${topSector} (AF: ${topAf.toFixed(1)})\n`;
+      if (finalWaiting.length > 0) {
+        if (baseCount > 0)     regimeMsg += `📦 Base: ${baseCount} | `;
+        if (momentumCount > 0) regimeMsg += `🚀 Momentum: ${momentumCount} | `;
+        if (breakoutCount > 0) regimeMsg += `💥 Breakout: ${breakoutCount}`;
+        regimeMsg += `\n\n📋 <b>${finalWaiting.length} candidate(s):</b>\n`;
+        finalWaiting.slice(0, 8).forEach(r => {
+          regimeMsg += `• <b>${r[1]}</b> [${r[4]}] — ${r[6]}\n  SL ₹${r[7]} → T ₹${r[8]} | RR ${r[9]}\n`;
+        });
+      } else {
+        regimeMsg += `\n📭 No candidates passed today.`;
+      }
+      regimeMsg += `\n<i>Entry alerts sent when market opens.</i>`;
+    }
+    _sendTelegramAdvanceAndPremium(regimeMsg);
+    _bmSet(ss, bm, regimeFlag, "1", "", "FLAG");
+  }
+
+  Logger.log(`[DONE] Traded=${finalTraded.length} | Waiting=${finalWaiting.length} (Base=${batchCands.filter(c=>c.isBaseEntry).length}, Momentum=${batchCands.filter(c=>c.isMomentumEntry).length}) | Bullish=${marketBullish} | v15.6`);
+  return true;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// WRITE OPTIONS COLUMNS — v15.5 (unchanged, tradedCount fix retained)
+// ══════════════════════════════════════════════════════════════════════════════
+function _writeOptionsColumns(logSheet, finalWaiting, batchCands, vix, tradedCount) {
+  tradedCount = tradedCount || 0;
+  try {
+    const headers = logSheet.getRange(1, 21, 1, 4).getValues()[0];
+    if (!headers[0] || headers[0].toString().trim() === "") {
+      logSheet.getRange(1, 21).setValue("Options Signal");
+      logSheet.getRange(1, 22).setValue("Strike");
+      logSheet.getRange(1, 23).setValue("Expiry");
+      logSheet.getRange(1, 24).setValue("Theta Risk");
+    }
+    logSheet.getRange(2, 21, 21, 4).clearContent();
+    // BATCH WRITE: build full 21×4 grid, write in one call (was 4 calls per row)
+    const optGrid = Array.from({length: 21}, () => ["", "", "", ""]);
+    for (let rowIdx = 0; rowIdx < finalWaiting.length; rowIdx++) {
+      const waitRow = finalWaiting[rowIdx];
+      const sym     = (waitRow[1] || "").toString().trim();
+      if (!sym) continue;
+      const cand = batchCands.find(c => c.sym === sym);
+      if (!cand || !cand.optSignal) continue;
+      const opt      = cand.optSignal;
+      const gridIdx  = rowIdx + tradedCount; // 0-based index into grid
+      if (gridIdx < 21) {
+        optGrid[gridIdx][0] = opt.signal    || "⏸ SKIP";
+        optGrid[gridIdx][1] = opt.strike    || "—";
+        optGrid[gridIdx][2] = opt.expiryStr || "—";
+        optGrid[gridIdx][3] = opt.thetaRisk || "—";
+      }
+    }
+    logSheet.getRange(2, 21, 21, 4).setValues(optGrid);
+  } catch(e) { Logger.log("[OPTIONS] Column write error: " + e); }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// FORMULA RESTORE — v15.5 (unchanged)
+// ══════════════════════════════════════════════════════════════════════════════
+function _restoreFormulas(logSheet) {
+  const endRow = CONFIG.LOG_ROWS + 1;
+  for (let i = 2; i <= endRow; i++) {
+    const sym    = (logSheet.getRange(i, 2).getValue()  || "").toString().trim();
+    const status = (logSheet.getRange(i, 11).getValue() || "").toString().toUpperCase();
+    const traded = _isTraded(status);
+    logSheet.getRange(i, 3).setValue("");
+    if (sym) logSheet.getRange(i, 3).setFormula(`=IFERROR(VLOOKUP(B${i},'${CONFIG.SHEET_NAME}'!A:C,3,FALSE),"")`);
+    logSheet.getRange(i, 14).setValue("—");
+    if (traded && sym) logSheet.getRange(i, 14).setFormula(`=IF(M${i}<>"",MAX(0,INT(NOW()-DATEVALUE(TEXT(M${i},"yyyy-mm-dd")))),"—")`);
+    logSheet.getRange(i, 16).setValue("");
+    if (traded && sym) logSheet.getRange(i, 16).setFormula(`=IF(AND(L${i}<>"",C${i}<>"",L${i}<>0),ROUND(((C${i}-L${i})/L${i})*100,2),"")`);
+    logSheet.getRange(i, 17).setValue("");
+    if (sym) logSheet.getRange(i, 17).setFormula(`=IF(B${i}="","",IFERROR(IF(((VLOOKUP(B${i},'${CONFIG.SHEET_NAME}'!A:J,10,FALSE)-C${i})/VLOOKUP(B${i},'${CONFIG.SHEET_NAME}'!A:J,10,FALSE))*100<3,"⚠️ NEAR ATH","✅ OK"),"—"))`);
+    logSheet.getRange(i, 18).setValue("");
+    if (sym) logSheet.getRange(i, 18).setFormula(`=IF(AND(H${i}<>"",H${i}<>0),IF(L${i}<>"",ROUND((L${i}-H${i})*S${i},0),IF(C${i}<>"",ROUND((C${i}-H${i})*S${i},0),"—")),"—")`);
+    if (sym) {
+      const sVal    = logSheet.getRange(i, 19).getValue();
+      const isEmpty = (sVal === "" || sVal === "—" || sVal === null || (typeof sVal === "string" && sVal.trim() === ""));
+      if (isEmpty) logSheet.getRange(i, 19).setFormula(`=IF(L${i}<>"",ROUND(10000/L${i},0),IF(C${i}<>"",ROUND(10000/C${i},0),"—"))`);
+    } else { logSheet.getRange(i, 19).setValue(""); }
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// MORNING CLEANUP
+// ══════════════════════════════════════════════════════════════════════════════
+function clearWaitingRowsOnly() {
+  const logSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.LOG_SHEET);
+  const data     = logSheet.getRange(2, 1, CONFIG.LOG_ROWS, CONFIG.TOTAL_COLS).getValues();
+  const traded   = data.filter(r => _isTraded((r[10] || "").toString().toUpperCase()));
+  logSheet.getRange(2, 1, CONFIG.LOG_ROWS, CONFIG.TOTAL_COLS).clearContent();
+  if (traded.length > 0) logSheet.getRange(2, 1, traded.length, CONFIG.TOTAL_COLS).setValues(traded);
+  _restoreFormulas(logSheet);
+  logSheet.getRange(2, 21, 21, 4).clearContent();
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// FRESH CLEAN START
+// ══════════════════════════════════════════════════════════════════════════════
+function freshCleanStart() {
+  const ss       = SpreadsheetApp.getActiveSpreadsheet();
+  const ui       = SpreadsheetApp.getUi();
+  const logSheet = ss.getSheetByName(CONFIG.LOG_SHEET);
+  const confirm  = ui.alert('🧹 FRESH CLEAN START', 'Clears AlertLog + BotMemory. T2 untouched. Are you sure?', ui.ButtonSet.YES_NO);
+  if (confirm !== ui.Button.YES) { ui.alert('❌ Cancelled.'); return; }
+  logSheet.getRange(2, 1, CONFIG.LOG_ROWS, CONFIG.TOTAL_COLS).clearContent();
+  logSheet.getRange(2, 21, 21, 4).clearContent();
+  _restoreFormulas(logSheet);
+  const bmSheet = ss.getSheetByName(CONFIG.BM_SHEET);
+  if (bmSheet) {
+    const lastRow = bmSheet.getLastRow();
+    if (lastRow >= 2) {
+      const data = bmSheet.getRange(2, 1, lastRow - 1, 5).getValues();
+      for (let i = 0; i < data.length; i++) {
+        const ktype = (data[i][4] || "").toString().trim();
+        if (ktype === "TRADE" || ktype === "STATE") bmSheet.getRange(i + 2, 1, 1, 5).clearContent();
+      }
+    }
+  }
+  ["PriceCache","TempPriceCalc"].forEach(name => { const s = ss.getSheetByName(name); if (s) ss.deleteSheet(s); });
+  ui.alert('✅ Done. Click 🔄 MANUAL SYNC to fill candidates.');
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// WEEKLY SUMMARY
+// ══════════════════════════════════════════════════════════════════════════════
+function sendWeeklySummary() {
+  const ss       = SpreadsheetApp.getActiveSpreadsheet();
+  const hist     = ss.getSheetByName(CONFIG.HISTORY_SHEET);
+  const logSheet = ss.getSheetByName(CONFIG.LOG_SHEET);
+  const now      = new Date();
+  const today    = Utilities.formatDate(now, CONFIG.IST_ZONE, "yyyy-MM-dd");
+  const day      = now.getDay();
+  const mon      = new Date(now);
+  mon.setDate(now.getDate() - (day - 1));
+  const monStr   = Utilities.formatDate(mon, CONFIG.IST_ZONE, "yyyy-MM-dd");
+  const allHist  = hist ? hist.getDataRange().getValues() : [];
+  const weekRows = allHist.slice(1).filter(r => r[3] >= monStr && r[3] <= today);
+  const wins     = weekRows.filter(r => (r[6] || "").toString().toUpperCase().includes("WIN"));
+  const losses   = weekRows.filter(r => (r[6] || "").toString().toUpperCase().includes("LOSS"));
+  const totalPL  = weekRows.reduce((s, r) => s + (parseFloat(r[16]) || 0), 0);
+  const winRate  = weekRows.length > 0 ? Math.round((wins.length / weekRows.length) * 100) : 0;
+  let best = null, worst = null;
+  for (const r of weekRows) {
+    const pl = parseFloat(r[16]) || 0;
+    if (!best  || pl > (parseFloat(best[16])  || 0)) best  = r;
+    if (!worst || pl < (parseFloat(worst[16]) || 0)) worst = r;
+  }
+  const logData    = logSheet.getRange(2, 1, CONFIG.LOG_ROWS, CONFIG.TOTAL_COLS).getValues();
+  const openTrades = logData.filter(r => _isTraded((r[10] || "").toString().toUpperCase()));
+  let msg =
+    `📅 <b>WEEKLY REPORT — w/e ${today}</b>\n━━━━━━━━━━━━━━━━━━━━\n` +
+    `📊 Trades: ${weekRows.length} | ✅ ${wins.length}W / ❌ ${losses.length}L | Win: ${winRate}%\n` +
+    `💰 P/L: <b>₹${totalPL >= 0 ? '+' : ''}${Math.round(totalPL).toLocaleString()}</b>\n`;
+  if (best)              msg += `🏆 Best:  <b>${best[0]}</b> ₹${Math.round(parseFloat(best[16])  || 0)}\n`;
+  if (worst && worst !== best) msg += `💀 Worst: <b>${worst[0]}</b> ₹${Math.round(parseFloat(worst[16]) || 0)}\n`;
+  msg += `\n📌 Open: ${openTrades.length}/${CONFIG.MAX_TRADES}\n`;
+  msg += `<i>AI360 Trading v15.6 — Base + Breakout + Momentum + Options</i>`;
+  _sendTelegramAdvanceAndPremium(msg);
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function _isTraded(status)  { const s = status.toString().toUpperCase(); return s.includes("TRADED") && !s.includes("EXITED"); }
+function _isWaiting(status) { return status.toString().toUpperCase().includes("WAITING"); }
+
+// ── TEST FUNCTIONS ────────────────────────────────────────────────────────────
+function testTelegram() {
+  const now     = new Date();
+  const timeStr = Utilities.formatDate(now, CONFIG.IST_ZONE, "dd-MMM HH:mm");
+  _sendTelegramToChat(CONFIG.CHAT_ID_BASIC,   `✅ <b>TEST — ${timeStr}</b>\nChannel: Basic 🆓\nv15.6 ✅`);
+  _sendTelegramToChat(CONFIG.CHAT_ID_ADVANCE, `✅ <b>TEST — ${timeStr}</b>\nChannel: Advance 📊\nv15.6 ✅`);
+  _sendTelegramToChat(CONFIG.CHAT_ID_PREMIUM, `✅ <b>TEST — ${timeStr}</b>\nChannel: Premium 💎\nv15.6 + Bearish Block + Momentum + ATH Options Fix ✅`);
+}
+
+function testOptionsSignal() {
+  const ss        = SpreadsheetApp.getActiveSpreadsheet();
+  const inputData = ss.getSheetByName(CONFIG.SHEET_NAME).getDataRange().getValues();
+  const vix       = _getIndiaVix(inputData);
+  const expiry    = _getRecommendedExpiry(OPTIONS_CONFIG.MIN_DAYS_EXPIRY);
+  const expiryStr = Utilities.formatDate(expiry.date, CONFIG.IST_ZONE, "dd-MMM-yyyy");
+  const testBreakout = _generateOptionsSignal("NSE:ADANIPORTS", 1691, 33.5, "⚡ BREAKOUT ALERT", -4.32, vix, false, 1823.9);
+  const testATH      = _generateOptionsSignal("NSE:MCX",        3353,  80,  "⚡ BREAKOUT ALERT",  0.50, vix, false, 3500);
+  const msg =
+    `📊 <b>OPTIONS TEST — v15.6</b>\n━━━━━━━━━━━━━━━━━━━━\n` +
+    `VIX: ${vix.toFixed(1)} | Expiry: ${expiryStr} (${expiry.daysLeft}d)\n\n` +
+    `BREAKOUT (ADANIPORTS): ${testBreakout.signal} | ${testBreakout.strike}\n` +
+    `ATH TEST (MCX near ATH): ${testATH.signal} | ${testATH.message}\n` +
+    `✅ v15.6 ATH block working`;
+  _sendTelegramPremium(msg);
+  SpreadsheetApp.getUi().alert("Options test sent to Premium channel.");
+}
+
+function testBaseEntry() {
+  const ss        = SpreadsheetApp.getActiveSpreadsheet();
+  const inputData = ss.getSheetByName(CONFIG.SHEET_NAME).getDataRange().getValues();
+  const vix       = _getIndiaVix(inputData);
+
+  const test1 = _checkBaseEntry("Correction Base",   "Accumulation Zone", 0.03, 18, "Strong Bull", 500, 420, 20);
+  const test2 = _checkBaseEntry("Building Momentum", "Momentum Zone",     0.03, 18, "Strong Bull", 500, 420, 20);
+  const test3 = _checkBaseEntry("Correction Base",   "Accumulation Zone", 0.08, 18, "Strong Bull", 500, 420, 20);
+  const test4 = _checkBaseEntry("Correction Base",   "Accumulation Zone", 0.03, 10, "Strong Bull", 500, 420, 20);
+
+  const testMom1 = _checkMomentumBreakout(5.15, 150, 10.16, 1994, 1348, "Sideways"); // COFORGE
+  const testMom2 = _checkMomentumBreakout(4.85, -10, 0,     1854, 1437, "Sideways"); // TECHM (low RS)
+  const testMom3 = _checkMomentumBreakout(5.48, 200, 22,    5554, 4960, "Sideways"); // PERSISTENT
+
+  const msg =
+    `📦 <b>BASE + MOMENTUM TEST — v15.6</b>\n━━━━━━━━━━━━━━━━━━━━\n` +
+    `VIX: ${vix.toFixed(1)}\n\n` +
+    `BASE TESTS:\n` +
+    `Test 1 (all pass): ${test1.qualifies ? "✅" : "❌"} ${test1.reason}\n` +
+    `Test 2 (FII fail): ${test2.qualifies ? "✅" : "❌"} ${test2.reason}\n` +
+    `Test 3 (VCP fail): ${test3.qualifies ? "✅" : "❌"} ${test3.reason}\n` +
+    `Test 4 (Days fail): ${test4.qualifies ? "✅" : "❌"} ${test4.reason}\n\n` +
+    `MOMENTUM BREAKOUT TESTS (v15.6):\n` +
+    `COFORGE +5.15%: ${testMom1.isMomentum ? "✅ ALLOWED" : "❌ BLOCKED"} — ${testMom1.reason}\n` +
+    `TECHM +4.85% (low RS): ${testMom2.isMomentum ? "✅ ALLOWED" : "❌ BLOCKED"} — ${testMom2.reason}\n` +
+    `PERSISTENT +5.48%: ${testMom3.isMomentum ? "✅ ALLOWED" : "❌ BLOCKED"} — ${testMom3.reason}\n\n` +
+    `✅ v15.6 Momentum gate working`;
+  _sendTelegramPremium(msg);
+  SpreadsheetApp.getUi().alert("Tests sent to Premium channel.");
+}

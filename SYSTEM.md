@@ -1,8 +1,20 @@
 # AI360Trading — Master System Documentation
 
-**Last Updated:** May 2026 — Trading Bot v15.0 + AppScript v14.0
+**Last Updated:** May 2026 — Trading Bot v15.1 + AppScript v15.6
 **Status:** Phase 1 ✅ Complete | Phase 2 ✅ Complete | Phase 3 🔄 Planned | Phase 4 (Dhan Live) 📋 Planned
 **Primary Audience:** Bilingual Hindi + English — Indian retail traders + global investors
+
+---
+
+## 💻 Claude Code (PC Install) — Special Notes
+
+> Claude Code is installed directly on Amit ji's PC at `C:\Users\Admin\ai360trading`. It reads ALL project files directly via filesystem — no need to share GitHub URLs. The Rule A "fetch from GitHub URL" applies ONLY to Claude.ai web sessions, NOT to Claude Code PC sessions.
+
+**Claude Code can directly read:** All .py files, SYSTEM.md, requirements.txt, _posts/, _layouts/, workflows — everything in the project folder.
+
+**For AppScript:** Save the script as `appscript_v14.gs` in the project root (`C:\Users\Admin\ai360trading\appscript_v14.gs`) and Claude Code can read it directly. Note: the file is named v14 but the code inside is **AppScript v15.6** — the filename was not renamed.
+
+**For Google Sheet:** Share with Google Drive MCP (authenticate once in session) OR give editor/viewer link — Claude Code has Google Drive MCP tools available.
 
 ---
 
@@ -62,7 +74,7 @@ Before changing any file, understand what it does and what depends on it. A brok
 Every tool, API, and service used must have a free tier sufficient for daily operation. Before suggesting any new tool or service, verify its free limits. Current free services in use: GitHub Actions (2000 min/month free), Google Sheets (free), Groq API (free), Gemini API (free tier), GitHub Pages (free). Paid fallbacks (Anthropic, OpenAI) are last resort only — keep usage minimal.
 
 **3. API credits and token expiry must be monitored.**
-- META_ACCESS_TOKEN: auto-refreshed every 50 days by token_refresh.yml ✅
+- META_ACCESS_TOKEN: auto-refreshed every ~20 days (1st + 20th of month) by token_refresh.yml ✅
 - META_ACCESS_TOKEN_KIDS: Page token, never expires ✅
 - Groq: free, no expiry
 - GitHub Actions minutes: monitor monthly usage
@@ -208,7 +220,7 @@ All workflows support `workflow_dispatch` with a `content_mode` dropdown to forc
 
 | File | Role | Key Tech | Status |
 | --- | --- | --- | --- |
-| `trading_bot.py` | Nifty200 signal monitor + TSL manager + Telegram alerts | gspread + Google Sheets + Telegram Bot API | ✅ v13.5 |
+| `trading_bot.py` | Nifty200 signal monitor + TSL manager + Telegram alerts | gspread + Google Sheets + Telegram Bot API | ✅ v15.1 |
 | `generate_shorts.py` | Short 2 (Madhur) + Short 3 (Swara) | ai\_client, human\_touch, Edge-TTS | ✅ Phase 2 |
 | `generate_reel.py` | ZENO 60s reel (8:30 PM) — bgmusic removed, Python audio only | ai\_client, human\_touch, MoviePy | ✅ Phase 2 |
 | `generate_reel_morning.py` | Morning reel (7:00 AM) — day/country aware — bgmusic being removed | ai\_client, human\_touch, MoviePy | ✅ |
@@ -224,7 +236,7 @@ All workflows support `workflow_dispatch` with a `content_mode` dropdown to forc
 | --- | --- | --- |
 | `upload_youtube.py` | Uploads reel; saves `youtube_video_id` + `public_video_url` to meta. Hindi→English auto-caption planned Phase 3. | ✅ |
 | `upload_youtube_english.py` | Uploads to English channel (separate credentials) | 🔄 Phase 3 |
-| `upload_facebook.py` | Uploads reel to FB Page; shares to Group; posts articles | ✅ |
+| `upload_facebook.py` | Uploads reel to FB Page; shares to Group; posts articles | ✅ v2.5 |
 | `upload_kids_youtube.py` | Uploads kids video to HerooQuest YouTube + Facebook | ✅ |
 | `upload_instagram.py` | Instagram auto-upload — being fully automated | 🔄 Building |
 
@@ -298,8 +310,8 @@ The trading system is split across two components that work together:
 
 | Component | File | Role |
 | --- | --- | --- |
-| AppScript v14.0 | Google Sheets bound script | Scans Nifty200 sheet, applies filters, writes WAITING candidates to AlertLog, stores memory in BotMemory sheet |
-| Python Bot v13.5 | `trading_bot.py` | Monitors AlertLog every 5 min, manages WAITING→TRADED transition, TSL updates, exit logic, Telegram alerts |
+| AppScript v15.6 | Google Sheets bound script (`appscript_v14.gs`) | Scans Nifty200, applies 11 gates, writes WAITING candidates to AlertLog, stores memory in BotMemory sheet |
+| Python Bot v15.1 | `trading_bot.py` | Monitors AlertLog every 5 min, manages WAITING→TRADED transition, TSL updates, exit logic, Telegram alerts |
 
 **Current status:** Paper trading. Followers receive Telegram signals and take manual entry. Dhan API integration planned for Phase 4 after backtest validation.
 
@@ -308,11 +320,15 @@ The trading system is split across two components that work together:
 | Sheet | Purpose |
 | --- | --- |
 | `Nifty200` | Live data for all 200 stocks — CMP, DMAs, FII data, signals, scores (35 cols A–AI) |
-| `AlertLog` | Active + waiting trades — 15 rows, 19 cols. T2=YES/NO automation switch |
+| `AlertLog` | Active + waiting trades — 21 rows (3 traded + 18 waiting slots), 24 cols A–X. T19=SYSTEM CONTROL (YES/NO automation switch) |
 | `BotMemory` | Persistent key-value memory store (cols A–E: Key, Value, UpdatedAt, Symbol, KeyType) |
 | `History` | Closed trade log — 18 cols A–R |
 
-> ✅ **Memory system:** All bot memory is stored in dedicated `BotMemory` sheet. T4 cell memory is fully removed — legacy references are invalid. Always use BotMemory sheet.
+> ✅ **Memory system — two layers (v15.1):**
+> - **BotMemory sheet (AppScript-written, KeyType=TRADE):** CAP, MODE, SEC, RANK, BASE, MOM keys per stock — written by AppScript v15.6
+> - **BotMemory sheet _RUNTIME_MEM row (Python-written, KeyType=STATE):** runtime state string — TSL, MAX, ATR, LP, RECD, daily flags. Previously in Y1 of AlertLog (now cleared). Moved in v15.1 so AlertLog webview is clean for website followers.
+> - Y1 cell: auto-cleared on first v15.1 run (code checks for `_TSL_`/`_MAX_`/`_LP_` pattern then clears). Do not use Y1 for anything.
+> - T4 cell memory: fully removed (legacy). BotMemory has duplicate key rows — this is cosmetic; `_bmGet()` reads first match, duplicates are inert.
 
 ### AlertLog Column Map (0-based)
 
@@ -322,9 +338,12 @@ E=4  Trade Type     F=5  Strategy      G=6  Breakout Stage H=7  Initial SL
 I=8  Target         J=9  RR Ratio      K=10 Trade Status   L=11 Entry Price
 M=12 Entry Time     N=13 Days in Trade O=14 Trailing SL    P=15 P/L%
 Q=16 ATH Warning    R=17 Risk ₹        S=18 Position Size  T=19 SYSTEM CONTROL
+U=20 Options Signal V=21 Strike        W=22 Expiry         X=23 Theta Risk
 ```
 
 **T2** = automation on/off switch (set YES to enable)
+
+> **Y column is now EMPTY** — runtime memory was previously stored in Y1 but has been moved to BotMemory sheet (v15.1). AlertLog is shown as a webview on ai360trading.in — Y1 is now clean for followers viewing the website.
 
 ### Nifty200 Column Map (0-based, used by AppScript)
 
@@ -349,40 +368,49 @@ r[32] FII_Buying_Signal(AG) r[33] Master_Score (AH)
 r[34] Sector_Rank (AI)    ← =RANK(AF, FILTER by same sector) — rank within sector by AF score
 ```
 
-### AppScript v14.0 — Key Logic
+### AppScript v15.6 — Key Logic
 
-> **v14.0 change:** Full BotMemory sheet migration (T4 cell no longer used). All gate conditions, capital tiers, ATR multipliers identical to v13.5. Deploy AppScript v14.0 and trading_bot.py BotMemory version together on a day with no open trades.
+> **v15.6 (May 2026 — current):** Hard Bearish Block, Momentum Breakout Gate, Options ATH Block, Sector Momentum Detection, Relative Volume bypass for 3%+ moves, Confirmation Entry Filter, Delivery % Proxy. File is `appscript_v14.gs` (filename kept, code is v15.6).
+
+**Key CONFIG values (v15.6):**
+- `MAX_DEPLOYED: 104000` — max capital across all trades
+- `MAX_CMP: 8000` — skip stocks above ₹8,000
+- `BEARISH_HARD_MIN_SCORE: 40` — minimum score in bearish market
+- `BEARISH_MAX_WAITING: 3` — max waiting slots in bearish market
+- `BEARISH_MIN_RS: 15` — minimum RS in bearish market
+- `MOMENTUM_BREAKOUT_MIN_PCT: 3.0` — 3%+ day gain triggers momentum bypass
 
 **Market Regime:** Nifty50 CMP vs 20DMA → Bullish or Bearish. Controls which filter gate applies.
 
-**Bearish gate (5 conditions all required):**
+**v15.6 Hard Bearish Block (all 3 required to enter in bearish market):**
 
-* Leader\_Type = "Sector Leader"
-* AF ≥ 5
-* Master\_Score ≥ 22
-* FII signal ≠ "FII CAUTION"
-* FII signal ≠ "FII SELLING"
-* Signal must be one of: RETEST BUY, STRONG BUY, BASE PREPARED
+* Score ≥ 40 (was just "STRONG BUY" in v14.0)
+* RS ≥ 15 (was RS≥5 in v14.0)
+* Max 3 WAITING slots total (hard cap regardless of conviction)
+* Still requires: Leader_Type = "Sector Leader" + FII signal ≠ "FII CAUTION"/"FII SELLING"
 
-**10 scan gates (in order):**
+**11 scan gates (in order) — v15.6:**
 
 1. FII SELLING → skip always
-2. Market regime filter (bullish vs bearish path)
+2. Market regime filter (bullish vs hard bearish block v15.6)
 3. Late entry block (BREAKOUT CONFIRMED needs RS≥7)
-4. Price validity (CMP>0, ATR>0, CMP≤₹5000)
-5. Extension filter — breakout stages: retest% < -3% → skip; others: >8% above 20DMA → skip
+4. Price validity (CMP>0, ATR>0, CMP≤₹8,000)
+5. Extension filter — retest%<-3% → skip; others: >8% above 20DMA → skip
 6. Pivot resistance buffer (within 2% below pivot → skip) — RETEST BUY exempt
-7. Volume filter (bullish only) — base/correction stages: vol<60% → skip; others: vol<120% → skip
-8. ATH buffer (within 3% of 52W high → skip)
+7. Volume filter (bullish) — base/correction: vol<60% skip; others: vol<120% skip. **v15.6 bypass:** if day gain ≥3% → volume gate skipped (momentum signal)
+8. ATH buffer (within 3% of 52W high → skip options; within 1% + not F&O liquid → ATH block for options)
 9. Trade type (AVOID/NO TRADE → skip)
-10. Sector concentration (max 2 per sector across traded + waiting combined)
+10. Sector concentration (max 2 per sector across traded + waiting)
+11. **v15.6 Momentum Breakout Gate** — if stock gains ≥3% with RS≥10 → allowed even in sideways/mild correction stage (bypasses stage filter)
+
+**Sector Momentum Detection (v15.6):** Tracks sectors with above-threshold average AF score → stored in `momentumSectors` set. Included in regime alert messages. Sector leaders in momentum sectors get conviction bonus.
 
 **Capital tiers:**
 
 * ₹13,000 — MasterScore≥28 AND AF≥10 (high conviction)
 * ₹10,000 — MasterScore≥22 OR Accumulation Zone (medium conviction)
 * ₹7,000 — standard
-* Max deployed: ₹45,000 across all trades
+* Max deployed: ₹104,000 across all trades (CONFIG.MAX_DEPLOYED)
 
 **RR minimum:** 1.8 (trades below this are skipped)
 
@@ -433,11 +461,14 @@ A: Key    B: Value    C: UpdatedAt    D: Symbol    E: KeyType
 
 KeyType values: `FLAG` (date-stamped, purged after 14 days), `TRADE` (per-symbol), `STATE` (batch state)
 
-**Memory keys written per stock by AppScript (KeyType=TRADE):**
+**Memory keys written per stock by AppScript v15.6 (KeyType=TRADE):**
 
 * `{sym}_CAP` — capital tier (7000/10000/13000)
-* `{sym}_MODE` — trade mode (VCP/MOM/STD)
+* `{sym}_MODE` — trade mode: `VCP` (VCP<0.04 + pre-breakout stage), `MOM` (Strong Bull + RS≥6), `STD` (default/bear)
 * `{sym}_SEC` — sector name (for Good Morning sector context)
+* `{sym}_RANK` — sector rank (rank within sector by AF score)
+* `{sym}_BASE` — set if this is a Base entry (v15.6 Base Entry type)
+* `{sym}_MOM` — set if this is a Momentum Breakout entry (v15.6 Momentum Breakout Gate)
 
 **Memory keys written by trading\_bot.py (KeyType=TRADE):**
 
@@ -453,7 +484,24 @@ KeyType values: `FLAG` (date-stamped, purged after 14 days), `TRADE` (per-symbol
 
 **Sector_Rank (AI column):** Sheet formula only — `=RANK(AF, FILTER by same sector)`. Not read by AppScript or trading\_bot.py. Informational display only in the sheet.
 
-### Python Bot v13.5 — Key Logic
+### Python Bot v15.1 — Key Logic
+
+**v15.0 Entry Filters (applied in order before every WAITING→TRADED promotion):**
+
+| Filter | Bullish Market | Bearish Market |
+| --- | --- | --- |
+| Re-entry cooldown (RECD) | 5 trading days after TARGET HIT | same |
+| Time window | 9:15 AM – 2:30 PM | 9:15 AM – 11:00 AM ONLY |
+| Day filter | Mon before 10 AM = skip | Fri after 2 PM = skip |
+| Daily entry limit | Max 3 new entries/day | Max 1 new entry/day |
+| Nifty direction | Must be > -0.30% | Must be > 0.00% (green) |
+| RSI(14) | Must be < 65 | Must be < 58 |
+
+> Filters run cheapest-first: RECD → Time → Daily limit → Nifty → RSI (API call last)
+> RSI failure = skip this stock (not block all entries)
+> RECD cooldown only after TARGET HIT — not after SL/TSL exit
+
+**v15.1 Memory migration:** Runtime memory moved from Y1 (AlertLog) → `_RUNTIME_MEM` row in BotMemory sheet. AlertLog Y column is now empty and clean for website webview. Auto-clear code added: on first v15.1 run, `main()` detects old memory string in Y1 (checks for `_TSL_`/`_MAX_`/`_LP_` pattern) and clears it automatically.
 
 **TSL Parameters (mode-aware) — current values:**
 
@@ -486,7 +534,7 @@ TSL_PARAMS = {
 
 | Channel | Secret | Audience | Content |
 | --- | --- | --- | --- |
-| Basic (free) | `TELEGRAM_CHAT_ID` | Free followers | Market mood, signal closed result only |
+| Basic (free) | `CHAT_ID_BASIC` | Free followers | Market mood, signal closed result only |
 | Advance | `CHAT_ID_ADVANCE` | ₹499/month | Full entry/exit details, TSL updates, mid-day pulse, CE candidate flag |
 | Premium | `CHAT_ID_PREMIUM` | Bundle subscribers | Everything in Advance + **full options buying advisory** (strike, target%, SL%, lot sizing) |
 
@@ -597,7 +645,7 @@ This list is verified against actual GitHub Secrets as of May 2026.
 
 | Secret | Purpose | Status |
 | --- | --- | --- |
-| `META_ACCESS_TOKEN` | Facebook Page (AI360Trading) token | ✅ Auto-refreshed every 60 days |
+| `META_ACCESS_TOKEN` | Facebook Page (AI360Trading) token | ✅ Auto-refreshed every ~20 days (runs 1st + 20th of month via token_refresh.yml) |
 | `META_APP_ID` | Facebook App ID — for token refresh | ✅ |
 | `META_APP_SECRET` | Facebook App Secret — for token refresh | ✅ |
 | `FACEBOOK_PAGE_ID` | Main trading Facebook Page ID | ✅ |
@@ -709,9 +757,18 @@ The code in `upload_facebook.py` already supports group posting — it posts the
 
 `upload_instagram.py` API chain is built. Will become fully automatic once Facebook Group posting is fixed (Facebook URL feeds Instagram API). Currently falls back to saving caption to `output/instagram_caption.txt`.
 
+### upload_facebook.py v2.5 Fixes (May 2026) ✅
+
+- **Page token**: Now tries `GET /{page_id}?fields=access_token` first (direct fetch, more reliable than `/me/accounts` which may be paginated). Falls back to `/me/accounts` with limit=200 and prints found page IDs for debugging.
+- **Instagram upload**: Content-Type changed from `application/octet-stream` → `video/mp4` for the resumable upload step. `application/octet-stream` caused `ProcessingFailedError` on Meta's end.
+
 ### META\_ACCESS\_TOKEN Expiry — Automated ✅
 
-`token_refresh.yml` runs every 50 days automatically. Refreshes token + updates GitHub Secret + sends Telegram alert.
+`token_refresh.yml` runs on 1st + 20th of month (~every 20 days). Refreshes token + updates GitHub Secret + sends Telegram alert.
+
+### SEO Seeds Block — Silent Mismatch ⚠️
+
+`content_calendar.get_article_seo_seeds()` returns a **dict**. `generate_articles.py` iterates it as a **list of dicts** expecting `primary_target`, `seo_seed`, `long_tail`, `affiliate_hint` keys. Every run fails silently inside `try/except` → SEO seed block is never injected into article prompts. Articles still generate correctly via the main prompt — this is just a missed optimisation. **To fix:** update `get_article_seo_seeds()` to return a list format matching what `generate_articles.py` expects, or update the caller.
 
 ### CE Flag ATR — Estimated, Not Real ATR14
 
@@ -883,7 +940,7 @@ AppScript v14.0 (Google Sheets bound)
 * **Revenue:** Google AdSense (USA/UK English readers = highest CPM)
 * **Content pillars:** Stock Market, Bitcoin/Crypto, Personal Finance, AI Trading
 * **Market coverage:** India (Nifty50, BankNifty), USA (S&P500, NASDAQ), UK (FTSE100), Brazil (IBOVESPA), Crypto (Bitcoin, Ethereum)
-* **MAX\_POSTS:** 60 articles retained in `_posts/` — older ones auto-deleted
+* **MAX\_POSTS:** 120 articles retained in `_posts/` — older ones auto-deleted (was 60 in docs, actual code always was 120)
 
 ---
 

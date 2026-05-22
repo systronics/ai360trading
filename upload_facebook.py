@@ -1,14 +1,16 @@
 """
 upload_facebook.py — AI360Trading
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v2.5 FIX (May 2026):
+  get_page_token: try GET /{page_id}?fields=access_token first
+    (more reliable than /me/accounts which may be paginated/empty)
+    Fall back to /me/accounts with limit=200 + show found IDs.
+  Instagram upload: Content-Type changed to video/mp4
+    (application/octet-stream causes ProcessingFailedError)
+
 v2.4 FIX (May 2026) — Instagram resumable upload corrected:
   Old: POST /{ig_id}/media with bytes → Error: video_url required
-  New: Correct 3-step resumable upload flow:
-    Step 1: POST /{ig_id}/media?media_type=REELS&upload_type=resumable
-            → Returns: id (container_id) + uri (upload_url)
-    Step 2: POST video bytes to uri with correct headers
-    Step 3: Poll container status until FINISHED
-    Step 4: POST /{ig_id}/media_publish?creation_id=container_id
+  New: Correct 3-step resumable upload flow
 
 v2.3 (May 2026):
   Added Instagram Reels upload
@@ -54,10 +56,30 @@ RETRY_DELAY                   = 10
 def get_page_token(page_id: str, user_token: str) -> str:
     if not user_token or not page_id:
         return user_token
+
+    # Primary: direct page token fetch (avoids pagination gaps in /me/accounts)
+    try:
+        resp = requests.get(
+            f"{GRAPH_BASE}/{page_id}",
+            params={"fields": "access_token", "access_token": user_token},
+            timeout=15
+        )
+        data = resp.json()
+        token = data.get("access_token", "")
+        if token:
+            print(f"  ✅ Page token retrieved for page {page_id}")
+            return token
+        err = data.get("error", {})
+        if err:
+            print(f"  ⚠️ Direct page token: {err.get('code')} {err.get('message','')}")
+    except Exception as e:
+        print(f"  ⚠️ Direct page token fetch failed: {e}")
+
+    # Fallback: list all pages
     try:
         resp = requests.get(
             f"{GRAPH_BASE}/me/accounts",
-            params={"access_token": user_token, "limit": 50},
+            params={"access_token": user_token, "limit": 200},
             timeout=15
         )
         data = resp.json().get("data", [])
@@ -65,11 +87,14 @@ def get_page_token(page_id: str, user_token: str) -> str:
             if str(page.get("id", "")) == str(page_id):
                 token = page.get("access_token", "")
                 if token:
-                    print(f"  ✅ Page token retrieved for page {page_id}")
+                    print(f"  ✅ Page token retrieved via /me/accounts for page {page_id}")
                     return token
-        print(f"  ⚠️ Page {page_id} not found in /me/accounts — using user token")
+        found = [p.get("id") for p in data]
+        print(f"  ⚠️ Page {page_id} not in /me/accounts — found: {found[:10] or 'none'}")
     except Exception as e:
-        print(f"  ⚠️ get_page_token failed: {e} — using user token")
+        print(f"  ⚠️ /me/accounts lookup failed: {e}")
+
+    print(f"  ⚠️ Falling back to user token (page token unavailable)")
     return user_token
 
 # ─── HELPERS ──────────────────────────────────────────────────────────────────
@@ -275,7 +300,7 @@ def upload_reel_to_instagram(ig_account_id: str, video_path: Path,
             upload_url,
             headers={
                 "Authorization":   f"OAuth {token}",
-                "Content-Type":    "application/octet-stream",
+                "Content-Type":    "video/mp4",
                 "offset":          "0",
                 "file_size":       str(file_size),
             },
@@ -449,7 +474,7 @@ def main():
     prefix = args.meta_prefix
 
     print("=" * 60)
-    print(f"  upload_facebook.py v2.4 — MODE: {CONTENT_MODE.upper()} | PREFIX: '{prefix}'")
+    print(f"  upload_facebook.py v2.5 — MODE: {CONTENT_MODE.upper()} | PREFIX: '{prefix}'")
     print("=" * 60)
 
     if not verify_token():
@@ -517,7 +542,7 @@ def main():
     share_articles_from_rss(FACEBOOK_PAGE_ID, page_token)
 
     print("=" * 60)
-    print("  upload_facebook.py v2.4 — DONE")
+    print("  upload_facebook.py v2.5 — DONE")
     print("=" * 60)
 
 if __name__ == "__main__":

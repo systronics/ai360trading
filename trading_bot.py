@@ -1,6 +1,12 @@
 """
-AI360 TRADING BOT — v15.0
+AI360 TRADING BOT — v15.1
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v15.1 CHANGES vs v15.0 — MEMORY MIGRATED FROM Y1 TO BOTMEMORY SHEET
+  Reason: AlertLog is shown as webview on ai360trading.in website.
+          Y1 cell contained raw memory string visible to followers — confusing.
+          All runtime state now stored in BotMemory sheet row _RUNTIME_MEM.
+          AlertLog is now 100% clean for website display.
+
 v15.0 CHANGES vs v14.0 — RSI + TIME + DAY + NIFTY DIRECTION FILTER
 
 NEW FILTERS:
@@ -83,6 +89,7 @@ MAX_TRADES             = 8
 MAX_WAITING            = 10
 MIN_RR                 = 1.8
 HARD_LOSS_PCT          = 5.0
+RUNTIME_MEM_KEY        = "_RUNTIME_MEM"   # key in BotMemory sheet for runtime state
 MIN_HOLD_SWING         = 2
 MIN_HOLD_POS           = 3
 TSL_GAP_LOCK_FRAC      = 0.5
@@ -937,6 +944,50 @@ def _clear_mem_keys(mem, key):
 
 
 # ══════════════════════════════════════════════════════════════════════════════
+# RUNTIME MEMORY — BotMemory sheet (replaces Y1 cell in AlertLog)
+# Reason: AlertLog is shown as webview on ai360trading.in — keeping it clean
+#         for followers. All runtime state now lives in BotMemory sheet only.
+# ══════════════════════════════════════════════════════════════════════════════
+
+def read_runtime_mem(bm_sheet) -> str:
+    """
+    Read the runtime memory string from BotMemory sheet.
+    Looks for row where column A = RUNTIME_MEM_KEY ("_RUNTIME_MEM").
+    Returns empty string if not found (first run).
+    """
+    try:
+        for row in bm_sheet.get_all_values()[1:]:   # skip header
+            if len(row) >= 2 and row[0].strip() == RUNTIME_MEM_KEY:
+                val = row[1].strip()
+                print(f"[MEM] BotMemory loaded: {len(val):,} chars")
+                return val
+        print("[MEM] _RUNTIME_MEM not found in BotMemory — first run or reset")
+    except Exception as e:
+        print(f"[MEM] BotMemory read error: {e}")
+    return ""
+
+
+def write_runtime_mem(bm_sheet, mem_str: str):
+    """
+    Write the runtime memory string to BotMemory sheet.
+    Updates existing _RUNTIME_MEM row in-place, or appends if not found.
+    """
+    try:
+        now_str = datetime.now(IST).strftime("%Y-%m-%d %H:%M:%S")
+        rows    = bm_sheet.get_all_values()
+        for i, row in enumerate(rows[1:], start=2):
+            if len(row) >= 1 and row[0].strip() == RUNTIME_MEM_KEY:
+                bm_sheet.update(f"B{i}:C{i}", [[mem_str, now_str]])
+                print(f"[MEM] BotMemory saved: {len(mem_str):,} chars (row {i})")
+                return
+        # Row not found — create it
+        bm_sheet.append_row([RUNTIME_MEM_KEY, mem_str, now_str, "", "STATE"])
+        print(f"[MEM] BotMemory: created _RUNTIME_MEM ({len(mem_str):,} chars)")
+    except Exception as e:
+        print(f"[MEM] BotMemory write error: {e}")
+
+
+# ══════════════════════════════════════════════════════════════════════════════
 # GOOD MORNING — 8:45 AM
 # ══════════════════════════════════════════════════════════════════════════════
 
@@ -969,7 +1020,7 @@ def send_good_morning(log_sheet, mem, is_bullish, nifty_cmp, nifty_dma, nifty_pc
         f"{window}\n"
         f"RSI filter: < {RSI_MAX_BULLISH if is_bullish else RSI_MAX_BEARISH} | Re-entry: {REENTRY_COOLDOWN_DAYS}d cooldown after target\n\n"
         f"{'Watching: ' + ', '.join(waiting_stocks[:5]) if waiting_stocks else 'No WAITING stocks'}\n\n"
-        f"<i>v15.0 — RSI + Time + Nifty + Re-entry filters</i>"
+        f"<i>v15.1 — RSI + Time + Nifty + Re-entry filters | Memory → BotMemory</i>"
     )
     msg_basic = f"🌅 Good Morning!\nMarket: {regime} | Nifty: ₹{nifty_cmp:.0f}\nSignals: {waiting}\n📱 ai360trading.in/membership"
     send_advance_and_premium(msg_adv); send_basic(msg_basic)
@@ -1063,7 +1114,7 @@ def send_market_close_summary(log_sheet, hist_sheet, mem, now, is_bullish, nifty
 def send_test_messages():
     now = datetime.now(IST)
     msg = (
-        f"✅ <b>TEST MESSAGE — AI360 Trading Bot v15.0</b>\n"
+        f"✅ <b>TEST MESSAGE — AI360 Trading Bot v15.1</b>\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
         f"Time: {now.strftime('%d %b %Y %H:%M')} IST\n"
         f"Token: {'✅ OK' if TG_TOKEN else '❌ MISSING'}\n\n"
@@ -1093,7 +1144,7 @@ def main():
     dow      = now.weekday()
 
     print(f"\n{'='*55}")
-    print(f"AI360 Trading Bot v15.0 — {now.strftime('%d %b %Y %H:%M')} IST")
+    print(f"AI360 Trading Bot v15.1 — {now.strftime('%d %b %Y %H:%M')} IST")
     print(f"{'='*55}")
 
     if is_holiday(today_s): print(f"[SKIP] Holiday: {today_s}"); return
@@ -1110,11 +1161,16 @@ def main():
 
     is_bullish, nifty_cmp, nifty_dma, nifty_pct = get_market_regime(nifty)
 
+    mem = read_runtime_mem(bm)
+
+    # v15.1 one-time migration: clear stale memory string from AlertLog Y1 (header row)
     try:
-        rows = log.get_all_values()
-        mem  = rows[0][24] if len(rows)>0 and len(rows[0])>24 else ""
+        y1_val = str(log.acell("Y1").value or "")
+        if "_TSL_" in y1_val or "_MAX_" in y1_val or "_LP_" in y1_val:
+            log.update("Y1", [[""]])
+            print("[MEM] v15.1: cleared stale memory string from AlertLog Y1 ✅")
     except Exception as e:
-        print(f"[MEM] Y1 read: {e}"); mem = ""
+        print(f"[MEM] Y1 cleanup skipped: {e}")
 
     mem = clean_mem(mem)
 
@@ -1136,11 +1192,7 @@ def main():
         if "15:15" <= time_str <= "15:45":
             mem = send_market_close_summary(log, hist, mem, now, is_bullish, nifty_pct)
 
-    try:
-        log.update([[mem]], "Y1")
-        print(f"[MEM] Y1 saved: {len(mem):,} chars")
-    except Exception as e:
-        print(f"[MEM] Y1 save: {e}")
+    write_runtime_mem(bm, mem)
 
     print(f"[DONE] {time_str} IST | Bullish:{is_bullish} | Entries:{today_entries}")
 
