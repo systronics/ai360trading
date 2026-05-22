@@ -1216,6 +1216,35 @@ function _runScanner(startRow, endRow) {
       regimeMsg += `\n<i>Entry alerts sent when market opens.</i>`;
     }
     _sendTelegramAdvanceAndPremium(regimeMsg);
+
+    // Basic channel teaser — show market mood + setup count, hide details to drive upgrades
+    const topSym = finalWaiting.length > 0 ? (finalWaiting[0][1] || "").replace("NSE:", "") : "";
+    const topType = finalWaiting.length > 0 ? (finalWaiting[0][4] || "") : "";
+    let basicMsg;
+    if (!marketBullish) {
+      basicMsg =
+        `⚠️ <b>Market Alert — ${today}</b>\n` +
+        `Market: 🔴 BEARISH | Nifty: ₹${niftyCmp.toFixed(0)} | VIX: ${indiaVix.toFixed(1)}\n\n` +
+        (finalWaiting.length > 0
+          ? `🔍 <b>${finalWaiting.length} stock(s) passed our strict bearish filter today</b>\n` +
+            `🔒 Entry details shared with Advance/Premium members only\n\n`
+          : `🛡️ Our system blocked all new entries today — protecting your capital.\n\n`) +
+        `📈 <b>Join Advance @ ₹499/month</b> for real-time alerts\n📱 ai360trading.in/membership`;
+    } else {
+      basicMsg =
+        `🟢 <b>Market Update — ${today}</b>\n` +
+        `Market: BULLISH | Nifty: ₹${niftyCmp.toFixed(0)} | VIX: ${indiaVix.toFixed(1)}\n` +
+        (momentumSectors.size > 0 ? `🚀 Strong sectors: ${[...momentumSectors].join(", ")}\n` : "") +
+        `\n` +
+        (finalWaiting.length > 0
+          ? `🔍 <b>${finalWaiting.length} stock setup(s) identified today</b>\n` +
+            (topSym ? `Top setup: <b>${topSym}</b> [${topType}]\n` : "") +
+            `🔒 SL, Target and full details → Advance/Premium members\n\n`
+          : `📭 No strong setups today — our filters kept you in cash.\n\n`) +
+        `📈 <b>Join Advance @ ₹499/month</b> for real-time entry alerts\n📱 ai360trading.in/membership`;
+    }
+    _sendTelegramToChat(CONFIG.CHAT_ID_BASIC, basicMsg);
+
     _bmSet(ss, bm, regimeFlag, "1", "", "FLAG");
   }
 
@@ -1361,6 +1390,18 @@ function sendWeeklySummary() {
   msg += `\n📌 Open: ${openTrades.length}/${CONFIG.MAX_TRADES}\n`;
   msg += `<i>AI360 Trading v15.6 — Base + Breakout + Momentum + Options</i>`;
   _sendTelegramAdvanceAndPremium(msg);
+
+  // Basic channel — weekly social proof to build trust and drive upgrades
+  const plSign = totalPL >= 0 ? "+" : "";
+  let basicWeekly =
+    `📅 <b>Weekly Performance — w/e ${today}</b>\n━━━━━━━━━━━━━━━━━━━━\n` +
+    `Trades: ${weekRows.length} | ✅ ${wins.length}W ❌ ${losses.length}L | Win Rate: ${winRate}%\n` +
+    `P/L this week: <b>₹${plSign}${Math.round(totalPL).toLocaleString()}</b>\n`;
+  if (best) basicWeekly += `\n🏆 Best trade: <b>${best[0]}</b> +₹${Math.round(parseFloat(best[16]) || 0)}\n`;
+  basicWeekly +=
+    `\n📊 Advance/Premium members got all entry, SL and target alerts in real time.\n` +
+    `📈 <b>Join Advance @ ₹499/month</b> — get live signals next week\n📱 ai360trading.in/membership`;
+  _sendTelegramToChat(CONFIG.CHAT_ID_BASIC, basicWeekly);
 }
 
 // ── HELPERS ───────────────────────────────────────────────────────────────────

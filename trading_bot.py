@@ -695,8 +695,14 @@ def build_entry_premium(sym, cp, stage, sl, tgt, rr, ttype, atr, rank, capital, 
     return base + ce_candidate_flag(cp, atr, stage, is_bullish, rank, opt_signal, opt_strike, opt_expiry, opt_theta)
 
 def build_entry_basic(sym, cp, stage, pct_chg):
-    emoji = "📈" if pct_chg >= 0 else "📉"
-    return f"{emoji} <b>Signal Active</b>: {sym.replace('NSE:','')}\nStage: {stage}\nFull details: Join Advance/Premium\n📱 ai360trading.in/membership"
+    name = sym.replace("NSE:", "")
+    return (
+        f"🚨 <b>SIGNAL ALERT — {name}</b>\n"
+        f"Entry: ₹{cp:.2f} | {stage}\n\n"
+        f"🔒 SL and Target shared with Advance/Premium members only\n\n"
+        f"📈 <b>Join Advance @ ₹499/month</b> — get full entry details\n"
+        f"📱 ai360trading.in/membership"
+    )
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -932,7 +938,25 @@ def _exit_trade(log_sheet, hist_sheet, row_idx, sym, ent, exit_p, tgt, sl, tsl_a
         msg += f"\n⏳ Re-entry blocked for {REENTRY_COOLDOWN_DAYS} trading days"
 
     send_advance_and_premium(msg)
-    send_basic(f"{'✅' if exit_p>ent else '❌'} {sym.replace('NSE:','')} {pnl_pct:+.2f}% | {reason}")
+    if exit_p > ent:
+        basic_exit = (
+            f"✅ <b>TRADE CLOSED — {sym.replace('NSE:', '')}</b>\n"
+            f"₹{ent:.2f} → ₹{exit_p:.2f} | <b>{pnl_pct:+.2f}% (₹{pnl_rs:+.0f})</b>\n"
+            f"Hold: {hold_str} | {reason}\n\n"
+            f"📈 Get live entry + exit alerts\n"
+            f"<b>Join Advance @ ₹499/month</b>\n"
+            f"📱 ai360trading.in/membership"
+        )
+    else:
+        basic_exit = (
+            f"❌ <b>TRADE CLOSED — {sym.replace('NSE:', '')}</b>\n"
+            f"₹{ent:.2f} → ₹{exit_p:.2f} | {pnl_pct:+.2f}% | {reason}\n"
+            f"🛡️ Trailing SL protected capital — loss controlled\n\n"
+            f"📊 Real-time TSL alerts → Advance/Premium\n"
+            f"<b>Join Advance @ ₹499/month</b>\n"
+            f"📱 ai360trading.in/membership"
+        )
+    send_basic(basic_exit)
 
     return mem
 
@@ -1022,7 +1046,16 @@ def send_good_morning(log_sheet, mem, is_bullish, nifty_cmp, nifty_dma, nifty_pc
         f"{'Watching: ' + ', '.join(waiting_stocks[:5]) if waiting_stocks else 'No WAITING stocks'}\n\n"
         f"<i>v15.1 — RSI + Time + Nifty + Re-entry filters | Memory → BotMemory</i>"
     )
-    msg_basic = f"🌅 Good Morning!\nMarket: {regime} | Nifty: ₹{nifty_cmp:.0f}\nSignals: {waiting}\n📱 ai360trading.in/membership"
+    watchlist_line = f"📋 Watchlist: {waiting} stock(s) identified today" if waiting else "📋 No setups in watchlist yet — scan runs at market open"
+    msg_basic = (
+        f"🌅 <b>Good Morning — {now.strftime('%d %b %Y')}</b>\n"
+        f"Market: {regime} | Nifty: ₹{nifty_cmp:.0f}\n\n"
+        f"{watchlist_line}\n"
+        f"💼 Active trades: {traded}/{MAX_TRADES}\n\n"
+        f"🔒 Entry price, SL and Target sent to Advance/Premium only\n"
+        f"📈 <b>Join Advance @ ₹499/month</b>\n"
+        f"📱 ai360trading.in/membership"
+    )
     send_advance_and_premium(msg_adv); send_basic(msg_basic)
     print(f"[GM] Sent — {waiting} waiting, {traded} active")
     return _mem_set(mem, flag_key, "1")
@@ -1054,7 +1087,16 @@ def send_midday_pulse(log_sheet, mem, now, is_bullish):
             f"{'💰' if total_pnl>=0 else '📉'} Unrealised: <b>₹{total_pnl:+.0f}</b>\n"
             f"<i>Entry window ends {'2:30 PM' if is_bullish else '11:00 AM'}</i>"
         )
-        send_advance_and_premium(msg); print(f"[MIDDAY] {len(open_trades)} trades, ₹{total_pnl:+.0f}")
+        basic_md = (
+            f"📊 <b>Mid-Day Update — {now.strftime('%d %b %I:%M %p')}</b>\n"
+            f"Active trades: {len(open_trades)}\n"
+            f"{'💰' if total_pnl>=0 else '📉'} Unrealised P/L: ₹{total_pnl:+.0f}\n\n"
+            f"🔒 TSL updates and trade details → Advance/Premium\n"
+            f"📈 <b>Join Advance @ ₹499/month</b>\n"
+            f"📱 ai360trading.in/membership"
+        )
+        send_advance_and_premium(msg); send_basic(basic_md)
+        print(f"[MIDDAY] {len(open_trades)} trades, ₹{total_pnl:+.0f}")
         return _mem_set(mem, flag_key, "1")
     except Exception as e:
         print(f"[MIDDAY] {e}"); return mem
@@ -1099,7 +1141,15 @@ def send_market_close_summary(log_sheet, hist_sheet, mem, now, is_bullish, nifty
             f"{chr(10).join(open_list) if open_list else 'No overnight holds'}\n\n"
             f"Unrealised: ₹{total_unrl:+.0f}\n✅ Overnight holds monitored via TSL"
         )
-        msg_basic = f"Market closed.\nWins: {wins} | Losses: {losses}\nOpen: {len(open_list)}\nFull report → Advance/Premium"
+        pnl_emoji = "💰" if today_pnl >= 0 else "📉"
+        msg_basic = (
+            f"🔔 <b>Market Closed — {today_str}</b>\n"
+            f"Today: {wins}✅ {losses}❌ | {pnl_emoji} Realised: ₹{today_pnl:+.0f}\n"
+            f"Holding overnight: {len(open_list)} trade(s)\n\n"
+            f"📊 Full report and overnight TSL alerts sent to Advance/Premium\n"
+            f"📈 <b>Join Advance @ ₹499/month</b>\n"
+            f"📱 ai360trading.in/membership"
+        )
         send_advance_and_premium(msg_adv); send_basic(msg_basic)
         print(f"[CLOSE] {wins}W {losses}L, {len(open_list)} overnight")
         return _mem_set(mem, flag_key, "1")
