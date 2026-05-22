@@ -1,6 +1,14 @@
 """
 upload_facebook.py — AI360Trading
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v2.6 (May 2026):
+  ADD — Facebook Group posting after Page upload succeeds
+    Uses FACEBOOK_GROUP_ID secret (already in GitHub Secrets)
+    Posts reel link + caption to Group after Page reel published
+    Requires META_ACCESS_TOKEN to have publish_to_groups scope
+    On permission error: logs clearly + skips (does not crash)
+    Note: Token must have publish_to_groups scope — see SYSTEM.md Section 12
+
 v2.5 FIX (May 2026):
   get_page_token: try GET /{page_id}?fields=access_token first
     (more reliable than /me/accounts which may be paginated/empty)
@@ -43,6 +51,7 @@ def parse_args():
 META_ACCESS_TOKEN             = os.environ.get("META_ACCESS_TOKEN", "")
 FACEBOOK_PAGE_ID              = os.environ.get("FACEBOOK_PAGE_ID", "")
 FACEBOOK_KIDS_PAGE_ID         = os.environ.get("FACEBOOK_KIDS_PAGE_ID", "")
+FACEBOOK_GROUP_ID             = os.environ.get("FACEBOOK_GROUP_ID", "")
 INSTAGRAM_BUSINESS_ACCOUNT_ID = os.environ.get("INSTAGRAM_BUSINESS_ACCOUNT_ID", "17841400933677509")
 CONTENT_MODE                  = os.environ.get("CONTENT_MODE", "market").lower()
 HOLIDAY_NAME                  = os.environ.get("HOLIDAY_NAME", "")
@@ -230,22 +239,82 @@ def upload_reel_to_page(page_id: str, page_label: str,
     print(f"  ❌ Reel publish failed after {MAX_RETRIES} attempts")
     return None
 
-# ─── v2.4 FIX: UPLOAD REEL TO INSTAGRAM (correct resumable upload) ────────────
+
+# ─── v2.6 NEW: POST TO FACEBOOK GROUP ────────────────────────────────────────
+
+def post_to_group(group_id: str, caption: str, video_url: str, user_token: str) -> bool:
+    """
+    Post reel link + caption to Facebook Group.
+    v2.6: First time this code exists — was missing in all previous versions.
+
+    Requirements (one-time manual setup — see SYSTEM.md Section 12):
+      1. META_ACCESS_TOKEN must have publish_to_groups scope
+      2. Amit Kumar account must be Admin of the group
+      3. Group Settings → Advanced → Allow content from apps = ON
+      4. App must be approved for Groups API by Meta
+
+    Uses user token (not page token) — Groups API requires user token.
+    On permission error: logs clearly, skips, does NOT crash workflow.
+    """
+    if not group_id:
+        print("  ⚠️ FACEBOOK_GROUP_ID not set — skipping Group post")
+        return False
+
+    if not user_token:
+        print("  ⚠️ No user token for Group post — skipping")
+        return False
+
+    print(f"\n👥 Posting to Facebook Group: {group_id}")
+
+    # Build group message — include video link so group members can watch
+    if video_url:
+        message = f"{caption}\n\n🎬 Watch: {video_url}"
+    else:
+        message = caption
+
+    try:
+        resp = requests.post(
+            f"{GRAPH_BASE}/{group_id}/feed",
+            data={
+                "message":      message,
+                "access_token": user_token,
+            },
+            timeout=30
+        ).json()
+
+        if "id" in resp:
+            print(f"  ✅ Group post published — ID: {resp['id']}")
+            return True
+
+        error = resp.get("error", {})
+        code  = error.get("code", "?")
+        msg   = error.get("message", str(resp))
+
+        # Specific error messages for easier debugging
+        if code in (200, "200") or "permission" in str(msg).lower():
+            print(f"  ❌ Group post failed — permission error ({code})")
+            print(f"     Fix: Add publish_to_groups scope to META_ACCESS_TOKEN")
+            print(f"     See SYSTEM.md Section 12 for step-by-step fix")
+        elif "admin" in str(msg).lower():
+            print(f"  ❌ Group post failed — not admin of group")
+            print(f"     Fix: Make Amit Kumar account Admin of ai360trading group")
+        else:
+            print(f"  ❌ Group post failed: {code} — {msg}")
+
+    except Exception as e:
+        print(f"  ⚠️ Group post error: {e}")
+
+    return False
+
+
+# ─── v2.4 FIX: UPLOAD REEL TO INSTAGRAM ──────────────────────────────────────
 
 def upload_reel_to_instagram(ig_account_id: str, video_path: Path,
                               caption: str, token: str) -> str | None:
     """
     Correct Instagram Reels upload using resumable upload protocol.
-
-    v2.4 FIX:
-      Old (wrong): POST /{ig_id}/media with video bytes → Error: video_url required
-      New (correct): Use upload_type=resumable to get upload_url from Instagram
-                     then POST video bytes to that upload_url
-                     then poll status → publish
-
-    Step 1: POST /{ig_id}/media with upload_type=resumable
-            → Returns: id (container_id) + uri (upload_url from Instagram)
-    Step 2: POST video bytes to uri with Authorization header
+    Step 1: POST /{ig_id}/media with upload_type=resumable → container_id + upload_url
+    Step 2: POST video bytes to upload_url
     Step 3: Poll container status until FINISHED (max 5 min)
     Step 4: POST /{ig_id}/media_publish
     """
@@ -255,28 +324,26 @@ def upload_reel_to_instagram(ig_account_id: str, video_path: Path,
 
     print(f"\n📸 Uploading Instagram Reel: {video_path.name}")
 
-    # Step 1: Create container with upload_type=resumable
-    # This returns the upload_url (uri) without needing a public video_url
+    # Step 1: Create container
     try:
         init_resp = requests.post(
             f"{GRAPH_BASE}/{ig_account_id}/media",
             data={
-                "media_type":   "REELS",
-                "upload_type":  "resumable",   # v2.4 FIX: was missing this
-                "caption":      caption,
+                "media_type":    "REELS",
+                "upload_type":   "resumable",
+                "caption":       caption,
                 "share_to_feed": "true",
-                "access_token": token,
+                "access_token":  token,
             },
             timeout=30
         ).json()
 
         container_id = init_resp.get("id")
-        upload_url   = init_resp.get("uri")  # Instagram returns upload URL here
+        upload_url   = init_resp.get("uri")
 
         if not container_id:
             error = init_resp.get("error", {})
             print(f"  ❌ IG container creation failed: {error.get('code')} {error.get('message','')}")
-            print(f"     Full response: {init_resp}")
             return None
 
         print(f"  ✅ IG container created: {container_id}")
@@ -289,7 +356,7 @@ def upload_reel_to_instagram(ig_account_id: str, video_path: Path,
         print(f"  ❌ IG Step 1 error: {e}")
         return None
 
-    # Step 2: Upload video bytes to the Instagram upload URL
+    # Step 2: Upload video bytes
     try:
         with open(video_path, "rb") as f:
             video_bytes = f.read()
@@ -299,10 +366,10 @@ def upload_reel_to_instagram(ig_account_id: str, video_path: Path,
         up_resp = requests.post(
             upload_url,
             headers={
-                "Authorization":   f"OAuth {token}",
-                "Content-Type":    "video/mp4",
-                "offset":          "0",
-                "file_size":       str(file_size),
+                "Authorization": f"OAuth {token}",
+                "Content-Type":  "video/mp4",
+                "offset":        "0",
+                "file_size":     str(file_size),
             },
             data=video_bytes,
             timeout=300
@@ -318,7 +385,7 @@ def upload_reel_to_instagram(ig_account_id: str, video_path: Path,
         print(f"  ❌ IG Step 2 error: {e}")
         return None
 
-    # Step 3: Poll status (max 5 minutes = 30 × 10s)
+    # Step 3: Poll status (max 5 min = 30 x 10s)
     print(f"  ⏳ Waiting for Instagram video processing...")
     for poll in range(30):
         time.sleep(10)
@@ -345,10 +412,7 @@ def upload_reel_to_instagram(ig_account_id: str, video_path: Path,
     try:
         pub_resp = requests.post(
             f"{GRAPH_BASE}/{ig_account_id}/media_publish",
-            data={
-                "creation_id":  container_id,
-                "access_token": token,
-            },
+            data={"creation_id": container_id, "access_token": token},
             timeout=30
         ).json()
 
@@ -448,8 +512,7 @@ def share_articles_from_rss(page_id: str, token: str):
         if not resp.ok:
             print(f"  ⚠️ RSS fetch failed: {resp.status_code}")
             return
-        root = ET.fromstring(resp.content)
-        # Feed is Atom format — uses <entry> with namespace, not <item>
+        root    = ET.fromstring(resp.content)
         entries = root.findall(f"{{{ATOM_NS}}}entry")
         if not entries:
             print("  ⚠️ No articles found in feed.")
@@ -474,7 +537,7 @@ def main():
     prefix = args.meta_prefix
 
     print("=" * 60)
-    print(f"  upload_facebook.py v2.5 — MODE: {CONTENT_MODE.upper()} | PREFIX: '{prefix}'")
+    print(f"  upload_facebook.py v2.6 — MODE: {CONTENT_MODE.upper()} | PREFIX: '{prefix}'")
     print("=" * 60)
 
     if not verify_token():
@@ -508,7 +571,7 @@ def main():
             print("⚠️ Kids video not found — skipping Facebook Kids upload")
         return
 
-    # ── Main Page + Instagram ─────────────────────────────────────────────────
+    # ── Main Page + Group + Instagram ─────────────────────────────────────────
     if not FACEBOOK_PAGE_ID:
         print("⚠️ FACEBOOK_PAGE_ID not set — skipping main page upload")
         return
@@ -519,11 +582,20 @@ def main():
         print(f"🎥 Video: {video_path.name}")
         caption = build_caption(meta, prefix)
 
-        # Facebook upload
-        upload_reel_to_page(FACEBOOK_PAGE_ID, "AI360Trading Page",
-                            video_path, caption, page_token)
+        # Facebook Page upload — get video_id for group post link
+        video_id = upload_reel_to_page(FACEBOOK_PAGE_ID, "AI360Trading Page",
+                                       video_path, caption, page_token)
 
-        # Instagram upload (v2.4: correct resumable upload)
+        # v2.6 NEW: Facebook Group post — share reel link to Group
+        if FACEBOOK_GROUP_ID:
+            # Build Facebook video URL from video_id if available
+            fb_video_url = f"https://www.facebook.com/watch/?v={video_id}" if video_id else ""
+            # Group post uses USER token (not page token) — Groups API requirement
+            post_to_group(FACEBOOK_GROUP_ID, caption, fb_video_url, META_ACCESS_TOKEN)
+        else:
+            print("  ⚠️ FACEBOOK_GROUP_ID not set — skipping Group post")
+
+        # Instagram upload
         if INSTAGRAM_BUSINESS_ACCOUNT_ID:
             ig_caption = caption + "\n\n#Reels #InstagramReels #StockMarketIndia"
             upload_reel_to_instagram(
@@ -537,12 +609,12 @@ def main():
     else:
         print(f"⚠️ Video not found for prefix '{prefix}' — skipping reel upload")
 
-    # RSS articles
+    # RSS articles — Page only (not Group — avoid spam)
     print(f"📰 Fetching articles from RSS: https://ai360trading.in/feed.xml")
     share_articles_from_rss(FACEBOOK_PAGE_ID, page_token)
 
     print("=" * 60)
-    print("  upload_facebook.py v2.5 — DONE")
+    print("  upload_facebook.py v2.6 — DONE")
     print("=" * 60)
 
 if __name__ == "__main__":
