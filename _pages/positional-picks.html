@@ -1,11 +1,11 @@
 ---
 layout: default
-title: "Institutional Positional Picks | Long-Term Investment Signals"
-description: "AI-powered long-term stock picks for wealth compounding. Large cap, mid cap, small cap and ETF recommendations based on fundamental and technical analysis."
+title: "Long-Term Investment Picks | Wealth Building Signals | AI360Trading"
+description: "Weekly AI-driven long-term investment picks for NSE stocks. Strong fundamentals, FII buying, dividend income — quality stocks to hold 6–12 months."
 permalink: /positional-picks/
 canonical: https://ai360trading.in/positional-picks/
-meta-og:title: "Positional Picks | Long-Term Investment Signals | AI360Trading"
-meta-og:description: "Long-term stock picks for wealth compounding. Large cap, mid cap, ETF recommendations."
+meta-og:title: "Long-Term Investment Picks | AI360Trading"
+meta-og:description: "Quality NSE stocks screened for fundamentals, FII accumulation and dividend yield. Updated every Sunday. Free basic picks, full analysis for members."
 meta-og:image: https://ai360trading.in/public/image/header.webp
 ---
 
@@ -15,16 +15,16 @@ meta-og:image: https://ai360trading.in/public/image/header.webp
     margin: 0 auto !important;
     padding: 0 15px !important;
   }
-  .picks-header {
+  .dashboard-header {
     text-align: center;
     margin-bottom: 25px;
-    padding: 35px 25px;
-    background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+    padding: 30px 25px;
+    background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 50%, #fefce8 100%);
     border-radius: 12px;
     border: 1px solid #bbf7d0;
   }
-  .picks-header h1 { margin: 0 0 8px 0; color: #064e3b; font-size: 26px; font-weight: 900; }
-  .picks-header p  { font-size: 15px; color: #065f46; margin: 0 0 20px 0; }
+  .dashboard-header h1 { margin: 0 0 8px 0; color: #14532d; font-size: 26px; font-weight: 900; }
+  .dashboard-header p  { font-size: 14px; color: #4b7c59; margin: 0 0 20px 0; }
   .btn-tg {
     background-color: #0088cc;
     color: white !important;
@@ -33,52 +33,53 @@ meta-og:image: https://ai360trading.in/public/image/header.webp
     text-decoration: none !important;
     font-weight: bold;
     font-size: 15px;
-    display: inline-block;
     box-shadow: 0 4px 15px rgba(0,136,204,0.3);
+    display: inline-block;
   }
+  .btn-upgrade {
+    background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
+    color: white !important;
+    padding: 12px 28px;
+    border-radius: 50px;
+    text-decoration: none !important;
+    font-weight: bold;
+    font-size: 15px;
+    box-shadow: 0 4px 15px rgba(217,119,6,0.35);
+    display: inline-block;
+  }
+  .btn-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
   .live-status {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
     margin: 16px 0 0 0;
-    color: #059669;
+    color: #16a34a;
     font-weight: bold;
     font-size: 15px;
   }
   .blink {
     height: 10px; width: 10px;
-    background-color: #059669;
+    background-color: #16a34a;
     border-radius: 50%;
-    animation: blink-animation 1.5s infinite;
+    animation: blink-animation 2s infinite;
   }
   @keyframes blink-animation {
     0%   { opacity: 1; transform: scale(1); }
-    50%  { opacity: 0.4; transform: scale(0.8); }
+    50%  { opacity: 0.3; transform: scale(0.8); }
     100% { opacity: 1; transform: scale(1); }
   }
-  .signal-legend {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin: 16px 0 20px 0;
-    justify-content: center;
-  }
-  .legend-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 14px;
-    border-radius: 20px;
+  .update-badge {
+    display: inline-block;
+    background: #fef9c3;
+    color: #92400e;
     font-size: 12px;
     font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 20px;
+    border: 1px solid #fde68a;
+    margin-bottom: 14px;
   }
-  .badge-accumulate { background: #dbeafe; color: #1d4ed8; }
-  .badge-buydip     { background: #d1fae5; color: #065f46; }
-  .badge-buy        { background: #dcfce7; color: #15803d; }
-  .badge-sip        { background: #ede9fe; color: #6d28d9; }
-  .badge-hold       { background: #fef3c7; color: #92400e; }
-  .badge-exit       { background: #fee2e2; color: #991b1b; }
   .scroll-hint {
     display: none;
     text-align: center;
@@ -97,7 +98,7 @@ meta-og:image: https://ai360trading.in/public/image/header.webp
     border: 1px solid #bbf7d0;
     background: #fff;
     margin-bottom: 30px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    box-shadow: 0 10px 30px rgba(22,163,74,0.08);
     overflow: hidden;
   }
   .terminal-scroll-container {
@@ -105,6 +106,7 @@ meta-og:image: https://ai360trading.in/public/image/header.webp
     overflow-x: auto;
     overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
+    touch-action: pan-x;
   }
   iframe {
     width: 100%;
@@ -113,53 +115,78 @@ meta-og:image: https://ai360trading.in/public/image/header.webp
     border: none;
     display: block;
   }
-  .why-section {
+  .teaser-notice {
+    margin: 0 0 22px 0;
+    padding: 16px 20px;
+    background: linear-gradient(135deg, #fef9c3 0%, #fefce8 100%);
+    border: 1px solid #fde68a;
+    border-radius: 10px;
+    text-align: center;
+  }
+  .teaser-notice p { margin: 0; font-size: 14px; color: #78350f; line-height: 1.7; }
+  .signal-legend {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+    margin: 22px 0;
+    padding: 18px 20px;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 10px;
+  }
+  .signal-legend h4 { font-size: 14px; font-weight: 800; color: #14532d; margin: 0 0 10px 0; grid-column: 1/-1; }
+  .signal-item { font-size: 13px; color: #374151; line-height: 1.6; }
+  .dashboard-features {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
     gap: 16px;
     margin: 28px 0;
   }
-  .why-card {
-    background: #fff;
-    border: 1px solid #e2e8f0;
+  .feature-card {
+    background: #ffffff;
+    border: 1px solid #d1fae5;
     border-radius: 10px;
     padding: 18px 20px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    box-shadow: 0 2px 8px rgba(22,163,74,0.06);
   }
-  .why-card h3 { font-size: 15px !important; font-weight: 800; color: #059669; margin: 0 0 8px 0; }
-  .why-card p  { font-size: 14px; color: #4a5568; margin: 0; line-height: 1.6; }
-  .strategy-section {
-    background: #f0fdf4;
-    border: 1px solid #bbf7d0;
-    border-radius: 12px;
-    padding: 25px;
+  .feature-card h3 { font-size: 15px !important; font-weight: 800; color: #15803d; margin: 0 0 8px 0; }
+  .feature-card p  { font-size: 14px; color: #4a5568; margin: 0; line-height: 1.6; }
+  .upgrade-section {
     margin: 28px 0;
+    padding: 28px 25px;
+    background: linear-gradient(135deg, #fef9c3 0%, #fffbeb 50%, #fef3c7 100%);
+    border: 1px solid #fde68a;
+    border-radius: 14px;
+    text-align: center;
   }
-  .strategy-section h2 { font-size: 20px; font-weight: 900; color: #064e3b; margin: 0 0 16px 0; }
-  .strategy-grid {
+  .upgrade-section h3 { font-size: 20px; font-weight: 900; color: #78350f; margin: 0 0 8px 0; }
+  .upgrade-section p  { font-size: 14px; color: #92400e; margin: 0 0 20px 0; }
+  .upgrade-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 14px;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin-bottom: 22px;
+    text-align: left;
   }
-  .strategy-card {
+  .upgrade-item {
     background: #fff;
+    border: 1px solid #fde68a;
     border-radius: 10px;
-    padding: 16px;
-    border: 1px solid #d1fae5;
+    padding: 14px 16px;
+    font-size: 13px;
+    color: #374151;
+    line-height: 1.7;
   }
-  .strategy-card .cap-type   { font-size: 12px; font-weight: 800; color: #059669; text-transform: uppercase; letter-spacing: 1px; }
-  .strategy-card .cap-name   { font-size: 16px; font-weight: 900; color: #0f172a; margin: 4px 0; }
-  .strategy-card .cap-desc   { font-size: 13px; color: #64748b; line-height: 1.5; }
-  .strategy-card .return-badge { display: inline-block; margin-top: 8px; padding: 3px 10px; background: #d1fae5; color: #065f46; border-radius: 20px; font-size: 12px; font-weight: 800; }
+  .upgrade-item strong { color: #92400e; display: block; font-size: 14px; margin-bottom: 4px; }
   .broker-section {
     margin: 32px 0;
     padding: 25px;
-    background: #f0f7ff;
-    border: 1px solid #bfdbfe;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
     border-radius: 12px;
   }
-  .broker-section h3 { font-size: 18px; font-weight: 900; color: #0f172a; margin: 0 0 6px 0; }
-  .broker-section p  { font-size: 14px; color: #64748b; margin: 0 0 18px 0; }
+  .broker-section h3 { font-size: 18px; font-weight: 900; color: #14532d; margin: 0 0 6px 0; }
+  .broker-section p  { font-size: 14px; color: #4b7c59; margin: 0 0 18px 0; }
   .broker-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -167,131 +194,159 @@ meta-og:image: https://ai360trading.in/public/image/header.webp
   }
   .broker-card {
     display: flex; flex-direction: column; gap: 8px;
-    background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px;
-    text-decoration: none !important; transition: all 0.3s ease;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    background: #fff;
+    border: 1px solid #d1fae5;
+    border-radius: 10px;
+    padding: 18px;
+    text-decoration: none !important;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(22,163,74,0.06);
   }
-  .broker-card:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(0,98,255,0.12); border-color: #0062ff; }
+  .broker-card:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(22,163,74,0.15); border-color: #16a34a; }
   .broker-name { font-size: 16px; font-weight: 900; color: #0f172a; }
   .broker-desc { font-size: 13px; color: #64748b; line-height: 1.5; }
-  .broker-btn  { display: inline-block; margin-top: 5px; background: #059669; color: white !important; padding: 7px 14px; border-radius: 6px; font-size: 12px; font-weight: 800; text-align: center; }
+  .broker-btn  { display: inline-block; margin-top: 5px; background: #16a34a; color: white !important; padding: 7px 14px; border-radius: 6px; font-size: 12px; font-weight: 800; text-align: center; }
   .dashboard-disclaimer { margin-top: 28px; padding: 15px 20px; background: #fff5f5; border: 1px solid #fed7d7; border-radius: 8px; font-size: 13px; color: #744210; line-height: 1.7; }
   @media (max-width: 768px) {
     .scroll-hint { display: block; }
     iframe { height: 700px; }
-    .why-section, .strategy-grid, .broker-grid { grid-template-columns: 1fr; }
-    .signal-legend { gap: 6px; }
-    .legend-badge { font-size: 11px; padding: 5px 10px; }
+    .dashboard-features { grid-template-columns: 1fr; }
+    .broker-grid { grid-template-columns: 1fr; }
+    .upgrade-grid { grid-template-columns: 1fr; }
+    .btn-tg, .btn-upgrade { width: 100%; text-align: center; }
   }
 </style>
 
-<div class="picks-header">
-  <h1>📈 Institutional Positional Picks</h1>
-  <p>Long-term wealth compounding setups based on structural shifts</p>
-  <a href="https://t.me/ai360trading" class="btn-tg">📣 Free Telegram Alerts</a>
+<div class="dashboard-header">
+  <div class="update-badge">📅 Updated Every Sunday 9:00 AM IST</div>
+  <h1>AI360Trading — Positional Investment Picks</h1>
+  <p>Quality NSE stocks screened for fundamentals, FII accumulation &amp; long-term wealth building</p>
+  <div class="btn-row">
+    <a href="https://t.me/ai360trading" class="btn-tg">📣 Free Telegram Picks</a>
+    <a href="/membership/" class="btn-upgrade">🔒 Advance — ₹499/mo</a>
+  </div>
   <div class="live-status">
     <div class="blink"></div>
-    LONG-TERM RESEARCH: TRACKING 200+ STOCKS
+    ALGO RUNNING — NIFTY 200 WEEKLY SCAN
   </div>
 </div>
 
-<div class="signal-legend">
-  <span class="legend-badge badge-accumulate">🔵 ACCUMULATE — Buy slowly over months</span>
-  <span class="legend-badge badge-buydip">🟢 BUY DIP — Wait for correction</span>
-  <span class="legend-badge badge-buy">✅ BUY — Good entry now</span>
-  <span class="legend-badge badge-sip">🟣 SIP — Monthly fixed investment</span>
-  <span class="legend-badge badge-hold">🟡 HOLD — Stay invested</span>
-  <span class="legend-badge badge-exit">🔴 EXIT — Target hit or thesis broken</span>
+<div class="teaser-notice">
+  <p>
+    <strong>Free users see:</strong> Stock name + signal (STRONG BUY / ACCUMULATE / HOLD) &nbsp;|&nbsp;
+    <strong>Advance / Premium members get:</strong> Entry zone, Stop-loss, 12-month target, PE, Dividend yield, FII change &amp; full reason
+    &nbsp;🔒 <a href="/membership/" style="color:#92400e;font-weight:700;">Upgrade to unlock →</a>
+  </p>
 </div>
 
-<p class="scroll-hint">↔️ <strong>Expert View:</strong> Swipe left/right to view full data</p>
+<p class="scroll-hint">↔️ <strong>Swipe left/right</strong> to view all columns</p>
 
 <div class="terminal-wrapper">
   <div class="terminal-scroll-container">
     <!--
-      Sheet: ai360tradingRecomm
-      Tab:   PositionalPicks (gid=566178621)
-      Published URL confirmed working: ai360tradingRecomm : PositionalPicks ✅
+      Sheet: Ai360tradingAlgo  |  Tab: PositionalLatest
+      Published URL uses the same sheet as the swing dashboard.
+      gid for PositionalLatest tab: get it from the regular Sheet URL (?gid=XXXXXXXXXX)
+      after creating/publishing the tab, then replace GID_REPLACE_ME below.
     -->
     <iframe
-      src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRxCmYGRepK_DgUk-KMeudF4PoQ9B89msVkMeZmImFb-2QaXobqjOthwdMDlvxpHtu3S9UtyXo9SrOR/pubhtml?gid=566178621&single=true&widget=false&headers=false&chrome=false"
-      title="AI360Trading Positional Picks"
+      src="https://docs.google.com/spreadsheets/d/e/2PACX-1vQyI_2dA66bYzzsxZNW9yqSAkmi8_TxLA7PK_x6vtI9uqSbUNz-M5FXrYIt4rsP5B7kl6Mrfi5AUpsp/pubhtml?gid=GID_REPLACE_ME&single=true&widget=false&headers=false&chrome=false"
+      title="AI360Trading Positional Investment Picks"
       loading="lazy"
     ></iframe>
   </div>
 </div>
 
-<div class="why-section">
-  <div class="why-card">
-    <h3>🕐 Holding Period: 3–36 Months</h3>
-    <p>Positional picks are based on structural business shifts. Hold for full thesis to play out — minimum 3 months, ideal 1–3 years.</p>
+<div class="signal-legend">
+  <h4>📖 Signal Guide — What Each Label Means</h4>
+  <div class="signal-item">🟢 <strong>STRONG BUY</strong> — Near 52W low, oversold RSI, institutions buying. Add full position now.</div>
+  <div class="signal-item">🟡 <strong>ACCUMULATE</strong> — Quality dip. Build position in 2–3 tranches over the coming weeks.</div>
+  <div class="signal-item">⚪ <strong>HOLD</strong> — Keep existing holding. No fresh entry recommended at current price.</div>
+  <div class="signal-item">🔴 <strong>BOOK PARTIAL</strong> — Near 52W high or RSI overbought. Lock in 30–50% of profits.</div>
+  <div class="signal-item">🔵 <strong>WAIT</strong> — Fairly valued. No clear signal. Add to watchlist and wait for dip.</div>
+</div>
+
+<div class="dashboard-features">
+  <div class="feature-card">
+    <h3>📅 Hold 6–12 Months</h3>
+    <p>These are not short-term trades. Each pick is screened for a 6 to 12 month holding horizon — giving your investment time to compound.</p>
   </div>
-  <div class="why-card">
-    <h3>🏛️ Institutional Grade Research</h3>
-    <p>Each pick is based on FII accumulation, earnings momentum, sector rotation and technical structure confirmation.</p>
+  <div class="feature-card">
+    <h3>💰 Dividend Income</h3>
+    <p>We prioritise stocks with consistent dividend history. Every pick shows Dividend Yield % so you know your passive income from day one.</p>
   </div>
-  <div class="why-card">
-    <h3>📉 Defined Stop Loss</h3>
-    <p>Every pick has a stop loss. Exit discipline is as important as entry. Protect capital first — profits follow.</p>
+  <div class="feature-card">
+    <h3>🏛️ Quality Fundamentals</h3>
+    <p>Screened for ROE, profit margins, revenue growth, and debt-to-equity ratio. Only quality businesses with strong balance sheets make the list.</p>
   </div>
-  <div class="why-card">
-    <h3>🌍 Global + India Macro</h3>
-    <p>Picks consider global sector trends — IT, Defence, Renewable Energy, Healthcare — not just Indian market signals.</p>
+  <div class="feature-card">
+    <h3>🤖 AI FundScore (1–10)</h3>
+    <p>Every stock gets an AI-calculated score from live financial data. Score 7+ means strong fundamentals — no manual bias, no opinion.</p>
+  </div>
+  <div class="feature-card">
+    <h3>📊 FII Tracking</h3>
+    <p>We track institutional holding changes weekly. When FIIs are buying, it's a strong signal. When they're selling, we alert you early.</p>
+  </div>
+  <div class="feature-card">
+    <h3>🔄 Fresh Every Sunday</h3>
+    <p>This table is fully refreshed every Sunday at 9 AM IST. You always see this week's latest picks — no stale data from months ago.</p>
   </div>
 </div>
 
-<div class="strategy-section">
-  <h2>🎯 Our Positional Strategy Framework</h2>
-  <div class="strategy-grid">
-    <div class="strategy-card">
-      <span class="cap-type">Large Cap</span>
-      <div class="cap-name">Safe & Steady</div>
-      <div class="cap-desc">HDFC Bank, TCS, Reliance, Sun Pharma. Low volatility, consistent growth. Good for conservative investors.</div>
-      <span class="return-badge">12–18% annual target</span>
+<div class="upgrade-section">
+  <h3>🔒 Full Analysis — Advance &amp; Premium Members</h3>
+  <p>The table above shows the basic signal. Upgrade to see everything you need to make confident investment decisions.</p>
+  <div class="upgrade-grid">
+    <div class="upgrade-item">
+      <strong>📍 Entry Zone</strong>
+      Exact price range to enter — not just the current price. Avoid buying pumped stocks.
     </div>
-    <div class="strategy-card">
-      <span class="cap-type">Mid Cap</span>
-      <div class="cap-name">Growth Leaders</div>
-      <div class="cap-desc">PERSISTENT, POLYCAB, HAL, TITAN. High growth with 2–3 year runway. More volatility but better returns.</div>
-      <span class="return-badge">20–35% annual target</span>
+    <div class="upgrade-item">
+      <strong>🎯 12-Month Target</strong>
+      AI-calculated price target based on 52W highs, growth and sector multiples.
     </div>
-    <div class="strategy-card">
-      <span class="cap-type" style="color:#7c3aed;">ETF / Index</span>
-      <div class="cap-name">Zero Research Needed</div>
-      <div class="cap-desc">NIFTYBEES, JUNIORBEES. Best for beginners. Instant diversification. No stock picking needed.</div>
-      <span class="return-badge" style="background:#ede9fe;color:#6d28d9;">12–15% annual target</span>
+    <div class="upgrade-item">
+      <strong>🛑 Stop-Loss Price</strong>
+      Pre-defined stop to limit downside. Know your max loss before investing a single rupee.
     </div>
-    <div class="strategy-card">
-      <span class="cap-type" style="color:#d97706;">Thematic</span>
-      <div class="cap-name">Sector Themes</div>
-      <div class="cap-desc">Defence (HAL/BEL), Renewable (NTPC/TATAPOWER), IT (TCS/PERSISTENT). 3–5 year structural themes.</div>
-      <span class="return-badge" style="background:#fef3c7;color:#92400e;">25–50% over 3 years</span>
+    <div class="upgrade-item">
+      <strong>📈 FII Change %</strong>
+      See if institutions are accumulating or distributing. Follow smart money, not retail noise.
+    </div>
+    <div class="upgrade-item">
+      <strong>🧠 Why Buy — Full Reason</strong>
+      RSI zone, 52W position, dividend edge, institutional signal — all in plain language.
+    </div>
+    <div class="upgrade-item">
+      <strong>⚡ Daily Intraday Alerts</strong>
+      Plus swing signals and options alerts — everything in one Telegram channel.
     </div>
   </div>
+  <a href="/membership/" class="btn-upgrade" style="font-size:16px;padding:14px 36px;">Upgrade to Advance — ₹499/month →</a>
 </div>
 
 <div class="broker-section">
   <h3>🏦 Start Investing with Trusted Brokers</h3>
-  <p>Open a free account and start building long-term wealth with these positional picks today.</p>
+  <p>Open a free Demat account and start building long-term wealth with these picks today. Zero brokerage on equity delivery.</p>
   <div class="broker-grid">
     <a href="https://bit.ly/2VK6k5F" class="broker-card" target="_blank" rel="nofollow">
       <span class="broker-name">📊 Zerodha</span>
-      <span class="broker-desc">India's #1 broker. Zero brokerage on equity delivery. Perfect for long-term investors.</span>
+      <span class="broker-desc">India's #1 discount broker. Zero brokerage on equity delivery. Trusted by 1 crore+ investors.</span>
+      <span class="broker-btn">Open Free Account →</span>
+    </a>
+    <a href="https://dhan.co" class="broker-card" target="_blank" rel="nofollow">
+      <span class="broker-name">⚡ Dhan</span>
+      <span class="broker-desc">Fast execution, clean UI. Great for investors who want speed and simplicity in one app.</span>
       <span class="broker-btn">Open Free Account →</span>
     </a>
     <a href="https://groww.in" class="broker-card" target="_blank" rel="nofollow">
       <span class="broker-name">🌱 Groww</span>
-      <span class="broker-desc">Best for beginners. Stocks + mutual funds + ETFs in one app.</span>
-      <span class="broker-btn">Open Free Account →</span>
-    </a>
-    <a href="https://kuvera.in" class="broker-card" target="_blank" rel="nofollow">
-      <span class="broker-name">💎 Kuvera</span>
-      <span class="broker-desc">Best for mutual funds and ETFs. Direct plans, zero commission. Free goal-based investing.</span>
+      <span class="broker-desc">Easiest platform for beginners. Stocks, mutual funds and SIP — all in one place.</span>
       <span class="broker-btn">Open Free Account →</span>
     </a>
   </div>
 </div>
 
 <div class="dashboard-disclaimer">
-  ⚠️ <strong>Disclaimer:</strong> AI360Trading is an educational platform. All positional picks shown are for educational and research purposes only. This is NOT SEBI-registered investment advice. Long-term investing involves risk. Past performance does not guarantee future returns. Always consult a SEBI-registered financial advisor. Invest only what you can afford to stay invested for 3+ years.
+  ⚠️ <strong>Disclaimer:</strong> AI360Trading is an educational platform. All picks shown are generated by an algorithmic system for educational and research purposes only. This is NOT SEBI-registered investment advice. Long-term investing carries risk — stock prices can fall below your purchase price. Past performance does not guarantee future returns. Always consult a SEBI-registered financial advisor before investing. Never invest money you cannot afford to lose.
 </div>

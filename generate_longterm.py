@@ -34,8 +34,9 @@ IST        = pytz.timezone("Asia/Kolkata")
 VERSION    = "v1.1"
 SHEET_NAME = "Ai360tradingAlgo"
 
-LT_WATCHLIST = "LTWatchlist"
-LT_SIGNALS   = "LongTermSignals"
+LT_WATCHLIST    = "LTWatchlist"
+LT_SIGNALS      = "LongTermSignals"
+POSITIONAL_LIVE = "PositionalLatest"   # public-facing tab — cleared + rewritten every Sunday
 
 # LTWatchlist column indices (0-based after get_all_values)
 # Row 1 = headers. Script manages columns A-H.
@@ -347,7 +348,7 @@ def main():
 
     wb = _connect()
 
-    # Ensure LongTermSignals tab exists
+    # Ensure LongTermSignals tab exists (append-only history)
     lt_headers = [
         "Date", "Symbol", "Company", "Sector", "Signal",
         "CMP", "Entry Zone", "Target 12m", "SL", "Upside%",
@@ -355,6 +356,16 @@ def main():
         "Fund Score", "Score", "Reason", "MarketCap Cr",
     ]
     lt_sheet = _get_or_create(wb, LT_SIGNALS, lt_headers)
+
+    # PositionalLatest tab: public-facing, cleared + rewritten each Sunday
+    # Website iframe points here — always shows this week's fresh picks only
+    pos_headers = [
+        "Stock", "Company", "Sector", "Signal",
+        "CMP ₹", "Entry Zone", "Target (12m) ₹", "Upside %",
+        "Stop Loss ₹", "Div Yield %", "PE Ratio", "RSI",
+        "Why Buy",
+    ]
+    pos_sheet = _get_or_create(wb, POSITIONAL_LIVE, pos_headers)
 
     # Load watchlist (auto-seeds if empty)
     try:
@@ -419,13 +430,57 @@ def main():
             print(f"[LT] WL update row {row_idx}: {e}")
         time.sleep(0.3)
 
-    # ── Write signals to LongTermSignals sheet ───────────────────────────────
+    # ── Write signals to LongTermSignals sheet (append history) ─────────────
     if new_rows:
         try:
             lt_sheet.append_rows(new_rows)
             print(f"[LT] Wrote {len(new_rows)} rows → {LT_SIGNALS}")
         except Exception as e:
             print(f"[LT] Sheet write: {e}")
+
+    # ── Write to PositionalLatest (public website tab) ───────────────────────
+    # Clear all rows (keep header row 1) then rewrite with this week's picks only.
+    # Website iframe always shows fresh data — no stale history.
+    if new_rows:
+        try:
+            # Sort: STRONG BUY first, then ACCUMULATE, then HOLD, then others
+            signal_rank = {"STRONG BUY": 0, "ACCUMULATE": 1, "HOLD": 2, "BOOK": 3, "WAIT": 4}
+            def _sig_rank(r):
+                sig = str(r[4])  # Signal column in new_rows
+                for k, v in signal_rank.items():
+                    if k in sig: return v
+                return 5
+            sorted_rows = sorted(new_rows, key=_sig_rank)
+
+            # Build public rows: reader-friendly columns (no internal scores/dates)
+            pub_rows = []
+            week_str = now.strftime("Week of %d %b %Y")
+            for r in sorted_rows:
+                sig_clean = str(r[4]).replace("🟢","").replace("🟡","").replace("⚪","").replace("🔴","").replace("🔵","").strip()
+                pub_rows.append([
+                    r[1],           # Symbol (NSE:XXXX)
+                    r[2],           # Company
+                    r[3],           # Sector
+                    r[4],           # Signal (with emoji)
+                    f"₹{r[5]:,.0f}" if isinstance(r[5], (int,float)) else r[5],   # CMP
+                    r[6],           # Entry Zone
+                    f"₹{r[7]:,.0f}" if isinstance(r[7], (int,float)) else r[7],   # Target
+                    f"{r[9]}%" if r[9] else "",   # Upside%
+                    f"₹{r[8]:,.0f}" if isinstance(r[8], (int,float)) else r[8],   # SL
+                    f"{r[10]}%",    # Div Yield%
+                    r[11],          # PE
+                    r[12],          # RSI
+                    r[17],          # Reason
+                ])
+
+            # Clear data rows (keep header) + rewrite
+            last_row = pos_sheet.row_count
+            if last_row > 1:
+                pos_sheet.delete_rows(2, last_row)
+            pos_sheet.append_rows(pub_rows)
+            print(f"[LT] PositionalLatest refreshed — {len(pub_rows)} picks ({week_str})")
+        except Exception as e:
+            print(f"[LT] PositionalLatest write: {e}")
 
     # ── Telegram: FREE channel — teaser to grow followers ─────────────────────
     date_str = now.strftime("%d %b %Y")
