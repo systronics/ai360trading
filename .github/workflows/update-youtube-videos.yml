@@ -1,6 +1,7 @@
 name: Update YouTube Video List
-# Runs every Sunday 6 AM IST (0:30 UTC) — fetches latest 8 videos from channel RSS
+# Runs every Sunday 6 AM IST (0:30 UTC) — fetches latest LONG-FORM education videos from channel RSS
 # No API key needed — YouTube provides a public RSS feed for every channel
+# Shorts are filtered out: title contains #Shorts OR duration <= 60 seconds
 on:
   workflow_dispatch:
   schedule:
@@ -17,13 +18,15 @@ jobs:
         with:
           ref: master
 
-      - name: Fetch latest videos from YouTube RSS
+      - name: Fetch long-form videos (filter out Shorts)
         run: |
           python - <<'EOF'
           import json, requests, xml.etree.ElementTree as ET
 
-          CHANNEL_ID = "UC9dAJakbfPXk8zL31AVuTfA"
-          RSS_URL    = f"https://www.youtube.com/feeds/videos.xml?channel_id={CHANNEL_ID}"
+          CHANNEL_ID    = "UC9dAJakbfPXk8zL31AVuTfA"
+          RSS_URL       = f"https://www.youtube.com/feeds/videos.xml?channel_id={CHANNEL_ID}"
+          SHORTS_WORDS  = ["#shorts", "#short"]   # case-insensitive check
+          MAX_VIDEOS    = 8
 
           try:
               r = requests.get(RSS_URL, timeout=12, headers={"User-Agent": "Mozilla/5.0"})
@@ -42,22 +45,49 @@ jobs:
           videos = []
           for entry in root.findall("atom:entry", ns):
               try:
-                  vid_id    = entry.find("yt:videoId",  ns).text
-                  title_el  = entry.find("atom:title",  ns)
-                  pub_el    = entry.find("atom:published", ns)
+                  vid_id   = entry.find("yt:videoId",     ns).text
+                  title_el = entry.find("atom:title",     ns)
+                  pub_el   = entry.find("atom:published", ns)
                   title     = title_el.text  if title_el  is not None else "Untitled"
                   published = pub_el.text[:10] if pub_el is not None else ""
-                  videos.append({"id": vid_id, "title": title, "published": published})
-              except Exception:
+
+                  # ── Filter 1: title contains #Shorts ─────────────────────
+                  if any(kw in title.lower() for kw in SHORTS_WORDS):
+                      print(f"  ⏭  Skipping Short (title): {title[:55]}")
+                      continue
+
+                  # ── Filter 2: duration <= 60 s (YouTube defines Shorts ≤ 60s) ──
+                  duration = 0
+                  mg = entry.find("media:group", ns)
+                  if mg is not None:
+                      mc = mg.find("media:content", ns)
+                      if mc is not None:
+                          try:
+                              duration = int(mc.get("duration", "0"))
+                          except ValueError:
+                              pass
+                  if 0 < duration <= 60:
+                      print(f"  ⏭  Skipping Short ({duration}s): {title[:55]}")
+                      continue
+
+                  videos.append({
+                      "id":        vid_id,
+                      "title":     title,
+                      "published": published,
+                      "duration":  duration,
+                  })
+                  print(f"  ✅ Long video ({duration}s): {title[:55]}")
+
+              except Exception as ex:
+                  print(f"  ⚠️  Parse error: {ex}")
                   continue
 
-          videos = videos[:8]
+          videos = videos[:MAX_VIDEOS]
+
           with open("_data/youtube_videos.json", "w", encoding="utf-8") as f:
               json.dump(videos, f, indent=2, ensure_ascii=False)
 
-          print(f"✅ Saved {len(videos)} videos to _data/youtube_videos.json")
-          for v in videos:
-              print(f"   [{v['published']}] {v['title'][:60]}")
+          print(f"\n✅ Saved {len(videos)} long-form videos to _data/youtube_videos.json")
           EOF
 
       - name: Commit updated video list
@@ -65,5 +95,5 @@ jobs:
           git config --local user.email "admin@ai360trading.in"
           git config --local user.name "AI360-Automation"
           git add _data/youtube_videos.json
-          git diff --cached --quiet || git commit -m "🎥 Update YouTube video list: $(date +'%Y-%m-%d')"
+          git diff --cached --quiet || git commit -m "🎥 Update YouTube long-form video list: $(date +'%Y-%m-%d')"
           git push origin master

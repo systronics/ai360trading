@@ -17,27 +17,36 @@ permalink: /tutorial-videos/
     </a>
   </div>
 
-  <!-- FEATURED PLAYER: latest uploads from channel -->
+  <!-- FEATURED PLAYER: embeds the most recent long-form video directly by ID -->
   <div class="featured-section">
-    <h2 class="section-title">📺 Latest Videos</h2>
-    <div class="player-wrap">
-      <iframe
-        src="https://www.youtube.com/embed/videoseries?list=UU9dAJakbfPXk8zL31AVuTfA&rel=0&modestbranding=1"
-        title="AI360Trading Latest Videos"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowfullscreen
-        loading="lazy">
-      </iframe>
-    </div>
-    <p class="player-note">Use the playlist arrow (▶) to browse all videos inside the player above.</p>
+    <h2 class="section-title">📺 Latest Video</h2>
+    {% if site.data.youtube_videos and site.data.youtube_videos.size > 0 %}
+      {% assign featured = site.data.youtube_videos[0] %}
+      <div class="player-wrap">
+        <iframe
+          src="https://www.youtube.com/embed/{{ featured.id }}?rel=0&modestbranding=1"
+          title="{{ featured.title | escape }}"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowfullscreen
+          loading="lazy">
+        </iframe>
+      </div>
+      <p class="player-note">{{ featured.title }} — {{ featured.published }}</p>
+    {% else %}
+      <div class="no-video-box">
+        <p>📡 New education videos publish every week.</p>
+        <a href="https://youtube.com/@ai360trading" target="_blank" rel="noopener">Watch on YouTube →</a>
+      </div>
+    {% endif %}
   </div>
 
-  <!-- THUMBNAIL GRID: populated by update-youtube-videos.yml workflow weekly -->
-  {% if site.data.youtube_videos and site.data.youtube_videos.size > 0 %}
+  <!-- THUMBNAIL GRID: long-form videos only (Shorts filtered by workflow) -->
+  {% if site.data.youtube_videos and site.data.youtube_videos.size > 1 %}
   <div class="thumb-section">
-    <h2 class="section-title">🕐 Recent Uploads</h2>
+    <h2 class="section-title">🕐 More Education Videos</h2>
     <div class="thumb-grid">
-      {% for video in site.data.youtube_videos limit: 8 %}
+      {% for video in site.data.youtube_videos %}
+      {% unless forloop.first %}
       <a href="https://www.youtube.com/watch?v={{ video.id }}" target="_blank" rel="noopener" class="thumb-card">
         <div class="thumb-img-wrap">
           <img
@@ -50,11 +59,10 @@ permalink: /tutorial-videos/
         </div>
         <div class="thumb-meta">
           <p class="thumb-title">{{ video.title | truncate: 70 }}</p>
-          {% if video.published %}
-          <span class="thumb-date">{{ video.published }}</span>
-          {% endif %}
+          {% if video.published %}<span class="thumb-date">{{ video.published }}</span>{% endif %}
         </div>
       </a>
+      {% endunless %}
       {% endfor %}
     </div>
   </div>
@@ -87,13 +95,40 @@ permalink: /tutorial-videos/
       <div class="topic-card topic-yellow">
         <div class="topic-icon">💰</div>
         <h3>Personal Finance</h3>
-        <p>SIP vs lump sum, term insurance, PPF vs ELSS, emergency fund — practical Indian and global advice.</p>
+        <p>SIP vs lump sum, term insurance, PPF vs ELSS, emergency fund — practical advice for India and global.</p>
       </div>
       <div class="topic-card topic-red">
         <div class="topic-icon">🔴</div>
         <h3>Live Market Analysis</h3>
         <p>Daily market morning sessions — NIFTY and global outlook with real-time data.</p>
         <a href="https://www.youtube.com/@ai360trading/live" target="_blank" rel="noopener" class="live-link">Watch Live →</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- PREMIUM COURSE TEASER — ready to activate when you lock videos -->
+  <div class="course-teaser">
+    <div class="course-teaser-left">
+      <div class="course-badge">🔒 Coming Soon</div>
+      <h3>AI360 Full Course — Complete Trading System</h3>
+      <p>A structured step-by-step course covering everything from market basics to building your own trading system. Beginner to advanced.</p>
+      <ul class="course-list">
+        <li>✅ 20+ in-depth video lessons</li>
+        <li>✅ Live chart walkthroughs</li>
+        <li>✅ Algo trading without coding</li>
+        <li>✅ Real trade examples with data</li>
+        <li>✅ Personal finance module</li>
+      </ul>
+      <a href="https://t.me/ai360trading" target="_blank" rel="noopener" class="course-notify-btn">
+        🔔 Notify Me on Telegram When It Launches
+      </a>
+    </div>
+    <div class="course-teaser-right">
+      <div class="course-price-box">
+        <p class="course-price-label">Launch Price</p>
+        <p class="course-price-amount">₹1,999</p>
+        <p class="course-price-note">One-time | Lifetime access</p>
+        <p class="course-price-usd">~$24 USD | ~£19 GBP</p>
       </div>
     </div>
   </div>
@@ -109,7 +144,6 @@ permalink: /tutorial-videos/
     </div>
   </div>
 
-  <!-- DISCLAIMER -->
   <p class="academy-disclaimer">All videos are for educational purposes only. AI360Trading is not SEBI registered. Please read our <a href="/disclaimer/">Disclaimer</a> before making any investment decisions.</p>
 
 </div>
@@ -130,6 +164,8 @@ permalink: /tutorial-videos/
   .player-wrap { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 12px; box-shadow: 0 6px 24px rgba(0,0,0,0.10); background: #000; }
   .player-wrap iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
   .player-note { font-size: 12px; color: #94a3b8; margin-top: 10px; text-align: center; }
+  .no-video-box { padding: 40px; background: #f8faff; border: 1px solid #e2e8f0; border-radius: 12px; text-align: center; color: #64748b; font-size: 15px; }
+  .no-video-box a { color: #0062ff; font-weight: 700; text-decoration: none; }
 
   .thumb-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 18px; }
   .thumb-card { display: block; text-decoration: none; background: #fff; border-radius: 10px; border: 1px solid #e2e8f0; overflow: hidden; transition: 0.2s; }
@@ -156,6 +192,23 @@ permalink: /tutorial-videos/
   .live-link { display: inline-block; margin-top: 8px; font-size: 12px; font-weight: 700; color: #ef4444 !important; text-decoration: none; }
   .live-link:hover { text-decoration: underline; }
 
+  /* Premium course teaser */
+  .course-teaser { display: flex; gap: 30px; align-items: flex-start; background: #0f172a; border-radius: 14px; padding: 32px; margin: 40px 0; }
+  .course-teaser-left { flex: 1; }
+  .course-badge { display: inline-block; background: #f59e0b; color: #0f172a; font-size: 12px; font-weight: 800; padding: 4px 12px; border-radius: 20px; margin-bottom: 14px; }
+  .course-teaser-left h3 { font-size: 20px; font-weight: 900; color: #fff; margin-bottom: 10px; }
+  .course-teaser-left p { font-size: 14px; color: #94a3b8; line-height: 1.6; margin-bottom: 14px; }
+  .course-list { list-style: none; padding: 0; margin: 0 0 20px 0; }
+  .course-list li { font-size: 13px; color: #cbd5e1; margin-bottom: 6px; }
+  .course-notify-btn { display: inline-block; background: #0088cc; color: #fff !important; font-weight: 800; font-size: 13px; padding: 11px 20px; border-radius: 8px; text-decoration: none; transition: 0.2s; }
+  .course-notify-btn:hover { background: #006fa8; }
+  .course-teaser-right { flex-shrink: 0; }
+  .course-price-box { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 24px 28px; text-align: center; }
+  .course-price-label { font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+  .course-price-amount { font-size: 36px; font-weight: 900; color: #f59e0b; margin-bottom: 6px; }
+  .course-price-note { font-size: 12px; color: #94a3b8; margin-bottom: 4px; }
+  .course-price-usd { font-size: 11px; color: #475569; }
+
   .academy-cta { background: #0f172a; border-radius: 14px; padding: 36px 30px; text-align: center; margin: 40px 0 20px; color: #fff; }
   .cta-icon { font-size: 36px; margin-bottom: 12px; }
   .academy-cta h3 { font-size: 22px; font-weight: 900; color: #fff; margin-bottom: 10px; }
@@ -173,6 +226,9 @@ permalink: /tutorial-videos/
     .academy-title { font-size: 22px; }
     .topics-grid { grid-template-columns: repeat(2, 1fr); }
     .thumb-grid { grid-template-columns: repeat(2, 1fr); }
+    .course-teaser { flex-direction: column; padding: 24px; }
+    .course-teaser-right { width: 100%; }
+    .course-price-box { padding: 20px; }
   }
   @media (max-width: 480px) {
     .topics-grid { grid-template-columns: 1fr; }
