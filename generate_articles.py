@@ -234,6 +234,29 @@ def notify_google_url_deleted(urls: list):
         print(f"  ⚠️  Deletion notify error: {e}")
 
 
+def submit_urls_to_bing(urls: list):
+    """Submit new article URLs to Bing IndexNow — covers Bing, Yahoo and Yandex, free."""
+    try:
+        key = os.environ.get("BING_INDEXNOW_KEY", "ai360trading2026indexnow")
+        resp = requests.post(
+            "https://api.indexnow.org/indexnow",
+            json={
+                "host": "ai360trading.in",
+                "key": key,
+                "keyLocation": "https://ai360trading.in/indexnow.txt",
+                "urlList": urls,
+            },
+            headers={"Content-Type": "application/json"},
+            timeout=15,
+        )
+        if resp.status_code in (200, 202):
+            print(f"  🔍 Bing IndexNow: {len(urls)} URLs submitted ({resp.status_code})")
+        else:
+            print(f"  ⚠️  Bing IndexNow: {resp.status_code} — {resp.text[:80]}")
+    except Exception as e:
+        print(f"  ⚠️  Bing IndexNow error: {e}")
+
+
 SITE_URL = "https://ai360trading.in"
 
 # Direct Groq client removed — ai_client.py handles full fallback chain
@@ -250,7 +273,7 @@ _slug_suffix = now.strftime("%H%M")
 
 POSTS_DIR = os.path.join(os.getcwd(), '_posts')
 
-MAX_POSTS = 120
+MAX_POSTS = 500
 
 
 # ─── HOLIDAY / WEEKEND ARTICLE PILLARS ───────────────────────────────────────
@@ -443,7 +466,7 @@ MARKET_PILLARS = [
 - S&P 500 and NASDAQ deep technical and fundamental analysis
 - NIFTY 50 and SENSEX India market analysis with FII/DII flows
 - IBOVESPA Brazil market analysis and EM correlation
-- FTSE 100 UK market overview
+- FTSE 100 UK and DAX 40 Germany market overview with EUR/USD macro context
 - Support/resistance levels for all major indices
 - Sector rotation analysis — which sector is moving and why
 - What smart money is doing vs retail traders""",
@@ -453,6 +476,7 @@ MARKET_PILLARS = [
             "NIFTY+50+SENSEX+Indian+market",
             "IBOVESPA+Brazil+stock+market",
             "FTSE+100+UK+market+today",
+            "DAX+Germany+stock+market+today",
             "global+stock+market+rally+crash",
             "Fed+interest+rate+stocks",
             "FII+DII+India+flows+today",
@@ -489,7 +513,7 @@ MARKET_PILLARS = [
 - Crypto Fear and Greed Index interpretation and what it signals
 - Institutional vs retail sentiment analysis
 - Bitcoin correlation with S&P 500 and risk assets
-- Regulatory news impact for US, India, and Brazil crypto markets
+- Regulatory news impact for US, UK, EU/Germany, India, and Brazil crypto markets
 - DeFi developments and their market impact
 - Bitcoin price prediction framework with specific levels for next 24-48 hours""",
         "news_queries": [
@@ -542,8 +566,8 @@ MARKET_PILLARS = [
 - Tax saving strategies specific to each country with actionable steps
 - Retirement planning: 401k (US), pension (UK), NPS/PPF (India)
 - Emergency fund building and best savings account rates
-- Credit score improvement tips for US and India
-- How current market conditions affect personal finance decisions
+- Credit score improvement tips for US, India and Germany
+- How current market conditions affect personal finance decisions in all target markets
 - Practical advice readers can implement today — not generic advice
 IMPORTANT: Insurance referral context — India readers can compare plans at PolicyBazaar,
 US readers at Policygenius, UK readers at CompareTheMarket. Mention naturally when relevant.""",
@@ -1277,7 +1301,7 @@ End with:
             f"permalink: /{pillar['permalink_base']}/{chosen_slug}/\n"
             f"excerpt: \"{safe_excerpt}\"\n"
             f"description: \"{safe_desc}\"\n"
-            f"keywords: \"{', '.join(pillar['primary_keywords'])}, {', '.join(pillar.get('us_keywords', [])[:2])}, {', '.join(pillar.get('india_keywords', [])[:2])}\"\n"
+            f"keywords: \"{', '.join(pillar['primary_keywords'])}, {', '.join(pillar.get('us_keywords', [])[:2])}, {', '.join(pillar.get('uk_keywords', [])[:2])}, {', '.join(pillar.get('india_keywords', [])[:2])}, DAX Germany 2026, global markets\"\n"
             f"categories: [{pillar['category']}]\n"
             f"tags: [{pillar['tag']}]\n"
             f"fear_greed: \"{safe_fm(fear_greed)}\"\n"
@@ -1365,6 +1389,7 @@ def generate_all_articles():
     if published_urls:
         print(f"\n  Submitting {len(published_urls)} URLs to Google Indexing API...")
         submit_urls_to_google(published_urls)
+        submit_urls_to_bing(published_urls)
 
     cleanup_old_posts()
 

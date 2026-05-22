@@ -1,0 +1,110 @@
+name: US Prime-Time Article Reshare
+# Runs at 7:00 PM IST (13:30 UTC) Mon-Fri — perfect for US morning (9:30 AM ET) and UK afternoon
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "30 13 * * 1-5"
+
+jobs:
+  reshare:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout master
+        uses: actions/checkout@v4
+        with:
+          ref: master
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Post today's articles to Facebook (US prime-time)
+        env:
+          META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
+          FACEBOOK_PAGE_ID:  ${{ secrets.FACEBOOK_PAGE_ID }}
+          FACEBOOK_GROUP_ID: ${{ secrets.FACEBOOK_GROUP_ID }}
+        run: |
+          pip install requests --quiet
+          python - <<'EOF'
+          import os, glob, re, requests
+          from datetime import datetime
+
+          META_TOKEN = os.environ.get("META_ACCESS_TOKEN", "")
+          PAGE_ID    = os.environ.get("FACEBOOK_PAGE_ID", "")
+          GROUP_ID   = os.environ.get("FACEBOOK_GROUP_ID", "")
+          GRAPH      = "https://graph.facebook.com/v21.0"
+          SITE_URL   = "https://ai360trading.in"
+          today_str  = datetime.utcnow().strftime("%Y-%m-%d")
+          now_disp   = datetime.utcnow().strftime("%B %d, %Y")
+
+          # Read today's articles from _posts/
+          posts_dir = "_posts"
+          articles = []
+          for fpath in sorted(glob.glob(f"{posts_dir}/{today_str}-*.md"), reverse=True):
+              try:
+                  with open(fpath, encoding="utf-8") as f:
+                      content = f.read()
+                  title_m     = re.search(r'^title:\s*"(.+?)"', content, re.MULTILINE)
+                  permalink_m = re.search(r'^permalink:\s*(.+)', content, re.MULTILINE)
+                  if title_m and permalink_m:
+                      articles.append({
+                          "title": title_m.group(1),
+                          "url":   SITE_URL + permalink_m.group(1).strip(),
+                      })
+              except Exception:
+                  pass
+
+          if not articles:
+              print("No articles found for today — skipping reshare")
+              exit(0)
+
+          # Build US-focused message with real article links
+          lines = [
+              f"📊 AI360Trading — US Market Morning Brief | {now_disp}",
+              "",
+              "Fresh intelligence just published across all 4 markets:",
+              "",
+          ]
+          pillar_icons = {
+              "stock-market": "📊", "bitcoin": "₿", "personal-finance": "💰", "ai-trading": "🤖"
+          }
+          for a in articles[:4]:
+              icon = "📌"
+              for k, v in pillar_icons.items():
+                  if k in a["url"]:
+                      icon = v
+                      break
+              lines.append(f"{icon} {a['title']}")
+              lines.append(f"   {a['url']}")
+              lines.append("")
+
+          lines += [
+              "Real data. No hype. No paid signals in articles.",
+              f"🌍 Global coverage: India 🇮🇳 | US 🇺🇸 | UK 🇬🇧 | Brazil 🇧🇷 | Germany 🇩🇪",
+              "",
+              "🔔 Free Telegram: t.me/ai360trading",
+              "#StockMarket #SP500 #FTSE100 #DAX #Bitcoin #Trading #ai360trading",
+          ]
+
+          msg = "\n".join(lines)
+
+          for entity_id in [PAGE_ID, GROUP_ID]:
+              if META_TOKEN and entity_id:
+                  try:
+                      r = requests.post(
+                          f"{GRAPH}/{entity_id}/feed",
+                          data={"message": msg, "access_token": META_TOKEN},
+                          timeout=15,
+                      )
+                      label = "Page" if entity_id == PAGE_ID else "Group"
+                      resp_data = r.json()
+                      if "id" in resp_data:
+                          print(f"✅ {label}: posted {resp_data['id']}")
+                      else:
+                          print(f"⚠️  {label}: {resp_data}")
+                  except Exception as e:
+                      print(f"❌ {label} error: {e}")
+              else:
+                  print(f"⚠️  Skipping — META_ACCESS_TOKEN or entity ID not set")
+          EOF
