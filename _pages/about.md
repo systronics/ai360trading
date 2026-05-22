@@ -52,8 +52,8 @@ permalink: /about/
       <div class="tech-item"><span class="tech-icon">🧠</span><span class="tech-name">AI Pattern Recognition</span></div>
       <div class="tech-item"><span class="tech-icon">📈</span><span class="tech-name">Algorithmic Signals</span></div>
       <div class="tech-item"><span class="tech-icon">🌍</span><span class="tech-name">Global Macro Analysis</span></div>
-      <div class="tech-item"><span class="tech-icon">🤖</span><span class="tech-name">LLM Article Generation</span></div>
-      <div class="tech-item"><span class="tech-icon">⚡</span><span class="tech-name">GitHub Pages Hosting</span></div>
+      <div class="tech-item"><span class="tech-icon">📝</span><span class="tech-name">Daily Market Reports</span></div>
+      <div class="tech-item"><span class="tech-icon">⚡</span><span class="tech-name">Fast Global CDN Hosting</span></div>
     </div>
 
     <h2>🎯 What We Cover</h2>

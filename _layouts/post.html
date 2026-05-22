@@ -1,12 +1,12 @@
 ---
 layout: default
 ---
-<article class="post-outer-container" itemscope itemtype="https://schema.org/NewsArticle">
+<article class="post-outer-container" itemscope itemtype="https://schema.org/{% if page.category == 'Stock-Market' or page.category == 'Bitcoin-Crypto' %}NewsArticle{% else %}Article{% endif %}">
 
   <!-- FIX: Hidden machine-readable metadata for crawlers -->
   <meta itemprop="headline" content="{{ page.title }}">
   <meta itemprop="datePublished" content="{{ page.date | date_to_xmlschema }}">
-  <meta itemprop="dateModified" content="{{ page.date | date_to_xmlschema }}">
+  <meta itemprop="dateModified" content="{{ site.time | date_to_xmlschema }}">
   <meta itemprop="author" content="Amit Kumar">
   <meta itemprop="description" content="{{ page.description }}">
 
@@ -90,6 +90,34 @@ layout: default
 
   </div>
 </article>
+
+<!-- BreadcrumbList schema — helps Google show navigation in search results -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "https://ai360trading.in/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "{{ page.category | replace: '-', ' ' | capitalize }}",
+      "item": "https://ai360trading.in/topics/{{ page.category | downcase }}/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "{{ page.title | escape }}",
+      "item": "{{ page.url | absolute_url }}"
+    }
+  ]
+}
+</script>
 
 <!-- FLOATING MOBILE BAR -->
 <div class="mobile-social-bar" aria-label="Share this article">

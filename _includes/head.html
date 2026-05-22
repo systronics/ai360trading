@@ -19,7 +19,7 @@
   <link rel="canonical" href="{{ page.url | replace:'index.html','' | absolute_url }}">
 
   <!-- Open Graph -->
-  <meta property="og:type" content="article">
+  <meta property="og:type" content="{% if page.layout == 'post' %}article{% else %}website{% endif %}">
   <meta property="og:title" content="{% if page.title %}{{ page.title }}{% else %}AI360Trading | Global Market Intelligence{% endif %}">
   <meta property="og:description" content="{% if page.description %}{{ page.description }}{% else %}Daily AI-powered market intelligence for NIFTY, S&P 500, FTSE 100 and IBOVESPA.{% endif %}">
   <meta property="og:url" content="{{ page.url | absolute_url }}">

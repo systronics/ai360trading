@@ -1,2 +1,11 @@
-# Ads.txt - AI360Trading
-# AdSense code will be added after approval
+# ads.txt — AI360Trading (ai360trading.in)
+#
+# SETUP REQUIRED (one-time, within 15 days):
+#   1. Go to Google AdSense → Account → Account Information
+#   2. Find your Publisher ID (format: pub-XXXXXXXXXXXXXXXX)
+#   3. Replace the line below with your actual Publisher ID
+#   4. Commit and push — Google will verify within 24 hours
+#
+# FORMAT: google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0
+
+google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0
