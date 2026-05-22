@@ -340,6 +340,52 @@ def make_signal(data):
     return sig, tgt, sl, entry, upside, round(pos_pct, 1), score, " | ".join(reasons)
 
 
+# ── Auto-archive ──────────────────────────────────────────────────────────────
+ARCHIVE_TAB     = "SignalsArchive"
+ARCHIVE_TRIGGER = 600   # archive when main sheet exceeds this many data rows
+KEEP_ROWS       = 300   # keep this many latest rows in main sheet after archiving
+
+def _auto_archive_signals(wb, lt_sheet):
+    """
+    Fully automatic, runs every Sunday inside generate_longterm.py.
+    When LongTermSignals exceeds ARCHIVE_TRIGGER rows, moves the oldest
+    rows to SignalsArchive tab and keeps only the latest KEEP_ROWS rows.
+    No manual task ever — preserves complete history in archive tab forever.
+    """
+    try:
+        all_data = lt_sheet.get_all_values()  # includes header row
+        total_data_rows = len(all_data) - 1   # exclude header
+        if total_data_rows <= ARCHIVE_TRIGGER:
+            print(f"[ARCHIVE] {total_data_rows} rows — no archive needed (threshold {ARCHIVE_TRIGGER})")
+            return
+
+        header     = all_data[0]
+        data_rows  = all_data[1:]
+        keep       = data_rows[-KEEP_ROWS:]    # latest KEEP_ROWS rows
+        to_archive = data_rows[:-KEEP_ROWS]    # everything older
+
+        # Get or create archive tab (append-only, never cleared)
+        try:
+            arc_sheet = wb.worksheet(ARCHIVE_TAB)
+        except gspread.WorksheetNotFound:
+            arc_sheet = wb.add_worksheet(title=ARCHIVE_TAB, rows=5000, cols=len(header))
+            arc_sheet.append_row(header)
+            print(f"[ARCHIVE] Created {ARCHIVE_TAB} tab")
+
+        # Append old rows to archive
+        arc_sheet.append_rows(to_archive)
+        print(f"[ARCHIVE] Moved {len(to_archive)} rows to {ARCHIVE_TAB}")
+
+        # Rewrite main sheet: header + latest KEEP_ROWS rows only
+        lt_sheet.clear()
+        lt_sheet.append_row(header)
+        lt_sheet.append_rows(keep)
+        print(f"[ARCHIVE] LongTermSignals trimmed to {len(keep)} rows")
+
+    except Exception as e:
+        print(f"[ARCHIVE] {e}")  # never crash main flow on archive failure
+
+
 # ── Main ──────────────────────────────────────────────────────────────────────
 def main():
     now   = datetime.now(IST)
@@ -437,6 +483,12 @@ def main():
             print(f"[LT] Wrote {len(new_rows)} rows → {LT_SIGNALS}")
         except Exception as e:
             print(f"[LT] Sheet write: {e}")
+
+    # ── Auto-archive old LongTermSignals rows (fully automatic, forever) ─────
+    # Keeps last 300 rows in main sheet (~3 months of weekly scans).
+    # Moves older rows to SignalsArchive tab — preserves all history forever.
+    # Triggers when main sheet exceeds 600 rows (~6 months). No manual task ever.
+    _auto_archive_signals(wb, lt_sheet)
 
     # ── Write to PositionalLatest (public website tab) ───────────────────────
     # Clear all rows (keep header row 1) then rewrite with this week's picks only.
