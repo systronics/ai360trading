@@ -8,6 +8,13 @@ VOICE ASSIGNMENTS:
   Short 3: en-IN-NeerjaNeural  — Indian English female, market pulse
   ZENO reel uses hi-IN-SwaraNeural (in generate_reel.py — separate)
 
+v3.2 FIX (May 2026):
+  FIX — get_fb_page_token() updated to match upload_facebook.py v2.5
+    Primary: GET /{page_id}?fields=access_token (direct — avoids pagination)
+    Fallback: /me/accounts with limit=200
+    Reason: /me/accounts alone was returning empty — page not found
+    Result: Facebook shorts now upload correctly
+
 v3.1 FIXES (May 2026):
   FIX 1 — Background music removed
     REMOVED: MUSIC_DIR, get_bg_music(), mix_audio()
@@ -80,8 +87,9 @@ FONT_REG_PATHS = [
     "/usr/share/fonts/truetype/freefont/FreeSans.ttf",
 ]
 
-FB_RETRY = 3
+FB_RETRY      = 3
 FB_RETRY_WAIT = 8
+GRAPH_BASE    = "https://graph.facebook.com/v21.0"
 
 
 # ─── HELPERS ──────────────────────────────────────────────────────────────────
@@ -498,31 +506,60 @@ def upload_short(video_path: str, title: str, description: str, tags: list) -> s
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# FACEBOOK PAGE TOKEN + SHARE
+# v3.2 FIX: FACEBOOK PAGE TOKEN — matches upload_facebook.py v2.5
 # ══════════════════════════════════════════════════════════════════════════════
 
 def get_fb_page_token() -> str:
-    """Exchange user token for page token using FACEBOOK_PAGE_ID."""
+    """
+    Exchange user token for page token.
+    v3.2 FIX: matches upload_facebook.py v2.5 logic.
+      Primary:  GET /{page_id}?fields=access_token (direct — avoids pagination gaps)
+      Fallback: GET /me/accounts with limit=200
+    Old v3.1 only used /me/accounts which was returning empty — causing #200 permission error.
+    """
     user_token = os.environ.get("META_ACCESS_TOKEN", "")
     page_id    = os.environ.get("FACEBOOK_PAGE_ID", "")
     if not user_token or not page_id:
         return user_token
 
+    # Primary: direct page token fetch (avoids pagination gaps in /me/accounts)
     try:
         resp = requests.get(
-            "https://graph.facebook.com/v21.0/me/accounts",
-            params={"access_token": user_token},
+            f"{GRAPH_BASE}/{page_id}",
+            params={"fields": "access_token", "access_token": user_token},
+            timeout=15
+        )
+        data = resp.json()
+        token = data.get("access_token", "")
+        if token:
+            print(f"  ✅ Page token retrieved for page {page_id}")
+            return token
+        err = data.get("error", {})
+        if err:
+            print(f"  ⚠️ Direct page token: {err.get('code')} {err.get('message','')}")
+    except Exception as e:
+        print(f"  ⚠️ Direct page token fetch failed: {e}")
+
+    # Fallback: list all pages with limit=200
+    try:
+        resp = requests.get(
+            f"{GRAPH_BASE}/me/accounts",
+            params={"access_token": user_token, "limit": 200},
             timeout=15
         )
         data = resp.json().get("data", [])
         for page in data:
-            if str(page.get("id")) == str(page_id):
-                print(f"  ✅ Page token retrieved for page {page_id}")
-                return page.get("access_token", user_token)
-        print(f"  ⚠️ Page {page_id} not found in /me/accounts — using user token")
+            if str(page.get("id", "")) == str(page_id):
+                token = page.get("access_token", "")
+                if token:
+                    print(f"  ✅ Page token retrieved via /me/accounts for page {page_id}")
+                    return token
+        found = [p.get("id") for p in data]
+        print(f"  ⚠️ Page {page_id} not in /me/accounts — found: {found[:10] or 'none'}")
     except Exception as e:
-        print(f"  ⚠️ Page token fetch failed: {e}")
+        print(f"  ⚠️ /me/accounts lookup failed: {e}")
 
+    print(f"  ⚠️ Falling back to user token (page token unavailable)")
     return user_token
 
 
@@ -533,7 +570,7 @@ def _fb_videos_fallback(page_id: str, page_token: str, video_path: str, caption:
         with open(video_path, "rb") as f:
             video_data = f.read()
         resp = requests.post(
-            f"https://graph.facebook.com/v21.0/{page_id}/videos",
+            f"{GRAPH_BASE}/{page_id}/videos",
             data={"description": caption, "access_token": page_token},
             files={"source": ("video.mp4", video_data, "video/mp4")},
             timeout=180
@@ -563,7 +600,7 @@ def share_to_facebook(video_path: str, caption: str) -> bool:
         try:
             # Phase 1: Start upload session
             init = requests.post(
-                f"https://graph.facebook.com/v21.0/{page_id}/video_reels",
+                f"{GRAPH_BASE}/{page_id}/video_reels",
                 data={"upload_phase": "start", "access_token": page_token},
                 timeout=30
             ).json()
@@ -590,7 +627,7 @@ def share_to_facebook(video_path: str, caption: str) -> bool:
 
             # Phase 3: Publish
             finish = requests.post(
-                f"https://graph.facebook.com/v21.0/{page_id}/video_reels",
+                f"{GRAPH_BASE}/{page_id}/video_reels",
                 data={"upload_phase": "finish", "video_id": vid_id,
                       "video_state": "PUBLISHED", "description": caption,
                       "access_token": page_token},
