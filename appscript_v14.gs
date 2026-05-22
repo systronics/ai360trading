@@ -819,11 +819,6 @@ function _runScanner(startRow, endRow) {
   const isMorning = timeStr <= CONFIG.MORNING_VOL_BYPASS_UNTIL;
   const indiaVix  = _getIndiaVix(inputData);
 
-  // v15.6 FIX 5: Detect sector momentum — only if BULLISH (saves time in bearish)
-  const momentumSectors = marketBullish ? _detectMomentumSectors(inputData) : new Set();
-
-  Logger.log(`[v15.6] VIX=${indiaVix.toFixed(1)} | MomentumSectors: ${[...momentumSectors].join(', ') || 'none'}`);
-
   const alreadyTraded = new Set();
   const sectorCount   = {};
   const finalTraded   = currentLog.filter(r => {
@@ -856,6 +851,10 @@ function _runScanner(startRow, endRow) {
   // v15.6: Determine max waiting slots based on regime
   const maxWaitingSlots = marketBullish ? CONFIG.MAX_WAITING : CONFIG.BEARISH_MAX_WAITING;
   Logger.log(`[v15.6] Market=${marketBullish ? 'BULLISH' : 'BEARISH'} | MaxWaiting=${maxWaitingSlots}`);
+
+  // v15.6 FIX 5: Detect sector momentum — only if BULLISH (saves time in bearish)
+  const momentumSectors = marketBullish ? _detectMomentumSectors(inputData) : new Set();
+  Logger.log(`[v15.6] VIX=${indiaVix.toFixed(1)} | MomentumSectors: ${[...momentumSectors].join(', ') || 'none'}`);
 
   let batchCands = [];
   if (!isFullScan) {
