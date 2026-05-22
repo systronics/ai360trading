@@ -1,6 +1,6 @@
 # AI360Trading — Master System Documentation
 
-**Last Updated:** May 2026 — Trading Bot v15.1 + AppScript v15.6
+**Last Updated:** May 2026 — Trading Bot v15.1 + AppScript v15.6 (Basic channel upgrade + marketBullish bug fix)
 **Status:** Phase 1 ✅ Complete | Phase 2 ✅ Complete | Phase 3 🔄 Planned | Phase 4 (Dhan Live) 📋 Planned
 **Primary Audience:** Bilingual Hindi + English — Indian retail traders + global investors
 
@@ -534,8 +534,8 @@ TSL_PARAMS = {
 
 | Channel | Secret | Audience | Content |
 | --- | --- | --- | --- |
-| Basic (free) | `CHAT_ID_BASIC` | Free followers | Market mood, signal closed result only |
-| Advance | `CHAT_ID_ADVANCE` | ₹499/month | Full entry/exit details, TSL updates, mid-day pulse, CE candidate flag |
+| Basic (free) | `CHAT_ID_BASIC` | Free followers — attract + convert | Good Morning (market + watchlist count), scanner teaser (setup count + top stock name, SL/Target hidden), entry alert (stock + price, no SL/Target), mid-day unrealised P/L, exit result (full % and ₹), market close (daily P/L), weekly performance summary — all with upgrade CTA |
+| Advance | `CHAT_ID_ADVANCE` | ₹499/month | Full entry/exit details, TSL updates, mid-day pulse with all trade details, CE candidate flag |
 | Premium | `CHAT_ID_PREMIUM` | Bundle subscribers | Everything in Advance + **full options buying advisory** (strike, target%, SL%, lot sizing) |
 
 > ✅ **Telegram token and channel variables confirmed fixed in trading_bot.py v13.5:**
@@ -769,6 +769,26 @@ The code in `upload_facebook.py` already supports group posting — it posts the
 ### SEO Seeds Block — Silent Mismatch ⚠️
 
 `content_calendar.get_article_seo_seeds()` returns a **dict**. `generate_articles.py` iterates it as a **list of dicts** expecting `primary_target`, `seo_seed`, `long_tail`, `affiliate_hint` keys. Every run fails silently inside `try/except` → SEO seed block is never injected into article prompts. Articles still generate correctly via the main prompt — this is just a missed optimisation. **To fix:** update `get_article_seo_seeds()` to return a list format matching what `generate_articles.py` expects, or update the caller.
+
+### AppScript v15.6 — `marketBullish` ReferenceError ✅ Fixed (May 2026)
+
+`momentumSectors` was declared at line 823 using `marketBullish` before `let marketBullish` was initialized at line 843. JavaScript Temporal Dead Zone (TDZ) threw `ReferenceError: Cannot access 'marketBullish' before initialization` on every Manual Sync call. Fixed by moving the `momentumSectors` declaration to after the `marketBullish` initialization block.
+
+### Basic Channel Upgrade — Funnel to Paid (May 2026) ✅
+
+Basic (free) channel now receives 7 message types designed to attract followers and convert to Advance/Premium:
+
+| Message | What Basic sees | What's hidden |
+| --- | --- | --- |
+| Good Morning | Market mood + watchlist count + active trades | Stock names, SL, Target |
+| Scanner result (AppScript) | Setup count + top stock name + sector momentum | SL, Target, RR, full list |
+| Entry alert | Stock name + entry price | SL, Target, options signal |
+| Mid-day pulse | Active trade count + unrealised ₹ total | Individual stock details, TSL levels |
+| Exit result | Full ₹ P/L + % + hold days | — (full result shown for credibility) |
+| Market close | Daily W/L count + realised ₹ P/L | Overnight hold details |
+| Weekly summary (AppScript) | Win rate + total P/L + best trade | Full trade list |
+
+All messages end with: `📈 Join Advance @ ₹499/month` + `📱 ai360trading.in/membership`
 
 ### CE Flag ATR — Estimated, Not Real ATR14
 
