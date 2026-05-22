@@ -1,5 +1,8 @@
 name: Daily Morning Reel — AI360Trading
 
+# v2.3 (May 2026):
+#   ADDED: Telegram failure notification step
+#
 # v2.2 TIMING FIX (May 2026):
 #   Morning reel now runs 7 DAYS a week (was Mon-Fri only)
 #   Weekends: people have MORE free time = higher watch time

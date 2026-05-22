@@ -1,11 +1,10 @@
 name: Daily Videos — Education
 
-# v2.2 TIMING FIX (May 2026):
-#   Changed from 8:00 AM to 10:00 AM IST
-#   Reason: HerooQuest runs at 8:00 AM — same time = runner conflict
-#   Education at 10:00 AM = separate runner slot = no conflict
-#   10 AM IST = post-morning-rush = viewers have settled at desk
-#   Better watch time than 8 AM (viewers commuting at 8 AM)
+# v2.3 BILINGUAL SIMPLIFICATION (May 2026):
+#   Single bilingual (Hinglish) video replaces separate Hindi + English runs.
+#   Hinglish = English concepts + Hindi explanation = works for BOTH audiences.
+#   Saves ~60 min GitHub Actions per day (was 2 jobs × 60 min = 120 min).
+#   Uploads to YOUTUBE_CREDENTIALS (main channel) only.
 
 on:
   schedule:
@@ -27,7 +26,7 @@ on:
           - holiday
 
 jobs:
-  education-hindi:
+  education-bilingual:
     runs-on: ubuntu-latest
     timeout-minutes: 60
 
@@ -62,11 +61,10 @@ jobs:
             python indian_holidays.py
           fi
 
-      - name: Generate Education Video (Hindi)
+      - name: Generate Bilingual Education Video (Hinglish)
         env:
           CONTENT_MODE:        ${{ env.CONTENT_MODE }}
           HOLIDAY_NAME:        ${{ env.HOLIDAY_NAME }}
-          EDUCATION_LANG:      hi
           GROQ_API_KEY:        ${{ secrets.GROQ_API_KEY }}
           GEMINI_API_KEY:      ${{ secrets.GEMINI_API_KEY }}
           ANTHROPIC_API_KEY:   ${{ secrets.ANTHROPIC_API_KEY }}
@@ -74,20 +72,8 @@ jobs:
           YOUTUBE_CREDENTIALS: ${{ secrets.YOUTUBE_CREDENTIALS }}
         run: python generate_education.py
 
-      - name: Generate Education Video (English)
-        env:
-          CONTENT_MODE:           ${{ env.CONTENT_MODE }}
-          HOLIDAY_NAME:           ${{ env.HOLIDAY_NAME }}
-          EDUCATION_LANG:         en
-          GROQ_API_KEY:           ${{ secrets.GROQ_API_KEY }}
-          GEMINI_API_KEY:         ${{ secrets.GEMINI_API_KEY }}
-          ANTHROPIC_API_KEY:      ${{ secrets.ANTHROPIC_API_KEY }}
-          OPENAI_API_KEY:         ${{ secrets.OPENAI_API_KEY }}
-          YOUTUBE_CREDENTIALS_EN: ${{ secrets.YOUTUBE_CREDENTIALS_EN }}
-        run: python generate_education.py
-
       - name: Summary
         run: |
-          echo "=== Education Videos Done ==="
+          echo "=== Bilingual Education Video Done ==="
           echo "Mode: $CONTENT_MODE"
           ls -lh output/*.mp4 2>/dev/null | tail -5

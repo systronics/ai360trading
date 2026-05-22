@@ -1,5 +1,10 @@
 name: Trading Bot — Signal Monitor
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# v2.2 (May 2026):
+#   ADDED: concurrency group — prevents double-entry if a run
+#   takes >5 min and the next cron fires before it finishes.
+#   cancel-in-progress:false so the running trade is NOT killed.
+#
 # v2.1 FIX (May 2026):
 #   FIXED: TELEGRAM_CHAT_ID → CHAT_ID_BASIC
 #   TELEGRAM_CHAT_ID secret does NOT exist in GitHub
@@ -11,6 +16,11 @@ name: Trading Bot — Signal Monitor
 #   CHAT_ID_ADVANCE = ai360trading_Advance (Rs499/month)
 #   CHAT_ID_PREMIUM = ai360trading_Premium (Bundle)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+concurrency:
+  group: trading-bot
+  cancel-in-progress: false
+
 on:
   schedule:
     # Every 5 min, 08:15–16:29 IST (02:45–10:59 UTC), Mon–Fri

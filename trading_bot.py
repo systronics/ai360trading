@@ -1,5 +1,5 @@
 """
-AI360 TRADING BOT — v15.1
+AI360 TRADING BOT — v15.2
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 v15.1 CHANGES vs v15.0 — MEMORY MIGRATED FROM Y1 TO BOTMEMORY SHEET
   Reason: AlertLog is shown as webview on ai360trading.in website.
@@ -118,11 +118,32 @@ NSE_HOLIDAYS_2026 = {
     "2026-10-21","2026-10-22","2026-11-04","2026-11-05","2026-12-25",
 }
 
-TSL_PARAMS = {
-    "VCP": {"breakeven":3.0,"lock1":5.0,"trail":8.0, "atr_mult":2.0,"gap_lock":9.0},
-    "MOM": {"breakeven":2.5,"lock1":4.5,"trail":7.0, "atr_mult":1.8,"gap_lock":8.0},
-    "STD": {"breakeven":2.0,"lock1":4.0,"trail":10.0,"atr_mult":2.5,"gap_lock":8.0},
+# Approximate 2027 fallback — auto-updated by fetch_holidays.py every Dec 1
+NSE_HOLIDAYS_2027 = {
+    "2027-01-26","2027-03-26","2027-04-02","2027-04-14","2027-05-01",
+    "2027-06-17","2027-08-23","2027-10-19","2027-11-07","2027-11-08",
+    "2027-11-15","2027-12-25",
 }
+
+# Combined — auto-extended from BotMemory on startup (see load_dynamic_holidays)
+NSE_HOLIDAYS_ALL = NSE_HOLIDAYS_2026 | NSE_HOLIDAYS_2027
+
+TSL_PARAMS = {
+    "VCP":  {"breakeven":3.0,"lock1":5.0,"trail":8.0, "atr_mult":2.0,"gap_lock":9.0},
+    "MOM":  {"breakeven":2.5,"lock1":4.5,"trail":7.0, "atr_mult":1.8,"gap_lock":8.0},
+    "STD":  {"breakeven":2.0,"lock1":4.0,"trail":10.0,"atr_mult":2.5,"gap_lock":8.0},
+    "CASH": {"breakeven":1.5,"lock1":3.0,"trail":5.0, "atr_mult":1.5,"gap_lock":5.0},
+}
+
+# ── Cash Intraday ─────────────────────────────────────────────────────────────
+CASH_ENTRY_WINDOW_END  = (10, 30)  # cash stocks: entry only 9:15-10:30 AM
+CASH_FORCE_EXIT_HOUR   = (15, 0)   # force-exit all cash trades at 3:00 PM
+CASH_MAX_DAILY         = 2         # max 2 cash intraday trades per day
+CASH_CAPITAL           = CAPITAL_STD  # smallest tier — higher risk position
+
+# ── Sheet Maintenance ─────────────────────────────────────────────────────────
+HISTORY_MAX_ROWS       = 500       # archive History when rows exceed this
+BOTMEMORY_ALERT_ROWS   = 400       # warn in logs when BotMemory exceeds this
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -185,8 +206,21 @@ def is_market_hours(now):
     mins = now.hour*60+now.minute
     return (9*60+15) <= mins <= (15*60+30)
 
+def load_dynamic_holidays(bm_data):
+    """Read HOLIDAYS_YYYY keys from BotMemory and merge into NSE_HOLIDAYS_ALL.
+    fetch_holidays.py writes these every December 1st."""
+    global NSE_HOLIDAYS_ALL
+    year = datetime.now(IST).year
+    for y in (year, year + 1):
+        key = f"HOLIDAYS_{y}"
+        val = bm_data.get(key, {}).get("value", "") if isinstance(bm_data.get(key), dict) else bm_data.get(key, "")
+        if val:
+            dates = {d.strip() for d in val.split(",") if d.strip()}
+            NSE_HOLIDAYS_ALL |= dates
+            print(f"[HOLIDAYS] Loaded {len(dates)} dates for {y} from BotMemory")
+
 def is_holiday(date_str):
-    return date_str in NSE_HOLIDAYS_2026
+    return date_str in NSE_HOLIDAYS_ALL
 
 def price_sanity(sym,cp,ent):
     if cp<=0 or ent<=0: print(f"[WARN] {sym}: zero price"); return False
@@ -531,17 +565,27 @@ def get_capital_from_mem(mem,key):
 # TSL CALCULATION
 # ══════════════════════════════════════════════════════════════════════════════
 
-def calc_new_tsl(cp, ent, init_sl, atr, ttype, mem, key, now):
+def is_cash_trade(ttype):
+    return "CASH" in str(ttype).upper()
+
+
+def calc_new_tsl(cp, ent, init_sl, atr, ttype, mem, key, now, ent_time=""):
+    """
+    ent_time: entry time string from AlertLog row C_ENTRY_TIME.
+    Bug fixed v15.2: was using get_exit_date() (always "") → hold check always blocked TSL.
+    Now uses actual entry time from the sheet row.
+    """
     params   = get_tsl_params(mem, key)
     cur_tsl  = get_tsl(mem, key) or init_sl
     cur_max  = get_max_price(mem, key) or ent
     gain_pct = ((cp - ent) / ent) * 100 if ent > 0 else 0
     new_tsl  = cur_tsl
 
-    if "Positional" in str(ttype): hold = MIN_HOLD_POS
-    else:                           hold = MIN_HOLD_SWING
+    if is_cash_trade(ttype):        hold = 0   # cash trades: no min hold — trail immediately
+    elif "Positional" in str(ttype): hold = MIN_HOLD_POS
+    else:                            hold = MIN_HOLD_SWING
 
-    hold_days = calc_hold_days(get_exit_date(mem, key) or "", now)
+    hold_days = calc_hold_days(ent_time, now)
     if hold_days < hold:
         return cur_tsl, f"min hold ({hold}d)"
 
@@ -713,7 +757,9 @@ def step_a_enter_trades(log_sheet, nifty_sheet, bm_sheet, mem, now, is_bullish, 
     """
     Check WAITING rows → promote to TRADED if all filters pass.
     v15.0: RSI + time + day + Nifty + re-entry cooldown checks.
+    v15.2: Cash Intraday trades use separate entry window + capital.
     """
+    today_s   = now.strftime("%Y-%m-%d")
     bm_data   = get_bm_data(bm_sheet)
     try:
         rows = log_sheet.get_all_values()
@@ -755,12 +801,30 @@ def step_a_enter_trades(log_sheet, nifty_sheet, bm_sheet, mem, now, is_bullish, 
 
         if cp <= 0: continue
 
-        key = sym_key(sym)
+        key  = sym_key(sym)
+        cash = is_cash_trade(ttype)
+
+        # ── Cash intraday: separate daily cap check ───────────────────────────
+        if cash:
+            today_cash = sum(1 for p in mem.split(",") if p.strip().startswith(today_s + "_CASH_"))
+            if today_cash >= CASH_MAX_DAILY:
+                print(f"[STEP A] {sym}: cash daily limit {today_cash}/{CASH_MAX_DAILY} — skip")
+                continue
+            # Cash entry window: 9:15-10:30 AM only
+            if (now.hour, now.minute) > CASH_ENTRY_WINDOW_END:
+                print(f"[STEP A] {sym}: cash after 10:30 AM — skip")
+                continue
 
         # ── v15.0: Run ALL filters including re-entry cooldown ────────────────
-        allowed, filter_reasons, rsi_val = check_all_entry_filters(
-            sym, mem, key, is_bullish, now, nifty_pct, today_entries
-        )
+        # Cash trades skip RSI/Nifty/time filters — they're volume-driven gap moves
+        if cash:
+            allowed = cp > 0
+            filter_reasons = [f"[CASH] Volume breakout trade — standard filters bypassed"]
+            rsi_val = -1
+        else:
+            allowed, filter_reasons, rsi_val = check_all_entry_filters(
+                sym, mem, key, is_bullish, now, nifty_pct, today_entries
+            )
         for reason in filter_reasons:
             print(f"[FILTER] {sym}: {reason}")
         if not allowed:
@@ -774,7 +838,7 @@ def step_a_enter_trades(log_sheet, nifty_sheet, bm_sheet, mem, now, is_bullish, 
                 print(f"[STEP A] {sym}: gap {gap_pct:.1f}% > 6% — skip")
                 continue
 
-        capital = get_capital_bm(bm_data, sym)
+        capital = CASH_CAPITAL if cash else get_capital_bm(bm_data, sym)
         rank    = get_rank_bm(bm_data, sym)
         atr     = _read_atr_from_nifty200(nifty_sheet, sym)
         if atr <= 0 and sl > 0 and cp > 0: atr = (cp - sl) / 2.0
@@ -792,8 +856,13 @@ def step_a_enter_trades(log_sheet, nifty_sheet, bm_sheet, mem, now, is_bullish, 
         mem = set_tsl(mem, key, sl)
         mem = set_last_price(mem, key, cp)
         mem = set_max_price(mem, key, cp)
-        today_entries += 1
-        mem = _mem_set(mem, f"{now.strftime('%Y-%m-%d')}_ENTRY_{key}", "1")
+        if cash:
+            mem = _mem_set(mem, f"{today_s}_CASH_{key}", "1")
+            mem = _mem_set(mem, f"{key}_MODE", "CASH")
+            print(f"[CASH ENTRY] {sym} @ ₹{cp:.2f} | SL ₹{sl:.2f} | Tgt ₹{tgt:.2f}")
+        else:
+            today_entries += 1
+        mem = _mem_set(mem, f"{today_s}_ENTRY_{key}", "1")
 
         print(f"[ENTRY] {sym} @ ₹{cp:.2f} | RSI:{rsi_val} | Nifty:{nifty_pct:+.2f}% | #{today_entries}")
 
@@ -860,8 +929,8 @@ def step_b_monitor_trades(log_sheet, hist_sheet, nifty_sheet, mem, now, is_bulli
                               today_str, mem, key, is_target_hit=False)
             mem = _clear_mem_keys(mem, key); continue
 
-        # TSL
-        new_tsl, tsl_reason = calc_new_tsl(cp, ent, sl, atr, ttype, mem, key, now)
+        # TSL — pass actual entry time so hold check works correctly
+        new_tsl, tsl_reason = calc_new_tsl(cp, ent, sl, atr, ttype, mem, key, now, ent_time)
         if new_tsl > cur_tsl:
             mem = set_tsl(mem, key, new_tsl)
             print(f"[TSL] {sym}: {cur_tsl:.2f} → {new_tsl:.2f} ({tsl_reason})")
@@ -898,12 +967,14 @@ def _exit_trade(log_sheet, hist_sheet, row_idx, sym, ent, exit_p, tgt, sl, tsl_a
     """
     Exit trade, write to History, send Telegram.
     v15.0: If is_target_hit=True, set re-entry cooldown in memory.
+    v15.2: Use actual trade capital from BotMemory, not hardcoded CAPITAL_MED.
     """
+    cap      = get_capital_from_mem(mem, key)
     pnl_pct  = round(((exit_p - ent) / ent) * 100, 2) if ent > 0 else 0
     result   = "WIN ✅" if exit_p > ent else "LOSS ❌"
     hold_str = calc_hold_str(ent_time, now)
     days     = calc_hold_days(ent_time, now)
-    pnl_rs   = round((exit_p - ent) * int(CAPITAL_MED // ent), 2) if ent > 0 else 0
+    pnl_rs   = round((exit_p - ent) * int(cap // ent), 2) if ent > 0 else 0
 
     try:
         log_sheet.update(f"K{row_idx}", [[f"EXITED ({reason})"]])
@@ -914,7 +985,7 @@ def _exit_trade(log_sheet, hist_sheet, row_idx, sym, ent, exit_p, tgt, sl, tsl_a
         hist_sheet.append_row([
             sym, today_str, ent, today_str, exit_p,
             f"{pnl_pct:.2f}%", result, strat, reason, ttype,
-            sl, tsl_at_exit, get_max_price(mem, key), atr, days, CAPITAL_MED, pnl_rs, ""
+            sl, tsl_at_exit, get_max_price(mem, key), atr, days, cap, pnl_rs, ""
         ])
     except Exception as e:
         print(f"[EXIT] History: {e}")
@@ -1161,6 +1232,124 @@ def send_market_close_summary(log_sheet, hist_sheet, mem, now, is_bullish, nifty
 # MAIN
 # ══════════════════════════════════════════════════════════════════════════════
 
+# ══════════════════════════════════════════════════════════════════════════════
+# STEP C: CASH INTRADAY FORCE EXIT — 3:00 PM
+# ══════════════════════════════════════════════════════════════════════════════
+
+def step_c_intraday_exit(log_sheet, hist_sheet, nifty_sheet, mem, now):
+    """
+    Force-exit all 🔥 Cash Intraday trades at 3:00 PM regardless of P/L.
+    Cash intraday = same-day trade — must not hold overnight.
+    Runs only in the 3:00-3:15 PM window.
+    """
+    h, m = now.hour, now.minute
+    if not (h == 15 and m <= 15):
+        return mem
+
+    today_str = now.strftime("%Y-%m-%d")
+    exits = 0
+    try:
+        rows = log_sheet.get_all_values()
+    except Exception as e:
+        print(f"[CASH EXIT] Sheet read: {e}"); return mem
+
+    for i, row in enumerate(rows[1:22], start=2):
+        row    = pad(row)
+        status = str(row[C_STATUS]).upper()
+        if "TRADED" not in status or "EXITED" in status: continue
+        ttype  = str(row[C_TRADE_TYPE]).strip()
+        if not is_cash_trade(ttype): continue
+
+        sym      = str(row[C_SYMBOL]).strip()
+        cp       = to_f(row[C_LIVE_PRICE])
+        ent      = to_f(row[C_ENTRY_PRICE])
+        sl       = to_f(row[C_INITIAL_SL])
+        tgt      = to_f(row[C_TARGET])
+        strat    = str(row[C_STRATEGY]).strip()
+        stage    = str(row[C_STAGE]).strip()
+        ent_time = str(row[C_ENTRY_TIME]).strip()
+        key      = sym_key(sym)
+
+        if cp <= 0: cp = ent
+        atr = get_atr_from_mem(mem, key)
+        if atr <= 0: atr = abs(ent - sl) / 2.0 if sl > 0 and ent != sl else ent * 0.02
+
+        mem = _exit_trade(
+            log_sheet, hist_sheet, i, sym, ent, cp, tgt, sl, sl,
+            atr, ttype, strat, stage, ent_time, now, "⏰ INTRADAY TIME EXIT",
+            today_str, mem, key, is_target_hit=False
+        )
+        mem = _clear_mem_keys(mem, key)
+        exits += 1
+
+    if exits > 0:
+        print(f"[CASH EXIT] {exits} intraday trade(s) force-exited at 3 PM")
+    return mem
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# SHEET MAINTENANCE — weekly, prevents overflow
+# ══════════════════════════════════════════════════════════════════════════════
+
+def auto_maintain_sheets(bm_sheet, hist_sheet, mem, now):
+    """
+    Runs once per week (Monday during morning window).
+    1. History > 500 rows: archive oldest 250 rows to HistoryArchive sheet.
+    2. BotMemory > 400 rows: remove blank/empty rows.
+    Prevents sheets from growing indefinitely and becoming slow.
+    """
+    if now.weekday() != 0:   # Monday only
+        return mem
+
+    flag_key = now.strftime("%Y-W%W") + "_MAINT"
+    if flag_key in mem:
+        return mem
+
+    print("[MAINTAIN] Weekly sheet maintenance starting...")
+
+    # ── History: archive old rows when > HISTORY_MAX_ROWS ────────────────────
+    try:
+        rows = hist_sheet.get_all_values()
+        data = rows[1:]  # exclude header
+        if len(data) > HISTORY_MAX_ROWS:
+            ss = hist_sheet.spreadsheet
+            archive_name = "HistoryArchive"
+            try:
+                archive = ss.worksheet(archive_name)
+            except Exception:
+                archive = ss.add_worksheet(title=archive_name, rows=3000, cols=20)
+                archive.append_row(rows[0])  # copy header to archive
+
+            to_move = data[:250]
+            archive.append_rows(to_move)
+            remaining = [rows[0]] + data[250:]
+            hist_sheet.clear()
+            hist_sheet.update("A1", remaining)
+            print(f"[MAINTAIN] History: moved 250 rows to HistoryArchive. Remaining: {len(remaining)-1}")
+        else:
+            print(f"[MAINTAIN] History: {len(data)} rows — no archive needed")
+    except Exception as e:
+        print(f"[MAINTAIN] History archive error: {e}")
+
+    # ── BotMemory: remove blank rows when > BOTMEMORY_ALERT_ROWS ─────────────
+    try:
+        bm_rows = bm_sheet.get_all_values()
+        print(f"[MAINTAIN] BotMemory: {len(bm_rows)} rows")
+        if len(bm_rows) > BOTMEMORY_ALERT_ROWS:
+            non_blank = [r for r in bm_rows if any(str(c).strip() for c in r)]
+            removed = len(bm_rows) - len(non_blank)
+            if removed > 0:
+                bm_sheet.clear()
+                bm_sheet.update("A1", non_blank)
+                print(f"[MAINTAIN] BotMemory: removed {removed} blank rows. Now: {len(non_blank)}")
+    except Exception as e:
+        print(f"[MAINTAIN] BotMemory cleanup error: {e}")
+
+    mem = _mem_set(mem, flag_key, "1")
+    print("[MAINTAIN] Weekly maintenance done.")
+    return mem
+
+
 def send_test_messages():
     now = datetime.now(IST)
     msg = (
@@ -1213,6 +1402,14 @@ def main():
 
     mem = read_runtime_mem(bm)
 
+    # Merge dynamically-fetched holidays from BotMemory (set by fetch_holidays.py)
+    bm_raw = get_bm_data(bm)
+    load_dynamic_holidays(bm_raw)
+
+    # Weekly sheet maintenance (Monday morning only, once per week)
+    if "08:44" <= time_str <= "08:52":
+        mem = auto_maintain_sheets(bm, hist, mem, now)
+
     # v15.1 one-time migration: clear stale memory string from AlertLog Y1 (header row)
     try:
         y1_val = str(log.acell("Y1").value or "")
@@ -1238,6 +1435,10 @@ def main():
 
         if "12:28" <= time_str <= "12:38":
             mem = send_midday_pulse(log, mem, now, is_bullish)
+
+        # Cash intraday force-exit at 3:00 PM (before market close summary)
+        if "15:00" <= time_str <= "15:15":
+            mem = step_c_intraday_exit(log, hist, nifty, mem, now)
 
         if "15:15" <= time_str <= "15:45":
             mem = send_market_close_summary(log, hist, mem, now, is_bullish, nifty_pct)

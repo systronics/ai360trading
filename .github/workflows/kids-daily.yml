@@ -1,5 +1,8 @@
 name: Kids Channel — Daily Video
 
+# v2.2 (May 2026):
+#   ADDED: Telegram failure notification to all 3 jobs
+#
 # v2.1 FIX (May 2026):
 #   FIXED: KIDS_LANG='both' not handled → now defaults to 'hi'
 #   FIXED: Single job → 3 separate jobs (full + short + DYK)

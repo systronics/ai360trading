@@ -1,0 +1,76 @@
+name: Refresh Watchlists — Monthly Auto-Maintenance
+
+# v1.0 (May 2026):
+#   Fully automates CashWatchlist + LTWatchlist maintenance.
+#   No manual work needed after this runs.
+#
+#   CashWatchlist:
+#     - Seeds with 35 curated high-volatility stocks on first run
+#     - Sets GOOGLEFINANCE formulas for live CMP/Change%/Volume
+#     - Calculates AvgVol30d from yfinance (no manual entry)
+#     - Auto-marks INACTIVE if CMP > ₹500 or < ₹30
+#
+#   LTWatchlist:
+#     - FundScore auto-calculated from financial ratios
+#     - FIIChange% auto-calculated from institutionPercentHeld delta
+#     - Stocks auto-seeded with 25 quality largecaps on first run
+
+on:
+  schedule:
+    # 1st of every month, 8:00 AM IST = 2:30 AM UTC
+    - cron: '30 2 1 * *'
+  workflow_dispatch:  # manual trigger for first-time setup
+
+jobs:
+  refresh-cashwatchlist:
+    name: Refresh CashWatchlist
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install gspread oauth2client yfinance requests pytz
+
+      - name: Refresh CashWatchlist
+        env:
+          GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
+        run: python refresh_cashwatchlist.py
+
+  refresh-longterm-watchlist:
+    name: Refresh LTWatchlist data
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: refresh-cashwatchlist  # run sequentially to avoid Sheets API rate limits
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install gspread oauth2client yfinance requests pytz
+
+      - name: Run LT signal scan (seeds + updates FundScore/FIIChange%)
+        env:
+          GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
+          TELEGRAM_BOT_TOKEN:       ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID_BASIC:            ${{ secrets.CHAT_ID_BASIC }}
+          CHAT_ID_ADVANCE:          ${{ secrets.CHAT_ID_ADVANCE }}
+          CHAT_ID_PREMIUM:          ${{ secrets.CHAT_ID_PREMIUM }}
+        run: python generate_longterm.py

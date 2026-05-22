@@ -65,9 +65,11 @@ else:
 
 HOLIDAY_NAME = os.environ.get("HOLIDAY_NAME", "")
 
-# v1.1 FIX 4: LANG from EDUCATION_LANG env var
-LANG  = os.environ.get("EDUCATION_LANG", "hi").lower()
-VOICE = "hi-IN-SwaraNeural" if LANG == "hi" else "en-US-JennyNeural"
+# v1.2: Single bilingual (Hinglish) video — works for Hindi + English audience
+# No separate Hindi/English runs needed. Saves GitHub Actions minutes.
+# Hinglish = English concepts + Hindi explanation = understood by both audiences.
+LANG  = "bi"                   # bilingual Hinglish — replaces per-language runs
+VOICE = "hi-IN-SwaraNeural"    # natural for Hinglish TTS
 
 OUT = Path("output")
 W, H = 1920, 1080
@@ -80,7 +82,7 @@ os.makedirs(OUT, exist_ok=True)
 if not hasattr(Image, "ANTIALIAS"):
     Image.ANTIALIAS = Image.LANCZOS
 
-print(f"[EDUCATION] mode={CONTENT_MODE.upper()} lang={LANG.upper()}")
+print(f"[EDUCATION] mode={CONTENT_MODE.upper()} lang=BILINGUAL (Hinglish — Hindi+English)")
 
 # ─── FONTS ────────────────────────────────────────────────────────────────────
 
@@ -221,6 +223,21 @@ EXPANSION_SLIDES_EN = [
     "Outro — Subscribe and Join Telegram",
 ]
 
+# Bilingual slides — English headings (readable by all), Hinglish explanation
+EXPANSION_SLIDES_BI = [
+    "Common Mistakes Traders Make — Aur Kaise Bachein",
+    "Risk Management — Why It Is The Most Important",
+    "Real Indian Stock Example — Reliance, TCS, HDFC",
+    "Step-by-Step Guide — Part 1",
+    "Step-by-Step Guide — Part 2",
+    "Global Market Context — India, USA, UK",
+    "Advanced Tip — For Serious Investors",
+    "Key Points Summary — Quick Revision",
+    "Action Plan — Start Karo Aaj Se",
+    "Quick Quiz — Test Your Knowledge",
+    "Subscribe Karo — Weekly Free Education",
+]
+
 # ─── SCRIPT GENERATION ────────────────────────────────────────────────────────
 
 def generate_edu_slides(topic, week):
@@ -228,15 +245,33 @@ def generate_edu_slides(topic, week):
 
     topic_slides   = topic.get("slides", [])
     slide_headings = [s.get("heading", f"Topic {i+1}") for i, s in enumerate(topic_slides)]
-    expansion      = EXPANSION_SLIDES_EN if LANG == "en" else EXPANSION_SLIDES_HI
+    if   LANG == "en": expansion = EXPANSION_SLIDES_EN
+    elif LANG == "hi": expansion = EXPANSION_SLIDES_HI
+    else:              expansion = EXPANSION_SLIDES_BI   # "bi" bilingual
     while len(slide_headings) < MIN_SLIDES:
         idx = len(slide_headings) - len(topic_slides)
         slide_headings.append(expansion[idx % len(expansion)])
 
-    # v1.1 FIX 5: Use education hook (not trading/chart hook)
-    hook = ht.get_hook(mode="education", lang=LANG, week=week)
+    # v1.2: Always bilingual hook (Hinglish — works for Hindi + English audience)
+    hook = ht.get_hook(mode="education", lang="hi", week=week)
 
-    if LANG == "hi":
+    if LANG == "bi":
+        lang_rules = (
+            "Write in Hinglish — natural mix of Hindi + English so BOTH Hindi speakers AND NRI/English viewers understand. "
+            "Use English words for key concepts (market, stock, investment, returns, portfolio, compound interest). "
+            "Use Hindi for warm explanation: 'samjhate hain', 'yeh important hai kyunki', 'sochte hain ek example'. "
+            "Slide TEXT must be English-dominant so any audience can READ it — voice explains in Hinglish. "
+            "Pattern for each slide: Start with English concept → explain in Hinglish → give Indian example (Reliance, TCS, HDFC). "
+            "NEVER use: 'aaj ka market', 'chart pattern', 'breakout signal', 'trade setup'. "
+            "DO use: 'yeh concept', 'for example', 'iska matlab hai', 'think of it this way'."
+        )
+        cta = (
+            "Subscribe karo aur bell icon dabao — har week free education video! "
+            "Telegram join karo t.me/ai360trading for daily signals. "
+            "Like karo agar helpful laga — share karo apne friends aur family ke saath!"
+        )
+        title_format = f"{topic['title']} | Week {week} | AI360 Trading"
+    elif LANG == "hi":
         lang_rules = (
             "Write in natural Hinglish — Hindi + English mix like a teacher explaining to a student. "
             "NEVER use: 'aaj ka market', 'chart pattern', 'breakout signal', 'trade setup'. "
@@ -449,8 +484,8 @@ def check_duration(video_path):
 # ─── YOUTUBE ──────────────────────────────────────────────────────────────────
 
 def get_youtube_service():
-    # FIX 4: Correct credentials based on LANG
-    creds_key = "YOUTUBE_CREDENTIALS_EN" if LANG == "en" else "YOUTUBE_CREDENTIALS"
+    # v1.2: Always upload to main channel — single bilingual video
+    creds_key = "YOUTUBE_CREDENTIALS"
     try:
         creds_json = os.environ.get(creds_key)
         if not creds_json and os.path.exists("token.json"):
@@ -481,7 +516,7 @@ def upload_to_youtube(video_path, title, description, tags):
         }
     }
     media = MediaFileUpload(str(video_path), mimetype="video/mp4", resumable=True)
-    print(f"🚀 Uploading [{LANG.upper()}]: {title[:60]}...")
+    print(f"🚀 Uploading [BILINGUAL]: {title[:60]}...")
     try:
         req  = youtube.videos().insert(part="snippet,status", body=body, media_body=media)
         resp = None
@@ -548,7 +583,7 @@ async def run():
         return
 
     # Combine and export
-    video_path = OUT / f"education_video_{LANG}.mp4"
+    video_path = OUT / f"education_video_bi.mp4"
     final      = concatenate_videoclips(clips, method="compose")
     final.write_videofile(
         str(video_path), fps=FPS, codec="libx264", audio_codec="aac",
@@ -556,7 +591,7 @@ async def run():
     )
 
     dur_min = final.duration / 60
-    print(f"✅ Video rendered [{LANG.upper()}]: {video_path.name} | {dur_min:.1f} min")
+    print(f"✅ Video rendered [BILINGUAL]: {video_path.name} | {dur_min:.1f} min")
     check_duration(video_path)
 
     # Upload
@@ -574,7 +609,7 @@ async def run():
         "youtube_video_id": vid_id or "",
         "youtube_url":  f"https://youtube.com/watch?v={vid_id}" if vid_id else "",
     }
-    meta_path = OUT / f"education_meta_{today}_{LANG}.json"
+    meta_path = OUT / f"education_meta_{today}_bi.json"
     meta_path.write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"💾 Saved meta: {meta_path.name}")
 

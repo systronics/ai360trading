@@ -1,5 +1,8 @@
 name: AI360 Daily ZENO Reel + Social Posting
 
+# v2.2 (May 2026):
+#   ADDED: Telegram failure notification step
+#
 # v2.1 FIX (May 2026):
 #   FIXED: Only GROQ_API_KEY passed → now all 4 AI keys
 #   When Groq quota hits limit at ~11:30 AM → fallback to Gemini/Anthropic

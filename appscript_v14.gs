@@ -1,5 +1,5 @@
 /**
- * AI360 TRADING — APPSCRIPT v15.6
+ * AI360 TRADING — APPSCRIPT v15.8
  * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  * v15.6 CHANGES — PERFORMANCE FIXES (18 May 2026)
  *
@@ -48,6 +48,12 @@
  *   Add bonus: if daysLow >= 45 AND FII = Accumulation = +3 conviction bonus
  *
  * ALL OTHER v15.5 CODE UNCHANGED
+ *
+ * v15.8 CHANGES (May 2026):
+ *   ADDED: _readCashWatchlist() — scans "CashWatchlist" tab for curated
+ *          upper-circuit/high-beta small/mid caps NOT in Nifty200.
+ *          These are pre-screened by user; bot detects when they move 4%+.
+ *          Priority 30 (vs Nifty200 cash 25) so they surface first.
  * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  */
 
@@ -183,6 +189,18 @@ const CONFIG = {
   RANK_CONV_BONUS_MAX: 3,
   RANK_LEADER_MAX    : 5,
   BM_PURGE_DAYS      : 14,
+
+  // ── Cash Intraday — high-volume gap stocks, same-day exit ──────────────────
+  // These are small-mid cap stocks with news/volume catalyst giving 10-15% intraday
+  CASH_MIN_PCT_CHANGE  : 4.0,   // 4%+ move today = cash candidate
+  CASH_MIN_VOLUME_RATIO: 200,   // 2x average volume (confirmed buying)
+  CASH_MAX_CMP         : 500,   // small-mid cap only (higher % potential)
+  CASH_MIN_CMP         : 50,    // avoid penny stocks
+  CASH_SL_PCT          : 0.03,  // tight -3% SL (must be quick trade)
+  CASH_TARGET_PCT      : 0.12,  // +12% target (10-15% potential)
+  CASH_ENTRY_WINDOW    : "10:30", // scan only until 10:30 AM
+  CASH_MAX_SLOTS       : 3,     // max 3 cash intraday candidates per day
+  CASH_ATH_GAP_MIN_PCT : 5.0,   // stock must have 5%+ gap from ATH (room to run)
 };
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -538,6 +556,91 @@ function _bmLoad(ss) {
 function _bmGet(bm, key)    { return bm[key] ? bm[key].value : ""; }
 function _bmExists(bm, key) { return !!bm[key]; }
 
+// ══════════════════════════════════════════════════════════════════════════════
+// CASH WATCHLIST READER — v15.7
+// Reads the "CashWatchlist" tab for curated upper-circuit / high-beta stocks.
+// These are small/mid caps NOT in Nifty200 that can move 10-20% in one day.
+//
+// Tab columns (user creates manually):
+//   A: Symbol (NSE:XXXX)   B: Name        C: Sector     D: Circuit% (10/20)
+//   E: Notes               F: Active      G: CMP        H: Change%
+//   I: Volume              J: AvgVol30d
+//
+// Columns G,H,I use GOOGLEFINANCE formulas (auto-updated).
+// Column J is manual 30-day average volume (fill once per month).
+//
+// GOOGLEFINANCE formulas to put in the tab:
+//   G2: =IFERROR(GOOGLEFINANCE(A2,"price"),0)
+//   H2: =IFERROR(GOOGLEFINANCE(A2,"changepct"),0)
+//   I2: =IFERROR(GOOGLEFINANCE(A2,"volume"),0)
+// ══════════════════════════════════════════════════════════════════════════════
+function _readCashWatchlist(ss, bm, timeStr, alreadyTraded) {
+  const candidates = [];
+  try {
+    const cwSheet = ss.getSheetByName("CashWatchlist");
+    if (!cwSheet) return candidates;
+
+    const lastRow = cwSheet.getLastRow();
+    if (lastRow < 2) return candidates;
+
+    const data = cwSheet.getRange(2, 1, lastRow - 1, 10).getValues();
+
+    for (const r of data) {
+      const sym     = (r[0] || "").toString().trim();
+      const name    = (r[1] || sym).toString();
+      const sector  = (r[2] || "CASH").toString();
+      const active  = (r[5] || "TRUE").toString().toUpperCase();
+
+      if (!sym || active === "FALSE") continue;
+      if (alreadyTraded.has(sym)) continue;
+
+      const cmp       = parseFloat(r[6]) || 0;
+      const pctChange = parseFloat(r[7]) || 0;
+      const volToday  = parseFloat(r[8]) || 0;
+      const avgVol    = parseFloat(r[9]) || 0;
+
+      if (cmp <= 0) continue;
+      if (cmp < CONFIG.CASH_MIN_CMP || cmp > CONFIG.CASH_MAX_CMP) continue;
+      if (pctChange < CONFIG.CASH_MIN_PCT_CHANGE) continue;
+      if (timeStr > CONFIG.CASH_ENTRY_WINDOW) continue;
+
+      // Volume check: only if AvgVol30d is filled
+      if (avgVol > 0 && volToday < avgVol * 1.5) continue;
+
+      const cashSl  = parseFloat((cmp * (1 - CONFIG.CASH_SL_PCT)).toFixed(2));
+      const cashTgt = parseFloat((cmp * (1 + CONFIG.CASH_TARGET_PCT)).toFixed(2));
+      const cashRr  = (cmp - cashSl) > 0 ? (cashTgt - cmp) / (cmp - cashSl) : 0;
+      if (cashRr < 1.5) continue;
+
+      const cashQty = Math.max(1, Math.floor(CONFIG.CAPITAL_STD / cmp));
+      const key     = sym.replace(/[:\s]/g, '_');
+
+      candidates.push({
+        sym, sector, priority: 30,  // slightly higher priority than Nifty200 cash
+        row: [
+          Utilities.formatDate(new Date(), CONFIG.IST_ZONE, "HH:mm"),
+          sym, "", 30, "🔥 Cash Intraday", "CASH",
+          `🔥 WATCHLIST CASH | +${pctChange.toFixed(1)}% | ${name}`,
+          cashSl.toFixed(2), cashTgt.toFixed(2),
+          cashRr.toFixed(2),
+          "WAITING",
+          "", "", 1,
+          cashSl.toFixed(2),
+          "", "", cashQty * (cmp - cashSl),
+          cashQty,
+          `CashWatchlist | SL: ₹${cashSl} | Tgt: ₹${cashTgt}`,
+        ],
+        key,
+      });
+
+      Logger.log(`[CASHWL] ${sym} | +${pctChange.toFixed(1)}% | CMP ₹${cmp}`);
+    }
+  } catch (e) {
+    Logger.log(`[CASHWL] Error reading CashWatchlist: ${e}`);
+  }
+  return candidates;
+}
+
 function _bmSet(ss, bm, key, val, sym, ktype) {
   const bmSheet = ss.getSheetByName(CONFIG.BM_SHEET);
   if (!bmSheet) return;
@@ -857,6 +960,7 @@ function _runScanner(startRow, endRow) {
   Logger.log(`[v15.6] VIX=${indiaVix.toFixed(1)} | MomentumSectors: ${[...momentumSectors].join(', ') || 'none'}`);
 
   let batchCands = [];
+  let cashCands  = [];   // Cash Intraday candidates — separate from swing/positional
   if (!isFullScan) {
     try { const stored = _bmGet(bm, "_BATCH_CANDS"); if (stored) batchCands = JSON.parse(decodeURIComponent(stored)); }
     catch(e) { batchCands = []; }
@@ -908,6 +1012,46 @@ function _runScanner(startRow, endRow) {
 
     // GATE 1: FII Selling
     if (fiiSignal === "FII SELLING") continue;
+
+    // ── CASH INTRADAY DETECTION (v15.7) ──────────────────────────────────────
+    // Small-mid cap stocks with 4%+ gap + volume surge = 10-15% intraday potential.
+    // These bypass normal swing/positional gates — they're news-driven same-day trades.
+    // Bot handles forced 3 PM exit automatically.
+    if (marketBullish &&
+        timeStr <= CONFIG.CASH_ENTRY_WINDOW &&
+        cmp >= CONFIG.CASH_MIN_CMP &&
+        cmp <= CONFIG.CASH_MAX_CMP &&
+        pctChange >= CONFIG.CASH_MIN_PCT_CHANGE &&
+        volVsAvg  >= CONFIG.CASH_MIN_VOLUME_RATIO &&
+        cashCands.length < CONFIG.CASH_MAX_SLOTS) {
+
+      const cashAthGap = high52 > 0 ? ((high52 - cmp) / high52) * 100 : 100;
+      if (cashAthGap >= CONFIG.CASH_ATH_GAP_MIN_PCT && !alreadyTraded.has(sym)) {
+        const cashSl  = parseFloat((cmp * (1 - CONFIG.CASH_SL_PCT)).toFixed(2));
+        const cashTgt = parseFloat((cmp * (1 + CONFIG.CASH_TARGET_PCT)).toFixed(2));
+        const cashRr  = (cmp - cashSl) > 0 ? (cashTgt - cmp) / (cmp - cashSl) : 0;
+
+        if (cashRr >= 1.5) {
+          const cashQty = Math.max(1, Math.floor(CONFIG.CAPITAL_STD / cmp));
+          cashCands.push({
+            sym, sector, priority: 25,
+            row: [
+              nowTime, sym, "", 25, "🔥 Cash Intraday", "CASH",
+              `🔥 CASH | +${pctChange.toFixed(1)}% | Vol ${volVsAvg.toFixed(0)}%`,
+              cashSl, cashTgt, "1:" + cashRr.toFixed(1), "⏳ WAITING",
+              "", "", "", "", "", "", "", cashQty,
+            ]
+          });
+          Logger.log(`[CASH] ${sym}: +${pctChange.toFixed(1)}% | Vol ${volVsAvg.toFixed(0)}% | ₹${cmp} | SL ${cashSl} | TGT ${cashTgt}`);
+          // Write BotMemory for cash trade
+          const cashKey = sym.replace(/[:\s]/g, '_');
+          _bmSet(ss, bm, `${cashKey}_CAP`,  CONFIG.CAPITAL_STD.toString(), sym, "TRADE");
+          _bmSet(ss, bm, `${cashKey}_MODE`, "CASH",                        sym, "TRADE");
+          _bmSet(ss, bm, `${cashKey}_SEC`,  sector,                        sym, "TRADE");
+        }
+        continue;  // Skip regular swing/positional scan for this stock
+      }
+    }
 
     // v15.6 FIX 2: Check for momentum breakout (TECHM/PERSISTENT style)
     const momentumBreakout = _checkMomentumBreakout(pctChange, volVsAvg, rs, high52, cmp, smaStr);
@@ -1159,6 +1303,35 @@ function _runScanner(startRow, endRow) {
     }
   }
 
+  // ── Merge CashWatchlist curated stocks into cashCands ────────────────────
+  // These are pre-curated small/mid caps (upper circuit candidates) NOT in
+  // Nifty200. Priority 30 > Nifty200 cash (25) so they surface first.
+  const wlCands = _readCashWatchlist(ss, bm, timeStr, alreadyTraded);
+  if (wlCands.length > 0) {
+    for (const c of wlCands) {
+      if (!cashCands.find(x => x.sym === c.sym)) {
+        cashCands.push(c);
+        _bmSet(ss, bm, `${c.key}_CAP`,  CONFIG.CAPITAL_STD.toString(), c.sym, "TRADE");
+        _bmSet(ss, bm, `${c.key}_MODE`, "CASH",                        c.sym, "TRADE");
+        _bmSet(ss, bm, `${c.key}_SEC`,  c.sector,                      c.sym, "TRADE");
+      }
+    }
+    Logger.log(`[CASHWL] ${wlCands.length} watchlist cash candidate(s) merged`);
+  }
+
+  // ── Add Cash Intraday candidates to finalWaiting ─────────────────────────
+  // Cash slots are SEPARATE from regular waiting slots (don't compete).
+  // Max 3 cash entries, only if time is before 10:30 AM.
+  if (cashCands.length > 0 && timeStr <= CONFIG.CASH_ENTRY_WINDOW) {
+    cashCands.sort((a, b) => b.priority - a.priority);
+    for (const c of cashCands) {
+      if (finalWaiting.length >= CONFIG.LOG_ROWS - finalTraded.length) break;
+      finalWaiting.push(c.row);
+      Logger.log(`[CASH ADDED] ${c.sym}: WAITING`);
+    }
+    Logger.log(`[CASH] ${cashCands.length} total cash candidate(s) added (Nifty200 + Watchlist)`);
+  }
+
   // Write AlertLog
   let finalGrid = finalTraded.concat(finalWaiting);
   while (finalGrid.length < CONFIG.LOG_ROWS) finalGrid.push(new Array(CONFIG.TOTAL_COLS).fill(""));
@@ -1177,7 +1350,8 @@ function _runScanner(startRow, endRow) {
     }
     const baseCount     = finalWaiting.filter(r => r[6] && r[6].toString().includes("📦 BASE")).length;
     const momentumCount = finalWaiting.filter(r => r[6] && r[6].toString().includes("🚀 MOMENTUM BREAKOUT")).length;
-    const breakoutCount = finalWaiting.length - baseCount - momentumCount;
+    const cashCount     = finalWaiting.filter(r => r[4] && r[4].toString().includes("Cash Intraday")).length;
+    const breakoutCount = finalWaiting.length - baseCount - momentumCount - cashCount;
 
     let regimeMsg;
     if (!marketBullish) {
@@ -1205,6 +1379,7 @@ function _runScanner(startRow, endRow) {
       if (finalWaiting.length > 0) {
         if (baseCount > 0)     regimeMsg += `📦 Base: ${baseCount} | `;
         if (momentumCount > 0) regimeMsg += `🚀 Momentum: ${momentumCount} | `;
+        if (cashCount > 0)     regimeMsg += `🔥 Cash: ${cashCount} | `;
         if (breakoutCount > 0) regimeMsg += `💥 Breakout: ${breakoutCount}`;
         regimeMsg += `\n\n📋 <b>${finalWaiting.length} candidate(s):</b>\n`;
         finalWaiting.slice(0, 8).forEach(r => {
@@ -1248,7 +1423,7 @@ function _runScanner(startRow, endRow) {
     _bmSet(ss, bm, regimeFlag, "1", "", "FLAG");
   }
 
-  Logger.log(`[DONE] Traded=${finalTraded.length} | Waiting=${finalWaiting.length} (Base=${batchCands.filter(c=>c.isBaseEntry).length}, Momentum=${batchCands.filter(c=>c.isMomentumEntry).length}) | Bullish=${marketBullish} | v15.6`);
+  Logger.log(`[DONE] Traded=${finalTraded.length} | Waiting=${finalWaiting.length} (Base=${batchCands.filter(c=>c.isBaseEntry).length}, Momentum=${batchCands.filter(c=>c.isMomentumEntry).length}, Cash=${cashCands.length}) | Bullish=${marketBullish} | v15.7`);
   return true;
 }
 

@@ -1,5 +1,8 @@
 name: "Daily Shorts — AI360Trading (Short 2 + Short 3)"
 
+# v2.2 (May 2026):
+#   ADDED: Telegram failure notification step
+#
 # v2.1 FIX (May 2026):
 #   FIXED: Only GROQ_API_KEY was passed — now all 4 AI keys passed
 #   When Groq hits daily limit (100k tokens) → Gemini → Anthropic → OpenAI
