@@ -60,5 +60,5 @@ jobs:
           GH_TOKEN:              ${{ secrets.GH_TOKEN }}
           GITHUB_REPOSITORY:     ${{ github.repository }}
           TELEGRAM_BOT_TOKEN:    ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          CHAT_ID_BASIC:         ${{ secrets.CHAT_ID_BASIC }}
+          CHAT_ID_ADVANCE:       ${{ secrets.CHAT_ID_ADVANCE }}
         run: python token_refresh.py

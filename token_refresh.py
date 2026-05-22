@@ -39,8 +39,8 @@ META_APP_SECRET    = os.environ.get("META_APP_SECRET", "")
 GH_TOKEN           = os.environ.get("GH_TOKEN", "")
 GH_REPO            = os.environ.get("GITHUB_REPOSITORY", "")
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
-# FIX v2.1: Was TELEGRAM_CHAT_ID (secret does not exist) → now CHAT_ID_BASIC
-CHAT_ID            = os.environ.get("CHAT_ID_BASIC", "")
+# System health alerts go to ADVANCE channel — not BASIC (trading followers don't need to see this)
+CHAT_ID            = os.environ.get("CHAT_ID_ADVANCE", "")
 
 
 # ─── STEP 1: Exchange for new long-lived token ────────────────────────────────
@@ -182,9 +182,9 @@ def main():
             secret_ok   = update_github_secret(GH_REPO, GH_TOKEN, "META_ACCESS_TOKEN", new_token)
 
             if secret_ok:
-                msg = f"META_ACCESS_TOKEN refreshed ✅\nPermissions: {', '.join(perm_check['permissions'].keys())}"
+                msg = "META_ACCESS_TOKEN refreshed ✅"
                 if missing:
-                    msg += f"\n⚠️ Missing: {', '.join(missing)}"
+                    msg += f"\n⚠️ Missing permissions: {', '.join(missing)}"
                 results.append(("META_ACCESS_TOKEN", True, msg))
                 logger.info(msg)
             else:

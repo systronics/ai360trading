@@ -1288,6 +1288,77 @@ def step_c_intraday_exit(log_sheet, hist_sheet, nifty_sheet, mem, now):
 
 
 # ══════════════════════════════════════════════════════════════════════════════
+# MONTHLY P&L REPORT — first Monday of each month, fully automatic
+# ══════════════════════════════════════════════════════════════════════════════
+
+def _send_monthly_pnl(hist_sheet, now):
+    """
+    Calculates last calendar month's closed trades from History sheet.
+    Sends performance summary to all Telegram channels.
+    Runs first Monday of each month — zero manual task, runs forever.
+    """
+    try:
+        first_day       = now.date().replace(day=1)
+        last_month_end  = first_day - timedelta(days=1)
+        last_month_start = last_month_end.replace(day=1)
+        start = last_month_start.isoformat()
+        end   = last_month_end.isoformat()
+        month_str = last_month_end.strftime("%B %Y")
+
+        rows = hist_sheet.get_all_values()[1:]
+        wins = losses = 0; total_pnl = 0.0; trades = []
+
+        for r in rows:
+            while len(r) < 17: r.append("")
+            exit_dt = str(r[3]).strip()
+            if not exit_dt or not (start <= exit_dt <= end): continue
+            sym = str(r[0]).replace("NSE:", "").strip()
+            result = str(r[6]).upper()
+            try: pnl_rs = float(str(r[16]).replace(",", ""))
+            except: pnl_rs = 0.0
+            if "WIN" in result: wins += 1
+            elif "LOSS" in result: losses += 1
+            total_pnl += pnl_rs
+            trades.append((sym, pnl_rs))
+
+        total = wins + losses
+        if total == 0:
+            print(f"[MONTHLY] No closed trades in {month_str}"); return
+
+        win_rate  = round(wins / total * 100)
+        pnl_emoji = "💰" if total_pnl >= 0 else "📉"
+        trades_s  = sorted(trades, key=lambda x: x[1], reverse=True)
+        best      = trades_s[0] if trades_s else None
+        worst     = trades_s[-1] if len(trades_s) > 1 and trades_s[-1][1] < 0 else None
+
+        b_msg = (
+            f"📅 <b>MONTHLY RESULTS — {month_str}</b>\n"
+            f"AI360Trading | Paper Trading\n"
+            f"━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+            f"{pnl_emoji} <b>Net P/L: ₹{total_pnl:+,.0f}</b>\n"
+            f"✅ Jeet: {wins}  |  ❌ Haar: {losses}  |  Win Rate: {win_rate}%\n\n"
+            f"📊 Poori monthly report → Advance/Premium members\n"
+            f"📈 Upgrade karo ₹499/month → ai360trading.in/membership"
+        )
+        send_basic(b_msg)
+
+        a_lines = [
+            f"📅 <b>MONTHLY PERFORMANCE — {month_str}</b>",
+            f"AI360Trading | Paper Trading",
+            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+            f"\n{pnl_emoji} <b>Net Realised P/L: ₹{total_pnl:+,.0f}</b>",
+            f"Total Trades: {total}  |  Wins: {wins} ✅  |  Losses: {losses} ❌  |  Win Rate: {win_rate}%",
+        ]
+        if best:  a_lines.append(f"🏆 Best: <b>{best[0]}</b> ₹{best[1]:+,.0f}")
+        if worst: a_lines.append(f"📉 Worst: <b>{worst[0]}</b> ₹{worst[1]:+,.0f}")
+        a_lines.append("\n<i>Paper trading — educational results only</i>")
+        send_advance_and_premium("\n".join(a_lines))
+        print(f"[MONTHLY] {month_str}: {wins}W {losses}L ₹{total_pnl:+,.0f}")
+    except Exception as e:
+        print(f"[MONTHLY] {e}")
+
+
+# ══════════════════════════════════════════════════════════════════════════════
 # SHEET MAINTENANCE — weekly, prevents overflow
 # ══════════════════════════════════════════════════════════════════════════════
 
@@ -1344,6 +1415,14 @@ def auto_maintain_sheets(bm_sheet, hist_sheet, mem, now):
                 print(f"[MAINTAIN] BotMemory: removed {removed} blank rows. Now: {len(non_blank)}")
     except Exception as e:
         print(f"[MAINTAIN] BotMemory cleanup error: {e}")
+
+    # ── Monthly P&L report: first Monday of each month ───────────────────────
+    # today.day <= 7 → this is the first Monday of the month (within day 1-7)
+    if now.day <= 7:
+        monthly_flag = now.strftime("%Y-%m") + "_MONTHLY_PNL"
+        if monthly_flag not in mem:
+            _send_monthly_pnl(hist_sheet, now)
+            mem = _mem_set(mem, monthly_flag, "1")
 
     mem = _mem_set(mem, flag_key, "1")
     print("[MAINTAIN] Weekly maintenance done.")

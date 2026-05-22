@@ -151,7 +151,7 @@ Mode is **auto-detected** by `indian_holidays.py` at the start of every workflow
 
 | File | Version | Role |
 |---|---|---|
-| `generate_longterm.py` | v1.1 | Weekly quality stock signals — auto FundScore, auto FIIChange% |
+| `generate_longterm.py` | v1.2 | Weekly quality stock signals — auto FundScore, auto FIIChange%, weekly P&L report, PositionalLatest tab, auto-archive |
 | `refresh_cashwatchlist.py` | v1.0 | Monthly auto-seed + GOOGLEFINANCE formulas + AvgVol30d |
 | `fetch_holidays.py` | v1.0 | Yearly NSE holiday fetch → BotMemory |
 
@@ -568,6 +568,8 @@ Code ready in `upload_facebook.py` v2.6. Token needs `publish_to_groups` scope. 
 | LTWatchlist FundScore | ✅ Auto | yfinance ratios — no manual rating |
 | LTWatchlist FIIChange% | ✅ Auto | institutionPercentHeld delta |
 | Long-term investment picks | ✅ Auto | Every Sunday 9 AM IST |
+| **Weekly P&L performance report** | ✅ Auto | Every Sunday — Hinglish for Basic, full for Advance/Premium |
+| **Monthly P&L report** | ✅ Auto | First Monday of each month — trading_bot.py maintenance window |
 | Education video | ✅ Auto | Bilingual Hinglish, daily |
 | Shorts, reels, articles, kids | ✅ Auto | Daily per schedule |
 | META token refresh | ✅ Auto | 1st + 15th of month |
@@ -605,7 +607,7 @@ After Step 2 completes, everything runs forever with zero manual work.
 - **Hosting:** GitHub Pages (Jekyll, `master` branch `_posts/`)
 - **Publishing:** Auto-commit by `daily-articles.yml`
 - **Revenue:** Google AdSense (USA/UK English readers = highest CPM)
-- **MAX_POSTS:** 60 articles retained — older auto-deleted
+- **MAX_POSTS:** 120 articles retained — older auto-deleted
 
 ---
 

@@ -1,6 +1,13 @@
 """
-AI360 Long-Term Investment Signals — v1.1
+AI360 Long-Term Investment Signals — v1.2
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v1.2 CHANGES vs v1.1:
+  - Weekly P&L performance report added (runs before investment picks)
+    Basic: Hinglish wins/losses/₹ — drives upgrades
+    Advance+Premium: full breakdown with best/worst trade
+  - PositionalLatest tab: public-facing, cleared+rewritten each Sunday
+  - Auto-archive: LongTermSignals >600 rows → SignalsArchive (forever)
+
 v1.1 CHANGES vs v1.0:
   - FundScore now AUTO-CALCULATED from yfinance ratios (ROE, margins, debt, growth)
   - FIIChange% now AUTO-CALCULATED from institutionPercentHeld delta (stored in sheet)
@@ -31,7 +38,7 @@ from datetime import datetime
 import pytz
 
 IST        = pytz.timezone("Asia/Kolkata")
-VERSION    = "v1.1"
+VERSION    = "v1.2"
 SHEET_NAME = "Ai360tradingAlgo"
 
 LT_WATCHLIST    = "LTWatchlist"
@@ -340,6 +347,89 @@ def make_signal(data):
     return sig, tgt, sl, entry, upside, round(pos_pct, 1), score, " | ".join(reasons)
 
 
+# ── Weekly P&L Performance Report ────────────────────────────────────────────
+def _weekly_pnl_report(wb):
+    """
+    Reads History sheet for last 7 days' closed trades.
+    Runs every Sunday before investment picks — shows results to build trust.
+    Basic: Hinglish simple summary → drives upgrades.
+    Advance+Premium: full breakdown with best/worst trade.
+    Zero manual task — runs forever automatically.
+    """
+    from datetime import date, timedelta
+    try:
+        hist = wb.worksheet("History")
+        rows = hist.get_all_values()[1:]
+    except Exception as e:
+        print(f"[PNL] History read: {e}"); return
+
+    cutoff = (date.today() - timedelta(days=7)).isoformat()
+    wins = 0; losses = 0; total_pnl = 0.0; trades = []
+
+    for r in rows:
+        while len(r) < 17: r.append("")
+        exit_dt = str(r[3]).strip()
+        if not exit_dt or exit_dt < cutoff: continue
+        sym = str(r[0]).replace("NSE:", "").strip()
+        result = str(r[6]).upper()
+        try: pnl_rs = float(str(r[16]).replace(",", ""))
+        except: pnl_rs = 0.0
+        try: pnl_pct = float(str(r[5]).replace("%", "").strip())
+        except: pnl_pct = 0.0
+        if "WIN" in result: wins += 1
+        elif "LOSS" in result: losses += 1
+        total_pnl += pnl_rs
+        trades.append((sym, pnl_rs, pnl_pct))
+
+    total = wins + losses
+    if total == 0:
+        print("[PNL] No closed trades this week — skipping report"); return
+
+    win_rate   = round(wins / total * 100)
+    pnl_emoji  = "💰" if total_pnl >= 0 else "📉"
+    now_str    = datetime.now(IST).strftime("%d %b %Y")
+    trades_s   = sorted(trades, key=lambda x: x[1], reverse=True)
+    best       = trades_s[0] if trades_s else None
+    worst      = trades_s[-1] if len(trades_s) > 1 and trades_s[-1][1] < 0 else None
+
+    # Basic channel: Hinglish — simple, drives upgrades
+    b_lines = [
+        f"📊 <b>WEEKLY RESULTS — AI360Trading</b>",
+        f"🗓 {now_str} | Paper Trading",
+        "━━━━━━━━━━━━━━━━━━━━━━━━━━",
+        f"\n{pnl_emoji} <b>Net P/L: ₹{total_pnl:+,.0f}</b>",
+        f"✅ Jeet: {wins}  |  ❌ Haar: {losses}  |  Win Rate: {win_rate}%",
+    ]
+    if best and best[1] > 0:
+        b_lines.append(f"🏆 Best trade: <b>{best[0]}</b> ₹{best[1]:+,.0f}")
+    b_lines += [
+        f"\n🔒 Poori detail sirf Advance/Premium members ko milti hai",
+        f"📈 Upgrade karo ₹499/month → ai360trading.in/membership",
+        f"🤖 AI360Trading — Algo Paper Trading",
+    ]
+    _tg(BASIC, "\n".join(b_lines))
+
+    # Advance + Premium: full English breakdown
+    a_lines = [
+        f"📊 <b>WEEKLY PERFORMANCE REPORT</b>",
+        f"🗓 {now_str} | Paper Trading Results",
+        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+        f"\n{pnl_emoji} <b>Net Realised P/L: ₹{total_pnl:+,.0f}</b>",
+        f"Trades: {total}  |  Wins: {wins} ✅  |  Losses: {losses} ❌  |  Win Rate: {win_rate}%",
+    ]
+    if best:
+        a_lines.append(f"🏆 Best: <b>{best[0]}</b> ₹{best[1]:+,.0f} ({best[2]:+.1f}%)")
+    if worst:
+        a_lines.append(f"📉 Worst: <b>{worst[0]}</b> ₹{worst[1]:+,.0f} ({worst[2]:+.1f}%)")
+    a_lines += [
+        "\n<i>Paper trading only — educational results, not financial advice</i>",
+        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+    ]
+    _tg_chunked(ADVANCE, a_lines)
+    _tg_chunked(PREMIUM, a_lines)
+    print(f"[PNL] Week: {wins}W {losses}L ₹{total_pnl:+,.0f}")
+
+
 # ── Auto-archive ──────────────────────────────────────────────────────────────
 ARCHIVE_TAB     = "SignalsArchive"
 ARCHIVE_TRIGGER = 600   # archive when main sheet exceeds this many data rows
@@ -393,6 +483,10 @@ def main():
     print(f"[LT] Long-Term Signals {VERSION} — {today}")
 
     wb = _connect()
+
+    # ── Weekly P&L report — runs first, before investment picks ─────────────
+    # Shows last 7 days trading results to build follower trust + drive upgrades
+    _weekly_pnl_report(wb)
 
     # Ensure LongTermSignals tab exists (append-only history)
     lt_headers = [
@@ -556,10 +650,10 @@ def main():
     total_action = len(strong_buys) + len(accumulates)
     free_lines += [
         "\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
-        f"🔍 <b>{total_action} stocks with buy signal this week</b>",
-        "🔒 Entry zone, SL, Target, Full reason",
-        "   → Advance / Premium members only",
-        "\n📈 <b>Upgrade @ ₹499/month</b>",
+        f"🔍 <b>Is week {total_action} stocks mein buy signal hai</b>",
+        "🔒 Entry zone, SL, 12-month target, Poori analysis",
+        "   → Sirf Advance / Premium members ko milti hai",
+        "\n📈 <b>Upgrade karo ₹499/month mein</b>",
         "   ✅ Daily intraday alerts",
         "   ✅ Long-term entry zones + SL",
         "   ✅ Options signals",
