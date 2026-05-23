@@ -1,5 +1,5 @@
 """
-AI360 TRADING BOT — v15.2
+AI360 TRADING BOT — v15.3
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 v15.1 CHANGES vs v15.0 — MEMORY MIGRATED FROM Y1 TO BOTMEMORY SHEET
   Reason: AlertLog is shown as webview on ai360trading.in website.
@@ -1462,7 +1462,7 @@ def main():
     dow      = now.weekday()
 
     print(f"\n{'='*55}")
-    print(f"AI360 Trading Bot v15.1 — {now.strftime('%d %b %Y %H:%M')} IST")
+    print(f"AI360 Trading Bot v15.3 — {now.strftime('%d %b %Y %H:%M')} IST")
     print(f"{'='*55}")
 
     if is_holiday(today_s): print(f"[SKIP] Holiday: {today_s}"); return
@@ -1476,6 +1476,27 @@ def main():
         print("[SHEETS] Connected ✅")
     except Exception as e:
         print(f"[SHEETS] Failed: {e}"); return
+
+    # v15.3: Check AppScript write lock (_AS_LOCK in BotMemory).
+    # AppScript sets this key during morning cleanup (clearWaitingRowsOnly) when
+    # it briefly clears AlertLog before rewriting traded rows. Reading during that
+    # window returns blank rows. Lock expires after 2 minutes to self-heal if
+    # AppScript crashes mid-write.
+    try:
+        bm_all = bm.get_all_values()
+        for _bm_row in bm_all[1:]:
+            if len(_bm_row) >= 3 and _bm_row[0].strip() == "_AS_LOCK" and _bm_row[2].strip():
+                _lock_str = _bm_row[2].strip()[:19]
+                _lock_t   = IST.localize(datetime.strptime(_lock_str, "%Y-%m-%d %H:%M:%S"))
+                _lock_age = (datetime.now(IST) - _lock_t).total_seconds()
+                if _lock_age < 120:
+                    print(f"[LOCK] AppScript writing AlertLog (lock age {_lock_age:.0f}s) — skip this cycle")
+                    return
+                else:
+                    print(f"[LOCK] Stale lock ignored ({_lock_age:.0f}s old)")
+                break
+    except Exception as _lock_err:
+        print(f"[LOCK] Check error (safe to proceed): {_lock_err}")
 
     is_bullish, nifty_cmp, nifty_dma, nifty_pct = get_market_regime(nifty)
 
