@@ -53,8 +53,8 @@ PENDING TASKS — UPDATE AFTER EVERY SESSION
 =======================================================
 CURRENT FILE VERSIONS — UPDATE AFTER EVERY CHANGE
 =======================================================
-trading_bot.py           : v15.4
-appscript_v14.gs         : v15.10
+trading_bot.py           : v15.5
+appscript_v14.gs         : v15.11
 ai_client.py             : v2.4
 human_touch.py           : v2.2
 generate_longterm.py     : v1.3

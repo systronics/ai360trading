@@ -2,6 +2,15 @@
 
 ---
 
+## 2026-05-25 14:30 — BATCH 2 AUDIT FIXES
+
+### Fixed
+- `appscript_v14.gs` → **v15.11** — Holidays auto-extend from BotMemory. Added `_RUNTIME_HOLIDAYS` set + `_getRuntimeHolidays(ss)` loader that reads `HOLIDAYS_YYYY` keys (written by `fetch_holidays.py` every Dec 1) and merges them with hardcoded NSE_HOLIDAYS_2026. `_isMarketHoliday()` now uses the runtime set. `_runUnifiedManager` calls the loader once per run before the holiday check. Means AppScript will automatically respect 2027 holidays without code changes — was a manual-update requirement before. Closes audit finding C3.
+- `trading_bot.py` → **v15.5** — (a) `_exit_trade` now accepts `qty` parameter and uses actual sheet quantity for `pnl_rs` calculation. Previously recalculated as `cap // ent` which differs from sheet qty when cmp != ent at entry time. Affects History P/L accuracy. All 4 call sites in `step_b` and `step_c` updated to pass `qty`. Closes H2. (b) `step_a` TRADED promotion batched into single K:M update (1 API call instead of 3). Saves ~2 sec per entry × up to 8 entries = ~16 sec on morning rush. Closes M1.
+- `trading_bot.yml` — Removed 3 redundant backup crons (concurrency already queues overlaps). Tightened start hour 02:45 → 03:00 UTC (saves wasted pre-open runs 08:15-08:25 IST). Closes M3 + M4.
+
+---
+
 ## 2026-05-25 14:00 — BATCH 1 AUDIT FIXES
 
 ### Fixed

@@ -2,7 +2,7 @@
 
 ---
 
-## Last Updated: 2026-05-25 14:00
+## Last Updated: 2026-05-25 14:30
 
 ---
 
@@ -10,8 +10,8 @@
 
 | File | Version | Last Changed |
 |---|---|---|
-| `trading_bot.py` | **v15.4** | 2026-05-25 (Batch 1) |
-| `appscript_v14.gs` | **v15.10** | 2026-05-25 (Batch 1) |
+| `trading_bot.py` | **v15.5** | 2026-05-25 (Batch 2) |
+| `appscript_v14.gs` | **v15.11** | 2026-05-25 (Batch 2) |
 | `ai_client.py` | v2.4 | May 2026 |
 | `human_touch.py` | v2.2 | May 2026 |
 | `generate_longterm.py` | **v1.3** | 2026-05-25 (Batch 1) |
@@ -40,7 +40,7 @@
 
 ## Last Session Summary
 
-**2026-05-25 (afternoon):** Full trading system audit + Batch 1 fixes applied.
+**2026-05-25 (afternoon):** Full trading system audit + Batches 1 & 2 fixes applied.
 - **Audit scope:** Everything trading-related (12 files: trading_bot.py, appscript_v14.gs, generate_longterm.py, refresh_cashwatchlist.py, fetch_holidays.py, token_refresh.py, indian_holidays.py + 5 GitHub Actions workflows).
 - **Findings:** 3 Critical, 9 High, 11 Medium, 7 Low, 10 Suggestions.
 - **Batch 1 applied (6 fixes — all zero-risk, high-priority):**
@@ -50,6 +50,12 @@
   - H3: trading_bot.py daily dedup flags use exact-key lookup
   - H8: 2 workflows standardized to requirements.txt
   - H9: AppScript LeaderType match is now case-insensitive
+- **Batch 2 applied (5 fixes — small risk, high value):**
+  - C3: AppScript holidays auto-load from BotMemory (no more manual yearly update)
+  - H2: trading_bot.py _exit_trade uses actual sheet qty for P/L (data integrity)
+  - M1: step_a TRADED promotion batched K:M update (saves ~16s/morning)
+  - M3: Removed 3 redundant trading_bot.yml backup crons
+  - M4: Tightened cron window (saves ~3 wasted runs/day)
 - **Telegram routing verified working** by Amit ji — Basic/Advance/Premium all receive correct trade alerts.
 
 **2026-05-25 (morning):** Created SmartSync memory system — 4 new files added (CLAUDE.md, CHANGELOG.md, SESSION.md, smartsync.bat).
@@ -95,8 +101,8 @@ STRICT RULES you must follow:
 8. After every change: update .internal-ops.md + tell me the new version number.
 
 CURRENT FILE VERSIONS:
-- trading_bot.py → v15.4
-- appscript_v14.gs → v15.10
+- trading_bot.py → v15.5
+- appscript_v14.gs → v15.11
 - ai_client.py → v2.4
 - human_touch.py → v2.2
 - generate_longterm.py → v1.3

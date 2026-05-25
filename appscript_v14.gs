@@ -1,5 +1,5 @@
 /**
- * AI360 TRADING — APPSCRIPT v15.10
+ * AI360 TRADING — APPSCRIPT v15.11
  * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  * v15.6 CHANGES — PERFORMANCE FIXES (18 May 2026)
  *
@@ -90,6 +90,14 @@
  *     substring match (handles "Sector Leader", "sector leader", " Sector Leader ",
  *     "Sector_Leader"). Previously strict equality could silently block all bearish
  *     entries if the Nifty200 sheet ever had minor text variation.
+ *
+ * v15.11 CHANGES (May 2026) — HOLIDAYS AUTO-EXTEND:
+ *   FIX 1 — AppScript now reads HOLIDAYS_YYYY keys from BotMemory (written by
+ *     fetch_holidays.py every Dec 1) and merges them into the runtime holiday set.
+ *     Previously _isMarketHoliday() used only the hardcoded NSE_HOLIDAYS_2026 array,
+ *     so on 1-Jan-2027 the scanner would have written WAITING rows on Republic Day
+ *     (26-Jan-2027) until someone manually updated the constant.
+ *     Now: trading_bot.py and AppScript share the same auto-extending holiday source.
  * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  */
 
@@ -100,6 +108,40 @@ const NSE_HOLIDAYS_2026 = [
   "2026-08-27","2026-10-02","2026-10-21","2026-10-22",
   "2026-11-04","2026-11-05","2026-12-25",
 ];
+
+// v15.11: runtime holiday set — populated by _getRuntimeHolidays(ss) once per run.
+// Merges NSE_HOLIDAYS_2026 with HOLIDAYS_YYYY keys from BotMemory (set by
+// fetch_holidays.py every Dec 1). Auto-extends every year — no manual update needed.
+let _RUNTIME_HOLIDAYS = null;
+
+function _getRuntimeHolidays(ss) {
+  if (_RUNTIME_HOLIDAYS) return _RUNTIME_HOLIDAYS;
+  const merged = new Set(NSE_HOLIDAYS_2026);
+  try {
+    const bmSheet = ss.getSheetByName(CONFIG.BM_SHEET);
+    if (bmSheet) {
+      const lastRow = bmSheet.getLastRow();
+      if (lastRow >= 2) {
+        const data = bmSheet.getRange(2, 1, lastRow - 1, 2).getValues();
+        const year = new Date().getFullYear();
+        const keys = [`HOLIDAYS_${year}`, `HOLIDAYS_${year + 1}`];
+        for (const row of data) {
+          const key = (row[0] || "").toString().trim();
+          const val = (row[1] || "").toString().trim();
+          if (keys.indexOf(key) !== -1 && val) {
+            const dates = val.split(",").map(d => d.trim()).filter(d => d);
+            dates.forEach(d => merged.add(d));
+            Logger.log(`[HOLIDAYS] Loaded ${dates.length} dates from BotMemory:${key}`);
+          }
+        }
+      }
+    }
+  } catch(e) {
+    Logger.log(`[HOLIDAYS] Dynamic load error: ${e}`);
+  }
+  _RUNTIME_HOLIDAYS = merged;
+  return merged;
+}
 
 // ── F&O LIQUID STOCKS ─────────────────────────────────────────────────────────
 const F_AND_O_LIQUID_STOCKS = new Set([
@@ -764,7 +806,12 @@ function _sendTelegramPremium(msg)           { _sendTelegramToChat(CONFIG.CHAT_I
 function _sendTelegramAll(msg)               { _sendTelegramToChat(CONFIG.CHAT_ID_BASIC, msg); _sendTelegramToChat(CONFIG.CHAT_ID_ADVANCE, msg); _sendTelegramToChat(CONFIG.CHAT_ID_PREMIUM, msg); }
 function _sendTelegramAdvanceAndPremium(msg) { _sendTelegramToChat(CONFIG.CHAT_ID_ADVANCE, msg); _sendTelegramToChat(CONFIG.CHAT_ID_PREMIUM, msg); }
 
-function _isMarketHoliday(dateStr) { return NSE_HOLIDAYS_2026.indexOf(dateStr) !== -1; }
+function _isMarketHoliday(dateStr) {
+  // v15.11: prefer runtime set (includes BotMemory-loaded HOLIDAYS_YYYY).
+  // Falls back to hardcoded NSE_HOLIDAYS_2026 if _getRuntimeHolidays was not yet called.
+  if (_RUNTIME_HOLIDAYS) return _RUNTIME_HOLIDAYS.has(dateStr);
+  return NSE_HOLIDAYS_2026.indexOf(dateStr) !== -1;
+}
 
 function _inferSignal(rawSignal, stage, fiiBuyZone, smaStr) {
   if (rawSignal && rawSignal !== "#N/A" && rawSignal.length > 2) return rawSignal;
@@ -833,6 +880,7 @@ function _runUnifiedManager() {
   const today   = Utilities.formatDate(now, CONFIG.IST_ZONE, "yyyy-MM-dd");
   const dow     = now.getDay();
 
+  _getRuntimeHolidays(ss);  // v15.11: populate runtime holiday set from BotMemory before holiday check
   if (_isMarketHoliday(today)) { Logger.log(`[HOLIDAY] ${today}`); return; }
   if (dow === 0 || dow === 6)  { Logger.log(`[SKIP] Weekend`);      return; }
 

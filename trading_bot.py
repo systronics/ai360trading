@@ -1,6 +1,14 @@
 """
-AI360 TRADING BOT — v15.4
+AI360 TRADING BOT — v15.5
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v15.5 CHANGES vs v15.4 — PERFORMANCE + DATA INTEGRITY (May 2026)
+  FIX 1 — _exit_trade now accepts qty parameter and uses actual sheet quantity
+          for pnl_rs calculation. Previously recalculated as cap//ent which
+          differs from sheet qty when cmp != ent at entry time (gaps between
+          AppScript scanner and Python entry). Affects History P/L accuracy.
+  FIX 2 — step_a TRADED promotion: batched K:M update (1 API call instead of 3).
+          Saves ~2 sec per entry × up to 8 entries = ~16 sec on morning rush.
+
 v15.4 CHANGES vs v15.3 — DEFENSIVE FIXES (May 2026)
   FIX 1 — Cred validation: clear "GCP credentials missing" error instead of
           cryptic FileNotFoundError when secret is empty and no local fallback.
@@ -861,12 +869,10 @@ def step_a_enter_trades(log_sheet, nifty_sheet, bm_sheet, mem, now, is_bullish, 
         atr     = _read_atr_from_nifty200(nifty_sheet, sym)
         if atr <= 0 and sl > 0 and cp > 0: atr = (cp - sl) / 2.0
 
-        # Promote to TRADED
+        # Promote to TRADED — v15.5: single batched K:M update saves 2 API calls per entry
         now_str = now.strftime("%Y-%m-%d %H:%M:%S")
         try:
-            log_sheet.update(f"K{i}", [["✅ TRADED (PAPER)"]])
-            log_sheet.update(f"L{i}", [[cp]])
-            log_sheet.update(f"M{i}", [[now_str]])
+            log_sheet.update(f"K{i}:M{i}", [["✅ TRADED (PAPER)", cp, now_str]])
         except Exception as e:
             print(f"[STEP A] {sym}: update failed: {e}"); continue
 
@@ -944,7 +950,7 @@ def step_b_monitor_trades(log_sheet, hist_sheet, nifty_sheet, mem, now, is_bulli
         if pnl_pct < -HARD_LOSS_PCT and cur_tsl < ent:
             mem = _exit_trade(log_sheet, hist_sheet, i, sym, ent, cp, tgt, sl, cur_tsl,
                               atr, ttype, strat, stage, ent_time, now, "❌ HARD STOP LOSS",
-                              today_str, mem, key, is_target_hit=False)
+                              today_str, mem, key, is_target_hit=False, qty=qty)
             mem = _clear_mem_keys(mem, key); continue
 
         # TSL — pass actual entry time so hold check works correctly
@@ -957,14 +963,14 @@ def step_b_monitor_trades(log_sheet, hist_sheet, nifty_sheet, mem, now, is_bulli
         if cp <= new_tsl:
             mem = _exit_trade(log_sheet, hist_sheet, i, sym, ent, cp, tgt, sl, new_tsl,
                               atr, ttype, strat, stage, ent_time, now, "🔔 TRAILING SL HIT",
-                              today_str, mem, key, is_target_hit=False)
+                              today_str, mem, key, is_target_hit=False, qty=qty)
             mem = _clear_mem_keys(mem, key); continue
 
         # Target hit — SET RE-ENTRY COOLDOWN
         if tgt > 0 and cp >= tgt:
             mem = _exit_trade(log_sheet, hist_sheet, i, sym, ent, cp, tgt, sl, new_tsl,
                               atr, ttype, strat, stage, ent_time, now, "🎯 TARGET HIT",
-                              today_str, mem, key, is_target_hit=True)
+                              today_str, mem, key, is_target_hit=True, qty=qty)
             mem = _clear_mem_keys(mem, key); continue
 
     return mem
@@ -981,18 +987,23 @@ def _send_tsl_update(sym, cp, ent, new_tsl, pnl_pct, pnl_rs, reason):
 
 def _exit_trade(log_sheet, hist_sheet, row_idx, sym, ent, exit_p, tgt, sl, tsl_at_exit,
                 atr, ttype, strat, stage, ent_time, now, reason, today_str, mem, key,
-                is_target_hit=False):
+                is_target_hit=False, qty=0):
     """
     Exit trade, write to History, send Telegram.
     v15.0: If is_target_hit=True, set re-entry cooldown in memory.
     v15.2: Use actual trade capital from BotMemory, not hardcoded CAPITAL_MED.
+    v15.5: qty parameter — use actual sheet quantity if provided. Fixes mismatch
+    where pnl_rs was recalculated as cap//ent which differs from sheet qty when
+    cmp differed from ent at entry time (gaps between scanner and Python entry).
     """
     cap      = get_capital_from_mem(mem, key)
     pnl_pct  = round(((exit_p - ent) / ent) * 100, 2) if ent > 0 else 0
     result   = "WIN ✅" if exit_p > ent else "LOSS ❌"
     hold_str = calc_hold_str(ent_time, now)
     days     = calc_hold_days(ent_time, now)
-    pnl_rs   = round((exit_p - ent) * int(cap // ent), 2) if ent > 0 else 0
+    # v15.5: prefer sheet qty (canonical position size), fall back to cap//ent
+    eff_qty  = int(qty) if qty and qty > 0 else (int(cap // ent) if ent > 0 else 0)
+    pnl_rs   = round((exit_p - ent) * eff_qty, 2) if ent > 0 else 0
 
     try:
         log_sheet.update(f"K{row_idx}", [[f"EXITED ({reason})"]])
@@ -1134,7 +1145,7 @@ def send_good_morning(log_sheet, mem, is_bullish, nifty_cmp, nifty_dma, nifty_pc
         f"{window}\n"
         f"RSI filter: < {RSI_MAX_BULLISH if is_bullish else RSI_MAX_BEARISH} | Re-entry: {REENTRY_COOLDOWN_DAYS}d cooldown after target\n\n"
         f"{'Watching: ' + ', '.join(waiting_stocks[:5]) if waiting_stocks else 'No WAITING stocks'}\n\n"
-        f"<i>v15.4 — RSI + Time + Nifty + Re-entry filters | Memory → BotMemory</i>"
+        f"<i>v15.5 — RSI + Time + Nifty + Re-entry filters | Memory → BotMemory</i>"
     )
     watchlist_line = f"📋 Watchlist: {waiting} stock(s) identified today" if waiting else "📋 No setups in watchlist yet — scan runs at market open"
     msg_basic = (
@@ -1289,6 +1300,7 @@ def step_c_intraday_exit(log_sheet, hist_sheet, nifty_sheet, mem, now):
         strat    = str(row[C_STRATEGY]).strip()
         stage    = str(row[C_STAGE]).strip()
         ent_time = str(row[C_ENTRY_TIME]).strip()
+        qty      = to_f(row[C_QTY])   # v15.5: pass actual sheet qty to _exit_trade
         key      = sym_key(sym)
 
         if cp <= 0: cp = ent
@@ -1298,7 +1310,7 @@ def step_c_intraday_exit(log_sheet, hist_sheet, nifty_sheet, mem, now):
         mem = _exit_trade(
             log_sheet, hist_sheet, i, sym, ent, cp, tgt, sl, sl,
             atr, ttype, strat, stage, ent_time, now, "⏰ INTRADAY TIME EXIT",
-            today_str, mem, key, is_target_hit=False
+            today_str, mem, key, is_target_hit=False, qty=qty
         )
         mem = _clear_mem_keys(mem, key)
         exits += 1
@@ -1453,7 +1465,7 @@ def auto_maintain_sheets(bm_sheet, hist_sheet, mem, now):
 def send_test_messages():
     now = datetime.now(IST)
     msg = (
-        f"✅ <b>TEST MESSAGE — AI360 Trading Bot v15.4</b>\n"
+        f"✅ <b>TEST MESSAGE — AI360 Trading Bot v15.5</b>\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
         f"Time: {now.strftime('%d %b %Y %H:%M')} IST\n"
         f"Token: {'✅ OK' if TG_TOKEN else '❌ MISSING'}\n\n"
@@ -1483,7 +1495,7 @@ def main():
     dow      = now.weekday()
 
     print(f"\n{'='*55}")
-    print(f"AI360 Trading Bot v15.4 — {now.strftime('%d %b %Y %H:%M')} IST")
+    print(f"AI360 Trading Bot v15.5 — {now.strftime('%d %b %Y %H:%M')} IST")
     print(f"{'='*55}")
 
     if is_holiday(today_s): print(f"[SKIP] Holiday: {today_s}"); return
