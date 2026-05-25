@@ -57,8 +57,24 @@ jobs:
         run: |
           if [ "${{ github.event.inputs.content_mode }}" != "auto" ] && [ -n "${{ github.event.inputs.content_mode }}" ]; then
             echo "CONTENT_MODE=${{ github.event.inputs.content_mode }}" >> $GITHUB_ENV
+            echo "HOLIDAY_NAME=" >> $GITHUB_ENV
           else
-            python indian_holidays.py
+            python - <<'EOF'
+          import os, sys
+          sys.path.insert(0, ".")
+          try:
+              from indian_holidays import get_day_mode, get_holiday_name
+              mode = get_day_mode()
+              holiday_name = get_holiday_name() if mode == "holiday" else ""
+          except Exception as e:
+              print(f"[WARN] indian_holidays error: {e} — defaulting to market")
+              mode = "market"
+              holiday_name = ""
+          print(f"[MODE] Education video mode: {mode.upper()}")
+          with open(os.environ["GITHUB_ENV"], "a") as f:
+              f.write(f"CONTENT_MODE={mode}\n")
+              f.write(f"HOLIDAY_NAME={holiday_name}\n")
+          EOF
           fi
 
       - name: Generate Bilingual Education Video (Hinglish)

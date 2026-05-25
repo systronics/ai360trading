@@ -2,6 +2,12 @@
 
 ---
 
+## 2026-05-25 12:15
+### Fixed
+- `daily-videos.yml` — Content mode detection was broken: `python indian_holidays.py` only printed to stdout, never wrote CONTENT_MODE to GITHUB_ENV. Replaced with proper inline Python snippet that writes to GITHUB_ENV (same pattern as all other working workflows).
+
+---
+
 ## 2026-05-25 12:00
 ### Fixed
 - `appscript_v14.gs` — Header comment corrected: v15.8 → v15.9 (code was already v15.9, only comment was stale)
