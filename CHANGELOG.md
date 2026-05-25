@@ -2,6 +2,12 @@
 
 ---
 
+## 2026-05-25 12:00
+### Fixed
+- `appscript_v14.gs` — Header comment corrected: v15.8 → v15.9 (code was already v15.9, only comment was stale)
+
+---
+
 ## 2026-05-25 11:45
 ### Changed
 - `instructions.txt` — File versions updated to exact values read from actual files: trading_bot.py v15.1→v15.3, appscript v15.6→v15.8, added ai_client/human_touch/longterm/refresh/fetch/token/content_calendar/indian_holidays, generate_kids_video latest→v2.3, upload_youtube latest→v2.2, upload_kids_youtube latest→v2.3

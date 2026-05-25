@@ -1,5 +1,5 @@
 /**
- * AI360 TRADING — APPSCRIPT v15.8
+ * AI360 TRADING — APPSCRIPT v15.9
  * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  * v15.6 CHANGES — PERFORMANCE FIXES (18 May 2026)
  *

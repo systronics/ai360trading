@@ -2,7 +2,7 @@
 
 ---
 
-## Last Updated: 2026-05-25 11:45
+## Last Updated: 2026-05-25 12:00
 
 ---
 
@@ -11,7 +11,7 @@
 | File | Version | Last Changed |
 |---|---|---|
 | `trading_bot.py` | v15.3 | May 2026 |
-| `appscript_v14.gs` | v15.8/v15.9 | May 2026 |
+| `appscript_v14.gs` | v15.9 | May 2026 |
 | `ai_client.py` | v2.4 | May 2026 |
 | `human_touch.py` | v2.2 | May 2026 |
 | `generate_longterm.py` | v1.2 | May 2026 |
