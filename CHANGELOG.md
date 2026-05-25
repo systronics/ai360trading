@@ -2,6 +2,12 @@
 
 ---
 
+## 2026-05-25 11:45
+### Changed
+- `instructions.txt` — File versions updated to exact values read from actual files: trading_bot.py v15.1→v15.3, appscript v15.6→v15.8, added ai_client/human_touch/longterm/refresh/fetch/token/content_calendar/indian_holidays, generate_kids_video latest→v2.3, upload_youtube latest→v2.2, upload_kids_youtube latest→v2.3
+
+---
+
 ## 2026-05-25 11:30
 ### Changed
 - `instructions.txt` — Replaced with universal AI instructions: environment detection (PC vs Online), URL fallbacks for online AI, rules, pending tasks, file versions
