@@ -2,7 +2,7 @@
 
 ---
 
-## Last Updated: 2026-05-25 14:30
+## Last Updated: 2026-05-25 15:00
 
 ---
 
@@ -10,18 +10,18 @@
 
 | File | Version | Last Changed |
 |---|---|---|
-| `trading_bot.py` | **v15.5** | 2026-05-25 (Batch 2) |
-| `appscript_v14.gs` | **v15.11** | 2026-05-25 (Batch 2) |
+| `trading_bot.py` | v15.5 | 2026-05-25 (Batch 2) |
+| `appscript_v14.gs` | **v15.12** | 2026-05-25 (Batch 3) |
 | `ai_client.py` | v2.4 | May 2026 |
 | `human_touch.py` | v2.2 | May 2026 |
-| `generate_longterm.py` | **v1.3** | 2026-05-25 (Batch 1) |
+| `generate_longterm.py` | **v1.4** | 2026-05-25 (Batch 3) |
 | `generate_education.py` | v1.1 | May 2026 |
 | `generate_reel.py` | v2.1 | May 2026 |
 | `generate_reel_morning.py` | v2.3 | May 2026 |
 | `generate_shorts.py` | v3.3 | May 2026 |
 | `generate_articles.py` | current | May 2026 |
 | `generate_kids_video.py` | v2.3 | May 2026 |
-| `refresh_cashwatchlist.py` | **v1.1** | 2026-05-25 (Batch 1) |
+| `refresh_cashwatchlist.py` | **v1.2** | 2026-05-25 (Batch 3) |
 | `fetch_holidays.py` | **v1.1** | 2026-05-25 (Batch 1) |
 | `token_refresh.py` | **v2.2** | 2026-05-25 (Batch 1) |
 | `upload_youtube.py` | v2.2 | May 2026 |
@@ -56,6 +56,12 @@
   - M1: step_a TRADED promotion batched K:M update (saves ~16s/morning)
   - M3: Removed 3 redundant trading_bot.yml backup crons
   - M4: Tightened cron window (saves ~3 wasted runs/day)
+- **Batch 3 applied (5 fixes — medium risk, behavioral + perf):**
+  - H4 (refresh_cashwatchlist): _current_price uses fast_info → info → history fallback chain
+  - H4 (generate_longterm): price/52w from hist (not .info); .info wrapped for graceful fallback
+  - H7: AppScript cash detection works in BEARISH market (was bullish-only)
+  - M7: LTWatchlist batch_update — 1 API call instead of 25 (saves ~30s/Sunday)
+  - M9: indian_holidays.py — removed duplicate (10,2) entry
 - **Telegram routing verified working** by Amit ji — Basic/Advance/Premium all receive correct trade alerts.
 
 **2026-05-25 (morning):** Created SmartSync memory system — 4 new files added (CLAUDE.md, CHANGELOG.md, SESSION.md, smartsync.bat).
@@ -102,16 +108,16 @@ STRICT RULES you must follow:
 
 CURRENT FILE VERSIONS:
 - trading_bot.py → v15.5
-- appscript_v14.gs → v15.11
+- appscript_v14.gs → v15.12
 - ai_client.py → v2.4
 - human_touch.py → v2.2
-- generate_longterm.py → v1.3
+- generate_longterm.py → v1.4
 - generate_education.py → v1.1
 - generate_reel.py → v2.1
 - generate_reel_morning.py → v2.3
 - generate_shorts.py → v3.3
 - generate_kids_video.py → v2.3
-- refresh_cashwatchlist.py → v1.1
+- refresh_cashwatchlist.py → v1.2
 - fetch_holidays.py → v1.1
 - token_refresh.py → v2.2
 - upload_youtube.py → v2.2

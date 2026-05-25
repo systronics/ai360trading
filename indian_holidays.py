@@ -61,8 +61,7 @@ FALLBACK_HOLIDAYS = [
     (8, 16),
     # Ganesh Chaturthi (approx September)
     (8, 27),
-    # Mahatma Gandhi Jayanti / Dussehra (approx October)
-    (10, 2),
+    # Mahatma Gandhi Jayanti (Oct 2)
     (10, 2),
     # Diwali Laxmi Puja (approx October/November — 2 days)
     (10, 20),

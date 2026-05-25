@@ -1,5 +1,5 @@
 /**
- * AI360 TRADING — APPSCRIPT v15.11
+ * AI360 TRADING — APPSCRIPT v15.12
  * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  * v15.6 CHANGES — PERFORMANCE FIXES (18 May 2026)
  *
@@ -98,6 +98,13 @@
  *     so on 1-Jan-2027 the scanner would have written WAITING rows on Republic Day
  *     (26-Jan-2027) until someone manually updated the constant.
  *     Now: trading_bot.py and AppScript share the same auto-extending holiday source.
+ *
+ * v15.12 CHANGES (May 2026) — CASH IN BEARISH MARKET:
+ *   FIX 1 — Removed marketBullish requirement from cash intraday detection.
+ *     Cash trades are catalyst-driven (PSU results, defence orders, sector news)
+ *     and can move 10-15% even in bearish Nifty. Risk is contained by tight 3% SL
+ *     and 3PM force-exit. Now captures bearish-market income days that were
+ *     previously blocked. Paper trading throughout Phase 1-3 — safe to expand.
  * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  */
 
@@ -1128,8 +1135,11 @@ function _runScanner(startRow, endRow) {
     // Small-mid cap stocks with 4%+ gap + volume surge = 10-15% intraday potential.
     // These bypass normal swing/positional gates — they're news-driven same-day trades.
     // Bot handles forced 3 PM exit automatically.
-    if (marketBullish &&
-        timeStr <= CONFIG.CASH_ENTRY_WINDOW &&
+    // v15.12: marketBullish requirement removed — cash trades are catalyst-driven
+    // (PSU results, defence orders, sector news) and can move 10-15% even in bearish
+    // Nifty. Risk is contained by tight 3% SL + 3PM force-exit; the 4% pctChange
+    // threshold already requires strong conviction.
+    if (timeStr <= CONFIG.CASH_ENTRY_WINDOW &&
         cmp >= CONFIG.CASH_MIN_CMP &&
         cmp <= CONFIG.CASH_MAX_CMP &&
         pctChange >= CONFIG.CASH_MIN_PCT_CHANGE &&

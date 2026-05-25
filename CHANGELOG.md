@@ -2,6 +2,16 @@
 
 ---
 
+## 2026-05-25 15:00 — BATCH 3 AUDIT FIXES
+
+### Fixed
+- `appscript_v14.gs` → **v15.12** — H7: Cash intraday detection no longer requires `marketBullish`. Cash trades are catalyst-driven (PSU results, defence orders, sector news) and can move 10-15% even in bearish Nifty. Risk is contained by tight 3% SL + 3PM force-exit; the 4% pctChange threshold already requires strong conviction. Now captures bearish-market income days previously blocked. Safe in paper trading Phase 1-3.
+- `generate_longterm.py` → **v1.4** — (a) H4: Decoupled price/52w from yfinance `.info`. CMP/52W/RSI now come from `hist` (always reliable); `.info` is best-effort for fundamentals only (wrapped in try/except). yfinance `.info` is heavily throttled and returns null for many Indian-stock fields; this way FundScore may degrade silently but signals always have correct prices. (b) M7: LTWatchlist update uses `batch_update` (1 API call) instead of 25 sequential `update_cell` + 25 cell reads. Notes pre-fetched in `_load_watchlist`. Saves ~30s per Sunday run.
+- `refresh_cashwatchlist.py` → **v1.2** — H4: `_current_price` now tries `fast_info.last_price` first (less throttled, more reliable), falls back to `.info`, then `history.Close.iloc[-1]` as last resort.
+- `indian_holidays.py` — M9: Removed duplicate `(10, 2)` entry in FALLBACK_HOLIDAYS. Comment cleaned up (was "Mahatma Gandhi Jayanti / Dussehra" — Dussehra is a different date).
+
+---
+
 ## 2026-05-25 14:30 — BATCH 2 AUDIT FIXES
 
 ### Fixed

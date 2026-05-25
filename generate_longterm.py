@@ -1,6 +1,17 @@
 """
-AI360 Long-Term Investment Signals — v1.3
+AI360 Long-Term Investment Signals — v1.4
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v1.4 CHANGES vs v1.3:
+  - Decoupled price/52w from yfinance .info. CMP/52W now come from hist
+    (always reliable), .info is best-effort for fundamentals only. yfinance
+    .info is heavily throttled and returns null for many Indian-stock fields;
+    this way FundScore quality may degrade but signals always have correct
+    price/52W/RSI.
+  - LTWatchlist update uses batch_update (1 API call) instead of 25 sequential
+    update_cell + 25 cell reads. Saves ~30s per Sunday run.
+  - Notes column now pre-fetched in _load_watchlist (avoids per-row read inside
+    the update loop).
+
 v1.3 CHANGES vs v1.2:
   - Cred validation: clear "GCP credentials missing" error instead of cryptic
     FileNotFoundError when GCP_SERVICE_ACCOUNT_JSON env var is empty AND
@@ -43,7 +54,7 @@ from datetime import datetime
 import pytz
 
 IST        = pytz.timezone("Asia/Kolkata")
-VERSION    = "v1.3"
+VERSION    = "v1.4"
 SHEET_NAME = "Ai360tradingAlgo"
 
 LT_WATCHLIST    = "LTWatchlist"
@@ -198,6 +209,7 @@ def _load_watchlist(ws):
             "sector":    r[COL_SECTOR]  or "",
             "fund":      r[COL_FUND],       # may be empty — will be auto-filled
             "fii":       r[COL_FII],        # may be empty
+            "notes":     r[COL_NOTES],      # v1.4: pre-fetched for batch update (avoids per-row cell read)
             "instheld":  r[COL_INSTHELD],   # previous institutionPercentHeld
             "row_idx":   i,                 # 1-based gspread row index
         })
@@ -248,22 +260,37 @@ def _calc_fund_score(info):
     return min(10.0, max(1.0, round(score, 1)))
 
 def fetch_data(sym, prev_instheld_str):
-    """Fetch yfinance data. Returns data dict or None on failure."""
+    """Fetch yfinance data. Returns data dict or None on failure.
+
+    v1.4: Decoupled price/52w from .info. Critical price data now comes from
+    hist (always available), while .info is best-effort for fundamentals only.
+    yfinance .info is heavily throttled and returns null for many Indian-stock
+    fields, but hist is reliable. This way FundScore quality may degrade
+    silently, but signals always have correct CMP/52W/RSI.
+    """
     try:
         t    = yf.Ticker(_ticker(sym))
-        info = t.info
         hist = t.history(period="1y", interval="1d")
         if hist.empty or len(hist) < 20:
             return None
 
-        cmp  = float(info.get("currentPrice") or info.get("regularMarketPrice") or hist["Close"].iloc[-1])
-        h52  = float(info.get("fiftyTwoWeekHigh") or hist["Close"].max())
-        l52  = float(info.get("fiftyTwoWeekLow")  or hist["Close"].min())
+        # v1.4: price/52w come directly from hist (always available)
+        cmp = float(hist["Close"].iloc[-1])
+        h52 = float(hist["Close"].max())
+        l52 = float(hist["Close"].min())
+
+        # Fundamentals — best-effort via .info (often null for Indian stocks)
+        try:
+            info = t.info or {}
+        except Exception as ie:
+            print(f"[FETCH] {sym}: info unavailable ({ie}) — using hist-only data")
+            info = {}
+
         pe   = float(info.get("trailingPE") or info.get("forwardPE") or 0)
         dy   = float(info.get("dividendYield") or 0) * 100
         mcap = float(info.get("marketCap") or 0) / 1e7
 
-        # Auto FundScore — no manual input
+        # Auto FundScore — degrades gracefully if .info is empty (returns ~3.0 baseline)
         fund_score = _calc_fund_score(info)
 
         # Auto FIIChange% — institutionPercentHeld delta
@@ -577,14 +604,22 @@ def main():
         time.sleep(1.5)
 
     # ── Auto-update LTWatchlist with fresh FundScore, FIIChange%, InstHeld% ──
+    # v1.4: single batch_update call instead of 25 sequential updates + 25 cell reads
+    # for the Notes column. Notes are pre-fetched in _load_watchlist now.
+    notes_by_row = {s["row_idx"]: s.get("notes", "") for s in watchlist}
+    batch_data = []
     for row_idx, fs, fi, ih in wl_updates:
+        batch_data.append({
+            "range": f"D{row_idx}:H{row_idx}",
+            "values": [[round(fs, 1), round(fi, 2), "TRUE",
+                        notes_by_row.get(row_idx, ""), round(ih, 4)]],
+        })
+    if batch_data:
         try:
-            wl_sheet.update(f"D{row_idx}:H{row_idx}",
-                            [[round(fs, 1), round(fi, 2), "TRUE",
-                              wl_sheet.cell(row_idx, 7).value or "", round(ih, 4)]])
+            wl_sheet.batch_update(batch_data)
+            print(f"[LT] LTWatchlist batch-updated {len(batch_data)} rows")
         except Exception as e:
-            print(f"[LT] WL update row {row_idx}: {e}")
-        time.sleep(0.3)
+            print(f"[LT] WL batch update: {e}")
 
     # ── Write signals to LongTermSignals sheet (append history) ─────────────
     if new_rows:

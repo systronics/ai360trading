@@ -54,17 +54,17 @@ PENDING TASKS — UPDATE AFTER EVERY SESSION
 CURRENT FILE VERSIONS — UPDATE AFTER EVERY CHANGE
 =======================================================
 trading_bot.py           : v15.5
-appscript_v14.gs         : v15.11
+appscript_v14.gs         : v15.12
 ai_client.py             : v2.4
 human_touch.py           : v2.2
-generate_longterm.py     : v1.3
+generate_longterm.py     : v1.4
 generate_education.py    : v1.1
 generate_reel.py         : v2.1
 generate_reel_morning.py : v2.3
 generate_shorts.py       : v3.3
 generate_kids_video.py   : v2.3
 generate_articles.py     : no version tag
-refresh_cashwatchlist.py : v1.1
+refresh_cashwatchlist.py : v1.2
 fetch_holidays.py        : v1.1
 token_refresh.py         : v2.2
 upload_youtube.py        : v2.2

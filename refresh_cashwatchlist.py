@@ -1,5 +1,5 @@
 """
-AI360 CashWatchlist Auto-Refresh — v1.1
+AI360 CashWatchlist Auto-Refresh — v1.2
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Fully automates the CashWatchlist tab. No manual work ever needed.
 
@@ -140,10 +140,33 @@ def _avg_vol30(sym):
         return 0
 
 def _current_price(sym):
+    # v1.2: prefer fast_info (less throttled, more reliable). Fall back to .info,
+    # then to history.Close.iloc[-1] as last resort.
     try:
-        t   = yf.Ticker(sym.replace("NSE:", "").replace("BSE:", "") + ".NS")
-        cmp = t.info.get("currentPrice") or t.info.get("regularMarketPrice") or 0
-        return float(cmp)
+        t = yf.Ticker(sym.replace("NSE:", "").replace("BSE:", "") + ".NS")
+        # 1. fast_info — most reliable for current price
+        try:
+            fi = t.fast_info
+            cmp = float(fi.get("last_price") or fi.get("lastPrice") or 0)
+            if cmp > 0:
+                return cmp
+        except Exception:
+            pass
+        # 2. info — best-effort
+        try:
+            cmp = float(t.info.get("currentPrice") or t.info.get("regularMarketPrice") or 0)
+            if cmp > 0:
+                return cmp
+        except Exception:
+            pass
+        # 3. history — ultimate fallback
+        try:
+            hist = t.history(period="5d", interval="1d")
+            if not hist.empty:
+                return float(hist["Close"].iloc[-1])
+        except Exception:
+            pass
+        return 0.0
     except Exception:
         return 0.0
 
