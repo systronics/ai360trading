@@ -39,7 +39,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip
-          pip install gspread oauth2client yfinance requests pytz
+          pip install -r requirements.txt
 
       - name: Refresh CashWatchlist
         env:
@@ -64,7 +64,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip
-          pip install gspread oauth2client yfinance requests pytz
+          pip install -r requirements.txt
 
       - name: Run LT signal scan (seeds + updates FundScore/FIIChange%)
         env:

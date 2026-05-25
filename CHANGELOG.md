@@ -2,6 +2,13 @@
 
 ---
 
+## 2026-05-25 12:35
+### Fixed
+- `longterm_signals.yml` — Replaced manual pip install with `pip install -r requirements.txt` to prevent silent failures if generate_longterm.py uses any package not in the manual list.
+- `refresh_watchlists.yml` — Same fix applied to both jobs (refresh-cashwatchlist + refresh-longterm-watchlist).
+
+---
+
 ## 2026-05-25 12:30
 ### Fixed
 - `.gitignore` — Removed stale entries: `!generate_analysis.py` (file doesn't exist), `!generate_community_post.py` (file doesn't exist), `!SYSTEM.md` (renamed to .internal-ops.md). Added missing files that exist: `!generate_longterm.py`, `!refresh_cashwatchlist.py`, `!fetch_holidays.py`. Updated `!SYSTEM.md` → `!.internal-ops.md`.
