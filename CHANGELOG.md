@@ -2,6 +2,12 @@
 
 ---
 
+## 2026-05-25 12:40
+### Fixed
+- `token_refresh.yml` — Added CHAT_ID_BASIC to env vars. Token refresh success/failure alerts now also reach the Basic channel which Amit ji monitors.
+
+---
+
 ## 2026-05-25 12:35
 ### Fixed
 - `longterm_signals.yml` — Replaced manual pip install with `pip install -r requirements.txt` to prevent silent failures if generate_longterm.py uses any package not in the manual list.
