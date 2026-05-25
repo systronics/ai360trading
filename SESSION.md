@@ -2,7 +2,7 @@
 
 ---
 
-## Last Updated: 2026-05-25 13:15
+## Last Updated: 2026-05-25 14:00
 
 ---
 
@@ -10,28 +10,28 @@
 
 | File | Version | Last Changed |
 |---|---|---|
-| `trading_bot.py` | v15.3 | May 2026 |
-| `appscript_v14.gs` | v15.9 | May 2026 |
+| `trading_bot.py` | **v15.4** | 2026-05-25 (Batch 1) |
+| `appscript_v14.gs` | **v15.10** | 2026-05-25 (Batch 1) |
 | `ai_client.py` | v2.4 | May 2026 |
 | `human_touch.py` | v2.2 | May 2026 |
-| `generate_longterm.py` | v1.2 | May 2026 |
+| `generate_longterm.py` | **v1.3** | 2026-05-25 (Batch 1) |
 | `generate_education.py` | v1.1 | May 2026 |
 | `generate_reel.py` | v2.1 | May 2026 |
 | `generate_reel_morning.py` | v2.3 | May 2026 |
 | `generate_shorts.py` | v3.3 | May 2026 |
 | `generate_articles.py` | current | May 2026 |
 | `generate_kids_video.py` | v2.3 | May 2026 |
-| `refresh_cashwatchlist.py` | v1.0 | May 2026 |
-| `fetch_holidays.py` | v1.0 | May 2026 |
-| `token_refresh.py` | v2.1 | May 2026 |
+| `refresh_cashwatchlist.py` | **v1.1** | 2026-05-25 (Batch 1) |
+| `fetch_holidays.py` | **v1.1** | 2026-05-25 (Batch 1) |
+| `token_refresh.py` | **v2.2** | 2026-05-25 (Batch 1) |
 | `upload_youtube.py` | v2.2 | May 2026 |
 | `upload_facebook.py` | v2.6 | May 2026 |
 | `content_calendar.py` | v2.2 | May 2026 |
 | `indian_holidays.py` | current | March 2026 |
-| `.internal-ops.md` | 2026-05-23 | May 2026 |
+| `.internal-ops.md` | 2026-05-25 | May 2026 |
 | `CLAUDE.md` | created | 2026-05-25 |
-| `CHANGELOG.md` | created | 2026-05-25 |
-| `SESSION.md` | created | 2026-05-25 |
+| `CHANGELOG.md` | updated | 2026-05-25 |
+| `SESSION.md` | updated | 2026-05-25 |
 | `smartsync.bat` | created | 2026-05-25 |
 | `instructions.txt` | updated | 2026-05-25 |
 | `upload_instagram.py` | v1.0 | 2026-05-25 |
@@ -40,13 +40,19 @@
 
 ## Last Session Summary
 
-**2026-05-25:** Created SmartSync memory system — 4 new files added:
-- `CLAUDE.md` — auto-read by Claude Code every session; contains all rules, versions, protocol
-- `CHANGELOG.md` — version history log for all file changes
-- `SESSION.md` — this file; persistent state across sessions
-- `smartsync.bat` — run before every session to sync PC ↔ GitHub
+**2026-05-25 (afternoon):** Full trading system audit + Batch 1 fixes applied.
+- **Audit scope:** Everything trading-related (12 files: trading_bot.py, appscript_v14.gs, generate_longterm.py, refresh_cashwatchlist.py, fetch_holidays.py, token_refresh.py, indian_holidays.py + 5 GitHub Actions workflows).
+- **Findings:** 3 Critical, 9 High, 11 Medium, 7 Low, 10 Suggestions.
+- **Batch 1 applied (6 fixes — all zero-risk, high-priority):**
+  - C1: token_refresh.py now alerts both Basic+Advance (was Advance-only)
+  - C2: trading_bot.yml timeout 4→8 min
+  - H1: 4 scripts get clear cred validation errors
+  - H3: trading_bot.py daily dedup flags use exact-key lookup
+  - H8: 2 workflows standardized to requirements.txt
+  - H9: AppScript LeaderType match is now case-insensitive
+- **Telegram routing verified working** by Amit ji — Basic/Advance/Premium all receive correct trade alerts.
 
-System was fully operational at this point. No code changes made to any existing files.
+**2026-05-25 (morning):** Created SmartSync memory system — 4 new files added (CLAUDE.md, CHANGELOG.md, SESSION.md, smartsync.bat).
 
 ---
 
@@ -89,18 +95,19 @@ STRICT RULES you must follow:
 8. After every change: update .internal-ops.md + tell me the new version number.
 
 CURRENT FILE VERSIONS:
-- trading_bot.py → v15.3
-- appscript_v14.gs → v15.8/v15.9
+- trading_bot.py → v15.4
+- appscript_v14.gs → v15.10
 - ai_client.py → v2.4
 - human_touch.py → v2.2
-- generate_longterm.py → v1.2
+- generate_longterm.py → v1.3
 - generate_education.py → v1.1
 - generate_reel.py → v2.1
 - generate_reel_morning.py → v2.3
 - generate_shorts.py → v3.3
 - generate_kids_video.py → v2.3
-- refresh_cashwatchlist.py → v1.0
-- token_refresh.py → v2.1
+- refresh_cashwatchlist.py → v1.1
+- fetch_holidays.py → v1.1
+- token_refresh.py → v2.2
 - upload_youtube.py → v2.2
 - upload_facebook.py → v2.6
 - content_calendar.py → v2.2

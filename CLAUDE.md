@@ -36,22 +36,22 @@ One broken file = zero income that day. Treat every edit as critical.
 ### Trading Engine
 | File | Version |
 |---|---|
-| `trading_bot.py` | v15.3 |
-| `appscript_v14.gs` | v15.8 (file header) / v15.9 (per .internal-ops.md) |
+| `trading_bot.py` | v15.4 |
+| `appscript_v14.gs` | v15.10 |
 
 ### Long-Term Signals
 | File | Version |
 |---|---|
-| `generate_longterm.py` | v1.2 |
-| `refresh_cashwatchlist.py` | v1.0 |
-| `fetch_holidays.py` | v1.0 |
+| `generate_longterm.py` | v1.3 |
+| `refresh_cashwatchlist.py` | v1.1 |
+| `fetch_holidays.py` | v1.1 |
 
 ### Core Infrastructure
 | File | Version |
 |---|---|
 | `ai_client.py` | v2.4 |
 | `human_touch.py` | v2.2 |
-| `token_refresh.py` | v2.1 |
+| `token_refresh.py` | v2.2 |
 | `content_calendar.py` | v2.2 |
 | `indian_holidays.py` | current (no version tag) |
 

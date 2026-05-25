@@ -1,6 +1,11 @@
 """
-AI360 Long-Term Investment Signals — v1.2
+AI360 Long-Term Investment Signals — v1.3
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v1.3 CHANGES vs v1.2:
+  - Cred validation: clear "GCP credentials missing" error instead of cryptic
+    FileNotFoundError when GCP_SERVICE_ACCOUNT_JSON env var is empty AND
+    no local service_account.json exists.
+
 v1.2 CHANGES vs v1.1:
   - Weekly P&L performance report added (runs before investment picks)
     Basic: Hinglish wins/losses/₹ — drives upgrades
@@ -38,7 +43,7 @@ from datetime import datetime
 import pytz
 
 IST        = pytz.timezone("Asia/Kolkata")
-VERSION    = "v1.2"
+VERSION    = "v1.3"
 SHEET_NAME = "Ai360tradingAlgo"
 
 LT_WATCHLIST    = "LTWatchlist"
@@ -121,10 +126,21 @@ def _tg_chunked(chat_id, lines, max_chars=3900):
 
 # ── Google Sheets ─────────────────────────────────────────────────────────────
 def _connect():
+    # v1.3: explicit cred validation — fails with clear message instead of cryptic FileNotFoundError
     scope = ["https://spreadsheets.google.com/feeds",
              "https://www.googleapis.com/auth/drive"]
-    raw   = os.environ.get("GCP_SERVICE_ACCOUNT_JSON", "") or open("service_account.json").read()
-    creds = ServiceAccountCredentials.from_json_keyfile_dict(json.loads(raw), scope)
+    raw = os.environ.get("GCP_SERVICE_ACCOUNT_JSON", "").strip()
+    if not raw:
+        try:
+            with open("service_account.json") as f:
+                raw = f.read().strip()
+        except FileNotFoundError:
+            raise SystemExit("[CREDS] GCP_SERVICE_ACCOUNT_JSON env var not set and service_account.json not found locally")
+    try:
+        creds_dict = json.loads(raw)
+    except json.JSONDecodeError as e:
+        raise SystemExit(f"[CREDS] Failed to parse GCP credentials JSON: {e}")
+    creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
     gc    = gspread.authorize(creds)
     return gc.open(SHEET_NAME)
 

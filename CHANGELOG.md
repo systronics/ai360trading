@@ -2,6 +2,23 @@
 
 ---
 
+## 2026-05-25 14:00 — BATCH 1 AUDIT FIXES
+
+### Fixed
+- `token_refresh.py` → **v2.2** — Token refresh alerts now sent to BOTH Basic and Advance channels (was Advance-only despite v2.1 changelog claiming a Basic fix). Reads `CHAT_ID_BASIC` + `CHAT_ID_ADVANCE`, iterates both. Closes audit finding C1.
+- `trading_bot.py` → **v15.4** — (a) `get_sheets()` now validates GCP creds with a clear `[CREDS]` SystemExit instead of a cryptic `FileNotFoundError` when both env var and local file are missing. (b) Replaced 3 unsafe substring matches in daily-dedupe flags (GM `_AM`, MD `_MD`, PM `_PM`) with exact-key `_mem_get()` lookup. Closes findings H1, H3.
+- `appscript_v14.gs` → **v15.10** — `_checkBearishEntryAllowed`: LeaderType check now case-insensitive substring match (`"sector leader"` or `"sector_leader"`). Previously strict equality could silently block all bearish entries on minor sheet text variation. Closes finding H9.
+- `refresh_cashwatchlist.py` → **v1.1** — Explicit cred validation in `_connect()`. Closes H1.
+- `fetch_holidays.py` → **v1.1** — Explicit cred validation in `_connect()`. Closes H1.
+- `generate_longterm.py` → **v1.3** — Explicit cred validation in `_connect()`. Closes H1.
+- `trading_bot.yml` — (a) `timeout-minutes` raised 4 → 8 to prevent partial-write failures on slow runs (still well under the 5-min cron interval; `cancel-in-progress:false` queues overlaps). Closes C2. (b) Switched to `pip install -r requirements.txt` instead of inline list to prevent dependency drift. Closes H8.
+- `fetch_holidays.yml` — Switched to `pip install -r requirements.txt`. Closes H8.
+
+### Removed
+- `trading_bot.yml` — `permissions: contents: write` (unused — bot does not push to repo).
+
+---
+
 ## 2026-05-25 13:05
 ### Changed
 - `instructions.txt` — Added upload_instagram.py v1.0 to current file versions list

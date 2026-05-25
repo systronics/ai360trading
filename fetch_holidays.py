@@ -1,5 +1,5 @@
 """
-AI360 NSE Holiday Auto-Fetcher — v1.0
+AI360 NSE Holiday Auto-Fetcher — v1.1
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Fetches next year's NSE trading holidays and stores them in BotMemory sheet.
 trading_bot.py reads HOLIDAYS_NEXT from BotMemory and merges with hardcoded list.
@@ -44,10 +44,21 @@ FALLBACK_2027 = [
 ]
 
 def _connect():
+    # v1.1: explicit cred validation — fails with clear message instead of cryptic FileNotFoundError
     scope = ["https://spreadsheets.google.com/feeds",
              "https://www.googleapis.com/auth/drive"]
-    raw   = os.environ.get("GCP_SERVICE_ACCOUNT_JSON", "") or open("service_account.json").read()
-    creds = ServiceAccountCredentials.from_json_keyfile_dict(json.loads(raw), scope)
+    raw = os.environ.get("GCP_SERVICE_ACCOUNT_JSON", "").strip()
+    if not raw:
+        try:
+            with open("service_account.json") as f:
+                raw = f.read().strip()
+        except FileNotFoundError:
+            raise SystemExit("[CREDS] GCP_SERVICE_ACCOUNT_JSON env var not set and service_account.json not found locally")
+    try:
+        creds_dict = json.loads(raw)
+    except json.JSONDecodeError as e:
+        raise SystemExit(f"[CREDS] Failed to parse GCP credentials JSON: {e}")
+    creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
     gc    = gspread.authorize(creds)
     return gc.open(SHEET_NAME)
 

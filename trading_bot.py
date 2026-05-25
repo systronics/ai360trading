@@ -1,6 +1,14 @@
 """
-AI360 TRADING BOT — v15.3
+AI360 TRADING BOT — v15.4
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v15.4 CHANGES vs v15.3 — DEFENSIVE FIXES (May 2026)
+  FIX 1 — Cred validation: clear "GCP credentials missing" error instead of
+          cryptic FileNotFoundError when secret is empty and no local fallback.
+  FIX 2 — Flag-key lookups: 3 daily message dedupe checks (GM/MD/PM) were using
+          substring `in` match against the comma-separated memory string. This
+          was safe in practice but could false-positive on future overlapping
+          prefixes. Now uses exact-key lookup via _mem_get().
+
 v15.1 CHANGES vs v15.0 — MEMORY MIGRATED FROM Y1 TO BOTMEMORY SHEET
   Reason: AlertLog is shown as webview on ai360trading.in website.
           Y1 cell contained raw memory string visible to followers — confusing.
@@ -620,10 +628,20 @@ def calc_new_tsl(cp, ent, init_sl, atr, ttype, mem, key, now, ent_time=""):
 # ══════════════════════════════════════════════════════════════════════════════
 
 def get_sheets():
-    scope  = ["https://spreadsheets.google.com/feeds","https://www.googleapis.com/auth/drive"]
-    creds  = ServiceAccountCredentials.from_json_keyfile_dict(
-        json.loads(os.environ.get("GCP_SERVICE_ACCOUNT_JSON","{}") or
-                   open("service_account.json").read()), scope)
+    # v15.4: explicit cred validation — fails with clear message instead of cryptic FileNotFoundError
+    scope = ["https://spreadsheets.google.com/feeds","https://www.googleapis.com/auth/drive"]
+    raw   = os.environ.get("GCP_SERVICE_ACCOUNT_JSON", "").strip()
+    if not raw:
+        try:
+            with open("service_account.json") as f:
+                raw = f.read().strip()
+        except FileNotFoundError:
+            raise SystemExit("[CREDS] GCP_SERVICE_ACCOUNT_JSON env var not set and service_account.json not found locally")
+    try:
+        creds_dict = json.loads(raw)
+    except json.JSONDecodeError as e:
+        raise SystemExit(f"[CREDS] Failed to parse GCP credentials JSON: {e}")
+    creds  = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
     gc     = gspread.authorize(creds)
     ss     = gc.open(SHEET_NAME)
     return ss.worksheet("AlertLog"), ss.worksheet("History"), ss.worksheet("Nifty200"), ss.worksheet("BotMemory")
@@ -1088,7 +1106,8 @@ def write_runtime_mem(bm_sheet, mem_str: str):
 
 def send_good_morning(log_sheet, mem, is_bullish, nifty_cmp, nifty_dma, nifty_pct, now):
     flag_key = now.strftime("%Y-%m-%d") + "_AM"
-    if flag_key in mem:
+    # v15.4: exact-key lookup (was substring `in mem` — safe in practice but fragile)
+    if _mem_get(mem, flag_key):
         print(f"[GM] Already sent today — skip"); return mem
 
     waiting = 0; traded = 0; waiting_stocks = []
@@ -1115,7 +1134,7 @@ def send_good_morning(log_sheet, mem, is_bullish, nifty_cmp, nifty_dma, nifty_pc
         f"{window}\n"
         f"RSI filter: < {RSI_MAX_BULLISH if is_bullish else RSI_MAX_BEARISH} | Re-entry: {REENTRY_COOLDOWN_DAYS}d cooldown after target\n\n"
         f"{'Watching: ' + ', '.join(waiting_stocks[:5]) if waiting_stocks else 'No WAITING stocks'}\n\n"
-        f"<i>v15.1 — RSI + Time + Nifty + Re-entry filters | Memory → BotMemory</i>"
+        f"<i>v15.4 — RSI + Time + Nifty + Re-entry filters | Memory → BotMemory</i>"
     )
     watchlist_line = f"📋 Watchlist: {waiting} stock(s) identified today" if waiting else "📋 No setups in watchlist yet — scan runs at market open"
     msg_basic = (
@@ -1138,7 +1157,8 @@ def send_good_morning(log_sheet, mem, is_bullish, nifty_cmp, nifty_dma, nifty_pc
 
 def send_midday_pulse(log_sheet, mem, now, is_bullish):
     flag_key = now.strftime("%Y-%m-%d") + "_MD"
-    if flag_key in mem:
+    # v15.4: exact-key lookup (was substring `in mem` — safe in practice but fragile)
+    if _mem_get(mem, flag_key):
         print(f"[MIDDAY] Already sent today — skip"); return mem
     try:
         rows = log_sheet.get_all_values(); open_trades = []; total_pnl = 0.0
@@ -1179,7 +1199,8 @@ def send_midday_pulse(log_sheet, mem, now, is_bullish):
 
 def send_market_close_summary(log_sheet, hist_sheet, mem, now, is_bullish, nifty_pct):
     flag_key = now.strftime("%Y-%m-%d") + "_PM"
-    if flag_key in mem:
+    # v15.4: exact-key lookup (was substring `in mem` — safe in practice but fragile)
+    if _mem_get(mem, flag_key):
         print(f"[CLOSE] Already sent today — skip"); return mem
     try:
         rows = log_sheet.get_all_values(); open_list = []; total_unrl = 0.0
@@ -1432,7 +1453,7 @@ def auto_maintain_sheets(bm_sheet, hist_sheet, mem, now):
 def send_test_messages():
     now = datetime.now(IST)
     msg = (
-        f"✅ <b>TEST MESSAGE — AI360 Trading Bot v15.1</b>\n"
+        f"✅ <b>TEST MESSAGE — AI360 Trading Bot v15.4</b>\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
         f"Time: {now.strftime('%d %b %Y %H:%M')} IST\n"
         f"Token: {'✅ OK' if TG_TOKEN else '❌ MISSING'}\n\n"
@@ -1462,7 +1483,7 @@ def main():
     dow      = now.weekday()
 
     print(f"\n{'='*55}")
-    print(f"AI360 Trading Bot v15.3 — {now.strftime('%d %b %Y %H:%M')} IST")
+    print(f"AI360 Trading Bot v15.4 — {now.strftime('%d %b %Y %H:%M')} IST")
     print(f"{'='*55}")
 
     if is_holiday(today_s): print(f"[SKIP] Holiday: {today_s}"); return

@@ -1,16 +1,22 @@
 """
 token_refresh.py — Auto META Token Refresh
 ==========================================
+v2.2 FIX (May 2026):
+  CHAT_ID single → list of [CHAT_ID_BASIC, CHAT_ID_ADVANCE]
+  Reason: v2.1 added CHAT_ID_BASIC env var to the workflow, but the script
+          still only read CHAT_ID_ADVANCE — so Basic channel never received
+          token refresh alerts. v2.2 sends to both channels so Amit ji sees
+          token status on whichever channel he's monitoring.
+
 v2.1 FIX (May 2026):
-  TELEGRAM_CHAT_ID → CHAT_ID_BASIC
+  TELEGRAM_CHAT_ID → CHAT_ID_BASIC env var added to workflow
   Reason: TELEGRAM_CHAT_ID secret does not exist in GitHub
-          All Telegram alerts were going nowhere
           CHAT_ID_BASIC is the correct secret name
 
 Also: META_ACCESS_TOKEN_KIDS refresh added (was missing)
       Kids token now auto-refreshed same day as main token
 
-Runs every 50 days via GitHub Actions (1st and 20th of month).
+Runs 1st + 15th of every month via GitHub Actions.
 Exchanges current META token for new 60-day token.
 Updates GitHub Secret automatically.
 Sends Telegram alert on success or failure.
@@ -39,8 +45,10 @@ META_APP_SECRET    = os.environ.get("META_APP_SECRET", "")
 GH_TOKEN           = os.environ.get("GH_TOKEN", "")
 GH_REPO            = os.environ.get("GITHUB_REPOSITORY", "")
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
-# System health alerts go to ADVANCE channel — not BASIC (trading followers don't need to see this)
-CHAT_ID            = os.environ.get("CHAT_ID_ADVANCE", "")
+# v2.2: Token alerts go to BOTH Basic and Advance — Amit ji monitors both
+CHAT_ID_BASIC      = os.environ.get("CHAT_ID_BASIC", "")
+CHAT_ID_ADVANCE    = os.environ.get("CHAT_ID_ADVANCE", "")
+CHAT_IDS           = [cid for cid in (CHAT_ID_BASIC, CHAT_ID_ADVANCE) if cid]
 
 
 # ─── STEP 1: Exchange for new long-lived token ────────────────────────────────
@@ -134,7 +142,7 @@ def update_github_secret(repo: str, gh_token: str, secret_name: str, secret_valu
 # ─── STEP 4: Send Telegram Alert (to Basic channel) ──────────────────────────
 
 def send_telegram_alert(message: str, success: bool = True) -> None:
-    if not TELEGRAM_BOT_TOKEN or not CHAT_ID:
+    if not TELEGRAM_BOT_TOKEN or not CHAT_IDS:
         logger.warning("Telegram not configured — skipping alert")
         return
     emoji    = "✅" if success else "❌"
@@ -144,25 +152,26 @@ def send_telegram_alert(message: str, success: bool = True) -> None:
         f"{message}\n\n"
         f"🕐 {now_ist}"
     )
-    try:
-        r = requests.post(
-            f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
-            json={"chat_id": CHAT_ID, "text": full_msg, "parse_mode": "Markdown"},
-            timeout=10,
-        )
-        if r.status_code == 200:
-            logger.info("✅ Telegram alert sent to Basic channel")
-        else:
-            logger.warning(f"Telegram alert failed: {r.status_code}")
-    except Exception as e:
-        logger.warning(f"Telegram alert error: {e}")
+    for cid in CHAT_IDS:
+        try:
+            r = requests.post(
+                f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
+                json={"chat_id": cid, "text": full_msg, "parse_mode": "Markdown"},
+                timeout=10,
+            )
+            if r.status_code == 200:
+                logger.info(f"✅ Telegram alert sent to chat {cid[-4:]}")
+            else:
+                logger.warning(f"Telegram alert failed for {cid[-4:]}: {r.status_code}")
+        except Exception as e:
+            logger.warning(f"Telegram alert error for {cid[-4:]}: {e}")
 
 
 # ─── MAIN ─────────────────────────────────────────────────────────────────────
 
 def main():
     logger.info("=" * 55)
-    logger.info("AI360Trading — META Token Refresh v2.1")
+    logger.info("AI360Trading — META Token Refresh v2.2")
     logger.info("=" * 55)
 
     if not all([META_APP_ID, META_APP_SECRET, GH_TOKEN, GH_REPO]):

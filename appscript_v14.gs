@@ -1,5 +1,5 @@
 /**
- * AI360 TRADING — APPSCRIPT v15.9
+ * AI360 TRADING — APPSCRIPT v15.10
  * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  * v15.6 CHANGES — PERFORMANCE FIXES (18 May 2026)
  *
@@ -84,6 +84,12 @@
  *
  *   FIX 7 — setupTriggers() function added to menu.
  *     One-click trigger setup instead of manual AppScript Triggers UI.
+ *
+ * v15.10 CHANGES (May 2026) — DEFENSIVE FIXES:
+ *   FIX 1 — _checkBearishEntryAllowed: LeaderType check now case-insensitive
+ *     substring match (handles "Sector Leader", "sector leader", " Sector Leader ",
+ *     "Sector_Leader"). Previously strict equality could silently block all bearish
+ *     entries if the Nifty200 sheet ever had minor text variation.
  * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  */
 
@@ -268,7 +274,10 @@ function _checkBearishEntryAllowed(marketBullish, useScore, leaderType, rs) {
       maxSlots: CONFIG.BEARISH_MAX_WAITING
     };
   }
-  if (leaderType !== "Sector Leader") {
+  // v15.10: case-insensitive substring match — defensive against minor sheet text variations
+  // (e.g. "Sector Leader", "sector leader", " Sector Leader ", "Sector_Leader")
+  if (!(leaderType || "").toString().toLowerCase().includes("sector leader") &&
+      !(leaderType || "").toString().toLowerCase().includes("sector_leader")) {
     return {
       allowed: false,
       reason: `BEARISH + Not Sector Leader (${leaderType})`,
