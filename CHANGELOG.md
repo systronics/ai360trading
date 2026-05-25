@@ -2,6 +2,12 @@
 
 ---
 
+## 2026-05-25 12:20
+### Fixed
+- `daily-morning-reel.yml` — Two bugs fixed: (1) Content mode detection broken — same `python indian_holidays.py` issue as daily-videos, replaced with inline Python snippet; (2) FACEBOOK_GROUP_ID missing from Post to Facebook step — group will now receive morning reel when token is fixed.
+
+---
+
 ## 2026-05-25 12:15
 ### Fixed
 - `daily-videos.yml` — Content mode detection was broken: `python indian_holidays.py` only printed to stdout, never wrote CONTENT_MODE to GITHUB_ENV. Replaced with proper inline Python snippet that writes to GITHUB_ENV (same pattern as all other working workflows).
