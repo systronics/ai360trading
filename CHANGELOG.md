@@ -2,6 +2,12 @@
 
 ---
 
+## 2026-05-25 13:00
+### Added
+- `upload_instagram.py` → v1.0 — Recreated. Standalone Instagram Reels uploader. Supports --type reel/morning/short2/short3. Uses same 4-step resumable upload protocol as upload_facebook.py v2.6 and generate_shorts.py v3.3. Gets page token same way. Builds mode-aware captions (market/weekend/holiday). Saves ig_post_id to meta JSON on success. Saves caption to instagram_fallback_YYYYMMDD.txt on failure for manual posting.
+
+---
+
 ## 2026-05-25 12:40
 ### Fixed
 - `token_refresh.yml` — Added CHAT_ID_BASIC to env vars. Token refresh success/failure alerts now also reach the Basic channel which Amit ji monitors.

@@ -2,7 +2,7 @@
 
 ---
 
-## Last Updated: 2026-05-25 12:40
+## Last Updated: 2026-05-25 13:00
 
 ---
 
@@ -34,6 +34,7 @@
 | `SESSION.md` | created | 2026-05-25 |
 | `smartsync.bat` | created | 2026-05-25 |
 | `instructions.txt` | updated | 2026-05-25 |
+| `upload_instagram.py` | v1.0 | 2026-05-25 |
 
 ---
 
