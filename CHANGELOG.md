@@ -2,6 +2,12 @@
 
 ---
 
+## 2026-05-25 11:30
+### Changed
+- `instructions.txt` — Replaced with universal AI instructions: environment detection (PC vs Online), URL fallbacks for online AI, rules, pending tasks, file versions
+
+---
+
 ## 2026-05-25 11:00
 ### Added
 - `CLAUDE.md` — Claude Code session guide: owner info, file versions, strict rules, session protocol

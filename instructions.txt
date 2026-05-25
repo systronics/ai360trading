@@ -1,0 +1,67 @@
+=======================================================
+AI360Trading — Universal AI Instructions
+Owner: Amit Kumar, Haridwar, India
+6 family members depend on this system for income
+=======================================================
+
+FIRST — DETECT YOUR ENVIRONMENT
+Try to read file: C:\Users\Admin\ai360trading\.internal-ops.md
+If you can read it → you are Installed Claude Code PC
+If you cannot read it → you are Online AI
+
+IF INSTALLED CLAUDE CODE PC:
+1. Run smartsync.bat automatically:
+   cd C:\Users\Admin\ai360trading && smartsync.bat
+2. Read these files:
+   - .internal-ops.md (most important — read completely)
+   - CHANGELOG.md
+   - SESSION.md
+3. Confirm versions + pending tasks to Amit ji
+4. Wait for instruction
+
+IF ONLINE AI:
+1. Fetch these URLs in order:
+   https://raw.githubusercontent.com/systronics/ai360trading/master/.internal-ops.md
+   https://raw.githubusercontent.com/systronics/ai360trading/master/CHANGELOG.md
+   https://raw.githubusercontent.com/systronics/ai360trading/master/SESSION.md
+2. Confirm versions + pending tasks to Amit ji
+3. Wait for instruction
+
+=======================================================
+RULES — EVERY AI — NO EXCEPTIONS
+=======================================================
+1. Never touch any file without reading it fresh first
+2. Always provide complete files — never partial code
+3. After every change:
+   - Update CHANGELOG.md
+   - Update SESSION.md
+   - Push to GitHub immediately
+4. Never guess — if unsure ask Amit ji
+5. One broken file = zero income for 6 family members
+6. .internal-ops.md is master system file
+   Renamed from SYSTEM.md for security — never rename again
+
+=======================================================
+PENDING TASKS — UPDATE AFTER EVERY SESSION
+=======================================================
+1. Facebook Group token fix (publish_to_groups scope)
+2. Hindi→English auto captions (Phase 3)
+3. Self-healing system
+4. SEO Seeds block fix in generate_articles.py
+5. Instagram verification all workflows
+
+=======================================================
+CURRENT FILE VERSIONS — UPDATE AFTER EVERY CHANGE
+=======================================================
+trading_bot.py           : v15.1
+appscript_v14.gs         : v15.6
+generate_shorts.py       : v3.3
+upload_facebook.py       : v2.6
+generate_reel.py         : v2.1
+generate_reel_morning.py : v2.3
+generate_education.py    : v1.1
+generate_kids_video.py   : latest
+generate_articles.py     : latest
+upload_youtube.py        : latest
+upload_kids_youtube.py   : latest
+=======================================================

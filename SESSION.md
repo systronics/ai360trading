@@ -2,7 +2,7 @@
 
 ---
 
-## Last Updated: 2026-05-25 11:00
+## Last Updated: 2026-05-25 11:30
 
 ---
 
@@ -33,6 +33,7 @@
 | `CHANGELOG.md` | created | 2026-05-25 |
 | `SESSION.md` | created | 2026-05-25 |
 | `smartsync.bat` | created | 2026-05-25 |
+| `instructions.txt` | updated | 2026-05-25 |
 
 ---
 
