@@ -1,5 +1,5 @@
 """
-AI360 NSE Holiday Auto-Fetcher — v1.1
+AI360 NSE Holiday Auto-Fetcher — v1.2
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Fetches next year's NSE trading holidays and stores them in BotMemory sheet.
 trading_bot.py reads HOLIDAYS_NEXT from BotMemory and merges with hardcoded list.
@@ -26,21 +26,24 @@ BM_TAB     = "BotMemory"
 # Maharashtra Day (May 1), Eid, Independence Day, Ganesh Chaturthi, Gandhi Jayanti,
 # Dussehra, Diwali Laxmi Puja, Diwali Balipratipada, Gurunanak Jayanti, Christmas
 FALLBACK_2027 = [
+    # NOTE: Fallback only — NSE API (fetch_nse_holidays) is the primary path.
+    # All "approx" dates below should be verified once NSE publishes the official
+    # 2027 calendar (typically Dec 2026). Sundays excluded since NSE is closed anyway.
     "2027-01-26",  # Republic Day (Tuesday)
     "2027-03-26",  # Holi (Friday) — approx
     "2027-04-01",  # Mahavir Jayanti — approx
     "2027-04-02",  # Good Friday
-    "2027-04-14",  # Ambedkar Jayanti / Dr. B.R. Ambedkar Jayanti
+    "2027-04-14",  # Ambedkar Jayanti
     "2027-05-01",  # Maharashtra Day / Labour Day
     "2027-06-17",  # Eid ul-Adha — approx
-    "2027-08-15",  # Independence Day (Sunday — no exchange trading anyway)
     "2027-08-23",  # Ganesh Chaturthi — approx
-    "2027-10-02",  # Gandhi Jayanti (Saturday)
     "2027-10-19",  # Dussehra — approx
     "2027-11-07",  # Diwali Laxmi Puja — approx
     "2027-11-08",  # Diwali Balipratipada — approx
     "2027-11-15",  # Gurunanak Jayanti — approx
     "2027-12-25",  # Christmas
+    # Removed: 2027-08-15 (Sunday — NSE closed anyway)
+    # Removed: 2027-10-02 (Saturday — NSE closed anyway)
 ]
 
 def _connect():

@@ -36,15 +36,15 @@ One broken file = zero income that day. Treat every edit as critical.
 ### Trading Engine
 | File | Version |
 |---|---|
-| `trading_bot.py` | v15.5 |
-| `appscript_v14.gs` | v15.12 |
+| `trading_bot.py` | v15.6 |
+| `appscript_v14.gs` | v15.13 |
 
 ### Long-Term Signals
 | File | Version |
 |---|---|
-| `generate_longterm.py` | v1.4 |
-| `refresh_cashwatchlist.py` | v1.2 |
-| `fetch_holidays.py` | v1.1 |
+| `generate_longterm.py` | v1.5 |
+| `refresh_cashwatchlist.py` | v1.3 |
+| `fetch_holidays.py` | v1.2 |
 
 ### Core Infrastructure
 | File | Version |

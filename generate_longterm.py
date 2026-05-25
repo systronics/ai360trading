@@ -1,6 +1,10 @@
 """
-AI360 Long-Term Investment Signals — v1.4
+AI360 Long-Term Investment Signals — v1.5
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v1.5 CHANGES vs v1.4:
+  - Weekly P&L cutoff widened from 7 → 8 days to capture Friday-edge trades
+    on Sunday morning run (avoids missing trades exited late Friday).
+
 v1.4 CHANGES vs v1.3:
   - Decoupled price/52w from yfinance .info. CMP/52W now come from hist
     (always reliable), .info is best-effort for fundamentals only. yfinance
@@ -54,7 +58,7 @@ from datetime import datetime
 import pytz
 
 IST        = pytz.timezone("Asia/Kolkata")
-VERSION    = "v1.4"
+VERSION    = "v1.5"
 SHEET_NAME = "Ai360tradingAlgo"
 
 LT_WATCHLIST    = "LTWatchlist"
@@ -406,7 +410,8 @@ def _weekly_pnl_report(wb):
     except Exception as e:
         print(f"[PNL] History read: {e}"); return
 
-    cutoff = (date.today() - timedelta(days=7)).isoformat()
+    # v1.5: 8 days (not 7) to capture Friday-edge trades on Sunday morning run
+    cutoff = (date.today() - timedelta(days=8)).isoformat()
     wins = 0; losses = 0; total_pnl = 0.0; trades = []
 
     for r in rows:

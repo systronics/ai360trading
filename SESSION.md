@@ -2,7 +2,7 @@
 
 ---
 
-## Last Updated: 2026-05-25 15:00
+## Last Updated: 2026-05-25 15:30
 
 ---
 
@@ -10,19 +10,19 @@
 
 | File | Version | Last Changed |
 |---|---|---|
-| `trading_bot.py` | v15.5 | 2026-05-25 (Batch 2) |
-| `appscript_v14.gs` | **v15.12** | 2026-05-25 (Batch 3) |
+| `trading_bot.py` | **v15.6** | 2026-05-25 (Batch 4) |
+| `appscript_v14.gs` | **v15.13** | 2026-05-25 (Batch 4) |
 | `ai_client.py` | v2.4 | May 2026 |
 | `human_touch.py` | v2.2 | May 2026 |
-| `generate_longterm.py` | **v1.4** | 2026-05-25 (Batch 3) |
+| `generate_longterm.py` | **v1.5** | 2026-05-25 (Batch 4) |
 | `generate_education.py` | v1.1 | May 2026 |
 | `generate_reel.py` | v2.1 | May 2026 |
 | `generate_reel_morning.py` | v2.3 | May 2026 |
 | `generate_shorts.py` | v3.3 | May 2026 |
 | `generate_articles.py` | current | May 2026 |
 | `generate_kids_video.py` | v2.3 | May 2026 |
-| `refresh_cashwatchlist.py` | **v1.2** | 2026-05-25 (Batch 3) |
-| `fetch_holidays.py` | **v1.1** | 2026-05-25 (Batch 1) |
+| `refresh_cashwatchlist.py` | **v1.3** | 2026-05-25 (Batch 4) |
+| `fetch_holidays.py` | **v1.2** | 2026-05-25 (Batch 4) |
 | `token_refresh.py` | **v2.2** | 2026-05-25 (Batch 1) |
 | `upload_youtube.py` | v2.2 | May 2026 |
 | `upload_facebook.py` | v2.6 | May 2026 |
@@ -62,6 +62,15 @@
   - H7: AppScript cash detection works in BEARISH market (was bullish-only)
   - M7: LTWatchlist batch_update — 1 API call instead of 25 (saves ~30s/Sunday)
   - M9: indian_holidays.py — removed duplicate (10,2) entry
+- **Batch 4 applied (6 fixes — final polish):**
+  - M2: refresh_cashwatchlist.py batch_update for all formula/status writes (saves ~2 min/monthly)
+  - M5: token_refresh.yml comment corrected (was "every 40 days" — actual is 1st+15th)
+  - M6: AppScript _bmPurge uses regex for date check (defensive)
+  - M8: fetch_holidays.py FALLBACK_2027 cleaned (removed weekend dates)
+  - M10: generate_longterm.py P&L cutoff widened 7→8 days (captures Friday-edge trades)
+  - Removed obsolete v15.1 Y1 migration code from trading_bot.py (was running every tick)
+
+**AUDIT COMPLETE.** 22 of 27 numbered findings addressed across 4 batches. Remaining 5 (M11, L2, L5, L6, L7) intentionally deferred as low-value or requiring coordinated changes.
 - **Telegram routing verified working** by Amit ji — Basic/Advance/Premium all receive correct trade alerts.
 
 **2026-05-25 (morning):** Created SmartSync memory system — 4 new files added (CLAUDE.md, CHANGELOG.md, SESSION.md, smartsync.bat).
@@ -107,18 +116,18 @@ STRICT RULES you must follow:
 8. After every change: update .internal-ops.md + tell me the new version number.
 
 CURRENT FILE VERSIONS:
-- trading_bot.py → v15.5
-- appscript_v14.gs → v15.12
+- trading_bot.py → v15.6
+- appscript_v14.gs → v15.13
 - ai_client.py → v2.4
 - human_touch.py → v2.2
-- generate_longterm.py → v1.4
+- generate_longterm.py → v1.5
 - generate_education.py → v1.1
 - generate_reel.py → v2.1
 - generate_reel_morning.py → v2.3
 - generate_shorts.py → v3.3
 - generate_kids_video.py → v2.3
-- refresh_cashwatchlist.py → v1.2
-- fetch_holidays.py → v1.1
+- refresh_cashwatchlist.py → v1.3
+- fetch_holidays.py → v1.2
 - token_refresh.py → v2.2
 - upload_youtube.py → v2.2
 - upload_facebook.py → v2.6

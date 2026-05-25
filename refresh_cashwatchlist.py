@@ -1,5 +1,5 @@
 """
-AI360 CashWatchlist Auto-Refresh — v1.2
+AI360 CashWatchlist Auto-Refresh — v1.3
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Fully automates the CashWatchlist tab. No manual work ever needed.
 
@@ -208,9 +208,13 @@ def main():
         existing = cw.get_all_values()
 
     # ── Update GOOGLEFINANCE formulas + AvgVol30d for every row ──────────────
-    # Reload after any additions
+    # v1.3: collect all updates and batch-write at end. Was 5 update_cell per
+    # stock × 35 = 175 API calls + 70s sleep. Now: 2 batch_update calls + 35s.
     total_rows = len(existing)
     print(f"[CW] Updating {total_rows - 1} stocks...")
+
+    formula_updates = []   # G/H/I formula writes (no yfinance dependency)
+    status_updates  = []   # F (active) + J (volume) writes (after yfinance fetches)
 
     for row_i in range(2, total_rows + 1):  # 1-based, skip header
         try:
@@ -219,15 +223,16 @@ def main():
             if not sym:
                 continue
 
-            # Set GOOGLEFINANCE formulas (G, H, I columns — always refresh)
-            # These auto-update every time the sheet is viewed in Google Sheets
-            formula_g = f'=IFERROR(GOOGLEFINANCE("{sym}","price"),0)'
-            formula_h = f'=IFERROR(GOOGLEFINANCE("{sym}","changepct"),0)'
-            formula_i = f'=IFERROR(GOOGLEFINANCE("{sym}","volume"),0)'
-
-            cw.update_cell(row_i, 7, formula_g)   # G: CMP
-            cw.update_cell(row_i, 8, formula_h)   # H: Change%
-            cw.update_cell(row_i, 9, formula_i)   # I: Volume
+            # Set GOOGLEFINANCE formulas (G, H, I columns — always refresh).
+            # These auto-update every time the sheet is viewed in Google Sheets.
+            formula_updates.append({
+                'range':  f'G{row_i}:I{row_i}',
+                'values': [[
+                    f'=IFERROR(GOOGLEFINANCE("{sym}","price"),0)',
+                    f'=IFERROR(GOOGLEFINANCE("{sym}","changepct"),0)',
+                    f'=IFERROR(GOOGLEFINANCE("{sym}","volume"),0)',
+                ]],
+            })
 
             # Fetch live CMP to check range + calculate AvgVol30d
             print(f"  [{row_i-1}/{total_rows-1}] {sym}...", end=" ", flush=True)
@@ -237,21 +242,37 @@ def main():
             # Auto-mark INACTIVE if CMP outside cash range
             if cmp > 0:
                 is_active = "TRUE" if CASH_MIN <= cmp <= CASH_MAX else "FALSE"
-                cw.update_cell(row_i, 6, is_active)  # F: Active
+                status_updates.append({'range': f'F{row_i}', 'values': [[is_active]]})
 
             if avg_vol > 0:
-                cw.update_cell(row_i, 10, avg_vol)   # J: AvgVol30d
+                status_updates.append({'range': f'J{row_i}', 'values': [[avg_vol]]})
 
             status = f"₹{cmp:.0f} | vol={avg_vol:,}" if cmp > 0 else "fetch failed"
             if cmp > CASH_MAX:
                 status += " → INACTIVE (above ₹500)"
             print(status)
 
-            time.sleep(2.0)  # yfinance rate limit
+            time.sleep(1.0)  # v1.3: reduced 2.0→1.0 (fast_info is lighter than .info)
 
         except Exception as e:
             print(f"[CW] Row {row_i}: {e}")
             time.sleep(1)
+
+    # v1.3: single batch_update for all GOOGLEFINANCE formulas (35 × 3 = 105 → 1 call)
+    if formula_updates:
+        try:
+            cw.batch_update(formula_updates, value_input_option='USER_ENTERED')
+            print(f"[CW] Batch-wrote GOOGLEFINANCE formulas for {len(formula_updates)} stocks")
+        except Exception as e:
+            print(f"[CW] Formula batch update error: {e}")
+
+    # v1.3: single batch_update for all status/volume writes (up to 70 → 1 call)
+    if status_updates:
+        try:
+            cw.batch_update(status_updates)
+            print(f"[CW] Batch-wrote {len(status_updates)} active/volume updates")
+        except Exception as e:
+            print(f"[CW] Status batch update error: {e}")
 
     print(f"[CW] Done — {CW_TAB} fully refreshed. No manual work needed.")
 

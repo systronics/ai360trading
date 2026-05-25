@@ -1,5 +1,5 @@
 /**
- * AI360 TRADING — APPSCRIPT v15.12
+ * AI360 TRADING — APPSCRIPT v15.13
  * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  * v15.6 CHANGES — PERFORMANCE FIXES (18 May 2026)
  *
@@ -105,6 +105,11 @@
  *     and can move 10-15% even in bearish Nifty. Risk is contained by tight 3% SL
  *     and 3PM force-exit. Now captures bearish-market income days that were
  *     previously blocked. Paper trading throughout Phase 1-3 — safe to expand.
+ *
+ * v15.13 CHANGES (May 2026) — DEFENSIVE POLISH:
+ *   FIX 1 — _bmPurge FLAG key check now uses regex /^\d{4}-\d{2}-\d{2}_/ instead
+ *     of substring(0,10) — safer against non-date FLAG keys. Currently no such
+ *     keys exist, but this prevents future bugs if a non-date FLAG key is added.
  * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  */
 
@@ -783,7 +788,9 @@ function _bmPurge(ss) {
     if (!key) continue;
 
     // FLAG entries: purge after BM_PURGE_DAYS (14d) using key date prefix
-    if (ktype === "FLAG" && key.length >= 10 && key.substring(0, 10) < cutoffFlagStr) {
+    // v15.13: regex check ensures key matches YYYY-MM-DD_* (avoids accidentally
+    // matching non-date keys like "_AS_LOCK" or "_BATCH_START")
+    if (ktype === "FLAG" && /^\d{4}-\d{2}-\d{2}_/.test(key) && key.substring(0, 10) < cutoffFlagStr) {
       bmSheet.getRange(i + 2, 1, 1, 5).clearContent(); continue;
     }
     // v15.9: TRADE entries: purge after BM_PURGE_TRADE_DAYS (30d) using UpdatedAt

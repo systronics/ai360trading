@@ -1,6 +1,11 @@
 """
-AI360 TRADING BOT — v15.5
+AI360 TRADING BOT — v15.6
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v15.6 CHANGES vs v15.5 — DEAD CODE REMOVAL (May 2026)
+  FIX 1 — Removed obsolete v15.1 Y1 cell migration code. Migration was completed
+          long ago and the cleanup was running on every tick (~288 ticks/day)
+          for no benefit. Saves 1 sheet read + conditional write per tick.
+
 v15.5 CHANGES vs v15.4 — PERFORMANCE + DATA INTEGRITY (May 2026)
   FIX 1 — _exit_trade now accepts qty parameter and uses actual sheet quantity
           for pnl_rs calculation. Previously recalculated as cap//ent which
@@ -1145,7 +1150,7 @@ def send_good_morning(log_sheet, mem, is_bullish, nifty_cmp, nifty_dma, nifty_pc
         f"{window}\n"
         f"RSI filter: < {RSI_MAX_BULLISH if is_bullish else RSI_MAX_BEARISH} | Re-entry: {REENTRY_COOLDOWN_DAYS}d cooldown after target\n\n"
         f"{'Watching: ' + ', '.join(waiting_stocks[:5]) if waiting_stocks else 'No WAITING stocks'}\n\n"
-        f"<i>v15.5 — RSI + Time + Nifty + Re-entry filters | Memory → BotMemory</i>"
+        f"<i>v15.6 — RSI + Time + Nifty + Re-entry filters | Memory → BotMemory</i>"
     )
     watchlist_line = f"📋 Watchlist: {waiting} stock(s) identified today" if waiting else "📋 No setups in watchlist yet — scan runs at market open"
     msg_basic = (
@@ -1465,7 +1470,7 @@ def auto_maintain_sheets(bm_sheet, hist_sheet, mem, now):
 def send_test_messages():
     now = datetime.now(IST)
     msg = (
-        f"✅ <b>TEST MESSAGE — AI360 Trading Bot v15.5</b>\n"
+        f"✅ <b>TEST MESSAGE — AI360 Trading Bot v15.6</b>\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
         f"Time: {now.strftime('%d %b %Y %H:%M')} IST\n"
         f"Token: {'✅ OK' if TG_TOKEN else '❌ MISSING'}\n\n"
@@ -1495,7 +1500,7 @@ def main():
     dow      = now.weekday()
 
     print(f"\n{'='*55}")
-    print(f"AI360 Trading Bot v15.5 — {now.strftime('%d %b %Y %H:%M')} IST")
+    print(f"AI360 Trading Bot v15.6 — {now.strftime('%d %b %Y %H:%M')} IST")
     print(f"{'='*55}")
 
     if is_holiday(today_s): print(f"[SKIP] Holiday: {today_s}"); return
@@ -1543,15 +1548,8 @@ def main():
     if "08:44" <= time_str <= "08:52":
         mem = auto_maintain_sheets(bm, hist, mem, now)
 
-    # v15.1 one-time migration: clear stale memory string from AlertLog Y1 (header row)
-    try:
-        y1_val = str(log.acell("Y1").value or "")
-        if "_TSL_" in y1_val or "_MAX_" in y1_val or "_LP_" in y1_val:
-            log.update("Y1", [[""]])
-            print("[MEM] v15.1: cleared stale memory string from AlertLog Y1 ✅")
-    except Exception as e:
-        print(f"[MEM] Y1 cleanup skipped: {e}")
-
+    # v15.6: removed obsolete v15.1 Y1 migration code. Migration was completed long
+    # ago and the cleanup was running on every tick (~288 ticks/day) for no benefit.
     mem = clean_mem(mem)
 
     # Count today's entries

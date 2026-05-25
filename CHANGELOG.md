@@ -2,6 +2,21 @@
 
 ---
 
+## 2026-05-25 15:30 — BATCH 4 AUDIT FIXES (FINAL POLISH)
+
+### Fixed
+- `refresh_cashwatchlist.py` → **v1.3** — M2: All formula writes (G/H/I) and status writes (F/J) now use `batch_update` instead of 5 `update_cell` calls per stock. 35 stocks × 5 calls = 175 API calls → 2 batch calls. Also reduced per-stock sleep from 2.0s → 1.0s (fast_info is lighter than .info). Saves ~2 min per monthly run.
+- `token_refresh.yml` — M5: Comment header corrected. Was "every 40 days" but actual schedule is 1st + 15th of month (~15 day cycle). Updated comment to reflect reality (and note that v2.2 fix made the script actually read CHAT_ID_BASIC env var).
+- `appscript_v14.gs` → **v15.13** — M6: `_bmPurge` FLAG key date check now uses regex `/^\d{4}-\d{2}-\d{2}_/` instead of substring(0,10). Defensive — prevents future bugs if a non-date FLAG key is ever added.
+- `fetch_holidays.py` → **v1.2** — M8: Removed `2027-08-15` (Sunday — NSE doesn't observe) and `2027-10-02` (Saturday) from FALLBACK_2027. Added clear note that fallback dates are approximate and NSE API is the primary path.
+- `generate_longterm.py` → **v1.5** — M10: Weekly P&L cutoff widened from 7 → 8 days to capture Friday-edge trades on Sunday morning run.
+- `trading_bot.py` → **v15.6** — Removed obsolete v15.1 Y1 cell migration code that was running on every tick (~288 ticks/day) for no benefit. Migration was completed long ago.
+
+### Audit complete
+All 16 numbered findings (C1-C3, H1-H9, M1-M10 except M11) have been addressed across Batches 1-4. M11 (lock check timing) intentionally deferred — current implementation works in practice; fix would require coordinated AppScript change with marginal benefit. L1-L7 cosmetic items partially addressed (L1, L3, L4 closed in Batches 1-2); L2, L5, L6, L7 deferred as low-value cosmetic.
+
+---
+
 ## 2026-05-25 15:00 — BATCH 3 AUDIT FIXES
 
 ### Fixed
