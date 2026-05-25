@@ -150,13 +150,14 @@ node_modules/
 !trading_bot.py
 
 # ── Trading content generators ─────────────────────────────
-!generate_analysis.py
 !generate_education.py
 !generate_reel.py
 !generate_reel_morning.py
 !generate_shorts.py
 !generate_articles.py
-!generate_community_post.py
+!generate_longterm.py
+!refresh_cashwatchlist.py
+!fetch_holidays.py
 
 # ── Kids content generators ────────────────────────────────
 !generate_kids_video.py
@@ -173,7 +174,7 @@ node_modules/
 !robots.txt
 
 # ── Documentation ──────────────────────────────────────────
-!SYSTEM.md
+!.internal-ops.md
 !REPO_STRUCTURE.md
 !LICENSE.md
 !README.md

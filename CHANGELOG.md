@@ -2,6 +2,12 @@
 
 ---
 
+## 2026-05-25 12:30
+### Fixed
+- `.gitignore` — Removed stale entries: `!generate_analysis.py` (file doesn't exist), `!generate_community_post.py` (file doesn't exist), `!SYSTEM.md` (renamed to .internal-ops.md). Added missing files that exist: `!generate_longterm.py`, `!refresh_cashwatchlist.py`, `!fetch_holidays.py`. Updated `!SYSTEM.md` → `!.internal-ops.md`.
+
+---
+
 ## 2026-05-25 12:25
 ### Fixed
 - `daily_reel.yml` — FACEBOOK_GROUP_ID was missing from upload_facebook.py step. Evening ZENO reel will now post to Group once token scope is fixed.
