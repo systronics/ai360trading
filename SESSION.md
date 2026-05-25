@@ -2,7 +2,7 @@
 
 ---
 
-## Last Updated: 2026-05-25 13:00
+## Last Updated: 2026-05-25 13:15
 
 ---
 
@@ -52,12 +52,9 @@ System was fully operational at this point. No code changes made to any existing
 
 ## Pending Tasks — Priority Order
 
-1. **Facebook Group posting** — Code ready in `upload_facebook.py` v2.6. Token needs `publish_to_groups` scope. Fix: Graph API Explorer → add scope → generate token → extend to long-lived → update GitHub Secret `META_ACCESS_TOKEN`.
-2. **Instagram full auto** — `upload_instagram.py` built. Becomes auto after Facebook Group posting is fixed (uses same `public_video_url`).
-3. **appscript_v14.gs version sync** — File header says v15.8 but `.internal-ops.md` says v15.9. Confirm which is actually deployed in Google Apps Script.
-4. **AdSense Publisher ID** — Open `ads.txt` → replace `pub-XXXXXXXXXXXXXXXX` with real Publisher ID after AdSense approval.
-5. **PositionalLatest GID** — After first Sunday `longterm_signals.yml` run: publish tab → get `gid=` → update `GID_REPLACE_ME` in `_pages/positional-picks.html`.
-6. **Phase 3 planning** — English dubbed audio track for global audience scale.
+1. **Facebook Group posting** — Code ready in `upload_facebook.py` v2.6. Token needs `publish_to_groups` scope. Manual fix required (see Known Issues below).
+2. **AdSense Publisher ID** — Replace `pub-XXXXXXXXXXXXXXXX` in `ads.txt` after AdSense approval.
+3. **Phase 3** — Hindi→English dubbed audio track for global audience scale.
 
 ---
 
@@ -65,9 +62,8 @@ System was fully operational at this point. No code changes made to any existing
 
 | Issue | Status | Notes |
 |---|---|---|
-| Facebook Group posting | ❌ Blocked | Token missing `publish_to_groups` scope — manual token fix needed |
-| Instagram auto-posting | 🔄 Blocked | Depends on Facebook Group posting fix |
-| AppScript version tag | ⚠️ Mismatch | File header = v15.8, .internal-ops.md = v15.9 — verify in Google Apps Script |
+| Facebook Group posting | ❌ Blocked | Token missing `publish_to_groups` scope — manual fix in Graph API Explorer |
+| AdSense Publisher ID | 📋 Pending | Replace pub-XXXXXXXXXXXXXXXX in ads.txt after approval |
 | Dhan API (Phase 4) | 📋 Planned | Do NOT connect until explicitly approved |
 
 ---
