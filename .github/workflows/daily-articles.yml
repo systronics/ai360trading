@@ -92,16 +92,17 @@ jobs:
           holiday_name = os.environ.get("HOLIDAY_NAME", "")
           today_str    = datetime.now().strftime("%d %B %Y")
 
+          # v15.x audit BUG-8 fix (2026-05-26): removed hardcoded per-article
+          # bullet lists that could mismatch what generate_articles.py actually
+          # published on a given day. Message now describes the pillar set
+          # generically and points readers to the homepage for the live list.
           if mode == "holiday":
               label = f"🎉 {holiday_name}" if holiday_name else "🎉 Market Holiday"
               msg = (
                   f"📚 {label} — {today_str}\n\n"
                   f"Aaj market band hai — perfect time to learn! 📖\n\n"
-                  f"Aaj ke special holiday articles:\n\n"
-                  f"💡 How to use holidays to review your portfolio\n"
-                  f"📊 Investment strategies for long-term wealth\n"
-                  f"🌍 Global market insights for Indian investors\n"
-                  f"🧠 Trading psychology and financial mindset\n\n"
+                  f"Today's holiday articles are live on the site —\n"
+                  f"motivation, education, long-term thinking, global outlook.\n\n"
                   f"👉 https://ai360trading.in\n\n"
                   f"🌍 For investors from India, US, UK and Brazil!\n"
                   f"#HolidayLearning #InvestmentEducation #ai360trading #GlobalInvesting"
@@ -109,11 +110,9 @@ jobs:
           elif mode == "weekend":
               msg = (
                   f"📚 Weekend Special — {today_str}\n\n"
-                  f"Aaj ke educational articles:\n\n"
-                  f"1️⃣ Stock Market Basics for Everyone\n"
-                  f"2️⃣ Bitcoin and Crypto Complete Guide\n"
-                  f"3️⃣ Personal Finance and Savings Tips\n"
-                  f"4️⃣ AI Trading Strategies for 2026\n\n"
+                  f"Aaj ke fresh educational articles live hain — across all 4 pillars:\n"
+                  f"Stock Market • Crypto • Personal Finance • AI Trading.\n"
+                  f"Read them at the link below, no signup needed.\n\n"
                   f"👉 https://ai360trading.in\n\n"
                   f"💡 Weekend ka best use karo — seekho, samjho, grow karo!\n"
                   f"🌍 For investors from India, US, UK and Brazil!\n"
@@ -122,11 +121,9 @@ jobs:
           else:
               msg = (
                   f"📰 Aaj ke Market Articles — {today_str}\n\n"
-                  f"Fresh analysis across all 4 pillars:\n\n"
-                  f"📊 Stock Market Analysis\n"
-                  f"₿ Bitcoin and Crypto\n"
-                  f"💰 Personal Finance\n"
-                  f"🤖 AI Trading Technology\n\n"
+                  f"Fresh AI-driven analysis live across all 4 pillars:\n"
+                  f"Stock Market • Crypto • Personal Finance • AI Trading.\n"
+                  f"Full reading list on the homepage.\n\n"
                   f"👉 https://ai360trading.in\n\n"
                   f"🔔 Telegram: t.me/ai360trading\n"
                   f"#StockMarket #Nifty #Trading #ai360trading #India"

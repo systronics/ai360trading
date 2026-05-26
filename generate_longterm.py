@@ -1,6 +1,23 @@
 """
-AI360 Long-Term Investment Signals — v1.5
+AI360 Long-Term Investment Signals — v1.6
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v1.6 CHANGES vs v1.5 (2026-05-26 audit BUG-3 + BUG-4):
+  BUG-3 FIX — _rsi() returned NaN on flat 14-day windows (no down days OR
+              both gain and loss zero) because `gain / loss` → 0/0 = NaN.
+              NaN then propagated into make_signal() corrupting classification.
+              FIX: divide by `loss.replace(0, 1e-10)` (same pattern as
+              trading_bot.py get_rsi at line 357) and clamp NaN → 50.0.
+
+  BUG-4 FIX — make_signal() ladder evaluated `score >= 3` (HOLD) BEFORE the
+              BOOK PARTIAL condition, so a stock at 95% of 52W high with
+              moderate score was tagged HOLD instead of BOOK PARTIAL —
+              contradicting the file's own header comment ("BOOK PARTIAL —
+              near 52W high / RSI ≥ 72"). FIX: insert BOOK PARTIAL check
+              between ACCUMULATE and HOLD so it fires whenever pos_pct >= 85
+              OR rsi >= 72 (regardless of score). STRONG BUY / ACCUMULATE
+              still take precedence because a high score requires near-52W-low
+              conditions that cannot coexist with near-high status.
+
 v1.5 CHANGES vs v1.4:
   - Weekly P&L cutoff widened from 7 → 8 days to capture Friday-edge trades
     on Sunday morning run (avoids missing trades exited late Friday).
@@ -58,7 +75,7 @@ from datetime import datetime
 import pytz
 
 IST        = pytz.timezone("Asia/Kolkata")
-VERSION    = "v1.5"
+VERSION    = "v1.6"
 SHEET_NAME = "Ai360tradingAlgo"
 
 LT_WATCHLIST    = "LTWatchlist"
@@ -224,11 +241,17 @@ def _ticker(sym):
     return sym.replace("NSE:", "").replace("BSE:", "") + ".NS"
 
 def _rsi(closes, period=14):
+    # v1.6 (BUG-3 fix): `gain / loss` was 0/0 = NaN on flat windows. Divide by
+    # loss.replace(0, 1e-10) and clamp final NaN to 50.0 (neutral) so signals
+    # never see NaN downstream.
     delta = closes.diff()
     gain  = delta.where(delta > 0, 0.0).rolling(period).mean()
     loss  = (-delta.where(delta < 0, 0.0)).rolling(period).mean()
-    rs    = gain / loss
-    return round(float(100 - (100 / (1 + rs.iloc[-1]))), 1)
+    rs    = gain / loss.replace(0, 1e-10)
+    val   = 100 - (100 / (1 + rs.iloc[-1]))
+    if val != val:   # NaN guard (NaN != NaN)
+        return 50.0
+    return round(float(val), 1)
 
 def _calc_fund_score(info):
     """
@@ -364,6 +387,11 @@ def make_signal(data):
     elif fund_score >= 7:
         score += 1
 
+    # v1.6 (BUG-4 fix): BOOK PARTIAL moved BEFORE the score-3 HOLD branch so a
+    # stock near 52W high (or RSI overbought) is correctly tagged BOOK PARTIAL
+    # instead of being swallowed into HOLD. STRONG BUY/ACCUMULATE still take
+    # precedence — high score requires near-52W-low conditions that cannot
+    # coexist with near-52W-high status, so no conflict.
     if score >= 9:
         sig   = "STRONG BUY 🟢"
         tgt   = round(max(h52 * 1.05, cmp * 1.30), 2)
@@ -374,16 +402,16 @@ def make_signal(data):
         tgt   = round(max(h52, cmp * 1.22), 2)
         sl    = round(cmp * 0.84, 2)
         entry = f"₹{cmp*0.97:.0f}–₹{cmp*1.01:.0f}"
-    elif score >= 3:
-        sig   = "HOLD ⚪"
-        tgt   = round(max(h52, cmp * 1.15), 2)
-        sl    = round(cmp * 0.85, 2)
-        entry = f"₹{cmp:.0f} (existing only)"
     elif pos_pct >= 85 or rsi >= 72:
         sig   = "BOOK PARTIAL 🔴"
         tgt   = round(h52, 2)
         sl    = round(cmp * 0.88, 2)
         entry = "—"
+    elif score >= 3:
+        sig   = "HOLD ⚪"
+        tgt   = round(max(h52, cmp * 1.15), 2)
+        sl    = round(cmp * 0.85, 2)
+        entry = f"₹{cmp:.0f} (existing only)"
     else:
         sig   = "WAIT 🔵"
         tgt   = round(h52 * 0.95, 2)

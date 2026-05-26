@@ -10,11 +10,11 @@
 
 | File | Version | Last Changed |
 |---|---|---|
-| `trading_bot.py` | **v15.7** | 2026-05-26 (BUG-1 TSL exit fix) |
-| `appscript_v14.gs` | **v15.14** | 2026-05-26 (BUG-2 last-Tuesday expiry, dynamic calc) |
+| `trading_bot.py` | **v15.8** | 2026-05-26 (BUG-1 TSL exit + BUG-5 substring flag) |
+| `appscript_v14.gs` | **v15.15** | 2026-05-26 (BUG-2 last-Tue expiry + BUG-6 cash orphan + BUG-9 bmPurge daily-gate) |
 | `ai_client.py` | v2.4 | May 2026 |
 | `human_touch.py` | v2.2 | May 2026 |
-| `generate_longterm.py` | **v1.5** | 2026-05-25 (Batch 4) |
+| `generate_longterm.py` | **v1.6** | 2026-05-26 (BUG-3 RSI NaN + BUG-4 BOOK PARTIAL ladder) |
 | `generate_education.py` | v1.1 | May 2026 |
 | `generate_reel.py` | v2.1 | May 2026 |
 | `generate_reel_morning.py` | v2.3 | May 2026 |
@@ -39,6 +39,15 @@
 ---
 
 ## Last Session Summary
+
+**2026-05-26 (evening):** Audit follow-up — BUG-3 through BUG-9 all fixed.
+- `generate_longterm.py` v1.5 → **v1.6**: BUG-3 (RSI NaN guard), BUG-4 (BOOK PARTIAL ladder order).
+- `trading_bot.py` v15.7 → **v15.8**: BUG-5 (exact-key flag lookup in auto_maintain + monthly P&L).
+- `appscript_v14.gs` v15.14 → **v15.15**: BUG-6 (cash candidate BotMemory only on allocation), BUG-9 (_bmPurge gated to once per day).
+- `.github/workflows/token_refresh.yml`: BUG-7 (corrected misleading "every 40 days" comment).
+- `.github/workflows/daily-articles.yml`: BUG-8 (removed hardcoded per-article bullet list that could mismatch actual content).
+- **All 9 numbered audit findings now resolved.**
+- AppScript v15.15 needs another manual paste into Google Apps Script editor before it goes live (auto-deploy not supported from GitHub).
 
 **2026-05-26 (afternoon):** Full-project audit + 2 critical fixes applied.
 - Audited every Python module, AppScript, content_calendar, indian_holidays, fetch_holidays, refresh_cashwatchlist, key workflows.
@@ -126,11 +135,11 @@ STRICT RULES you must follow:
 8. After every change: update .internal-ops.md + tell me the new version number.
 
 CURRENT FILE VERSIONS:
-- trading_bot.py → v15.7
-- appscript_v14.gs → v15.14
+- trading_bot.py → v15.8
+- appscript_v14.gs → v15.15
 - ai_client.py → v2.4
 - human_touch.py → v2.2
-- generate_longterm.py → v1.5
+- generate_longterm.py → v1.6
 - generate_education.py → v1.1
 - generate_reel.py → v2.1
 - generate_reel_morning.py → v2.3

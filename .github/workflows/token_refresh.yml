@@ -13,7 +13,9 @@ name: Token Refresh — META Facebook
 #   Short-lived token: 1-3 days (from Graph Explorer)
 #   Long-lived token: 60 days (after fb_exchange_token call)
 #   This workflow: exchanges current token → new 60-day token
-#   Runs every 40 days → always refreshed before expiry
+#   Runs 1st + 15th of each month (~15-day cycle, well under 60-day expiry).
+#   v2.2 audit BUG-7 fix (2026-05-26): corrected misleading "every 40 days"
+#   comment that contradicted the actual 1st+15th cron schedule above.
 # ─────────────────────────────────────────────────────────────
 
 on:

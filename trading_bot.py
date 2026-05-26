@@ -1,6 +1,13 @@
 """
-AI360 TRADING BOT — v15.7
+AI360 TRADING BOT — v15.8
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v15.8 CHANGES vs v15.7 — AUDIT FOLLOW-UP (May 2026)
+  BUG-5 FIX — auto_maintain_sheets and monthly P&L gate were still using
+              substring `flag_key in mem` checks (Batch 1 had fixed the same
+              pattern in GM/MD/PM but missed these two). Switched to
+              `_mem_get(mem, key)` for exact-key matching. Currently safe
+              (keys are unique) but eliminates a future-bug class.
+
 v15.7 CHANGES vs v15.6 — CRITICAL TSL EXIT BUG FIX (May 2026)
   BUG-1 FIX — step_b_monitor_trades was comparing CMP against the recomputed
               `new_tsl` (which calc_new_tsl caps at cp*0.99) instead of the
@@ -1167,7 +1174,7 @@ def send_good_morning(log_sheet, mem, is_bullish, nifty_cmp, nifty_dma, nifty_pc
         f"{window}\n"
         f"RSI filter: < {RSI_MAX_BULLISH if is_bullish else RSI_MAX_BEARISH} | Re-entry: {REENTRY_COOLDOWN_DAYS}d cooldown after target\n\n"
         f"{'Watching: ' + ', '.join(waiting_stocks[:5]) if waiting_stocks else 'No WAITING stocks'}\n\n"
-        f"<i>v15.7 — RSI + Time + Nifty + Re-entry filters | Memory → BotMemory</i>"
+        f"<i>v15.8 — RSI + Time + Nifty + Re-entry filters | Memory → BotMemory</i>"
     )
     watchlist_line = f"📋 Watchlist: {waiting} stock(s) identified today" if waiting else "📋 No setups in watchlist yet — scan runs at market open"
     msg_basic = (
@@ -1428,7 +1435,8 @@ def auto_maintain_sheets(bm_sheet, hist_sheet, mem, now):
         return mem
 
     flag_key = now.strftime("%Y-W%W") + "_MAINT"
-    if flag_key in mem:
+    # v15.8 (BUG-5): exact-key lookup (was substring `in mem` — Batch 1 missed this site)
+    if _mem_get(mem, flag_key):
         return mem
 
     print("[MAINTAIN] Weekly sheet maintenance starting...")
@@ -1475,7 +1483,8 @@ def auto_maintain_sheets(bm_sheet, hist_sheet, mem, now):
     # today.day <= 7 → this is the first Monday of the month (within day 1-7)
     if now.day <= 7:
         monthly_flag = now.strftime("%Y-%m") + "_MONTHLY_PNL"
-        if monthly_flag not in mem:
+        # v15.8 (BUG-5): exact-key lookup (was substring `not in mem`)
+        if not _mem_get(mem, monthly_flag):
             _send_monthly_pnl(hist_sheet, now)
             mem = _mem_set(mem, monthly_flag, "1")
 
@@ -1487,7 +1496,7 @@ def auto_maintain_sheets(bm_sheet, hist_sheet, mem, now):
 def send_test_messages():
     now = datetime.now(IST)
     msg = (
-        f"✅ <b>TEST MESSAGE — AI360 Trading Bot v15.7</b>\n"
+        f"✅ <b>TEST MESSAGE — AI360 Trading Bot v15.8</b>\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
         f"Time: {now.strftime('%d %b %Y %H:%M')} IST\n"
         f"Token: {'✅ OK' if TG_TOKEN else '❌ MISSING'}\n\n"
@@ -1517,7 +1526,7 @@ def main():
     dow      = now.weekday()
 
     print(f"\n{'='*55}")
-    print(f"AI360 Trading Bot v15.7 — {now.strftime('%d %b %Y %H:%M')} IST")
+    print(f"AI360 Trading Bot v15.8 — {now.strftime('%d %b %Y %H:%M')} IST")
     print(f"{'='*55}")
 
     if is_holiday(today_s): print(f"[SKIP] Holiday: {today_s}"); return

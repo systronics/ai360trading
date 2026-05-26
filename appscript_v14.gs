@@ -1,6 +1,21 @@
 /**
- * AI360 TRADING — APPSCRIPT v15.14
+ * AI360 TRADING — APPSCRIPT v15.15
  * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ * v15.15 CHANGES (May 2026) — AUDIT FOLLOW-UP (BUG-6 + BUG-9):
+ *   BUG-6 FIX — Cash candidates wrote BotMemory (_CAP/_MODE/_SEC) at the moment
+ *     of detection (inside _runScanner scan loop AND inside the wlCands merge
+ *     loop). If the slot was later lost (CASH_ENTRY_WINDOW passed by the time
+ *     the final loop ran, or LOG_ROWS cap reached), the BotMemory entries were
+ *     orphans — sat in the sheet until the 30-day TRADE TTL cleaned them up.
+ *     FIX: removed both early _bmSet sites; consolidated writes into the final
+ *     "add to finalWaiting" loop so BotMemory only records candidates that
+ *     actually got a WAITING slot.
+ *
+ *   BUG-9 FIX — _bmPurge ran on every 5-min trigger fire (~120 fires/day),
+ *     iterating the whole BotMemory sheet for no reason — most ticks have
+ *     nothing aged out. Gated to once per day via `${today}_BMPURGED` FLAG.
+ *     Bm is reloaded after purge so row indexes are fresh.
+ *
  * v15.14 CHANGES (May 2026) — F&O EXPIRY DAY FIX (LAST TUESDAY) +
  *                              KILL HARDCODED YEAR-LOCKED EXPIRY LIST
  *
@@ -678,7 +693,7 @@ function _sendOptionsAlertPremium(sym, cmp, optSignal, stage, sl, target, rr, bm
     `❌ Do NOT average down on options\n` +
     `❌ Do NOT hold past expiry week\n` +
     `${tradeNote}\n\n` +
-    `<i>Educational only. Not SEBI advice. v15.14</i>`;
+    `<i>Educational only. Not SEBI advice. v15.15</i>`;
 
   _sendTelegramPremium(msg);
   _bmSet(ss, bm, flagKey, "1", sym, "FLAG");
@@ -923,7 +938,7 @@ function sendDailySummary() {
     `📊 <b>MARKET SUMMARY</b>\n━━━━━━━━━━━━━━━━━━━━\n` +
     `🔹 <b>Active Trades:</b> ${traded}/${CONFIG.MAX_TRADES}\n` +
     `🔸 <b>Waiting Slots:</b> ${waiting}\n` +
-    `✅ <i>System: Online v15.14</i>`
+    `✅ <i>System: Online v15.15</i>`
   );
 }
 
@@ -950,8 +965,16 @@ function _runUnifiedManager() {
   if (_isMarketHoliday(today)) { Logger.log(`[HOLIDAY] ${today}`); return; }
   if (dow === 0 || dow === 6)  { Logger.log(`[SKIP] Weekend`);      return; }
 
-  _bmPurge(ss);
-  const bm = _bmLoad(ss);
+  // v15.15 (BUG-9): _bmPurge gated to once per day. Was running every 5 min
+  // (~120 fires/day) for no benefit — FLAG TTL is 14d and TRADE TTL is 30d, so
+  // nothing changes intra-day. Daily purge is sufficient.
+  let bm = _bmLoad(ss);
+  const purgeKey = `${today}_BMPURGED`;
+  if (!_bmExists(bm, purgeKey)) {
+    _bmPurge(ss);
+    bm = _bmLoad(ss);   // reload so row indexes reflect purged state
+    _bmSet(ss, bm, purgeKey, "1", "", "FLAG");
+  }
 
   if (timeStr >= "09:05" && timeStr <= "09:15") {
     const cleanedKey = `${today}_CLEANED`;
@@ -1213,8 +1236,12 @@ function _runScanner(startRow, endRow) {
 
         if (cashRr >= 1.5) {
           const cashQty = Math.max(1, Math.floor(CONFIG.CAPITAL_STD / cmp));
+          const cashKey = sym.replace(/[:\s]/g, '_');
+          // v15.15 (BUG-6): no longer writes BotMemory here — moved to the final
+          // "add to finalWaiting" loop so we only persist candidates that actually
+          // get a WAITING slot (was orphaning entries when slot was lost).
           cashCands.push({
-            sym, sector, priority: 25,
+            sym, sector, priority: 25, key: cashKey,
             row: [
               nowTime, sym, "", 25, "🔥 Cash Intraday", "CASH",
               `🔥 CASH | +${pctChange.toFixed(1)}% | Vol ${volVsAvg.toFixed(0)}%`,
@@ -1223,11 +1250,6 @@ function _runScanner(startRow, endRow) {
             ]
           });
           Logger.log(`[CASH] ${sym}: +${pctChange.toFixed(1)}% | Vol ${volVsAvg.toFixed(0)}% | ₹${cmp} | SL ${cashSl} | TGT ${cashTgt}`);
-          // Write BotMemory for cash trade
-          const cashKey = sym.replace(/[:\s]/g, '_');
-          _bmSet(ss, bm, `${cashKey}_CAP`,  CONFIG.CAPITAL_STD.toString(), sym, "TRADE");
-          _bmSet(ss, bm, `${cashKey}_MODE`, "CASH",                        sym, "TRADE");
-          _bmSet(ss, bm, `${cashKey}_SEC`,  sector,                        sym, "TRADE");
         }
         continue;  // Skip regular swing/positional scan for this stock
       }
@@ -1488,12 +1510,10 @@ function _runScanner(startRow, endRow) {
   // Nifty200. Priority 30 > Nifty200 cash (25) so they surface first.
   const wlCands = _readCashWatchlist(ss, bm, timeStr, alreadyTraded);
   if (wlCands.length > 0) {
+    // v15.15 (BUG-6): also no early _bmSet here — moved to final allocator loop
     for (const c of wlCands) {
       if (!cashCands.find(x => x.sym === c.sym)) {
         cashCands.push(c);
-        _bmSet(ss, bm, `${c.key}_CAP`,  CONFIG.CAPITAL_STD.toString(), c.sym, "TRADE");
-        _bmSet(ss, bm, `${c.key}_MODE`, "CASH",                        c.sym, "TRADE");
-        _bmSet(ss, bm, `${c.key}_SEC`,  c.sector,                      c.sym, "TRADE");
       }
     }
     Logger.log(`[CASHWL] ${wlCands.length} watchlist cash candidate(s) merged`);
@@ -1504,12 +1524,20 @@ function _runScanner(startRow, endRow) {
   // Max 3 cash entries, only if time is before 10:30 AM.
   if (cashCands.length > 0 && timeStr <= CONFIG.CASH_ENTRY_WINDOW) {
     cashCands.sort((a, b) => b.priority - a.priority);
+    let cashAllocated = 0;
     for (const c of cashCands) {
       if (finalWaiting.length >= CONFIG.LOG_ROWS - finalTraded.length) break;
       finalWaiting.push(c.row);
+      // v15.15 (BUG-6): write BotMemory ONLY when the candidate gets a slot.
+      // Previously written at detection time → orphans whenever the slot was lost.
+      const key = c.key || c.sym.replace(/[:\s]/g, '_');
+      _bmSet(ss, bm, `${key}_CAP`,  CONFIG.CAPITAL_STD.toString(), c.sym, "TRADE");
+      _bmSet(ss, bm, `${key}_MODE`, "CASH",                        c.sym, "TRADE");
+      _bmSet(ss, bm, `${key}_SEC`,  c.sector,                      c.sym, "TRADE");
+      cashAllocated++;
       Logger.log(`[CASH ADDED] ${c.sym}: WAITING`);
     }
-    Logger.log(`[CASH] ${cashCands.length} total cash candidate(s) added (Nifty200 + Watchlist)`);
+    Logger.log(`[CASH] ${cashAllocated}/${cashCands.length} cash candidate(s) allocated to WAITING slots`);
   }
 
   // Write AlertLog — v15.9: clearContent() removed (was race condition with trading_bot.py).
@@ -1538,7 +1566,7 @@ function _runScanner(startRow, endRow) {
       regimeMsg =
         `⚠️ <b>MARKET REGIME: BEARISH</b>\n` +
         `Nifty ₹${niftyCmp.toFixed(0)} below 20DMA ₹${nifty20d.toFixed(0)}\n` +
-        `v15.14 HARD BLOCK: Max ${maxWaitingSlots} slots | Score≥${CONFIG.BEARISH_HARD_MIN_SCORE} only\n` +
+        `v15.15 HARD BLOCK: Max ${maxWaitingSlots} slots | Score≥${CONFIG.BEARISH_HARD_MIN_SCORE} only\n` +
         `VIX: ${indiaVix.toFixed(1)}\n`;
       if (momentumSectors.size > 0) regimeMsg += `🚀 Momentum sectors: ${[...momentumSectors].join(', ')}\n`;
       if (topSector) regimeMsg += `🔄 Strongest: ${topSector} (AF: ${topAf.toFixed(1)})\n`;
@@ -1806,7 +1834,7 @@ function sendWeeklySummary() {
   if (best)              msg += `🏆 Best:  <b>${best[0]}</b> ₹${Math.round(parseFloat(best[16])  || 0)}\n`;
   if (worst && worst !== best) msg += `💀 Worst: <b>${worst[0]}</b> ₹${Math.round(parseFloat(worst[16]) || 0)}\n`;
   msg += `\n📌 Open: ${openTrades.length}/${CONFIG.MAX_TRADES}\n`;
-  msg += `<i>AI360 Trading v15.14 — Base + Breakout + Momentum + Options (Last-Tue expiry)</i>`;
+  msg += `<i>AI360 Trading v15.15 — Base + Breakout + Momentum + Options (Last-Tue expiry)</i>`;
   _sendTelegramAdvanceAndPremium(msg);
 
   // Basic channel — weekly social proof to build trust and drive upgrades
@@ -1889,9 +1917,9 @@ function setupTriggers() {
 function testTelegram() {
   const now     = new Date();
   const timeStr = Utilities.formatDate(now, CONFIG.IST_ZONE, "dd-MMM HH:mm");
-  _sendTelegramToChat(CONFIG.CHAT_ID_BASIC,   `✅ <b>TEST — ${timeStr}</b>\nChannel: Basic 🆓\nv15.14 ✅`);
-  _sendTelegramToChat(CONFIG.CHAT_ID_ADVANCE, `✅ <b>TEST — ${timeStr}</b>\nChannel: Advance 📊\nv15.14 ✅`);
-  _sendTelegramToChat(CONFIG.CHAT_ID_PREMIUM, `✅ <b>TEST — ${timeStr}</b>\nChannel: Premium 💎\nv15.14 + Last-Tuesday expiry + Bearish Block + Momentum + ATH Options Fix ✅`);
+  _sendTelegramToChat(CONFIG.CHAT_ID_BASIC,   `✅ <b>TEST — ${timeStr}</b>\nChannel: Basic 🆓\nv15.15 ✅`);
+  _sendTelegramToChat(CONFIG.CHAT_ID_ADVANCE, `✅ <b>TEST — ${timeStr}</b>\nChannel: Advance 📊\nv15.15 ✅`);
+  _sendTelegramToChat(CONFIG.CHAT_ID_PREMIUM, `✅ <b>TEST — ${timeStr}</b>\nChannel: Premium 💎\nv15.15 + Last-Tuesday expiry + Bearish Block + Momentum + ATH Options Fix ✅`);
 }
 
 function testOptionsSignal() {
@@ -1903,11 +1931,11 @@ function testOptionsSignal() {
   const testBreakout = _generateOptionsSignal("NSE:ADANIPORTS", 1691, 33.5, "⚡ BREAKOUT ALERT", -4.32, vix, false, 1823.9);
   const testATH      = _generateOptionsSignal("NSE:MCX",        3353,  80,  "⚡ BREAKOUT ALERT",  0.50, vix, false, 3500);
   const msg =
-    `📊 <b>OPTIONS TEST — v15.14</b>\n━━━━━━━━━━━━━━━━━━━━\n` +
+    `📊 <b>OPTIONS TEST — v15.15</b>\n━━━━━━━━━━━━━━━━━━━━\n` +
     `VIX: ${vix.toFixed(1)} | Expiry: ${expiryStr} (${expiry.daysLeft}d)\n\n` +
     `BREAKOUT (ADANIPORTS): ${testBreakout.signal} | ${testBreakout.strike}\n` +
     `ATH TEST (MCX near ATH): ${testATH.signal} | ${testATH.message}\n` +
-    `✅ v15.14 ATH block working`;
+    `✅ v15.15 ATH block working`;
   _sendTelegramPremium(msg);
   SpreadsheetApp.getUi().alert("Options test sent to Premium channel.");
 }
@@ -1927,18 +1955,18 @@ function testBaseEntry() {
   const testMom3 = _checkMomentumBreakout(5.48, 200, 22,    5554, 4960, "Sideways"); // PERSISTENT
 
   const msg =
-    `📦 <b>BASE + MOMENTUM TEST — v15.14</b>\n━━━━━━━━━━━━━━━━━━━━\n` +
+    `📦 <b>BASE + MOMENTUM TEST — v15.15</b>\n━━━━━━━━━━━━━━━━━━━━\n` +
     `VIX: ${vix.toFixed(1)}\n\n` +
     `BASE TESTS:\n` +
     `Test 1 (all pass): ${test1.qualifies ? "✅" : "❌"} ${test1.reason}\n` +
     `Test 2 (FII fail): ${test2.qualifies ? "✅" : "❌"} ${test2.reason}\n` +
     `Test 3 (VCP fail): ${test3.qualifies ? "✅" : "❌"} ${test3.reason}\n` +
     `Test 4 (Days fail): ${test4.qualifies ? "✅" : "❌"} ${test4.reason}\n\n` +
-    `MOMENTUM BREAKOUT TESTS (v15.14):\n` +
+    `MOMENTUM BREAKOUT TESTS (v15.15):\n` +
     `COFORGE +5.15%: ${testMom1.isMomentum ? "✅ ALLOWED" : "❌ BLOCKED"} — ${testMom1.reason}\n` +
     `TECHM +4.85% (low RS): ${testMom2.isMomentum ? "✅ ALLOWED" : "❌ BLOCKED"} — ${testMom2.reason}\n` +
     `PERSISTENT +5.48%: ${testMom3.isMomentum ? "✅ ALLOWED" : "❌ BLOCKED"} — ${testMom3.reason}\n\n` +
-    `✅ v15.14 Last-Tue expiry + Momentum gate working`;
+    `✅ v15.15 Last-Tue expiry + Momentum gate working`;
   _sendTelegramPremium(msg);
   SpreadsheetApp.getUi().alert("Tests sent to Premium channel.");
 }

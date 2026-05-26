@@ -2,6 +2,31 @@
 
 ---
 
+## 2026-05-26 (evening) — AUDIT FOLLOW-UP: BUG-3 → BUG-9 ALL FIXED
+
+### Fixed
+- `generate_longterm.py` v1.5 → **v1.6** —
+  - **BUG-3 (HIGH):** `_rsi()` returned NaN on flat 14-day windows (0/0). Now divides by `loss.replace(0, 1e-10)` and clamps NaN → 50.0.
+  - **BUG-4 (MEDIUM):** `make_signal()` ladder evaluated `score >= 3` (HOLD) before BOOK PARTIAL, so stocks near 52W high with moderate score were tagged HOLD. BOOK PARTIAL check moved between ACCUMULATE and HOLD — now fires whenever `pos_pct >= 85` or `rsi >= 72`.
+
+- `trading_bot.py` v15.7 → **v15.8** —
+  - **BUG-5 (MEDIUM):** `auto_maintain_sheets` (line 1414) and monthly P&L gate (line 1461) were using substring `flag_key in mem` checks — Batch 1 had fixed the same pattern in GM/MD/PM but missed these two. Switched to `_mem_get(mem, key)` exact-key lookup.
+
+- `appscript_v14.gs` v15.14 → **v15.15** —
+  - **BUG-6 (MEDIUM):** Cash candidates wrote BotMemory `_CAP/_MODE/_SEC` at detection time. Slots later lost (window expired or `LOG_ROWS` cap) left orphan entries. Both early `_bmSet` sites removed; writes consolidated into the final "add to finalWaiting" allocator — BotMemory only records candidates that actually got a WAITING slot.
+  - **BUG-9 (LOW):** `_bmPurge` ran on every 5-min fire (~120/day). Gated to once per day via `${today}_BMPURGED` FLAG. Bm reloaded after purge so row indexes stay fresh.
+
+- `.github/workflows/token_refresh.yml` —
+  - **BUG-7 (LOW):** Inner comment block still said "Runs every 40 days" — contradicted actual cron schedule (1st + 15th). Corrected.
+
+- `.github/workflows/daily-articles.yml` —
+  - **BUG-8 (MEDIUM):** Facebook share message hardcoded 4-bullet pillar/topic list that could mismatch actual articles. Replaced with generic pillar-set summary that points to the homepage for the live list — message is now truthful in any content mode.
+
+### Audit closed
+All 9 numbered audit findings (BUG-1 through BUG-9) from the 2026-05-26 full-project audit are now resolved. Versions: trading_bot v15.6→v15.8, appscript v15.13→v15.15, generate_longterm v1.5→v1.6, token_refresh.yml/daily-articles.yml comment-level updates.
+
+---
+
 ## 2026-05-26 — CRITICAL TSL EXIT BUG FIX + F&O EXPIRY DAY (LAST TUESDAY)
 
 ### Fixed — BUG-1 (CRITICAL)
