@@ -10,8 +10,8 @@
 
 | File | Version | Last Changed |
 |---|---|---|
-| `trading_bot.py` | **v15.6** | 2026-05-25 (Batch 4) |
-| `appscript_v14.gs` | **v15.13** | 2026-05-25 (Batch 4) |
+| `trading_bot.py` | **v15.7** | 2026-05-26 (BUG-1 TSL exit fix) |
+| `appscript_v14.gs` | **v15.14** | 2026-05-26 (BUG-2 last-Tuesday expiry, dynamic calc) |
 | `ai_client.py` | v2.4 | May 2026 |
 | `human_touch.py` | v2.2 | May 2026 |
 | `generate_longterm.py` | **v1.5** | 2026-05-25 (Batch 4) |
@@ -39,6 +39,14 @@
 ---
 
 ## Last Session Summary
+
+**2026-05-26 (afternoon):** Full-project audit + 2 critical fixes applied.
+- Audited every Python module, AppScript, content_calendar, indian_holidays, fetch_holidays, refresh_cashwatchlist, key workflows.
+- Found 1 CRITICAL + 2 HIGH + 6 MEDIUM + 7 LOW issues; logged in conversation.
+- Fixed **BUG-1** in `trading_bot.py` v15.6 → **v15.7**: TSL exit was using recomputed (capped) `new_tsl` instead of stored `cur_tsl`, so gap-down below activated TSL never triggered exit. Now keeps local in sync and compares against `cur_tsl`. Critical for paper-trading data integrity and for live trading in Phase 4.
+- Fixed **BUG-2** in `appscript_v14.gs` v15.13 → **v15.14**: removed hardcoded `NSE_EXPIRY_DATES_2026` (was last-Thursdays, would have failed Jan 2027). Added `_lastTuesdayOfMonth(year, month)` + dynamic `_getRecommendedExpiry()`. Now uses Last Tuesday per SEBI/NSE rule effective Sep 1 2025. Holiday-adjusted via `_RUNTIME_HOLIDAYS`. Works forever — no annual maintenance.
+- Verified online via WebSearch: NSE monthly expiry IS Last Tuesday (NSE & ICICI Direct confirmed).
+- Remaining audit items deferred: BUG-3 RSI NaN, BUG-4 BOOK PARTIAL ladder, BUG-5 substring flag checks, BUG-6 cash orphan, BUG-7 token_refresh comment, BUG-8 daily-articles FB message, BUG-9 _bmPurge every-tick.
 
 **2026-05-25 (afternoon):** Full trading system audit + Batches 1 & 2 fixes applied.
 - **Audit scope:** Everything trading-related (12 files: trading_bot.py, appscript_v14.gs, generate_longterm.py, refresh_cashwatchlist.py, fetch_holidays.py, token_refresh.py, indian_holidays.py + 5 GitHub Actions workflows).
@@ -118,8 +126,8 @@ STRICT RULES you must follow:
 8. After every change: update .internal-ops.md + tell me the new version number.
 
 CURRENT FILE VERSIONS:
-- trading_bot.py → v15.6
-- appscript_v14.gs → v15.13
+- trading_bot.py → v15.7
+- appscript_v14.gs → v15.14
 - ai_client.py → v2.4
 - human_touch.py → v2.2
 - generate_longterm.py → v1.5

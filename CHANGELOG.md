@@ -2,6 +2,23 @@
 
 ---
 
+## 2026-05-26 — CRITICAL TSL EXIT BUG FIX + F&O EXPIRY DAY (LAST TUESDAY)
+
+### Fixed — BUG-1 (CRITICAL)
+- `trading_bot.py` v15.6 → **v15.7** — `step_b_monitor_trades` was comparing CMP against the recomputed `new_tsl` (which `calc_new_tsl` caps at `cp * 0.99`) instead of the actually-stored `cur_tsl`. On a gap-down BELOW the activated TSL, `cp <= cp*0.99` is always False → TSL exit silently never fires. After breakeven pushed cur_tsl above entry, the hard-loss path also won't catch it (it requires `cur_tsl < ent`). FIX: keep local `cur_tsl` in sync after `set_tsl(...)` and compare CMP against `cur_tsl`. Any gap below the live TSL now exits.
+
+### Fixed — BUG-2 (HIGH — would have broken Jan 2027 + already on wrong day)
+- `appscript_v14.gs` v15.13 → **v15.14** — Two issues in one fix:
+  1. **Wrong expiry day** — SEBI/NSE moved monthly F&O expiry from **Last Thursday → Last Tuesday** effective Sep 1, 2025 (NIFTY, BANKNIFTY, FINNIFTY, single stocks). Old code still used last-Thursdays.
+  2. **Hardcoded year list** — `NSE_EXPIRY_DATES_2026` was a 12-entry array; from Jan 1 2027 onwards `_getRecommendedExpiry` would have fallen through to Dec 31 2026 with a literal `daysLeft: 30`, breaking every options signal in 2027.
+  - **FIX:** removed `NSE_EXPIRY_DATES_2026`. Added `_lastTuesdayOfMonth(year, monthIdx)` helper. `_getRecommendedExpiry` now walks forward month-by-month from today, generating last-Tuesday expiries on the fly — works forever, no annual maintenance. Applies holiday adjustment via `_RUNTIME_HOLIDAYS` (if last Tuesday is an NSE holiday, expiry moves to the preceding trading day, per NSE rule).
+  - All user-facing version labels (Telegram messages, daily/weekly summary, test functions) bumped to v15.14.
+
+### Audit reference
+- Findings BUG-1 and BUG-2 from the 2026-05-26 full-project audit. Remaining audit items (BUG-3 RSI NaN, BUG-4 BOOK PARTIAL ladder order, BUG-5 substring flag matches, BUG-6 cash candidate BotMemory orphan, BUG-7 token_refresh.yml inner comment, BUG-8 daily-articles.yml hardcoded FB message, BUG-9 _bmPurge every-tick) intentionally deferred — lower severity.
+
+---
+
 ## 2026-05-26 — SEO SEEDS BLOCK FIX
 
 ### Fixed

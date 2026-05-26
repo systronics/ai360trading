@@ -1,6 +1,16 @@
 """
-AI360 TRADING BOT — v15.6
+AI360 TRADING BOT — v15.7
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v15.7 CHANGES vs v15.6 — CRITICAL TSL EXIT BUG FIX (May 2026)
+  BUG-1 FIX — step_b_monitor_trades was comparing CMP against the recomputed
+              `new_tsl` (which calc_new_tsl caps at cp*0.99) instead of the
+              actually-stored `cur_tsl`. Result: on a gap-down BELOW the
+              activated TSL, `cp <= cp*0.99` was always False → TSL exit
+              never fired. After breakeven moved cur_tsl above entry, the
+              hard-loss path (-5%) also won't catch it (requires cur_tsl<ent).
+              FIX: keep cur_tsl in sync after set_tsl, then compare cp vs
+                   cur_tsl. Now any gap below the live TSL exits the trade.
+
 v15.6 CHANGES vs v15.5 — DEAD CODE REMOVAL (May 2026)
   FIX 1 — Removed obsolete v15.1 Y1 cell migration code. Migration was completed
           long ago and the cleanup was running on every tick (~288 ticks/day)
@@ -958,15 +968,22 @@ def step_b_monitor_trades(log_sheet, hist_sheet, nifty_sheet, mem, now, is_bulli
                               today_str, mem, key, is_target_hit=False, qty=qty)
             mem = _clear_mem_keys(mem, key); continue
 
-        # TSL — pass actual entry time so hold check works correctly
+        # TSL — pass actual entry time so hold check works correctly.
+        # v15.7: track effective TSL (max of cur and new). calc_new_tsl caps the
+        # returned new_tsl at cp*0.99, which on gap-down can be LESS than cur_tsl.
+        # The `if new_tsl > cur_tsl` guard correctly avoids lowering stored TSL,
+        # but the exit check below must compare cp against the EFFECTIVE stored
+        # TSL — not the capped recomputed value. Otherwise gap-down below an
+        # activated TSL never triggers exit (cp <= cp*0.99 is always False).
         new_tsl, tsl_reason = calc_new_tsl(cp, ent, sl, atr, ttype, mem, key, now, ent_time)
         if new_tsl > cur_tsl:
             mem = set_tsl(mem, key, new_tsl)
             print(f"[TSL] {sym}: {cur_tsl:.2f} → {new_tsl:.2f} ({tsl_reason})")
             _send_tsl_update(sym, cp, ent, new_tsl, pnl_pct, pnl_rs, tsl_reason)
+            cur_tsl = new_tsl   # v15.7: keep local in sync with stored
 
-        if cp <= new_tsl:
-            mem = _exit_trade(log_sheet, hist_sheet, i, sym, ent, cp, tgt, sl, new_tsl,
+        if cp <= cur_tsl:
+            mem = _exit_trade(log_sheet, hist_sheet, i, sym, ent, cp, tgt, sl, cur_tsl,
                               atr, ttype, strat, stage, ent_time, now, "🔔 TRAILING SL HIT",
                               today_str, mem, key, is_target_hit=False, qty=qty)
             mem = _clear_mem_keys(mem, key); continue
@@ -1150,7 +1167,7 @@ def send_good_morning(log_sheet, mem, is_bullish, nifty_cmp, nifty_dma, nifty_pc
         f"{window}\n"
         f"RSI filter: < {RSI_MAX_BULLISH if is_bullish else RSI_MAX_BEARISH} | Re-entry: {REENTRY_COOLDOWN_DAYS}d cooldown after target\n\n"
         f"{'Watching: ' + ', '.join(waiting_stocks[:5]) if waiting_stocks else 'No WAITING stocks'}\n\n"
-        f"<i>v15.6 — RSI + Time + Nifty + Re-entry filters | Memory → BotMemory</i>"
+        f"<i>v15.7 — RSI + Time + Nifty + Re-entry filters | Memory → BotMemory</i>"
     )
     watchlist_line = f"📋 Watchlist: {waiting} stock(s) identified today" if waiting else "📋 No setups in watchlist yet — scan runs at market open"
     msg_basic = (
@@ -1470,7 +1487,7 @@ def auto_maintain_sheets(bm_sheet, hist_sheet, mem, now):
 def send_test_messages():
     now = datetime.now(IST)
     msg = (
-        f"✅ <b>TEST MESSAGE — AI360 Trading Bot v15.6</b>\n"
+        f"✅ <b>TEST MESSAGE — AI360 Trading Bot v15.7</b>\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
         f"Time: {now.strftime('%d %b %Y %H:%M')} IST\n"
         f"Token: {'✅ OK' if TG_TOKEN else '❌ MISSING'}\n\n"
@@ -1500,7 +1517,7 @@ def main():
     dow      = now.weekday()
 
     print(f"\n{'='*55}")
-    print(f"AI360 Trading Bot v15.6 — {now.strftime('%d %b %Y %H:%M')} IST")
+    print(f"AI360 Trading Bot v15.7 — {now.strftime('%d %b %Y %H:%M')} IST")
     print(f"{'='*55}")
 
     if is_holiday(today_s): print(f"[SKIP] Holiday: {today_s}"); return

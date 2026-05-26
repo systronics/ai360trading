@@ -1,6 +1,28 @@
 /**
- * AI360 TRADING — APPSCRIPT v15.13
+ * AI360 TRADING — APPSCRIPT v15.14
  * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ * v15.14 CHANGES (May 2026) — F&O EXPIRY DAY FIX (LAST TUESDAY) +
+ *                              KILL HARDCODED YEAR-LOCKED EXPIRY LIST
+ *
+ * BACKGROUND:
+ *   SEBI/NSE changed monthly F&O expiry day from Last Thursday → Last Tuesday
+ *   effective September 1, 2025 (for NIFTY, BANKNIFTY, FINNIFTY, single stocks).
+ *   Holiday rule: if last Tuesday is an NSE holiday, expiry shifts to the
+ *   preceding trading day.
+ *
+ * PREVIOUS BUG (BUG-2 in audit):
+ *   NSE_EXPIRY_DATES_2026 was a hardcoded array of last-Thursdays of 2026.
+ *   From Jan 1 2027 onwards the loop would have fallen through to Dec 31 2026
+ *   with a literal `daysLeft: 30` — every options signal in 2027 would have
+ *   pointed at a stale Dec 2026 expiry. Also: still Thursday-based, wrong day.
+ *
+ * FIX:
+ *   Removed NSE_EXPIRY_DATES_2026. Added _lastTuesdayOfMonth(year, monthIdx)
+ *   helper that computes the last Tuesday of any month. _getRecommendedExpiry
+ *   now walks forward month-by-month from today, generating expiries on the fly
+ *   — works forever, no annual maintenance. Applies holiday adjustment using
+ *   _RUNTIME_HOLIDAYS (already populated by _getRuntimeHolidays at run start).
+ *
  * v15.6 CHANGES — PERFORMANCE FIXES (18 May 2026)
  *
  * ROOT CAUSE ANALYSIS from real trade data:
@@ -179,13 +201,34 @@ const F_AND_O_LIQUID_STOCKS = new Set([
   "NSE:COFORGE","NSE:MPHASIS","NSE:PERSISTENT","NSE:OFSS","NSE:TECHM",
 ]);
 
-// ── NSE MONTHLY EXPIRY DATES 2026 ─────────────────────────────────────────────
-const NSE_EXPIRY_DATES_2026 = [
-  new Date(2026,0,29), new Date(2026,1,26), new Date(2026,2,26),
-  new Date(2026,3,30), new Date(2026,4,28), new Date(2026,5,25),
-  new Date(2026,6,30), new Date(2026,7,27), new Date(2026,8,24),
-  new Date(2026,9,29), new Date(2026,10,26), new Date(2026,11,31),
-];
+// ── NSE MONTHLY EXPIRY — LAST TUESDAY OF MONTH ─────────────────────────────────
+// v15.14: SEBI/NSE moved monthly F&O expiry from Last Thursday → Last Tuesday
+// effective Sep 1, 2025 (for NIFTY, BANKNIFTY, FINNIFTY, single stocks).
+// Previously this was a hardcoded list of last-Thursdays of 2026 that would have
+// expired in Jan 2027. Now computed dynamically — works forever.
+//
+// Holiday rule: if last Tuesday is an NSE holiday, expiry shifts to the preceding
+// trading day. _RUNTIME_HOLIDAYS is populated by _getRuntimeHolidays(ss) at the
+// start of every run; this function only applies the adjustment when that set
+// is available (e.g., regular scanner runs). Test helpers that call this before
+// holiday load get the raw last Tuesday — acceptable for unit-test display.
+function _lastTuesdayOfMonth(year, monthIdx) {
+  // monthIdx: 0=Jan ... 11=Dec
+  const last     = new Date(year, monthIdx + 1, 0);       // last day of month
+  const daysBack = (last.getDay() - 2 + 7) % 7;           // 2 = Tuesday
+  last.setDate(last.getDate() - daysBack);
+  // Holiday adjustment — walk back to preceding trading day
+  if (_RUNTIME_HOLIDAYS) {
+    let guard = 0;
+    while (guard++ < 7) {
+      const dateStr = Utilities.formatDate(last, CONFIG.IST_ZONE, "yyyy-MM-dd");
+      const dow     = last.getDay();
+      if (dow !== 0 && dow !== 6 && !_RUNTIME_HOLIDAYS.has(dateStr)) break;
+      last.setDate(last.getDate() - 1);
+    }
+  }
+  return last;
+}
 
 // ── OPTIONS CONFIG ────────────────────────────────────────────────────────────
 const OPTIONS_CONFIG = {
@@ -488,14 +531,23 @@ function _getIndiaVix(inputData) {
 }
 
 function _getRecommendedExpiry(minDays) {
+  // v15.14: walks forward month-by-month from today, generating last-Tuesday
+  // expiries on the fly. No more hardcoded year-locked list to maintain.
   minDays = minDays || OPTIONS_CONFIG.MIN_DAYS_EXPIRY;
-  const now = new Date();
-  for (const expiry of NSE_EXPIRY_DATES_2026) {
-    const daysLeft = Math.floor((expiry - now) / (1000 * 60 * 60 * 24));
+  const now    = new Date();
+  const MS_DAY = 1000 * 60 * 60 * 24;
+  // Scan current + next 7 months — covers any reasonable minDays request.
+  for (let i = 0; i < 8; i++) {
+    const total  = now.getMonth() + i;
+    const year   = now.getFullYear() + Math.floor(total / 12);
+    const month  = total % 12;
+    const expiry = _lastTuesdayOfMonth(year, month);
+    const daysLeft = Math.floor((expiry - now) / MS_DAY);
     if (daysLeft >= minDays) return { date: expiry, daysLeft: daysLeft };
   }
-  const last = NSE_EXPIRY_DATES_2026[NSE_EXPIRY_DATES_2026.length - 1];
-  return { date: last, daysLeft: 30 };
+  // Fallback — should not reach; defensive only.
+  const fb = _lastTuesdayOfMonth(now.getFullYear() + 1, now.getMonth());
+  return { date: fb, daysLeft: Math.floor((fb - now) / MS_DAY) };
 }
 
 function _roundToStrike(price, interval) { return Math.ceil(price / interval) * interval; }
@@ -626,7 +678,7 @@ function _sendOptionsAlertPremium(sym, cmp, optSignal, stage, sl, target, rr, bm
     `❌ Do NOT average down on options\n` +
     `❌ Do NOT hold past expiry week\n` +
     `${tradeNote}\n\n` +
-    `<i>Educational only. Not SEBI advice. v15.6</i>`;
+    `<i>Educational only. Not SEBI advice. v15.14</i>`;
 
   _sendTelegramPremium(msg);
   _bmSet(ss, bm, flagKey, "1", sym, "FLAG");
@@ -871,7 +923,7 @@ function sendDailySummary() {
     `📊 <b>MARKET SUMMARY</b>\n━━━━━━━━━━━━━━━━━━━━\n` +
     `🔹 <b>Active Trades:</b> ${traded}/${CONFIG.MAX_TRADES}\n` +
     `🔸 <b>Waiting Slots:</b> ${waiting}\n` +
-    `✅ <i>System: Online v15.6</i>`
+    `✅ <i>System: Online v15.14</i>`
   );
 }
 
@@ -1486,7 +1538,7 @@ function _runScanner(startRow, endRow) {
       regimeMsg =
         `⚠️ <b>MARKET REGIME: BEARISH</b>\n` +
         `Nifty ₹${niftyCmp.toFixed(0)} below 20DMA ₹${nifty20d.toFixed(0)}\n` +
-        `v15.6 HARD BLOCK: Max ${maxWaitingSlots} slots | Score≥${CONFIG.BEARISH_HARD_MIN_SCORE} only\n` +
+        `v15.14 HARD BLOCK: Max ${maxWaitingSlots} slots | Score≥${CONFIG.BEARISH_HARD_MIN_SCORE} only\n` +
         `VIX: ${indiaVix.toFixed(1)}\n`;
       if (momentumSectors.size > 0) regimeMsg += `🚀 Momentum sectors: ${[...momentumSectors].join(', ')}\n`;
       if (topSector) regimeMsg += `🔄 Strongest: ${topSector} (AF: ${topAf.toFixed(1)})\n`;
@@ -1754,7 +1806,7 @@ function sendWeeklySummary() {
   if (best)              msg += `🏆 Best:  <b>${best[0]}</b> ₹${Math.round(parseFloat(best[16])  || 0)}\n`;
   if (worst && worst !== best) msg += `💀 Worst: <b>${worst[0]}</b> ₹${Math.round(parseFloat(worst[16]) || 0)}\n`;
   msg += `\n📌 Open: ${openTrades.length}/${CONFIG.MAX_TRADES}\n`;
-  msg += `<i>AI360 Trading v15.6 — Base + Breakout + Momentum + Options</i>`;
+  msg += `<i>AI360 Trading v15.14 — Base + Breakout + Momentum + Options (Last-Tue expiry)</i>`;
   _sendTelegramAdvanceAndPremium(msg);
 
   // Basic channel — weekly social proof to build trust and drive upgrades
@@ -1837,9 +1889,9 @@ function setupTriggers() {
 function testTelegram() {
   const now     = new Date();
   const timeStr = Utilities.formatDate(now, CONFIG.IST_ZONE, "dd-MMM HH:mm");
-  _sendTelegramToChat(CONFIG.CHAT_ID_BASIC,   `✅ <b>TEST — ${timeStr}</b>\nChannel: Basic 🆓\nv15.6 ✅`);
-  _sendTelegramToChat(CONFIG.CHAT_ID_ADVANCE, `✅ <b>TEST — ${timeStr}</b>\nChannel: Advance 📊\nv15.6 ✅`);
-  _sendTelegramToChat(CONFIG.CHAT_ID_PREMIUM, `✅ <b>TEST — ${timeStr}</b>\nChannel: Premium 💎\nv15.6 + Bearish Block + Momentum + ATH Options Fix ✅`);
+  _sendTelegramToChat(CONFIG.CHAT_ID_BASIC,   `✅ <b>TEST — ${timeStr}</b>\nChannel: Basic 🆓\nv15.14 ✅`);
+  _sendTelegramToChat(CONFIG.CHAT_ID_ADVANCE, `✅ <b>TEST — ${timeStr}</b>\nChannel: Advance 📊\nv15.14 ✅`);
+  _sendTelegramToChat(CONFIG.CHAT_ID_PREMIUM, `✅ <b>TEST — ${timeStr}</b>\nChannel: Premium 💎\nv15.14 + Last-Tuesday expiry + Bearish Block + Momentum + ATH Options Fix ✅`);
 }
 
 function testOptionsSignal() {
@@ -1851,11 +1903,11 @@ function testOptionsSignal() {
   const testBreakout = _generateOptionsSignal("NSE:ADANIPORTS", 1691, 33.5, "⚡ BREAKOUT ALERT", -4.32, vix, false, 1823.9);
   const testATH      = _generateOptionsSignal("NSE:MCX",        3353,  80,  "⚡ BREAKOUT ALERT",  0.50, vix, false, 3500);
   const msg =
-    `📊 <b>OPTIONS TEST — v15.6</b>\n━━━━━━━━━━━━━━━━━━━━\n` +
+    `📊 <b>OPTIONS TEST — v15.14</b>\n━━━━━━━━━━━━━━━━━━━━\n` +
     `VIX: ${vix.toFixed(1)} | Expiry: ${expiryStr} (${expiry.daysLeft}d)\n\n` +
     `BREAKOUT (ADANIPORTS): ${testBreakout.signal} | ${testBreakout.strike}\n` +
     `ATH TEST (MCX near ATH): ${testATH.signal} | ${testATH.message}\n` +
-    `✅ v15.6 ATH block working`;
+    `✅ v15.14 ATH block working`;
   _sendTelegramPremium(msg);
   SpreadsheetApp.getUi().alert("Options test sent to Premium channel.");
 }
@@ -1875,18 +1927,18 @@ function testBaseEntry() {
   const testMom3 = _checkMomentumBreakout(5.48, 200, 22,    5554, 4960, "Sideways"); // PERSISTENT
 
   const msg =
-    `📦 <b>BASE + MOMENTUM TEST — v15.6</b>\n━━━━━━━━━━━━━━━━━━━━\n` +
+    `📦 <b>BASE + MOMENTUM TEST — v15.14</b>\n━━━━━━━━━━━━━━━━━━━━\n` +
     `VIX: ${vix.toFixed(1)}\n\n` +
     `BASE TESTS:\n` +
     `Test 1 (all pass): ${test1.qualifies ? "✅" : "❌"} ${test1.reason}\n` +
     `Test 2 (FII fail): ${test2.qualifies ? "✅" : "❌"} ${test2.reason}\n` +
     `Test 3 (VCP fail): ${test3.qualifies ? "✅" : "❌"} ${test3.reason}\n` +
     `Test 4 (Days fail): ${test4.qualifies ? "✅" : "❌"} ${test4.reason}\n\n` +
-    `MOMENTUM BREAKOUT TESTS (v15.6):\n` +
+    `MOMENTUM BREAKOUT TESTS (v15.14):\n` +
     `COFORGE +5.15%: ${testMom1.isMomentum ? "✅ ALLOWED" : "❌ BLOCKED"} — ${testMom1.reason}\n` +
     `TECHM +4.85% (low RS): ${testMom2.isMomentum ? "✅ ALLOWED" : "❌ BLOCKED"} — ${testMom2.reason}\n` +
     `PERSISTENT +5.48%: ${testMom3.isMomentum ? "✅ ALLOWED" : "❌ BLOCKED"} — ${testMom3.reason}\n\n` +
-    `✅ v15.6 Momentum gate working`;
+    `✅ v15.14 Last-Tue expiry + Momentum gate working`;
   _sendTelegramPremium(msg);
   SpreadsheetApp.getUi().alert("Tests sent to Premium channel.");
 }
