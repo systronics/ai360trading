@@ -40,6 +40,13 @@
 
 ## Last Session Summary
 
+**2026-05-26 (night):** Real FII/DII data layer added.
+- `fetch_fii_dii.py` v1.0 — fetches NSE Cash market FII/DII daily, free official source. Writes BotMemory MKT_* keys, sends Telegram digest.
+- `fetch_fii_dii.yml` — Mon-Fri 6:45 PM IST cron. Has on-failure alert.
+- Confirmed via `inspect_nifty200.py` formula inspection: existing FII_* columns in Nifty200 are technical-only labels, not real institutional flow. Decision: keep them (renaming would break code), add real FII as MKT_* alongside.
+- Memory updated: `project_fii_columns_reality.md` documents this for future sessions.
+- Phase 2 roadmap: extend fetch_fii_dii.py to F&O FII data for options buying flow.
+
 **2026-05-26 (late evening):** Workflow failure alerts + FII diagnostic.
 - Added `if: failure()` Telegram alert step to 4 workflows (6 jobs) — `daily_reel.yml`, `daily-morning-reel.yml`, `daily-shorts.yml`, `kids-daily.yml` (3 jobs). Posts to **Basic channel only** with "System Notice" prefix; Advance/Premium stay pure trade signals. Uses stdlib `urllib` so it works even if pip install failed.
 - Created `inspect_nifty200.py` — one-time diagnostic to reveal where Nifty200 FII columns (P/Q/R/AG) get their data. Read-only. Amit ji runs locally, pastes output back.

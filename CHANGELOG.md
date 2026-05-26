@@ -2,6 +2,24 @@
 
 ---
 
+## 2026-05-26 (night) — REAL FII/DII DATA LAYER ADDED
+
+### Added
+- `fetch_fii_dii.py` v1.0 — daily NSE FII/DII Cash market flow tracker. Free, official NSE source, no API key needed. Writes BotMemory keys under `MKT_*` prefix (e.g., `MKT_FII_CASH_NET_2026-05-26`, `MKT_FII_TREND_5D`, `MKT_FII_REGIME`). Posts Hinglish summary to Basic and full breakdown + interpretation to Advance/Premium.
+- `.github/workflows/fetch_fii_dii.yml` — runs Mon-Fri 6:45 PM IST (cron `15 13 * * 1-5`). Includes the new on-failure Telegram alert.
+
+### Why this matters
+The existing `FII_Buy_Zone`, `FII_Rating`, `Leader_Type`, `FII_Signal` columns in the Nifty200 sheet are **technical indicators with FII-themed labels** — they compute from price + SMA + 52W position + volume (confirmed 2026-05-26 by reading the cell formulas). They were NOT real institutional flow data despite the naming.
+
+Decision: NOT renaming the existing columns (renaming the output strings would require coordinated sheet + code change across many match sites in appscript_v14.gs, risking breakage). Instead, added a SEPARATE real FII data layer under `MKT_*` namespace that doesn't collide.
+
+### Roadmap (Phase 2)
+- F&O FII data: index futures position, options call/put bought/sold — for options buying entry decisions
+- Integration into AppScript scanner as second-layer confirmation (only enter when both technical setup AND real FII regime agree)
+- Stock-level FII data deferred (free sources don't expose; paid service breaks ₹0/month rule)
+
+---
+
 ## 2026-05-26 (late evening) — WORKFLOW FAILURE ALERTS + FII DIAGNOSTIC SCRIPT
 
 ### Added
