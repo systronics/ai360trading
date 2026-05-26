@@ -52,7 +52,7 @@ One broken file = zero income that day. Treat every edit as critical.
 | `ai_client.py` | v2.4 |
 | `human_touch.py` | v2.2 |
 | `token_refresh.py` | v2.2 |
-| `content_calendar.py` | v2.2 |
+| `content_calendar.py` | v2.3 |
 | `indian_holidays.py` | current (no version tag) |
 
 ### Content Generators

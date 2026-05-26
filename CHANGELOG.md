@@ -2,6 +2,17 @@
 
 ---
 
+## 2026-05-26 — SEO SEEDS BLOCK FIX
+
+### Fixed
+- `content_calendar.py` → **v2.3** — `get_article_seo_seeds()` return shape was a dict (`global_seeds`, `india_seeds`, `usa_seeds`, `uk_seeds`, `no_price_numbers`, `title_style`), but `generate_articles.py:1141-1155` consumed it as a list of pillar dicts (reading `s["primary_target"]`, `s["seo_seed"]`, `s["long_tail"]`, `s["affiliate_hint"]`). The mismatch silently raised `TypeError` inside the `try/except` → printed `[SEO-SEED] Skipped (...)` → left the SEO keyword strategy block **empty in every single generated article since v2.2**. Reshaped to return a list of 5 pillar dicts (stock / bitcoin / personal / ai / global fallback) with day-of-week seed rotation so Mon-Fri articles get fresh keyword angles. Weekend/holiday returns evergreen seeds with no live-price refs. Verified locally — all 4 pillars now match their seed correctly and `seo_seed_block` is populated in the LLM prompt → stronger Google ranking → better AdSense revenue from ai360trading.in.
+
+### Impact
+- 4 articles per day × past N days had **zero SEO keyword targeting** in the prompt — content was still generated, but without the structured keyword guidance Google rewards.
+- Going forward: every article gets a pillar-specific primary keyword, 2 long-tail keywords as H2/FAQ suggestions, and an affiliate hint tied to the pillar.
+
+---
+
 ## 2026-05-25 15:30 — BATCH 4 AUDIT FIXES (FINAL POLISH)
 
 ### Fixed

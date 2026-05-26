@@ -1,16 +1,26 @@
 """
-AI360Trading — Content Calendar v2.2
+AI360Trading — Content Calendar v2.3
 ======================================
+v2.3 CHANGES (May 2026) — SEO SEEDS BLOCK FIX:
+- get_article_seo_seeds() now returns a LIST OF PILLAR DICTS (was: a single
+  dict of global/india/usa/uk seed lists). generate_articles.py consumes the
+  return value as `for s in calendar_seeds: s["primary_target"], s["seo_seed"],
+  s["long_tail"], s["affiliate_hint"]` — the old dict shape silently raised
+  TypeError on every run, leaving the SEO keyword block empty in every
+  generated article. New shape carries one dict per pillar (stock, bitcoin,
+  personal, ai) + one "global" fallback row, with day-of-week seed rotation
+  so Mon-Fri articles get fresh keyword angles each weekday.
+- Weekend/holiday mode returns evergreen pillar dicts (no live price refs).
+- get_todays_topic(), get_todays_education_topic(), get_holiday_topic() — unchanged.
+
 v2.2 CHANGES (May 2026):
 - Added get_article_seo_seeds() — fixes "[WARN] content_calendar.py not found"
   generate_articles.py imports this function — was missing in v2.1
-- Added no_price_numbers rule to weekend/holiday seeds
-  Fixes AI hallucinating fake S&P 500 percentages like "2.1%" in titles
-  Weekend mode = evergreen titles only (no live price data)
-- get_todays_topic() and get_todays_education_topic() preserved exactly
+- Added no_price_numbers rule to weekend/holiday seeds (NOTE: never actually
+  consumed by generate_articles.py — superseded by v2.3 reshape)
 
 Author: AI360Trading Automation
-Last Updated: May 2026
+Last Updated: 2026-05-26
 """
 
 from datetime import date, datetime
@@ -20,148 +30,190 @@ COURSE_START = date(2026, 5, 15)
 
 
 # ══════════════════════════════════════════════════════════════════════
-# get_article_seo_seeds() — NEW v2.2
-# Called by generate_articles.py to get SEO seed keywords
-# Fixes: [WARN] content_calendar.py not found — SEO seeds skipped
+# get_article_seo_seeds() — v2.3 RESHAPED
+# Called by generate_articles.py to get SEO seed keywords.
+# Returns a LIST of pillar dicts (one per pillar + a "global" fallback row).
+# Consumer (generate_articles.py) iterates and matches by primary_target.
 # ══════════════════════════════════════════════════════════════════════
 
-def get_article_seo_seeds(mode: str = "market") -> dict:
+# Affiliate hints reused across modes
+_AFF_HINTS = {
+    "stock":    "Zerodha (India), Webull (USA), Trading 212 (UK) — open trading account",
+    "bitcoin":  "CoinDCX (India), Coinbase (USA), Kraken (UK) — buy crypto safely",
+    "personal": "PolicyBazaar (India), Policygenius (USA), CompareTheMarket (UK)",
+    "ai":       "TradingView free plan + AI360 Telegram free signals",
+}
+
+
+def get_article_seo_seeds(mode: str = "market") -> list:
     """
     Returns SEO seed keywords for article generation.
     Called by generate_articles.py at the start of each run.
 
-    v2.2 FIX:
-    - Weekend/holiday seeds have no_price_numbers=True
-      This prevents AI from hallucinating fake price data like
-      "2.1% Weekly S&P 500" or "Bitcoin at 78,000" in article titles
-    - Market seeds allow price references (real data fetched separately)
+    Return shape (v2.3):
+      list[dict] — one dict per pillar + one "global" fallback row.
+      Each dict carries:
+        - primary_target: one of "stock"|"bitcoin"|"personal"|"ai"|"global"
+          (matches pillar["id"].split("-")[0] in the consumer)
+        - seo_seed: primary keyword phrase (string, ≤90 chars)
+        - long_tail: list of 2 long-tail keyword phrases
+        - affiliate_hint: contextual affiliate angle (string)
 
-    Returns dict with:
-      global_seeds: list of evergreen SEO phrases
-      india_seeds: India-specific keywords
-      usa_seeds: USA-specific keywords
-      uk_seeds: UK-specific keywords
-      no_price_numbers: bool — if True, AI must NOT use specific price numbers
-      title_style: instruction for AI title generation
+    Why a list (not a dict): generate_articles.py iterates with
+        next((s for s in calendar_seeds if s["primary_target"].lower() in
+              ["global", pillar["id"].split("-")[0]]), calendar_seeds[i % N])
+    The pre-v2.3 dict return silently raised TypeError, leaving the SEO
+    block empty in every article. v2.3 fixes that.
     """
     day = datetime.now().weekday()  # 0=Mon, 6=Sun
 
     if mode in ("weekend", "holiday"):
-        return {
-            "global_seeds": [
-                "how to invest for beginners 2026",
-                "stock market basics explained simply",
-                "best investment for beginners India USA UK",
-                "how to save money and invest in 2026",
-                "index fund vs mutual fund comparison",
-                "compound interest explained with examples",
-                "how to build wealth from zero salary",
-                "term insurance vs whole life insurance",
-                "emergency fund how much do you need",
-                "passive income ideas that actually work",
-            ],
-            "india_seeds": [
-                "how to invest in share market India beginner",
-                "SIP vs lump sum investment India",
-                "best mutual funds India 2026",
-                "Nifty 50 beginner guide India",
-                "PPF vs ELSS tax saving India",
-                "term insurance India comparison 2026",
-                "demat account how to open India",
-            ],
-            "usa_seeds": [
-                "how to invest in stocks USA beginner 2026",
-                "best index fund USA Vanguard Fidelity",
-                "401k vs Roth IRA comparison",
-                "S&P 500 investing guide beginners",
-                "term life insurance USA comparison",
-            ],
-            "uk_seeds": [
-                "how to invest UK beginner 2026",
-                "best ISA account UK 2026",
-                "FTSE 100 investing guide",
-                "term life insurance UK comparison",
-            ],
-            "no_price_numbers": True,
-            "title_style": (
-                "Evergreen educational title only. "
-                "Do NOT include any specific price numbers, percentages, or market levels. "
-                "Do NOT write: '2.1% Weekly S&P 500' or 'Bitcoin at 78,000' or 'Nifty falls 0.14%'. "
-                "These are weekend articles — market is closed, live prices are not available. "
-                "Write titles like: 'How to Invest in Index Funds — Complete 2026 Guide' "
-                "or 'Stock Market Basics Every Beginner Must Know'. "
-                "Timeless educational titles only."
-            ),
-        }
+        # Evergreen seeds — no live price refs, beginner-focused
+        return [
+            {
+                "primary_target": "stock",
+                "seo_seed": "how to invest in stock market for beginners 2026",
+                "long_tail": [
+                    "how to start investing in stocks with small money India USA UK",
+                    "index fund vs mutual fund which is better for beginners",
+                ],
+                "affiliate_hint": _AFF_HINTS["stock"],
+            },
+            {
+                "primary_target": "bitcoin",
+                "seo_seed": "how to buy bitcoin safely beginner guide 2026",
+                "long_tail": [
+                    "is bitcoin a safe investment for beginners in 2026",
+                    "cold wallet vs exchange which one for crypto beginners",
+                ],
+                "affiliate_hint": _AFF_HINTS["bitcoin"],
+            },
+            {
+                "primary_target": "personal",
+                "seo_seed": "best term life insurance India USA UK comparison 2026",
+                "long_tail": [
+                    "term insurance vs LIC endowment plan which is better India",
+                    "how much life insurance do I actually need real calculator",
+                ],
+                "affiliate_hint": _AFF_HINTS["personal"],
+            },
+            {
+                "primary_target": "ai",
+                "seo_seed": "best free AI trading tools for beginners 2026",
+                "long_tail": [
+                    "free stock screener AI tools for retail traders India",
+                    "how to use AI for stock market analysis without coding",
+                ],
+                "affiliate_hint": _AFF_HINTS["ai"],
+            },
+            {
+                "primary_target": "global",
+                "seo_seed": "power of compound interest wealth building 2026",
+                "long_tail": [
+                    "how to build wealth from zero salary step by step",
+                    "passive income ideas that actually work in 2026",
+                ],
+                "affiliate_hint": "Open a long-term investing account — broker or index-fund SIP",
+            },
+        ]
 
-    # Market mode (Mon-Fri) — day-specific seeds
-    day_seeds = {
-        0: {  # Monday — Options
-            "global_seeds": [
-                "options trading for beginners 2026",
-                "how to buy call options explained",
-                "Nifty options strategy weekly expiry",
-                "option selling vs option buying which is better",
-                "how to earn monthly income from options India",
-            ],
-            "topic": "Options and Derivatives",
+    # Market mode (Mon-Fri) — pillar × day-of-week seed grid
+    market_grid = {
+        0: {  # Monday — Options / Levels angle
+            "stock":    ("Nifty 50 levels and S&P 500 forecast today 2026",
+                         ["how to identify intraday breakout on Nifty India",
+                          "S&P 500 support and resistance levels for today"]),
+            "bitcoin":  ("Bitcoin price today analysis BTC USD INR 2026",
+                         ["is bitcoin going up or down today honest analysis",
+                          "bitcoin support and resistance levels real numbers"]),
+            "personal": ("best term insurance India 2026 cheapest premium honest review",
+                         ["LIC vs HDFC vs ICICI term insurance honest comparison",
+                          "how much term cover do I actually need calculator"]),
+            "ai":       ("free AI trading tools that actually work India 2026",
+                         ["free stock screener for Nifty NSE breakout 2026",
+                          "how retail traders use AI without writing any code"]),
         },
         1: {  # Tuesday — Technical Analysis
-            "global_seeds": [
-                "how to read stock charts for beginners",
-                "RSI indicator explained simply",
-                "moving average EMA crossover strategy",
-                "candlestick patterns that work India",
-                "support and resistance levels how to draw",
-            ],
-            "topic": "Technical Analysis",
+            "stock":    ("how to read stock chart for swing trading 2026",
+                         ["RSI 14 strategy that actually works on Nifty",
+                          "moving average crossover strategy 50 200 EMA"]),
+            "bitcoin":  ("bitcoin technical analysis support resistance 2026",
+                         ["bitcoin RSI divergence trade setup explained",
+                          "BTC EMA crossover signal beginner guide"]),
+            "personal": ("SIP returns calculator real numbers India 2026",
+                         ["SIP vs lump sum which gives better returns India",
+                          "best SIP mutual fund India 2026 first time investor"]),
+            "ai":       ("AI stock screener vs traditional technical analysis 2026",
+                         ["best free AI chart pattern recognition tool",
+                          "algorithmic trading for beginners no coding 2026"]),
         },
         2: {  # Wednesday — Fundamental + Macro
-            "global_seeds": [
-                "how to analyse a stock fundamental analysis",
-                "PE ratio explained for beginners",
-                "FII DII data how to use for trading India",
-                "how to read annual report stock",
-                "which sectors to invest in India 2026",
-            ],
-            "topic": "Fundamental Analysis and Global Markets",
+            "stock":    ("FII DII data Indian market direction today 2026",
+                         ["how FII selling affects Nifty in the short term",
+                          "DII buying which sectors today India 2026"]),
+            "bitcoin":  ("Bitcoin ETF institutional flows weekly 2026",
+                         ["spot Bitcoin ETF inflows weekly analysis 2026",
+                          "MicroStrategy bitcoin holdings impact on BTC price"]),
+            "personal": ("how to read annual report stock investing 2026",
+                         ["PE ratio explained for beginners Indian stocks",
+                          "ROE ROCE quality stocks India long term holdings"]),
+            "ai":       ("AI fintech stocks Nvidia Microsoft Google 2026",
+                         ["best AI stocks to buy India 2026 long term portfolio",
+                          "Nvidia earnings impact on AI stocks globally 2026"]),
         },
         3: {  # Thursday — Strategies + Personal Finance
-            "global_seeds": [
-                "swing trading strategy India 2026",
-                "how to do positional trading stocks",
-                "best personal finance habits wealth building",
-                "LIC vs term insurance which is better",
-                "how much life insurance do I need",
-            ],
-            "topic": "Trading Strategies and Personal Finance",
+            "stock":    ("swing trading Nifty 200 stocks 5-10 percent weekly 2026",
+                         ["how to find swing trading stocks India 2026",
+                          "positional trading 1-3 months strategy NSE India"]),
+            "bitcoin":  ("Ethereum vs Bitcoin which to buy in 2026",
+                         ["altcoin season indicator 2026 explained",
+                          "crypto portfolio allocation for beginners in India"]),
+            "personal": ("how to build Rs.1 crore portfolio on salaried income",
+                         ["PPF vs NPS vs ELSS for tax saving India 2026",
+                          "retirement planning calculator India real numbers"]),
+            "ai":       ("AI trading bot India NSE algo trading rules 2026",
+                         ["SEBI algo trading regulations retail traders India",
+                          "machine learning in trading explained simply"]),
         },
         4: {  # Friday — Psychology + Risk
-            "global_seeds": [
-                "trading psychology tips for beginners",
-                "how to control emotions in trading",
-                "risk management trading position sizing",
-                "why most traders lose money India",
-                "how to stop revenge trading",
-            ],
-            "topic": "Trading Psychology and Risk Management",
+            "stock":    ("why 90 percent of traders lose money real reasons 2026",
+                         ["trading psychology rules every Nifty trader needs",
+                          "how to control FOMO and revenge trading habits"]),
+            "bitcoin":  ("crypto trading psychology bear market survival 2026",
+                         ["how to handle bitcoin crash mentally as a beginner",
+                          "DCA strategy bitcoin volatility for beginners"]),
+            "personal": ("emergency fund how much do you actually need 2026",
+                         ["how to save your first Rs.1 lakh India realistic plan",
+                          "credit card debt vs investment which to clear first"]),
+            "ai":       ("how AI removes emotion from trading decisions 2026",
+                         ["best free AI signal Telegram channel India 2026",
+                          "rule based vs discretionary trading which wins"]),
         },
     }
 
-    seeds = day_seeds.get(day, day_seeds[0])
-
-    return {
-        "global_seeds":    seeds["global_seeds"],
-        "india_seeds":     seeds.get("india_seeds", []),
-        "usa_seeds":       seeds.get("usa_seeds", []),
-        "uk_seeds":        seeds.get("uk_seeds", []),
-        "no_price_numbers": False,
-        "title_style": (
-            f"SEO-optimised article title about {seeds['topic']}. "
-            "Include a specific angle, audience, or data point. "
-            "Avoid generic titles. Target India, USA, UK readers."
-        ),
-    }
+    pillar_keys = ("stock", "bitcoin", "personal", "ai")
+    grid = market_grid.get(day, market_grid[0])  # Sat/Sun shouldn't reach here (mode≠market) but safe-default
+    out = []
+    for key in pillar_keys:
+        seed, long_tail = grid[key]
+        out.append({
+            "primary_target": key,
+            "seo_seed":       seed,
+            "long_tail":      long_tail,
+            "affiliate_hint": _AFF_HINTS[key],
+        })
+    # Global fallback row — picked by next()'s default branch when pillar-prefix
+    # match misses (shouldn't normally, but keeps the consumer safe).
+    out.append({
+        "primary_target": "global",
+        "seo_seed":       "stock market and crypto outlook today global view 2026",
+        "long_tail": [
+            "global markets today Nifty S&P 500 bitcoin combined view",
+            "US Fed rate decision impact on global markets 2026",
+        ],
+        "affiliate_hint": "AI360Trading free Telegram channels — Basic / Advance / Premium",
+    })
+    return out
 
 
 # ══════════════════════════════════════════════════════════════════════

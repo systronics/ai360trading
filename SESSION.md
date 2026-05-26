@@ -2,7 +2,7 @@
 
 ---
 
-## Last Updated: 2026-05-25 15:30
+## Last Updated: 2026-05-26
 
 ---
 
@@ -26,7 +26,7 @@
 | `token_refresh.py` | **v2.2** | 2026-05-25 (Batch 1) |
 | `upload_youtube.py` | v2.2 | May 2026 |
 | `upload_facebook.py` | v2.6 | May 2026 |
-| `content_calendar.py` | v2.2 | May 2026 |
+| `content_calendar.py` | **v2.3** | 2026-05-26 (SEO seeds shape fix) |
 | `indian_holidays.py` | current | March 2026 |
 | `.internal-ops.md` | 2026-05-25 | May 2026 |
 | `CLAUDE.md` | created | 2026-05-25 |
@@ -72,6 +72,8 @@
 
 **AUDIT COMPLETE.** 22 of 27 numbered findings addressed across 4 batches. Remaining 5 (M11, L2, L5, L6, L7) intentionally deferred as low-value or requiring coordinated changes.
 - **Telegram routing verified working** by Amit ji — Basic/Advance/Premium all receive correct trade alerts.
+
+**2026-05-26:** SEO Seeds block fix — `content_calendar.py` v2.2 → **v2.3**. `get_article_seo_seeds()` return shape was a dict; consumer in `generate_articles.py` expected a list of pillar dicts → silent TypeError every run → SEO keyword block was **empty in every article since v2.2**. Reshaped to return 5 pillar dicts (stock/bitcoin/personal/ai/global) with day-of-week seed rotation. Verified locally — all 4 pillars match correctly. Impact: stronger Google ranking → better AdSense revenue going forward.
 
 **2026-05-25 (morning):** Created SmartSync memory system — 4 new files added (CLAUDE.md, CHANGELOG.md, SESSION.md, smartsync.bat).
 
@@ -131,7 +133,7 @@ CURRENT FILE VERSIONS:
 - token_refresh.py → v2.2
 - upload_youtube.py → v2.2
 - upload_facebook.py → v2.6
-- content_calendar.py → v2.2
+- content_calendar.py → v2.3
 
 PENDING:
 1. Facebook Group posting (needs publish_to_groups token scope)
