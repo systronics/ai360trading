@@ -2,6 +2,18 @@
 
 ---
 
+## 2026-05-26 (late evening) — WORKFLOW FAILURE ALERTS + FII DIAGNOSTIC SCRIPT
+
+### Added
+- **Workflow failure alerts** — 4 daily workflows (6 jobs) now post a "System Notice" to the **Basic Telegram channel only** (NOT Advance/Premium — those stay pure trade signals) when the job fails. Uses stdlib `urllib` so it works even if pip install failed earlier in the run. `continue-on-error: true` ensures the alert step itself never crashes the workflow further. Message clearly marks "system message, not a trade signal" so followers don't confuse it with trading.
+  - `daily_reel.yml` — failure step after Facebook upload
+  - `daily-morning-reel.yml` — failure step after FB upload
+  - `daily-shorts.yml` — failure step after debug-artifact step
+  - `kids-daily.yml` — failure step in each of 3 jobs (Hindi Full / Cliffhanger / Did You Know)
+- `inspect_nifty200.py` — read-only diagnostic script. Connects to `Ai360tradingAlgo` → `Nifty200` tab and prints the raw FORMULA (not just the displayed value) of cells P/Q/R/AG for rows 2-4 (FII_Buy_Zone, FII_Rating, Leader_Type, FII_Signal). Output reveals whether these columns are powered by GOOGLEFINANCE / IMPORT / manual values / external feed — currently unknown from codebase alone. Run once locally: `python inspect_nifty200.py`, paste output to confirm data source.
+
+---
+
 ## 2026-05-26 (evening) — AUDIT FOLLOW-UP: BUG-3 → BUG-9 ALL FIXED
 
 ### Fixed

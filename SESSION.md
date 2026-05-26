@@ -40,6 +40,10 @@
 
 ## Last Session Summary
 
+**2026-05-26 (late evening):** Workflow failure alerts + FII diagnostic.
+- Added `if: failure()` Telegram alert step to 4 workflows (6 jobs) — `daily_reel.yml`, `daily-morning-reel.yml`, `daily-shorts.yml`, `kids-daily.yml` (3 jobs). Posts to **Basic channel only** with "System Notice" prefix; Advance/Premium stay pure trade signals. Uses stdlib `urllib` so it works even if pip install failed.
+- Created `inspect_nifty200.py` — one-time diagnostic to reveal where Nifty200 FII columns (P/Q/R/AG) get their data. Read-only. Amit ji runs locally, pastes output back.
+
 **2026-05-26 (evening):** Audit follow-up — BUG-3 through BUG-9 all fixed.
 - `generate_longterm.py` v1.5 → **v1.6**: BUG-3 (RSI NaN guard), BUG-4 (BOOK PARTIAL ladder order).
 - `trading_bot.py` v15.7 → **v15.8**: BUG-5 (exact-key flag lookup in auto_maintain + monthly P&L).
