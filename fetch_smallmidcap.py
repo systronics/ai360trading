@@ -58,7 +58,12 @@ CHAT_BASIC   = os.environ.get("CHAT_ID_BASIC")
 
 # Filter thresholds — tweakable
 PCT_MIN              = 4.0     # min today %change (excludes flat stocks)
-PCT_MAX              = 12.0    # max today %change (excludes upper-circuit)
+PCT_MAX              = 13.0    # max today %change (excludes upper-circuit).
+                               # Bumped from 12 → 13 on 2026-05-27 to catch
+                               # TVSSRICHAK-class +12.05% movers visible in
+                               # screenshot 6 that were just over the old cap.
+                               # Most NSE circuits are 10/15/20% — 13 stays
+                               # well below upper-circuit triggers.
 TURNOVER_MIN_CR      = 20.0    # ₹20 Cr min turnover (liquidity floor)
 DELIVERY_MIN_PCT     = 50.0    # institutional accumulation threshold
 VOLUME_MULT_MIN      = 3.0     # today vol vs 5d avg

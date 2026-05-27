@@ -799,7 +799,9 @@ def check_all_entry_filters(sym, mem, key, is_bullish, now, nifty_pct, today_ent
         # 8. Volume confirmation — relative volume from Nifty200 sheet
         try:
             rel_vol = _read_nifty200_relvol(nifty_sheet, sym) if nifty_sheet is not None else 0.0
-            ok, msg = inst_edges.check_volume_confirmation(sym, rel_vol)
+            prev_close = get_last_price(mem, key)
+            pct_change = ((cp - prev_close) / prev_close) * 100 if (prev_close > 0 and cp > 0) else 0
+            ok, msg = inst_edges.check_volume_confirmation(sym, rel_vol, pct_change=pct_change)
             reasons.append(f"[VOL] {msg}")
             if not ok:
                 return False, reasons, rsi_val

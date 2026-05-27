@@ -25,8 +25,17 @@ Tunables (top of file — edit and next cron picks them up):
 # THRESHOLDS — tweakable knobs
 # ────────────────────────────────────────────────────────────────────────────
 
-RS_MIN_PCT             = 1.0    # stock must beat Nifty by ≥ this % intraday
+RS_MIN_PCT             = 5.0    # see note below — used as RS-SCORE threshold when sheet RS is read
 VOL_MULTIPLE_MIN       = 1.5    # today's volume / 20D-avg must be ≥ this
+VOL_BYPASS_PCT_CHANGE  = 3.0    # if stock up this much, bypass volume check (price = volume proof,
+                                # and the sheet's Volume_vs_Avg_% is end-of-day stale intraday —
+                                # matches AppScript scanner's _checkMomentumBreakout logic).
+# RS scale clarification — verified 2026-05-27 against appscript.gs CONFIG:
+#   The Nifty200 'RS' column is a 0-100 SCORE, not a simple stock_pct - nifty_pct percent.
+#   AppScript uses thresholds: LATE_ENTRY_MIN_RS=5, MOMENTUM_BREAKOUT_MIN_RS=10, BEARISH_MIN_RS=15.
+#   So the meaningful "stock is leading" floor is RS ≥ 5 (matches AppScript LATE_ENTRY_MIN_RS).
+#   When prev-close math fallback is used (sheet RS missing), the value IS a simple % difference;
+#   the same threshold is reused as a leniency choice — a true 5% intraday leader is rare.
 FII_NET_SELL_BLOCK_CR  = -2000  # block new longs if FII cash net < this (₹ Cr)
 FII_NET_BUY_BLOCK_CR   = 2000   # block new shorts if FII cash net > this (₹ Cr)
 PCR_BULLISH_MAX        = 1.4    # PCR > this = bearish bias, soft-warn
@@ -64,11 +73,21 @@ def check_relative_strength(sym: str, cp: float, prev_close: float, nifty_pct: f
 # Index varies between sheets — caller passes the parsed value to keep this
 # module sheet-agnostic. trading_bot.py owns the column-index detail.
 
-def check_volume_confirmation(sym: str, rel_vol: float, min_mult: float = VOL_MULTIPLE_MIN) -> tuple:
+def check_volume_confirmation(sym: str, rel_vol: float,
+                              min_mult: float = VOL_MULTIPLE_MIN,
+                              pct_change: float = 0.0,
+                              bypass_pct: float = VOL_BYPASS_PCT_CHANGE) -> tuple:
     """
     rel_vol = today's volume / 20-day average volume.  Entry requires ≥ 1.5×.
-    Fail-open if rel_vol is 0 (means the data wasn't available at scan time).
+    Fail-open if rel_vol is 0 (data unavailable).
+
+    STALE-DATA BYPASS — AppScript scanner notes the Volume_vs_Avg_% column is
+    "end-of-day stale" because the underlying formula refreshes after market
+    close. If today's price is up ≥ VOL_BYPASS_PCT_CHANGE, we trust the price
+    as proof of volume (matches AppScript _checkMomentumBreakout line 488).
     """
+    if pct_change >= bypass_pct:
+        return True, f"Volume gate bypassed: stock +{pct_change:.1f}% confirms volume regardless of stale col ✅"
     if rel_vol <= 0:
         return True, "Volume data unavailable — entry allowed"
     if rel_vol < min_mult:
