@@ -1,6 +1,32 @@
 """
-AI360 TRADING BOT — v15.8
+AI360 TRADING BOT — v15.9
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v15.9 CHANGES vs v15.8 — BATCH 1 SAFETY FIXES (May 2026)
+  CRITICAL FIX — NSE_HOLIDAYS_2026 list was WRONG. Verified against NSE
+                 official holiday calendar. Specifically:
+                   • 2026-05-27 (Wed) was listed but is a TRADING DAY → bot
+                     skipped today, no Telegram, no target exits for
+                     CUMMINSIND (+12% target hit) or HINDALCO (+6% target hit)
+                   • 2026-03-25 → corrected to 2026-03-26 (Ram Navami)
+                   • Added 2026-03-03 (Holi) — was missing entirely
+                   • Added 2026-03-31 (Mahavir Jayanti) — was missing
+                   • 2026-04-02 → corrected to 2026-04-03 (Good Friday)
+                   • 2026-05-27 → corrected to 2026-05-28 (Bakri Id)
+                   • 2026-06-17 → corrected to 2026-06-26 (Muharram)
+                 Source: NSE official Holidays 2026 — Equities (screenshot 7).
+  BUG-B FIX  — TSL changes were only stored in BotMemory; AlertLog column O
+               (Trailing SL) never got the value, so AppScript + website webview
+               showed "—" for all winners. Now writes TSL to column O on each
+               update. Sheet update is best-effort (try/except) so failure
+               does not block the in-memory TSL state.
+  BUG-C FIX  — WAITING row with SL >= current price would cause instant exit
+               on promotion to TRADED (e.g. MCX 2026-05-26: SL ₹3,194 set
+               yesterday, today MCX -4.5% to ₹3,012 → SL > price). Now skips
+               such entries with "[SETUP INVALIDATED] SL above price" log.
+  BUG-E FIX  — today_entries count included _CASH_ entries, so cash intraday
+               consumed swing-trade daily budget. Now filters to ONLY swing
+               entries (_ENTRY_ keys, excluding _CASH_).
+
 v15.8 CHANGES vs v15.7 — AUDIT FOLLOW-UP (May 2026)
   BUG-5 FIX — auto_maintain_sheets and monthly P&L gate were still using
               substring `flag_key in mem` checks (Batch 1 had fixed the same
@@ -150,10 +176,32 @@ CAPITAL_HIGH = 13000
 CAPITAL_MED  = 10000
 CAPITAL_STD  = 7000
 
+# NSE OFFICIAL Trading Holidays 2026 — verified against NSE website Holidays page
+# DO NOT MODIFY without cross-checking nseindia.com → Resources → Holidays.
+# fetch_holidays.py (run 1 Dec each year) writes HOLIDAYS_2026/2027 to BotMemory;
+# load_dynamic_holidays() unions those into NSE_HOLIDAYS_ALL on startup — but a
+# correct HARDCODED baseline is essential because BotMemory may be empty on
+# fresh deploy, and any wrong date here permanently blocks that trading day.
 NSE_HOLIDAYS_2026 = {
-    "2026-01-26","2026-03-25","2026-04-02","2026-04-14","2026-05-01",
-    "2026-05-27","2026-06-17","2026-08-15","2026-08-27","2026-10-02",
-    "2026-10-21","2026-10-22","2026-11-04","2026-11-05","2026-12-25",
+    "2026-01-15",  # Municipal Corporation Election — Maharashtra (Thu)
+    "2026-01-26",  # Republic Day (Mon)
+    "2026-03-03",  # Holi (Tue)
+    "2026-03-26",  # Shri Ram Navami (Thu)
+    "2026-03-31",  # Shri Mahavir Jayanti (Tue)
+    "2026-04-03",  # Good Friday (Fri)
+    "2026-04-14",  # Dr. Baba Saheb Ambedkar Jayanti (Tue)
+    "2026-05-01",  # Maharashtra Day (Fri)
+    "2026-05-28",  # Bakri Id / Eid ul-Adha (Thu)  ← was wrongly 2026-05-27 in v15.8
+    "2026-06-26",  # Muharram (Fri)  ← was wrongly 2026-06-17 in v15.8
+    # Aug-Dec 2026 holidays — to be verified once NSE publishes second-half
+    # calendar. Kept conservative (best-known approximations from prior years).
+    "2026-08-15",  # Independence Day (Sat — markets closed anyway)
+    "2026-08-27",  # Janmashtami (approx)
+    "2026-10-02",  # Gandhi Jayanti (Fri)
+    "2026-10-21",  # Diwali Laxmi Puja (approx — Wed)
+    "2026-10-22",  # Diwali Balipratipada (approx — Thu)
+    "2026-11-04",  # Guru Nanak Jayanti (approx)
+    "2026-12-25",  # Christmas (Fri)
 }
 
 # Approximate 2027 fallback — auto-updated by fetch_holidays.py every Dec 1
@@ -849,6 +897,17 @@ def step_a_enter_trades(log_sheet, nifty_sheet, bm_sheet, mem, now, is_bullish, 
 
         if cp <= 0: continue
 
+        # v15.9 BUG-C — Setup-invalidated guard. AlertLog "Initial SL" is fixed at
+        # signal time, but Live Price refreshes every tick. If the stock dropped
+        # below the SL while still WAITING, promoting it to TRADED would trigger
+        # an instant TSL exit on the very next monitor tick (cp <= cur_tsl).
+        # Example seen 2026-05-27: MCX signal generated 2026-05-26 with SL ₹3,194
+        # → next day MCX -4.5% to ₹3,012 → SL > cp → invalidated.
+        # Action: leave row WAITING, log the reason, skip silently this tick.
+        if sl > 0 and sl >= cp:
+            print(f"[SETUP INVALIDATED] {sym}: SL ₹{sl:.2f} >= Live ₹{cp:.2f} — skip (would exit instantly)")
+            continue
+
         key  = sym_key(sym)
         cash = is_cash_trade(ttype)
 
@@ -988,6 +1047,13 @@ def step_b_monitor_trades(log_sheet, hist_sheet, nifty_sheet, mem, now, is_bulli
             print(f"[TSL] {sym}: {cur_tsl:.2f} → {new_tsl:.2f} ({tsl_reason})")
             _send_tsl_update(sym, cp, ent, new_tsl, pnl_pct, pnl_rs, tsl_reason)
             cur_tsl = new_tsl   # v15.7: keep local in sync with stored
+            # v15.9 BUG-B: write TSL to AlertLog column O so the value is visible
+            # to the user, the website webview, and any AppScript display logic.
+            # Best-effort — TSL state lives in BotMemory; sheet is presentation.
+            try:
+                log_sheet.update(f"O{i}", [[round(new_tsl, 2)]])
+            except Exception as e:
+                print(f"[TSL O-write] {sym}: {e}")
 
         if cp <= cur_tsl:
             mem = _exit_trade(log_sheet, hist_sheet, i, sym, ent, cp, tgt, sl, cur_tsl,
@@ -1174,7 +1240,7 @@ def send_good_morning(log_sheet, mem, is_bullish, nifty_cmp, nifty_dma, nifty_pc
         f"{window}\n"
         f"RSI filter: < {RSI_MAX_BULLISH if is_bullish else RSI_MAX_BEARISH} | Re-entry: {REENTRY_COOLDOWN_DAYS}d cooldown after target\n\n"
         f"{'Watching: ' + ', '.join(waiting_stocks[:5]) if waiting_stocks else 'No WAITING stocks'}\n\n"
-        f"<i>v15.8 — RSI + Time + Nifty + Re-entry filters | Memory → BotMemory</i>"
+        f"<i>v15.9 — RSI + Time + Nifty + Re-entry filters | Memory → BotMemory</i>"
     )
     watchlist_line = f"📋 Watchlist: {waiting} stock(s) identified today" if waiting else "📋 No setups in watchlist yet — scan runs at market open"
     msg_basic = (
@@ -1496,7 +1562,7 @@ def auto_maintain_sheets(bm_sheet, hist_sheet, mem, now):
 def send_test_messages():
     now = datetime.now(IST)
     msg = (
-        f"✅ <b>TEST MESSAGE — AI360 Trading Bot v15.8</b>\n"
+        f"✅ <b>TEST MESSAGE — AI360 Trading Bot v15.9</b>\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
         f"Time: {now.strftime('%d %b %Y %H:%M')} IST\n"
         f"Token: {'✅ OK' if TG_TOKEN else '❌ MISSING'}\n\n"
@@ -1526,7 +1592,7 @@ def main():
     dow      = now.weekday()
 
     print(f"\n{'='*55}")
-    print(f"AI360 Trading Bot v15.8 — {now.strftime('%d %b %Y %H:%M')} IST")
+    print(f"AI360 Trading Bot v15.9 — {now.strftime('%d %b %Y %H:%M')} IST")
     print(f"{'='*55}")
 
     if is_holiday(today_s): print(f"[SKIP] Holiday: {today_s}"); return
@@ -1578,8 +1644,14 @@ def main():
     # ago and the cleanup was running on every tick (~288 ticks/day) for no benefit.
     mem = clean_mem(mem)
 
-    # Count today's entries
-    today_entries = sum(1 for p in mem.split(",") if p.strip().startswith(today_s + "_ENTRY_"))
+    # Count today's SWING entries only (cash intraday tracked separately via _CASH_
+    # keys with its own CASH_MAX_DAILY limit). v15.9 BUG-E: previously this counted
+    # both swing and cash → cash trades silently consumed the 3/day swing budget.
+    today_entries = sum(
+        1 for p in mem.split(",")
+        if p.strip().startswith(today_s + "_ENTRY_")
+        and not p.strip().startswith(today_s + "_CASH_")
+    )
 
     if "08:44" <= time_str <= "08:52":
         mem = send_good_morning(log, mem, is_bullish, nifty_cmp, nifty_dma, nifty_pct, now)

@@ -31,13 +31,13 @@ One broken file = zero income that day. Treat every edit as critical.
 ---
 
 ## CURRENT FILE VERSIONS
-*(Read from actual files — 2026-05-25)*
+*(Read from actual files — 2026-05-27)*
 
 ### Trading Engine
 | File | Version |
 |---|---|
-| `trading_bot.py` | v15.8 |
-| `appscript_v14.gs` | v15.15 |
+| `trading_bot.py` | v15.9 |
+| `appscript_v14.gs` | v15.16 (needs manual paste) |
 
 ### Long-Term Signals
 | File | Version |

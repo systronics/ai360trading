@@ -1,6 +1,14 @@
 /**
- * AI360 TRADING — APPSCRIPT v15.15
+ * AI360 TRADING — APPSCRIPT v15.16
  * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ * v15.16 CHANGES (2026-05-27) — CRITICAL HOLIDAY LIST CORRECTION
+ *   NSE_HOLIDAYS_2026 was WRONG — caused Wed 2026-05-27 to be treated as
+ *   a holiday (correct holiday is Thu 2026-05-28, Bakri Id). The bot AND
+ *   AppScript scanner both skipped today → no Telegram messages, missed
+ *   target-hit exits for CUMMINSIND (+12%) and HINDALCO (+6%).
+ *   Source: NSE official Holidays 2026 — Equities page.
+ *   Several other 2026 dates were also off by 1 day; corrected per official list.
+ *
  * v15.15 CHANGES (May 2026) — AUDIT FOLLOW-UP (BUG-6 + BUG-9):
  *   BUG-6 FIX — Cash candidates wrote BotMemory (_CAP/_MODE/_SEC) at the moment
  *     of detection (inside _runScanner scan loop AND inside the wlCands merge
@@ -150,12 +158,34 @@
  * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  */
 
-// ── NSE MARKET HOLIDAYS 2026 ──────────────────────────────────────────────────
+// ── NSE OFFICIAL TRADING HOLIDAYS 2026 ────────────────────────────────────────
+// Source: nseindia.com → Resources → Holidays (Equities, 2026).
+// v15.16 FIX (2026-05-27): list was wrong — 2026-05-27 was NOT a holiday,
+//   2026-05-28 (Bakri Id, Thu) is. Bot skipped on Wed thinking it was holiday,
+//   missed target-hit exits for CUMMINSIND & HINDALCO. Also corrected:
+//     2026-03-25 → 2026-03-26 (Ram Navami)
+//     2026-04-02 → 2026-04-03 (Good Friday)
+//     2026-06-17 → 2026-06-26 (Muharram)
+//   Added: 2026-01-15 (Maharashtra elec), 2026-03-03 (Holi), 2026-03-31 (Mahavir).
 const NSE_HOLIDAYS_2026 = [
-  "2026-01-26","2026-03-25","2026-04-02","2026-04-14",
-  "2026-05-01","2026-05-27","2026-06-17","2026-08-15",
-  "2026-08-27","2026-10-02","2026-10-21","2026-10-22",
-  "2026-11-04","2026-11-05","2026-12-25",
+  "2026-01-15", // Municipal Corp Election — Maharashtra (Thu)
+  "2026-01-26", // Republic Day (Mon)
+  "2026-03-03", // Holi (Tue)
+  "2026-03-26", // Shri Ram Navami (Thu)
+  "2026-03-31", // Shri Mahavir Jayanti (Tue)
+  "2026-04-03", // Good Friday (Fri)
+  "2026-04-14", // Dr. Ambedkar Jayanti (Tue)
+  "2026-05-01", // Maharashtra Day (Fri)
+  "2026-05-28", // Bakri Id (Thu)
+  "2026-06-26", // Muharram (Fri)
+  // Aug-Dec 2026 — to be verified once NSE publishes second-half calendar:
+  "2026-08-15", // Independence Day (Sat — markets closed anyway)
+  "2026-08-27", // Janmashtami (approx)
+  "2026-10-02", // Gandhi Jayanti (Fri)
+  "2026-10-21", // Diwali Laxmi Puja (approx — Wed)
+  "2026-10-22", // Diwali Balipratipada (approx — Thu)
+  "2026-11-04", // Guru Nanak Jayanti (approx)
+  "2026-12-25", // Christmas (Fri)
 ];
 
 // v15.11: runtime holiday set — populated by _getRuntimeHolidays(ss) once per run.

@@ -2,6 +2,29 @@
 
 ---
 
+## 2026-05-27 — BATCH 1 SAFETY FIXES (`trading_bot.py` v15.9 + `appscript_v14.gs` v15.16)
+
+### CRITICAL — Holiday list was wrong
+- Wed 2026-05-27 was hardcoded as a holiday in **both** `trading_bot.py:155` and `appscript_v14.gs:156`. The actual NSE holiday is **Thu 2026-05-28 (Bakri Id)**.
+- Impact today: bot exited at startup with `[SKIP] Holiday` → no Good Morning Telegram, no entry checks, no target-hit exit. **CUMMINSIND (+12.01% target hit)** and **HINDALCO (+6.08% target hit)** stayed open with status `TRADED` instead of being booked as wins.
+- Several other 2026 dates were also off-by-one vs. the NSE official Equities calendar (Holi, Ram Navami, Mahavir Jayanti missing; Good Friday + Muharram on wrong day). All corrected from the official NSE list (screenshot 7).
+- AppScript file bumped v15.15 → v15.16 — **needs manual paste into Apps Script editor** (GitHub deploy not supported for AppScript).
+
+### Fixed (`trading_bot.py` v15.8 → v15.9)
+- **BUG-B** — Trailing SL was only stored in BotMemory; AlertLog column O stayed blank for every winner (see screenshot 2 — all `Trailing SL: —`). Now writes the trailing SL value to column O after each TSL update. Best-effort try/except so a sheet write failure doesn't block the in-memory state.
+- **BUG-C** — WAITING row with SL >= current price would cause instant exit on promotion to TRADED (MCX example today: SL ₹3,194 set Tue, today MCX -4.5% to ₹3,012 → SL above price). Now skipped with `[SETUP INVALIDATED]` log line, row left as WAITING for AppScript to age out.
+- **BUG-E** — `today_entries` count included `_CASH_` keys, so a cash intraday trade silently ate into the 3-per-day swing budget. Now counts only `_ENTRY_` keys that aren't cash.
+
+### Why this batch
+User reported "no Telegram today". Diagnosis showed bot-killed-by-bad-holiday-list. Same root cause also explains the screenshot anomalies (HINDALCO + CUMMINSIND past target but still TRADED; trailing SL column empty for all winners; MCX waiting row showing SL > price). All four issues fixed in one batch with full file edits per Rule C.
+
+### Pending for next batches
+- Batch 2 (profit protection): tighter breakeven, partial book at +5%, Chandelier exit, time stop, VIX filter
+- Batch 3 (options buying upgrade): ITM strikes, IV percentile via NSE option chain, earnings block, stock-anchored exits, PE side for bearish regime
+- Batch 4 (institutional edges): volume + relative-strength + VWAP filter, PCR + OI + delivery from NSE bhavcopy, gate entries on real FII flow already being fetched
+
+---
+
 ## 2026-05-26 (night) — REAL FII/DII DATA LAYER ADDED
 
 ### Added

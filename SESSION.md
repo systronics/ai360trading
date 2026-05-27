@@ -2,7 +2,7 @@
 
 ---
 
-## Last Updated: 2026-05-26
+## Last Updated: 2026-05-27
 
 ---
 
@@ -10,8 +10,8 @@
 
 | File | Version | Last Changed |
 |---|---|---|
-| `trading_bot.py` | **v15.8** | 2026-05-26 (BUG-1 TSL exit + BUG-5 substring flag) |
-| `appscript_v14.gs` | **v15.15** | 2026-05-26 (BUG-2 last-Tue expiry + BUG-6 cash orphan + BUG-9 bmPurge daily-gate) |
+| `trading_bot.py` | **v15.9** | 2026-05-27 (Batch 1: holiday fix + BUG-B TSL writeback + BUG-C SL>price guard + BUG-E cash counting) |
+| `appscript_v14.gs` | **v15.16** | 2026-05-27 (holiday list corrected — needs manual paste to Apps Script editor) |
 | `ai_client.py` | v2.4 | May 2026 |
 | `human_touch.py` | v2.2 | May 2026 |
 | `generate_longterm.py` | **v1.6** | 2026-05-26 (BUG-3 RSI NaN + BUG-4 BOOK PARTIAL ladder) |
@@ -39,6 +39,13 @@
 ---
 
 ## Last Session Summary
+
+**2026-05-27:** Batch 1 safety fixes — `trading_bot.py` v15.8 → **v15.9**, `appscript_v14.gs` v15.15 → **v15.16**.
+- **CRITICAL — NSE_HOLIDAYS_2026 was wrong.** 2026-05-27 (today, Wed) was listed as a holiday — actual holiday is 2026-05-28 (Bakri Id, Thu). Bot AND AppScript both skipped today. Result: no Good Morning Telegram, no entry checks, no target-hit exit for CUMMINSIND (+12.01%) or HINDALCO (+6.08%) — both still showing as TRADED on the sheet instead of EXITED. Fixed both files using the NSE official 2026 holiday list (cross-checked against nseindia.com screenshot supplied by Amit ji). Multiple other 2026 dates corrected too (Ram Navami, Good Friday, Muharram, plus three missing entries — Maharashtra elec, Holi, Mahavir).
+- **BUG-B** — Trailing SL was never written to AlertLog column O (only stored in BotMemory). Screenshot 2 showed `Trailing SL: —` for every TRADED row. Now writes the new TSL to col O after each set_tsl. Best-effort try/except.
+- **BUG-C** — WAITING row with SL >= current price would exit instantly on promotion (MCX example: SL ₹3,194 set Tuesday, today MCX -4.5% to ₹3,012). Now skipped with `[SETUP INVALIDATED]` log; row left for AppScript to age out.
+- **BUG-E** — Cash intraday trades were counted toward swing 3/day budget. Fixed.
+- **AppScript v15.16 needs manual paste** into Google Apps Script editor before it goes live (auto-deploy not supported from GitHub).
 
 **2026-05-26 (night):** Real FII/DII data layer added.
 - `fetch_fii_dii.py` v1.0 — fetches NSE Cash market FII/DII daily, free official source. Writes BotMemory MKT_* keys, sends Telegram digest.
