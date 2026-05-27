@@ -1,6 +1,46 @@
 """
-AI360 TRADING BOT — v15.11
+AI360 TRADING BOT — v15.12
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v15.12 CHANGES vs v15.11 — BATCH 4 INSTITUTIONAL EDGES (May 2026)
+  Five "smart money" filters consistently-profitable traders + FIIs use.
+  Each is a soft-gate added to check_all_entry_filters; every one fails
+  open if its data source is unavailable (per free_forever_self_repair).
+
+  1. RELATIVE STRENGTH — entry requires `stock_pct − nifty_pct ≥ 1.0%`.
+     A stock not even keeping up with Nifty is not a leader. Uses cp +
+     mem `_LP_` (yesterday's close) + already-fetched nifty_pct. No new
+     network call.
+
+  2. VOLUME CONFIRMATION — entry requires today's relative-volume ≥ 1.5×.
+     Reads the column already populated by the AppScript scanner in
+     Nifty200 sheet (`_read_nifty200_value` → "RelVol" column). Volume
+     IS institutional footprint; price moves without volume rarely hold.
+
+  3. FII REGIME GATE — for LONG entries, block if today's FII cash net
+     ≤ −₹2000 Cr (heavy outflow). Mirror rule for shorts. Uses
+     MKT_FII_CASH_NET_<date> + MKT_FII_REGIME already populated by
+     fetch_fii_dii.py daily.
+
+  4. PCR SOFT FILTER — Put-Call Ratio extremes are logged but DON'T block
+     (PCR extremes are contrarian, not directional). Reads MKT_PCR_NIFTY
+     newly populated by fetch_bhavcopy.py.
+
+  5. DELIVERY % — entry requires DLV_{SYM} ≥ 40% (institutional accumulation
+     vs day-jobbing). Reads NEW DLV_* keys from fetch_bhavcopy.py.
+
+  New files added in Batch 4:
+    • institutional_edges.py v1.0 — the five checks (pure functions)
+    • fetch_bhavcopy.py v1.0      — NSE bhavcopy + option-chain fetcher
+    • .github/workflows/fetch_bhavcopy.yml — daily 20:00 IST cron
+
+  Architecture (same pattern as Batch 3):
+    • institutional_edges import wrapped in try/except — bot survives if
+      module missing or broken (falls back to v15.11 filter set).
+    • Each filter individually wrapped so one buggy check cannot cascade.
+    • Filters added AFTER existing v15.10 filters (RSI, VIX, Nifty dir) so
+      removing the new module simply removes Batch-4 gates without
+      affecting older behaviour.
+
 v15.11 CHANGES vs v15.10 — BATCH 3 OPTION-BUYING INTELLIGENCE (May 2026)
   Five upgrades to convert the bot from "options as gimmick" to actual
   edge-trading on options. All free, all self-healing — no paid feeds.
@@ -223,6 +263,16 @@ except Exception as _e:
     print(f"[BOOT] option_intelligence module unavailable: {_e} — option alerts will fall back to v15.10 ATM/OTM logic")
     opt_intel = None
     _OPT_INTEL_AVAILABLE = False
+
+# v15.12 Batch 4 — institutional edges module (RS, volume, FII gate, PCR,
+# delivery %). Wrapped identically — bot survives a missing/broken module.
+try:
+    import institutional_edges as inst_edges
+    _INST_EDGES_AVAILABLE = True
+except Exception as _e:
+    print(f"[BOOT] institutional_edges module unavailable: {_e} — Batch-4 filters skipped, older filter set still active")
+    inst_edges = None
+    _INST_EDGES_AVAILABLE = False
 
 IST       = pytz.timezone('Asia/Kolkata')
 TG_TOKEN  = os.environ.get('TELEGRAM_BOT_TOKEN')
@@ -639,7 +689,8 @@ def check_daily_entry_limit(today_entries: int, is_bullish: bool) -> tuple:
 # ALL ENTRY FILTERS COMBINED
 # ══════════════════════════════════════════════════════════════════════════════
 
-def check_all_entry_filters(sym, mem, key, is_bullish, now, nifty_pct, today_entries, vix_val=0.0):
+def check_all_entry_filters(sym, mem, key, is_bullish, now, nifty_pct, today_entries,
+                            vix_val=0.0, cp=0.0, nifty_sheet=None, bm_data=None):
     """
     Run all entry filters in order of cost (fast checks first, API calls last).
     Returns (allowed: bool, reasons: list, rsi_val: float)
@@ -649,8 +700,14 @@ def check_all_entry_filters(sym, mem, key, is_bullish, now, nifty_pct, today_ent
       2. Time window (date math — instant)
       3. Daily entry limit (count — instant)
       4. Nifty direction (already fetched — instant)
-      5. India VIX (already fetched once per tick — instant) — NEW v15.10
+      5. India VIX (already fetched once per tick — instant) — v15.10
       6. RSI (yfinance API call — only if 1-5 pass)
+      ── Batch 4 institutional gates (added v15.12) ──
+      7. Relative Strength    — stock_pct - nifty_pct ≥ 1%
+      8. Volume confirmation  — relative volume ≥ 1.5×
+      9. FII regime gate      — heavy FII outflow blocks longs
+     10. PCR (soft — logs only)
+     11. Delivery %           — ≥ 40%
     """
     reasons = []
 
@@ -689,6 +746,59 @@ def check_all_entry_filters(sym, mem, key, is_bullish, now, nifty_pct, today_ent
     reasons.append(f"[RSI] {msg}")
     if not allowed:
         return False, reasons, rsi_val
+
+    # ── v15.12 Batch 4: Institutional edges. Each wrapped individually so a
+    #    buggy check cannot cascade. All fail open if their data is missing. ──
+    if _INST_EDGES_AVAILABLE:
+        # 7. Relative strength — compare stock today vs Nifty today
+        try:
+            prev_close = get_last_price(mem, key)
+            ok, msg = inst_edges.check_relative_strength(sym, cp, prev_close, nifty_pct)
+            reasons.append(f"[RS] {msg}")
+            if not ok:
+                return False, reasons, rsi_val
+        except Exception as e:
+            print(f"[RS] check failed for {sym}: {e} — fail open")
+            reasons.append(f"[RS] check errored — entry allowed")
+
+        # 8. Volume confirmation — relative volume from Nifty200 sheet
+        try:
+            rel_vol = _read_nifty200_relvol(nifty_sheet, sym) if nifty_sheet is not None else 0.0
+            ok, msg = inst_edges.check_volume_confirmation(sym, rel_vol)
+            reasons.append(f"[VOL] {msg}")
+            if not ok:
+                return False, reasons, rsi_val
+        except Exception as e:
+            print(f"[VOL] check failed for {sym}: {e} — fail open")
+            reasons.append(f"[VOL] check errored — entry allowed")
+
+        # 9. FII regime — heavy outflow blocks new longs (or inflow blocks shorts)
+        try:
+            ok, msg = inst_edges.check_fii_regime(bm_data or {}, is_bullish, now)
+            reasons.append(f"[FII] {msg}")
+            if not ok:
+                return False, reasons, rsi_val
+        except Exception as e:
+            print(f"[FII] check failed: {e} — fail open")
+            reasons.append(f"[FII] check errored — entry allowed")
+
+        # 10. PCR soft filter — informational, never blocks
+        try:
+            ok, msg = inst_edges.check_pcr_regime(bm_data or {}, is_bullish)
+            reasons.append(f"[PCR] {msg}")
+        except Exception as e:
+            print(f"[PCR] check failed: {e} — skip")
+            reasons.append(f"[PCR] check errored — skipped")
+
+        # 11. Delivery % from yesterday's bhavcopy
+        try:
+            ok, msg = inst_edges.check_delivery_percent(sym, bm_data or {})
+            reasons.append(f"[DLV] {msg}")
+            if not ok:
+                return False, reasons, rsi_val
+        except Exception as e:
+            print(f"[DLV] check failed for {sym}: {e} — fail open")
+            reasons.append(f"[DLV] check errored — entry allowed")
 
     return True, reasons, rsi_val
 
@@ -920,6 +1030,58 @@ def _read_atr_from_nifty200(nifty_sheet, sym):
         print(f"[ATR] {e}")
     return 0.0
 
+
+# v15.12 Batch 4: per-tick cache of Nifty200 column index lookups.
+# Header text → column index. Resolved once per process, then served from cache.
+_NIFTY200_COL_CACHE = {}
+
+def _find_nifty200_col(nifty_sheet, header_keywords: list) -> int:
+    """
+    Self-healing column lookup. Reads row 1 of Nifty200, returns the index of
+    the first column whose header contains ANY of the supplied keywords (case
+    insensitive substring match). Returns -1 if no header matches.
+
+    This avoids hardcoding column indices that drift when AppScript adds new
+    columns — per feedback_free_forever_self_repair: data layout changes
+    should not require code edits.
+    """
+    cache_key = "|".join(header_keywords).lower()
+    if cache_key in _NIFTY200_COL_CACHE:
+        return _NIFTY200_COL_CACHE[cache_key]
+    try:
+        header = nifty_sheet.row_values(1)
+        for i, h in enumerate(header):
+            h_lower = str(h).lower().replace(" ", "").replace("_", "")
+            for kw in header_keywords:
+                if kw.lower().replace(" ", "").replace("_", "") in h_lower:
+                    _NIFTY200_COL_CACHE[cache_key] = i
+                    print(f"[NIFTY200] header '{h}' (col {i}) matched keyword {kw!r}")
+                    return i
+    except Exception as e:
+        print(f"[NIFTY200] header read error: {e}")
+    _NIFTY200_COL_CACHE[cache_key] = -1
+    return -1
+
+
+def _read_nifty200_relvol(nifty_sheet, sym) -> float:
+    """
+    Returns today's relative volume (today_vol / 20d_avg_vol) for the symbol.
+    0.0 if column not found OR symbol not in sheet (fail-open).
+    """
+    col = _find_nifty200_col(nifty_sheet, ["relvol", "rvol", "rel_volume", "relativevolume"])
+    if col < 0:
+        return 0.0
+    try:
+        clean = sym.replace("NSE:", "").strip()
+        for row in nifty_sheet.get_all_values()[1:]:
+            if len(row) > col and str(row[0]).replace("NSE:", "").strip() == clean:
+                v = to_f(row[col])
+                if v > 0:
+                    return v
+    except Exception as e:
+        print(f"[RELVOL] {sym}: {e}")
+    return 0.0
+
 def get_market_regime(nifty_sheet):
     try:
         row  = nifty_sheet.row_values(2)
@@ -1123,8 +1285,11 @@ def step_a_enter_trades(log_sheet, nifty_sheet, bm_sheet, mem, now, is_bullish, 
             filter_reasons = [f"[CASH] Volume breakout trade — standard filters bypassed"]
             rsi_val = -1
         else:
+            # v15.12: pass cp + nifty_sheet + bm_data so Batch-4 institutional
+            # filters can do RS / volume / FII / PCR / delivery checks.
             allowed, filter_reasons, rsi_val = check_all_entry_filters(
-                sym, mem, key, is_bullish, now, nifty_pct, today_entries, vix_val
+                sym, mem, key, is_bullish, now, nifty_pct, today_entries, vix_val,
+                cp=cp, nifty_sheet=nifty_sheet, bm_data=bm_data,
             )
         for reason in filter_reasons:
             print(f"[FILTER] {sym}: {reason}")
@@ -1478,7 +1643,7 @@ def send_good_morning(log_sheet, mem, is_bullish, nifty_cmp, nifty_dma, nifty_pc
         f"{window}\n"
         f"RSI filter: < {RSI_MAX_BULLISH if is_bullish else RSI_MAX_BEARISH} | Re-entry: {REENTRY_COOLDOWN_DAYS}d cooldown after target\n\n"
         f"{'Watching: ' + ', '.join(waiting_stocks[:5]) if waiting_stocks else 'No WAITING stocks'}\n\n"
-        f"<i>v15.11 — Batch3 smart options: ITM strike + HV-IV + PE + stock-anchored exit</i>"
+        f"<i>v15.12 — Batch4: RS+Volume+FII+PCR+Delivery gates on top of v15.11 smart options</i>"
     )
     watchlist_line = f"📋 Watchlist: {waiting} stock(s) identified today" if waiting else "📋 No setups in watchlist yet — scan runs at market open"
     msg_basic = (
@@ -1800,7 +1965,7 @@ def auto_maintain_sheets(bm_sheet, hist_sheet, mem, now):
 def send_test_messages():
     now = datetime.now(IST)
     msg = (
-        f"✅ <b>TEST MESSAGE — AI360 Trading Bot v15.11</b>\n"
+        f"✅ <b>TEST MESSAGE — AI360 Trading Bot v15.12</b>\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
         f"Time: {now.strftime('%d %b %Y %H:%M')} IST\n"
         f"Token: {'✅ OK' if TG_TOKEN else '❌ MISSING'}\n\n"
@@ -1830,7 +1995,7 @@ def main():
     dow      = now.weekday()
 
     print(f"\n{'='*55}")
-    print(f"AI360 Trading Bot v15.11 — {now.strftime('%d %b %Y %H:%M')} IST")
+    print(f"AI360 Trading Bot v15.12 — {now.strftime('%d %b %Y %H:%M')} IST")
     print(f"{'='*55}")
 
     if is_holiday(today_s): print(f"[SKIP] Holiday: {today_s}"); return

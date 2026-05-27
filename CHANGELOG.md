@@ -2,6 +2,49 @@
 
 ---
 
+## 2026-05-27 (night) — BATCH 4 INSTITUTIONAL EDGES (`trading_bot.py` v15.12 + new `institutional_edges.py` + new `fetch_bhavcopy.py`)
+
+### Goal
+Add five "smart money" filters that consistently-profitable traders + FIIs use to confirm a setup. Each is a soft-gate added to `check_all_entry_filters`; every one fails open if its data source is unavailable. Per `feedback_free_forever_self_repair` — all free, all self-healing.
+
+### Added — `institutional_edges.py` v1.0 (new module)
+- **`check_relative_strength(sym, cp, prev_close, nifty_pct)`** — entry requires stock_pct − nifty_pct ≥ 1.0%. A stock not keeping up with Nifty is not a leader.
+- **`check_volume_confirmation(sym, rel_vol)`** — entry requires today's relative volume ≥ 1.5×. Volume is institutional footprint.
+- **`check_fii_regime(bm_data, is_bullish, now)`** — blocks longs if FII cash net ≤ ₹-2000 Cr (heavy outflow); blocks shorts if ≥ +₹2000 Cr. Uses already-fetched `MKT_FII_CASH_NET_{date}` from `fetch_fii_dii.py`.
+- **`check_pcr_regime(bm_data, is_bullish)`** — soft filter; logs PCR extremes but doesn't block (PCR is contrarian indicator). Uses `MKT_PCR_NIFTY` from `fetch_bhavcopy.py`.
+- **`check_delivery_percent(sym, bm_data)`** — entry requires `DLV_{SYM}` ≥ 40% (institutional accumulation vs day-jobbing). Uses NEW DLV_* keys from `fetch_bhavcopy.py`.
+
+### Added — `fetch_bhavcopy.py` v1.0 (new fetcher)
+- Daily NSE cash bhavcopy parser (`sec_bhavdata_full_DDMMYYYY.csv`) → `DLV_{SYM}` per equity.
+- NSE option-chain indices API → `MKT_PCR_NIFTY` + `MKT_PCR_BANKNIFTY`.
+- DLV_*  rows are wholesale-replaced each day (not accumulated) so BotMemory stays lean.
+- 3-tier fail-safe: NSE bhavcopy → walks back 5 days for missing files → existing cache continues if all fail. Soft Basic-channel notice if both sub-fetchers down.
+
+### Added — `.github/workflows/fetch_bhavcopy.yml`
+- Mon-Fri 20:00 IST (14:30 UTC) — NSE archives publish bhavcopy ~6:30 PM, 1.5h buffer.
+- Standard failure-alert step matching existing workflows.
+
+### Changed — `trading_bot.py` v15.11 → v15.12
+- Wrapped `import institutional_edges as inst_edges` with try/except — bot survives missing/broken module (falls back to v15.11 filter set).
+- New self-healing helper `_find_nifty200_col(sheet, header_keywords)` — finds column by HEADER NAME via case-insensitive substring match. Caches per-process. No hardcoded column indices that drift when AppScript adds columns.
+- New helper `_read_nifty200_relvol(sheet, sym)` — uses the above to find relative-volume column dynamically.
+- `check_all_entry_filters` extended with 5 new filters (RS, Volume, FII, PCR, Delivery) appended AFTER existing v15.10 filters. Each individually try/except'd so a buggy check cannot cascade.
+- `step_a_enter_trades` passes `cp`, `nifty_sheet`, `bm_data` through to filters.
+
+### Self-repair design
+1. `institutional_edges` import wrapped — bot runs without it.
+2. Each of the 5 filters individually try/except'd in `check_all_entry_filters`.
+3. Nifty200 RelVol column resolved by header name (not index) — survives AppScript column additions.
+4. `fetch_bhavcopy.py` walks back 5 days if today's bhavcopy missing.
+5. Wholesale DLV_* replacement each day prevents stale rows from building up.
+6. PCR is contrarian → soft filter, never blocks (just informational log).
+
+### Pending for next batches
+- Batch 4b: VWAP filter (yfinance 1m data — deferred because per-stock yfinance call is expensive)
+- Batch 5: Small/mid cap scanner from NSE bhavcopy (fixes PositionalLatest missing the ALKALI / GUJTHEM / TVSSRICHAK-class movers)
+
+---
+
 ## 2026-05-27 (evening) — BATCH 3 OPTION-BUYING INTELLIGENCE (`trading_bot.py` v15.11 + new `option_intelligence.py` + new `fetch_earnings.py`)
 
 ### Goal

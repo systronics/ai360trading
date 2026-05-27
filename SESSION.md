@@ -10,9 +10,11 @@
 
 | File | Version | Last Changed |
 |---|---|---|
-| `trading_bot.py` | **v15.11** | 2026-05-27 (Batch 3 option intelligence: ITM strikes, HV-IV filter, stock-anchored exit, PE side, earnings block) |
+| `trading_bot.py` | **v15.12** | 2026-05-27 (Batch 4 institutional edges: RS, volume, FII gate, PCR soft, delivery %) |
 | `option_intelligence.py` | **v1.0** | 2026-05-27 (new — pure-Python option strike + risk module; ₹0/month, fail-open) |
+| `institutional_edges.py` | **v1.0** | 2026-05-27 (new — 5 institutional filters; pure functions, fail-open) |
 | `fetch_earnings.py` | **v1.0** | 2026-05-27 (new — NSE earnings calendar → BotMemory cache, BSE fallback) |
+| `fetch_bhavcopy.py` | **v1.0** | 2026-05-27 (new — NSE bhavcopy + option chain → DLV_* + MKT_PCR_* keys) |
 | `appscript.gs` | **v15.16** | 2026-05-27 (renamed from appscript_v14.gs + holiday list corrected — needs manual paste to Apps Script editor) |
 | `ai_client.py` | v2.4 | May 2026 |
 | `human_touch.py` | v2.2 | May 2026 |
@@ -41,6 +43,13 @@
 ---
 
 ## Last Session Summary
+
+**2026-05-27 (night):** Batch 4 institutional edges — `trading_bot.py` v15.11 → **v15.12** + 2 new files (institutional_edges.py + fetch_bhavcopy.py) + 1 new workflow.
+- New module **`institutional_edges.py` v1.0** — five "smart money" filters: relative strength (≥+1% vs Nifty), volume confirmation (≥1.5×), FII regime gate (block longs if FII net ≤ −₹2000 Cr), PCR soft filter (informational only — PCR is contrarian), delivery % gate (≥40% indicates institutional accumulation). All pure functions, all fail-open.
+- New fetcher **`fetch_bhavcopy.py` v1.0** + workflow **`fetch_bhavcopy.yml`** (Mon-Fri 20:00 IST). Parses NSE cash bhavcopy CSV for `DLV_{SYM}` rows + NSE option chain for `MKT_PCR_NIFTY` / `MKT_PCR_BANKNIFTY`. 5-day fallback if today's file missing.
+- `trading_bot.py` `check_all_entry_filters` extended with 5 institutional gates. Each individually try/except'd so a buggy check cannot cascade.
+- New self-healing helper `_find_nifty200_col()` — finds column by HEADER NAME match, not hardcoded index. Survives AppScript column additions automatically.
+- Smoke tests confirmed all 5 filters block/allow correctly in both pass and fail-open scenarios.
 
 **2026-05-27 (evening):** Batch 3 option-buying intelligence — `trading_bot.py` v15.10 → **v15.11** + 2 new files.
 - New module **`option_intelligence.py` v1.0** — pure-Python smart-options engine. Pure-math NSE strike-step table (1/2/5/10/20/50/100). 20-day HV via yfinance as IV proxy. Earnings window reader (reads BotMemory cache). PE-side support for bearish regime. Stock-anchored exit recommendations.

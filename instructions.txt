@@ -53,9 +53,11 @@ PENDING TASKS — UPDATE AFTER EVERY SESSION
 =======================================================
 CURRENT FILE VERSIONS — UPDATE AFTER EVERY CHANGE
 =======================================================
-trading_bot.py           : v15.11
-option_intelligence.py   : v1.0    (NEW — Batch 3)
-fetch_earnings.py        : v1.0    (NEW — Batch 3, daily 18:30 IST)
+trading_bot.py           : v15.12
+option_intelligence.py   : v1.0    (Batch 3)
+institutional_edges.py   : v1.0    (NEW — Batch 4)
+fetch_earnings.py        : v1.0    (Batch 3, daily 18:30 IST)
+fetch_bhavcopy.py        : v1.0    (NEW — Batch 4, Mon-Fri 20:00 IST)
 appscript.gs             : v15.16  (renamed from appscript_v14.gs — needs manual paste)
 ai_client.py             : v2.4
 human_touch.py           : v2.2

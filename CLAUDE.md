@@ -36,9 +36,11 @@ One broken file = zero income that day. Treat every edit as critical.
 ### Trading Engine
 | File | Version |
 |---|---|
-| `trading_bot.py` | v15.11 |
-| `option_intelligence.py` | v1.0 (NEW — Batch 3) |
-| `fetch_earnings.py` | v1.0 (NEW — Batch 3, daily 18:30 IST) |
+| `trading_bot.py` | v15.12 |
+| `option_intelligence.py` | v1.0 (Batch 3) |
+| `institutional_edges.py` | v1.0 (NEW — Batch 4) |
+| `fetch_earnings.py` | v1.0 (Batch 3, daily 18:30 IST) |
+| `fetch_bhavcopy.py` | v1.0 (NEW — Batch 4, Mon-Fri 20:00 IST) |
 | `appscript.gs` | v15.16 (needs manual paste — renamed from appscript_v14.gs 2026-05-27) |
 
 ### Long-Term Signals
