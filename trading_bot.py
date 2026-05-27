@@ -1,6 +1,49 @@
 """
-AI360 TRADING BOT — v15.9
+AI360 TRADING BOT — v15.10
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v15.10 CHANGES vs v15.9 — BATCH 2 PROFIT PROTECTION (May 2026)
+  GOAL: zero / minimal loss on losers, full-ride trail with profit lock on winners.
+  Five upgrades inspired by what consistently-profitable swing traders actually do.
+
+  1. ONE-R BREAKEVEN — was: BE activates at fixed % (e.g. STD = +2.0%).
+     Now: BE activates at +1R where R = (entry − initial SL). If a stock has a
+     tight 1.2% initial SL the BE moves in at +1.2% (not +2%) so we never give
+     back more than the initial risk. Old fixed-% threshold kept as a hard cap
+     (never activates LATER than before) so behaviour can only improve.
+
+  2. CHANDELIER TRAIL — was: trail SL = current_price − atr*mult (anchored to
+     CMP — so a sharp gap-down before bot tick could lower the trail).
+     Now: trail SL = max_price_reached − atr*mult (anchored to highest price
+     since entry — true Wilder/Le Beau Chandelier exit). TSL can ONLY rise.
+     Locks in larger share of unrealised gains on parabolic runs.
+
+  3. PARTIAL BOOK @ +5% — was: all-or-nothing exit; trade rides full position
+     until target/TSL/SL fires.
+     Now: at +5% unrealised gain, send a one-time partial-book recommendation
+     to Advance/Premium ("book 50%, trail rest"). Stored as {key}_PB1 in
+     BotMemory so it fires only once per trade. Paper trading reports keep
+     full position P/L (we don't tamper with sheet qty) — the alert is the
+     educational signal. Live trading (Phase 4) will actually halve the qty.
+
+  4. TIME STOP (5d / +3%) — was: no time-based exit; sideways trades tied up
+     capital indefinitely.
+     Now: if hold_days ≥ 5 trading days AND gain < +3%, exit "⏰ TIME STOP".
+     Reason: dead capital is opportunity cost. Frees the slot for a fresher
+     setup. Triggered AFTER target/TSL checks so winners are never cut early.
+
+  5. INDIA VIX FILTER — was: no volatility regime gate; bot took entries even
+     during panic days (VIX > 22).
+     Now: fetch ^INDIAVIX via yfinance once per tick; block NEW entries if
+     VIX > 22 (configurable VIX_MAX). Existing trades continue normal exit
+     monitoring. Fails open (entry allowed) if yfinance fetch errors —
+     non-fatal degradation.
+
+  Watchlist breadth note (separate work — Batch 5):
+    PositionalLatest webview shows only F&O-eligible stocks because the
+    scanner universe is Nifty200. Small/mid cap winners like ALKALI +20%
+    or GUJTHEM +15% never enter the universe. Adding a small/mid cap
+    scanner from NSE bhavcopy is deferred to Batch 5 — separate concern.
+
 v15.9 CHANGES vs v15.8 — BATCH 1 SAFETY FIXES (May 2026)
   CRITICAL FIX — NSE_HOLIDAYS_2026 list was WRONG. Verified against NSE
                  official holiday calendar. Specifically:
@@ -171,6 +214,15 @@ MAX_NEW_ENTRIES_BULLISH  = 3
 
 # v15.0: Re-entry cooldown after TARGET HIT
 REENTRY_COOLDOWN_DAYS    = 5   # trading days — not calendar days
+
+# ── Batch 2 profit-protection thresholds (v15.10) ─────────────────────────────
+# All tunable; default values picked from well-known professional rules.
+ONE_R_BE_FLOOR_PCT       = 0.8   # never move BE in below +0.8% even if 1R is smaller
+PARTIAL_BOOK_TRIGGER_PCT = 5.0   # fire one-time partial-book alert at this gain
+TIME_STOP_DAYS           = 5     # exit if hold_days >= this AND gain < TIME_STOP_MIN_GAIN_PCT
+TIME_STOP_MIN_GAIN_PCT   = 3.0
+VIX_MAX                  = 22.0  # block new entries above this India VIX value
+VIX_CALM                 = 15.0  # purely informational — for entry message
 
 CAPITAL_HIGH = 13000
 CAPITAL_MED  = 10000
@@ -476,6 +528,37 @@ def check_nifty_direction(nifty_pct: float, is_bullish: bool) -> tuple:
 
 
 # ══════════════════════════════════════════════════════════════════════════════
+# INDIA VIX — v15.10 Batch 2
+# ══════════════════════════════════════════════════════════════════════════════
+
+def get_india_vix() -> float:
+    """Fetch live India VIX via yfinance. Returns 0 on failure (fail-open)."""
+    try:
+        import yfinance as yf
+        t    = yf.Ticker("^INDIAVIX")
+        info = t.fast_info
+        val  = float(info.get('last_price', 0) or 0)
+        if val > 0:
+            print(f"[VIX] India VIX = {val:.2f}")
+            return round(val, 2)
+        return 0.0
+    except ImportError:
+        print("[VIX] yfinance not installed"); return 0.0
+    except Exception as e:
+        print(f"[VIX] fetch error: {e}"); return 0.0
+
+
+def check_vix(vix_val: float) -> tuple:
+    """Returns (allowed, reason). Fails open if VIX unavailable."""
+    if vix_val <= 0:
+        return True, "VIX unavailable — entry allowed"
+    if vix_val > VIX_MAX:
+        return False, f"India VIX {vix_val:.1f} > {VIX_MAX} — high volatility regime, skip new entries"
+    zone = "calm" if vix_val < VIX_CALM else "normal"
+    return True, f"India VIX {vix_val:.1f} — {zone} ✅"
+
+
+# ══════════════════════════════════════════════════════════════════════════════
 # TIME AND DAY FILTER
 # ══════════════════════════════════════════════════════════════════════════════
 
@@ -508,7 +591,7 @@ def check_daily_entry_limit(today_entries: int, is_bullish: bool) -> tuple:
 # ALL ENTRY FILTERS COMBINED
 # ══════════════════════════════════════════════════════════════════════════════
 
-def check_all_entry_filters(sym, mem, key, is_bullish, now, nifty_pct, today_entries):
+def check_all_entry_filters(sym, mem, key, is_bullish, now, nifty_pct, today_entries, vix_val=0.0):
     """
     Run all entry filters in order of cost (fast checks first, API calls last).
     Returns (allowed: bool, reasons: list, rsi_val: float)
@@ -518,7 +601,8 @@ def check_all_entry_filters(sym, mem, key, is_bullish, now, nifty_pct, today_ent
       2. Time window (date math — instant)
       3. Daily entry limit (count — instant)
       4. Nifty direction (already fetched — instant)
-      5. RSI (yfinance API call — only if 1-4 pass)
+      5. India VIX (already fetched once per tick — instant) — NEW v15.10
+      6. RSI (yfinance API call — only if 1-5 pass)
     """
     reasons = []
 
@@ -546,7 +630,13 @@ def check_all_entry_filters(sym, mem, key, is_bullish, now, nifty_pct, today_ent
     if not allowed:
         return False, reasons, -1
 
-    # Filter 5: RSI (API call — only if 1-4 passed)
+    # Filter 5: India VIX regime (NEW v15.10)
+    allowed, msg = check_vix(vix_val)
+    reasons.append(f"[VIX] {msg}")
+    if not allowed:
+        return False, reasons, -1
+
+    # Filter 6: RSI (API call — only if 1-5 passed)
     allowed, rsi_val, msg = check_rsi_entry(sym, is_bullish)
     reasons.append(f"[RSI] {msg}")
     if not allowed:
@@ -660,6 +750,16 @@ def calc_new_tsl(cp, ent, init_sl, atr, ttype, mem, key, now, ent_time=""):
     ent_time: entry time string from AlertLog row C_ENTRY_TIME.
     Bug fixed v15.2: was using get_exit_date() (always "") → hold check always blocked TSL.
     Now uses actual entry time from the sheet row.
+
+    v15.10 Batch 2 upgrades:
+      • ONE-R BREAKEVEN — effective BE threshold = min(params['breakeven'], 1R%)
+        where 1R% = (ent - init_sl) / ent * 100. Floor at ONE_R_BE_FLOOR_PCT so
+        a freak tight SL can't trigger BE on tiny intraday wiggle. Behaviour
+        only improves (BE moves in EARLIER, never later) vs. v15.9.
+      • CHANDELIER TRAIL — trail step now uses cur_max - atr*mult (highest-high
+        anchor, true Chandelier), not cp - atr*mult (CMP anchor). TSL can only
+        rise — better lock on parabolic moves. Still capped at cp*0.99 to keep
+        SL strictly below current price.
     """
     params   = get_tsl_params(mem, key)
     cur_tsl  = get_tsl(mem, key) or init_sl
@@ -675,19 +775,28 @@ def calc_new_tsl(cp, ent, init_sl, atr, ttype, mem, key, now, ent_time=""):
     if hold_days < hold:
         return cur_tsl, f"min hold ({hold}d)"
 
+    # v15.10: compute 1R-based effective breakeven threshold.
+    # R is the rupee distance from entry to initial SL; one_r_pct is that as %.
+    # We move BE in at whichever is SOONER: 1R or the regime-default %.
+    one_r_pct      = ((ent - init_sl) / ent) * 100 if (ent > 0 and init_sl > 0 and ent > init_sl) else 0
+    eff_breakeven  = params["breakeven"]
+    if one_r_pct > 0:
+        eff_breakeven = min(params["breakeven"], max(one_r_pct, ONE_R_BE_FLOOR_PCT))
+
     if gain_pct >= params["trail"]:
-        trail_sl = cp - atr * params["atr_mult"]
+        # v15.10: Chandelier — anchor to highest price reached, not CMP
+        trail_sl = cur_max - atr * params["atr_mult"]
         new_tsl  = max(cur_tsl, trail_sl)
-        reason   = f"trailing @ {gain_pct:.1f}%"
+        reason   = f"chandelier @ {gain_pct:.1f}%"
     elif gain_pct >= params["lock1"]:
         new_tsl  = max(cur_tsl, ent + atr * 0.5)
         reason   = f"lock1 @ {gain_pct:.1f}%"
-    elif gain_pct >= params["breakeven"]:
+    elif gain_pct >= eff_breakeven:
         new_tsl  = max(cur_tsl, ent * 1.002)
-        reason   = f"breakeven @ {gain_pct:.1f}%"
+        reason   = f"breakeven @ +{gain_pct:.1f}% (1R={one_r_pct:.1f}%)" if one_r_pct > 0 else f"breakeven @ +{gain_pct:.1f}%"
     else:
         new_tsl  = cur_tsl
-        reason   = f"below breakeven ({gain_pct:.1f}%)"
+        reason   = f"below BE thresh {eff_breakeven:.1f}% (gain {gain_pct:.1f}%)"
 
     if cp > cur_max:
         gap_pct = ((cp - cur_max) / cur_max) * 100 if cur_max > 0 else 0
@@ -849,11 +958,12 @@ def build_entry_basic(sym, cp, stage, pct_chg):
 # STEP A: WAITING → TRADED
 # ══════════════════════════════════════════════════════════════════════════════
 
-def step_a_enter_trades(log_sheet, nifty_sheet, bm_sheet, mem, now, is_bullish, nifty_pct, today_entries):
+def step_a_enter_trades(log_sheet, nifty_sheet, bm_sheet, mem, now, is_bullish, nifty_pct, today_entries, vix_val=0.0):
     """
     Check WAITING rows → promote to TRADED if all filters pass.
-    v15.0: RSI + time + day + Nifty + re-entry cooldown checks.
-    v15.2: Cash Intraday trades use separate entry window + capital.
+    v15.0:  RSI + time + day + Nifty + re-entry cooldown checks.
+    v15.2:  Cash Intraday trades use separate entry window + capital.
+    v15.10: India VIX filter — blocks new entries when VIX > VIX_MAX.
     """
     today_s   = now.strftime("%Y-%m-%d")
     bm_data   = get_bm_data(bm_sheet)
@@ -930,7 +1040,7 @@ def step_a_enter_trades(log_sheet, nifty_sheet, bm_sheet, mem, now, is_bullish, 
             rsi_val = -1
         else:
             allowed, filter_reasons, rsi_val = check_all_entry_filters(
-                sym, mem, key, is_bullish, now, nifty_pct, today_entries
+                sym, mem, key, is_bullish, now, nifty_pct, today_entries, vix_val
             )
         for reason in filter_reasons:
             print(f"[FILTER] {sym}: {reason}")
@@ -1068,7 +1178,47 @@ def step_b_monitor_trades(log_sheet, hist_sheet, nifty_sheet, mem, now, is_bulli
                               today_str, mem, key, is_target_hit=True, qty=qty)
             mem = _clear_mem_keys(mem, key); continue
 
+        # v15.10 Batch 2 — PARTIAL BOOK ALERT @ PARTIAL_BOOK_TRIGGER_PCT.
+        # One-shot per trade, gated by {key}_PB1 flag. Paper trading: alert only,
+        # we don't tamper with sheet qty so reported P/L stays clean. In live
+        # trading (Phase 4) this branch will fire a real 50% sell.
+        if pnl_pct >= PARTIAL_BOOK_TRIGGER_PCT and not _mem_get(mem, f"{key}_PB1"):
+            mem = _mem_set(mem, f"{key}_PB1", today_str)
+            _send_partial_book_alert(sym, cp, ent, pnl_pct, qty, cur_tsl)
+
+        # v15.10 Batch 2 — TIME STOP. After TIME_STOP_DAYS trading days, if the
+        # trade has not delivered TIME_STOP_MIN_GAIN_PCT, exit and free the slot.
+        # Runs AFTER target/TSL checks above so winners are never cut early.
+        # Cash intraday trades skip time stop (they have their own 3 PM force exit).
+        if not is_cash_trade(ttype):
+            hd = calc_hold_days(ent_time, now)
+            if hd >= TIME_STOP_DAYS and pnl_pct < TIME_STOP_MIN_GAIN_PCT:
+                mem = _exit_trade(log_sheet, hist_sheet, i, sym, ent, cp, tgt, sl, cur_tsl,
+                                  atr, ttype, strat, stage, ent_time, now,
+                                  f"⏰ TIME STOP ({hd}d, +{pnl_pct:.1f}%)",
+                                  today_str, mem, key, is_target_hit=False, qty=qty)
+                mem = _clear_mem_keys(mem, key); continue
+
     return mem
+
+
+def _send_partial_book_alert(sym, cp, ent, pnl_pct, qty, tsl_now):
+    """v15.10 Batch 2 — fires once per trade when unrealised gain crosses
+    PARTIAL_BOOK_TRIGGER_PCT. Goes to Advance + Premium (educational signal)."""
+    booked   = int((qty or 0) // 2)
+    book_val = round(booked * cp, 0)
+    msg = (
+        f"💰 <b>PARTIAL BOOK SIGNAL</b>\n"
+        f"━━━━━━━━━━━━━━━━━━━━\n"
+        f"Stock: {sym.replace('NSE:', '')}\n"
+        f"LTP ₹{cp:.2f} | Entry ₹{ent:.2f} | <b>+{pnl_pct:.2f}%</b>\n\n"
+        f"Recommended action:\n"
+        f"   ✅ Book 50% ({booked} sh ≈ ₹{book_val:,.0f}) — locks profit\n"
+        f"   📈 Hold remaining 50% with TSL ₹{tsl_now:.2f}\n"
+        f"   🎯 Let winners ride to target on the leftover qty\n\n"
+        f"<i>Why: removing initial risk turns this into a free trade.</i>"
+    )
+    send_advance_and_premium(msg)
 
 
 def _send_tsl_update(sym, cp, ent, new_tsl, pnl_pct, pnl_rs, reason):
@@ -1157,7 +1307,10 @@ def _exit_trade(log_sheet, hist_sheet, row_idx, sym, ent, exit_p, tgt, sl, tsl_a
 
 
 def _clear_mem_keys(mem, key):
-    prefixes = [f"{key}_TSL_", f"{key}_MAX_", f"{key}_LP_", f"{key}_ATR_"]
+    # v15.10: also clear PB1 (partial book fired) flag and MODE so the next
+    # entry for this symbol (after cooldown) starts with a clean slate.
+    prefixes = [f"{key}_TSL_", f"{key}_MAX_", f"{key}_LP_", f"{key}_ATR_",
+                f"{key}_PB1=", f"{key}_MODE="]
     parts    = [p for p in mem.split(',') if p.strip() and not any(p.startswith(px) for px in prefixes)]
     return ','.join(parts)
 
@@ -1240,7 +1393,7 @@ def send_good_morning(log_sheet, mem, is_bullish, nifty_cmp, nifty_dma, nifty_pc
         f"{window}\n"
         f"RSI filter: < {RSI_MAX_BULLISH if is_bullish else RSI_MAX_BEARISH} | Re-entry: {REENTRY_COOLDOWN_DAYS}d cooldown after target\n\n"
         f"{'Watching: ' + ', '.join(waiting_stocks[:5]) if waiting_stocks else 'No WAITING stocks'}\n\n"
-        f"<i>v15.9 — RSI + Time + Nifty + Re-entry filters | Memory → BotMemory</i>"
+        f"<i>v15.10 — RSI+Time+Nifty+VIX+1R-BE+Chandelier+Partial+TimeStop</i>"
     )
     watchlist_line = f"📋 Watchlist: {waiting} stock(s) identified today" if waiting else "📋 No setups in watchlist yet — scan runs at market open"
     msg_basic = (
@@ -1562,7 +1715,7 @@ def auto_maintain_sheets(bm_sheet, hist_sheet, mem, now):
 def send_test_messages():
     now = datetime.now(IST)
     msg = (
-        f"✅ <b>TEST MESSAGE — AI360 Trading Bot v15.9</b>\n"
+        f"✅ <b>TEST MESSAGE — AI360 Trading Bot v15.10</b>\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
         f"Time: {now.strftime('%d %b %Y %H:%M')} IST\n"
         f"Token: {'✅ OK' if TG_TOKEN else '❌ MISSING'}\n\n"
@@ -1592,7 +1745,7 @@ def main():
     dow      = now.weekday()
 
     print(f"\n{'='*55}")
-    print(f"AI360 Trading Bot v15.9 — {now.strftime('%d %b %Y %H:%M')} IST")
+    print(f"AI360 Trading Bot v15.10 — {now.strftime('%d %b %Y %H:%M')} IST")
     print(f"{'='*55}")
 
     if is_holiday(today_s): print(f"[SKIP] Holiday: {today_s}"); return
@@ -1656,9 +1809,14 @@ def main():
     if "08:44" <= time_str <= "08:52":
         mem = send_good_morning(log, mem, is_bullish, nifty_cmp, nifty_dma, nifty_pct, now)
 
+    # v15.10: fetch India VIX once per tick (one yfinance call, fail-open).
+    # Used as a regime filter for new entries only; existing trades continue
+    # to be monitored / exited normally regardless of VIX.
+    vix_val = get_india_vix() if is_market_hours(now) else 0.0
+
     if is_market_hours(now):
         mem, today_entries = step_a_enter_trades(
-            log, nifty, bm, mem, now, is_bullish, nifty_pct, today_entries
+            log, nifty, bm, mem, now, is_bullish, nifty_pct, today_entries, vix_val
         )
         mem = step_b_monitor_trades(log, hist, nifty, mem, now, is_bullish)
 

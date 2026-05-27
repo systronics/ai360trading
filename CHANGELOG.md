@@ -2,7 +2,32 @@
 
 ---
 
-## 2026-05-27 — BATCH 1 SAFETY FIXES (`trading_bot.py` v15.9 + `appscript_v14.gs` v15.16)
+## 2026-05-27 (afternoon) — BATCH 2 PROFIT PROTECTION (`trading_bot.py` v15.10) + filename cleanup
+
+### Goal
+"Zero/min loss on losers, full ride with profit-lock on winners." Five professional-grade upgrades on top of v15.9.
+
+### Added (`trading_bot.py` v15.9 → v15.10)
+- **ONE-R BREAKEVEN** — breakeven now activates at the SOONER of the fixed-% threshold (e.g. STD = +2.0%) or +1R, where R = (entry − initial SL). Floor at +0.8% so a freak tight SL can't trigger BE on a tiny wiggle. Behaviour only improves vs. v15.9 — BE moves in EARLIER, never later.
+- **CHANDELIER TRAIL** — trail step now uses `cur_max − atr*mult` (highest-high anchor), replacing the CMP-anchored `cp − atr*mult`. TSL can only rise. Cap at `cp*0.99` retained so SL is always strictly below current price. Locks much more of a parabolic gain.
+- **PARTIAL BOOK @ +5%** — at +5% unrealised gain, fires a one-time Advance/Premium alert recommending "book 50%, trail rest". Gated by `{key}_PB1` flag in BotMemory so it fires once per trade. Paper trading keeps full-position P/L unchanged (no sheet qty tampering); Phase-4 live trading will actually halve the order.
+- **TIME STOP** — after 5 trading days if gain < +3%, exit with reason `⏰ TIME STOP (Nd, +X%)`. Cash intraday exempt (has 3 PM force exit). Triggers AFTER target/TSL checks so winners are never cut early.
+- **INDIA VIX FILTER** — fetch `^INDIAVIX` via yfinance once per tick; block new entries if `VIX > 22`. Fails open if fetch errors. Existing trades continue normal monitoring/exits regardless of VIX.
+
+### Renamed
+- `appscript_v14.gs` → `appscript.gs` — filename was misleading (file content is v15.16, name said v14). AppScript editor doesn't read filenames; manual paste flow unchanged. Historical CHANGELOG entries kept with old name (accurate as of those dates).
+
+### Watchlist breadth — deferred to Batch 5
+User noted PositionalLatest webview shows only F&O-eligible large caps; today's screenshots showed +10-20% movers in small/mid caps (ALKALI, SURYALA, THOMASCOTT, JPPOWER, GUJTHEM, TVSSRICHAK). Scanner universe is Nifty200 — these stocks were never scanned. Fix is a separate small/mid cap scanner pulling NSE bhavcopy (free, daily). Out of scope for Batch 2.
+
+### Not yet in this batch
+- Batch 3 (option-buying upgrade): ITM strikes, IV percentile via NSE option chain, earnings block, stock-anchored exits, PE side
+- Batch 4 (institutional edges): volume + relative-strength + VWAP filter, PCR + OI + delivery % from NSE bhavcopy, gate entries on real FII flow already being fetched
+- Batch 5 (universe breadth): small/mid cap scanner
+
+---
+
+## 2026-05-27 (morning) — BATCH 1 SAFETY FIXES (`trading_bot.py` v15.9 + `appscript_v14.gs` v15.16)
 
 ### CRITICAL — Holiday list was wrong
 - Wed 2026-05-27 was hardcoded as a holiday in **both** `trading_bot.py:155` and `appscript_v14.gs:156`. The actual NSE holiday is **Thu 2026-05-28 (Bakri Id)**.

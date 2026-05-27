@@ -10,8 +10,8 @@
 
 | File | Version | Last Changed |
 |---|---|---|
-| `trading_bot.py` | **v15.9** | 2026-05-27 (Batch 1: holiday fix + BUG-B TSL writeback + BUG-C SL>price guard + BUG-E cash counting) |
-| `appscript_v14.gs` | **v15.16** | 2026-05-27 (holiday list corrected — needs manual paste to Apps Script editor) |
+| `trading_bot.py` | **v15.10** | 2026-05-27 (Batch 2 profit protection: 1R-BE, Chandelier, partial book, time stop, VIX filter) |
+| `appscript.gs` | **v15.16** | 2026-05-27 (renamed from appscript_v14.gs + holiday list corrected — needs manual paste to Apps Script editor) |
 | `ai_client.py` | v2.4 | May 2026 |
 | `human_touch.py` | v2.2 | May 2026 |
 | `generate_longterm.py` | **v1.6** | 2026-05-26 (BUG-3 RSI NaN + BUG-4 BOOK PARTIAL ladder) |
@@ -40,7 +40,15 @@
 
 ## Last Session Summary
 
-**2026-05-27:** Batch 1 safety fixes — `trading_bot.py` v15.8 → **v15.9**, `appscript_v14.gs` v15.15 → **v15.16**.
+**2026-05-27 (afternoon):** Batch 2 profit protection — `trading_bot.py` v15.9 → **v15.10**.
+- **ONE-R BREAKEVEN** — BE now activates at the SOONER of fixed-% threshold or +1R (initial risk distance). Floor at +0.8% to avoid tight-SL whipsaws. Behaviour only improves over v15.9 (BE never moves in later than before).
+- **CHANDELIER TRAIL** — trail SL anchored to highest-price-reached minus atr*mult (not CMP). Trail can only rise. Locks much more of a parabolic run vs. the CMP-anchored formula. Cap at cp*0.99 retained.
+- **PARTIAL BOOK @ +5%** — one-time Advance/Premium alert recommending "book 50%, trail rest". Paper trading keeps full-position P/L (no sheet qty tampering). Phase-4 live trading will actually halve the order. Flag stored as `{key}_PB1` so fires once per trade.
+- **TIME STOP** — exit after 5 trading days if gain < +3%. Cash intraday exempt (has its own 3 PM force exit). Runs AFTER target/TSL checks so winners are never cut early.
+- **INDIA VIX FILTER** — yfinance `^INDIAVIX` fetched once per tick; blocks new entries if VIX > 22. Fails open if fetch errors. Existing trades continue normal monitoring/exits.
+- **Renamed `appscript_v14.gs` → `appscript.gs`** (filename mismatch with internal v15.16 was confusing). Historical CHANGELOG entries unchanged. AppScript editor doesn't care about filename — manual paste flow unchanged.
+
+**2026-05-27 (morning):** Batch 1 safety fixes — `trading_bot.py` v15.8 → **v15.9**, `appscript.gs` v15.15 → **v15.16**.
 - **CRITICAL — NSE_HOLIDAYS_2026 was wrong.** 2026-05-27 (today, Wed) was listed as a holiday — actual holiday is 2026-05-28 (Bakri Id, Thu). Bot AND AppScript both skipped today. Result: no Good Morning Telegram, no entry checks, no target-hit exit for CUMMINSIND (+12.01%) or HINDALCO (+6.08%) — both still showing as TRADED on the sheet instead of EXITED. Fixed both files using the NSE official 2026 holiday list (cross-checked against nseindia.com screenshot supplied by Amit ji). Multiple other 2026 dates corrected too (Ram Navami, Good Friday, Muharram, plus three missing entries — Maharashtra elec, Holi, Mahavir).
 - **BUG-B** — Trailing SL was never written to AlertLog column O (only stored in BotMemory). Screenshot 2 showed `Trailing SL: —` for every TRADED row. Now writes the new TSL to col O after each set_tsl. Best-effort try/except.
 - **BUG-C** — WAITING row with SL >= current price would exit instantly on promotion (MCX example: SL ₹3,194 set Tuesday, today MCX -4.5% to ₹3,012). Now skipped with `[SETUP INVALIDATED]` log; row left for AppScript to age out.

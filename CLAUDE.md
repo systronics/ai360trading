@@ -37,7 +37,7 @@ One broken file = zero income that day. Treat every edit as critical.
 | File | Version |
 |---|---|
 | `trading_bot.py` | v15.9 |
-| `appscript_v14.gs` | v15.16 (needs manual paste) |
+| `appscript.gs` | v15.16 (needs manual paste — renamed from appscript_v14.gs 2026-05-27) |
 
 ### Long-Term Signals
 | File | Version |
