@@ -10,7 +10,9 @@
 
 | File | Version | Last Changed |
 |---|---|---|
-| `trading_bot.py` | **v15.10** | 2026-05-27 (Batch 2 profit protection: 1R-BE, Chandelier, partial book, time stop, VIX filter) |
+| `trading_bot.py` | **v15.11** | 2026-05-27 (Batch 3 option intelligence: ITM strikes, HV-IV filter, stock-anchored exit, PE side, earnings block) |
+| `option_intelligence.py` | **v1.0** | 2026-05-27 (new — pure-Python option strike + risk module; ₹0/month, fail-open) |
+| `fetch_earnings.py` | **v1.0** | 2026-05-27 (new — NSE earnings calendar → BotMemory cache, BSE fallback) |
 | `appscript.gs` | **v15.16** | 2026-05-27 (renamed from appscript_v14.gs + holiday list corrected — needs manual paste to Apps Script editor) |
 | `ai_client.py` | v2.4 | May 2026 |
 | `human_touch.py` | v2.2 | May 2026 |
@@ -39,6 +41,14 @@
 ---
 
 ## Last Session Summary
+
+**2026-05-27 (evening):** Batch 3 option-buying intelligence — `trading_bot.py` v15.10 → **v15.11** + 2 new files.
+- New module **`option_intelligence.py` v1.0** — pure-Python smart-options engine. Pure-math NSE strike-step table (1/2/5/10/20/50/100). 20-day HV via yfinance as IV proxy. Earnings window reader (reads BotMemory cache). PE-side support for bearish regime. Stock-anchored exit recommendations.
+- New fetcher **`fetch_earnings.py` v1.0** + workflow **`.github/workflows/fetch_earnings.yml`** (daily 18:30 IST). NSE event calendar → BSE fallback → existing cache. Self-repair: never marks GH Action failed if upstream APIs down.
+- `trading_bot.py` `ce_candidate_flag(...)` now routes through `opt_intel.recommend_option(...)` for smart picks. Wrapped in try/except — if `option_intelligence` is missing or broken, bot falls back to v15.10 ATM/OTM path (graceful degradation).
+- Bearish-regime options no longer silently skipped — PE side now supported.
+- Exit text changed from "option −40%" to "stock −1.5%" (≈ option −15% at Δ0.7).
+- Saved feedback memory **`feedback_free_forever_self_repair`** — captures Amit ji's principle that every component must be ₹0/month + auto-update + fail-open.
 
 **2026-05-27 (afternoon):** Batch 2 profit protection — `trading_bot.py` v15.9 → **v15.10**.
 - **ONE-R BREAKEVEN** — BE now activates at the SOONER of fixed-% threshold or +1R (initial risk distance). Floor at +0.8% to avoid tight-SL whipsaws. Behaviour only improves over v15.9 (BE never moves in later than before).

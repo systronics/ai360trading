@@ -2,6 +2,48 @@
 
 ---
 
+## 2026-05-27 (evening) — BATCH 3 OPTION-BUYING INTELLIGENCE (`trading_bot.py` v15.11 + new `option_intelligence.py` + new `fetch_earnings.py`)
+
+### Goal
+Move option recommendations from "guesswork ATM/OTM picks" to actual edge-trading: ITM strikes (Δ≈0.7), HV-based IV gate, stock-anchored exits, PE side for bearish regime, earnings-window block. All free, all self-healing — per `feedback_free_forever_self_repair` memory.
+
+### Added — `option_intelligence.py` v1.0 (new module)
+- **`compute_itm_strike(cp, direction, depth)`** — NSE strike-step table (1/2/5/10/20/50/100); picks 1-2 strikes ITM for ~0.65–0.75 delta. Pure math, no API.
+- **`get_historical_volatility(symbol, days=20)`** — annualised 20-day HV via yfinance, IV-proxy. In-process cache to avoid duplicate calls per tick.
+- **`check_iv_regime(symbol)`** — calm/normal/elevated/extreme classification; blocks new CE/PE if HV > 55%. Fails open if yfinance unavailable.
+- **`check_earnings_window(symbol, mem, now, days=3)`** — reads BotMemory `EARNINGS_{SYM}_{DATE}` keys; blocks if announcement within ±3 days.
+- **`recommend_option(symbol, cp, atr, stage, is_bullish, mem, now)`** — single entry point combining all checks. Returns `{action, strike, label, delta, hv, reasons, sl_pct, tgt_pct}`. Bearish regime now produces `BUY_PE`, not `SKIP`.
+- **`format_option_alert(...)`** — builds the option block appended to TRADE ENTRY alerts.
+
+### Added — `fetch_earnings.py` v1.0 (new fetcher)
+- Daily NSE event calendar fetcher with BSE fallback.
+- Writes/de-dupes BotMemory `EARNINGS_{SYM}_{DATE} = "Result"` rows.
+- Stale-clean: rows older than 7 days purged per run.
+- If both NSE & BSE fail: exits cleanly (no GH Action failure flap), sends soft Basic-channel notice; existing cache continues serving.
+
+### Added — `.github/workflows/fetch_earnings.yml`
+- Daily 18:30 IST cron (13:00 UTC).
+- Standard failure-alert step matching `fetch_fii_dii.yml` pattern.
+
+### Changed — `trading_bot.py` v15.10 → v15.11
+- Imports `option_intelligence` with graceful fallback (try/except). If module missing or import fails, bot still runs — falls back to old v15.10 ATM/OTM logic.
+- `ce_candidate_flag(...)` accepts `sym`, `mem`, `now` and routes through `opt_intel.recommend_option` for smart path; old logic kept as fallback for self-repair.
+- `build_entry_premium(...)` passes `mem` and `now` through.
+- Stock-anchored exit text on fallback path too: "Exit on stock −1.5%" (was "option −40%").
+
+### Self-repair design notes (per `feedback_free_forever_self_repair`)
+1. `option_intelligence` module load wrapped in try/except — bot survives a missing or broken module.
+2. Every `option_intelligence` external call (yfinance HV, BotMemory earnings read) fails open. A single network failure cannot stall a tick.
+3. `fetch_earnings.py` tries NSE → BSE → existing cache, in that order. Never marks GH Action as failed if both upstream sources are down (existing cache is the third tier).
+4. BotMemory cache aged out automatically (7-day TTL inside the fetcher).
+5. New module is independently version-stamped (v1.0) and unit-testable without the live sheet.
+
+### Pending for next batches
+- Batch 4 (institutional edges): volume + relative-strength + VWAP + PCR/OI/delivery via NSE bhavcopy, gate entries on real FII flow.
+- Batch 5 (universe breadth): small/mid cap scanner from NSE bhavcopy.
+
+---
+
 ## 2026-05-27 (afternoon) — BATCH 2 PROFIT PROTECTION (`trading_bot.py` v15.10) + filename cleanup
 
 ### Goal

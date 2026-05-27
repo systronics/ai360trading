@@ -1,6 +1,44 @@
 """
-AI360 TRADING BOT — v15.10
+AI360 TRADING BOT — v15.11
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v15.11 CHANGES vs v15.10 — BATCH 3 OPTION-BUYING INTELLIGENCE (May 2026)
+  Five upgrades to convert the bot from "options as gimmick" to actual
+  edge-trading on options. All free, all self-healing — no paid feeds.
+
+  1. SMART ITM STRIKE — was: scanner picked ATM or 1-strike OTM (high theta,
+     low delta). Now: option_intelligence.compute_itm_strike() picks 1-2
+     strikes ITM (Δ≈0.65–0.75) so the option moves like the stock and theta
+     decay is survivable. NSE strike-step table built in (1/2/5/10/20/50/100).
+     Sheet keeps scanner's original pick for record; Telegram alert uses smart.
+
+  2. HV-BASED IV FILTER — was: no volatility check; bot suggested CE on days
+     when premium was already 80th percentile rich. Now: 20-day annualised
+     historical volatility via yfinance is used as IV proxy. Blocks new
+     CE/PE if HV > 55% (premium too expensive to make money). Fails open
+     if yfinance returns nothing — entry allowed.
+
+  3. STOCK-ANCHORED EXIT — was: "exit if option −40% OR stock hits SL" —
+     stock at SL means loss is already 100%+ on the option. Now: SL is
+     stock −1.5% which equates to ≈ −15% on a Δ0.7 option — exit while
+     there's still premium left to salvage. Target: option +50% (≈ stock +5%).
+
+  4. PE FOR BEARISH — was: `if not is_bullish: return ""` — bot skipped
+     options entirely in bearish regime, leaving money on the table during
+     correction phases. Now: bearish regime + sell signal = BUY_PE on a
+     2-strike ITM put with same risk discipline.
+
+  5. EARNINGS WINDOW BLOCK — was: bot suggested CE the day before results
+     = lottery ticket (70% lose to IV crush). Now: reads BotMemory
+     EARNINGS_{SYM}_{DATE} keys (populated by fetch_earnings.py — to be
+     added in Batch 3b). Within ±3 trading days → SKIP. Today's behaviour:
+     no cache yet → fails open (no block) until fetch_earnings.py runs.
+
+  Architecture note — per feedback_free_forever_self_repair memory:
+    All option logic lives in a NEW MODULE option_intelligence.py so it
+    can be improved/extended without touching trading_bot core. Every
+    external call (yfinance HV, BotMemory earnings read) fails open;
+    a single API failure cannot stall a tick.
+
 v15.10 CHANGES vs v15.9 — BATCH 2 PROFIT PROTECTION (May 2026)
   GOAL: zero / minimal loss on losers, full-ride trail with profit lock on winners.
   Five upgrades inspired by what consistently-profitable swing traders actually do.
@@ -175,6 +213,16 @@ ALERTLOG COLUMN MAP (0-based):
 import os, json, pytz, requests, gspread
 from datetime import datetime, timedelta
 from oauth2client.service_account import ServiceAccountCredentials
+
+# v15.11 Batch 3 — option-buying intelligence module. Import is wrapped so the
+# bot still runs if the file is missing (graceful degradation, self-repair).
+try:
+    import option_intelligence as opt_intel
+    _OPT_INTEL_AVAILABLE = True
+except Exception as _e:
+    print(f"[BOOT] option_intelligence module unavailable: {_e} — option alerts will fall back to v15.10 ATM/OTM logic")
+    opt_intel = None
+    _OPT_INTEL_AVAILABLE = False
 
 IST       = pytz.timezone('Asia/Kolkata')
 TG_TOKEN  = os.environ.get('TELEGRAM_BOT_TOKEN')
@@ -890,10 +938,41 @@ def get_market_regime(nifty_sheet):
 # ══════════════════════════════════════════════════════════════════════════════
 
 def ce_candidate_flag(cp, atr, stage, is_bullish, rank=99,
-                      opt_signal="", opt_strike="", opt_expiry="", opt_theta=""):
+                      opt_signal="", opt_strike="", opt_expiry="", opt_theta="",
+                      sym="", mem="", now=None):
+    """
+    v15.11 Batch 3 — now produces a smart option recommendation via
+    option_intelligence module: ITM strike pick, HV-based IV filter,
+    earnings block, PE-side support for bearish regime, stock-anchored
+    SL/target. Old v15.10 ATM/OTM path retained as fallback when the
+    module is unavailable (self-repair).
+
+    Eligibility gates (unchanged):
+      • rank > 5            → skip (only top-5 priority stocks get options)
+      • cp <= 0 or atr <= 0 → skip (bad data)
+    """
+    if rank > 5:                  return ""
+    if cp <= 0 or atr <= 0:       return ""
+
+    # Smart path — preferred when option_intelligence loaded successfully.
+    if _OPT_INTEL_AVAILABLE and sym and now is not None:
+        try:
+            rec = opt_intel.recommend_option(
+                symbol=sym, cp=cp, atr=atr, stage=stage,
+                is_bullish=is_bullish, mem=mem or "", now=now,
+            )
+            return opt_intel.format_option_alert(
+                symbol=sym, cp=cp, rec=rec,
+                scanner_strike=opt_strike, scanner_expiry=opt_expiry,
+                scanner_theta=opt_theta,
+            )
+        except Exception as e:
+            print(f"[OPT] smart recommend failed for {sym}: {e} — falling back to v15.10 path")
+
+    # Fallback path — v15.10 logic, kept verbatim so bot never goes silent
+    # on options even if option_intelligence misbehaves. Bearish still skipped
+    # in fallback because old code never supported PE side.
     if not is_bullish: return ""
-    if rank > 5:       return ""
-    if cp <= 0 or atr <= 0: return ""
     if opt_signal in ("📊 BUY CE", "📦 BASE CE") and opt_strike:
         label = "BASE OPTIONS" if "BASE" in opt_signal else "OPTIONS"
         return (
@@ -902,7 +981,7 @@ def ce_candidate_flag(cp, atr, stage, is_bullish, rank=99,
             f"   📅 Expiry: {opt_expiry}\n"
             f"   ⏳ Theta: {opt_theta}\n"
             f"   ⚡ Entry: 9:30-9:45 AM after stock triggers\n"
-            f"   🛑 Exit: if option -40% OR stock hits SL\n"
+            f"   🛑 Exit: stock −1.5% (≈ option −10% to −15%)\n"
             f"   ⚠️ Check live premium on Zerodha"
         )
     atr_pct = (atr/cp)*100
@@ -913,7 +992,7 @@ def ce_candidate_flag(cp, atr, stage, is_bullish, rank=99,
     tgt_p = 50 if atr_pct>=2.5 else 65; sl_p = 35 if atr_pct>=2.5 else 40
     return (
         f"\n\n📊 <b>CE CANDIDATE</b> (ATR {atr_pct:.1f}%)\n"
-        f"   Strike: {strike} | Target: +{tgt_p}% | SL: -{sl_p}%\n"
+        f"   Strike: {strike} | Target: +{tgt_p}% | SL: stock −1.5%\n"
         f"   ⚠️ VIX check before buying"
     )
 
@@ -938,10 +1017,15 @@ def build_entry_advance(sym, cp, stage, sl, tgt, rr, ttype, atr, rank, capital, 
     )
 
 def build_entry_premium(sym, cp, stage, sl, tgt, rr, ttype, atr, rank, capital, is_bullish,
-                        rsi_val=-1, nifty_pct=0, opt_signal="", opt_strike="", opt_expiry="", opt_theta=""):
+                        rsi_val=-1, nifty_pct=0, opt_signal="", opt_strike="", opt_expiry="", opt_theta="",
+                        mem="", now=None):
     base = build_entry_advance(sym, cp, stage, sl, tgt, rr, ttype, atr, rank, capital, is_bullish,
                                 rsi_val, nifty_pct, opt_signal, opt_strike, opt_expiry, opt_theta)
-    return base + ce_candidate_flag(cp, atr, stage, is_bullish, rank, opt_signal, opt_strike, opt_expiry, opt_theta)
+    # v15.11: pass sym/mem/now to enable smart option recommendation via
+    # option_intelligence (HV regime + earnings + ITM strike + PE side).
+    return base + ce_candidate_flag(cp, atr, stage, is_bullish, rank,
+                                    opt_signal, opt_strike, opt_expiry, opt_theta,
+                                    sym=sym, mem=mem, now=now)
 
 def build_entry_basic(sym, cp, stage, pct_chg):
     name = sym.replace("NSE:", "")
@@ -1086,7 +1170,8 @@ def step_a_enter_trades(log_sheet, nifty_sheet, bm_sheet, mem, now, is_bullish, 
                                           opt_signal, opt_strike, opt_expiry, opt_theta)
         msg_premium = build_entry_premium(sym, cp, stage, sl, tgt, rr_str, ttype, atr,
                                           rank, capital, is_bullish, rsi_val, nifty_pct,
-                                          opt_signal, opt_strike, opt_expiry, opt_theta)
+                                          opt_signal, opt_strike, opt_expiry, opt_theta,
+                                          mem=mem, now=now)
         msg_basic   = build_entry_basic(sym, cp, stage, to_f(row[C_PNL]))
         send_basic(msg_basic); send_advance(msg_advance); send_premium(msg_premium)
 
@@ -1393,7 +1478,7 @@ def send_good_morning(log_sheet, mem, is_bullish, nifty_cmp, nifty_dma, nifty_pc
         f"{window}\n"
         f"RSI filter: < {RSI_MAX_BULLISH if is_bullish else RSI_MAX_BEARISH} | Re-entry: {REENTRY_COOLDOWN_DAYS}d cooldown after target\n\n"
         f"{'Watching: ' + ', '.join(waiting_stocks[:5]) if waiting_stocks else 'No WAITING stocks'}\n\n"
-        f"<i>v15.10 — RSI+Time+Nifty+VIX+1R-BE+Chandelier+Partial+TimeStop</i>"
+        f"<i>v15.11 — Batch3 smart options: ITM strike + HV-IV + PE + stock-anchored exit</i>"
     )
     watchlist_line = f"📋 Watchlist: {waiting} stock(s) identified today" if waiting else "📋 No setups in watchlist yet — scan runs at market open"
     msg_basic = (
@@ -1715,7 +1800,7 @@ def auto_maintain_sheets(bm_sheet, hist_sheet, mem, now):
 def send_test_messages():
     now = datetime.now(IST)
     msg = (
-        f"✅ <b>TEST MESSAGE — AI360 Trading Bot v15.10</b>\n"
+        f"✅ <b>TEST MESSAGE — AI360 Trading Bot v15.11</b>\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
         f"Time: {now.strftime('%d %b %Y %H:%M')} IST\n"
         f"Token: {'✅ OK' if TG_TOKEN else '❌ MISSING'}\n\n"
@@ -1745,7 +1830,7 @@ def main():
     dow      = now.weekday()
 
     print(f"\n{'='*55}")
-    print(f"AI360 Trading Bot v15.10 — {now.strftime('%d %b %Y %H:%M')} IST")
+    print(f"AI360 Trading Bot v15.11 — {now.strftime('%d %b %Y %H:%M')} IST")
     print(f"{'='*55}")
 
     if is_holiday(today_s): print(f"[SKIP] Holiday: {today_s}"); return

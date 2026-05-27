@@ -1,0 +1,80 @@
+name: Earnings Cache Refresh
+
+# v1.0 (May 2026):
+#   Populates BotMemory EARNINGS_{SYM}_{DATE} keys used by
+#   option_intelligence.check_earnings_window() to block CE/PE entries within
+#   ±3 trading days of result announcements.
+#
+#   Source order: NSE event calendar (preferred) → BSE results announcements
+#   (fallback). Both free. If both fail, existing cache continues to serve
+#   and a soft Basic-channel notice is sent.
+#
+#   Schedule: daily 18:30 IST = 13:00 UTC. After market close + NSE buffer.
+
+on:
+  schedule:
+    # Daily 6:30 PM IST = 13:00 UTC
+    - cron: "0 13 * * *"
+  workflow_dispatch:
+
+jobs:
+  fetch-earnings:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run earnings fetcher
+        env:
+          GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
+          TELEGRAM_BOT_TOKEN:       ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID_BASIC:            ${{ secrets.CHAT_ID_BASIC }}
+        run: python fetch_earnings.py
+
+      - name: Notify Telegram on failure
+        if: failure()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID_BASIC:      ${{ secrets.CHAT_ID_BASIC }}
+          WF_NAME:            "${{ github.workflow }}"
+          RUN_URL:            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        continue-on-error: true
+        run: |
+          python - <<'PYEOF'
+          import os, json
+          from urllib.request import Request, urlopen
+          token = os.environ.get('TELEGRAM_BOT_TOKEN','')
+          chat  = os.environ.get('CHAT_ID_BASIC','')
+          if not token or not chat:
+              print('[NOTIFY] Telegram creds missing — skip'); raise SystemExit(0)
+          msg = (
+              "⚠️ <b>System Notice — AI360Trading</b>\n\n"
+              f"Workflow failed: <b>{os.environ.get('WF_NAME','?')}</b>\n"
+              f"Run log: {os.environ.get('RUN_URL','')}\n\n"
+              "<i>This is a system message, not a trade signal. "
+              "Engineer will investigate. Existing earnings cache continues to serve.</i>"
+          )
+          try:
+              req = Request(
+                  f"https://api.telegram.org/bot{token}/sendMessage",
+                  data=json.dumps({'chat_id':chat,'text':msg,'parse_mode':'HTML'}).encode(),
+                  headers={'Content-Type':'application/json'},
+              )
+              urlopen(req, timeout=10).read()
+              print('[NOTIFY] Failure alert sent to Basic channel')
+          except Exception as e:
+              print(f'[NOTIFY] Send failed: {e}')
+          PYEOF
