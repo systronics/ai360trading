@@ -10,11 +10,12 @@
 
 | File | Version | Last Changed |
 |---|---|---|
-| `trading_bot.py` | **v15.12** | 2026-05-27 (Batch 4 institutional edges: RS, volume, FII gate, PCR soft, delivery %) |
-| `option_intelligence.py` | **v1.0** | 2026-05-27 (new — pure-Python option strike + risk module; ₹0/month, fail-open) |
-| `institutional_edges.py` | **v1.0** | 2026-05-27 (new — 5 institutional filters; pure functions, fail-open) |
-| `fetch_earnings.py` | **v1.0** | 2026-05-27 (new — NSE earnings calendar → BotMemory cache, BSE fallback) |
-| `fetch_bhavcopy.py` | **v1.0** | 2026-05-27 (new — NSE bhavcopy + option chain → DLV_* + MKT_PCR_* keys) |
+| `trading_bot.py` | **v15.13** | 2026-05-27 (Batch-4 hotfix: RelVol % conversion + RS column lookup + exact-match) |
+| `option_intelligence.py` | **v1.0** | 2026-05-27 (Batch 3) |
+| `institutional_edges.py` | **v1.0** | 2026-05-27 (Batch 4) |
+| `fetch_earnings.py` | **v1.0** | 2026-05-27 (Batch 3, daily 18:30 IST) |
+| `fetch_bhavcopy.py` | **v1.0** | 2026-05-27 (Batch 4, Mon-Fri 20:00 IST) |
+| `fetch_smallmidcap.py` | **v1.0** | 2026-05-27 (new — Batch 5 selective SMC momentum scanner, Mon-Fri 20:30 IST) |
 | `appscript.gs` | **v15.16** | 2026-05-27 (renamed from appscript_v14.gs + holiday list corrected — needs manual paste to Apps Script editor) |
 | `ai_client.py` | v2.4 | May 2026 |
 | `human_touch.py` | v2.2 | May 2026 |
@@ -43,6 +44,11 @@
 ---
 
 ## Last Session Summary
+
+**2026-05-27 (late night):** Batch-4 hotfix + Batch 5 — `trading_bot.py` v15.12 → **v15.13** + new `fetch_smallmidcap.py` v1.0 + workflow.
+- **Batch-4 silent bug found via Amit ji's screenshot 8** — Nifty200 has columns `Volume_vs_Avg_%` (percentage form) and `RS` (literal). v15.12 keyword lookup missed both → volume filter was failing-open. v15.13 fix: exact-match lookup + percentage→multiple conversion + dedicated RS-column reader. RS gate now prefers sheet value, falls back to math.
+- **Batch 5 Small/Mid Cap Scanner** — Mon-Fri 20:30 IST. Highly selective (0-3 picks/day) per Amit ji's "few signals, long ride, max momentum profit, no loss tolerance" rule. Excludes Nifty200 universe. Filters: 4-12% move (no upper-circuit), ≥₹20Cr turnover, ≥50% delivery, ≥3× volume. Outputs new `SmallMidCap` sheet tab (auto-created), BotMemory `SMC_*` keys, Telegram digest to Advance + Premium. No auto-trade yet — Batch 6.
+- **Manual tasks pending:** AppScript v15.16 paste (only outstanding item from earlier batches).
 
 **2026-05-27 (night):** Batch 4 institutional edges — `trading_bot.py` v15.11 → **v15.12** + 2 new files (institutional_edges.py + fetch_bhavcopy.py) + 1 new workflow.
 - New module **`institutional_edges.py` v1.0** — five "smart money" filters: relative strength (≥+1% vs Nifty), volume confirmation (≥1.5×), FII regime gate (block longs if FII net ≤ −₹2000 Cr), PCR soft filter (informational only — PCR is contrarian), delivery % gate (≥40% indicates institutional accumulation). All pure functions, all fail-open.

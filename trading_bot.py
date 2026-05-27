@@ -1,6 +1,31 @@
 """
-AI360 TRADING BOT — v15.12
+AI360 TRADING BOT — v15.13
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v15.13 CHANGES vs v15.12 — BATCH-4 HOTFIX + BATCH-5 SCAFFOLDING (May 2026)
+  HOTFIX 4.1 — Nifty200 column lookups were broken by header-name mismatch.
+    From Amit ji's screenshot 8 the actual header is `Volume_vs_Avg_%` (a
+    percentage form: +50 → 1.5×, −67 → 0.33×), and Relative Strength is
+    in a column literally named `RS`. v15.12 keyword lookup (`relvol/rvol`)
+    silently missed both — volume filter was ALWAYS failing open since
+    deploy. Fixed:
+      • _find_nifty200_col now does EXACT match first (protects short
+        headers like `RS` from false-hit on `Pivot_Resistance`), then
+        substring fallback.
+      • _read_nifty200_relvol now matches `Volume_vs_Avg_%` exactly AND
+        converts percentage form (|raw|>5) to multiple internally.
+      • New _read_nifty200_rs uses the pre-computed `RS` column from
+        the sheet — more accurate than computing from prev_close.
+      • RS gate prefers sheet value; falls back to math only if column
+        missing.
+
+  BATCH-5 NOTE — Small/Mid Cap scanner is delivered as a STANDALONE
+    fetcher (`fetch_smallmidcap.py` v1.0) with its own daily cron.
+    Output: new `SmallMidCap` sheet tab (auto-created), BotMemory SMC_*
+    keys, Telegram digest. No changes to trading_bot.py monitor flow —
+    auto-trade on small caps is deferred to Batch 6 (higher volatility,
+    needs explicit approval per Amit ji 2026-05-27: "few signals, long
+    ride, max momentum profit, no loss tolerance").
+
 v15.12 CHANGES vs v15.11 — BATCH 4 INSTITUTIONAL EDGES (May 2026)
   Five "smart money" filters consistently-profitable traders + FIIs use.
   Each is a soft-gate added to check_all_entry_filters; every one fails
@@ -750,13 +775,23 @@ def check_all_entry_filters(sym, mem, key, is_bullish, now, nifty_pct, today_ent
     # ── v15.12 Batch 4: Institutional edges. Each wrapped individually so a
     #    buggy check cannot cascade. All fail open if their data is missing. ──
     if _INST_EDGES_AVAILABLE:
-        # 7. Relative strength — compare stock today vs Nifty today
+        # 7. Relative strength — prefer Nifty200 pre-computed RS column (more
+        # accurate than computing from prev_close); fall back to math if absent.
         try:
-            prev_close = get_last_price(mem, key)
-            ok, msg = inst_edges.check_relative_strength(sym, cp, prev_close, nifty_pct)
-            reasons.append(f"[RS] {msg}")
-            if not ok:
-                return False, reasons, rsi_val
+            rs_col_val = _read_nifty200_rs(nifty_sheet, sym) if nifty_sheet is not None else 0.0
+            if abs(rs_col_val) > 0.01:
+                if rs_col_val >= inst_edges.RS_MIN_PCT:
+                    reasons.append(f"[RS] sheet RS {rs_col_val:+.2f} ≥ {inst_edges.RS_MIN_PCT:.1f} ✅")
+                else:
+                    reasons.append(f"[RS] sheet RS {rs_col_val:+.2f} < {inst_edges.RS_MIN_PCT:.1f} — no leadership")
+                    return False, reasons, rsi_val
+            else:
+                # Fallback: compute from prev close
+                prev_close = get_last_price(mem, key)
+                ok, msg = inst_edges.check_relative_strength(sym, cp, prev_close, nifty_pct)
+                reasons.append(f"[RS] (fallback) {msg}")
+                if not ok:
+                    return False, reasons, rsi_val
         except Exception as e:
             print(f"[RS] check failed for {sym}: {e} — fail open")
             reasons.append(f"[RS] check errored — entry allowed")
@@ -1034,52 +1069,119 @@ def _read_atr_from_nifty200(nifty_sheet, sym):
 # v15.12 Batch 4: per-tick cache of Nifty200 column index lookups.
 # Header text → column index. Resolved once per process, then served from cache.
 _NIFTY200_COL_CACHE = {}
+_NIFTY200_ROWS_CACHE = None  # full sheet snapshot, fetched once per tick
 
-def _find_nifty200_col(nifty_sheet, header_keywords: list) -> int:
-    """
-    Self-healing column lookup. Reads row 1 of Nifty200, returns the index of
-    the first column whose header contains ANY of the supplied keywords (case
-    insensitive substring match). Returns -1 if no header matches.
+def _norm_header(s: str) -> str:
+    """Normalise header text for matching — lowercase, no spaces, no underscores, no %."""
+    return str(s).lower().replace(" ", "").replace("_", "").replace("%", "").replace("(", "").replace(")", "")
 
-    This avoids hardcoding column indices that drift when AppScript adds new
-    columns — per feedback_free_forever_self_repair: data layout changes
-    should not require code edits.
+
+def _find_nifty200_col(nifty_sheet, exact_names: list, substring_keywords: list = None) -> int:
     """
-    cache_key = "|".join(header_keywords).lower()
+    Self-healing column lookup against Nifty200 row-1 headers.
+       1. EXACT MATCH first (normalised) — protects short headers like 'RS' from
+          false hits on 'Pivot_Resistance'.
+       2. SUBSTRING fallback — catches "Volume_vs_Avg_%" via keyword 'volumevsavg'.
+    Returns -1 if no header matches (fail-open). Result cached per process.
+
+    Per feedback_free_forever_self_repair: data-layout changes (AppScript adding
+    new columns) must not require code edits.
+    """
+    cache_key = "exact:" + "|".join(exact_names) + "/sub:" + "|".join(substring_keywords or [])
     if cache_key in _NIFTY200_COL_CACHE:
         return _NIFTY200_COL_CACHE[cache_key]
     try:
         header = nifty_sheet.row_values(1)
-        for i, h in enumerate(header):
-            h_lower = str(h).lower().replace(" ", "").replace("_", "")
-            for kw in header_keywords:
-                if kw.lower().replace(" ", "").replace("_", "") in h_lower:
+        norm_headers = [_norm_header(h) for h in header]
+        # Pass 1 — exact match
+        for needle in exact_names:
+            n = _norm_header(needle)
+            for i, h in enumerate(norm_headers):
+                if h == n:
                     _NIFTY200_COL_CACHE[cache_key] = i
-                    print(f"[NIFTY200] header '{h}' (col {i}) matched keyword {kw!r}")
+                    print(f"[NIFTY200] EXACT '{header[i]}' col {i} matched {needle!r}")
                     return i
+        # Pass 2 — substring (only if explicit substring keywords given)
+        if substring_keywords:
+            for kw in substring_keywords:
+                n = _norm_header(kw)
+                for i, h in enumerate(norm_headers):
+                    if n in h:
+                        _NIFTY200_COL_CACHE[cache_key] = i
+                        print(f"[NIFTY200] SUBSTR '{header[i]}' col {i} matched {kw!r}")
+                        return i
     except Exception as e:
         print(f"[NIFTY200] header read error: {e}")
     _NIFTY200_COL_CACHE[cache_key] = -1
     return -1
 
 
+def _nifty200_rows(nifty_sheet):
+    """One-shot fetch + cache of full sheet data — avoids 5× sheet reads when
+    multiple Nifty200 column reads happen in the same tick."""
+    global _NIFTY200_ROWS_CACHE
+    if _NIFTY200_ROWS_CACHE is not None:
+        return _NIFTY200_ROWS_CACHE
+    try:
+        _NIFTY200_ROWS_CACHE = nifty_sheet.get_all_values()
+    except Exception as e:
+        print(f"[NIFTY200] fetch error: {e}")
+        _NIFTY200_ROWS_CACHE = []
+    return _NIFTY200_ROWS_CACHE
+
+
 def _read_nifty200_relvol(nifty_sheet, sym) -> float:
     """
-    Returns today's relative volume (today_vol / 20d_avg_vol) for the symbol.
-    0.0 if column not found OR symbol not in sheet (fail-open).
+    Returns today's relative volume as a MULTIPLE (e.g. 1.5 = 150% of avg).
+    The Nifty200 sheet stores this as `Volume_vs_Avg_%` (percentage form,
+    can be negative). Convention: column value 50 → 1.5×, -50 → 0.5×.
+    Falls open with 0.0 if column or row missing.
     """
-    col = _find_nifty200_col(nifty_sheet, ["relvol", "rvol", "rel_volume", "relativevolume"])
+    col = _find_nifty200_col(
+        nifty_sheet,
+        exact_names=["Volume_vs_Avg_%", "VolumeVsAvg%", "RelVol"],
+        substring_keywords=["volumevsavg", "relvol", "rvol", "relativevolume"],
+    )
     if col < 0:
         return 0.0
     try:
         clean = sym.replace("NSE:", "").strip()
-        for row in nifty_sheet.get_all_values()[1:]:
+        for row in _nifty200_rows(nifty_sheet)[1:]:
             if len(row) > col and str(row[0]).replace("NSE:", "").strip() == clean:
-                v = to_f(row[col])
-                if v > 0:
-                    return v
+                raw = to_f(row[col])
+                # Convert percentage form (e.g. +50 means 1.5×) → multiple.
+                # If the value already looks like a multiple (e.g. 1.5 to 5.0),
+                # treat as-is. Heuristic: |raw| > 5 → percentage form.
+                if abs(raw) > 5:
+                    return max(0.0, 1.0 + raw / 100.0)
+                if raw > 0:
+                    return raw
     except Exception as e:
         print(f"[RELVOL] {sym}: {e}")
+    return 0.0
+
+
+def _read_nifty200_rs(nifty_sheet, sym) -> float:
+    """
+    Reads the pre-computed RS column (header == 'RS') from Nifty200.
+    The sheet already has institutional-grade RS; using it is more accurate
+    than computing stock_pct − nifty_pct from yesterday's close.
+    Returns 0.0 (fail-open) if column or row not found.
+    """
+    col = _find_nifty200_col(
+        nifty_sheet,
+        exact_names=["RS", "Rel_Strength", "Relative_Strength", "RelativeStrength"],
+        substring_keywords=None,   # NO substring — too risky for short 'RS'
+    )
+    if col < 0:
+        return 0.0
+    try:
+        clean = sym.replace("NSE:", "").strip()
+        for row in _nifty200_rows(nifty_sheet)[1:]:
+            if len(row) > col and str(row[0]).replace("NSE:", "").strip() == clean:
+                return to_f(row[col])
+    except Exception as e:
+        print(f"[RS-col] {sym}: {e}")
     return 0.0
 
 def get_market_regime(nifty_sheet):
@@ -1643,7 +1745,7 @@ def send_good_morning(log_sheet, mem, is_bullish, nifty_cmp, nifty_dma, nifty_pc
         f"{window}\n"
         f"RSI filter: < {RSI_MAX_BULLISH if is_bullish else RSI_MAX_BEARISH} | Re-entry: {REENTRY_COOLDOWN_DAYS}d cooldown after target\n\n"
         f"{'Watching: ' + ', '.join(waiting_stocks[:5]) if waiting_stocks else 'No WAITING stocks'}\n\n"
-        f"<i>v15.12 — Batch4: RS+Volume+FII+PCR+Delivery gates on top of v15.11 smart options</i>"
+        f"<i>v15.13 — Batch4 hotfix (RelVol+RS sheet lookup) + Batch5 SmallMidCap scanner</i>"
     )
     watchlist_line = f"📋 Watchlist: {waiting} stock(s) identified today" if waiting else "📋 No setups in watchlist yet — scan runs at market open"
     msg_basic = (
@@ -1965,7 +2067,7 @@ def auto_maintain_sheets(bm_sheet, hist_sheet, mem, now):
 def send_test_messages():
     now = datetime.now(IST)
     msg = (
-        f"✅ <b>TEST MESSAGE — AI360 Trading Bot v15.12</b>\n"
+        f"✅ <b>TEST MESSAGE — AI360 Trading Bot v15.13</b>\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
         f"Time: {now.strftime('%d %b %Y %H:%M')} IST\n"
         f"Token: {'✅ OK' if TG_TOKEN else '❌ MISSING'}\n\n"
@@ -1995,7 +2097,7 @@ def main():
     dow      = now.weekday()
 
     print(f"\n{'='*55}")
-    print(f"AI360 Trading Bot v15.12 — {now.strftime('%d %b %Y %H:%M')} IST")
+    print(f"AI360 Trading Bot v15.13 — {now.strftime('%d %b %Y %H:%M')} IST")
     print(f"{'='*55}")
 
     if is_holiday(today_s): print(f"[SKIP] Holiday: {today_s}"); return

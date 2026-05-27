@@ -2,6 +2,43 @@
 
 ---
 
+## 2026-05-27 (late night) — BATCH-4 HOTFIX + BATCH 5 SMALL/MID CAP SCANNER (`trading_bot.py` v15.13 + new `fetch_smallmidcap.py`)
+
+### Batch-4 silent bug — caught via Amit ji's screenshot 8
+v15.12 keyword lookup for the Nifty200 "RelVol" column failed because the actual header is `Volume_vs_Avg_%` (percentage form, not multiple) — none of `relvol/rvol/rel_volume/relativevolume` matched. The volume filter has been failing-open since deploy. Also: relative-strength was being computed from `cp − prev_close` when the sheet already has a pre-computed `RS` column.
+
+#### Fixed in `trading_bot.py` v15.12 → v15.13
+- `_find_nifty200_col(sheet, exact_names, substring_keywords)` now does EXACT match first (protects short headers like `RS` from false-hits on `Pivot_Resistance`), substring fallback second.
+- `_read_nifty200_relvol(...)` matches `Volume_vs_Avg_%` exactly AND converts percentage form (|raw|>5) to multiple internally (`1 + raw/100`).
+- New `_read_nifty200_rs(...)` reads the pre-computed `RS` column directly.
+- RS filter in `check_all_entry_filters` prefers the sheet's RS value; falls back to the v15.12 math path if column absent.
+- New `_nifty200_rows(sheet)` cache — one sheet fetch per tick, served to every column reader.
+
+### Batch 5 — Small/Mid Cap Momentum Scanner
+Highly selective daily scanner for small/mid cap winners outside Nifty200 universe. Per Amit ji's instruction "few signals, long ride, max momentum profit, no loss tolerance" — 0-3 picks/day, no auto-trade yet (deferred to Batch 6 with explicit approval).
+
+#### Added — `fetch_smallmidcap.py` v1.0
+- Pulls NSE cash bhavcopy CSV (5-day fallback walk if today's missing).
+- Excludes Nifty200 symbols (universe = small/mid caps only).
+- Filters: % change 4–12% (excludes upper-circuit lottery), turnover ≥ ₹20 Cr, delivery % ≥ 50%, volume multiple ≥ 3×.
+- Score = `pct × delivery × min(vol_mult, 6) / 100`. Top 3.
+- Outputs: new `SmallMidCap` sheet tab (auto-created via `add_worksheet`), BotMemory `SMC_{YYYY-MM-DD}_RANK{N}_{SYM}` keys, Telegram digest to Advance + Premium.
+- Stale-cleans `SMC_*` rows older than 14 days each run.
+- 0-pick days send a "no qualifying setups today" digest — quality over quantity.
+
+#### Added — `.github/workflows/fetch_smallmidcap.yml`
+- Mon-Fri 20:30 IST (15:00 UTC) — after bhavcopy publishes (~18:30) and after `fetch_bhavcopy.py` at 20:00.
+- Standard failure-alert step.
+
+### Manual tasks for Amit ji
+None for Batch 5. AppScript v15.16 paste is the only pending manual task (already mentioned — confirm if done). Screenshot 8 confirmed the sheet has the columns we need; no rename necessary.
+
+### Pending next batches
+- Batch 4b (optional): VWAP filter via yfinance 1m data
+- Batch 6: auto-trade on SMC picks (after 2-4 weeks of paper-tracked performance)
+
+---
+
 ## 2026-05-27 (night) — BATCH 4 INSTITUTIONAL EDGES (`trading_bot.py` v15.12 + new `institutional_edges.py` + new `fetch_bhavcopy.py`)
 
 ### Goal

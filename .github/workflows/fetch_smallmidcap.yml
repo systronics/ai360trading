@@ -1,0 +1,80 @@
+name: Small/Mid Cap Momentum Scanner
+
+# v1.0 (May 2026):
+#   Daily highly-selective scanner for small/mid cap momentum picks outside
+#   Nifty200 universe. Catches the GUJTHEM/TVSSRICHAK/MANCREDIT class of
+#   +10-15% movers that the large-cap scanner ignores.
+#
+#   Outputs: SmallMidCap sheet tab (auto-created), BotMemory SMC_* keys,
+#            Telegram digest to Advance + Premium.
+#
+#   Schedule: Mon-Fri 20:30 IST = 15:00 UTC (after fetch_bhavcopy.py at 20:00).
+
+on:
+  schedule:
+    - cron: "0 15 * * 1-5"
+  workflow_dispatch:
+
+jobs:
+  scan-smc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Small/Mid Cap scanner
+        env:
+          GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
+          TELEGRAM_BOT_TOKEN:       ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID_BASIC:            ${{ secrets.CHAT_ID_BASIC }}
+          CHAT_ID_ADVANCE:          ${{ secrets.CHAT_ID_ADVANCE }}
+          CHAT_ID_PREMIUM:          ${{ secrets.CHAT_ID_PREMIUM }}
+        run: python fetch_smallmidcap.py
+
+      - name: Notify Telegram on failure
+        if: failure()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID_BASIC:      ${{ secrets.CHAT_ID_BASIC }}
+          WF_NAME:            "${{ github.workflow }}"
+          RUN_URL:            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        continue-on-error: true
+        run: |
+          python - <<'PYEOF'
+          import os, json
+          from urllib.request import Request, urlopen
+          token = os.environ.get('TELEGRAM_BOT_TOKEN','')
+          chat  = os.environ.get('CHAT_ID_BASIC','')
+          if not token or not chat:
+              print('[NOTIFY] Telegram creds missing — skip'); raise SystemExit(0)
+          msg = (
+              "⚠️ <b>System Notice — AI360Trading</b>\n\n"
+              f"Workflow failed: <b>{os.environ.get('WF_NAME','?')}</b>\n"
+              f"Run log: {os.environ.get('RUN_URL','')}\n\n"
+              "<i>This is a system message, not a trade signal. "
+              "Existing scan history continues to serve.</i>"
+          )
+          try:
+              req = Request(
+                  f"https://api.telegram.org/bot{token}/sendMessage",
+                  data=json.dumps({'chat_id':chat,'text':msg,'parse_mode':'HTML'}).encode(),
+                  headers={'Content-Type':'application/json'},
+              )
+              urlopen(req, timeout=10).read()
+              print('[NOTIFY] Failure alert sent to Basic channel')
+          except Exception as e:
+              print(f'[NOTIFY] Send failed: {e}')
+          PYEOF
