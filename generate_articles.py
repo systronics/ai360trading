@@ -1,4 +1,5 @@
 import os
+import re
 import pytz
 import requests
 import random
@@ -16,6 +17,16 @@ try:
 except ImportError:
     _CALENDAR_AVAILABLE = False
     print("[WARN] content_calendar.py not found — SEO seeds skipped")
+
+# v15.x (2026-05-28): Media injection (hero image + inline image + YouTube embed)
+# Free sources (Pexels/Pixabay if keys, Unsplash Source no key, Picsum fallback,
+# own-channel YouTube RSS). Fail-open — article still works if media unavailable.
+try:
+    from media_helper import build_article_media
+    _MEDIA_AVAILABLE = True
+except ImportError:
+    _MEDIA_AVAILABLE = False
+    print("[WARN] media_helper.py not found — articles will be text-only")
 
 # ── FIX: Clean LLM title encoding issues ─────────────────────────────────────
 def clean_ai_title(title: str) -> str:
@@ -1316,11 +1327,48 @@ End with:
 
         schema_block = f'<script type="application/ld+json">\n{schema_json}\n</script>\n\n'
 
+        # v15.x (2026-05-28): Media injection for SEO — hero image at top,
+        # inline image mid-article, YouTube embed before final FAQ section.
+        # Splits content on H2 headings; inserts inline after section 3 and
+        # YouTube after section 5 (or before the last section if fewer).
+        hero_block   = ""
+        media_content = content
+        if _MEDIA_AVAILABLE:
+            try:
+                media = build_article_media(pillar['id'], article_index=article_index)
+                hero_block = media.get("hero_html", "")
+                inline_html = media.get("inline_html", "")
+                yt_html     = media.get("youtube_html", "")
+
+                # Split on H2 headings, then re-stitch with media injected.
+                # Preserve the leading text before the first ## (rare).
+                parts = re.split(r"(?m)^##\s", content)
+                if len(parts) >= 3 and (inline_html or yt_html):
+                    head = parts[0]
+                    sections = ["## " + p for p in parts[1:]]
+                    # Insert inline image after section 3 (if we have ≥4 sections)
+                    if inline_html and len(sections) >= 4:
+                        sections[2] = sections[2].rstrip() + "\n\n" + inline_html + "\n"
+                    elif inline_html and len(sections) >= 2:
+                        sections[len(sections) // 2 - 1] = (
+                            sections[len(sections) // 2 - 1].rstrip()
+                            + "\n\n" + inline_html + "\n"
+                        )
+                    # Insert YouTube before last section (usually Q&A / FAQ)
+                    if yt_html and len(sections) >= 3:
+                        sections[-2] = sections[-2].rstrip() + "\n\n" + yt_html + "\n"
+                    elif yt_html and sections:
+                        sections[-1] = yt_html + "\n\n" + sections[-1]
+                    media_content = head + "".join(sections)
+            except Exception as e:
+                print(f"  [media] injection skipped ({e}) — article still written")
+                media_content = content
+
         if not os.path.exists(POSTS_DIR):
             os.makedirs(POSTS_DIR)
 
         with open(file_path, "w", encoding="utf-8") as f:
-            f.write(header + schema_block + content)
+            f.write(header + schema_block + hero_block + media_content)
 
         article_url = f"{SITE_URL}/{pillar['permalink_base']}/{chosen_slug}/"
         print(f"  ✅ /{pillar['permalink_base']}/{chosen_slug}/")
