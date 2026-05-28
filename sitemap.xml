@@ -1,0 +1,50 @@
+---
+layout: null
+sitemap: false
+---
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Custom sitemap.xml for AI360Trading
+  Created 2026-05-28 as part of SEO Phase 3 audit fixes.
+  Overrides jekyll-sitemap plugin output to:
+    - EXCLUDE pagination pages (/page2/, /page3/, etc.) — already
+      Disallowed in robots.txt so they should not be in sitemap either
+      (conflicting signals confuse Google).
+    - Include richer per-URL metadata: lastmod, changefreq, priority
+    - Include only canonical content URLs: homepage, posts, core pages
+-->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>{{ site.url }}/</loc>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+{% for post in site.posts %}
+  <url>
+    <loc>{{ site.url }}{{ post.url }}</loc>
+    <lastmod>{{ post.date | date_to_xmlschema }}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+{% endfor %}
+{% for page in site.pages %}
+{% assign page_url = page.url | downcase %}
+{% if page.sitemap != false
+    and page_url != "/sitemap.xml"
+    and page_url != "/robots.txt"
+    and page_url != "/indexnow.txt"
+    and page_url != "/ads.txt"
+    and page_url != "/404.html"
+    and page_url contains "/page" == false
+    and page_url contains ".html" == false
+    and page_url contains ".xml" == false
+    and page.url %}
+  <url>
+    <loc>{{ site.url }}{{ page.url }}</loc>
+    {% if page.date %}<lastmod>{{ page.date | date_to_xmlschema }}</lastmod>{% endif %}
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+{% endif %}
+{% endfor %}
+</urlset>

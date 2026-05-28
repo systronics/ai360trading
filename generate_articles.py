@@ -1238,17 +1238,36 @@ TRENDING SEARCHES: {', '.join(trends[:8])}
 
 {seo_seed_block}
 
-=== HUMAN WRITING RULES (CRITICAL) ===
-1. VARY SENTENCE LENGTH aggressively.
-2. EXPRESS GENUINE OPINIONS with reasoning.
-3. SHOW UNCERTAINTY where real.
-4. USE NATURAL LANGUAGE — no jargon overload.
-5. ADD ONE REAL HISTORICAL PARALLEL with exact month/year.
-6. BANNED WORDS: "In conclusion", "Furthermore", "Moreover", "This underscores",
-   "Navigating", "Landscape", "Delve into", "Robust", "Game-changer", "Paradigm shift",
-   "Deep dive", "Shed light", "It's worth noting", "It is important to note"
-7. NEVER use headers: "Core Analysis", "Country Analysis", "Brand View"
-8. NUMBERS must connect to decisions.
+=== HUMAN WRITING RULES (CRITICAL — Google's Helpful Content Update detects AI prose) ===
+1. VARY SENTENCE LENGTH aggressively. Mix short punchy lines (3-6 words) with
+   longer flowing sentences. Two short. One long. Like real human writing.
+2. EXPRESS GENUINE OPINIONS with reasoning. Say "I think", "I disagree with",
+   "Honestly", "In my view", "I'd argue", "Most analysts get this wrong" — use
+   first person where appropriate. Take a stand. Real humans have positions.
+3. SHOW UNCERTAINTY where real. "I'm not sure", "this could go either way",
+   "but I might be wrong". Real analysts hedge — fake AI prose never does.
+4. USE NATURAL LANGUAGE — no jargon overload. Explain like a friend, not a textbook.
+5. ADD ONE REAL HISTORICAL PARALLEL with exact month/year. e.g. "Same setup
+   as March 2020" or "Reminds me of January 2008". Specific dates beat generic.
+6. ADD ONE PERSONAL ANECDOTE or specific example. e.g. "A friend asked me last
+   week..." or "I made this exact mistake in 2019..." or "When I started trading..."
+7. ADD ONE CONTROVERSIAL TAKE or unconventional view. Real humans disagree with
+   consensus. Disagree with one popular view and explain why.
+8. USE OCCASIONAL CONTRACTIONS: "don't", "it's", "you'll", "I've" — formal AI
+   prose never contracts. Real humans do.
+9. ASK 1-2 RHETORICAL QUESTIONS in body. "But here's the thing — does it really
+   work that way?" Engages the reader as if having a conversation.
+10. NUMBERS must connect to decisions. "Rs.5000/month → Rs.1.2 cr in 25 years"
+    not "compound interest is powerful".
+11. BANNED WORDS: "In conclusion", "Furthermore", "Moreover", "This underscores",
+    "Navigating", "Landscape", "Delve into", "Robust", "Game-changer", "Paradigm shift",
+    "Deep dive", "Shed light", "It's worth noting", "It is important to note",
+    "In summary", "To put it simply", "It goes without saying", "Cutting-edge",
+    "Foster", "Leverage" (as verb), "Streamline", "Bandwidth" (as effort), "Synergize"
+12. NEVER use headers: "Core Analysis", "Country Analysis", "Brand View"
+13. NEVER write "As we discussed in our previous article" more than ONCE.
+    Use natural references like "I covered this in a piece earlier this week —"
+    or just link the phrase inline without announcing the link.
 
 === ARTICLE STRUCTURE ===
 Use EXACTLY these section names:
