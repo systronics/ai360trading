@@ -77,6 +77,15 @@ local_settings.py
 .config
 
 # ============================================================
+# CLASP — AppScript local workspace (per-machine state)
+# ============================================================
+# appscript.gs in repo root is the source of truth; apps_script/ is
+# a clasp working dir that mirrors the live Apps Script project.
+apps_script/Code.js
+apps_script/.clasp.json
+.clasprc.json
+
+# ============================================================
 # TRADING BOT — LOCAL TESTING ONLY
 # ============================================================
 trading_bot_test.py

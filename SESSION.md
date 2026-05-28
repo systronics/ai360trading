@@ -2,7 +2,7 @@
 
 ---
 
-## Last Updated: 2026-05-28 (night)
+## Last Updated: 2026-05-28 (night — clasp activated, 10-day Phase 4 plan started)
 
 ---
 
@@ -16,7 +16,7 @@
 | `fetch_earnings.py` | **v1.0** | 2026-05-27 (Batch 3, daily 18:30 IST) |
 | `fetch_bhavcopy.py` | **v1.0** | 2026-05-27 (Batch 4, Mon-Fri 20:00 IST) |
 | `fetch_smallmidcap.py` | **v1.0** | 2026-05-27 (new — Batch 5 selective SMC momentum scanner, Mon-Fri 20:30 IST) |
-| `appscript.gs` | **v15.16** | 2026-05-27 (renamed from appscript_v14.gs + holiday list corrected — needs manual paste to Apps Script editor) |
+| `appscript.gs` | **v15.16** | 2026-05-27 (live deployed — verified byte-identical to editor via clasp 2026-05-28) |
 | `ai_client.py` | v2.4 | May 2026 |
 | `human_touch.py` | v2.2 | May 2026 |
 | `generate_longterm.py` | **v1.6** | 2026-05-26 (BUG-3 RSI NaN + BUG-4 BOOK PARTIAL ladder) |
@@ -45,6 +45,15 @@
 
 ## Last Session Summary
 
+**2026-05-28 (later night):** clasp activated for AppScript + 10-day Phase 4 Dhan auto-trade plan kicked off.
+- **clasp installed** (v3.3.0) + **clasp login** authorized as `ai360trading@gmail.com`. Live Apps Script project `1oFYYo6MrK4ab4MSqytcCI9U6en0JzuNsZAZ5vokzSiLJrFwMMll-WCPF` cloned into `apps_script/` workspace.
+- **v15.16 deployment verified live** — byte-by-byte comparison shows live editor's `Code.js` (104,243 bytes, LF) is 100% identical content to repo's `appscript.gs` (106,277 bytes, CRLF). Difference is line endings only. The "v15.16 needs manual paste" item from 2026-05-27 batches is **already done** — Amit ji pasted it without telling me. No manual paste backlog remains.
+- **New deploy script:** `deploy_appscript.ps1` at repo root. One command (`.\deploy_appscript.ps1`) syncs `appscript.gs` → workspace → `clasp push -f` → live. Future AppScript edits never need manual paste again.
+- **`.gitignore` extended** to exclude clasp working-state files (`apps_script/Code.js`, `apps_script/.clasp.json`, `.clasprc.json`).
+- **10-day plan started** — Day 1 (today) IN PROGRESS. Tasks 1-10 created and tracked in session task list.
+- **User confirmed:** Phase 4 starts with Dhan as broker. ₹0 real money for first 5-10 days (token-only setup + paper testing). Semi-auto Telegram approval for first 10 live trades.
+- **Pending from user:** Dhan API activation (via dhanhq.co web portal). Tokens then added to GitHub Secrets as `DHAN_CLIENT_ID` + `DHAN_ACCESS_TOKEN`.
+
 **2026-05-28 (night):** Tooling activation verified — both pending manual steps from earlier session completed.
 - **`gh` CLI** — `gh auth login` completed via device-flow code 034B-8CC2; logged in as `systronics` with `gist`/`read:org`/`repo` scopes. Persistent across sessions. `gh auth status` confirms ✓ live.
 - **`mcp-google-sheets`** — `service_account.json` now exists at `C:\Users\Admin\ai360trading\service_account.json` (2,390 bytes, gitignored). MCP server connected: `mcp__google-sheets__list_sheets` on spreadsheet `1fPNGL6AHs-7M-oC22zILg9FlyWi-7DF9NoVVqZQs2vk` returned 8 tabs (AlertLog, Nifty200, History, BotMemory, LTWatchlist, LongTermSignals, CashWatchlist, PositionalLatest). `SmallMidCap` will appear after first Batch 5 scan on Fri 2026-05-29 20:30 IST.
@@ -60,7 +69,7 @@
 **2026-05-27 (late night):** Batch-4 hotfix + Batch 5 — `trading_bot.py` v15.12 → **v15.13** + new `fetch_smallmidcap.py` v1.0 + workflow.
 - **Batch-4 silent bug found via Amit ji's screenshot 8** — Nifty200 has columns `Volume_vs_Avg_%` (percentage form) and `RS` (literal). v15.12 keyword lookup missed both → volume filter was failing-open. v15.13 fix: exact-match lookup + percentage→multiple conversion + dedicated RS-column reader. RS gate now prefers sheet value, falls back to math.
 - **Batch 5 Small/Mid Cap Scanner** — Mon-Fri 20:30 IST. Highly selective (0-3 picks/day) per Amit ji's "few signals, long ride, max momentum profit, no loss tolerance" rule. Excludes Nifty200 universe. Filters: 4-12% move (no upper-circuit), ≥₹20Cr turnover, ≥50% delivery, ≥3× volume. Outputs new `SmallMidCap` sheet tab (auto-created), BotMemory `SMC_*` keys, Telegram digest to Advance + Premium. No auto-trade yet — Batch 6.
-- **Manual tasks pending:** AppScript v15.16 paste (only outstanding item from earlier batches).
+- **Manual tasks pending:** None as of 2026-05-28. AppScript v15.16 paste verified done (clasp confirms repo and live editor identical).
 
 **2026-05-27 (night):** Batch 4 institutional edges — `trading_bot.py` v15.11 → **v15.12** + 2 new files (institutional_edges.py + fetch_bhavcopy.py) + 1 new workflow.
 - New module **`institutional_edges.py` v1.0** — five "smart money" filters: relative strength (≥+1% vs Nifty), volume confirmation (≥1.5×), FII regime gate (block longs if FII net ≤ −₹2000 Cr), PCR soft filter (informational only — PCR is contrarian), delivery % gate (≥40% indicates institutional accumulation). All pure functions, all fail-open.

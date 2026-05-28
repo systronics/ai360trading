@@ -42,7 +42,7 @@ One broken file = zero income that day. Treat every edit as critical.
 | `fetch_earnings.py` | v1.0 (Batch 3, daily 18:30 IST) |
 | `fetch_bhavcopy.py` | v1.0 (Batch 4, Mon-Fri 20:00 IST) |
 | `fetch_smallmidcap.py` | v1.0 (NEW — Batch 5, Mon-Fri 20:30 IST) |
-| `appscript.gs` | v15.16 (needs manual paste — renamed from appscript_v14.gs 2026-05-27) |
+| `appscript.gs` | v15.16 (LIVE in editor; deploy via `.\deploy_appscript.ps1` — clasp-based, no manual paste) |
 
 ### Long-Term Signals
 | File | Version |
