@@ -2,7 +2,7 @@
 
 ---
 
-## Last Updated: 2026-05-27
+## Last Updated: 2026-05-28
 
 ---
 
@@ -44,6 +44,12 @@
 ---
 
 ## Last Session Summary
+
+**2026-05-28 (evening):** Tooling setup — no repo files changed; all installs live outside the repo.
+- **GitHub CLI installed** — portable build v2.93.0 at `C:\Users\Admin\gh\bin\gh.exe` (no admin needed, added to user PATH). `gh auth login` completed via browser device-flow; logged in as `systronics` with `repo`/`gist`/`read:org` scopes. Token in Windows keyring — persists across sessions. Future Claude Code sessions can now pull workflow runs/logs without user copy-paste.
+- **mcp-google-sheets installed** — pip package v0.6.3, binary at `C:\Users\Admin\AppData\Roaming\Python\Python314\Scripts\mcp-google-sheets.exe`. MCP server registered in `C:\Users\Admin\.claude.json` under project `C:/Users/Admin/ai360trading` with `SERVICE_ACCOUNT_PATH=C:\Users\Admin\ai360trading\service_account.json`. **Status: ✗ disconnected** — `service_account.json` not yet downloaded from Google Cloud Console. Amit ji will download tonight/tomorrow ("Option C"). Once file exists + Claude Code restart, live read/write of `Ai360tradingAlgo` (including GOOGLEFINANCE values + formulas) becomes available.
+- **Workflow health audit run** — Last 50 runs: ZERO failures since 2026-05-19. Trading Bot, content workflows, FII/DII, KeepAlive all green. System healthy heading into first full-Batch-1-5 trading day (Fri 2026-05-29).
+- **Memory updated** — new entry `project_tooling_2026-05-28.md` + MEMORY.md index updated. Both `.gitignore` already protects `service_account.json` (line 69) and `credentials.json` + `token.json` — JSON download will be safe by default.
 
 **2026-05-27 (late night):** Batch-4 hotfix + Batch 5 — `trading_bot.py` v15.12 → **v15.13** + new `fetch_smallmidcap.py` v1.0 + workflow.
 - **Batch-4 silent bug found via Amit ji's screenshot 8** — Nifty200 has columns `Volume_vs_Avg_%` (percentage form) and `RS` (literal). v15.12 keyword lookup missed both → volume filter was failing-open. v15.13 fix: exact-match lookup + percentage→multiple conversion + dedicated RS-column reader. RS gate now prefers sheet value, falls back to math.

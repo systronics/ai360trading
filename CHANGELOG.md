@@ -2,6 +2,22 @@
 
 ---
 
+## 2026-05-28 (evening) — LOCAL TOOLING SETUP (no repo file changes)
+
+Operational setup only — no Python/AppScript/workflow files touched. All installs live outside the repo so they do not affect production.
+
+### Installed on Amit ji's PC
+- **GitHub CLI** v2.93.0 (portable zip, no admin) at `C:\Users\Admin\gh\bin\gh.exe` — added to user PATH. `gh auth login` completed via web device-flow as `systronics`. Token stored in Windows keyring, persists across sessions. Future Claude Code sessions can now query workflows + logs directly (`gh run list`, `gh run view --log-failed`).
+- **mcp-google-sheets** pip package v0.6.3 at `C:\Users\Admin\AppData\Roaming\Python\Python314\Scripts\mcp-google-sheets.exe` — MCP server registered in `C:\Users\Admin\.claude.json` (user scope) with env `SERVICE_ACCOUNT_PATH=C:\Users\Admin\ai360trading\service_account.json`. Currently **disconnected** — `service_account.json` not yet downloaded. Will activate after Amit ji downloads JSON from Google Cloud Console + restarts Claude Code.
+
+### Health audit (via new `gh` access)
+Last 50 GitHub Actions runs: **zero failures since 2026-05-19** (9+ days clean). Trading Bot, content generators, FII/DII tracker, KeepAlive — all green. System healthy heading into Friday 2026-05-29 (first full day with Batch 1-5 active) and Friday 20:30 IST (first `fetch_smallmidcap.py` run, will auto-create SmallMidCap tab).
+
+### Safety
+`.gitignore` already protects `service_account.json` (line 69), `credentials.json` (68), `token.json` (70). JSON download will be safe from accidental commits.
+
+---
+
 ## 2026-05-27 (late night) — BATCH-4 HOTFIX + BATCH 5 SMALL/MID CAP SCANNER (`trading_bot.py` v15.13 + new `fetch_smallmidcap.py`)
 
 ### Batch-4 silent bug — caught via Amit ji's screenshot 8
