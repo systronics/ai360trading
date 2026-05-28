@@ -2,7 +2,7 @@
 
 ---
 
-## Last Updated: 2026-05-28
+## Last Updated: 2026-05-28 (night)
 
 ---
 
@@ -44,6 +44,12 @@
 ---
 
 ## Last Session Summary
+
+**2026-05-28 (night):** Tooling activation verified — both pending manual steps from earlier session completed.
+- **`gh` CLI** — `gh auth login` completed via device-flow code 034B-8CC2; logged in as `systronics` with `gist`/`read:org`/`repo` scopes. Persistent across sessions. `gh auth status` confirms ✓ live.
+- **`mcp-google-sheets`** — `service_account.json` now exists at `C:\Users\Admin\ai360trading\service_account.json` (2,390 bytes, gitignored). MCP server connected: `mcp__google-sheets__list_sheets` on spreadsheet `1fPNGL6AHs-7M-oC22zILg9FlyWi-7DF9NoVVqZQs2vk` returned 8 tabs (AlertLog, Nifty200, History, BotMemory, LTWatchlist, LongTermSignals, CashWatchlist, PositionalLatest). `SmallMidCap` will appear after first Batch 5 scan on Fri 2026-05-29 20:30 IST.
+- **Future sessions** can now: read live GOOGLEFINANCE values (CMP/Change%/Volume), inspect AppScript-computed columns (Volume_vs_Avg_%, RS, ATR), pull failed GH Action logs without copy-paste, write back to sheet via MCP if needed.
+- Memory + MEMORY.md updated to reflect "fully active" state. No repo code changed this session.
 
 **2026-05-28 (evening):** Tooling setup — no repo files changed; all installs live outside the repo.
 - **GitHub CLI installed** — portable build v2.93.0 at `C:\Users\Admin\gh\bin\gh.exe` (no admin needed, added to user PATH). `gh auth login` completed via browser device-flow; logged in as `systronics` with `repo`/`gist`/`read:org` scopes. Token in Windows keyring — persists across sessions. Future Claude Code sessions can now pull workflow runs/logs without user copy-paste.
