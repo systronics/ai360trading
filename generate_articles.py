@@ -1006,15 +1006,32 @@ Market data: {market_context}
 Style examples (for tone guidance only — do NOT copy these, generate something fresh):
 {style_examples}
 
-Rules for the title:
-1. Must reflect TODAY's actual market situation or trending topic — not generic
-2. Must be specific — include real numbers, directions, or named assets when possible
-3. Must appeal to readers in India, USA and UK simultaneously
-4. Must be 8-15 words
-5. Must NOT start with "The" or "How to" if the last 3 recent titles started that way
-6. Must be unique — different angle from all recent titles listed above
-7. No clickbait — must deliver on what it promises
-8. No banned phrases: "Game-changer", "Deep dive", "Navigating", "Landscape", "Robust"
+HARD RULES for the title (Google SEO audit 2026-05-28):
+1. Title length: 8–15 words
+2. NEVER use the templated pattern "INDEX moves X% as INDEX moves Y%" — Google
+   detects this as content-farm spam. Only mention ONE asset name maximum.
+3. NEVER start with the words: "NIFTY", "S&P 500", "Bitcoin", "Markets", "Stock"
+   Start with a verb, a question, a surprising claim, or a number-with-context.
+4. NEVER include more than ONE specific price level or percentage. Pick the
+   MOST IMPORTANT one if any.
+5. Different angle from every recent title listed above — no "X% as Y%" structure.
+6. Appeal to readers in India, USA and UK simultaneously.
+7. Must NOT start with "The" or "How to" if the last 3 recent titles started that way.
+8. No clickbait — title must deliver what it promises.
+9. Banned phrases: "Game-changer", "Deep dive", "Navigating", "Landscape", "Robust",
+   "Amid", "Awaits", "Holds Near"  ← these are overused in this site's titles.
+
+GOOD TITLE EXAMPLES (curiosity + clarity, no template):
+- "Why FII Money Left India Today — And Where It Went"
+- "The One Bitcoin Level That Decides the Next 30 Days"
+- "Three Stocks That Beat Nifty This Week — Same Reason"
+- "What Today's RBI Move Means for Your Home Loan"
+- "I Was Wrong About Gold This Month — Here's What Changed"
+
+BAD TITLE EXAMPLES (do NOT generate anything like these):
+- "NIFTY Holds Near 24,000 as Global Markets Await Monday Open" ← banned pattern
+- "S&P 500 Surges 0.99% as NIFTY Drops 0.11% Amid Bitcoin Stability" ← banned pattern
+- "Markets Closed: 0.54% Weekly Gain Impacts Investors" ← starts with Markets
 
 Respond with ONLY the title — nothing else. No quotes. No explanation."""
 
@@ -1053,20 +1070,29 @@ Respond with ONLY the title — nothing else. No quotes. No explanation."""
 
 
 # ─── Article Generator ────────────────────────────────────────────────────────
-def generate_article(pillar, prices, trends, fear_greed, persona, article_index):
-    print(f"\n  [{article_index}/4] Generating: {pillar['name']} [{CONTENT_MODE} mode]...")
+def generate_article(pillar, prices, trends, fear_greed, persona, article_index, total_articles=2):
+    print(f"\n  [{article_index}/{total_articles}] Generating: {pillar['name']} [{CONTENT_MODE} mode]...")
 
     news = get_live_news(pillar['news_queries'])
 
     if CONTENT_MODE in ("holiday", "weekend"):
         price_lines = "Market closed today — educational content mode"
+        # v15.x (2026-05-28) SEO Phase 2: STRICT evergreen enforcement.
+        # SEO audit found holiday articles still mentioned NIFTY 24,000 etc.
+        # because the LLM defaulted to current-event style. Make it impossible.
         mode_note   = (
             f"This is a {'holiday' if CONTENT_MODE == 'holiday' else 'weekend'} article. "
-            "Write educational, evergreen content. No live market data. "
-            "Focus on timeless investment wisdom applicable to US, UK, Brazil and India readers."
+            "Write 100% EVERGREEN educational content. "
+            "DO NOT mention any current price level, percentage move, or news event. "
+            "DO NOT say 'NIFTY at X', 'Bitcoin at Y', 'S&P 500 at Z', or 'today's market'. "
+            "DO NOT reference what happened in markets today, yesterday, or this week. "
+            "Focus exclusively on TIMELESS investment principles, beginner education, "
+            "compound interest, asset allocation, behavioural finance, tax basics — "
+            "content that will be just as accurate read 6 months from now as today. "
+            "Targeted at US, UK, Brazil and India readers building long-term wealth."
         )
         if CONTENT_MODE == "holiday":
-            mode_note += f" Today is {HOLIDAY_NAME} — a market holiday."
+            mode_note += f" Today happens to be {HOLIDAY_NAME} — mention only as one-line opener context, then immediately pivot to the evergreen lesson. Do not dwell on the holiday."
     else:
         price_lines = "\n".join([f"  - {k}: {v['display']}" for k, v in prices.items()])
         mode_note   = ""
@@ -1402,10 +1428,38 @@ def generate_all_articles():
         print(f"  F&G      : {fear_greed}")
         print(f"  Trending : {', '.join(trends[:3])}")
 
+    # v15.x (2026-05-28) SEO Phase 2: pillar rotation cuts daily output 4→2.
+    # SEO audit found same-day same-data duplication across pillars dragging
+    # site quality score. Rotating means each pillar still gets fresh content
+    # every other day, but Google sees half the volume → less "content farm"
+    # signal, higher per-article quality budget.
+    #   Even day-of-year: stock-market + personal-finance
+    #   Odd day-of-year:  bitcoin + ai-trading
+    # Holiday/weekend: same rotation applies — keeps the pattern consistent.
+    PILLAR_ROTATION = {
+        0: ["stock-market", "personal-finance"],  # even days
+        1: ["bitcoin",      "ai-trading"],        # odd days
+    }
+    todays_pillar_ids = PILLAR_ROTATION[day_of_year % 2]
+    active_pillars    = [p for p in PILLARS if p["id"] in todays_pillar_ids]
+    print(f"  Active pillars today (day {day_of_year}): {[p['id'] for p in active_pillars]}")
+
+    # v15.x (2026-05-28) SEO Phase 2: strict evergreen mode for holiday/weekend.
+    # Audit found that holiday articles still mentioned current NIFTY/Bitcoin
+    # levels in title and body because Google Trends queries surface them.
+    # Filter trends to drop anything containing live numeric levels in
+    # holiday/weekend mode so the title prompt and body prompt get clean,
+    # evergreen context.
+    if CONTENT_MODE in ("holiday", "weekend"):
+        _level_pat = re.compile(r"\b(\d{2,3}[,.]?\d{0,3}|\d+%|\d+\.\d+%)\b")
+        trends = [t for t in trends if not _level_pat.search(t)][:15]
+        # Replace fear_greed with neutral string so it stops leaking numbers
+        fear_greed = "N/A — Evergreen content day"
+
     results        = []
     published_urls = []
 
-    for i, pillar in enumerate(PILLARS):
+    for i, pillar in enumerate(active_pillars):
         already_exists = False
         if os.path.exists(POSTS_DIR):
             pillar_today = [
@@ -1413,7 +1467,7 @@ def generate_all_articles():
                 if f.endswith('.md') and f.startswith(date_str) and pillar['id'] in f
             ]
             if pillar_today:
-                print(f"\n  [{i+1}/4] Skipping {pillar['name']} — already generated today")
+                print(f"\n  [{i+1}/{len(active_pillars)}] Skipping {pillar['name']} — already generated today")
                 already_exists = True
 
         if already_exists:
@@ -1424,7 +1478,7 @@ def generate_all_articles():
         _pidx           = (day_of_year + i * 31) % len(persona_indices)
         persona         = PERSONAS[persona_indices[_pidx]]
 
-        success, url = generate_article(pillar, prices, trends, fear_greed, persona, i + 1)
+        success, url = generate_article(pillar, prices, trends, fear_greed, persona, i + 1, len(active_pillars))
         results.append({
             "pillar": pillar['name'],
             "status": "success" if success else "failed",
