@@ -2,7 +2,7 @@
 
 ---
 
-## Last Updated: 2026-05-28 (night — clasp activated, 10-day Phase 4 plan started)
+## Last Updated: 2026-05-28 (late night — SEO Phases 1-3 shipped, Phase 4 deferred)
 
 ---
 
@@ -44,6 +44,23 @@
 ---
 
 ## Last Session Summary
+
+**2026-05-28 (overnight):** SEO + content quality overhaul — 3 phases shipped after live audit of articles, robots, sitemap, generators.
+- **AUDIT FINDINGS (8 root causes for tiny growth, 100 YT subs / 50 daily blog visitors):**
+  - Same-day duplicate content (4 articles all citing same NIFTY/SP500/BTC numbers) → Google content-farm signal
+  - Templated title pattern "INDEX X% as INDEX Y% amid INDEX Z%" → detectable spam structure
+  - Boilerplate AI prose (no opinions, no anecdotes, "as we discussed" overused) → Helpful Content Update penalty
+  - 318 URLs in 37 days = wrong volume for site age → AI farm signature
+  - No internal hub pages
+  - ZERO images / videos in articles → no dwell time signal
+  - Pagination /page2-15 in sitemap (but blocked in robots.txt) → conflicting signal
+  - No on-site search bar → lost dwell signal
+- **PHASE 1 SHIPPED (commit b51273d):** NEW `media_helper.py` — Pexels API → Pixabay → Unsplash Source → Picsum cascade for hero + inline images. YouTube RSS feed for own-channel embeds (channel ID `UC9dAJakbfPXk8zL31AVuTfA`). Wired into `generate_articles.py` so every article now gets hero image at top, inline image mid-body, YouTube embed before final FAQ. All fail-open.
+- **PHASE 2 SHIPPED (commit cb2f1af):** Daily volume CUT 4 → 2 articles via pillar rotation by day-of-year (even days = stock + personal-finance, odd days = bitcoin + ai-trading). Strict evergreen mode for holiday/weekend (filter trends with numeric regex, neutralize fear_greed, body prompt explicitly forbids current price levels). Title prompt rewritten with hard rules against templated patterns + GOOD/BAD examples.
+- **PHASE 3 SHIPPED (commit bb15640):** Body humanization rules expanded 8 → 13 (first-person voice, controversial takes, personal anecdotes, contractions, rhetorical questions, historical parallels with exact dates). Banned word list expanded. Cap on "as we discussed in our previous article" to once per article max. Custom `sitemap.xml` at repo root overrides jekyll-sitemap plugin to exclude pagination + add per-URL changefreq/priority.
+- **Phase 4 (Dhan auto-trade) DEFERRED** — Amit ji wants to focus on SEO/content now; will trade manually from Telegram alerts. 10-day plan archived in `project_phase4_plan.md`.
+- **Optional next:** add `PEXELS_API_KEY` to GitHub Secrets for higher-quality images (free signup, 200 req/hr). Currently using Unsplash Source fallback (works fine, slightly less topical).
+- **Will see effect:** Tomorrow's article run (Fri 2026-05-29 10:00 IST) is the first under new rules. Compare titles + images + word count before/after.
 
 **2026-05-28 (later night):** clasp activated for AppScript + 10-day Phase 4 Dhan auto-trade plan kicked off.
 - **clasp installed** (v3.3.0) + **clasp login** authorized as `ai360trading@gmail.com`. Live Apps Script project `1oFYYo6MrK4ab4MSqytcCI9U6en0JzuNsZAZ5vokzSiLJrFwMMll-WCPF` cloned into `apps_script/` workspace.
