@@ -27,7 +27,7 @@
 | `generate_articles.py` | current | May 2026 |
 | `generate_kids_video.py` | v2.3 | May 2026 |
 | `refresh_cashwatchlist.py` | **v1.3** | 2026-05-25 (Batch 4) |
-| `fetch_holidays.py` | **v1.2** | 2026-05-25 (Batch 4) |
+| `fetch_holidays.py` | **v1.3** | 2026-05-30 (monthly, current+next year, CM-segment fix) |
 | `token_refresh.py` | **v2.2** | 2026-05-25 (Batch 1) |
 | `upload_youtube.py` | v2.2 | May 2026 |
 | `upload_facebook.py` | v2.6 | May 2026 |
@@ -49,7 +49,10 @@
 - **Pinned all deps** (requirements.txt `>=`→`==`, exact green set from run 26640890465). #1 multi-year killer (unpinned yfinance etc.) closed. Verified clean install on CI (run 26650990707, green, bot=v15.14).
 - **Self-heal watchdog** — NEW `health_watchdog.py` + `watchdog.yml` (daily 08:05 IST). Checks sheet/T2, bot freshness, NSE feed freshness, GH Actions failures (24h), Telegram token. Plain-language Telegram alert ONLY on problems + Monday ✅ heartbeat. Manual `test_alert=true`. Verified live (run 26651428062 → all healthy, test msg delivered).
 - **Family runbook** — NEW `RUNBOOK.md` (non-technical "what each alert means + steps"; watchdog alerts reference it).
-- **STILL PENDING (10-day plan):** (a) harden fetch_holidays.py to write current+next year [task #7]; (b) content channels per Amit ji — FB Group + IG full-auto (needs HIS Meta clicks, schedule a live session), website/SEO, thumbnails/3D video. Amit ji's AskUserQuestion priority answer came back empty → proceeded with reliability-first (correct given his stated goals).
+- **Auto-heal loop** — NEW `auto_heal.py` + `auto_heal.yml` (every 30 min): auto-re-runs failed GitHub jobs (≤2 retries), escalates to Telegram only when it can't self-heal. Verified live (healthy=6). This is the "auto-find+fix errors one by one" Amit ji asked for.
+- **Article images FIXED** — `media_helper.py` v1.1 + daily-articles.yml: Pexels key was never passed into the job + dead source.unsplash.com fallback → broken images. Wired key; replaced with verified LoremFlickr→Picsum cascade (rejects defaultImage placeholder). Patched 2 published posts.
+- **Holidays self-sustaining** — `fetch_holidays.py` v1.3 + monthly cron: fetches current+next year. CAUGHT a live bug — NSE parser summed all 15 segments → 238 fake holidays (would stop trading); fixed to CM-only + dedup + reject >25. BotMemory now has authoritative HOLIDAYS_2026 (20 dates, verified correct).
+- **STILL PENDING (10-day plan):** content channels per Amit ji — FB Group + IG full-auto (needs HIS Meta clicks → schedule live session), website/SEO, thumbnails/3D video. AskUserQuestion priority answer came back empty → proceeded reliability-first (correct given stated goals). ALL 4 reliability tasks now done (pinned deps, watchdog, auto-heal, holidays, runbook).
 
 **2026-05-30 (appscript.gs line-by-line audit):** Read all 2035 lines + cross-checked vs live sheet/BotMemory. **NO logic bugs found.** Column contract PERFECT — all 35 hardcoded Nifty200 indices (r[0]..r[34]) map exactly to live header (Breakout_Stage=22, ATR=28, Master_Score=33, Sector_Rank=34, etc.). Race/lock fixes (_AS_LOCK, atomic setValues), BotMemory dedup+purge, last-Tuesday expiry, bearish hard-block all sound. `_RUNTIME_MEM` confirms bot tracks all 4 open trades (PNBHOUSING TSL 1051.20 etc.). **Findings:** (1) ✅ FIXED SAME SESSION — H2-2026 holidays (Aug-Dec) were APPROXIMATIONS and materially wrong (Diwali guessed 21/22-Oct, actual Balipratipada 10-Nov; Ganesh Chaturthi 14-Sep + Dussehra 20-Oct missing; Janmashtami 27-Aug not a holiday). VERIFIED vs NSE official + Zerodha + ClearTax → corrected in BOTH trading_bot.py (v15.14) AND appscript.gs (v15.17, deployed live via clasp). (2) ✅ FIXED — stale "v15.15" Telegram strings bumped to v15.17 (appscript) / v15.14 (bot). (3) 🔵 STILL OPEN (cosmetic, not fixed): options hold-text says "option -40%" vs bot's newer "stock -1.5%"; cash RR "1:" prefix inconsistent between the two cash sources. No income impact. NOTE: no HOLIDAYS_2026 key in BotMemory — both files now rely on the (now-correct) hardcoded list; consider having fetch_holidays.py also write the CURRENT year as future hardening.
 

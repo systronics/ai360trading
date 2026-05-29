@@ -2,6 +2,14 @@
 
 ---
 
+## 2026-05-30 (cont.) — Auto-heal loop + self-sustaining holidays + article image fix
+
+- **Auto-heal self-remediation** (NEW `auto_heal.py` + `auto_heal.yml`, every 30 min): finds failed GitHub Actions jobs and auto-re-runs them (up to 2 retries; most failures are transient), considers only each workflow's latest run, skips monitoring workflows, and escalates to Telegram ONLY when a job fails all retries. Zero human action for the common case. **Verified live** (run 26652423075 → healthy=6, nothing to fix).
+- **Article images FIXED** (`media_helper.py` v1.1 + `daily-articles.yml`): images weren't showing because (1) the workflow never passed `PEXELS_API_KEY` into the generator, and (2) the fallback `source.unsplash.com` was discontinued by Unsplash in 2024 (dead URLs). Wired the key; replaced Unsplash Source with LoremFlickr that is VERIFIED to resolve to a real image (rejects the "defaultImage" placeholder) before use, else Picsum — so a dead/placeholder image can never be written again. Patched the 2 already-published broken posts. All 4 pillars verified to resolve.
+- **Holidays now self-sustaining** (`fetch_holidays.py` v1.2 → v1.3, `fetch_holidays.yml` yearly → monthly): fetches CURRENT + next year every month (was next-year-only on Dec 1), so a single failed fetch can't lose a year and mid-year special holidays are captured. **Caught + fixed a real bug live:** the NSE parser summed ALL market segments → returned **238** "holidays" for 2026 (would have stopped trading nearly every day). Fixed to parse the CM (equities) segment only + dedup + reject implausible counts (>25). BotMemory now holds the authoritative 20-date HOLIDAYS_2026 (16 weekday + 4 weekend, all correct), closing the gap where no HOLIDAYS_2026 existed.
+
+---
+
 ## 2026-05-30 — MULTI-YEAR AUTONOMY: pinned deps + self-heal watchdog + family runbook
 
 Goal (Amit ji): run perfect for YEARS, self-healing, free forever, working WITHOUT Claude after the subscription ends. Honest assessment given: system was robust for *months*, not yet *years-unattended*. Closed the biggest gaps:
