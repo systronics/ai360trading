@@ -16,8 +16,11 @@ Session goal (Amit ji): "make the trading system bulletproof." Started with a li
 - **Always-observable tab.** `write_smc_sheet()` now always ensures the SmallMidCap tab and writes a dated row every scan — pick rows, or a single `NO CANDIDATES` status row on 0-pick days. Idempotent: a re-run for the same bhav date (e.g. weekday holidays re-serving the last file) does not duplicate rows. Amit ji now gets daily proof the scan ran.
 - **Safer BotMemory write.** v1.0 did `bm.clear()` + full rewrite EVERY run — a crash between clear and rewrite would wipe the BotMemory the trading bot depends on. v1.1 only touches BotMemory when there are picks to add OR stale SMC_ keys to purge; otherwise BotMemory is left completely untouched. Also fixed the deprecated `worksheet.update()` arg order.
 
-### KNOWN BIG ISSUE found this session (pending Amit ji's pick — see SESSION.md)
-- **GitHub throttles the `*/5` trading-bot cron to ~3 runs/day** (was 6–13/day early May, now 3/day for 5 straight days) vs ~96 expected. During the 6h15m market window often only ONE monitoring tick fires → a stock can blow through SL/target uncaught for hours. Repo is PUBLIC → Actions minutes are free, so a self-looping market-session workflow is the recommended ₹0 fix. Awaiting approach decision before touching the income-critical bot.
+### RELIABILITY FIX SHIPPED — new `trading_bot_session.yml` (cron throttling)
+- **Problem:** GitHub throttled the `*/5` trading-bot cron to ~3 runs/day (was 6–13/day early May, now 3/day for 5 straight trading days) vs ~96 expected. During the 6h15m market window often only ONE monitoring tick fired → a stock could blow through SL/target uncaught for hours.
+- **Fix:** New `trading_bot_session.yml` — two reliable once-daily triggers (08:30 + 11:55 IST; low-frequency crons are honoured far better than `*/5`), each running an internal 5-min `sleep`-loop across its half of the session for dense, guaranteed ticks. Repo is PUBLIC → multi-hour loops cost ₹0.
+- **Safety:** ADDITIVE — `trading_bot.py` untouched; the `*/5` cron stays as backup. Same concurrency group `trading-bot` + `cancel-in-progress:false` ⇒ session and backup cron can NEVER run together (no double-entry). Per-tick crash doesn't stop the loop.
+- **Verified:** YAML + bash time-logic locally; live manual dispatch on the real runner (`end_time=21:21`) ran 1 tick → bot booted v15.13 → correctly `[SKIP] Outside hours` (no sheet writes) → loop self-exited at 21:21. First scheduled sessions: Monday 2026-06-01 08:30 + 11:55 IST.
 
 ---
 
