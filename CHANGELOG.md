@@ -2,6 +2,18 @@
 
 ---
 
+## 2026-05-30 — MULTI-YEAR AUTONOMY: pinned deps + self-heal watchdog + family runbook
+
+Goal (Amit ji): run perfect for YEARS, self-healing, free forever, working WITHOUT Claude after the subscription ends. Honest assessment given: system was robust for *months*, not yet *years-unattended*. Closed the biggest gaps:
+
+- **Dependencies PINNED** (`requirements.txt`): was open ranges (`>=`) → every run pulled latest packages → one breaking upstream release (esp. yfinance) = silent unattended breakage. Pinned to the EXACT set verified green in run 26640890465. **Verified:** dispatched a real CI run (26650990707) → installed cleanly on Python 3.11, bot booted v15.14, `[SKIP]` outside hours. ✅
+- **Self-heal watchdog** (NEW `health_watchdog.py` + `watchdog.yml`, daily 08:05 IST): checks Sheet reachability + automation switch (T2), trading-bot freshness, NSE data-feed freshness, GitHub Actions failures (24h), Telegram token validity. Sends a **plain-language** Telegram alert ONLY on problems (each with a fix step), plus a Monday ✅ heartbeat so silence is meaningful. Fail-safe, stdlib Telegram, ₹0. Manual `test_alert=true` button. **Verified live** (run 26651428062): all checks ran, "all healthy", test message delivered to Basic. ✅
+- **Family runbook** (NEW `RUNBOOK.md`): plain-language "what each alert means + exact steps" for a non-technical family member — which issues they can fix themselves (T2, re-run a job, test alerts) vs. what to hand a developer. Watchdog alerts point here.
+
+Remaining autonomy item: harden `fetch_holidays.py` to write current+next year (so holidays self-update forever). Then content channels (FB Group/IG/website/visuals) per Amit ji's 10-day goal.
+
+---
+
 ## 2026-05-30 — CRITICAL: H2-2026 holiday correction (`trading_bot.py` v15.14 + `appscript.gs` v15.17)
 
 Came out of the line-by-line `appscript.gs` audit. The Aug–Dec 2026 holidays in BOTH files were approximations and **materially wrong** — the same bug-class that caused the 2026-05-27 outage (one wrong date = a whole trading day with no signals, no monitoring, no exits).
