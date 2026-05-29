@@ -2,7 +2,7 @@
 
 ---
 
-## Last Updated: 2026-05-29 (Fri — gainer-coverage analysis; SMC scanner gaps found; improvements PENDING user pick)
+## Last Updated: 2026-05-30 (bulletproofing — SMC scanner v1.1 shipped; cron-reliability gap found, approach PENDING user pick)
 
 ---
 
@@ -15,7 +15,7 @@
 | `institutional_edges.py` | **v1.0** | 2026-05-27 (Batch 4) |
 | `fetch_earnings.py` | **v1.0** | 2026-05-27 (Batch 3, daily 18:30 IST) |
 | `fetch_bhavcopy.py` | **v1.0** | 2026-05-27 (Batch 4, Mon-Fri 20:00 IST) |
-| `fetch_smallmidcap.py` | **v1.0** | 2026-05-27 (new — Batch 5 selective SMC momentum scanner, Mon-Fri 20:30 IST) |
+| `fetch_smallmidcap.py` | **v1.1** | 2026-05-30 (REAL 5-day volume filter + always-observable tab + safer BotMemory write) |
 | `appscript.gs` | **v15.16** | 2026-05-27 (live deployed — verified byte-identical to editor via clasp 2026-05-28) |
 | `ai_client.py` | v2.4 | May 2026 |
 | `human_touch.py` | v2.2 | May 2026 |
@@ -44,6 +44,11 @@
 ---
 
 ## Last Session Summary
+
+**2026-05-30 (bulletproofing — Opus 4.8):** Live audit first (gh CLI + Sheets MCP), then shipped `fetch_smallmidcap.py` **v1.1**. Found + diagnosed the real reliability gap; awaiting Amit ji's approach pick before touching the income-critical bot.
+- **Verified live:** SmallMidCap tab still absent (scanner ran once on Bakri Id holiday → 0 picks → v1.0 never created the tab). Bot core HEALTHY — exited HINDALCO +5.73% & CUMMINSIND +10.13% as TARGET HITs on 05-29, archived to History. AlertLog "stuck" rows (PNBHOUSING etc.) are NOT a bug — `step_b` monitoring is market-hours-gated; PNBHOUSING fell below SL post-close → exits Monday 06-01. No new entries 05-27/29 = filters legitimately rejected all (strict by design).
+- **Shipped v1.1 (zero income risk — SMC never produced a live signal):** (1) REAL volume filter — downloads prior 5 bhavcopy days, computes today÷5d-avg per symbol; <3 prior days → excluded (no fake number). Was a misleading "Vol 3.0×" proxy. (2) Always writes SmallMidCap tab + dated status row every scan (picks or "NO CANDIDATES"), idempotent. (3) Safer BotMemory write — only clears/rewrites when picks/stale keys exist (was wiping-risk every run). Verified: py_compile OK + synthetic-data smoke test (4× passes, 1.5× rejected, <3 days → 0).
+- **🔴 BIG GAP found — cron reliability (PENDING Amit ji's pick):** GitHub throttles the `*/5` trading-bot cron to **3 runs/day** (vs ~96 expected; was 6–13/day early May, now 3/day for 5 straight trading days). Often only ONE monitoring tick during the whole 6h15m market window → a stock can blow through SL/target uncaught for hours (wrong P/L now; real loss in Phase 4). Repo is **PUBLIC** → Actions minutes free → recommended fix = self-looping market-session workflow (one reliable daily trigger, internal loop every ~3 min). Additive (keep `*/5` as backup) so it can't break what works. Awaiting approach decision.
 
 **2026-05-29 (Fri — HANDOFF for next session / any AI):** Top-gainer coverage analysis. Model switched to **Opus 4.8** (new saved default). NO code changed this session — analysis + handoff only.
 - **Trigger:** Amit ji shared 2 NSE top-gainer screenshots (2026-05-29 intraday) and asked why none were traded/alerted, + asked for system improvement.

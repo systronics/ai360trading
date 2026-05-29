@@ -2,6 +2,25 @@
 
 ---
 
+## 2026-05-30 — BULLETPROOFING: SMC scanner trust + observability (`fetch_smallmidcap.py` v1.0 → v1.1)
+
+Session goal (Amit ji): "make the trading system bulletproof." Started with a live audit (gh CLI + Sheets MCP) before touching anything.
+
+### Verified live state first (facts, not memory)
+- **SmallMidCap tab still does NOT exist.** Scanner ran exactly once (manual dispatch 2026-05-28 23:42 IST, on Bakri Id holiday) → loaded stale bhavcopy → `0 candidates` → tab never created (v1.0 only wrote the tab when picks existed). Friday scheduled cron had not fired yet.
+- **Trading bot core is HEALTHY.** 2026-05-29 12:13 IST run exited HINDALCO (+5.73%) and CUMMINSIND (+10.13%) as TARGET HITs → archived to History. Entry filters correctly rejected MOTHERSON/NATIONALUM/MARICO (overbought RSI / weak RS / low volume).
+- **AlertLog "stuck" rows are NOT a bug.** Monitoring (`step_b`) only runs `if is_market_hours()`. PNBHOUSING fell below SL near/after close; post-close + weekend runs skip monitoring by design → it will exit Monday 2026-06-01 first market tick.
+
+### Fixed in v1.1 (zero income risk — SMC has never produced a live signal)
+- **REAL volume filter.** v1.0's "Vol 3.0×" shown to subscribers was a fake proxy (`turnover_cr / 20` = just "turnover ≥ ₹60 Cr"). v1.1 downloads the prior 5 trading days of bhavcopy and computes a genuine `today_qty ÷ 5-day-avg-qty` per symbol. Symbols with < 3 prior days of history are excluded (cannot confirm momentum → no fake number). New `fetch_bhavcopy_window()` + `build_avg_volume()`. Verified with synthetic data: 4× passes, 1.5× rejected, <3 days → 0 picks.
+- **Always-observable tab.** `write_smc_sheet()` now always ensures the SmallMidCap tab and writes a dated row every scan — pick rows, or a single `NO CANDIDATES` status row on 0-pick days. Idempotent: a re-run for the same bhav date (e.g. weekday holidays re-serving the last file) does not duplicate rows. Amit ji now gets daily proof the scan ran.
+- **Safer BotMemory write.** v1.0 did `bm.clear()` + full rewrite EVERY run — a crash between clear and rewrite would wipe the BotMemory the trading bot depends on. v1.1 only touches BotMemory when there are picks to add OR stale SMC_ keys to purge; otherwise BotMemory is left completely untouched. Also fixed the deprecated `worksheet.update()` arg order.
+
+### KNOWN BIG ISSUE found this session (pending Amit ji's pick — see SESSION.md)
+- **GitHub throttles the `*/5` trading-bot cron to ~3 runs/day** (was 6–13/day early May, now 3/day for 5 straight days) vs ~96 expected. During the 6h15m market window often only ONE monitoring tick fires → a stock can blow through SL/target uncaught for hours. Repo is PUBLIC → Actions minutes are free, so a self-looping market-session workflow is the recommended ₹0 fix. Awaiting approach decision before touching the income-critical bot.
+
+---
+
 ## 2026-05-28 (evening) — LOCAL TOOLING SETUP (no repo file changes)
 
 Operational setup only — no Python/AppScript/workflow files touched. All installs live outside the repo so they do not affect production.

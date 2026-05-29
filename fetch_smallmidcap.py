@@ -1,5 +1,5 @@
 """
-AI360 SMALL/MID CAP MOMENTUM SCANNER — v1.0
+AI360 SMALL/MID CAP MOMENTUM SCANNER — v1.1
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Daily scanner for institutional-grade small/mid cap winners NOT in Nifty200
 universe. Catches the +10–15% movers (GUJTHEM, TVSSRICHAK, MANCREDIT class)
@@ -11,7 +11,8 @@ momentum profit, no loss tolerance". So this is HIGHLY SELECTIVE — typically
 accumulation + momentum, not lottery-ticket upper-circuit hits.
 
 OUTPUTS:
-  1. Sheet tab `SmallMidCap` — auto-created on first run if missing
+  1. Sheet tab `SmallMidCap` — auto-created on first run; a status row is
+     written EVERY scan (even on 0-pick days) so the run is always observable.
   2. BotMemory keys `SMC_{YYYY-MM-DD}_RANK{N}_{SYM}` — for downstream tracking
   3. Telegram digest to Advance + Premium (Hinglish, actionable)
 
@@ -24,19 +25,40 @@ SCHEDULE: Mon-Fri 20:30 IST (after bhavcopy publishes ~18:30, after
 FILTERS (all must pass — strict by design):
   • Series == EQ
   • Symbol NOT in Nifty200 (small/mid cap universe only)
-  • Today's % change between +4% and +12%        — momentum, not circuit
+  • Today's % change between +4% and +13%        — momentum, not circuit
   • Turnover ≥ ₹20 Cr                            — minimum liquidity
   • Delivery % ≥ 50%                             — institutional accumulation
-  • Volume multiple (today vs 5d avg) ≥ 3×       — confirmed momentum
+  • REAL volume multiple (today vs prior 5-day average) ≥ 3×
 
 SCORE (top 3 only):
   score = pct_change × delivery_pct × min(volume_multiple, 6) / 100
 
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v1.1 (2026-05-30) — TRUST + OBSERVABILITY FIXES:
+  • REAL VOLUME FILTER. v1.0 used a fake proxy `turnover_cr / TURNOVER_MIN_CR`
+    (i.e. just "turnover ≥ ₹60 Cr") but DISPLAYED it to subscribers as
+    "Vol 3.0×" — misleading. v1.1 downloads the prior 5 trading days of
+    bhavcopy and computes a genuine today-volume ÷ 5-day-average-volume
+    multiple per symbol. The "Vol X×" shown is now true. A symbol with
+    fewer than VOL_HISTORY_MIN_DAYS of prior data is EXCLUDED (cannot
+    confirm momentum → no signal, per "no loss tolerance").
+  • ALWAYS-OBSERVABLE TAB. v1.0 only created/wrote the SmallMidCap tab when
+    picks existed, so on every 0-pick day the system was silent and the tab
+    never appeared — impossible to verify the scan ran. v1.1 always ensures
+    the tab and writes a dated scan-status row (picks, or "NO CANDIDATES").
+    Idempotent: a re-run for the same bhav date does not duplicate rows.
+  • SAFER BOTMEMORY WRITE. v1.0 did `bm.clear()` + full rewrite every run,
+    even with 0 picks and nothing to purge — a crash between clear and
+    rewrite would WIPE the shared BotMemory the trading bot depends on.
+    v1.1 only touches BotMemory when there are picks to add OR stale SMC_
+    keys to purge; otherwise it leaves BotMemory untouched.
+
 SELF-REPAIR:
-  • Walks back 5 days if today's bhavcopy missing
+  • Walks back up to 8 calendar days to assemble the needed trading days
   • Auto-creates SmallMidCap tab via gspread if absent
-  • Fails open: NO signals on bad-data day rather than bad signals
-  • Stale SMC_* memory keys (>14 days) purged each run
+  • Fails SAFE: NO signals (and a clear status row) on bad-data day rather
+    than bad/fake signals
+  • Stale SMC_* memory keys (>14 days) purged each run that touches BotMemory
 """
 
 import os, json, csv, io, time
@@ -66,7 +88,9 @@ PCT_MAX              = 13.0    # max today %change (excludes upper-circuit).
                                # well below upper-circuit triggers.
 TURNOVER_MIN_CR      = 20.0    # ₹20 Cr min turnover (liquidity floor)
 DELIVERY_MIN_PCT     = 50.0    # institutional accumulation threshold
-VOLUME_MULT_MIN      = 3.0     # today vol vs 5d avg
+VOLUME_MULT_MIN      = 3.0     # today vol vs prior 5-day avg (REAL — v1.1)
+VOL_HISTORY_DAYS     = 5       # how many prior trading days form the average
+VOL_HISTORY_MIN_DAYS = 3       # need at least this many prior days to trust it
 TOP_N                = 3       # max signals per day (selective)
 STALE_DAYS           = 14      # purge SMC_* memory rows older than this
 
@@ -79,7 +103,7 @@ DEFAULT_HEADERS = {
 
 
 # ════════════════════════════════════════════════════════════════════════════
-# BHAVCOPY FETCH (5-day fallback)
+# BHAVCOPY FETCH (multi-day window for real volume average)
 # ════════════════════════════════════════════════════════════════════════════
 
 def _fetch_csv(url: str, retries: int = 2, timeout: int = 25) -> str:
@@ -96,25 +120,35 @@ def _fetch_csv(url: str, retries: int = 2, timeout: int = 25) -> str:
     raise RuntimeError(f"All retries failed for {url}: {last}")
 
 
-def fetch_bhavcopy() -> tuple:
-    """Returns (rows_list, date_iso). rows_list is list-of-dicts from CSV."""
+def fetch_bhavcopy_window(need: int = 6, max_days: int = 12) -> list:
+    """
+    Returns up to `need` most-recent trading days of bhavcopy as a list of
+    (date_iso, rows) tuples, NEWEST FIRST. rows is a list-of-dicts from the CSV.
+    `need` defaults to 6 = today + VOL_HISTORY_DAYS prior days.
+    Walks back up to `max_days` calendar days, skipping weekends and any day
+    whose file is missing (holidays / not yet published).
+    """
     today = datetime.now(IST).date()
-    for back in range(0, 6):
+    out = []
+    for back in range(0, max_days):
         d = today - timedelta(days=back)
-        if d.weekday() >= 5:
+        if d.weekday() >= 5:   # Sat/Sun — no bhavcopy
             continue
-        url = f"https://archives.nseindia.com/products/content/sec_bhavdata_full_{d.strftime('%d%m%Y')}.csv"
+        url = (f"https://archives.nseindia.com/products/content/"
+               f"sec_bhavdata_full_{d.strftime('%d%m%Y')}.csv")
         try:
             text = _fetch_csv(url)
             reader = csv.DictReader(io.StringIO(text))
             rows = list(reader)
             if rows:
+                out.append((d.isoformat(), rows))
                 print(f"[BHAVCOPY] {d.isoformat()} loaded ({len(rows)} rows)")
-                return rows, d.isoformat()
+                if len(out) >= need:
+                    break
         except Exception as e:
             print(f"[BHAVCOPY] {d.isoformat()}: {e}")
             continue
-    return [], ""
+    return out
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -173,13 +207,47 @@ def _g(row: dict, key: str) -> str:
     return (row.get(key) or row.get(" " + key) or "").strip()
 
 
-def filter_and_score(bhav_rows: list, nifty200: set) -> list:
+def build_avg_volume(window: list) -> tuple:
+    """
+    Build per-symbol average traded quantity from the PRIOR days only (i.e.
+    every day in `window` except the newest, which is 'today').
+
+    `window` is the list from fetch_bhavcopy_window() — (date, rows) newest
+    first. Returns (avg_map, prior_days) where avg_map = {SYMBOL: avg_qty}
+    and prior_days = number of days that contributed.
+    """
+    prior = window[1:1 + VOL_HISTORY_DAYS]   # skip newest (today), take up to 5
+    acc = {}                                 # sym -> [count, sum_qty]
+    for _date, rows in prior:
+        for r in rows:
+            if _g(r, "SERIES").upper() != "EQ":
+                continue
+            sym = _g(r, "SYMBOL").upper()
+            qty = _f(_g(r, "TTL_TRD_QNTY"))
+            if sym and qty > 0:
+                cell = acc.setdefault(sym, [0, 0.0])
+                cell[0] += 1
+                cell[1] += qty
+    avg_map = {s: (v[1] / v[0]) for s, v in acc.items() if v[0] > 0}
+    print(f"[VOLAVG] built {len(avg_map)} symbol averages from {len(prior)} prior day(s)")
+    return avg_map, len(prior)
+
+
+def filter_and_score(today_rows: list, nifty200: set, avg_vol: dict, prior_days: int) -> list:
     """
     Returns sorted list of dicts (best score first), all entries that pass
     every filter. Each dict carries fields used for the alert message.
+    Volume multiple is REAL (today qty ÷ prior 5-day average qty). A symbol
+    without enough prior history (or zero average) is excluded — we never
+    fabricate a volume number.
     """
+    have_history = prior_days >= VOL_HISTORY_MIN_DAYS
+    if not have_history:
+        print(f"[VOLAVG] only {prior_days} prior day(s) (<{VOL_HISTORY_MIN_DAYS}) "
+              f"— volume cannot be confirmed, scan will yield 0 picks")
+
     picks = []
-    for r in bhav_rows:
+    for r in today_rows:
         series = _g(r, "SERIES").upper()
         if series != "EQ":
             continue
@@ -205,24 +273,25 @@ def filter_and_score(bhav_rows: list, nifty200: set) -> list:
         if dlv_pct < DELIVERY_MIN_PCT:
             continue
 
-        # Volume multiple — bhavcopy has TTL_TRD_QNTY today + AVG_PRICE.
-        # NSE doesn't include avg-volume in this CSV. We approximate volume
-        # multiple by comparing today's traded value to a heuristic baseline.
-        # When fetch_bhavcopy.py runs first (20:00) it can populate avg vols.
-        # For now we use a simpler proxy: high turnover_cr relative to typical
-        # small-cap (≥ 4× of TURNOVER_MIN_CR threshold).
-        today_qty   = _f(_g(r, "TTL_TRD_QNTY"))
-        deliv_qty   = _f(_g(r, "DELIV_QTY"))
+        today_qty = _f(_g(r, "TTL_TRD_QNTY"))
+        deliv_qty = _f(_g(r, "DELIV_QTY"))
         if today_qty <= 0:
             continue
-        # Use delivery quantity as a quality dimension; if delivery is high
-        # AND turnover spike vs floor, treat as confirmed momentum.
-        vol_mult_proxy = turnover_cr / TURNOVER_MIN_CR     # ≥ 1.0 when above floor
-        if vol_mult_proxy < VOLUME_MULT_MIN:
+
+        # REAL volume multiple (v1.1): today's traded quantity vs the prior
+        # 5-day average for THIS symbol. If we don't have enough history or
+        # the symbol has no prior average, we cannot confirm momentum → skip.
+        if not have_history:
+            continue
+        avg_q = avg_vol.get(sym, 0.0)
+        if avg_q <= 0:
+            continue
+        vol_mult = today_qty / avg_q
+        if vol_mult < VOLUME_MULT_MIN:
             continue
 
         score = round(
-            pct_change * dlv_pct * min(vol_mult_proxy, 6.0) / 100.0,
+            pct_change * dlv_pct * min(vol_mult, 6.0) / 100.0,
             2,
         )
         picks.append({
@@ -232,7 +301,7 @@ def filter_and_score(bhav_rows: list, nifty200: set) -> list:
             "pct_change":     round(pct_change, 2),
             "turnover_cr":    round(turnover_cr, 1),
             "delivery_pct":   round(dlv_pct, 1),
-            "vol_mult":       round(vol_mult_proxy, 2),
+            "vol_mult":       round(vol_mult, 2),
             "deliv_qty":      int(deliv_qty),
             "today_qty":      int(today_qty),
             "score":          score,
@@ -248,7 +317,7 @@ def filter_and_score(bhav_rows: list, nifty200: set) -> list:
 
 SMC_HEADER = [
     "Date", "Rank", "Symbol", "Close ₹", "Prev Close ₹",
-    "% Change", "Turnover ₹Cr", "Delivery %", "Vol Mult (proxy)",
+    "% Change", "Turnover ₹Cr", "Delivery %", "Vol Mult (5d real)",
     "Score", "Scan Time IST",
 ]
 
@@ -264,16 +333,42 @@ def _ensure_smc_tab(ss):
 
 
 def write_smc_sheet(ss, picks: list, bhav_date: str):
-    if not picks:
-        return
-    sheet = _ensure_smc_tab(ss)
+    """
+    Always ensures the SmallMidCap tab exists and records that the scan ran.
+    Writes one row per pick, or a single 'NO CANDIDATES' status row on a
+    0-pick day. Idempotent: if the most recent existing row is already for
+    this bhav_date, nothing is written (prevents duplicates on re-runs and
+    on weekday holidays that re-serve the last trading day's file).
+    """
+    sheet     = _ensure_smc_tab(ss)
     scan_time = datetime.now(IST).strftime("%Y-%m-%d %H:%M")
+
+    # Idempotency guard — skip if last data row already covers this date.
+    try:
+        existing = sheet.get_all_values()
+        for prev in reversed(existing[1:]):
+            if prev and prev[0].strip():
+                if prev[0].strip() == bhav_date:
+                    print(f"[SHEET] {bhav_date} already recorded — skip duplicate write")
+                    return
+                break
+    except Exception as e:
+        print(f"[SHEET] existing-row check failed (proceeding): {e}")
+
+    if not picks:
+        sheet.append_row(
+            [bhav_date, "—", "NO CANDIDATES", "", "", "", "", "", "", "", scan_time],
+            value_input_option="USER_ENTERED",
+        )
+        print(f"[SHEET] {bhav_date} — 0 picks, status row written")
+        return
+
     new_rows = []
     for rank, p in enumerate(picks, start=1):
         new_rows.append([
             bhav_date, rank, p["symbol"], p["close"], p["prev_close"],
             f'{p["pct_change"]:+.2f}%', p["turnover_cr"], p["delivery_pct"],
-            p["vol_mult"], p["score"], scan_time,
+            f'{p["vol_mult"]:.2f}×', p["score"], scan_time,
         ])
     sheet.append_rows(new_rows, value_input_option="USER_ENTERED")
     print(f"[SHEET] appended {len(new_rows)} rows to {SMC_TAB}")
@@ -287,6 +382,12 @@ def write_bm_keys(ss, picks: list, bhav_date: str):
     """
     Writes SMC_{date}_RANK{N}_{SYM} = "<close>|<deliv>%|<score>" rows in BotMemory.
     Purges SMC_* entries older than STALE_DAYS at the same time.
+
+    SAFETY (v1.1): BotMemory is SHARED with trading_bot.py. v1.0 always did a
+    bm.clear() + full rewrite — a crash mid-write would wipe the bot's state.
+    v1.1 only performs the destructive clear+rewrite when there is something
+    to change (new picks to add, or stale SMC_ keys to purge). On a normal
+    0-pick day with no stale keys, BotMemory is left completely untouched.
     """
     bm = ss.worksheet(BM_TAB)
     existing = bm.get_all_values()
@@ -294,7 +395,7 @@ def write_bm_keys(ss, picks: list, bhav_date: str):
     today    = datetime.now(IST).date()
     now_str  = datetime.now(IST).strftime("%Y-%m-%d %H:%M")
 
-    keep = [headers]
+    keep   = [headers]
     purged = 0
     for row in existing[1:]:
         if not row or not row[0].strip():
@@ -310,13 +411,18 @@ def write_bm_keys(ss, picks: list, bhav_date: str):
                 pass
         keep.append(row)
 
+    # Nothing to add and nothing stale to remove → do NOT touch BotMemory.
+    if not picks and purged == 0:
+        print("[BM] no picks, nothing stale — BotMemory left untouched (safe)")
+        return
+
     for rank, p in enumerate(picks, start=1):
         key = f"SMC_{bhav_date}_RANK{rank}_{p['symbol']}"
         val = f"{p['close']}|{p['delivery_pct']:.0f}%|score={p['score']}"
         keep.append([key, val, now_str, "", "SMC"])
 
     bm.clear()
-    bm.update("A1", keep)
+    bm.update(range_name="A1", values=keep)
     print(f"[BM] purged {purged} stale SMC_, wrote {len(picks)} new")
 
 
@@ -345,7 +451,7 @@ def send_digest(picks: list, bhav_date: str):
             f"━━━━━━━━━━━━━━━━━━━━\n"
             f"No candidates passed today's strict filters.\n\n"
             f"<i>Filters: +{PCT_MIN:.0f}% to +{PCT_MAX:.0f}% move, ₹{TURNOVER_MIN_CR:.0f}Cr+ turnover, "
-            f"{DELIVERY_MIN_PCT:.0f}%+ delivery, {VOLUME_MULT_MIN:.0f}× volume.</i>\n\n"
+            f"{DELIVERY_MIN_PCT:.0f}%+ delivery, {VOLUME_MULT_MIN:.0f}× real 5-day volume.</i>\n\n"
             f"Cleaner setups tomorrow — quality over quantity."
         )
         _tg(CHAT_ADVANCE, msg)
@@ -362,7 +468,7 @@ def send_digest(picks: list, bhav_date: str):
         lines.append(
             f"<b>#{rank}  {p['symbol']}</b>  ₹{p['close']:.2f}  ({p['pct_change']:+.2f}%)\n"
             f"   Turnover ₹{p['turnover_cr']:.1f} Cr  |  Delivery {p['delivery_pct']:.0f}%  "
-            f"|  Vol {p['vol_mult']:.1f}×\n"
+            f"|  Vol {p['vol_mult']:.1f}× (5d avg)\n"
             f"   <i>Score: {p['score']}</i>"
         )
     lines.append("")
@@ -385,22 +491,30 @@ def send_digest(picks: list, bhav_date: str):
 
 def main():
     print(f"[SMC] start {datetime.now(IST).strftime('%Y-%m-%d %H:%M')} IST")
-    rows, bhav_date = fetch_bhavcopy()
-    if not rows:
+
+    # Fetch today + prior days in one window so we can compute a REAL volume
+    # average. need = 1 (today) + VOL_HISTORY_DAYS prior.
+    window = fetch_bhavcopy_window(need=1 + VOL_HISTORY_DAYS)
+    if not window:
         _tg(CHAT_BASIC,
             "ℹ️ <b>System Notice</b>\nSmall/Mid Cap scan: bhavcopy unavailable. "
             "Will retry tomorrow. <i>System message, not a trade signal.</i>")
         print("[SMC] no bhavcopy — exit 0")
         return
 
+    bhav_date, today_rows = window[0]
+    avg_vol, prior_days   = build_avg_volume(window)
+
     ss       = _connect()
     nifty200 = read_nifty200_universe(ss)
-    picks    = filter_and_score(rows, nifty200)
-    print(f"[SMC] {len(picks)} candidate(s) passed all filters")
+    picks    = filter_and_score(today_rows, nifty200, avg_vol, prior_days)
+    print(f"[SMC] {len(picks)} candidate(s) passed all filters "
+          f"(today={bhav_date}, prior_days={prior_days})")
     for p in picks:
         print(f"  • {p['symbol']}: {p['pct_change']:+.2f}%  ₹{p['turnover_cr']:.1f}Cr  "
-              f"DLV {p['delivery_pct']:.0f}%  score={p['score']}")
+              f"DLV {p['delivery_pct']:.0f}%  Vol {p['vol_mult']:.2f}x  score={p['score']}")
 
+    # Always record that the scan ran (picks or a status row) — observability.
     try:
         write_smc_sheet(ss, picks, bhav_date)
     except Exception as e:
