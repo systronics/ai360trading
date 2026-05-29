@@ -1,0 +1,51 @@
+name: System Watchdog — Daily Health Check
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Daily self-heal monitor (health_watchdog.py). Detects problems and sends a
+# plain-language Telegram alert to the owner so the system stays observable
+# without a developer. Sends nothing on healthy weekdays; one ✅ heartbeat
+# every Monday so silence is meaningful. ₹0 (public repo = free minutes).
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+on:
+  schedule:
+    - cron: "35 2 * * *"   # 08:05 IST daily — before market, after overnight content
+  workflow_dispatch:
+    inputs:
+      test_alert:
+        description: 'Send a test health message now (verifies Telegram works)'
+        type: boolean
+        default: false
+
+permissions:
+  actions: read            # needed for the GitHub Actions failure check
+  contents: read
+
+jobs:
+  watchdog:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install minimal deps
+        run: |
+          pip install --upgrade pip
+          pip install gspread==6.2.1 oauth2client==4.1.3
+
+      - name: Run watchdog
+        env:
+          GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
+          TELEGRAM_BOT_TOKEN:       ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID_BASIC:            ${{ secrets.CHAT_ID_BASIC }}
+          GITHUB_TOKEN:             ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY:        ${{ github.repository }}
+          WATCHDOG_TEST:            ${{ github.event.inputs.test_alert == 'true' && '1' || '0' }}
+        run: python health_watchdog.py
