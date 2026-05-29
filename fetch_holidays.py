@@ -117,27 +117,38 @@ def fetch_nse_holidays(year):
             return []
 
         data = r.json()
-        holidays = []
-        for month_data in data.values():
-            for entry in month_data:
-                date_str = entry.get("tradingDate", "")
-                if date_str:
-                    # NSE returns dd-MMM-yyyy format like "26-Jan-2026"
-                    try:
-                        dt = datetime.strptime(date_str, "%d-%b-%Y")
-                        if dt.year == year:
-                            holidays.append(dt.strftime("%Y-%m-%d"))
-                    except ValueError:
-                        pass
+        # NSE holiday-master returns a dict keyed by SEGMENT:
+        #   {"CM":[...], "FO":[...], "CD":[...], "COM":[...], ...}
+        # We want EQUITIES only = "CM" (Capital Market). Summing every segment
+        # (the old bug) produced ~238 duplicate dates and would mark almost every
+        # day a holiday. Use CM; fall back to any one list segment if CM absent.
+        segment = data.get("CM")
+        if not isinstance(segment, list) or not segment:
+            segment = next((v for v in data.values() if isinstance(v, list)), [])
+        seen, holidays = set(), []
+        for entry in segment:
+            date_str = (entry or {}).get("tradingDate", "")
+            if not date_str:
+                continue
+            try:
+                dt = datetime.strptime(date_str, "%d-%b-%Y")  # e.g. "26-Jan-2026"
+            except ValueError:
+                continue
+            if dt.year == year:
+                iso = dt.strftime("%Y-%m-%d")
+                if iso not in seen:
+                    seen.add(iso)
+                    holidays.append(iso)
         holidays.sort()
-        print(f"[NSE] Fetched {len(holidays)} holidays for {year}")
+        print(f"[NSE] Fetched {len(holidays)} equity (CM) holidays for {year}")
         return holidays
 
     except Exception as e:
         print(f"[NSE] API fetch failed: {e}")
         return []
 
-MIN_PLAUSIBLE = 8   # a real NSE year has ~14-17 weekday holidays; <8 = bad fetch
+MIN_PLAUSIBLE = 8    # a real NSE year has ~14-17 weekday holidays; <8 = bad fetch
+MAX_PLAUSIBLE = 25   # >25 = parser grabbed multiple segments / junk — reject
 
 def main():
     now = datetime.now(IST)
@@ -161,10 +172,11 @@ def main():
             print(f"[HOLIDAYS] {year}: no data — leaving any existing value untouched")
             continue
 
-        # Sanity gate — never overwrite a good stored list with a partial fetch.
-        if len(holidays) < MIN_PLAUSIBLE:
-            print(f"[HOLIDAYS] {year}: only {len(holidays)} dates (<{MIN_PLAUSIBLE}) "
-                  f"— looks partial, skipping to protect existing value")
+        # Sanity gate — reject implausible counts (partial fetch, or the
+        # all-segments bug that yields ~238). Never overwrite a good list with junk.
+        if not (MIN_PLAUSIBLE <= len(holidays) <= MAX_PLAUSIBLE):
+            print(f"[HOLIDAYS] {year}: {len(holidays)} dates outside "
+                  f"[{MIN_PLAUSIBLE},{MAX_PLAUSIBLE}] — implausible, skipping to protect existing value")
             continue
 
         key = f"HOLIDAYS_{year}"
