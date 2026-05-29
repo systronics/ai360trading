@@ -2,7 +2,7 @@
 
 ---
 
-## Last Updated: 2026-05-28 (late night — SEO Phases 1-3 shipped, Phase 4 deferred)
+## Last Updated: 2026-05-29 (Fri — gainer-coverage analysis; SMC scanner gaps found; improvements PENDING user pick)
 
 ---
 
@@ -44,6 +44,24 @@
 ---
 
 ## Last Session Summary
+
+**2026-05-29 (Fri — HANDOFF for next session / any AI):** Top-gainer coverage analysis. Model switched to **Opus 4.8** (new saved default). NO code changed this session — analysis + handoff only.
+- **Trigger:** Amit ji shared 2 NSE top-gainer screenshots (2026-05-29 intraday) and asked why none were traded/alerted, + asked for system improvement.
+- **VERIFIED via live sheet + code reads:**
+  - **`SmallMidCap` tab does NOT exist yet** (confirmed via list_sheets — 8 tabs, no SmallMidCap). So `fetch_smallmidcap.py` has **never run**. First-ever run is **tonight Fri 2026-05-29 20:30 IST**. As of the intraday screenshots, ZERO small/mid-cap alerts could exist by timing alone.
+  - **Screenshot-1 names (+12% to +20%: SUPRIYA, TBZ, COFFEEDAY, BEARDSELL, WOCKPHARMA, SHIVALIK, KERNEX, NETWEB, INDSWFTLAB, ASHAPURMIN, BLUSPRING, BIMETAL, INDNIPPON, SHAILY, OMNI, NPST, RELAXO) are ALL outside Nifty200** (checked all 200 symbols). Main `trading_bot.py` only scans Nifty200 → never looks at them.
+  - **`fetch_smallmidcap.py:61` `PCT_MAX = 13.0`** → rejects 12 of the 17 screenshot-1 names (every >13% mover + upper circuits). By design: "no lottery / no upper-circuit." Only INDNIPPON/SHAILY/OMNI/NPST/RELAXO survive the band, then face turnover+delivery+top-3 cuts.
+  - **BUG (real) — fake volume filter.** `fetch_smallmidcap.py:220-222`: `vol_mult_proxy = turnover_cr / TURNOVER_MIN_CR` (=turnover/20), required ≥ 3.0 → this is just "turnover ≥ ₹60 Cr", NOT a volume-vs-average measure. But the sheet column "Vol Mult (proxy)" and the Telegram digest both display "Vol 3.0×" to subscribers → misleading. Code comment already admits NSE CSV has no avg-volume field.
+  - **Screenshot-2 names (large caps +1.7% to +6%: MOTHERSON, IREDA, HYUNDAI, GMRAIRPORT, SAMMAANCAP, LODHA, LTM, BOSCHLTD, NBCC, POWERINDIA, COFORGE, YESBANK, BANDHANBNK, PERSISTENT, INDUSTOWER) ARE in Nifty200** (only RADICO is not). They're scanned every 5 min but weren't traded because the bot trades SETUPS (breakout/retest stage flagged by AppScript → entry filters: RS, rel-vol, delivery, FII regime, VIX ≤ 22 → max 3 swing/day), not "green stocks". A +1.7-2.8% drift is below setup conviction.
+- **YELLOW FLAG (NOT yet verified):** AlertLog's last real entries are 2026-05-25/26 (PNBHOUSING, EICHERMOT, SAIL, INDUSINDBK). NOTHING for Wed 2026-05-27 (a trading day) or Fri 2026-05-29. Could be normal strictness (0 setups) OR AppScript scanner not writing WAITING candidates. Needs AppScript + BotMemory read to confirm.
+- **IMPROVEMENT BACKLOG (Amit ji to pick priority — not yet chosen):**
+  1. Fix fake volume filter → real 5-day volume-multiple (have `fetch_bhavcopy.py` store avg-vol per symbol; the comment already anticipates this). Low risk, high trust value.
+  2. Add intraday early-momentum scan → catch big movers at +3-5% BEFORE upper circuit (only way to actually ride SUPRIYA/WOCKPHARMA-class). Bigger build; mind ₹0/month.
+  3. Verify AlertLog gap (diagnosis, no code change).
+  4. Re-tune SMC thresholds (+13% cap / turnover / delivery) so scanner surfaces some movers tonight — strategy change, needs risk-appetite call.
+- **Amit ji instructions captured:** (a) improve the system; (b) sync must NEVER let old files overwrite improved ones — keep local PC AND GitHub in lockstep; commit+push after every edit; apply improvements ONLINE too now that full access (sheets/clasp/gh) exists.
+- **Access confirmed persistent** across model change + Claude Code restart (MCP sheets, clasp, gh CLI, file tools all live outside the chat). Only the conversation resets — hence this handoff.
+- **Local-only (NOT pushed):** `xxxxxxxxx.png`, `zzzzzzzz.png` (the gainer screenshots) — kept local at Amit ji's request.
 
 **2026-05-28 (overnight):** SEO + content quality overhaul — 3 phases shipped after live audit of articles, robots, sitemap, generators.
 - **AUDIT FINDINGS (8 root causes for tiny growth, 100 YT subs / 50 daily blog visitors):**
