@@ -154,22 +154,29 @@ def _try_loremflickr(query: str) -> dict:
     through to it). We GET the URL, follow redirects, and ONLY return it if it
     actually resolves to an image — so we can never emit a dead <img> again.
     """
-    try:
-        slug = re.sub(r"[^a-z0-9, ]", "", query.lower()).replace(", ", ",").replace(" ", ",")
-        url  = f"https://loremflickr.com/1200/630/{slug}"
-        r = requests.get(url, timeout=8, allow_redirects=True,
-                         headers={"User-Agent": "Mozilla/5.0"})
-        ctype = r.headers.get("Content-Type", "")
-        if r.ok and ctype.startswith("image/"):
-            return {
-                "url":    r.url,          # final resolved image URL (no re-redirect on load)
-                "alt":    query,
-                "credit": "Photo via Flickr (Creative Commons)",
-                "source": "loremflickr",
-            }
-        return {}
-    except Exception:
-        return {}
+    words = re.sub(r"[^a-z0-9 ]", "", query.lower()).split()
+    # Try the full phrase first, then progressively simpler tags. LoremFlickr
+    # AND-matches comma tags, so multi-word queries often have NO match and it
+    # returns a generic "defaultImage" placeholder — which we must reject.
+    candidates = []
+    if words:
+        candidates.append(",".join(words))      # full phrase
+        candidates.append(words[0])             # single most-general tag
+    for slug in candidates:
+        try:
+            r = requests.get(f"https://loremflickr.com/1200/630/{slug}", timeout=8,
+                             allow_redirects=True, headers={"User-Agent": "Mozilla/5.0"})
+            ctype = r.headers.get("Content-Type", "")
+            if r.ok and ctype.startswith("image/") and "defaultImage" not in r.url:
+                return {
+                    "url":    r.url,     # final resolved image URL (no re-redirect on load)
+                    "alt":    query,
+                    "credit": "Photo via Flickr (Creative Commons)",
+                    "source": "loremflickr",
+                }
+        except Exception:
+            continue
+    return {}   # let cascade fall to Picsum (guaranteed real image)
 
 
 def _try_picsum(seed: int) -> dict:
