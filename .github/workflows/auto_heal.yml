@@ -1,0 +1,42 @@
+name: AI360 Auto-Heal
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Self-healing remediation loop (auto_heal.py). Every ~30 min it finds failed
+# GitHub Actions jobs and AUTOMATICALLY re-runs them (most failures are
+# transient and pass on retry). Escalates to Telegram ONLY when a job fails
+# all retries. Zero human action for the common case. ₹0 (public repo).
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"   # every 30 min
+  workflow_dispatch:
+
+permissions:
+  actions: write             # needed to re-run failed jobs
+  contents: read
+
+concurrency:
+  group: auto-heal
+  cancel-in-progress: false
+
+jobs:
+  heal:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Run auto-heal
+        env:
+          GITHUB_TOKEN:       ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY:  ${{ github.repository }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID_BASIC:      ${{ secrets.CHAT_ID_BASIC }}
+        run: python auto_heal.py
