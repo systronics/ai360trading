@@ -1,46 +1,60 @@
+# ══════════════════════════════════════════════════════════════════════════
+# AI360TRADING — PINNED DEPENDENCIES
+# ──────────────────────────────────────────────────────────────────────────
+# WHY EXACT PINS (== not >=):  This system must run UNATTENDED for years on
+# free GitHub Actions. Every workflow run does a fresh `pip install`, so with
+# open ranges (>=) a single breaking upstream release (yfinance especially
+# ships breaking changes every few months) would silently break the bot/
+# content jobs — with no one available to diagnose it.
+#
+# These versions are the EXACT set verified working in the live trading_bot
+# run on 2026-05-29 (GitHub Actions run 26640890465, success). Frozen 2026-05-30.
+#
+# TO UPGRADE SAFELY (only if needed): bump ONE package, let a workflow run,
+# confirm green in `gh run list`, then commit. Never bulk-unpin.
+# ══════════════════════════════════════════════════════════════════════════
+
 # TELEGRAM & GOOGLE SHEETS
-gspread>=6.1.0
-oauth2client>=4.1.3
-requests>=2.32.0
-pytz>=2025.1
+gspread==6.2.1
+oauth2client==4.1.3
+requests==2.34.2
+pytz==2026.2
 
 # MARKET DATA
-yfinance>=0.2.40
-pandas>=2.0.0
-numpy>=1.26.0
+yfinance==1.4.1
+pandas==3.0.3
+numpy==2.4.6
 
-# AI SCRIPT GENERATION
-groq>=1.0.0
-# FIX v2.3: Added google-genai (new SDK for Veo 2 video + Gemini 2.5)
-# Required by ai_client.py v2.4
-google-genai>=1.0.0
-google-generativeai>=0.8.0
-anthropic>=0.40.0
-openai>=1.50.0
+# AI SCRIPT GENERATION (fallback chain: Groq → Gemini → Claude → OpenAI)
+groq==1.4.0
+google-genai==2.7.0          # new SDK — Veo video + Gemini 2.5 (ai_client.py v2.4)
+google-generativeai==0.8.6
+anthropic==0.105.2
+openai==2.38.0
 
-# VIDEO & AUDIO
-Pillow>=10.3.0
+# VIDEO & AUDIO  (moviepy/imageio/decorator stack is fragile — keep these exact)
+Pillow==12.2.0
 moviepy==1.0.3
-edge-tts>=6.1.0
+edge-tts==7.2.8
 imageio==2.9.0
-imageio-ffmpeg>=0.4.9
-matplotlib>=3.8.0
+imageio-ffmpeg==0.6.0
+matplotlib==3.10.9
 decorator==4.4.2
 
 # YOUTUBE UPLOAD
-google-api-python-client>=2.120.0
-google-auth>=2.30.0
-google-auth-oauthlib>=1.2.0
-google-auth-httplib2>=0.2.0
-pynacl>=1.5.0
+google-api-python-client==2.197.0
+google-auth==2.53.0
+google-auth-oauthlib==1.4.0
+google-auth-httplib2==0.4.0
+pynacl==1.6.2
 
 # FACEBOOK & RSS
-feedparser>=6.0.0
+feedparser==6.0.12
 
 # GOOGLE INDEXING API
-cryptography>=42.0.0
+cryptography==48.0.0
 
 # SYSTEM
-pytrends>=4.9.0
-python-dotenv>=1.0.1
-certifi>=2025.1.0
+pytrends==4.9.2
+python-dotenv==1.2.2
+certifi==2026.5.20
