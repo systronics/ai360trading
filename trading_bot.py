@@ -1,6 +1,14 @@
 """
-AI360 TRADING BOT — v15.13
+AI360 TRADING BOT — v15.14
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v15.14 CHANGES vs v15.13 — H2-2026 HOLIDAY CORRECTION (2026-05-30)
+  Aug-Dec 2026 holidays were approximations and materially wrong (Diwali was
+  guessed at 21/22-Oct; actual Balipratipada is 10-Nov; Ganesh Chaturthi 14-Sep
+  and Dussehra 20-Oct were missing; Janmashtami 27-Aug was not an NSE holiday).
+  Same bug-class that caused the 2026-05-27 outage. Now VERIFIED against NSE
+  official circular + Zerodha + ClearTax (all three agree). appscript.gs H2
+  list corrected identically in the same session.
+
 v15.13 CHANGES vs v15.12 — BATCH-4 HOTFIX + BATCH-5 SCAFFOLDING (May 2026)
   HOTFIX 4.1 — Nifty200 column lookups were broken by header-name mismatch.
     From Amit ji's screenshot 8 the actual header is `Volume_vs_Avg_%` (a
@@ -368,15 +376,18 @@ NSE_HOLIDAYS_2026 = {
     "2026-05-01",  # Maharashtra Day (Fri)
     "2026-05-28",  # Bakri Id / Eid ul-Adha (Thu)  ← was wrongly 2026-05-27 in v15.8
     "2026-06-26",  # Muharram (Fri)  ← was wrongly 2026-06-17 in v15.8
-    # Aug-Dec 2026 holidays — to be verified once NSE publishes second-half
-    # calendar. Kept conservative (best-known approximations from prior years).
-    "2026-08-15",  # Independence Day (Sat — markets closed anyway)
-    "2026-08-27",  # Janmashtami (approx)
-    "2026-10-02",  # Gandhi Jayanti (Fri)
-    "2026-10-21",  # Diwali Laxmi Puja (approx — Wed)
-    "2026-10-22",  # Diwali Balipratipada (approx — Thu)
-    "2026-11-04",  # Guru Nanak Jayanti (approx)
+    # Aug-Dec 2026 — VERIFIED 2026-05-30 against NSE official + Zerodha + ClearTax
+    # (all three agree). Replaces the earlier approximations that were materially
+    # wrong (Diwali was guessed at 21/22-Oct; actual Balipratipada is 10-Nov).
+    "2026-08-15",  # Independence Day (Sat — weekend anyway; kept for clarity)
+    "2026-09-14",  # Ganesh Chaturthi (Mon)
+    "2026-10-02",  # Mahatma Gandhi Jayanti (Fri)
+    "2026-10-20",  # Dussehra / Vijaya Dashami (Tue)
+    "2026-11-10",  # Diwali Balipratipada (Tue)
+    "2026-11-24",  # Guru Nanak Jayanti / Prakash Gurpurb (Tue)
     "2026-12-25",  # Christmas (Fri)
+    # NOTE: 2026-11-08 Diwali Laxmi Pujan is a SUNDAY (Muhurat session only) —
+    # weekend check already skips it, so it is intentionally NOT listed here.
 }
 
 # Approximate 2027 fallback — auto-updated by fetch_holidays.py every Dec 1
@@ -1747,7 +1758,7 @@ def send_good_morning(log_sheet, mem, is_bullish, nifty_cmp, nifty_dma, nifty_pc
         f"{window}\n"
         f"RSI filter: < {RSI_MAX_BULLISH if is_bullish else RSI_MAX_BEARISH} | Re-entry: {REENTRY_COOLDOWN_DAYS}d cooldown after target\n\n"
         f"{'Watching: ' + ', '.join(waiting_stocks[:5]) if waiting_stocks else 'No WAITING stocks'}\n\n"
-        f"<i>v15.13 — Batch4 hotfix (RelVol+RS sheet lookup) + Batch5 SmallMidCap scanner</i>"
+        f"<i>v15.14 — H2-2026 holidays verified + Batch5 SmallMidCap scanner</i>"
     )
     watchlist_line = f"📋 Watchlist: {waiting} stock(s) identified today" if waiting else "📋 No setups in watchlist yet — scan runs at market open"
     msg_basic = (
@@ -2069,7 +2080,7 @@ def auto_maintain_sheets(bm_sheet, hist_sheet, mem, now):
 def send_test_messages():
     now = datetime.now(IST)
     msg = (
-        f"✅ <b>TEST MESSAGE — AI360 Trading Bot v15.13</b>\n"
+        f"✅ <b>TEST MESSAGE — AI360 Trading Bot v15.14</b>\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
         f"Time: {now.strftime('%d %b %Y %H:%M')} IST\n"
         f"Token: {'✅ OK' if TG_TOKEN else '❌ MISSING'}\n\n"
@@ -2099,7 +2110,7 @@ def main():
     dow      = now.weekday()
 
     print(f"\n{'='*55}")
-    print(f"AI360 Trading Bot v15.13 — {now.strftime('%d %b %Y %H:%M')} IST")
+    print(f"AI360 Trading Bot v15.14 — {now.strftime('%d %b %Y %H:%M')} IST")
     print(f"{'='*55}")
 
     if is_holiday(today_s): print(f"[SKIP] Holiday: {today_s}"); return

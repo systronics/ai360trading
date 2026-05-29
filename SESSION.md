@@ -10,13 +10,13 @@
 
 | File | Version | Last Changed |
 |---|---|---|
-| `trading_bot.py` | **v15.13** | 2026-05-27 (Batch-4 hotfix: RelVol % conversion + RS column lookup + exact-match) |
+| `trading_bot.py` | **v15.14** | 2026-05-30 (H2-2026 holidays corrected + verified vs NSE official) |
 | `option_intelligence.py` | **v1.0** | 2026-05-27 (Batch 3) |
 | `institutional_edges.py` | **v1.0** | 2026-05-27 (Batch 4) |
 | `fetch_earnings.py` | **v1.0** | 2026-05-27 (Batch 3, daily 18:30 IST) |
 | `fetch_bhavcopy.py` | **v1.0** | 2026-05-27 (Batch 4, Mon-Fri 20:00 IST) |
 | `fetch_smallmidcap.py` | **v1.1** | 2026-05-30 (REAL 5-day volume filter + always-observable tab + safer BotMemory write) |
-| `appscript.gs` | **v15.16** | 2026-05-27 (live deployed — verified byte-identical to editor via clasp 2026-05-28) |
+| `appscript.gs` | **v15.17** | 2026-05-30 (H2-2026 holidays corrected + version strings; deployed live via clasp, verified) |
 | `ai_client.py` | v2.4 | May 2026 |
 | `human_touch.py` | v2.2 | May 2026 |
 | `generate_longterm.py` | **v1.6** | 2026-05-26 (BUG-3 RSI NaN + BUG-4 BOOK PARTIAL ladder) |
@@ -45,7 +45,7 @@
 
 ## Last Session Summary
 
-**2026-05-30 (appscript.gs line-by-line audit):** Read all 2035 lines + cross-checked vs live sheet/BotMemory. **NO logic bugs found.** Column contract PERFECT — all 35 hardcoded Nifty200 indices (r[0]..r[34]) map exactly to live header (Breakout_Stage=22, ATR=28, Master_Score=33, Sector_Rank=34, etc.). Race/lock fixes (_AS_LOCK, atomic setValues), BotMemory dedup+purge, last-Tuesday expiry, bearish hard-block all sound. `_RUNTIME_MEM` confirms bot tracks all 4 open trades (PNBHOUSING TSL 1051.20 etc.). **Findings (all minor/future):** (1) 🟡 H2-2026 holidays (Aug-Dec) are APPROXIMATIONS in the hardcoded NSE_HOLIDAYS_2026 array (lines 181-188 admit "to be verified"); NO HOLIDAYS_2026 override exists in BotMemory → system relies solely on approx dates → same class as the May-27 outage. Verify vs NSE official before August + fix both appscript.gs AND trading_bot.py. (2) 🔵 user-facing Telegram msgs still say "v15.15" while file is v15.16 (cosmetic). (3) 🔵 options hold-text says "option -40%" vs bot's newer "stock -1.5%"; cash RR format "1:" prefix inconsistent between the two cash sources. None affect income. Fixes offered, not yet applied (live file, needs clasp redeploy).
+**2026-05-30 (appscript.gs line-by-line audit):** Read all 2035 lines + cross-checked vs live sheet/BotMemory. **NO logic bugs found.** Column contract PERFECT — all 35 hardcoded Nifty200 indices (r[0]..r[34]) map exactly to live header (Breakout_Stage=22, ATR=28, Master_Score=33, Sector_Rank=34, etc.). Race/lock fixes (_AS_LOCK, atomic setValues), BotMemory dedup+purge, last-Tuesday expiry, bearish hard-block all sound. `_RUNTIME_MEM` confirms bot tracks all 4 open trades (PNBHOUSING TSL 1051.20 etc.). **Findings:** (1) ✅ FIXED SAME SESSION — H2-2026 holidays (Aug-Dec) were APPROXIMATIONS and materially wrong (Diwali guessed 21/22-Oct, actual Balipratipada 10-Nov; Ganesh Chaturthi 14-Sep + Dussehra 20-Oct missing; Janmashtami 27-Aug not a holiday). VERIFIED vs NSE official + Zerodha + ClearTax → corrected in BOTH trading_bot.py (v15.14) AND appscript.gs (v15.17, deployed live via clasp). (2) ✅ FIXED — stale "v15.15" Telegram strings bumped to v15.17 (appscript) / v15.14 (bot). (3) 🔵 STILL OPEN (cosmetic, not fixed): options hold-text says "option -40%" vs bot's newer "stock -1.5%"; cash RR "1:" prefix inconsistent between the two cash sources. No income impact. NOTE: no HOLIDAYS_2026 key in BotMemory — both files now rely on the (now-correct) hardcoded list; consider having fetch_holidays.py also write the CURRENT year as future hardening.
 
 **2026-05-30 (bulletproofing — Opus 4.8):** Live audit first (gh CLI + Sheets MCP), then shipped `fetch_smallmidcap.py` **v1.1**. Found + diagnosed the real reliability gap; awaiting Amit ji's approach pick before touching the income-critical bot.
 - **Verified live:** SmallMidCap tab still absent (scanner ran once on Bakri Id holiday → 0 picks → v1.0 never created the tab). Bot core HEALTHY — exited HINDALCO +5.73% & CUMMINSIND +10.13% as TARGET HITs on 05-29, archived to History. AlertLog "stuck" rows (PNBHOUSING etc.) are NOT a bug — `step_b` monitoring is market-hours-gated; PNBHOUSING fell below SL post-close → exits Monday 06-01. No new entries 05-27/29 = filters legitimately rejected all (strict by design).

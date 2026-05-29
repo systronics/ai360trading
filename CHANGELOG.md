@@ -2,6 +2,26 @@
 
 ---
 
+## 2026-05-30 — CRITICAL: H2-2026 holiday correction (`trading_bot.py` v15.14 + `appscript.gs` v15.17)
+
+Came out of the line-by-line `appscript.gs` audit. The Aug–Dec 2026 holidays in BOTH files were approximations and **materially wrong** — the same bug-class that caused the 2026-05-27 outage (one wrong date = a whole trading day with no signals, no monitoring, no exits).
+
+### What was wrong → corrected (VERIFIED against NSE official circular + Zerodha + ClearTax, all three agree)
+- ❌ `2026-08-27` Janmashtami — **not an NSE holiday** → removed
+- ❌ `2026-10-21` + `2026-10-22` Diwali (guessed) → removed; actual **Diwali Balipratipada = `2026-11-10` (Tue)**
+- ❌ `2026-11-04` Guru Nanak (guessed) → corrected to **`2026-11-24` (Tue)**
+- ➕ added **`2026-09-14` Ganesh Chaturthi (Mon)** — was missing
+- ➕ added **`2026-10-20` Dussehra (Tue)** — was missing
+- ✅ kept `2026-10-02` Gandhi Jayanti, `2026-12-25` Christmas
+- Note: `2026-11-08` Diwali Laxmi Pujan is a **Sunday** (Muhurat session only) — weekend check already handles it, intentionally not listed.
+
+### Files
+- `trading_bot.py` **v15.13 → v15.14** — NSE_HOLIDAYS_2026 H2 block corrected; version strings bumped. `py_compile` OK.
+- `appscript.gs` **v15.16 → v15.17** — identical H2 correction; also bumped stale subscriber-facing "v15.15" Telegram strings to v15.17. **Deployed live via clasp** — verified pushed Code.js shows v15.17 + corrected dates.
+- H1-2026 dates re-verified unchanged (already correct).
+
+---
+
 ## 2026-05-30 — BULLETPROOFING: SMC scanner trust + observability (`fetch_smallmidcap.py` v1.0 → v1.1)
 
 Session goal (Amit ji): "make the trading system bulletproof." Started with a live audit (gh CLI + Sheets MCP) before touching anything.

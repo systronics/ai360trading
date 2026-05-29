@@ -36,13 +36,13 @@ One broken file = zero income that day. Treat every edit as critical.
 ### Trading Engine
 | File | Version |
 |---|---|
-| `trading_bot.py` | v15.13 |
+| `trading_bot.py` | v15.14 |
 | `option_intelligence.py` | v1.0 (Batch 3) |
 | `institutional_edges.py` | v1.0 (Batch 4) |
 | `fetch_earnings.py` | v1.0 (Batch 3, daily 18:30 IST) |
 | `fetch_bhavcopy.py` | v1.0 (Batch 4, Mon-Fri 20:00 IST) |
-| `fetch_smallmidcap.py` | v1.0 (NEW — Batch 5, Mon-Fri 20:30 IST) |
-| `appscript.gs` | v15.16 (LIVE in editor; deploy via `.\deploy_appscript.ps1` — clasp-based, no manual paste) |
+| `fetch_smallmidcap.py` | v1.1 (Batch 5, Mon-Fri 20:30 IST — REAL 5d volume + observable tab) |
+| `appscript.gs` | v15.17 (LIVE in editor; deploy via `.\deploy_appscript.ps1` — clasp-based, no manual paste) |
 
 ### Long-Term Signals
 | File | Version |

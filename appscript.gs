@@ -1,6 +1,16 @@
 /**
- * AI360 TRADING — APPSCRIPT v15.16
+ * AI360 TRADING — APPSCRIPT v15.17
  * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ * v15.17 CHANGES (2026-05-30) — H2-2026 HOLIDAY CORRECTION + VERSION STRINGS
+ *   The Aug-Dec 2026 holidays in NSE_HOLIDAYS_2026 were approximations and
+ *   materially wrong: Diwali had been guessed at 21/22-Oct (actual Balipratipada
+ *   is 10-Nov), Ganesh Chaturthi (14-Sep) and Dussehra (20-Oct) were missing,
+ *   and Janmashtami (27-Aug) is not an NSE holiday. Same bug-class that caused
+ *   the 2026-05-27 outage. Now VERIFIED against NSE official circular + Zerodha
+ *   + ClearTax (all three agree). trading_bot.py NSE_HOLIDAYS_2026 corrected
+ *   identically in the same session. Also bumped stale "v15.15" version strings
+ *   in subscriber-facing Telegram messages to v15.17.
+ *
  * v15.16 CHANGES (2026-05-27) — CRITICAL HOLIDAY LIST CORRECTION
  *   NSE_HOLIDAYS_2026 was WRONG — caused Wed 2026-05-27 to be treated as
  *   a holiday (correct holiday is Thu 2026-05-28, Bakri Id). The bot AND
@@ -178,14 +188,18 @@ const NSE_HOLIDAYS_2026 = [
   "2026-05-01", // Maharashtra Day (Fri)
   "2026-05-28", // Bakri Id (Thu)
   "2026-06-26", // Muharram (Fri)
-  // Aug-Dec 2026 — to be verified once NSE publishes second-half calendar:
-  "2026-08-15", // Independence Day (Sat — markets closed anyway)
-  "2026-08-27", // Janmashtami (approx)
-  "2026-10-02", // Gandhi Jayanti (Fri)
-  "2026-10-21", // Diwali Laxmi Puja (approx — Wed)
-  "2026-10-22", // Diwali Balipratipada (approx — Thu)
-  "2026-11-04", // Guru Nanak Jayanti (approx)
+  // Aug-Dec 2026 — VERIFIED 2026-05-30 vs NSE official + Zerodha + ClearTax
+  // (all three agree). Replaces earlier approximations that were materially
+  // wrong (Diwali had been guessed at 21/22-Oct; actual Balipratipada is 10-Nov).
+  "2026-08-15", // Independence Day (Sat — weekend anyway; kept for clarity)
+  "2026-09-14", // Ganesh Chaturthi (Mon)
+  "2026-10-02", // Mahatma Gandhi Jayanti (Fri)
+  "2026-10-20", // Dussehra / Vijaya Dashami (Tue)
+  "2026-11-10", // Diwali Balipratipada (Tue)
+  "2026-11-24", // Guru Nanak Jayanti / Prakash Gurpurb (Tue)
   "2026-12-25", // Christmas (Fri)
+  // NOTE: 2026-11-08 Diwali Laxmi Pujan is a SUNDAY (Muhurat session only) —
+  // weekend check already skips it, so it is intentionally NOT listed.
 ];
 
 // v15.11: runtime holiday set — populated by _getRuntimeHolidays(ss) once per run.
@@ -723,7 +737,7 @@ function _sendOptionsAlertPremium(sym, cmp, optSignal, stage, sl, target, rr, bm
     `❌ Do NOT average down on options\n` +
     `❌ Do NOT hold past expiry week\n` +
     `${tradeNote}\n\n` +
-    `<i>Educational only. Not SEBI advice. v15.15</i>`;
+    `<i>Educational only. Not SEBI advice. v15.17</i>`;
 
   _sendTelegramPremium(msg);
   _bmSet(ss, bm, flagKey, "1", sym, "FLAG");
@@ -968,7 +982,7 @@ function sendDailySummary() {
     `📊 <b>MARKET SUMMARY</b>\n━━━━━━━━━━━━━━━━━━━━\n` +
     `🔹 <b>Active Trades:</b> ${traded}/${CONFIG.MAX_TRADES}\n` +
     `🔸 <b>Waiting Slots:</b> ${waiting}\n` +
-    `✅ <i>System: Online v15.15</i>`
+    `✅ <i>System: Online v15.17</i>`
   );
 }
 
@@ -1596,7 +1610,7 @@ function _runScanner(startRow, endRow) {
       regimeMsg =
         `⚠️ <b>MARKET REGIME: BEARISH</b>\n` +
         `Nifty ₹${niftyCmp.toFixed(0)} below 20DMA ₹${nifty20d.toFixed(0)}\n` +
-        `v15.15 HARD BLOCK: Max ${maxWaitingSlots} slots | Score≥${CONFIG.BEARISH_HARD_MIN_SCORE} only\n` +
+        `v15.17 HARD BLOCK: Max ${maxWaitingSlots} slots | Score≥${CONFIG.BEARISH_HARD_MIN_SCORE} only\n` +
         `VIX: ${indiaVix.toFixed(1)}\n`;
       if (momentumSectors.size > 0) regimeMsg += `🚀 Momentum sectors: ${[...momentumSectors].join(', ')}\n`;
       if (topSector) regimeMsg += `🔄 Strongest: ${topSector} (AF: ${topAf.toFixed(1)})\n`;
@@ -1864,7 +1878,7 @@ function sendWeeklySummary() {
   if (best)              msg += `🏆 Best:  <b>${best[0]}</b> ₹${Math.round(parseFloat(best[16])  || 0)}\n`;
   if (worst && worst !== best) msg += `💀 Worst: <b>${worst[0]}</b> ₹${Math.round(parseFloat(worst[16]) || 0)}\n`;
   msg += `\n📌 Open: ${openTrades.length}/${CONFIG.MAX_TRADES}\n`;
-  msg += `<i>AI360 Trading v15.15 — Base + Breakout + Momentum + Options (Last-Tue expiry)</i>`;
+  msg += `<i>AI360 Trading v15.17 — Base + Breakout + Momentum + Options (Last-Tue expiry)</i>`;
   _sendTelegramAdvanceAndPremium(msg);
 
   // Basic channel — weekly social proof to build trust and drive upgrades
@@ -1947,9 +1961,9 @@ function setupTriggers() {
 function testTelegram() {
   const now     = new Date();
   const timeStr = Utilities.formatDate(now, CONFIG.IST_ZONE, "dd-MMM HH:mm");
-  _sendTelegramToChat(CONFIG.CHAT_ID_BASIC,   `✅ <b>TEST — ${timeStr}</b>\nChannel: Basic 🆓\nv15.15 ✅`);
-  _sendTelegramToChat(CONFIG.CHAT_ID_ADVANCE, `✅ <b>TEST — ${timeStr}</b>\nChannel: Advance 📊\nv15.15 ✅`);
-  _sendTelegramToChat(CONFIG.CHAT_ID_PREMIUM, `✅ <b>TEST — ${timeStr}</b>\nChannel: Premium 💎\nv15.15 + Last-Tuesday expiry + Bearish Block + Momentum + ATH Options Fix ✅`);
+  _sendTelegramToChat(CONFIG.CHAT_ID_BASIC,   `✅ <b>TEST — ${timeStr}</b>\nChannel: Basic 🆓\nv15.17 ✅`);
+  _sendTelegramToChat(CONFIG.CHAT_ID_ADVANCE, `✅ <b>TEST — ${timeStr}</b>\nChannel: Advance 📊\nv15.17 ✅`);
+  _sendTelegramToChat(CONFIG.CHAT_ID_PREMIUM, `✅ <b>TEST — ${timeStr}</b>\nChannel: Premium 💎\nv15.17 + Last-Tuesday expiry + Bearish Block + Momentum + ATH Options Fix ✅`);
 }
 
 function testOptionsSignal() {
@@ -1961,11 +1975,11 @@ function testOptionsSignal() {
   const testBreakout = _generateOptionsSignal("NSE:ADANIPORTS", 1691, 33.5, "⚡ BREAKOUT ALERT", -4.32, vix, false, 1823.9);
   const testATH      = _generateOptionsSignal("NSE:MCX",        3353,  80,  "⚡ BREAKOUT ALERT",  0.50, vix, false, 3500);
   const msg =
-    `📊 <b>OPTIONS TEST — v15.15</b>\n━━━━━━━━━━━━━━━━━━━━\n` +
+    `📊 <b>OPTIONS TEST — v15.17</b>\n━━━━━━━━━━━━━━━━━━━━\n` +
     `VIX: ${vix.toFixed(1)} | Expiry: ${expiryStr} (${expiry.daysLeft}d)\n\n` +
     `BREAKOUT (ADANIPORTS): ${testBreakout.signal} | ${testBreakout.strike}\n` +
     `ATH TEST (MCX near ATH): ${testATH.signal} | ${testATH.message}\n` +
-    `✅ v15.15 ATH block working`;
+    `✅ v15.17 ATH block working`;
   _sendTelegramPremium(msg);
   SpreadsheetApp.getUi().alert("Options test sent to Premium channel.");
 }
@@ -1985,18 +1999,18 @@ function testBaseEntry() {
   const testMom3 = _checkMomentumBreakout(5.48, 200, 22,    5554, 4960, "Sideways"); // PERSISTENT
 
   const msg =
-    `📦 <b>BASE + MOMENTUM TEST — v15.15</b>\n━━━━━━━━━━━━━━━━━━━━\n` +
+    `📦 <b>BASE + MOMENTUM TEST — v15.17</b>\n━━━━━━━━━━━━━━━━━━━━\n` +
     `VIX: ${vix.toFixed(1)}\n\n` +
     `BASE TESTS:\n` +
     `Test 1 (all pass): ${test1.qualifies ? "✅" : "❌"} ${test1.reason}\n` +
     `Test 2 (FII fail): ${test2.qualifies ? "✅" : "❌"} ${test2.reason}\n` +
     `Test 3 (VCP fail): ${test3.qualifies ? "✅" : "❌"} ${test3.reason}\n` +
     `Test 4 (Days fail): ${test4.qualifies ? "✅" : "❌"} ${test4.reason}\n\n` +
-    `MOMENTUM BREAKOUT TESTS (v15.15):\n` +
+    `MOMENTUM BREAKOUT TESTS (v15.17):\n` +
     `COFORGE +5.15%: ${testMom1.isMomentum ? "✅ ALLOWED" : "❌ BLOCKED"} — ${testMom1.reason}\n` +
     `TECHM +4.85% (low RS): ${testMom2.isMomentum ? "✅ ALLOWED" : "❌ BLOCKED"} — ${testMom2.reason}\n` +
     `PERSISTENT +5.48%: ${testMom3.isMomentum ? "✅ ALLOWED" : "❌ BLOCKED"} — ${testMom3.reason}\n\n` +
-    `✅ v15.15 Last-Tue expiry + Momentum gate working`;
+    `✅ v15.17 Last-Tue expiry + Momentum gate working`;
   _sendTelegramPremium(msg);
   SpreadsheetApp.getUi().alert("Tests sent to Premium channel.");
 }
