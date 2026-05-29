@@ -1,12 +1,24 @@
 """
-AI360 NSE Holiday Auto-Fetcher — v1.2
+AI360 NSE Holiday Auto-Fetcher — v1.3
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Fetches next year's NSE trading holidays and stores them in BotMemory sheet.
-trading_bot.py reads HOLIDAYS_NEXT from BotMemory and merges with hardcoded list.
+Fetches NSE trading holidays from the official API and stores them in BotMemory
+(HOLIDAYS_<year>). trading_bot.py + appscript.gs merge these with their hardcoded
+lists, so the authoritative NSE dates auto-extend the system every year.
 
-Runs: 1st December every year (fetch_holidays.yml)
+v1.3 (2026-05-30) — AUTONOMY HARDENING (run-for-years, self-healing):
+  • Now fetches BOTH the CURRENT and NEXT year every run (was next-year only).
+    Writing the current year from the authoritative NSE API auto-captures any
+    date the hardcoded baseline missed — and picks up mid-year SPECIAL holidays
+    NSE announces during the year (election days, mourning days, etc.).
+  • Runs MONTHLY now (was once on Dec 1). A single failed Dec-1 fetch no longer
+    means a whole year is missed — the next month retries automatically.
+  • Sanity check: only stores a year's list if it has a plausible count
+    (>= MIN_PLAUSIBLE dates) so a glitchy partial fetch never overwrites a good
+    stored list with junk.
+
+Runs: 1st of every month (fetch_holidays.yml)
 Source: NSE official holiday calendar API
-Fallback: Known approximate 2027 Indian public holidays
+Fallback: known approximate 2027 list (next-year only, if API has no data yet)
 
 No code changes needed each year — fully autonomous.
 """
@@ -125,30 +137,43 @@ def fetch_nse_holidays(year):
         print(f"[NSE] API fetch failed: {e}")
         return []
 
+MIN_PLAUSIBLE = 8   # a real NSE year has ~14-17 weekday holidays; <8 = bad fetch
+
 def main():
-    now  = datetime.now(IST)
-    year = now.year + 1  # fetch NEXT year's holidays
-    print(f"[HOLIDAYS] Fetching NSE holidays for {year}...")
-
-    # Try NSE API first, fallback to hardcoded
-    holidays = fetch_nse_holidays(year)
-    if not holidays:
-        if year == 2027:
-            holidays = FALLBACK_2027
-            print(f"[HOLIDAYS] Using fallback 2027 list ({len(holidays)} dates)")
-        else:
-            print(f"[HOLIDAYS] No data available for {year} — skipping")
-            return
-
-    # Store in BotMemory: key HOLIDAYS_2027 (or whatever year)
-    key   = f"HOLIDAYS_{year}"
-    value = ",".join(holidays)
+    now = datetime.now(IST)
+    # v1.3: fetch CURRENT + NEXT year every run, monthly.
+    years = [now.year, now.year + 1]
+    print(f"[HOLIDAYS] Fetching NSE holidays for {years}...")
 
     wb = _connect()
     bm = wb.worksheet(BM_TAB)
-    _bm_set(bm, key, value)
-    print(f"[HOLIDAYS] Stored {key} = {len(holidays)} dates in BotMemory")
-    print(f"  Dates: {', '.join(holidays)}")
+
+    stored = 0
+    for year in years:
+        holidays = fetch_nse_holidays(year)
+
+        # Fallback only for next year when the API has nothing yet.
+        if not holidays and year == 2027:
+            holidays = FALLBACK_2027
+            print(f"[HOLIDAYS] {year}: API empty — using fallback ({len(holidays)} dates)")
+
+        if not holidays:
+            print(f"[HOLIDAYS] {year}: no data — leaving any existing value untouched")
+            continue
+
+        # Sanity gate — never overwrite a good stored list with a partial fetch.
+        if len(holidays) < MIN_PLAUSIBLE:
+            print(f"[HOLIDAYS] {year}: only {len(holidays)} dates (<{MIN_PLAUSIBLE}) "
+                  f"— looks partial, skipping to protect existing value")
+            continue
+
+        key = f"HOLIDAYS_{year}"
+        _bm_set(bm, key, ",".join(holidays))
+        stored += 1
+        print(f"[HOLIDAYS] Stored {key} = {len(holidays)} dates")
+        print(f"  {', '.join(holidays)}")
+
+    print(f"[HOLIDAYS] Done — {stored} year(s) updated in BotMemory")
 
 
 if __name__ == "__main__":

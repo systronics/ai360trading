@@ -1,15 +1,17 @@
-name: Auto-Fetch NSE Holidays — Yearly
+name: Auto-Fetch NSE Holidays — Monthly
 
-# v1.0 (May 2026):
-#   Runs every 1st December — fetches next year's NSE trading holidays.
-#   Stores in BotMemory sheet (key: HOLIDAYS_YYYY).
-#   trading_bot.py reads this and merges with its own list.
+# v1.3 (2026-05-30):
+#   Runs the 1st of EVERY month — fetches CURRENT + NEXT year's NSE trading
+#   holidays from the official API and stores them in BotMemory (HOLIDAYS_YYYY).
+#   trading_bot.py + appscript.gs merge these with their hardcoded lists.
+#   Monthly (not yearly) so a single failed fetch can't lose a year, and so
+#   mid-year SPECIAL holidays NSE announces are captured automatically.
 #   No code changes needed annually — fully autonomous.
 
 on:
   schedule:
-    # 1st December every year, 9:00 AM IST = 3:30 AM UTC
-    - cron: '30 3 1 12 *'
+    # 1st of every month, 9:00 AM IST = 3:30 AM UTC
+    - cron: '30 3 1 * *'
   workflow_dispatch:  # run manually anytime
 
 jobs:
@@ -31,7 +33,7 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Fetch next year's NSE holidays
+      - name: Fetch current + next year's NSE holidays
         env:
           GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
         run: python fetch_holidays.py
