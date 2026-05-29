@@ -1,0 +1,109 @@
+name: Trading Bot — Market Session Loop
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# WHY THIS EXISTS (2026-05-30):
+#   GitHub Actions throttles the high-frequency `*/5` schedule in
+#   trading_bot.yml HARD. Live data showed it firing only ~3 times/day
+#   (vs ~96 expected) — for 5 straight trading days. During the 6h15m
+#   market window often only ONE monitoring tick actually ran, so a stock
+#   could blow through its stop-loss or target uncaught for hours.
+#
+#   GitHub honours LOW-frequency schedules far more reliably than `*/5`.
+#   So instead of trusting the scheduler for every tick, we use two
+#   reliable once-daily triggers, and INSIDE each job an internal sleep
+#   loop fires the bot every 5 minutes for the whole session. One reliable
+#   trigger → dense, guaranteed ticks.
+#
+#   Repo is PUBLIC → Actions minutes are unlimited & free → a multi-hour
+#   loop costs ₹0. (Two sessions because one job can't exceed GitHub's
+#   6h limit; the market+greeting+close window is ~7h.)
+#
+# SAFETY / "never break what works":
+#   • ADDITIVE — trading_bot.py is UNTOUCHED; the `*/5` cron in
+#     trading_bot.yml stays as a backup (covers the 15:50-16:25 tail and
+#     any day this session fails).
+#   • SAME concurrency group `trading-bot` as trading_bot.yml +
+#     cancel-in-progress:false ⇒ the session and the backup cron can NEVER
+#     run at the same time (GitHub serialises them). No double-entry risk.
+#   • Each tick is a fresh `python trading_bot.py` process — identical to
+#     how the `*/5` cron invokes it. The bot self-gates by IST time
+#     (good-morning 08:44-08:52, market 09:15-15:30, cash-exit 15:00-15:15,
+#     close summary 15:15-15:45), so extra ticks outside those windows just
+#     print [SKIP] cheaply and return before touching the sheet.
+#   • A crash in one tick does NOT stop the loop (`|| true`).
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+concurrency:
+  group: trading-bot
+  cancel-in-progress: false
+
+on:
+  schedule:
+    # Two daily sessions (IST). Start each a little early to absorb GitHub's
+    # scheduler lag. The loop self-exits at the window's IST end time.
+    - cron: '0 3 * * 1-5'    # 08:30 IST — morning session (→ ends 11:59 IST)
+    - cron: '25 6 * * 1-5'   # 11:55 IST — afternoon session (→ ends 15:50 IST)
+  workflow_dispatch:
+    inputs:
+      end_time:
+        description: 'Loop end time, IST HH:MM (manual runs only)'
+        required: false
+        default: '15:50'
+
+jobs:
+  session:
+    runs-on: ubuntu-latest
+    # < GitHub's 6h hard limit. The bash loop self-exits at the IST end time
+    # well before this; timeout-minutes is only a runaway backstop.
+    timeout-minutes: 235
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run market-session monitor loop
+        env:
+          GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID_BASIC:     ${{ secrets.CHAT_ID_BASIC }}
+          CHAT_ID_ADVANCE:   ${{ secrets.CHAT_ID_ADVANCE }}
+          CHAT_ID_PREMIUM:   ${{ secrets.CHAT_ID_PREMIUM }}
+          BOT_MODE: 'trade'
+          MANUAL_END: ${{ github.event.inputs.end_time }}
+          TICK_SECONDS: '300'
+        run: |
+          export TZ=Asia/Kolkata
+          # Decide this session's IST end time:
+          #   • manual dispatch → use the provided end_time
+          #   • scheduled before noon → morning session, end 11:59
+          #   • scheduled at/after noon → afternoon session, end 15:50
+          if [ -n "$MANUAL_END" ]; then
+            END="$MANUAL_END"
+          elif [ "$(date +%H)" -lt 12 ]; then
+            END="11:59"
+          else
+            END="15:50"
+          fi
+          echo "[SESSION] start $(date '+%F %T %Z') — looping every ${TICK_SECONDS}s until ${END} IST"
+          TICKS=0
+          while [ "$(date +%H:%M)" \< "$END" ]; do
+            TICKS=$((TICKS+1))
+            echo "::group::[TICK $TICKS] $(date '+%T') IST"
+            python -u trading_bot.py || echo "[TICK $TICKS] bot exited non-zero — continuing"
+            echo "::endgroup::"
+            # Stop sleeping if the next tick would land past the end time.
+            if [ "$(date +%H:%M)" \< "$END" ]; then
+              sleep "$TICK_SECONDS"
+            fi
+          done
+          echo "[SESSION] reached ${END} IST after ${TICKS} tick(s) — done"
