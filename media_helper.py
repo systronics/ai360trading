@@ -1,6 +1,14 @@
 """
 media_helper.py — Image + YouTube embed helpers for SEO articles
 ================================================================
+v1.1 (2026-05-30) — IMAGE FIX: articles were showing BROKEN images.
+  Two bugs: (1) daily-articles.yml never passed PEXELS_API_KEY into the job,
+  so the working Pexels source was skipped; (2) the fallback source.unsplash.com
+  was discontinued by Unsplash in 2024 and emitted dead <img> URLs. Fixed the
+  workflow env, and replaced Unsplash Source with LoremFlickr — which is now
+  VERIFIED to resolve to a real image before use (else falls to Picsum), so a
+  dead image URL can never be written again.
+
 v1.0 (2026-05-28) — first cut for SEO audit fix
   Adds hero images + inline images + YouTube embeds to generated articles.
   All sources are free, no-copyright, no-fees:
@@ -138,23 +146,28 @@ def _try_pixabay(query: str) -> dict:
         return {}
 
 
-def _try_unsplash_source(query: str) -> dict:
-    """Unsplash Source API — deprecated but still returns images via redirect."""
+def _try_loremflickr(query: str) -> dict:
+    """
+    Keyless topical fallback (LoremFlickr — Flickr CC images by keyword).
+    v1.1: replaces the dead source.unsplash.com (Unsplash shut that API down
+    in 2024 — it was emitting BROKEN image URLs into every article that fell
+    through to it). We GET the URL, follow redirects, and ONLY return it if it
+    actually resolves to an image — so we can never emit a dead <img> again.
+    """
     try:
-        slug = re.sub(r"[^a-z0-9, ]", "", query.lower()).replace(" ", ",")
-        url  = f"https://source.unsplash.com/featured/1200x630/?{slug}"
-        # source.unsplash.com 302-redirects to actual image URL — we use the redirect URL directly
-        r = requests.get(url, timeout=8, allow_redirects=False)
-        if r.status_code in (301, 302, 303, 307, 308):
-            final_url = r.headers.get("Location", url)
-        else:
-            final_url = url
-        return {
-            "url":    final_url,
-            "alt":    query,
-            "credit": "Photo via Unsplash",
-            "source": "unsplash_source",
-        }
+        slug = re.sub(r"[^a-z0-9, ]", "", query.lower()).replace(", ", ",").replace(" ", ",")
+        url  = f"https://loremflickr.com/1200/630/{slug}"
+        r = requests.get(url, timeout=8, allow_redirects=True,
+                         headers={"User-Agent": "Mozilla/5.0"})
+        ctype = r.headers.get("Content-Type", "")
+        if r.ok and ctype.startswith("image/"):
+            return {
+                "url":    r.url,          # final resolved image URL (no re-redirect on load)
+                "alt":    query,
+                "credit": "Photo via Flickr (Creative Commons)",
+                "source": "loremflickr",
+            }
+        return {}
     except Exception:
         return {}
 
@@ -172,7 +185,7 @@ def _try_picsum(seed: int) -> dict:
 def _get_image(pillar_id: str, position_seed: int = 0) -> dict:
     """Cascade through providers — return first that works."""
     query = _pick_query(pillar_id, position_seed)
-    for provider in (_try_pexels, _try_pixabay, _try_unsplash_source):
+    for provider in (_try_pexels, _try_pixabay, _try_loremflickr):
         result = provider(query)
         if result.get("url"):
             return result

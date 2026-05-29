@@ -58,6 +58,8 @@ jobs:
         env:
           GROQ_API_KEY:             ${{ secrets.GROQ_API_KEY }}
           GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
+          PEXELS_API_KEY:           ${{ secrets.PEXELS_API_KEY }}
+          PIXABAY_API_KEY:          ${{ secrets.PIXABAY_API_KEY }}
           CONTENT_MODE:             ${{ env.CONTENT_MODE }}
           HOLIDAY_NAME:             ${{ env.HOLIDAY_NAME }}
         run: |
