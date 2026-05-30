@@ -51,10 +51,11 @@ All signals come with entry, stop-loss, target, risk-reward and suggested positi
 
 ---
 
-## Open a Demat Account
+## Open an Account
 
-- [Open account in Zerodha](https://bit.ly/2VK6k5F)
-- [Open account in Dhan](https://invite.dhan.co/?invite=MSIVC45309)
+- [Open account in Zerodha](https://zerodha.com/open-account?c=YS3694)
+- [Open account in Dhan](https://join.dhan.co/?invite=MSIVC45309)
+- [Start crypto on CoinDCX](https://invite.coindcx.com/13383200)
 
 ---
 
