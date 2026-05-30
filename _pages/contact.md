@@ -32,7 +32,7 @@ redirect_from:
       <a href="mailto:admin@ai360trading.in?subject=Advance Membership Query" class="topic-item">
         <span class="topic-icon">💎</span>
         <span class="topic-label">Advance Membership</span>
-        <span class="topic-desc">₹499/month — full signals</span>
+        <span class="topic-desc">₹699/month — full signals</span>
       </a>
       <a href="mailto:admin@ai360trading.in?subject=Premium Bundle Query" class="topic-item">
         <span class="topic-icon">👑</span>

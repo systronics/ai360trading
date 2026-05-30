@@ -480,7 +480,7 @@ def _weekly_pnl_report(wb):
         b_lines.append(f"🏆 Best trade: <b>{best[0]}</b> ₹{best[1]:+,.0f}")
     b_lines += [
         f"\n🔒 Poori detail sirf Advance/Premium members ko milti hai",
-        f"📈 Upgrade karo ₹499/month → ai360trading.in/membership",
+        f"📈 Upgrade karo ₹699/month → ai360trading.in/membership",
         f"🤖 AI360Trading — Algo Paper Trading",
     ]
     _tg(BASIC, "\n".join(b_lines))
@@ -573,13 +573,12 @@ def main():
     ]
     lt_sheet = _get_or_create(wb, LT_SIGNALS, lt_headers)
 
-    # PositionalLatest tab: public-facing, cleared + rewritten each Sunday
-    # Website iframe points here — always shows this week's fresh picks only
+    # PositionalLatest tab: public-facing TEASER, cleared + rewritten each Sunday.
+    # Website iframe points here. PAYWALL: only Stock/Company/Sector/Signal/CMP are
+    # shown publicly. Entry zone, target, SL, upside, PE, div, RSI and full reason
+    # are Advance/Premium-only (delivered via Telegram) — never exposed on the site.
     pos_headers = [
-        "Stock", "Company", "Sector", "Signal",
-        "CMP ₹", "Entry Zone", "Target (12m) ₹", "Upside %",
-        "Stop Loss ₹", "Div Yield %", "PE Ratio", "RSI",
-        "Why Buy",
+        "Stock", "Company", "Sector", "Signal", "CMP ₹",
     ]
     pos_sheet = _get_or_create(wb, POSITIONAL_LIVE, pos_headers)
 
@@ -682,33 +681,27 @@ def main():
                 return 5
             sorted_rows = sorted(new_rows, key=_sig_rank)
 
-            # Build public rows: reader-friendly columns (no internal scores/dates)
+            # Build TEASER rows only — Stock/Company/Sector/Signal/CMP.
+            # Premium fields (entry/target/SL/upside/div/PE/RSI/reason) are NOT
+            # written here; they go to members via Telegram only.
             pub_rows = []
             week_str = now.strftime("Week of %d %b %Y")
             for r in sorted_rows:
-                sig_clean = str(r[4]).replace("🟢","").replace("🟡","").replace("⚪","").replace("🔴","").replace("🔵","").strip()
                 pub_rows.append([
                     r[1],           # Symbol (NSE:XXXX)
                     r[2],           # Company
                     r[3],           # Sector
                     r[4],           # Signal (with emoji)
                     f"₹{r[5]:,.0f}" if isinstance(r[5], (int,float)) else r[5],   # CMP
-                    r[6],           # Entry Zone
-                    f"₹{r[7]:,.0f}" if isinstance(r[7], (int,float)) else r[7],   # Target
-                    f"{r[9]}%" if r[9] else "",   # Upside%
-                    f"₹{r[8]:,.0f}" if isinstance(r[8], (int,float)) else r[8],   # SL
-                    f"{r[10]}%",    # Div Yield%
-                    r[11],          # PE
-                    r[12],          # RSI
-                    r[17],          # Reason
                 ])
 
-            # Clear data rows (keep header) + rewrite
-            last_row = pos_sheet.row_count
-            if last_row > 1:
-                pos_sheet.delete_rows(2, last_row)
+            # Full clear() (not delete_rows) so any stale wide columns from older
+            # 13-column runs are wiped — the published iframe then shows ONLY the
+            # 5 teaser columns, keeping the paywall intact.
+            pos_sheet.clear()
+            pos_sheet.append_row(pos_headers)
             pos_sheet.append_rows(pub_rows)
-            print(f"[LT] PositionalLatest refreshed — {len(pub_rows)} picks ({week_str})")
+            print(f"[LT] PositionalLatest refreshed (teaser) — {len(pub_rows)} picks ({week_str})")
         except Exception as e:
             print(f"[LT] PositionalLatest write: {e}")
 
@@ -737,7 +730,7 @@ def main():
         f"🔍 <b>Is week {total_action} stocks mein buy signal hai</b>",
         "🔒 Entry zone, SL, 12-month target, Poori analysis",
         "   → Sirf Advance / Premium members ko milti hai",
-        "\n📈 <b>Upgrade karo ₹499/month mein</b>",
+        "\n📈 <b>Upgrade karo ₹699/month mein</b>",
         "   ✅ Daily intraday alerts",
         "   ✅ Long-term entry zones + SL",
         "   ✅ Options signals",

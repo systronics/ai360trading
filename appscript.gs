@@ -1656,7 +1656,7 @@ function _runScanner(startRow, endRow) {
           ? `🔍 <b>${finalWaiting.length} stock(s) passed our strict bearish filter today</b>\n` +
             `🔒 Entry details shared with Advance/Premium members only\n\n`
           : `🛡️ Our system blocked all new entries today — protecting your capital.\n\n`) +
-        `📈 <b>Join Advance @ ₹499/month</b> for real-time alerts\n📱 ai360trading.in/membership`;
+        `📈 <b>Join Advance @ ₹699/month</b> for real-time alerts\n📱 ai360trading.in/membership`;
     } else {
       basicMsg =
         `🟢 <b>Market Update — ${today}</b>\n` +
@@ -1668,7 +1668,7 @@ function _runScanner(startRow, endRow) {
             (topSym ? `Top setup: <b>${topSym}</b> [${topType}]\n` : "") +
             `🔒 SL, Target and full details → Advance/Premium members\n\n`
           : `📭 No strong setups today — our filters kept you in cash.\n\n`) +
-        `📈 <b>Join Advance @ ₹499/month</b> for real-time entry alerts\n📱 ai360trading.in/membership`;
+        `📈 <b>Join Advance @ ₹699/month</b> for real-time entry alerts\n📱 ai360trading.in/membership`;
     }
     _sendTelegramToChat(CONFIG.CHAT_ID_BASIC, basicMsg);
 
@@ -1890,7 +1890,7 @@ function sendWeeklySummary() {
   if (best) basicWeekly += `\n🏆 Best trade: <b>${best[0]}</b> +₹${Math.round(parseFloat(best[16]) || 0)}\n`;
   basicWeekly +=
     `\n📊 Advance/Premium members got all entry, SL and target alerts in real time.\n` +
-    `📈 <b>Join Advance @ ₹499/month</b> — get live signals next week\n📱 ai360trading.in/membership`;
+    `📈 <b>Join Advance @ ₹699/month</b> — get live signals next week\n📱 ai360trading.in/membership`;
   _sendTelegramToChat(CONFIG.CHAT_ID_BASIC, basicWeekly);
 }
 

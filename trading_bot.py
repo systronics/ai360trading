@@ -1310,7 +1310,7 @@ def build_entry_basic(sym, cp, stage, pct_chg):
         f"🚨 <b>SIGNAL ALERT — {name}</b>\n"
         f"Entry: ₹{cp:.2f} | {stage}\n\n"
         f"🔒 SL and Target shared with Advance/Premium members only\n\n"
-        f"📈 <b>Join Advance @ ₹499/month</b> — get full entry details\n"
+        f"📈 <b>Join Advance @ ₹699/month</b> — get full entry details\n"
         f"📱 ai360trading.in/membership"
     )
 
@@ -1654,7 +1654,7 @@ def _exit_trade(log_sheet, hist_sheet, row_idx, sym, ent, exit_p, tgt, sl, tsl_a
             f"₹{ent:.2f} → ₹{exit_p:.2f} | <b>{pnl_pct:+.2f}% (₹{pnl_rs:+.0f})</b>\n"
             f"Hold: {hold_str} | {reason}\n\n"
             f"📈 Get live entry + exit alerts\n"
-            f"<b>Join Advance @ ₹499/month</b>\n"
+            f"<b>Join Advance @ ₹699/month</b>\n"
             f"📱 ai360trading.in/membership"
         )
     else:
@@ -1663,7 +1663,7 @@ def _exit_trade(log_sheet, hist_sheet, row_idx, sym, ent, exit_p, tgt, sl, tsl_a
             f"₹{ent:.2f} → ₹{exit_p:.2f} | {pnl_pct:+.2f}% | {reason}\n"
             f"🛡️ Trailing SL protected capital — loss controlled\n\n"
             f"📊 Real-time TSL alerts → Advance/Premium\n"
-            f"<b>Join Advance @ ₹499/month</b>\n"
+            f"<b>Join Advance @ ₹699/month</b>\n"
             f"📱 ai360trading.in/membership"
         )
     send_basic(basic_exit)
@@ -1767,7 +1767,7 @@ def send_good_morning(log_sheet, mem, is_bullish, nifty_cmp, nifty_dma, nifty_pc
         f"{watchlist_line}\n"
         f"💼 Active trades: {traded}/{MAX_TRADES}\n\n"
         f"🔒 Entry price, SL and Target sent to Advance/Premium only\n"
-        f"📈 <b>Join Advance @ ₹499/month</b>\n"
+        f"📈 <b>Join Advance @ ₹699/month</b>\n"
         f"📱 ai360trading.in/membership"
     )
     send_advance_and_premium(msg_adv); send_basic(msg_basic)
@@ -1807,7 +1807,7 @@ def send_midday_pulse(log_sheet, mem, now, is_bullish):
             f"Active trades: {len(open_trades)}\n"
             f"{'💰' if total_pnl>=0 else '📉'} Unrealised P/L: ₹{total_pnl:+.0f}\n\n"
             f"🔒 TSL updates and trade details → Advance/Premium\n"
-            f"📈 <b>Join Advance @ ₹499/month</b>\n"
+            f"📈 <b>Join Advance @ ₹699/month</b>\n"
             f"📱 ai360trading.in/membership"
         )
         send_advance_and_premium(msg); send_basic(basic_md)
@@ -1863,7 +1863,7 @@ def send_market_close_summary(log_sheet, hist_sheet, mem, now, is_bullish, nifty
             f"Today: {wins}✅ {losses}❌ | {pnl_emoji} Realised: ₹{today_pnl:+.0f}\n"
             f"Holding overnight: {len(open_list)} trade(s)\n\n"
             f"📊 Full report and overnight TSL alerts sent to Advance/Premium\n"
-            f"📈 <b>Join Advance @ ₹499/month</b>\n"
+            f"📈 <b>Join Advance @ ₹699/month</b>\n"
             f"📱 ai360trading.in/membership"
         )
         send_advance_and_premium(msg_adv); send_basic(msg_basic)
@@ -1984,7 +1984,7 @@ def _send_monthly_pnl(hist_sheet, now):
             f"{pnl_emoji} <b>Net P/L: ₹{total_pnl:+,.0f}</b>\n"
             f"✅ Jeet: {wins}  |  ❌ Haar: {losses}  |  Win Rate: {win_rate}%\n\n"
             f"📊 Poori monthly report → Advance/Premium members\n"
-            f"📈 Upgrade karo ₹499/month → ai360trading.in/membership"
+            f"📈 Upgrade karo ₹699/month → ai360trading.in/membership"
         )
         send_basic(b_msg)
 
