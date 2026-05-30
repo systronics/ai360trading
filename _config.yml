@@ -66,6 +66,7 @@ exclude:
   - generate_english_short.py
   - content_calendar.py
   - kids_content_calendar.py
+  - trending_keywords.py
   - upload_youtube.py
   - upload_kids_youtube.py
   - upload_facebook.py

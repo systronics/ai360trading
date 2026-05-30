@@ -1,0 +1,31 @@
+name: Refresh Trending Keywords
+# Runs daily 5:30 AM IST (00:00 UTC) — before morning content — to pull what
+# people are searching now (Google + YouTube autocomplete, free, no API key).
+# Writes _data/trending.json and commits it so all generators can read it.
+# Fail-open: if sources are down, the previous cache is kept.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * *"
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout master
+        uses: actions/checkout@v4
+        with:
+          ref: master
+
+      - name: Refresh trending keywords
+        run: python trending_keywords.py
+
+      - name: Commit trending cache
+        run: |
+          git config --local user.email "admin@ai360trading.in"
+          git config --local user.name "AI360-Automation"
+          git add _data/trending.json
+          git diff --cached --quiet || git commit -m "🔥 Refresh trending keywords: $(date +'%Y-%m-%d')"
+          git push origin master
