@@ -396,6 +396,13 @@ async def generate_tts(lines: list, output_path: str) -> bool:
     speed    = ht.get_tts_speed()
     rate_str = f"+{int((speed-1)*100)}%" if speed >= 1 else f"{int((speed-1)*100)}%"
     text     = ". ".join(lines)
+    # Append a spoken like/share/subscribe CTA (shares + subs lift reach), unless
+    # the script already asks for it.
+    low = text.lower()
+    if not ("like" in low and ("share" in low or "subscribe" in low)):
+        text += (" Video pasand aaye toh like, share aur subscribe zaroor karein."
+                 if LANG == "hi" else
+                 " If this helped, like, share and subscribe for daily market updates.")
     await edge_tts.Communicate(text, voice, rate=rate_str).save(output_path)
     ok = os.path.exists(output_path) and os.path.getsize(output_path) > 0
     if ok: logger.info(f"TTS saved: {output_path}")

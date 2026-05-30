@@ -334,6 +334,7 @@ def build_youtube_description(script_data, today_str):
             f"🌐 https://ai360trading.in\n"
             f"📱 https://t.me/ai360trading\n"
             f"⚠️ Educational only. Not financial advice.\n\n"
+            f"👍 Like • 🔔 Subscribe • 📤 Share with a friend\n"
             f"#ZenoKiBaat #ai360trading #HolidayLearning {hashtag_str}"
         )
     elif CONTENT_MODE == "weekend":
@@ -345,6 +346,7 @@ def build_youtube_description(script_data, today_str):
             f"🌐 https://ai360trading.in\n"
             f"📱 https://t.me/ai360trading\n"
             f"⚠️ Educational only. Not financial advice.\n\n"
+            f"👍 Like • 🔔 Subscribe • 📤 Share with a friend\n"
             f"#ZenoKiBaat #WeekendWisdom #ai360trading {hashtag_str}"
         )
     else:
@@ -356,6 +358,7 @@ def build_youtube_description(script_data, today_str):
             f"🌐 https://ai360trading.in\n"
             f"📱 https://t.me/ai360trading\n"
             f"⚠️ Educational only. Not SEBI registered.\n\n"
+            f"👍 Like • 🔔 Subscribe • 📤 Share with a trader friend\n"
             f"#ZenoKiBaat #StockMarket #ai360trading {hashtag_str}"
         )
     return desc
@@ -366,6 +369,15 @@ def build_youtube_description(script_data, today_str):
 async def generate_tts(text, output_path):
     communicate = edge_tts.Communicate(text, VOICE, rate="+5%")
     await communicate.save(str(output_path))
+
+# Spoken engagement CTA appended to the voiced script (shares + subs lift reach).
+_AUDIO_CTA_HI = " Video pasand aaye toh like, share aur subscribe zaroor karein."
+def _with_cta(text: str) -> str:
+    s   = (text or "").strip()
+    low = s.lower()
+    if "like" in low and ("share" in low or "subscribe" in low):
+        return s
+    return (s + _AUDIO_CTA_HI).strip()
 
 
 # ─── VIDEO COMPOSITION — NO BACKGROUND MUSIC ──────────────────────────────────
@@ -436,7 +448,7 @@ async def main():
     print(f"Script ready | title: {title} | emotion: {emotion}")
 
     # Step 2: TTS audio
-    await generate_tts(audio_script, audio_path)
+    await generate_tts(_with_cta(audio_script), audio_path)
 
     # Step 3: Build video frame
     frame_path = build_reel_frame(title, display, emotion)

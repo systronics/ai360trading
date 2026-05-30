@@ -1,11 +1,13 @@
 # ads.txt — AI360Trading (ai360trading.in)
 #
-# SETUP REQUIRED (one-time, within 15 days):
-#   1. Go to Google AdSense → Account → Account Information
-#   2. Find your Publisher ID (format: pub-XXXXXXXXXXXXXXXX)
-#   3. Replace the line below with your actual Publisher ID
-#   4. Commit and push — Google will verify within 24 hours
+# No ad network is connected yet, so NO active seller line is declared
+# (an invalid AdSense placeholder can hurt you — removed on purpose).
 #
-# FORMAT: google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0
-
-google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0
+# When you join a network, uncomment/add its exact line:
+#
+# Media.net (after approval — copy the exact line from your Media.net dashboard):
+#   media.net, <YOUR_MEDIA_NET_CUSTOMER_ID>, DIRECT
+#
+# Google AdSense — ONLY with an eligible account (our prior identity is
+# permanently disabled; do not reuse it). Format if/when eligible:
+#   google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0

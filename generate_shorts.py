@@ -369,8 +369,8 @@ Return ONLY valid JSON:
   "sl":      "Stop loss or action",
   "horizon": "Timeframe",
   "insight": "One powerful insight sentence (English, max 15 words)",
-  "script":  "45-second Hinglish spoken script 80-100 words — engaging",
-  "hashtags": "#tag1 #tag2 #tag3 (5 relevant tags)"
+  "script":  "45-second Hinglish spoken script 80-100 words. MUST open with a punchy 1-line hook (a number, result or bold question) in the first 2 seconds, then deliver the value.",
+  "hashtags": "exactly 5 sharp tags, mix broad + niche e.g. #Nifty50 #ShareMarket #Intraday #StockMarketIndia #ai360trading"
 }}"""
 
     print("🤖 Generating Short 2 script (Madhur voice)...")
@@ -413,7 +413,7 @@ Return ONLY valid JSON:
   "title": "Global Market Pulse — short title",
   "sentiment": "bullish or bearish or neutral",
   "insight": "One key market insight sentence (English, max 15 words)",
-  "script": "45-second Hinglish/English script 80-100 words — global context",
+  "script": "45-second Hinglish/English script 80-100 words. MUST open with a punchy 1-line hook (a number or bold question) in the first 2 seconds, then global context.",
   "hashtags": "#GlobalMarkets #Bitcoin #Gold #SP500 #ai360trading"
 }}"""
 
@@ -442,6 +442,20 @@ async def gen_tts_async(text: str, voice: str, path: str):
 
 def gen_tts(text: str, voice: str, path: str):
     asyncio.run(gen_tts_async(text, voice, path))
+
+# Spoken like/share/subscribe call-to-action appended to every voiced script so
+# every short/reel audibly asks for engagement (shares + subs lift the algorithm).
+_CTA_AUDIO = {
+    "hi": " Video pasand aaye toh like, share aur subscribe zaroor karein.",
+    "en": " If this helped you, like, share and subscribe for daily market updates.",
+}
+def _with_cta(script: str, lang: str = "hi") -> str:
+    s   = (script or "").strip()
+    low = s.lower()
+    # Skip if the AI script already asks for like + (share/subscribe)
+    if "like" in low and ("share" in low or "subscribe" in low):
+        return s
+    return (s + _CTA_AUDIO.get(lang, _CTA_AUDIO["hi"])).strip()
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -778,21 +792,21 @@ def upload_to_instagram(video_path: str, caption: str, short_label: str = "") ->
 # ══════════════════════════════════════════════════════════════════════════════
 
 def build_title_short2(script_data: dict) -> str:
-    date_tag = now_ist.strftime("#%m%d")
+    # Front-load the keyword/curiosity (YouTube shows ~first 40 chars); brand/date
+    # moved to the description so the title earns the click.
     if CONTENT_MODE == "holiday":
         label = HOLIDAY_NAME if HOLIDAY_NAME else "Market Holiday"
-        return f"📚 {label} — ai360trading {date_tag} #Shorts"
+        return f"📚 {label} Special — Stock Market Lesson #Shorts"
     elif CONTENT_MODE == "weekend":
-        return f"📚 Weekend Investing Lesson — ai360trading {date_tag} #Shorts"
+        return f"📚 Weekend Trading Lesson — Stock Market for Beginners #Shorts"
     stock = script_data.get("stock", "Nifty")
     sent  = script_data.get("sentiment", "bullish").capitalize()
-    return f"📊 {stock} {sent} Setup — ai360trading {date_tag} #Shorts"
+    return f"{stock} {sent} Setup Today 📈 Nifty Stock to Watch #Shorts"
 
 def build_title_short3(script_data: dict) -> str:
-    date_tag = now_ist.strftime("#%m%d")
     if CONTENT_MODE in ("holiday", "weekend"):
-        return f"🌍 Weekend Market Wisdom — ai360trading {date_tag} #Shorts"
-    return f"🌍 Global Market Pulse — ai360trading {date_tag} #Shorts"
+        return f"🌍 Weekend Market Wisdom — Global Investing Tips #Shorts"
+    return f"🌍 Global Market Pulse Today — Nifty, Gold & Bitcoin #Shorts"
 
 def build_desc(script_data: dict, short_num: int, part1_url: str) -> str:
     tags    = seo.get_video_tags(mode=CONTENT_MODE, is_short=True)
@@ -802,6 +816,7 @@ def build_desc(script_data: dict, short_num: int, part1_url: str) -> str:
     cta     = f"\n▶️ Full Analysis: {part1_url}" if part1_url else ""
     return (
         f"💡 {insight}\n\n"
+        f"👍 Like • 🔔 Subscribe • 📤 Share this with a trader friend\n\n"
         f"🌐 https://ai360trading.in\n"
         f"📱 https://t.me/ai360trading{cta}\n\n"
         f"⚠️ Educational only. Not SEBI registered.\n\n"
@@ -815,6 +830,7 @@ def build_fb_caption(script_data: dict, short_num: int) -> str:
             f"📚 Weekend Learning!\n\n"
             f"💡 {insight}\n\n"
             f"🌐 ai360trading.in | 📱 t.me/ai360trading\n"
+            f"👍 Like & 📤 share with a friend who's learning to trade!\n"
             f"#ai360trading #StockMarket #Trading #WeekendLearning"
         )
     stock = script_data.get("stock", "Market")
@@ -824,6 +840,7 @@ def build_fb_caption(script_data: dict, short_num: int) -> str:
         f"💡 {insight}\n\n"
         f"🌐 ai360trading.in | 📱 t.me/ai360trading\n"
         f"⚠️ Educational only.\n"
+        f"👍 Like & 📤 tag a trader friend!\n"
         f"#ai360trading #StockMarket #{stock.replace(' ','')}"
     )
 
@@ -836,6 +853,7 @@ def build_ig_caption_short2(script_data: dict) -> str:
             f"📚 Weekend Learning!\n\n"
             f"💡 {insight}\n\n"
             f"🌐 ai360trading.in | 📱 t.me/ai360trading\n"
+            f"👍 Like • 📤 Share • 💾 Save for later\n"
             f"#ai360trading #StockMarket #Trading #Investing"
         )
     return (
@@ -843,6 +861,7 @@ def build_ig_caption_short2(script_data: dict) -> str:
         f"💡 {insight}\n\n"
         f"🌐 ai360trading.in | 📱 t.me/ai360trading\n"
         f"⚠️ Educational only.\n"
+        f"👍 Like • 📤 Share • 💾 Save for later\n"
         f"#ai360trading #Nifty50 #StockMarket #TradingIndia"
     )
 
@@ -853,6 +872,7 @@ def build_ig_caption_short3(script_data: dict) -> str:
             f"🌍 Global Market Wisdom!\n\n"
             f"💡 {insight}\n\n"
             f"🌐 ai360trading.in | 📱 t.me/ai360trading\n"
+            f"👍 Like • 📤 Share • 💾 Save for later\n"
             f"#GlobalMarkets #Bitcoin #Gold #SP500 #ai360trading"
         )
     return (
@@ -860,6 +880,7 @@ def build_ig_caption_short3(script_data: dict) -> str:
         f"💡 {insight}\n\n"
         f"🌐 ai360trading.in | 📱 t.me/ai360trading\n"
         f"⚠️ Educational only.\n"
+        f"👍 Like • 📤 Share • 💾 Save for later\n"
         f"#GlobalMarkets #Bitcoin #Gold #Nifty #ai360trading"
     )
 
@@ -884,7 +905,7 @@ def main():
     s2_frame = make_short2_frame(s2_data, market)
     s2_audio = str(OUT / f"short2_audio_{today}.mp3")
     s2_video = str(OUT / f"short2_{today}.mp4")
-    gen_tts(s2_data.get("script", ""), VOICE_SHORT2, s2_audio)
+    gen_tts(_with_cta(s2_data.get("script", ""), "hi"), VOICE_SHORT2, s2_audio)
     render_short(s2_frame, s2_audio, s2_video)
 
     s2_title  = build_title_short2(s2_data)
@@ -905,7 +926,7 @@ def main():
     s3_frame = make_short3_frame(s3_data, market)
     s3_audio = str(OUT / f"short3_audio_{today}.mp3")
     s3_video = str(OUT / f"short3_{today}.mp4")
-    gen_tts(s3_data.get("script", ""), VOICE_SHORT3, s3_audio)
+    gen_tts(_with_cta(s3_data.get("script", ""), "en"), VOICE_SHORT3, s3_audio)
     render_short(s3_frame, s3_audio, s3_video)
 
     s3_title  = build_title_short3(s3_data)
