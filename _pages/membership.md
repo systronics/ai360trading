@@ -86,17 +86,18 @@ description: "AI360Trading Membership — Live Telegram signals, TradingView ind
 /* ── COMPARISON TABLE ── */
 .compare-section{max-width:860px;margin:0 auto 48px;padding:0 16px;}
 .compare-title{font-size:0.75rem;color:var(--muted);text-align:center;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:16px;font-weight:700;}
-.compare-table{width:100%;border-collapse:collapse;font-size:0.76rem;}
-.compare-table th{padding:10px 14px;text-align:left;color:var(--muted);font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;border-bottom:1px solid var(--border);}
+.compare-table{width:100%;border-collapse:collapse;font-size:0.76rem;background-color:transparent !important;}
+.compare-table th{padding:10px 14px;text-align:left;color:#cbd5e1 !important;background-color:transparent !important;font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;border-bottom:1px solid var(--border);}
 .compare-table th:nth-child(2),.compare-table th:nth-child(3){text-align:center;}
-.compare-table td{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--text);vertical-align:middle;}
+.compare-table tr{background-color:transparent !important;}
+.compare-table td{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.08);color:#e2e8f0 !important;background-color:transparent !important;vertical-align:middle;}
 .compare-table td:nth-child(2),.compare-table td:nth-child(3){text-align:center;}
 .compare-table tr:last-child td{border-bottom:none;}
 .ct-yes{color:var(--green);font-size:1rem;}
-.ct-no{color:var(--border);font-size:1rem;}
+.ct-no{color:var(--muted);font-size:1rem;}
 .ct-adv{color:#60a5fa;font-size:0.62rem;font-weight:700;text-transform:uppercase;}
 .ct-prem{color:var(--gold);font-size:0.62rem;font-weight:700;text-transform:uppercase;}
-.compare-table .section-row td{background:rgba(255,255,255,0.02);color:var(--muted);font-size:0.68rem;text-transform:uppercase;letter-spacing:0.08em;font-weight:700;padding:8px 14px;}
+.compare-table .section-row td{background-color:rgba(255,255,255,0.05) !important;color:#f1f5f9 !important;font-size:0.68rem;text-transform:uppercase;letter-spacing:0.08em;font-weight:700;padding:8px 14px;}
 
 /* ── HOW IT WORKS ── */
 .how-section{max-width:680px;margin:0 auto 48px;padding:0 16px;text-align:center;}
