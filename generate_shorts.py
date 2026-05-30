@@ -353,6 +353,15 @@ def generate_short2_script(market: dict, part1_url: str) -> dict:
     else:
         topic = f"Today's Nifty: {nifty_val} ({nifty_chg}). Top Nifty200 swing trade setup or learning."
 
+    # Ride live search demand — hint trending terms to the AI (fail-open).
+    try:
+        from trending_keywords import get_trending
+        _tr = get_trending("finance", 5)
+        if _tr:
+            topic += f" Trending searches to reference if relevant: {', '.join(_tr)}."
+    except Exception:
+        pass
+
     cta = f"Full analysis: {part1_url}" if part1_url else "Subscribe for daily signals!"
 
     prompt = f"""Create a 45-second Hindi trading short script for Indian retail traders.
