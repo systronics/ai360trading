@@ -194,11 +194,11 @@ The system is engineered to run ₹0/month, auto-update, and self-repair:
 | 📣 Telegram | [@ai360trading](https://telegram.me/ai360trading) |
 | 🐦 Twitter / X | [@ai360trading](https://x.com/ai360trading) |
 | ▶️ YouTube Trading | [@ai360trading](https://www.youtube.com/@ai360trading) |
-| ▶️ YouTube Kids | HerooQuest channel |
+| ▶️ YouTube Kids | [@HerooQuest](https://www.youtube.com/@HerooQuest) |
 | 📸 Instagram | [@ai360trading](https://www.instagram.com/ai360trading) |
 | 👥 Facebook Group | [ai360trading](https://www.facebook.com/groups/ai360trading) |
 | 📘 Facebook Trading | [ai360trading.official](https://www.facebook.com/ai360trading.official) |
-| 📘 Facebook Kids | HerooQuest Kids Page |
+| 📘 Facebook Kids | [herooquest](https://www.facebook.com/herooquest) |
 
 ---
 
