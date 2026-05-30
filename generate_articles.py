@@ -766,6 +766,17 @@ def get_live_prices():
 
 def get_google_trends():
     all_trends = []
+    # v2 (2026-05-31): seed with the daily-refreshed trending cache
+    # (trending_keywords.py — Google + YouTube autocomplete). More reliable than
+    # the Google daily-trends API below, so titles/content ride real live demand.
+    try:
+        from trending_keywords import get_trending
+        cached = get_trending("finance", 15)
+        all_trends.extend(cached)
+        if cached:
+            print(f"[TRENDS] seeded {len(cached)} terms from trending cache")
+    except Exception as e:
+        print(f"[TRENDS] trending cache unavailable ({e}) — using Google API only")
     regions = [("US", "-330"), ("IN", "-330"), ("GB", "0"), ("BR", "-180")]
     finance_keywords = [
         'stock', 'market', 'nifty', 'sensex', 'nasdaq', 'bitcoin', 'crypto',
@@ -1020,6 +1031,9 @@ HARD RULES for the title (Google SEO audit 2026-05-28):
 8. No clickbait — title must deliver what it promises.
 9. Banned phrases: "Game-changer", "Deep dive", "Navigating", "Landscape", "Robust",
    "Amid", "Awaits", "Holds Near"  ← these are overused in this site's titles.
+10. If one of the trending searches above fits the topic naturally, weave that
+    exact phrase into the title — it matches what people are searching RIGHT NOW
+    and lifts click-through. Never force it if it doesn't fit.
 
 GOOD TITLE EXAMPLES (curiosity + clarity, no template):
 - "Why FII Money Left India Today — And Where It Went"
