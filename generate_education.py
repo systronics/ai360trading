@@ -500,7 +500,45 @@ def get_youtube_service():
         return None
 
 
-def upload_to_youtube(video_path, title, description, tags):
+def make_edu_thumbnail(title_text, topic, week, path):
+    """Large-text 16:9 (1280x720) thumbnail for the long-form education video —
+    big bold title drives click-through far better than an auto-grabbed frame."""
+    import textwrap
+    TW, TH = 1280, 720
+    img  = Image.new("RGB", (TW, TH))
+    draw = ImageDraw.Draw(img, "RGBA")
+    # Dark gradient background
+    for y in range(TH):
+        t = y / TH
+        draw.line([(0, y), (TW, y)], fill=(int(8 + t*12), int(14 + t*26), int(30 + t*52)))
+    # Accent bars
+    draw.rectangle([(0, 0), (TW, 16)], fill=(255, 200, 0))
+    draw.rectangle([(0, TH-16), (TW, TH)], fill=(255, 200, 0))
+    FB = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
+    def _f(sz):
+        try:    return ImageFont.truetype(FB, sz)
+        except Exception: return ImageFont.load_default()
+    f_week, f_title, f_brand = _f(46), _f(120), _f(40)
+    # Week badge
+    draw.rounded_rectangle([(48, 48), (430, 130)], radius=18, fill=(255, 200, 0))
+    draw.text((239, 89), f"WEEK {week}", font=f_week, fill=(0, 0, 0), anchor="mm")
+    # Big bold title (up to 3 lines, centered)
+    safe  = (topic.get("title") or title_text or "TRADING LESSON").upper()
+    lines = textwrap.wrap(safe, width=14)[:3]
+    ty = (TH - len(lines)*132)//2 + 80
+    for line in lines:
+        for dx, dy in [(-4,4),(4,-4),(-4,-4),(4,4)]:
+            draw.text((TW//2+dx, ty+dy), line, font=f_title, fill=(0,0,0,210), anchor="mm")
+        draw.text((TW//2, ty), line, font=f_title, fill=(255, 210, 0), anchor="mm")
+        ty += 132
+    draw.text((TW//2, TH-50), "AI360TRADING — Daily Market Lessons",
+              font=f_brand, fill=(226, 232, 240), anchor="mm")
+    img.save(str(path), quality=95)
+    print(f"[THUMB] education thumbnail: {path}")
+    return path
+
+
+def upload_to_youtube(video_path, title, description, tags, thumb_path=None):
     youtube = get_youtube_service()
     if not youtube: return None
     body = {
@@ -525,6 +563,14 @@ def upload_to_youtube(video_path, title, description, tags):
             if status: print(f"  {int(status.progress()*100)}%")
         vid_id = resp["id"]
         print(f"✅ Uploaded [{LANG.upper()}]: https://youtube.com/watch?v={vid_id}")
+        if thumb_path:
+            try:
+                youtube.thumbnails().set(
+                    videoId=vid_id, media_body=MediaFileUpload(str(thumb_path))
+                ).execute()
+                print("  ✅ Custom thumbnail set")
+            except Exception as te:
+                print(f"  ⚠️ Thumbnail set skipped (channel may need verification): {te}")
         return vid_id
     except Exception as e:
         print(f"❌ Upload [{LANG}]: {e}")
@@ -594,8 +640,16 @@ async def run():
     print(f"✅ Video rendered [BILINGUAL]: {video_path.name} | {dur_min:.1f} min")
     check_duration(video_path)
 
+    # Large-text 16:9 thumbnail for higher click-through
+    thumb_path = OUT / f"education_thumb_{today}.png"
+    try:
+        make_edu_thumbnail(vid_title, topic, week, thumb_path)
+    except Exception as e:
+        print(f"⚠️ Thumbnail build failed: {e}")
+        thumb_path = None
+
     # Upload
-    vid_id = upload_to_youtube(video_path, vid_title, full_desc, youtube_tags)
+    vid_id = upload_to_youtube(video_path, vid_title, full_desc, youtube_tags, thumb_path)
 
     # Save meta
     meta = {
