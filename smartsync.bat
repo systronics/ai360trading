@@ -39,12 +39,9 @@ git commit -m "SmartSync: %TIMESTAMP%" 2>nul
 git push origin master
 echo.
 
-REM Step 6: Update SESSION.md with sync timestamp
-echo [5/5] Updating sync log...
+REM Step 6: Update LOCAL sync log (SESSION.md is PC-only, never pushed)
+echo [5/5] Updating local sync log...
 echo Last SmartSync: %TIMESTAMP% >> SESSION.md
-git add SESSION.md
-git commit -m "SmartSync log update" 2>nul
-git push origin master 2>nul
 
 echo.
 echo ============================================

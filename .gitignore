@@ -143,6 +143,15 @@ node_modules/
 *.backup
 
 # ============================================================
+# INTERNAL BUILD / DEV NOTES — LOCAL (PC) ONLY, NEVER PUBLISH
+# These exist only to help the owner + AI perfect the system.
+# They stay on the PC; they are NOT pushed to the public repo.
+# ============================================================
+.internal-ops.md
+SESSION.md
+CHANGELOG.md
+
+# ============================================================
 # EXPLICITLY TRACKED — DO NOT IGNORE
 # ============================================================
 
@@ -182,9 +191,11 @@ node_modules/
 !_config.yml
 !robots.txt
 
-# ── Documentation ──────────────────────────────────────────
-!.internal-ops.md
+# ── Documentation (PUBLIC) ─────────────────────────────────
+# RUNBOOK stays public: auto_heal.py / health_watchdog.py point
+# the owner to it via Telegram when the system needs recovery.
 !REPO_STRUCTURE.md
 !LICENSE.md
 !README.md
-.claude/ 
+!RUNBOOK.md
+.claude/
