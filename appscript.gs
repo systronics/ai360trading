@@ -1824,24 +1824,75 @@ function freshCleanStart() {
   const ss       = SpreadsheetApp.getActiveSpreadsheet();
   const ui       = SpreadsheetApp.getUi();
   const logSheet = ss.getSheetByName(CONFIG.LOG_SHEET);
-  const confirm  = ui.alert('🧹 FRESH CLEAN START', 'Clears AlertLog + BotMemory. T2 untouched. Are you sure?', ui.ButtonSet.YES_NO);
-  if (confirm !== ui.Button.YES) { ui.alert('❌ Cancelled.'); return; }
+
+  const confirm  = ui.alert(
+    '🧹 FRESH CLEAN START',
+    'Clears ALL AlertLog trades + BotMemory trade/state keys.\n' +
+    'KEPT: Nifty200, CashWatchlist, LTWatchlist, holidays, T2 switch, settings.\n\n' +
+    'Continue?',
+    ui.ButtonSet.YES_NO);
+  if (confirm !== ui.Button.YES) { ui.alert('❌ Cancelled — nothing changed.'); return; }
+
+  // v15.18: hold the AppScript write lock so the 5-min bot cycle skips a blank
+  // AlertLog if this is run during market hours (mirrors clearWaitingRowsOnly).
+  const bm       = _bmLoad(ss);
+  const lockTime = Utilities.formatDate(new Date(), CONFIG.IST_ZONE, "yyyy-MM-dd HH:mm:ss");
+  _bmSet(ss, bm, "_AS_LOCK", lockTime, "", "STATE");
+  SpreadsheetApp.flush();
+
+  // AlertLog: clear trade rows (cols A-S) + options cols (U-X). Col T (TOTAL_COLS
+  // is 19, so col 20 = T2 switch) is outside the range and never touched.
   logSheet.getRange(2, 1, CONFIG.LOG_ROWS, CONFIG.TOTAL_COLS).clearContent();
   logSheet.getRange(2, 21, 21, 4).clearContent();
   _restoreFormulas(logSheet);
+
+  // BotMemory: clear TRADE + STATE keys; keep SYSTEM keys (holidays etc.) and
+  // our own _AS_LOCK (removed at the end so the lock stays valid throughout).
   const bmSheet = ss.getSheetByName(CONFIG.BM_SHEET);
   if (bmSheet) {
     const lastRow = bmSheet.getLastRow();
     if (lastRow >= 2) {
       const data = bmSheet.getRange(2, 1, lastRow - 1, 5).getValues();
       for (let i = 0; i < data.length; i++) {
+        const key   = (data[i][0] || "").toString().trim();
         const ktype = (data[i][4] || "").toString().trim();
-        if (ktype === "TRADE" || ktype === "STATE") bmSheet.getRange(i + 2, 1, 1, 5).clearContent();
+        if ((ktype === "TRADE" || ktype === "STATE") && key !== "_AS_LOCK") {
+          bmSheet.getRange(i + 2, 1, 1, 5).clearContent();
+        }
       }
     }
   }
+
+  // Optional: also reset the History P&L track record — backed up first so
+  // nothing is ever lost.
+  const histYes = ui.alert(
+    '📊 Reset History too?',
+    'Also clear History (your P&L track record)?\n' +
+    'It is copied to a HistoryArchive tab first, so nothing is lost.\n\n' +
+    'YES = fresh P&L   |   NO = keep track record',
+    ui.ButtonSet.YES_NO);
+  if (histYes === ui.Button.YES) {
+    const hist = ss.getSheetByName(CONFIG.HISTORY_SHEET);
+    if (hist) {
+      const last = hist.getLastRow();
+      const ncol = hist.getLastColumn();
+      if (last >= 2 && ncol >= 1) {
+        const header = hist.getRange(1, 1, 1, ncol).getValues();
+        const rows   = hist.getRange(2, 1, last - 1, ncol).getValues();
+        let arc = ss.getSheetByName('HistoryArchive');
+        if (!arc) { arc = ss.insertSheet('HistoryArchive'); arc.getRange(1, 1, 1, ncol).setValues(header); }
+        arc.getRange(arc.getLastRow() + 1, 1, rows.length, ncol).setValues(rows);
+        hist.getRange(2, 1, last - 1, ncol).clearContent();
+      }
+    }
+  }
+
+  // Remove transient cache sheets if present.
   ["PriceCache","TempPriceCalc"].forEach(name => { const s = ss.getSheetByName(name); if (s) ss.deleteSheet(s); });
-  ui.alert('✅ Done. Click 🔄 MANUAL SYNC to fill candidates.');
+
+  _bmDel(ss, bm, "_AS_LOCK");
+  SpreadsheetApp.flush();
+  ui.alert('✅ Fresh start done.\nClick 🔄 MANUAL SYNC to load new candidates.');
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
