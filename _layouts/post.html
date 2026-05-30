@@ -106,8 +106,8 @@ layout: default
     {
       "@type": "ListItem",
       "position": 2,
-      "name": "{{ page.category | replace: '-', ' ' | capitalize }}",
-      "item": "https://ai360trading.in/topics/{{ page.category | downcase }}/"
+      "name": "{{ page.pillar | default: 'Stock-Market' | replace: '-', ' ' | capitalize }}",
+      "item": "https://ai360trading.in/topics/{{ page.pillar | default: 'stock-market' | downcase }}/"
     },
     {
       "@type": "ListItem",
