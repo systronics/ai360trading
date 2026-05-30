@@ -146,7 +146,7 @@ The system is engineered to run ₹0/month, auto-update, and self-repair:
 2. **Every external call fails open** — a yfinance timeout, an NSE 403, an empty bhavcopy all return permissive defaults so one outage cannot stall a tick.
 3. **Auto-updating data** — holidays refresh annually, FII data daily, earnings daily, tokens every 2 weeks, bhavcopy daily — no manual ops.
 4. **Module-level isolation** — `option_intelligence`, `institutional_edges`, etc. are imported with try/except. If any module is broken or missing, the bot falls back to the previous version's logic.
-5. **Workflow failure alerts** — every cron job has an `if: failure()` step that posts a "System Notice" to the Basic Telegram channel so the operator sees problems within minutes.
+5. **Workflow failure alerts** — a daily health watchdog queries the Actions API and posts a "System Notice" to the Basic Telegram channel if *any* workflow failed, plus the critical crons carry their own `if: failure()` step — so the operator sees problems within minutes.
 6. **Self-healing sheet I/O** — Nifty200 column lookups match by header name (not index) so AppScript can add columns without breaking the bot.
 7. **Stale-data bypass** — known stale columns (e.g. Volume_vs_Avg_%) are bypassed when a stronger signal (price > +3%) confirms the underlying state.
 8. **Auto-archive** — History sheet auto-archives every Monday morning when it exceeds 500 rows.
@@ -204,8 +204,9 @@ The system is engineered to run ₹0/month, auto-update, and self-repair:
 
 ## For AI Assistants
 
-Read `CLAUDE.md`, `.internal-ops.md` and `SESSION.md` before making any changes.
-These files contain the complete system architecture, rules, and pending tasks.
+Read `CLAUDE.md` and `RUNBOOK.md` before making any changes.
+The complete system architecture, change log, and pending-task notes are kept
+in the owner's private working copy (not in this public repo).
 
 ---
 
