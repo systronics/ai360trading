@@ -298,6 +298,12 @@ def upload_video(youtube, video_path: Path, title: str, description: str, tags: 
         vid_url = f"https://youtube.com/shorts/{vid_id}"
         print(f"✅ YouTube upload success! ID: {vid_id}")
         print(f"   URL: {vid_url}")
+        # Auto-post the channel's own top comment with the Telegram funnel.
+        try:
+            import money_funnel as _mf
+            _mf.post_first_comment(youtube, vid_id, lang)
+        except Exception:
+            pass
         return vid_id, vid_url
     except Exception as e:
         print(f"❌ Upload failed: {e}")

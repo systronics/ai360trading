@@ -92,6 +92,47 @@ def funnel_block(lang: str = "hi", compact: bool = False) -> str:
     ])
 
 
+def comment_text(lang: str = "hi") -> str:
+    """The channel's own top comment (links + engagement) auto-posted on upload."""
+    L = LINKS
+    if lang == "hi":
+        head = "🎯 FREE daily signals yahan milte hain 👇"
+    else:
+        head = "🎯 Get FREE daily trading signals here 👇"
+    return (
+        f"{head}\n"
+        f"📱 Telegram: {L['telegram']}\n"
+        f"💎 Premium (entry/SL/target): {MEMBERSHIP} — DM on Telegram\n"
+        f"📈 Free demat: Zerodha {L['zerodha']} | Dhan {L['dhan']}\n"
+        f"{engagement_prompt(lang)}"
+    )
+
+
+def post_first_comment(youtube, video_id: str, lang: str = "hi") -> bool:
+    """
+    Auto-post the channel's own top comment with the money funnel right after a
+    video uploads (the first comment is prime real estate for the Telegram link).
+    NOTE: the YouTube Data API cannot programmatically PIN a comment — posting
+    the channel's own comment is the practical equivalent. Needs youtube.force-ssl.
+    FAIL-OPEN — any problem (missing scope, API error) returns False, never raises.
+    """
+    if not youtube or not video_id:
+        return False
+    try:
+        body = {"snippet": {"videoId": video_id, "topLevelComment": {
+            "snippet": {"textOriginal": comment_text(lang)}}}}
+        youtube.commentThreads().insert(part="snippet", body=body).execute()
+        print("  ✅ Posted pinned-style first comment (Telegram + funnel)")
+        return True
+    except Exception as e:
+        msg = str(e).lower()
+        if any(k in msg for k in ("scope", "insufficient", "forbidden", "403")):
+            print("  ⚠️ Auto-comment needs youtube.force-ssl (skipped, fail-open)")
+        else:
+            print(f"  ⚠️ Auto-comment skipped (fail-open): {str(e)[:100]}")
+        return False
+
+
 def article_cta_html() -> str:
     """A styled conversion CTA box appended to the end of each website article.
     Turns blog readers into Telegram subscribers + broker signups (the income)."""

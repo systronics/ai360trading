@@ -440,6 +440,9 @@ def resolve_meta_and_video(prefix: str):
     elif prefix == "kids":
         meta_patterns  = [f"kids_meta_{today}_hi.json", f"kids_meta_{today}.json", "kids_meta_*.json"]
         video_patterns = [f"kids_full_{today}_hi.mp4", f"kids_full_{today}.mp4", "kids_full_*.mp4"]
+    elif prefix == "education":
+        meta_patterns  = [f"education_meta_{today}_bi.json", "education_meta_*.json"]
+        video_patterns = ["education_video_bi.mp4", "education_video_*.mp4"]
     else:
         meta_patterns  = [f"meta_{today}.json", "meta_*.json"]
         video_patterns = [f"reel_{today}.mp4", "reel_*.mp4"]
@@ -471,6 +474,18 @@ def build_caption(meta: dict, prefix: str) -> str:
             f"💡 Aaj ki seekh: {moral}\n\n"
             f"Apne bachon ke saath dekho! ❤️\n"
             f"#HerooQuest #KidsStories #AnimatedStories #HindiKahani"
+        )
+
+    if prefix == "education":
+        edu_title = meta.get("title", "Stock Market Lesson")
+        edu_desc  = (meta.get("description", "") or "")[:140]
+        return (
+            f"📚 {edu_title}\n\n"
+            f"💡 {edu_desc}\n\n"
+            f"🎯 FREE daily signals → t.me/ai360trading\n"
+            f"🌐 ai360trading.in\n"
+            f"⚠️ Educational only. Not SEBI registered.\n"
+            f"#ai360trading #StockMarket #TradingForBeginners #Investing #ShareMarket"
         )
 
     title = meta.get("title", "")
@@ -569,6 +584,21 @@ def main():
                                 video_path, caption, page_token)
         else:
             print("⚠️ Kids video not found — skipping Facebook Kids upload")
+        return
+
+    # ── Education (landscape long-form → /videos, NOT Reels) ──────────────────
+    if prefix == "education":
+        if not FACEBOOK_PAGE_ID:
+            print("⚠️ FACEBOOK_PAGE_ID not set — skipping education FB upload")
+            return
+        page_token = get_page_token(FACEBOOK_PAGE_ID, META_ACCESS_TOKEN)
+        if video_path and video_path.exists():
+            caption = build_caption(meta, "education")
+            # Education is a ~10-min 16:9 video → post to /videos (reels reject it)
+            _videos_fallback(FACEBOOK_PAGE_ID, "AI360Trading Page",
+                             video_path, caption, page_token)
+        else:
+            print("⚠️ Education video not found — skipping Facebook education upload")
         return
 
     # ── Main Page + Group + Instagram ─────────────────────────────────────────

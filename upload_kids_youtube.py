@@ -471,6 +471,12 @@ def main():
                                    meta.get("subtitle_lang", lang))
                 except Exception as e:
                     print(f"  ⚠️ Caption upload skipped (fail-open): {e}")
+            # Auto-post the channel's own top comment with the Telegram funnel.
+            try:
+                import money_funnel as _mf
+                _mf.post_first_comment(youtube, vid_id, lang)
+            except Exception:
+                pass
             meta["youtube_video_id"]  = vid_id
             meta["youtube_video_url"] = f"https://www.youtube.com/watch?v={vid_id}"
         except Exception as e:

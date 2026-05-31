@@ -81,7 +81,7 @@ WEEKDAY  = TODAY.weekday()
 
 VIDEO_WIDTH  = 1080
 VIDEO_HEIGHT = 1920
-FPS      = 30
+FPS      = 24   # v2.5: 30→24 — invisible for a static-frame slideshow, ~20% faster render
 DURATION = 55
 
 VOICE_HI = "hi-IN-SwaraNeural"
@@ -648,7 +648,15 @@ def create_morning_video(script, audio_path, output_path, intel=None,
     if final is None:
         final = video.set_audio(tts) if tts is not None else video
 
-    final.write_videofile(output_path, fps=FPS, codec="libx264", audio_codec="aac", verbose=False, logger=None)
+    # v2.5 SPEED: the morning reel is a static slideshow (one held frame per
+    # line, no in-line motion), so the slow default libx264 preset was wasting
+    # ~40 min. ultrafast + multithread cuts the render ~5-8x with no visible
+    # quality change at this bitrate; 24fps (set below) is identical for statics.
+    final.write_videofile(
+        output_path, fps=FPS, codec="libx264", audio_codec="aac",
+        preset="ultrafast", threads=(os.cpu_count() or 2),
+        verbose=False, logger=None,
+    )
     ok = os.path.exists(output_path) and os.path.getsize(output_path) > 0
     if ok: logger.info(f"Video exported: {output_path}")
     else:  logger.error("Video export failed")

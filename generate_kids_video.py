@@ -1,6 +1,12 @@
 """
-generate_kids_video.py — HerooQuest v2.6
+generate_kids_video.py — HerooQuest v2.7
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v2.7 (2026-05-31) — SPOKEN LIKE/SHARE/SUBSCRIBE CTA:
+    The last scene's narration now ends with a warm, kid-friendly spoken
+    like/share/subscribe line (KIDS_CTA, hi/en), voiced in the same soft kids
+    voice. Because it's part of the narration, the auto-translate .srt caption
+    follows it automatically. Drives subscribers/engagement on the kids channel.
+
 v2.6 (2026-05-31) — AUTO-TRANSLATE SUBTITLES (global reach, ₹0):
     The kids video already declared defaultAudioLanguage, but had NO exact
     caption track — so YouTube only had its own machine captions to translate.
@@ -105,6 +111,17 @@ OUTPUT_DIR.mkdir(exist_ok=True)
 VOICES = {
     "hi": "hi-IN-SwaraNeural",
     "en": "en-US-JennyNeural",
+}
+
+# v2.7: warm, kid-friendly spoken outro (like/share/subscribe) added to the last
+# scene's narration so it's voiced in the same soft kids voice + caption follows.
+KIDS_CTA = {
+    "hi": (" Dosto, agar aapko Heroo ki yeh kahani achhi lagi toh, "
+           "please LIKE karo, apne doston ke saath SHARE karo, aur humara "
+           "channel SUBSCRIBE karna mat bhoolna! Milte hain agli kahani mein!"),
+    "en": (" Friends, if you loved Heroo's story, please give it a big LIKE, "
+           "SHARE it with your friends, and don't forget to SUBSCRIBE to our "
+           "channel! See you in the next story!"),
 }
 
 # ── HEROO + ARYA descriptions ─────────────────────────────────────────────────
@@ -815,9 +832,12 @@ def main():
     audio_paths = []
     narrations  = []   # v2.6: keep per-scene spoken text for the .srt caption track
 
-    for scene in scenes:
+    for _idx, scene in enumerate(scenes):
         sid      = scene.get("id", len(img_paths)+1)
         narr     = scene.get(f"narration_{LANG}", scene.get("narration_hi",""))
+        # v2.7: append the soft spoken like/share/subscribe CTA to the LAST scene
+        if _idx == len(scenes) - 1:
+            narr = (narr or "").rstrip() + KIDS_CTA.get(LANG, KIDS_CTA["hi"])
         img_pr   = scene.get("image_prompt", "Heroo in an exciting adventure scene")
 
         print(f"[SCENE {sid}] Generating image + audio...")

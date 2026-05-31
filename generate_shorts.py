@@ -740,6 +740,12 @@ def upload_short(video_path: str, title: str, description: str, tags: list, thum
                 upload_caption(youtube, vid_id, caption_srt, caption_lang)
             except Exception as e:
                 print(f"  ⚠️ Caption upload skipped (fail-open): {e}")
+        # Auto-post the channel's own top comment with the Telegram funnel.
+        try:
+            import money_funnel as _mf
+            _mf.post_first_comment(youtube, vid_id, caption_lang or "hi")
+        except Exception:
+            pass
         return vid_id
     except Exception as e:
         print(f"  ❌ YouTube upload failed: {e}")
