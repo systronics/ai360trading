@@ -110,10 +110,12 @@ meta-og:image: https://ai360trading.in/public/image/header.webp
   }
   iframe {
     width: 100%;
-    min-width: 1100px;
-    height: 860px;
+    max-width: 760px;   /* table is now 5 teaser cols — keep it compact + centered */
+    min-width: 680px;   /* was 1100px (13-col era) — caused a needless wide scroll */
+    height: 640px;      /* was 860px — fits ~30 picks snugly, no big white gap */
     border: none;
     display: block;
+    margin: 0 auto;
   }
   .teaser-notice {
     margin: 0 0 22px 0;
@@ -209,7 +211,7 @@ meta-og:image: https://ai360trading.in/public/image/header.webp
   .dashboard-disclaimer { margin-top: 28px; padding: 15px 20px; background: #fff5f5; border: 1px solid #fed7d7; border-radius: 8px; font-size: 13px; color: #744210; line-height: 1.7; }
   @media (max-width: 768px) {
     .scroll-hint { display: block; }
-    iframe { height: 700px; }
+    iframe { height: 600px; min-width: 620px; }
     .dashboard-features { grid-template-columns: 1fr; }
     .broker-grid { grid-template-columns: 1fr; }
     .upgrade-grid { grid-template-columns: 1fr; }
