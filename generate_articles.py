@@ -95,9 +95,9 @@ Available links by country:
 - USA investing/broker:       {AFFILIATE_LINKS['broker']['usa']}
 - UK investing/broker:        {AFFILIATE_LINKS['broker']['uk']}
 """
-    elif pillar_id in ("stock-market", "ai-trading"):
+    elif pillar_id in ("stock-market", "ai-trading", "mutual-funds", "ipo", "world-markets"):
         return f"""
-AFFILIATE LINKS — insert naturally, maximum 2 total, only where discussing opening a trading account.
+AFFILIATE LINKS — insert naturally, maximum 2 total, only where discussing opening a trading/investing account.
 - India broker: {AFFILIATE_LINKS['broker']['india']}
 - USA broker:   {AFFILIATE_LINKS['broker']['usa']}
 - UK broker:    {AFFILIATE_LINKS['broker']['uk']}
@@ -440,6 +440,139 @@ US readers at Policygenius, UK readers at CompareTheMarket. Mention naturally wh
 Target: retail traders of all levels looking for an edge without paying""",
         "news_queries": ["free+AI+trading+tools+2026", "best+stock+screener+free+2026", "algorithmic+trading+beginner+2026"],
     },
+    {
+        "id": "mutual-funds",
+        "name": "Mutual Funds & SIP",
+        "permalink_base": "mutual-funds",
+        "category": "Mutual-Funds",
+        "tag": "mutual-funds",
+        "primary_keywords": ["best mutual funds 2026", "SIP investment", "index fund vs mutual fund", "ELSS tax saving"],
+        "us_keywords":     ["best index funds 2026", "mutual fund vs ETF", "how to start investing in funds"],
+        "uk_keywords":     ["best funds UK 2026", "ISA index fund", "vanguard UK funds"],
+        "brazil_keywords": ["melhores fundos 2026", "como investir em fundos"],
+        "india_keywords":  ["best mutual funds 2026 India", "SIP vs lump sum", "ELSS tax saving funds", "best index fund India"],
+        "title_style_examples": [
+            "Best Mutual Funds for 2026 — How to Choose Without the Hype",
+            "SIP vs Lump Sum — Which Actually Builds More Wealth? (With Numbers)",
+            "Index Fund vs Active Mutual Fund — The Honest Data",
+            "How to Pick a Mutual Fund — The 5 Numbers That Actually Matter",
+            "ELSS Tax-Saving Funds Explained — Save Tax and Build Wealth",
+            "The Mutual Fund Mistake That Quietly Costs You Lakhs",
+            "How Much Should You SIP to Reach 1 Crore? Real Math",
+            "Direct vs Regular Mutual Funds — Why It Matters More Than You Think",
+            "Large Cap vs Mid Cap vs Small Cap Funds — Which Suits You?",
+            "How Expense Ratio Eats Your Returns — A Simple Breakdown",
+        ],
+        "article_focus": """Write a comprehensive beginner-friendly mutual fund education article covering:
+- How mutual funds and SIPs actually work (India, US, UK, Brazil context)
+- Index funds vs actively managed funds — the honest data on returns
+- How to pick a fund: expense ratio, AUM, track record, fund manager
+- SIP vs lump sum with real compounding numbers
+- ELSS / tax-saving funds for India; ISA funds for UK; index/401k for US
+- Direct vs regular plans and why expense ratio matters
+- Common mistakes beginners make
+Target: beginner investors who want to start with funds""",
+        "news_queries": ["best+mutual+funds+2026", "SIP+investment+returns+2026", "index+fund+vs+mutual+fund"],
+    },
+    {
+        "id": "gold",
+        "name": "Gold & Commodities",
+        "permalink_base": "gold",
+        "category": "Gold-Commodities",
+        "tag": "gold",
+        "primary_keywords": ["gold investment 2026", "gold vs stocks", "digital gold", "sovereign gold bond"],
+        "us_keywords":     ["gold investment 2026", "gold vs S&P 500", "how to invest in gold USA"],
+        "uk_keywords":     ["gold investment UK 2026", "gold ETF UK"],
+        "brazil_keywords": ["investir em ouro 2026", "ouro vs bolsa"],
+        "india_keywords":  ["gold investment India 2026", "sovereign gold bond vs physical", "digital gold India", "gold vs FD"],
+        "title_style_examples": [
+            "Gold in 2026 — Is It Still a Safe Haven? Honest Analysis",
+            "Gold vs Stocks vs FD — Where Should Your Money Go?",
+            "Sovereign Gold Bonds vs Physical Gold — The Smarter Choice",
+            "Digital Gold Explained — Is It Safe? What Beginners Must Know",
+            "How Much Gold Should Be in Your Portfolio? The Real Answer",
+            "Why Gold Rises When Markets Fall — The Mechanism Explained",
+            "Gold ETF vs Physical Gold — Costs, Safety and Returns Compared",
+            "Is Now a Good Time to Buy Gold? A Framework, Not a Guess",
+            "Silver vs Gold — Which Commodity Wins Over the Long Run?",
+            "How Central Bank Gold Buying Affects Your Investment",
+        ],
+        "article_focus": """Write a comprehensive gold and commodities education article covering:
+- Why gold is considered a safe-haven asset and when it actually works
+- Gold vs stocks vs fixed deposits — long-term return comparison
+- Ways to invest in gold: physical, digital gold, gold ETF, sovereign gold bonds (India)
+- How much gold belongs in a balanced portfolio
+- How inflation, the US Dollar and interest rates drive gold prices
+- Silver and other commodities briefly
+Target: investors deciding whether and how to add gold""",
+        "news_queries": ["gold+price+outlook+2026", "gold+vs+stocks+investment", "sovereign+gold+bond+2026"],
+    },
+    {
+        "id": "ipo",
+        "name": "IPO Watch",
+        "permalink_base": "ipo",
+        "category": "IPO",
+        "tag": "ipo",
+        "primary_keywords": ["upcoming IPO 2026", "how to apply for IPO", "IPO GMP", "should I apply IPO"],
+        "us_keywords":     ["upcoming IPO 2026 USA", "how to buy IPO stock", "best IPOs 2026"],
+        "uk_keywords":     ["upcoming IPO UK 2026", "how to invest in IPO UK"],
+        "brazil_keywords": ["IPO 2026 Brasil", "como investir em IPO"],
+        "india_keywords":  ["upcoming IPO 2026 India", "how to apply IPO online", "IPO GMP today", "best IPO to apply"],
+        "title_style_examples": [
+            "How to Apply for an IPO — Complete Step-by-Step Guide 2026",
+            "Should You Apply for Every IPO? The Honest Answer",
+            "IPO GMP Explained — What Grey Market Premium Really Tells You",
+            "How to Evaluate an IPO Before You Invest — 6 Checks",
+            "Why Most IPOs Underperform After Listing — The Data",
+            "IPO Allotment Explained — How to Improve Your Chances",
+            "Mainboard vs SME IPO — What Beginners Must Know",
+            "Listing Gains vs Long-Term Value — Don't Confuse the Two",
+            "How to Read an IPO Prospectus Without Falling Asleep",
+            "Anchor Investors and IPOs — What Their Move Signals",
+        ],
+        "article_focus": """Write a comprehensive IPO education article covering:
+- What an IPO is and how the process works (India SEBI, US SEC context)
+- How to apply for an IPO step by step (India ASBA/UPI; US brokerage)
+- How to evaluate an IPO: financials, valuation, promoter quality, use of funds
+- What IPO GMP (grey market premium) means and its limits
+- Listing gains vs long-term investing
+- Why many IPOs underperform and how to avoid hype traps
+Target: retail investors curious about applying to IPOs""",
+        "news_queries": ["upcoming+IPO+2026", "how+to+apply+IPO+online", "IPO+GMP+grey+market+2026"],
+    },
+    {
+        "id": "world-markets",
+        "name": "World Markets",
+        "permalink_base": "world-markets",
+        "category": "World-Markets",
+        "tag": "world-markets",
+        "primary_keywords": ["global markets", "Dow Jones", "Nasdaq", "crude oil price", "world market news"],
+        "us_keywords":     ["global markets today", "Dow Jones outlook", "crude oil price forecast"],
+        "uk_keywords":     ["global markets UK", "FTSE vs global markets", "oil price UK"],
+        "brazil_keywords": ["mercados globais", "petroleo preco 2026"],
+        "india_keywords":  ["global markets impact on nifty", "dow jones nifty correlation", "crude oil impact India"],
+        "title_style_examples": [
+            "How Global Markets Move Together — A Beginner's Map",
+            "Why the Dow Jones Matters to Indian Traders — The Link Explained",
+            "Crude Oil and Your Portfolio — The Connection Most People Miss",
+            "Dollar Index (DXY) Explained — Why It Moves Everything",
+            "How US Fed Decisions Ripple Across World Markets",
+            "Emerging vs Developed Markets — Where Should You Invest?",
+            "The Bond Yield Signal Every Equity Investor Should Watch",
+            "How Currency Moves Quietly Decide Your Returns",
+            "Geopolitics and Markets — Separating Noise From Signal",
+            "Why World Markets Sometimes Ignore Bad News",
+        ],
+        "article_focus": """Write a comprehensive global/world markets education article covering:
+- How major global markets (US Dow/Nasdaq, Europe, Asia) are interconnected
+- Why US markets and the Dollar Index (DXY) influence India, Brazil and the UK
+- The role of crude oil, bond yields and the Fed in global moves
+- Developed vs emerging markets basics
+- How a beginner should think about global diversification
+- Reading macro signals without getting lost in noise
+Target: investors who want to understand the global big picture""",
+        "news_queries": ["global+markets+today+2026", "dow+jones+nasdaq+outlook", "crude+oil+price+2026"],
+    },
 ]
 
 
@@ -638,6 +771,138 @@ US readers at Policygenius, UK readers at CompareTheMarket. Mention naturally wh
             "AI+hedge+fund+performance+2026",
         ],
     },
+    {
+        "id": "mutual-funds",
+        "name": "Mutual Funds & SIP",
+        "permalink_base": "mutual-funds",
+        "category": "Mutual-Funds",
+        "tag": "mutual-funds",
+        "primary_keywords": ["best mutual funds 2026", "SIP returns", "index fund", "ELSS", "NFO today"],
+        "us_keywords":     ["best index funds 2026", "mutual fund performance 2026", "VOO vs VTI"],
+        "uk_keywords":     ["best funds UK 2026", "ISA fund performance"],
+        "brazil_keywords": ["melhores fundos 2026", "rendimento fundos"],
+        "india_keywords":  ["best mutual funds 2026 India", "SIP returns today", "top ELSS funds 2026", "best index fund India"],
+        "title_style_examples": [
+            "Best Mutual Funds to Watch in 2026 — Categories That Make Sense Now",
+            "SIP vs Lump Sum in This Market — What the Numbers Say",
+            "Where Smart SIP Money Is Flowing in 2026",
+            "Index Funds vs Active Funds — The 2026 Reality Check",
+            "The Fund Categories Quietly Outperforming Right Now",
+            "How to Rebalance Your Mutual Fund Portfolio This Year",
+            "ELSS Tax Saving 2026 — The Funds Worth Your SIP",
+            "Are Small Cap Funds Still Worth It in 2026?",
+            "Expense Ratio Is Eating Your Returns — Here Is the Fix",
+            "Direct vs Regular Plans — The Difference in Real Rupees",
+        ],
+        "article_focus": """Write a current, practical mutual fund analysis covering:
+- Which fund categories (large/mid/small cap, flexi, index) make sense in the current market
+- SIP vs lump sum given current conditions, with real compounding numbers
+- Index vs active fund performance reality in 2026
+- How to evaluate a fund: expense ratio, AUM, rolling returns, manager
+- ELSS/tax-saving angle for India; ISA for UK; index for US
+- Practical, actionable steps — no hype, no guaranteed returns
+Connect to the current market backdrop where useful.""",
+        "news_queries": ["best+mutual+funds+2026", "SIP+inflows+2026", "mutual+fund+performance+2026"],
+    },
+    {
+        "id": "gold",
+        "name": "Gold & Commodities",
+        "permalink_base": "gold",
+        "category": "Gold-Commodities",
+        "tag": "gold",
+        "primary_keywords": ["gold price today", "gold rate", "gold vs stocks", "MCX gold", "silver price"],
+        "us_keywords":     ["gold price today", "gold forecast 2026", "gold vs S&P 500"],
+        "uk_keywords":     ["gold price GBP today", "gold ETF UK"],
+        "brazil_keywords": ["preco do ouro hoje", "ouro investimento"],
+        "india_keywords":  ["gold price today India", "gold rate today", "MCX gold today", "sovereign gold bond 2026"],
+        "title_style_examples": [
+            "Gold Today — What the Price Action Is Really Signaling",
+            "Gold vs Stocks Right Now — Where Is the Smart Money?",
+            "Why Gold Is Moving This Week — The Real Drivers",
+            "Gold Price Outlook — Levels That Actually Matter",
+            "Is It Time to Add Gold? A Framework for Today's Market",
+            "Gold, the Dollar and Rates — The Link Explained Now",
+            "Sovereign Gold Bonds vs Physical — The 2026 Verdict",
+            "Silver vs Gold This Year — Which Has the Edge?",
+            "How Much Gold Belongs in Your Portfolio Right Now",
+            "Central Banks Are Buying Gold — What It Means for You",
+        ],
+        "article_focus": """Write a current gold and commodities analysis covering:
+- What is driving gold prices right now (USD, rates, inflation, geopolitics)
+- Gold vs equities vs FD in the current environment
+- Key gold price levels and what they signal (general, not financial advice)
+- Ways to invest: physical, digital gold, gold ETF, sovereign gold bonds (India)
+- How much gold belongs in a balanced portfolio
+- Brief silver/commodities context
+Educational and current-aware — never guarantee returns.""",
+        "news_queries": ["gold+price+today+2026", "gold+forecast+2026", "crude+oil+gold+commodities+today"],
+    },
+    {
+        "id": "ipo",
+        "name": "IPO Watch",
+        "permalink_base": "ipo",
+        "category": "IPO",
+        "tag": "ipo",
+        "primary_keywords": ["upcoming IPO 2026", "IPO this week", "IPO GMP today", "new IPO", "IPO allotment"],
+        "us_keywords":     ["upcoming IPO 2026", "biggest IPOs 2026", "how to buy IPO"],
+        "uk_keywords":     ["upcoming IPO UK 2026", "London IPO 2026"],
+        "brazil_keywords": ["IPO 2026 Brasil", "novos IPOs"],
+        "india_keywords":  ["upcoming IPO this week", "IPO GMP today", "new IPO 2026 India", "IPO allotment status"],
+        "title_style_examples": [
+            "IPOs to Watch This Week — What Actually Looks Worth It",
+            "IPO GMP Today — What the Grey Market Is Really Saying",
+            "Should You Apply to This Week's IPOs? A Clear-Eyed Look",
+            "How to Evaluate the Latest IPO Before You Apply — 6 Checks",
+            "The IPO Hype Cycle — How to Avoid Getting Burned",
+            "Listing Gains vs Long-Term Value in Today's IPOs",
+            "Mainboard vs SME IPOs Right Now — Where's the Risk?",
+            "What This Quarter's IPO Pipeline Tells Us About the Market",
+            "IPO Allotment Tips — Improve Your Odds This Season",
+            "Why Anchor Investor Moves Matter in the Latest IPOs",
+        ],
+        "article_focus": """Write a current IPO analysis covering:
+- The IPO landscape and pipeline right now (India SEBI, US context)
+- How to apply step by step (India ASBA/UPI; US brokerage)
+- How to evaluate current IPOs: valuation, financials, promoters, use of funds
+- What IPO GMP signals and its limits — caution against hype
+- Listing gains vs long-term holding
+- Practical, balanced view — never a guaranteed-money pitch
+Stay current and educational.""",
+        "news_queries": ["upcoming+IPO+this+week+2026", "IPO+GMP+today", "new+IPO+listing+2026"],
+    },
+    {
+        "id": "world-markets",
+        "name": "World Markets",
+        "permalink_base": "world-markets",
+        "category": "World-Markets",
+        "tag": "world-markets",
+        "primary_keywords": ["global markets today", "Dow Jones today", "Nasdaq today", "crude oil price", "world markets"],
+        "us_keywords":     ["global markets today", "Dow Jones today", "crude oil price today"],
+        "uk_keywords":     ["global markets today UK", "FTSE global markets"],
+        "brazil_keywords": ["mercados globais hoje", "petroleo hoje"],
+        "india_keywords":  ["global markets today impact nifty", "dow jones today", "crude oil price today India"],
+        "title_style_examples": [
+            "Global Markets Today — What India Needs to Watch",
+            "Dow Jones and Nasdaq Today — The Read-Through for NIFTY",
+            "Crude Oil Is Moving — Here Is Why It Matters to You",
+            "Dollar Index Today — The Signal Behind the Markets",
+            "How Today's Fed Noise Is Moving World Markets",
+            "Emerging vs Developed Markets — Today's Divergence Explained",
+            "Bond Yields Are Talking — Are Equity Investors Listening?",
+            "Asia, Europe, US — How Today's Sessions Connect",
+            "The Global Risk Signal Flashing Right Now",
+            "Why World Markets Shrugged Off Today's News",
+        ],
+        "article_focus": """Write a current world/global markets analysis covering:
+- What major global markets (US Dow/Nasdaq, Europe, Asia) are doing now and why
+- How US markets, the Dollar Index and crude oil are influencing India/Brazil/UK
+- Bond yields and Fed expectations as drivers
+- The read-through for NIFTY and emerging markets
+- Developed vs emerging market dynamics
+- Macro signals to watch — educational, not advice
+Stay current and connect global moves to the reader's market.""",
+        "news_queries": ["global+markets+today+2026", "dow+jones+nasdaq+today", "crude+oil+price+today+2026"],
+    },
 ]
 
 
@@ -709,6 +974,10 @@ PILLAR_PERSONA_MAP = {
     "bitcoin":         [2, 3, 4, 5, 0, 1],
     "personal-finance":[6, 1, 3, 6, 1, 3],
     "ai-trading":      [7, 2, 5, 7, 2, 5],
+    "mutual-funds":    [6, 1, 2, 6, 1, 2],
+    "gold":            [1, 2, 4, 1, 2, 4],
+    "ipo":             [4, 0, 2, 4, 0, 2],
+    "world-markets":   [1, 0, 5, 1, 0, 5],
 }
 
 
@@ -1466,15 +1735,26 @@ def generate_all_articles():
     # site quality score. Rotating means each pillar still gets fresh content
     # every other day, but Google sees half the volume → less "content farm"
     # signal, higher per-article quality budget.
-    #   Even day-of-year: stock-market + personal-finance
-    #   Odd day-of-year:  bitcoin + ai-trading
-    # Holiday/weekend: same rotation applies — keeps the pattern consistent.
+    # 2026-05-31: expanded to 8 pillars on a 4-DAY cycle. Still only 2 articles/
+    # day (no volume inflation, keeps the SEO-safe cadence), but now covers the
+    # 4 new categories (mutual funds, gold, IPO, world markets) every 4 days.
+    #   day%4==0: stock-market + personal-finance
+    #   day%4==1: bitcoin      + ai-trading
+    #   day%4==2: mutual-funds + ipo
+    #   day%4==3: gold         + world-markets
+    # Holiday/weekend: same rotation applies (evergreen variants in HOLIDAY_PILLARS).
     PILLAR_ROTATION = {
-        0: ["stock-market", "personal-finance"],  # even days
-        1: ["bitcoin",      "ai-trading"],        # odd days
+        0: ["stock-market", "personal-finance"],
+        1: ["bitcoin",      "ai-trading"],
+        2: ["mutual-funds", "ipo"],
+        3: ["gold",         "world-markets"],
     }
-    todays_pillar_ids = PILLAR_ROTATION[day_of_year % 2]
+    todays_pillar_ids = PILLAR_ROTATION[day_of_year % 4]
     active_pillars    = [p for p in PILLARS if p["id"] in todays_pillar_ids]
+    # Fail-safe: if (somehow) no pillar matches, fall back to the first two so a
+    # day is never left with zero articles.
+    if not active_pillars:
+        active_pillars = PILLARS[:2]
     print(f"  Active pillars today (day {day_of_year}): {[p['id'] for p in active_pillars]}")
 
     # v15.x (2026-05-28) SEO Phase 2: strict evergreen mode for holiday/weekend.
