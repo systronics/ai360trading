@@ -1,6 +1,13 @@
 """
-generate_kids_video.py — HerooQuest v2.4
+generate_kids_video.py — HerooQuest v2.5
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v2.5 (2026-05-31) — IMAGE RELIABILITY (fixes "only one image / not related
+  to story" = every scene was falling back to the PIL placeholder):
+    ADD Layer 0 = Cloudflare Workers AI FLUX.1-schnell (FREE, reliable API).
+    Activates when CLOUDFLARE_ACCOUNT_ID + CLOUDFLARE_API_TOKEN secrets exist.
+    Tried first (before Gemini/Pollinations/HF) so each scene gets a distinct,
+    topic-relevant Pixar still instead of the repeated placeholder.
+
 v2.4 (2026-05-31) — NOT-SCARY FIX (kids were frightened by the thumbnails):
   The old output looked dark, red and ominous. Three causes fixed:
     1. STYLE_3D prompt dropped "octane/volumetric/rim/ray-traced/photorealistic"
@@ -163,6 +170,33 @@ def generate_scene_image(prompt: str, scene_id: int) -> Path:
         return img_path
 
     full_prompt = f"{SCENE_STYLE} Scene: {prompt}"
+
+    # Layer 0: Cloudflare Workers AI — FLUX.1-schnell (FREE, reliable, automatable)
+    # Activates automatically once CLOUDFLARE_ACCOUNT_ID + CLOUDFLARE_API_TOKEN
+    # secrets are set. ~ free daily quota; returns JSON with base64 image.
+    try:
+        cf_account = os.environ.get("CLOUDFLARE_ACCOUNT_ID", "")
+        cf_token   = os.environ.get("CLOUDFLARE_API_TOKEN", "")
+        if cf_account and cf_token:
+            import requests as req, base64
+            cf_url = (f"https://api.cloudflare.com/client/v4/accounts/{cf_account}"
+                      f"/ai/run/@cf/black-forest-labs/flux-1-schnell")
+            r = req.post(cf_url,
+                         headers={"Authorization": f"Bearer {cf_token}"},
+                         json={"prompt": full_prompt[:2048], "steps": 8},
+                         timeout=90)
+            if r.status_code == 200:
+                b64 = ((r.json().get("result") or {}).get("image", "")) or ""
+                if b64:
+                    img_path.write_bytes(base64.b64decode(b64))
+                    Image.open(img_path).convert("RGB").resize((1280, 720), Image.LANCZOS).save(img_path, quality=95)
+                    print(f"  [IMG-0] Scene {scene_id} via Cloudflare FLUX ✓")
+                    return img_path
+                print(f"  [WARN-0] Cloudflare: 200 but no image in response")
+            else:
+                print(f"  [WARN-0] Cloudflare {r.status_code}: {r.text[:120]}")
+    except Exception as e:
+        print(f"  [WARN-0] Cloudflare: {str(e)[:80]}")
 
     # Layer 1: Gemini 2.5 Flash Image
     try:
