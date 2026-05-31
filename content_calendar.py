@@ -1,6 +1,12 @@
 """
-AI360Trading — Content Calendar v2.3
+AI360Trading — Content Calendar v2.4
 ======================================
+v2.4 CHANGES (2026-05-31) — dedicated SEO seeds for 4 new categories:
+- Added mutual / gold / ipo / world seed rows (primary_target = new pillar id's
+  first token) in BOTH market and weekend modes, placed BEFORE the "global"
+  fallback row so each new pillar matches its own seed (verified). New
+  _new_category_seed_rows() + _AFF_HINTS entries for the new categories.
+
 v2.3 CHANGES (May 2026) — SEO SEEDS BLOCK FIX:
 - get_article_seo_seeds() now returns a LIST OF PILLAR DICTS (was: a single
   dict of global/india/usa/uk seed lists). generate_articles.py consumes the
@@ -42,7 +48,58 @@ _AFF_HINTS = {
     "bitcoin":  "CoinDCX (India), Coinbase (USA), Kraken (UK) — buy crypto safely",
     "personal": "PolicyBazaar (India), Policygenius (USA), CompareTheMarket (UK)",
     "ai":       "TradingView free plan + AI360 Telegram free signals",
+    # 2026-05-31 — new categories (primary_target = pillar id's first token)
+    "mutual":   "Groww / Zerodha Coin (India), Vanguard (USA/UK) — start an SIP in index funds",
+    "gold":     "Sovereign Gold Bonds & Gold ETF via Zerodha/Groww (India) — own gold the smart way",
+    "ipo":      "Zerodha / Groww demat account (India) to apply for IPOs",
+    "world":    "Vested / INDmoney (India) for US stocks; broker access for global indices",
 }
+
+
+# Dedicated SEO seeds for the 4 new categories (2026-05-31). Returned as rows so
+# they can be matched by primary_target. IMPORTANT: the consumer in
+# generate_articles.py matches primary_target in ["global", pillar_prefix] and
+# takes the FIRST hit — so these rows must always be placed BEFORE the "global"
+# fallback row, or a new pillar would grab the global seed instead of its own.
+def _new_category_seed_rows() -> list:
+    return [
+        {
+            "primary_target": "mutual",
+            "seo_seed": "best mutual funds and SIP guide India 2026 honest no hype",
+            "long_tail": [
+                "SIP vs lump sum which builds more wealth India 2026 real numbers",
+                "index fund vs active mutual fund honest comparison for beginners",
+            ],
+            "affiliate_hint": _AFF_HINTS["mutual"],
+        },
+        {
+            "primary_target": "gold",
+            "seo_seed": "gold investment 2026 gold vs stocks vs FD honest comparison",
+            "long_tail": [
+                "sovereign gold bond vs physical gold which is better India",
+                "how much gold should be in your portfolio the real answer",
+            ],
+            "affiliate_hint": _AFF_HINTS["gold"],
+        },
+        {
+            "primary_target": "ipo",
+            "seo_seed": "how to apply for IPO and evaluate it beginner guide 2026",
+            "long_tail": [
+                "how to apply for IPO online India ASBA UPI step by step",
+                "what is IPO GMP grey market premium and its real limits",
+            ],
+            "affiliate_hint": _AFF_HINTS["ipo"],
+        },
+        {
+            "primary_target": "world",
+            "seo_seed": "global markets explained Dow Nasdaq dollar impact on Nifty 2026",
+            "long_tail": [
+                "why US markets and the dollar index move Indian markets",
+                "developed vs emerging markets where to invest 2026",
+            ],
+            "affiliate_hint": _AFF_HINTS["world"],
+        },
+    ]
 
 
 def get_article_seo_seeds(mode: str = "market") -> list:
@@ -69,7 +126,7 @@ def get_article_seo_seeds(mode: str = "market") -> list:
 
     if mode in ("weekend", "holiday"):
         # Evergreen seeds — no live price refs, beginner-focused
-        return [
+        rows = [
             {
                 "primary_target": "stock",
                 "seo_seed": "how to invest in stock market for beginners 2026",
@@ -106,16 +163,18 @@ def get_article_seo_seeds(mode: str = "market") -> list:
                 ],
                 "affiliate_hint": _AFF_HINTS["ai"],
             },
-            {
-                "primary_target": "global",
-                "seo_seed": "power of compound interest wealth building 2026",
-                "long_tail": [
-                    "how to build wealth from zero salary step by step",
-                    "passive income ideas that actually work in 2026",
-                ],
-                "affiliate_hint": "Open a long-term investing account — broker or index-fund SIP",
-            },
         ]
+        rows += _new_category_seed_rows()   # mutual, gold, ipo, world — BEFORE global
+        rows.append({
+            "primary_target": "global",
+            "seo_seed": "power of compound interest wealth building 2026",
+            "long_tail": [
+                "how to build wealth from zero salary step by step",
+                "passive income ideas that actually work in 2026",
+            ],
+            "affiliate_hint": "Open a long-term investing account — broker or index-fund SIP",
+        })
+        return rows
 
     # Market mode (Mon-Fri) — pillar × day-of-week seed grid
     market_grid = {
@@ -202,6 +261,9 @@ def get_article_seo_seeds(mode: str = "market") -> list:
             "long_tail":      long_tail,
             "affiliate_hint": _AFF_HINTS[key],
         })
+    # New categories (mutual funds, gold, IPO, world markets) — dedicated seeds,
+    # appended BEFORE the global row so each new pillar matches its own seed first.
+    out.extend(_new_category_seed_rows())
     # Global fallback row — picked by next()'s default branch when pillar-prefix
     # match misses (shouldn't normally, but keeps the consumer safe).
     out.append({
