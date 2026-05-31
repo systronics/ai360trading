@@ -322,9 +322,22 @@ class HumanTouch:
         return random.choice([0.95, 0.97, 1.0, 1.0, 1.02, 1.03, 1.05])
 
     def humanize(self, text: str, lang: str = "hi") -> str:
-        """Light humanization — remove AI-sounding patterns."""
+        """Light humanization — strip markdown + remove AI-sounding patterns.
+
+        Markdown stripping matters because the AI often returns `**bold**`,
+        `*italic*`, `### headers` or `` `code` ``. If left in, edge-TTS reads
+        the symbols oddly and the burned-in captions literally show `**`.
+        """
         if not text:
             return text
+
+        # ── Strip markdown so it is neither spoken nor shown in captions ──
+        text = re.sub(r"\*{1,3}", "", text)          # ** *** bold / * italic
+        text = re.sub(r"_{2,3}", "", text)           # __ bold underscores
+        text = re.sub(r"`+", "", text)               # `code` backticks
+        text = re.sub(r"^\s*#{1,6}\s*", "", text)    # leading # headers
+        text = re.sub(r"^\s*[-•]\s+", "", text)      # leading bullet markers
+
         # Remove "Certainly!", "Of course!", etc.
         ai_phrases = [
             r"^Certainly[,!.]?\s*",

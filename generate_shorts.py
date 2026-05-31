@@ -12,6 +12,12 @@ UPLOAD TARGETS:
   Short 2 (Hindi):   YouTube ✅ | Facebook AI360Trading Page ✅ | Instagram ✅
   Short 3 (English): YouTube ✅ | Facebook AI360Trading Page ✅ | Instagram ✅
 
+v3.7 (2026-05-31):
+  FIX — English Short 3 was leaking markdown (a literal "**" got spoken by TTS
+    and shown in captions) and mixing Hindi. Now: scripts run through
+    _sanitize_script() → ht.humanize() (strips markdown) before TTS/captions/
+    frame/SEO, and the Short 3 prompt is ENGLISH-ONLY (no Hindi/Devanagari).
+
 v3.6 (2026-05-31):
   ADD — bold-text HOOK intro frame (via hook_helper.py) on Short 2 + Short 3.
     Prepends a ~1.4s stop-scroll hook card; narration shifts to start after
@@ -537,15 +543,18 @@ def generate_short3_script(market: dict) -> dict:
     else:
         mkt_context = f"Nifty:{nifty_val} | BTC:{btc_val} | Gold:{gold_val} | S&P500:{sp5_val} | USD/INR:{inr_val}"
 
-    prompt = f"""Create a 45-second English/Hinglish global market pulse script for Indian traders.
+    prompt = f"""Create a 45-second ENGLISH global market pulse script for Indian traders.
 Market data: {mkt_context}
+
+LANGUAGE RULE: English ONLY. Do NOT use Hindi words or Devanagari script — this
+video is voiced by an English (en-IN) speaker. No markdown, no asterisks.
 
 Return ONLY valid JSON:
 {{
   "title": "Global Market Pulse — short title",
   "sentiment": "bullish or bearish or neutral",
   "insight": "One key market insight sentence (English, max 15 words)",
-  "script": "45-second Hinglish/English script 80-100 words. MUST open with a punchy 1-line hook (a number or bold question) in the first 2 seconds, then global context.",
+  "script": "45-second ENGLISH-ONLY script 80-100 words (no Hindi words). MUST open with a punchy 1-line hook (a number or bold question) in the first 2 seconds, then global context. Plain text only — no markdown or asterisks.",
   "hashtags": "#GlobalMarkets #Bitcoin #Gold #SP500 #ai360trading"
 }}"""
 
@@ -588,6 +597,19 @@ def _with_cta(script: str, lang: str = "hi") -> str:
     if "like" in low and ("share" in low or "subscribe" in low):
         return s
     return (s + _CTA_AUDIO.get(lang, _CTA_AUDIO["hi"])).strip()
+
+
+def _sanitize_script(data: dict, lang: str) -> dict:
+    """Strip markdown / AI-isms from the AI text fields so nothing leaks into
+    the spoken narration, the burned-in captions, the on-screen frame, or the
+    YouTube/FB/IG title+description (e.g. a stray '**' the model returned)."""
+    if not isinstance(data, dict):
+        return data
+    for k in ("script", "insight", "title", "stock", "entry", "target", "sl", "horizon"):
+        v = data.get(k)
+        if isinstance(v, str):
+            data[k] = ht.humanize(v, lang)
+    return data
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -1072,7 +1094,7 @@ def main():
 
     # ── SHORT 2 (Madhur — Hindi Trade Setup) ──────────────────────────────────
     print(f"\n─── SHORT 2 (Madhur) ────────────────────────")
-    s2_data  = generate_short2_script(market, part1_url)
+    s2_data  = _sanitize_script(generate_short2_script(market, part1_url), "hi")
     s2_frame = make_short2_frame(s2_data, market)
     s2_audio = str(OUT / f"short2_audio_{today}.mp3")
     s2_video = str(OUT / f"short2_{today}.mp4")
@@ -1103,7 +1125,7 @@ def main():
 
     # ── SHORT 3 (Neerja — Global Market Pulse) ────────────────────────────────
     print(f"\n─── SHORT 3 (Neerja) ────────────────────────")
-    s3_data  = generate_short3_script(market)
+    s3_data  = _sanitize_script(generate_short3_script(market), "en")
     s3_frame = make_short3_frame(s3_data, market)
     s3_audio = str(OUT / f"short3_audio_{today}.mp3")
     s3_video = str(OUT / f"short3_{today}.mp4")

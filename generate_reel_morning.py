@@ -1,6 +1,12 @@
 """
 generate_reel_morning.py — Morning Reel Generator (7:00 AM IST)
 ===============================================================
+v2.4 (2026-05-31):
+  ADD — bold-text HOOK intro frame (via hook_helper.py) prepended to the
+  morning reel so the in-feed cover stops the scroll on YouTube/IG/FB.
+  Hook headline = "NIFTY <level> <SENTIMENT>" (a specific number = stop-scroll),
+  narration shifts to start after the hook. Fully fail-open.
+
 v2.3 CHANGES (May 2026) — SEO + THUMBNAIL FIX:
 
 FIX 1 — SEO Title (was generic, now searchable)
@@ -560,7 +566,8 @@ def create_frame(line, line_index, total_lines, topic, palette, intel=None, zeno
     return np.array(img)
 
 
-def create_morning_video(script, audio_path, output_path, intel=None) -> bool:
+def create_morning_video(script, audio_path, output_path, intel=None,
+                          hook_text="", hook_accent=(255, 200, 0)) -> bool:
     lines     = script.get("lines", [])
     topic     = script.get("topic", "Morning Brief")
     if not lines: logger.error("No lines"); return False
@@ -586,16 +593,37 @@ def create_morning_video(script, audio_path, output_path, intel=None) -> bool:
         return frames[idx]
 
     video = mp.VideoClip(make_frame, duration=DURATION)
+
+    tts = None
     if os.path.exists(audio_path):
         try:
             tts = mp.AudioFileClip(audio_path)
             dur = min(DURATION, tts.duration)
             tts = tts.subclip(0, dur)
-            video = video.set_audio(tts)
         except Exception as e:
             logger.warning(f"Audio attach: {e}")
+            tts = None
 
-    video.write_videofile(output_path, fps=FPS, codec="libx264", audio_codec="aac", verbose=False, logger=None)
+    # Bold-text HOOK intro so the in-feed cover stops the scroll (YT/IG/FB).
+    # Narration shifts to start after the hook. FULLY FAIL-OPEN → on any error
+    # we fall back to the exact previous plain morning reel.
+    final = None
+    if hook_text and tts is not None:
+        try:
+            from hook_helper import build_hook_frame, prepend_hook
+            hook_png = build_hook_frame(
+                hook_text, (VIDEO_WIDTH, VIDEO_HEIGHT), FONT_BOLD_PATHS,
+                accent=hook_accent,
+                out_path=str(OUTPUT_DIR / f"morning_reel_hook_{DATE_STR}.png"))
+            final = prepend_hook(video, tts, hook_png, (VIDEO_WIDTH, VIDEO_HEIGHT))
+            logger.info("Hook intro prepended (morning reel)")
+        except Exception as e:
+            logger.warning(f"Hook intro skipped (fail-open): {e}")
+            final = None
+    if final is None:
+        final = video.set_audio(tts) if tts is not None else video
+
+    final.write_videofile(output_path, fps=FPS, codec="libx264", audio_codec="aac", verbose=False, logger=None)
     ok = os.path.exists(output_path) and os.path.getsize(output_path) > 0
     if ok: logger.info(f"Video exported: {output_path}")
     else:  logger.error("Video export failed")
@@ -707,8 +735,17 @@ async def main():
     if not tts_ok:
         logger.error("TTS failed — aborting"); return
 
+    # Hook headline: a specific number stops the scroll ("NIFTY 23,645 BEARISH")
+    hook_accent = (0, 210, 100) if sentiment == "BULLISH" else \
+                  (220, 55, 55) if sentiment == "BEARISH" else (255, 200, 0)
+    if nifty > 0:
+        hook_text = f"NIFTY {nifty:,} {sentiment}"
+    else:
+        hook_text = re.sub(r'[ऀ-ॿ]+', '', topic_display).strip().upper() or "MORNING BRIEF"
+
     video_path = str(OUTPUT_DIR / f"morning_reel_{DATE_STR}.mp4")
-    video_ok   = create_morning_video(script, audio_path, video_path, intel)
+    video_ok   = create_morning_video(script, audio_path, video_path, intel,
+                                      hook_text=hook_text, hook_accent=hook_accent)
     if not video_ok:
         logger.error("Video failed"); return
 

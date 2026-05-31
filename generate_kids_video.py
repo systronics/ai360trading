@@ -1,6 +1,18 @@
 """
-generate_kids_video.py — HerooQuest v2.3
+generate_kids_video.py — HerooQuest v2.4
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v2.4 (2026-05-31) — NOT-SCARY FIX (kids were frightened by the thumbnails):
+  The old output looked dark, red and ominous. Three causes fixed:
+    1. STYLE_3D prompt dropped "octane/volumetric/rim/ray-traced/photorealistic"
+       (dark dramatic uncanny lighting) → now BRIGHT soft cartoon + explicit
+       "NOT scary, no dark/ominous, no creepy faces, daytime".
+    2. enhance_image_cinematic() removed the dark edge VIGNETTE + warm-RED
+       channel push, and raised brightness → bright cheerful frames.
+    3. make_thumbnail_multitext() dark overlay 155 → 80 so the bright happy
+       scene shows through (title/moral text still readable via shadows).
+  NOTE: only affects NEWLY generated videos; already-uploaded thumbnails are
+  unchanged (would need re-upload / Studio thumbnail swap).
+
 v2.3 CHANGES (May 2026) — CINEMATIC VIDEO EFFECTS:
 
 The key insight:
@@ -80,17 +92,21 @@ ARYA = (
     "dark hair in two braids with golden star clips, bright orange kurta"
 )
 
-# Enhanced Pixar-quality prompt prefix
+# Kid-friendly 3D prompt prefix.
+# IMPORTANT: kids were scared by the old output. The previous prompt used
+# "octane volumetric cinematic lighting / rim lighting / ray-traced shadows /
+# photorealistic" which produced dark, dramatic, uncanny faces. This version
+# forces BRIGHT, soft, cheerful, cartoon lighting and explicitly bans scary,
+# dark or ominous moods.
 STYLE_3D = (
-    "3D CGI animation render, Pixar Disney Dreamworks quality, "
-    "inspired by Encanto Moana Brave Coco animation style, "
-    "octane render volumetric cinematic lighting, "
-    "subsurface scattering warm Indian skin tones, "
-    "rim lighting bloom depth of field bokeh background, "
-    "ray-traced shadows photorealistic textures, "
-    "ultra-detailed magical environment, vibrant saturated jewel-tone colors, "
-    "child-friendly joyful atmosphere, 16:9 cinematic wide shot, "
-    "high resolution 4K render, professional animation studio quality"
+    "cute 3D cartoon animation, Pixar Disney Dreamworks quality, "
+    "inspired by Encanto Moana Bluey Coco animation style, "
+    "BRIGHT even daylight, soft cheerful lighting, no harsh shadows, "
+    "rounded friendly character design, big happy smiles, "
+    "warm friendly Indian skin tones, colourful storybook background, "
+    "vibrant candy-bright saturated colours, wholesome joyful child-friendly mood, "
+    "NOT scary, no dark or ominous atmosphere, no horror, no creepy faces, daytime, "
+    "16:9 wide shot, high resolution, professional animation studio quality"
 )
 
 SCENE_STYLE = f"{STYLE_3D}. Main character: {HEROO}. Supporting character: {ARYA}."
@@ -283,12 +299,12 @@ def enhance_image_cinematic(img_path: Path) -> Path:
     Apply cinematic color grading and effects to any image.
     Makes Pixar-style images look more professional and filmic.
 
-    Effects applied:
-    1. Contrast boost — makes image pop on screen
-    2. Saturation boost — vibrant Pixar-like colors
-    3. Warm color grade — golden/warm tone (Pixar signature)
-    4. Sharpness boost — crisp details
-    5. Vignette — dark edges = cinema feel
+    KID-FRIENDLY grade (was making faces dark/red/scary before):
+    1. Gentle contrast — pops without going harsh
+    2. Saturation boost — vibrant candy-bright colours
+    3. Brightness up — bright and cheerful
+    4. Light sharpness — crisp but soft
+    (No warm-red push, no dark vignette — those caused the scary look.)
 
     Works on placeholder images too — even PIL placeholders look better.
     """
@@ -296,35 +312,19 @@ def enhance_image_cinematic(img_path: Path) -> Path:
         enhanced_path = OUTPUT_DIR / f"enhanced_{img_path.name}"
         img = Image.open(img_path).convert("RGB")
 
-        # 1. Contrast boost (1.0=original, 1.2=slight boost, 1.4=strong)
-        img = ImageEnhance.Contrast(img).enhance(1.25)
-
-        # 2. Saturation boost — Pixar uses very saturated colors
-        img = ImageEnhance.Color(img).enhance(1.35)
-
-        # 3. Brightness slight increase
-        img = ImageEnhance.Brightness(img).enhance(1.08)
-
-        # 4. Sharpness boost
-        img = ImageEnhance.Sharpness(img).enhance(1.5)
-
-        # 5. Warm color grade (slightly yellow/orange tint = warm Pixar feel)
-        r, g, b = img.split()
-        r = r.point(lambda x: min(255, int(x * 1.08)))  # warm up reds
-        g = g.point(lambda x: min(255, int(x * 1.03)))  # slight green boost
-        b = b.point(lambda x: min(255, int(x * 0.95)))  # reduce blue = warmer
-        img = Image.merge("RGB", (r, g, b))
-
-        # 6. Vignette — darken edges for cinema feel
-        W, H    = img.size
-        vignette = Image.new("RGB", (W, H), (0, 0, 0))
-        mask     = Image.new("L", (W, H), 0)
-        mask_draw= ImageDraw.Draw(mask)
-        # Draw white oval in center — edges stay dark
-        margin   = int(W * 0.12)
-        mask_draw.ellipse([margin, margin, W-margin, H-margin], fill=255)
-        mask     = mask.filter(ImageFilter.GaussianBlur(radius=min(W,H)//5))
-        img      = Image.composite(img, vignette, mask)
+        # KID-FRIENDLY grade — bright, vibrant, NO dark vignette, NO red push.
+        # (The old dark edge vignette + warm-red channel push made the faces
+        #  look dark, red and ominous — kids were scared by it.)
+        # 1. Gentle contrast (soft, not harsh)
+        img = ImageEnhance.Contrast(img).enhance(1.10)
+        # 2. Saturation boost — fun, candy-bright colours
+        img = ImageEnhance.Color(img).enhance(1.40)
+        # 3. Brightness UP — bright and cheerful
+        img = ImageEnhance.Brightness(img).enhance(1.18)
+        # 4. Light sharpness
+        img = ImageEnhance.Sharpness(img).enhance(1.25)
+        # (Removed: warm-red channel push + dark vignette — both made the
+        #  kids content look dark/red/scary.)
 
         img.save(str(enhanced_path), quality=95)
         return enhanced_path
@@ -599,8 +599,10 @@ def make_thumbnail_multitext(
     if scene_img_path and scene_img_path.exists():
         try:
             base = Image.open(str(scene_img_path)).resize((W, H), Image.LANCZOS).convert("RGB")
-            # Dark overlay — 60% opacity = text readable, image visible
-            overlay = Image.new("RGBA", (W, H), (0, 0, 0, 155))
+            # Light overlay — keeps the bright happy scene visible (kid-friendly).
+            # Title/moral text stay readable via their own drop-shadows + dark strip.
+            # (Was 155 ≈ 60% black, which made the thumbnail dark and gloomy.)
+            overlay = Image.new("RGBA", (W, H), (0, 0, 0, 80))
             base    = base.convert("RGBA")
             base    = Image.alpha_composite(base, overlay).convert("RGB")
         except:
