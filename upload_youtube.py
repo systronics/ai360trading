@@ -278,9 +278,12 @@ def build_fallback_metadata(reel_type: str, today: str):
     return title, desc, tags
 
 
-def upload_video(youtube, video_path: Path, title: str, description: str, tags: list):
+def upload_video(youtube, video_path: Path, title: str, description: str, tags: list, lang: str = "hi"):
     body = {
-        "snippet": {"title":title[:100],"description":description,"tags":tags[:30],"categoryId":"27"},
+        # defaultAudioLanguage lets YouTube auto-generate + auto-translate
+        # captions per viewer country (works even without our own .srt).
+        "snippet": {"title":title[:100],"description":description,"tags":tags[:30],"categoryId":"27",
+                    "defaultLanguage": lang, "defaultAudioLanguage": lang},
         "status":  {"privacyStatus":"public","selfDeclaredMadeForKids":False}
     }
     media = MediaFileUpload(str(video_path), mimetype="video/mp4", resumable=True)
@@ -340,7 +343,8 @@ def main():
     if not youtube: sys.exit(1)
 
     # Upload video
-    video_id, video_url = upload_video(youtube, video_path, title, desc, tags)
+    srt_lang = meta.get("srt_lang", "hi")
+    video_id, video_url = upload_video(youtube, video_path, title, desc, tags, lang=srt_lang)
     if not video_id:
         print("❌ Upload failed"); sys.exit(1)
 
@@ -359,6 +363,15 @@ def main():
         print("[THUMB] Building fallback thumbnail...")
         fb_thumb = build_fallback_thumbnail(reel_type, meta)
         upload_thumbnail(youtube, video_id, fb_thumb)
+
+    # Subtitle track for YouTube auto-translate (fail-open; needs force-ssl scope)
+    srt_path = meta.get("srt_path", "")
+    if srt_path and Path(srt_path).exists():
+        try:
+            from subtitle_helper import upload_caption
+            upload_caption(youtube, video_id, srt_path, srt_lang)
+        except Exception as e:
+            print(f"[CC] Caption upload skipped (fail-open): {e}")
 
     # Save meta
     meta["youtube_video_id"] = video_id

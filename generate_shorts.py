@@ -617,10 +617,21 @@ def _sanitize_script(data: dict, lang: str) -> dict:
 # ══════════════════════════════════════════════════════════════════════════════
 
 def render_short(frame_path: Path, audio_path: str, out_path: str, spoken_text: str = "",
-                 hook_text: str = "", hook_accent=GOLD):
+                 hook_text: str = "", hook_accent=GOLD, srt_path: str = "", srt_lang: str = "hi"):
     audio_clip = AudioFileClip(audio_path)
     duration   = audio_clip.duration + 0.5
     video      = ImageClip(str(frame_path)).set_duration(duration)
+
+    # Build an .srt subtitle track (for YouTube auto-translate). Cues are
+    # offset by the hook length so they stay in sync with the shifted audio.
+    if srt_path and spoken_text:
+        try:
+            from subtitle_helper import build_srt
+            from hook_helper import HOOK_SECONDS
+            build_srt(spoken_text, audio_clip.duration, srt_path,
+                      start_offset=(HOOK_SECONDS if hook_text else 0.0))
+        except Exception as e:
+            print(f"  ⚠️ subtitle skipped (fail-open): {e}")
 
     # Burned-in captions (muted-autoplay retention + accessibility). Fail-open:
     # any caption error leaves the original caption-less video untouched.
@@ -674,11 +685,16 @@ def get_youtube_service():
         return None
 
 
-def upload_short(video_path: str, title: str, description: str, tags: list, thumb_path: str = "") -> str:
+def upload_short(video_path: str, title: str, description: str, tags: list, thumb_path: str = "",
+                 caption_srt: str = "", caption_lang: str = "hi") -> str:
     youtube = get_youtube_service()
     if not youtube: return ""
     body = {
-        "snippet": {"title": title[:100], "description": description, "tags": tags, "categoryId": "22"},
+        # defaultAudioLanguage lets YouTube auto-generate + auto-translate captions
+        # per viewer country (works even without our own .srt).
+        "snippet": {"title": title[:100], "description": description, "tags": tags,
+                    "categoryId": "22", "defaultLanguage": caption_lang,
+                    "defaultAudioLanguage": caption_lang},
         "status":  {"privacyStatus": "public", "selfDeclaredMadeForKids": False}
     }
     media = MediaFileUpload(video_path, mimetype="video/mp4", resumable=True)
@@ -702,6 +718,13 @@ def upload_short(video_path: str, title: str, description: str, tags: list, thum
                 print(f"  🖼️  Custom thumbnail set for {vid_id}")
             except Exception as e:
                 print(f"  ⚠️ Thumbnail set skipped (fail-open): {e}")
+        # Subtitle track for auto-translate (fail-open; needs force-ssl scope).
+        if caption_srt and os.path.exists(caption_srt):
+            try:
+                from subtitle_helper import upload_caption
+                upload_caption(youtube, vid_id, caption_srt, caption_lang)
+            except Exception as e:
+                print(f"  ⚠️ Caption upload skipped (fail-open): {e}")
         return vid_id
     except Exception as e:
         print(f"  ❌ YouTube upload failed: {e}")
@@ -1101,8 +1124,9 @@ def main():
     s2_spoken = _with_cta(s2_data.get("script", ""), "hi")
     gen_tts(s2_spoken, VOICE_SHORT2, s2_audio)
     s2_head, s2_sub, s2_acc, s2_badge = short2_thumb_text(s2_data)
+    s2_srt = str(OUT / f"short2_{today}.srt")
     render_short(s2_frame, s2_audio, s2_video, spoken_text=s2_spoken,
-                 hook_text=s2_head, hook_accent=s2_acc)
+                 hook_text=s2_head, hook_accent=s2_acc, srt_path=s2_srt, srt_lang="hi")
 
     # Bold-text thumbnail (fail-open — never blocks upload)
     s2_thumb = ""
@@ -1113,7 +1137,8 @@ def main():
 
     s2_title  = build_title_short2(s2_data)
     s2_desc   = build_desc(s2_data, 2, part1_url)
-    short2_id = upload_short(s2_video, s2_title, s2_desc, yt_tags, s2_thumb)
+    short2_id = upload_short(s2_video, s2_title, s2_desc, yt_tags, s2_thumb,
+                             caption_srt=s2_srt, caption_lang="hi")
     if short2_id:
         print(f"  ✅ YouTube: https://youtube.com/shorts/{short2_id}")
 
@@ -1132,8 +1157,9 @@ def main():
     s3_spoken = _with_cta(s3_data.get("script", ""), "en")
     gen_tts(s3_spoken, VOICE_SHORT3, s3_audio)
     s3_head, s3_sub, s3_acc, s3_badge = short3_thumb_text(s3_data)
+    s3_srt = str(OUT / f"short3_{today}.srt")
     render_short(s3_frame, s3_audio, s3_video, spoken_text=s3_spoken,
-                 hook_text=s3_head, hook_accent=s3_acc)
+                 hook_text=s3_head, hook_accent=s3_acc, srt_path=s3_srt, srt_lang="en")
 
     # Bold-text thumbnail (fail-open — never blocks upload)
     s3_thumb = ""
@@ -1144,7 +1170,8 @@ def main():
 
     s3_title  = build_title_short3(s3_data)
     s3_desc   = build_desc(s3_data, 3, part1_url)
-    short3_id = upload_short(s3_video, s3_title, s3_desc, yt_tags, s3_thumb)
+    short3_id = upload_short(s3_video, s3_title, s3_desc, yt_tags, s3_thumb,
+                             caption_srt=s3_srt, caption_lang="en")
     if short3_id:
         print(f"  ✅ YouTube: https://youtube.com/shorts/{short3_id}")
 

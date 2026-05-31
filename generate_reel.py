@@ -407,6 +407,18 @@ def compose_video(frame_path, audio_path, output_path, spoken_text="", hook_text
 
     video = ImageClip(str(frame_path)).set_duration(duration)
 
+    # Build an .srt subtitle track (for YouTube auto-translate), offset by the
+    # hook so it stays synced with the shifted narration. Fail-open.
+    if spoken_text:
+        try:
+            from subtitle_helper import build_srt
+            from hook_helper import HOOK_SECONDS
+            build_srt(spoken_text, audio_clip.duration,
+                      str(Path(output_path).with_suffix(".srt")),
+                      start_offset=(HOOK_SECONDS if hook_text else 0.0))
+        except Exception as e:
+            print(f"  subtitle skipped (fail-open): {e}")
+
     _cap_fonts = [FONT_BOLD,
                   "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
                   "/usr/share/fonts/truetype/freefont/FreeSansBold.ttf", FONT_REG]
@@ -457,6 +469,8 @@ def save_meta(script_data, today_str, thumb_path=None):
         "tags":         yt_tags,
         "video_path":   str(OUT / f"reel_{today_str}.mp4"),
         "thumb_path":   str(thumb_path) if thumb_path else "",
+        "srt_path":     str(OUT / f"reel_{today_str}.srt"),
+        "srt_lang":     "hi",
         "emotion":      script_data.get("emotion", "thinking"),
         "content_mode": CONTENT_MODE,
         "music":        "none — TTS voice only",

@@ -604,6 +604,18 @@ def create_morning_video(script, audio_path, output_path, intel=None,
             logger.warning(f"Audio attach: {e}")
             tts = None
 
+    # Build an .srt subtitle track (for YouTube auto-translate), offset by the
+    # hook so it stays synced with the shifted narration. Fail-open.
+    if tts is not None and lines:
+        try:
+            from subtitle_helper import build_srt
+            from hook_helper import HOOK_SECONDS
+            build_srt(". ".join(lines), tts.duration,
+                      str(Path(output_path).with_suffix(".srt")),
+                      start_offset=(HOOK_SECONDS if hook_text else 0.0))
+        except Exception as e:
+            logger.warning(f"subtitle skipped (fail-open): {e}")
+
     # Bold-text HOOK intro so the in-feed cover stops the scroll (YT/IG/FB).
     # Narration shifts to start after the hook. FULLY FAIL-OPEN → on any error
     # we fall back to the exact previous plain morning reel.
@@ -700,6 +712,8 @@ def save_meta(script, video_path, thumb_path, intel) -> str:
         "date":            DATE_STR,
         "video_path":      str(video_path),
         "thumb_path":      str(thumb_path),
+        "srt_path":        str(Path(str(video_path)).with_suffix(".srt")),
+        "srt_lang":        LANG,
         "music":           "none — TTS voice only",
         "sentiment":       sentiment,
         "nifty_level":     nifty,
