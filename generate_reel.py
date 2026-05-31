@@ -5,6 +5,12 @@ Generates ZENO evening reel (8:30 PM) — 45-60 second Hinglish reel.
 
 VOICE: hi-IN-SwaraNeural (Swara — wise female, ZENO character)
 
+v2.3 (2026-05-31):
+  ADD — bold-text HOOK intro frame (via hook_helper.py) prepended to the
+  reel so the in-feed cover stops the scroll on YouTube/Instagram/Facebook.
+  Narration shifts to start after the hook so captions stay synced.
+  Fully fail-open → any error falls back to the hook-less reel.
+
 v2.2 (2026-05-31):
   ADD — burned-in captions via caption_helper.py (Pillow-rendered,
   proportionally timed, fully fail-open → never breaks the daily reel).
@@ -386,36 +392,56 @@ def _with_cta(text: str) -> str:
 
 # ─── VIDEO COMPOSITION — NO BACKGROUND MUSIC ──────────────────────────────────
 
-def compose_video(frame_path, audio_path, output_path, spoken_text=""):
+def compose_video(frame_path, audio_path, output_path, spoken_text="", hook_text=""):
     """
     Compose final reel — TTS voice only, no background music.
     Music removed in v2.1 to prevent Meta muting in countries
     where Meta does not have music rights.
+
+    v2.3: optional bold-text HOOK intro (fail-open) so the in-feed cover
+    stops the scroll on YouTube/Instagram/Facebook. Narration is shifted to
+    start after the hook so burned-in captions stay synced.
     """
     audio_clip = AudioFileClip(str(audio_path))
     duration   = audio_clip.duration + 0.5
 
     video = ImageClip(str(frame_path)).set_duration(duration)
 
+    _cap_fonts = [FONT_BOLD,
+                  "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
+                  "/usr/share/fonts/truetype/freefont/FreeSansBold.ttf", FONT_REG]
+
     # Burned-in captions (muted-autoplay retention + accessibility). Fail-open:
     # any caption error leaves the original caption-less reel untouched.
     if spoken_text:
         try:
             from caption_helper import add_captions
-            _cap_fonts = [FONT_BOLD,
-                          "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
-                          "/usr/share/fonts/truetype/freefont/FreeSansBold.ttf", FONT_REG]
             video = add_captions(video, spoken_text, audio_clip.duration, (SW, SH), _cap_fonts)
         except Exception as e:
             print(f"  captions unavailable, rendering without (fail-open): {e}")
 
-    video = video.set_audio(audio_clip)
-    # NOTE: No CompositeAudioClip, no bgmusic — TTS only
-    video.write_videofile(
+    # Bold-text HOOK intro (fail-open → falls back to the hook-less reel).
+    final = None
+    if hook_text:
+        try:
+            from hook_helper import build_hook_frame, prepend_hook
+            hook_png = build_hook_frame(
+                hook_text, (SW, SH), _cap_fonts, accent=(255, 200, 0),
+                out_path=str(OUT / "zeno_reel_hook.png"))
+            final = prepend_hook(video, audio_clip, hook_png, (SW, SH))
+            print("  ✅ Hook intro prepended (ZENO reel)")
+        except Exception as e:
+            print(f"  ⚠️ Hook intro skipped (fail-open): {e}")
+            final = None
+    if final is None:
+        final = video.set_audio(audio_clip)
+
+    # NOTE: No bgmusic — TTS only
+    final.write_videofile(
         str(output_path), fps=FPS, codec="libx264",
         audio_codec="aac", verbose=False, logger=None
     )
-    print(f"Reel exported: {output_path} ({duration:.1f}s) — voice only, no bgmusic")
+    print(f"Reel exported: {output_path} — voice only, no bgmusic")
 
 
 # ─── SAVE META ────────────────────────────────────────────────────────────────
@@ -475,8 +501,8 @@ async def main():
     thumb_path = build_thumbnail(title, display, emotion)
     print(f"Thumbnail built: {thumb_path}")
 
-    # Step 5: Compose video — TTS only, no music
-    compose_video(frame_path, audio_path, video_path, spoken_text=spoken)
+    # Step 5: Compose video — TTS only, no music (bold-text hook intro, fail-open)
+    compose_video(frame_path, audio_path, video_path, spoken_text=spoken, hook_text=title)
 
     # Step 6: Save meta
     save_meta(script, today_str, thumb_path)

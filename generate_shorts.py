@@ -12,6 +12,13 @@ UPLOAD TARGETS:
   Short 2 (Hindi):   YouTube ✅ | Facebook AI360Trading Page ✅ | Instagram ✅
   Short 3 (English): YouTube ✅ | Facebook AI360Trading Page ✅ | Instagram ✅
 
+v3.6 (2026-05-31):
+  ADD — bold-text HOOK intro frame (via hook_helper.py) on Short 2 + Short 3.
+    Prepends a ~1.4s stop-scroll hook card; narration shifts to start after
+    the hook so burned-in captions stay synced. Fully fail-open → any error
+    falls back to the hook-less render. Makes the in-feed cover (YouTube/IG/FB)
+    a bold hook instead of the busy info-card.
+
 v3.5 (2026-05-31):
   ADD — bold-text stop-scroll thumbnail for Short 2 + Short 3.
     Minimal cover (1 huge headline + 1 punch line + sentiment colour),
@@ -587,7 +594,8 @@ def _with_cta(script: str, lang: str = "hi") -> str:
 # VIDEO RENDER — TTS ONLY
 # ══════════════════════════════════════════════════════════════════════════════
 
-def render_short(frame_path: Path, audio_path: str, out_path: str, spoken_text: str = ""):
+def render_short(frame_path: Path, audio_path: str, out_path: str, spoken_text: str = "",
+                 hook_text: str = "", hook_accent=GOLD):
     audio_clip = AudioFileClip(audio_path)
     duration   = audio_clip.duration + 0.5
     video      = ImageClip(str(frame_path)).set_duration(duration)
@@ -601,8 +609,25 @@ def render_short(frame_path: Path, audio_path: str, out_path: str, spoken_text: 
         except Exception as e:
             print(f"  ⚠️ captions unavailable, rendering without (fail-open): {e}")
 
-    video = video.set_audio(audio_clip)
-    video.write_videofile(out_path, fps=FPS, codec="libx264",
+    # Bold-text HOOK intro so the in-feed cover stops the scroll (YT/IG/FB).
+    # Audio is shifted to start after the hook, so captions stay synced.
+    # FULLY FAIL-OPEN: any error falls back to the plain (hook-less) render.
+    final = None
+    if hook_text:
+        try:
+            from hook_helper import build_hook_frame, prepend_hook
+            hook_png = build_hook_frame(
+                hook_text, (SW, SH), FONT_BOLD_PATHS, accent=hook_accent,
+                out_path=str(OUT / f"{Path(out_path).stem}_hook.png"))
+            final = prepend_hook(video, audio_clip, hook_png, (SW, SH))
+            print(f"  ✅ Hook intro prepended ({Path(out_path).stem})")
+        except Exception as e:
+            print(f"  ⚠️ Hook intro skipped (fail-open): {e}")
+            final = None
+    if final is None:
+        final = video.set_audio(audio_clip)
+
+    final.write_videofile(out_path, fps=FPS, codec="libx264",
                           audio_codec="aac", verbose=False, logger=None)
     print(f"✅ Short rendered: {Path(out_path).name}")
     return out_path
@@ -1053,13 +1078,14 @@ def main():
     s2_video = str(OUT / f"short2_{today}.mp4")
     s2_spoken = _with_cta(s2_data.get("script", ""), "hi")
     gen_tts(s2_spoken, VOICE_SHORT2, s2_audio)
-    render_short(s2_frame, s2_audio, s2_video, spoken_text=s2_spoken)
+    s2_head, s2_sub, s2_acc, s2_badge = short2_thumb_text(s2_data)
+    render_short(s2_frame, s2_audio, s2_video, spoken_text=s2_spoken,
+                 hook_text=s2_head, hook_accent=s2_acc)
 
     # Bold-text thumbnail (fail-open — never blocks upload)
     s2_thumb = ""
     try:
-        h, sub, acc, badge = short2_thumb_text(s2_data)
-        s2_thumb = str(build_short_thumbnail(h, sub, acc, badge, f"short2_thumb_{today}.jpg"))
+        s2_thumb = str(build_short_thumbnail(s2_head, s2_sub, s2_acc, s2_badge, f"short2_thumb_{today}.jpg"))
     except Exception as e:
         print(f"  ⚠️ Short 2 thumbnail skipped (fail-open): {e}")
 
@@ -1083,13 +1109,14 @@ def main():
     s3_video = str(OUT / f"short3_{today}.mp4")
     s3_spoken = _with_cta(s3_data.get("script", ""), "en")
     gen_tts(s3_spoken, VOICE_SHORT3, s3_audio)
-    render_short(s3_frame, s3_audio, s3_video, spoken_text=s3_spoken)
+    s3_head, s3_sub, s3_acc, s3_badge = short3_thumb_text(s3_data)
+    render_short(s3_frame, s3_audio, s3_video, spoken_text=s3_spoken,
+                 hook_text=s3_head, hook_accent=s3_acc)
 
     # Bold-text thumbnail (fail-open — never blocks upload)
     s3_thumb = ""
     try:
-        h, sub, acc, badge = short3_thumb_text(s3_data)
-        s3_thumb = str(build_short_thumbnail(h, sub, acc, badge, f"short3_thumb_{today}.jpg"))
+        s3_thumb = str(build_short_thumbnail(s3_head, s3_sub, s3_acc, s3_badge, f"short3_thumb_{today}.jpg"))
     except Exception as e:
         print(f"  ⚠️ Short 3 thumbnail skipped (fail-open): {e}")
 
