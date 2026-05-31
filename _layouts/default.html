@@ -14,26 +14,18 @@
       border-bottom: 1px solid #e2e8f0;
       width: 100%;
     }
-    /* Official ai360 brand logo (apple-touch-icon) + tagline — replaces clipart banner */
+    /* Wide brand banner (logo + tagline + market strip), built from logo.png */
     .brand-logo {
-      display: inline-flex;
-      flex-direction: column;
-      align-items: center;
-      text-decoration: none;
-      margin: 0 auto 14px;
-    }
-    .brand-icon {
-      width: 150px;
-      height: 150px;
       display: block;
+      text-decoration: none;
+      margin: 0 auto 10px;
     }
-    .brand-tag {
-      margin-top: 6px;
-      font-size: 12px;
-      font-weight: 800;
-      letter-spacing: 3px;
-      text-transform: uppercase;
-      color: #64748b;
+    .brand-banner {
+      width: 100%;
+      max-width: 880px;
+      height: auto;
+      display: block;
+      margin: 0 auto;
     }
     .site-nav {
       display: flex;
@@ -117,14 +109,12 @@
 
     /* ── RESPONSIVE ── */
     @media (max-width: 768px) {
-      .brand-tag { letter-spacing: 2px; }
-      .brand-icon { width: 118px; height: 118px; }
+      .brand-banner { max-width: 560px; }
       .header-container { padding: 16px 12px 14px; }
       .footer-grid { grid-template-columns: repeat(2, 1fr); gap: 20px; }
     }
     @media (max-width: 480px) {
-      .brand-tag { font-size: 10px; letter-spacing: 1.5px; }
-      .brand-icon { width: 96px; height: 96px; }
+      .brand-banner { max-width: 100%; }
       .header-container { padding: 12px 10px; }
       .site-nav { gap: 12px; margin-bottom: 12px; }
       .nav-link { font-size: 11px; }
@@ -137,10 +127,9 @@
 <body>
 
   <header class="header-container">
-    <a href="/" class="brand-logo" aria-label="AI360Trading — home">
-      <img src="/public/image/logo.png" class="brand-icon" width="150" height="150"
-           alt="AI360Trading — NIFTY, S&P 500 &amp; global market intelligence">
-      <span class="brand-tag">Global Market Intelligence</span>
+    <a href="/" class="brand-logo" aria-label="AI360Trading — Global Market Intelligence — home">
+      <img src="/public/image/header.png" class="brand-banner" width="1400" height="230"
+           alt="AI360Trading — Global Market Intelligence: NIFTY, S&P 500, FTSE 100, IBOVESPA, Bitcoin">
     </a>
     <!-- HEADER NAV: About + Contact in header for E-E-A-T SEO — Disclaimer + Privacy Policy in footer only -->
     <nav class="site-nav">
