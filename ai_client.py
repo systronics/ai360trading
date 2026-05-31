@@ -1,7 +1,15 @@
 """
 ai_client.py — Universal AI Client for AI360Trading
 ====================================================
-Fallback chain: Groq → Gemini → Claude → OpenAI → Templates
+Fallback chain (default): Groq → Gemini → FREE Templates.
+Claude/OpenAI (PAID) only added when ALLOW_PAID_AI=true.
+
+v2.5 CHANGES (2026-05-31) — FREE-TIER HARDENING (₹0/month invariant):
+  Paid providers (Claude, OpenAI) are now OFF by default. The chain only uses
+  the free providers (Groq, Gemini) then free templates, guaranteeing zero
+  spend. Set env/Secret ALLOW_PAID_AI=true to re-enable paid last-resort
+  fallback. Each paid call (when enabled) logs a clear cost warning.
+  get_status() now reports allow_paid_ai + hides paid keys when disabled.
 
 v2.4 CHANGES (May 2026):
   Fixed decommissioned Groq models:
@@ -42,6 +50,17 @@ logger = logging.getLogger(__name__)
 # ─────────────────────────────────────────────
 
 PROVIDERS = ["groq", "gemini", "claude", "openai"]
+
+# ─── FREE-TIER HARDENING (₹0/month invariant) ───────────────────────────────
+# Groq + Gemini are FREE. Claude + OpenAI are PAID. To guarantee zero spend by
+# default, paid providers are OFF unless ALLOW_PAID_AI is explicitly enabled.
+# With paid off, the chain is Groq → Gemini → free templates (still fail-open,
+# content always publishes, just template-quality on the rare day both free
+# providers are down). Set GitHub Secret/env ALLOW_PAID_AI=true to re-enable
+# Claude/OpenAI as a last-resort paid fallback.
+FREE_PROVIDERS = ("groq", "gemini")
+PAID_PROVIDERS = ("claude", "openai")
+ALLOW_PAID_AI  = os.environ.get("ALLOW_PAID_AI", "").strip().lower() in ("1", "true", "yes", "on")
 
 # v2.4: Updated Groq models — removed decommissioned ones
 GROQ_MODELS = [
@@ -174,7 +193,15 @@ class AIClient:
         if system_prompt is None:
             system_prompt = self._default_system_prompt(lang, content_mode)
 
-        for provider in PROVIDERS:
+        # ₹0 invariant: only try paid providers if explicitly allowed.
+        providers = list(FREE_PROVIDERS) + (list(PAID_PROVIDERS) if ALLOW_PAID_AI else [])
+
+        for provider in providers:
+            if provider in PAID_PROVIDERS:
+                logger.warning(
+                    f"Free AI providers exhausted — falling back to PAID provider "
+                    f"'{provider}' (ALLOW_PAID_AI is enabled; this costs money)."
+                )
             try:
                 result = self._try_provider(
                     provider, prompt, system_prompt,
@@ -190,7 +217,11 @@ class AIClient:
                 logger.warning(f"{provider} failed: {e}")
                 time.sleep(1)
 
-        logger.error("ALL AI providers failed — using fallback template.")
+        if not ALLOW_PAID_AI:
+            logger.error("Free AI providers (Groq, Gemini) failed — using FREE template "
+                         "(paid Claude/OpenAI disabled by default; set ALLOW_PAID_AI=true to enable).")
+        else:
+            logger.error("ALL AI providers failed — using fallback template.")
         self.active_provider = "template"
         return self._get_fallback_template(content_mode, lang)
 
@@ -221,12 +252,13 @@ class AIClient:
     def get_status(self) -> dict:
         return {
             "active_provider": self.active_provider,
+            "allow_paid_ai": ALLOW_PAID_AI,
             "stats": self.stats,
             "available": {
                 "groq":   bool(self.groq_key),
                 "gemini": bool(self.gemini_key),
-                "claude": bool(self.claude_key),
-                "openai": bool(self.openai_key),
+                "claude": bool(self.claude_key) if ALLOW_PAID_AI else False,
+                "openai": bool(self.openai_key) if ALLOW_PAID_AI else False,
             },
         }
 

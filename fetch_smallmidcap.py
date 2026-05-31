@@ -1,5 +1,12 @@
 """
-AI360 SMALL/MID CAP MOMENTUM SCANNER — v1.1
+AI360 SMALL/MID CAP MOMENTUM SCANNER — v1.2
+
+v1.2 (2026-05-31) — AUTO-TRIM:
+  The SmallMidCap tab appends a row (or rows) every scan and grew without
+  bound. v1.2 trims it to the header + most-recent SMC_MAX_ROWS (365) data
+  rows after each write (keeps the workbook lean under the 10M-cell cap).
+  Fail-open: a trim error never blocks the scan.
+
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Daily scanner for institutional-grade small/mid cap winners NOT in Nifty200
 universe. Catches the +10–15% movers (GUJTHEM, TVSSRICHAK, MANCREDIT class)
@@ -332,6 +339,24 @@ def _ensure_smc_tab(ss):
         return sheet
 
 
+# Auto-trim: this tab appends a row (or rows) every scan, so it grows forever
+# without bound. Keep the header + the most recent SMC_MAX_ROWS data rows
+# (~1 year of daily scans) and delete older ones. Sheets has a 10M-cell cap;
+# this keeps the workbook lean. Fail-open: a trim error never blocks the scan.
+SMC_MAX_ROWS = 365
+
+def _trim_smc_tab(sheet):
+    try:
+        vals = sheet.get_all_values()
+        excess = (len(vals) - 1) - SMC_MAX_ROWS   # -1 for header row
+        if excess > 0:
+            # delete the oldest data rows (rows 2 .. 1+excess); header row 1 kept
+            sheet.delete_rows(2, 1 + excess)
+            print(f"[SHEET] trimmed {excess} old {SMC_TAB} rows (cap {SMC_MAX_ROWS})")
+    except Exception as e:
+        print(f"[SHEET] trim skipped (non-fatal): {e}")
+
+
 def write_smc_sheet(ss, picks: list, bhav_date: str):
     """
     Always ensures the SmallMidCap tab exists and records that the scan ran.
@@ -361,6 +386,7 @@ def write_smc_sheet(ss, picks: list, bhav_date: str):
             value_input_option="USER_ENTERED",
         )
         print(f"[SHEET] {bhav_date} — 0 picks, status row written")
+        _trim_smc_tab(sheet)
         return
 
     new_rows = []
@@ -372,6 +398,7 @@ def write_smc_sheet(ss, picks: list, bhav_date: str):
         ])
     sheet.append_rows(new_rows, value_input_option="USER_ENTERED")
     print(f"[SHEET] appended {len(new_rows)} rows to {SMC_TAB}")
+    _trim_smc_tab(sheet)
 
 
 # ════════════════════════════════════════════════════════════════════════════
