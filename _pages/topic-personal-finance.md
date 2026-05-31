@@ -18,7 +18,9 @@ keywords: "best term life insurance 2026, personal finance tips, SIP investment 
 
 <div class="pillar-links">
   <a href="/swing-dashboard/" class="pillar-cta">📊 Live Market Intelligence</a>
-  <a href="/topics/ai-trading/" class="pillar-cta secondary">AI Trading Guide</a>
+  <a href="/topics/stock-market/" class="pillar-cta secondary">📊 Stock Market</a>
+  <a href="/topics/bitcoin/" class="pillar-cta secondary">₿ Bitcoin &amp; Crypto</a>
+  <a href="/topics/ai-trading/" class="pillar-cta secondary">🤖 AI Trading</a>
 </div>
 
 <h2>Latest Personal Finance Guides</h2>

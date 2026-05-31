@@ -18,7 +18,9 @@ keywords: "AI trading 2026, algorithmic trading India, AI stock market signals, 
 
 <div class="pillar-links">
   <a href="/swing-dashboard/" class="pillar-cta">📊 Live AI Trading Signals</a>
-  <a href="/topics/stock-market/" class="pillar-cta secondary">Stock Market Analysis</a>
+  <a href="/topics/stock-market/" class="pillar-cta secondary">📊 Stock Market</a>
+  <a href="/topics/bitcoin/" class="pillar-cta secondary">₿ Bitcoin &amp; Crypto</a>
+  <a href="/topics/personal-finance/" class="pillar-cta secondary">💰 Personal Finance</a>
 </div>
 
 <h2>Latest AI Trading Reports</h2>

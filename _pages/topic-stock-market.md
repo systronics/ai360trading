@@ -18,7 +18,9 @@ keywords: "stock market today, S&P 500 analysis, NIFTY analysis, IBOVESPA today,
 
 <div class="pillar-links">
   <a href="/swing-dashboard/" class="pillar-cta">📊 Live Swing Dashboard</a>
-  <a href="/about/" class="pillar-cta secondary">About Amit Kumar</a>
+  <a href="/topics/bitcoin/" class="pillar-cta secondary">₿ Bitcoin &amp; Crypto</a>
+  <a href="/topics/personal-finance/" class="pillar-cta secondary">💰 Personal Finance</a>
+  <a href="/topics/ai-trading/" class="pillar-cta secondary">🤖 AI Trading</a>
 </div>
 
 <h2>Latest Stock Market Reports</h2>

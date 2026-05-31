@@ -18,7 +18,9 @@ keywords: "bitcoin price today, crypto market today, BTC analysis, Ethereum pric
 
 <div class="pillar-links">
   <a href="/swing-dashboard/" class="pillar-cta">📊 Live Trading Signals</a>
-  <a href="/topics/stock-market/" class="pillar-cta secondary">Stock Market Analysis</a>
+  <a href="/topics/stock-market/" class="pillar-cta secondary">📊 Stock Market</a>
+  <a href="/topics/personal-finance/" class="pillar-cta secondary">💰 Personal Finance</a>
+  <a href="/topics/ai-trading/" class="pillar-cta secondary">🤖 AI Trading</a>
 </div>
 
 <h2>Latest Bitcoin & Crypto Reports</h2>
