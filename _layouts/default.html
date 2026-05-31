@@ -14,42 +14,21 @@
       border-bottom: 1px solid #e2e8f0;
       width: 100%;
     }
-    /* Logo mark + crisp text wordmark — replaces the old clipart banner */
+    /* Official ai360 brand logo (apple-touch-icon) + tagline — replaces clipart banner */
     .brand-logo {
       display: inline-flex;
-      flex-direction: row;
+      flex-direction: column;
       align-items: center;
-      gap: 14px;
       text-decoration: none;
-      margin: 0 auto 16px;
+      margin: 0 auto 14px;
     }
     .brand-icon {
-      width: 54px;
-      height: 54px;
+      width: 92px;
+      height: 92px;
       display: block;
-      flex: none;
-    }
-    .brand-text {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-    }
-    .brand-mark {
-      font-size: 46px;
-      font-weight: 900;
-      letter-spacing: -1.5px;
-      line-height: 1;
-      color: #0f172a;
-    }
-    .brand-mark .b360 {
-      background: linear-gradient(135deg, #0062ff 0%, #00c2ff 100%);
-      -webkit-background-clip: text;
-      background-clip: text;
-      -webkit-text-fill-color: transparent;
-      color: transparent;
     }
     .brand-tag {
-      margin-top: 8px;
+      margin-top: 6px;
       font-size: 12px;
       font-weight: 800;
       letter-spacing: 3px;
@@ -138,17 +117,14 @@
 
     /* ── RESPONSIVE ── */
     @media (max-width: 768px) {
-      .brand-mark { font-size: 38px; }
       .brand-tag { letter-spacing: 2px; }
-      .brand-icon { width: 46px; height: 46px; }
+      .brand-icon { width: 78px; height: 78px; }
       .header-container { padding: 16px 12px 14px; }
       .footer-grid { grid-template-columns: repeat(2, 1fr); gap: 20px; }
     }
     @media (max-width: 480px) {
-      .brand-mark { font-size: 30px; }
       .brand-tag { font-size: 10px; letter-spacing: 1.5px; }
-      .brand-icon { width: 40px; height: 40px; }
-      .brand-logo { gap: 10px; }
+      .brand-icon { width: 66px; height: 66px; }
       .header-container { padding: 12px 10px; }
       .site-nav { gap: 12px; margin-bottom: 12px; }
       .nav-link { font-size: 11px; }
@@ -162,12 +138,9 @@
 
   <header class="header-container">
     <a href="/" class="brand-logo" aria-label="AI360Trading — home">
-      <img src="/public/image/logo.png" class="brand-icon" width="54" height="54"
-           alt="AI360Trading logo">
-      <span class="brand-text">
-        <span class="brand-mark">ai<span class="b360">360</span>trading</span>
-        <span class="brand-tag">Global Market Intelligence</span>
-      </span>
+      <img src="/public/image/apple-touch-icon.png" class="brand-icon" width="92" height="92"
+           alt="AI360Trading — NIFTY, S&P 500 &amp; global market intelligence">
+      <span class="brand-tag">Global Market Intelligence</span>
     </a>
     <!-- HEADER NAV: About + Contact in header for E-E-A-T SEO — Disclaimer + Privacy Policy in footer only -->
     <nav class="site-nav">
