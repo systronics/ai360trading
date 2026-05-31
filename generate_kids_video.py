@@ -231,10 +231,12 @@ def generate_scene_image(prompt: str, scene_id: int) -> Path:
 
     time.sleep(2)
 
-    # Layer 4: DALL-E 2
+    # Layer 4: DALL-E 2 (PAID) — gated behind ALLOW_PAID_AI for the ₹0 invariant.
+    # Off by default → cascade skips straight to the free PIL placeholder (Layer 5).
     try:
         openai_key = os.environ.get("OPENAI_API_KEY")
-        if openai_key:
+        _allow_paid = os.environ.get("ALLOW_PAID_AI", "").strip().lower() in ("1", "true", "yes", "on")
+        if openai_key and _allow_paid:
             from openai import OpenAI
             client_oai = OpenAI(api_key=openai_key)
             dalle_prompt = f"3D Pixar animation. {HEROO}. {prompt[:200]}. Vibrant colors, child-friendly."[:1000]
