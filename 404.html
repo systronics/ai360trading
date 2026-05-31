@@ -14,6 +14,21 @@ permalink: /404.html
     Our scanners could not find this specific intelligence report.
   </p>
 
+  <!-- SMART SUGGESTION: filled by JS when the dead URL matches a known topic.
+       Page still returns HTTP 404 (correct — lets Google drop genuinely gone pages);
+       the forward below is a human-only convenience, not a server/meta redirect. -->
+  <div id="smart-suggest" style="display:none; max-width:560px; margin:0 auto 30px auto; padding:18px 22px; background:#eff6ff; border:1px solid #bfdbfe; border-radius:10px;">
+    <p style="font-size:15px; color:#1e3a8a; margin-bottom:14px; line-height:1.5;">
+      Looking for <strong id="ss-label"></strong> updates? Here is the latest:
+    </p>
+    <a id="ss-link" href="/" class="badge" style="display:inline-block; padding:12px 28px; font-size:15px; text-decoration:none; background-color:#2563eb; color:white; border-radius:8px; font-weight:700;">
+      Go now →
+    </a>
+    <p style="font-size:12px; color:#64748b; margin-top:12px;">
+      Taking you there in <span id="ss-count">6</span>s… (or pick any section below)
+    </p>
+  </div>
+
   <div style="margin-top: 40px;">
     <a href="{{ site.url }}/" class="badge" style="padding: 15px 40px; font-size: 16px; text-decoration: none; background-color: #2563eb; color: white; border-radius: 8px;">
       Return to Live Dashboard
@@ -33,6 +48,48 @@ permalink: /404.html
     Error 404 — ai360trading.in
   </p>
 </div>
+
+<script>
+  // Detect the topic from the dead URL (old posts are pillar-prefixed, e.g.
+  // /2026-04-18-stock-market-...) and offer the matching hub + gentle forward.
+  (function () {
+    var path = (window.location.pathname || '').toLowerCase();
+    var map = [
+      { key: 'stock-market',     url: '/topics/stock-market/',     label: 'Stock Market' },
+      { key: 'bitcoin',          url: '/topics/bitcoin/',          label: 'Bitcoin & Crypto' },
+      { key: 'personal-finance', url: '/topics/personal-finance/', label: 'Personal Finance' },
+      { key: 'ai-trading',       url: '/topics/ai-trading/',       label: 'AI Trading' }
+    ];
+    var hit = null;
+    for (var i = 0; i < map.length; i++) {
+      if (path.indexOf(map[i].key) !== -1) { hit = map[i]; break; }
+    }
+    if (!hit) return;
+
+    var box   = document.getElementById('smart-suggest');
+    var link  = document.getElementById('ss-link');
+    var label = document.getElementById('ss-label');
+    var count = document.getElementById('ss-count');
+    if (!box || !link || !label || !count) return;
+
+    label.textContent = hit.label;
+    link.setAttribute('href', hit.url);
+    box.style.display = 'block';
+
+    // Human-only convenience forward (kept slow + cancellable; status stays 404).
+    var n = 6, cancelled = false;
+    function stop() { cancelled = true; }
+    ['click', 'keydown', 'scroll', 'touchstart'].forEach(function (e) {
+      window.addEventListener(e, stop, { passive: true, once: true });
+    });
+    var t = setInterval(function () {
+      if (cancelled) { clearInterval(t); return; }
+      n -= 1;
+      count.textContent = n;
+      if (n <= 0) { clearInterval(t); window.location.replace(hit.url); }
+    }, 1000);
+  })();
+</script>
 
 <style>
   .about-container {
