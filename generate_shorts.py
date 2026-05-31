@@ -508,7 +508,11 @@ def generate_short2_script(market: dict, part1_url: str) -> dict:
 
     cta = f"Full analysis: {part1_url}" if part1_url else "Subscribe for daily signals!"
 
-    prompt = f"""Create a 45-second Hindi trading short script for Indian retail traders.
+    prompt = f"""Create a 45-second HINGLISH trading short script for Indian retail traders.
+HINGLISH = Hindi + English mixed, written in Roman/Latin script (NOT Devanagari) —
+the natural way Indian traders talk: Hindi sentence flow with English trading terms
+(support, resistance, breakout, target, stop-loss, trend). This keeps the core
+Indian audience engaged AND lets global viewers follow along.
 Topic: {topic}
 Mode: {CONTENT_MODE}
 

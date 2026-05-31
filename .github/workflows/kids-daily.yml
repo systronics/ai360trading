@@ -117,79 +117,12 @@ jobs:
               print(f'[NOTIFY] Send failed: {e}')
           PYEOF
 
-  # ── Hindi Cliffhanger Short ────────────────────────────────────────────────
-  kids-hindi-short:
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install system deps
-        run: sudo apt-get update -qq && sudo apt-get install -y ffmpeg fonts-dejavu
-
-      - name: Install Python deps
-        run: |
-          pip install --upgrade pip
-          pip install -r requirements.txt
-
-      - name: Prepare workspace
-        run: mkdir -p output
-
-      - name: Generate cliffhanger short (Hindi)
-        env:
-          KIDS_LANG:         hi
-          KIDS_OUTPUT:       short
-          GEMINI_API_KEY:    ${{ secrets.GEMINI_API_KEY }}
-          HF_TOKEN:          ${{ secrets.HF_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          CLOUDFLARE_API_TOKEN:  ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          GROQ_API_KEY:      ${{ secrets.GROQ_API_KEY }}
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          OPENAI_API_KEY:    ${{ secrets.OPENAI_API_KEY }}
-        run: python generate_kids_video.py
-
-      - name: Upload to YouTube Kids
-        env:
-          YOUTUBE_CREDENTIALS_KIDS: ${{ secrets.YOUTUBE_CREDENTIALS_KIDS }}
-        run: python upload_kids_youtube.py
-
-      - name: Notify Telegram on failure
-        if: failure()
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          CHAT_ID_BASIC:      ${{ secrets.CHAT_ID_BASIC }}
-          WF_NAME:            "${{ github.workflow }} — Cliffhanger Short"
-          RUN_URL:            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        continue-on-error: true
-        run: |
-          python - <<'PYEOF'
-          import os, json
-          from urllib.request import Request, urlopen
-          token = os.environ.get('TELEGRAM_BOT_TOKEN','')
-          chat  = os.environ.get('CHAT_ID_BASIC','')
-          if not token or not chat:
-              print('[NOTIFY] Telegram creds missing — skip'); raise SystemExit(0)
-          msg = (
-              "⚠️ <b>System Notice — AI360Trading</b>\n\n"
-              f"Workflow failed: <b>{os.environ.get('WF_NAME','?')}</b>\n"
-              f"Run log: {os.environ.get('RUN_URL','')}\n\n"
-              "<i>This is a system message, not a trade signal. "
-              "Engineer will investigate. Live trade alerts unaffected.</i>"
-          )
-          try:
-              req = Request(
-                  f"https://api.telegram.org/bot{token}/sendMessage",
-                  data=json.dumps({'chat_id':chat,'text':msg,'parse_mode':'HTML'}).encode(),
-                  headers={'Content-Type':'application/json'},
-              )
-              urlopen(req, timeout=10).read()
-              print('[NOTIFY] Failure alert sent to Basic channel')
-          except Exception as e:
-              print(f'[NOTIFY] Send failed: {e}')
-          PYEOF
+  # ── Hindi Cliffhanger Short — RETIRED 2026-06-01 ──────────────────────────
+  #   Dropped: it was just a 60-second crop of the full story = redundant.
+  #   Kids channel now = Hindi full (India, native Hindi audio) + English full
+  #   (global, native English audio) so BOTH audiences hear it in their own
+  #   language (audio can't be auto-switched; captions can). To restore: re-add
+  #   a `kids-hindi-short` job with KIDS_OUTPUT: short.
 
   # ── English Full Story (global reach) — added 2026-05-31 ──────────────────
   #   Native English HerooQuest episode for US/UK/global kids audiences. Runs in
