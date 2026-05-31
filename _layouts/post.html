@@ -59,6 +59,28 @@ layout: default
       </div>
     </div>
 
+    <!-- RELATED ARTICLES — same-pillar article-to-article links.
+         Big SEO + engagement lever: more pages/session, longer dwell time,
+         and Google crawls/ranks deeper posts via these internal links. -->
+    {% assign related = site.posts | where: "pillar", page.pillar %}
+    {% if related.size > 1 %}
+    <div class="related-articles-section">
+      <p class="share-label">📚 RELATED ARTICLES:</p>
+      <div class="related-articles">
+        {% assign rel_count = 0 %}
+        {% for post in related %}
+          {% if post.url != page.url and rel_count < 4 %}
+          <a href="{{ post.url | relative_url }}" class="related-article">
+            <span class="ra-date">📅 {{ post.date | date: "%b %-d, %Y" }}</span>
+            <span class="ra-title">{{ post.title }}</span>
+          </a>
+          {% assign rel_count = rel_count | plus: 1 %}
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
     <!-- INTERNAL LINKS SECTION -->
     <div class="related-posts-section">
       <p class="share-label">EXPLORE MORE:</p>
@@ -151,6 +173,13 @@ layout: default
   .post-body-content th { background: #0062ff; color: white; padding: 10px; text-align: left; }
   .post-body-content td { padding: 8px 10px; border-bottom: 1px solid #e2e8f0; }
   .post-body-content tr:nth-child(even) { background: #f8faff; }
+  .related-articles-section { margin-top: 35px; padding-top: 25px; border-top: 1px solid #f1f5f9; }
+  .related-articles { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+  .related-article { display: flex; flex-direction: column; gap: 3px; padding: 12px 16px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; text-decoration: none; transition: 0.2s; }
+  .related-article:hover { background: #eff6ff; border-color: #0062ff; transform: translateX(3px); }
+  .ra-date { font-size: 11px; color: #94a3b8; font-weight: 700; }
+  .ra-title { font-size: 14px; color: #0f172a; font-weight: 700; line-height: 1.4; }
+  .related-article:hover .ra-title { color: #0062ff; }
   .related-posts-section { margin-top: 35px; padding-top: 25px; border-top: 1px solid #f1f5f9; }
   .related-links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
   .rel-link { background: #f0f4f8; padding: 9px 18px; border-radius: 6px; font-size: 13px; font-weight: 700; color: #0062ff !important; text-decoration: none; border: 1px solid #e2e8f0; transition: 0.2s; }
