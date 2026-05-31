@@ -1695,8 +1695,16 @@ End with:
         if not os.path.exists(POSTS_DIR):
             os.makedirs(POSTS_DIR)
 
+        # Conversion CTA footer (free Telegram → membership + broker referrals).
+        cta_footer = ""
+        try:
+            import money_funnel as _mf
+            cta_footer = _mf.article_cta_html()
+        except Exception:
+            cta_footer = ""
+
         with open(file_path, "w", encoding="utf-8") as f:
-            f.write(header + schema_block + hero_block + media_content)
+            f.write(header + schema_block + hero_block + media_content + cta_footer)
 
         article_url = f"{SITE_URL}/{pillar['permalink_base']}/{chosen_slug}/"
         print(f"  ✅ /{pillar['permalink_base']}/{chosen_slug}/")

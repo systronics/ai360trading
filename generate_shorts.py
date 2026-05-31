@@ -76,6 +76,21 @@ from googleapiclient.http import MediaFileUpload
 
 from human_touch import ht, seo
 
+# Money funnel (free Telegram → membership + broker referrals + comment prompt).
+# Fail-open: if the module is missing, descriptions just skip the extra block.
+try:
+    import money_funnel as mf
+except Exception:
+    mf = None
+
+
+def _funnel(lang="hi", compact=False):
+    """Return the income CTA block, or '' on any problem (never breaks a post)."""
+    try:
+        return mf.funnel_block(lang=lang, compact=compact) if mf else ""
+    except Exception:
+        return ""
+
 # ─── Content Mode ─────────────────────────────────────────────────────────────
 CONTENT_MODE = os.environ.get("CONTENT_MODE", "market").lower()
 HOLIDAY_NAME = os.environ.get("HOLIDAY_NAME", "Indian Market Holiday")
@@ -1030,23 +1045,27 @@ def build_desc(script_data: dict, short_num: int, part1_url: str) -> str:
     htags   = " ".join(f"#{t}" for t in yt_tags[:12])
     insight = script_data.get("insight", "Daily market intelligence for Indian traders.")
     cta     = f"\n▶️ Full Analysis: {part1_url}" if part1_url else ""
+    lang    = "hi" if short_num == 2 else "en"
+    funnel  = _funnel(lang=lang)
+    funnel  = f"{funnel}\n\n" if funnel else ""
     return (
         f"💡 {insight}\n\n"
-        f"👍 Like • 🔔 Subscribe • 📤 Share this with a trader friend\n\n"
-        f"🌐 https://ai360trading.in\n"
-        f"📱 https://t.me/ai360trading{cta}\n\n"
+        f"👍 Like • 🔔 Subscribe • 📤 Share this with a trader friend{cta}\n\n"
+        f"{funnel}"
         f"⚠️ Educational only. Not SEBI registered.\n\n"
         f"{htags}"
     )
 
 def build_fb_caption(script_data: dict, short_num: int) -> str:
     insight = script_data.get("insight", "Daily market intelligence.")
+    lang    = "hi" if short_num == 2 else "en"
+    funnel  = _funnel(lang=lang, compact=True)
+    funnel  = f"{funnel}\n" if funnel else "🌐 ai360trading.in | 📱 t.me/ai360trading\n"
     if CONTENT_MODE in ("holiday", "weekend"):
         return (
             f"📚 Weekend Learning!\n\n"
             f"💡 {insight}\n\n"
-            f"🌐 ai360trading.in | 📱 t.me/ai360trading\n"
-            f"👍 Like & 📤 share with a friend who's learning to trade!\n"
+            f"{funnel}"
             f"#ai360trading #StockMarket #Trading #WeekendLearning"
         )
     stock = script_data.get("stock", "Market")
@@ -1054,9 +1073,8 @@ def build_fb_caption(script_data: dict, short_num: int) -> str:
     return (
         f"📊 {stock} {sent} Signal!\n\n"
         f"💡 {insight}\n\n"
-        f"🌐 ai360trading.in | 📱 t.me/ai360trading\n"
+        f"{funnel}"
         f"⚠️ Educational only.\n"
-        f"👍 Like & 📤 tag a trader friend!\n"
         f"#ai360trading #StockMarket #{stock.replace(' ','')}"
     )
 
@@ -1064,39 +1082,39 @@ def build_ig_caption_short2(script_data: dict) -> str:
     insight = script_data.get("insight", "Daily market intelligence.")
     stock   = script_data.get("stock", "Market")
     sent    = script_data.get("sentiment", "").capitalize()
+    funnel  = _funnel(lang="hi", compact=True)
+    funnel  = f"{funnel}\n" if funnel else "🌐 ai360trading.in | 📱 t.me/ai360trading\n"
     if CONTENT_MODE in ("holiday", "weekend"):
         return (
             f"📚 Weekend Learning!\n\n"
             f"💡 {insight}\n\n"
-            f"🌐 ai360trading.in | 📱 t.me/ai360trading\n"
-            f"👍 Like • 📤 Share • 💾 Save for later\n"
+            f"{funnel}"
             f"#ai360trading #StockMarket #Trading #Investing"
         )
     return (
         f"📊 {stock} {sent} Setup!\n\n"
         f"💡 {insight}\n\n"
-        f"🌐 ai360trading.in | 📱 t.me/ai360trading\n"
+        f"{funnel}"
         f"⚠️ Educational only.\n"
-        f"👍 Like • 📤 Share • 💾 Save for later\n"
         f"#ai360trading #Nifty50 #StockMarket #TradingIndia"
     )
 
 def build_ig_caption_short3(script_data: dict) -> str:
     insight = script_data.get("insight", "Global markets shaping India's trading day.")
+    funnel  = _funnel(lang="en", compact=True)
+    funnel  = f"{funnel}\n" if funnel else "🌐 ai360trading.in | 📱 t.me/ai360trading\n"
     if CONTENT_MODE in ("holiday", "weekend"):
         return (
             f"🌍 Global Market Wisdom!\n\n"
             f"💡 {insight}\n\n"
-            f"🌐 ai360trading.in | 📱 t.me/ai360trading\n"
-            f"👍 Like • 📤 Share • 💾 Save for later\n"
+            f"{funnel}"
             f"#GlobalMarkets #Bitcoin #Gold #SP500 #ai360trading"
         )
     return (
         f"🌍 Global Market Pulse!\n\n"
         f"💡 {insight}\n\n"
-        f"🌐 ai360trading.in | 📱 t.me/ai360trading\n"
+        f"{funnel}"
         f"⚠️ Educational only.\n"
-        f"👍 Like • 📤 Share • 💾 Save for later\n"
         f"#GlobalMarkets #Bitcoin #Gold #Nifty #ai360trading"
     )
 

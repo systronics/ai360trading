@@ -49,6 +49,19 @@ import numpy as np
 from ai_client import ai
 from human_touch import ht, seo, MORNING_REEL_TOPICS
 
+# Money funnel (free Telegram → membership + broker referrals + comment prompt).
+try:
+    import money_funnel as mf
+except Exception:
+    mf = None
+
+
+def _funnel(lang="hi", compact=False):
+    try:
+        return mf.funnel_block(lang=lang, compact=compact) if mf else ""
+    except Exception:
+        return ""
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger(__name__)
 
@@ -680,8 +693,7 @@ def save_meta(script, video_path, thumb_path, intel) -> str:
 
 🌍 For traders in: India 🇮🇳 | USA 🇺🇸 | UAE 🇦🇪 | UK 🇬🇧 | Brazil 🇧🇷 | Canada 🇨🇦
 
-📱 Free live signals: https://t.me/ai360trading
-🌐 Website: https://ai360trading.in
+{_funnel(lang="hi") or "📱 Free live signals: https://t.me/ai360trading"}
 📚 Free 52-week investing course on this channel
 
 ⚠️ Educational content only. Not SEBI registered. Always do your own research before investing.

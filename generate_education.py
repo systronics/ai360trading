@@ -48,6 +48,19 @@ from ai_client import ai
 from human_touch import ht, seo
 from content_calendar import get_todays_education_topic
 
+# Money funnel (free Telegram → membership + broker referrals + comment prompt).
+try:
+    import money_funnel as mf
+except Exception:
+    mf = None
+
+
+def _funnel(lang="hi", compact=False):
+    try:
+        return mf.funnel_block(lang=lang, compact=compact) if mf else ""
+    except Exception:
+        return ""
+
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
@@ -615,7 +628,8 @@ async def run():
         mode="education", lang=LANG, week=week, topic=topic["title"]
     )
     hashtag_str = " ".join(f"#{t}" for t in youtube_tags[:12])
-    full_desc   = f"{desc}\n\n{hashtag_str}"
+    _fn         = _funnel(lang=LANG)
+    full_desc   = f"{desc}\n\n{_fn}\n\n{hashtag_str}" if _fn else f"{desc}\n\n{hashtag_str}"
 
     # Render all slides + audio
     clips = []

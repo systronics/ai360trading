@@ -48,6 +48,19 @@ from moviepy.editor import ImageClip, AudioFileClip
 
 from human_touch import ht, seo
 
+# Money funnel (free Telegram → membership + broker referrals + comment prompt).
+try:
+    import money_funnel as mf
+except Exception:
+    mf = None
+
+
+def _funnel(lang="hi", compact=False):
+    try:
+        return mf.funnel_block(lang=lang, compact=compact) if mf else ""
+    except Exception:
+        return ""
+
 # ─── Content Mode ─────────────────────────────────────────────────────────────
 CONTENT_MODE = os.environ.get("CONTENT_MODE", "market").lower()
 HOLIDAY_NAME = os.environ.get("HOLIDAY_NAME", "Indian Market Holiday")
@@ -333,6 +346,8 @@ def build_youtube_description(script_data, today_str):
     display     = script_data.get("display_text", "")
     tags        = seo.get_video_tags(mode=CONTENT_MODE, is_short=True)
     hashtag_str = " ".join([f"#{t}" for t in tags[:15]])
+    _fn         = _funnel(lang="hi")
+    funnel      = f"{_fn}\n" if _fn else "🌐 https://ai360trading.in\n📱 https://t.me/ai360trading\n"
 
     if CONTENT_MODE == "holiday":
         label = HOLIDAY_NAME if HOLIDAY_NAME else "Market Holiday"
@@ -341,8 +356,7 @@ def build_youtube_description(script_data, today_str):
             f"💡 {desc_clean}\n\n"
             f'✦ "{display}"\n\n'
             f"🌍 For investors: India, USA, UK, Brazil & UAE\n"
-            f"🌐 https://ai360trading.in\n"
-            f"📱 https://t.me/ai360trading\n"
+            f"{funnel}"
             f"⚠️ Educational only. Not financial advice.\n\n"
             f"👍 Like • 🔔 Subscribe • 📤 Share with a friend\n"
             f"#ZenoKiBaat #ai360trading #HolidayLearning {hashtag_str}"
@@ -353,8 +367,7 @@ def build_youtube_description(script_data, today_str):
             f"💡 {desc_clean}\n\n"
             f'✦ "{display}"\n\n'
             f"🌍 For investors: India, USA, UK, Brazil & UAE\n"
-            f"🌐 https://ai360trading.in\n"
-            f"📱 https://t.me/ai360trading\n"
+            f"{funnel}"
             f"⚠️ Educational only. Not financial advice.\n\n"
             f"👍 Like • 🔔 Subscribe • 📤 Share with a friend\n"
             f"#ZenoKiBaat #WeekendWisdom #ai360trading {hashtag_str}"
@@ -365,8 +378,7 @@ def build_youtube_description(script_data, today_str):
             f"💡 {desc_clean}\n\n"
             f'✦ "{display}"\n\n'
             f"🌍 For traders: India, USA, UK, Brazil & UAE\n"
-            f"🌐 https://ai360trading.in\n"
-            f"📱 https://t.me/ai360trading\n"
+            f"{funnel}"
             f"⚠️ Educational only. Not SEBI registered.\n\n"
             f"👍 Like • 🔔 Subscribe • 📤 Share with a trader friend\n"
             f"#ZenoKiBaat #StockMarket #ai360trading {hashtag_str}"
