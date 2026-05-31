@@ -1,6 +1,14 @@
 """
-upload_kids_youtube.py v2.3 — HerooQuest YouTube Upload
+upload_kids_youtube.py v2.4 — HerooQuest YouTube Upload
 =========================================================
+v2.4 (2026-05-31): AUTO-TRANSLATE SUBTITLES
+  After the full video uploads, also upload the per-scene .srt caption track
+  (built by generate_kids_video.py v2.6, path in meta["subtitle_srt"]) via
+  subtitle_helper.upload_caption → YouTube auto-translates the captions into
+  the viewer's language (US/UK/Brazil/India). Fully fail-open; needs the
+  youtube.force-ssl scope on the kids token (else it logs a re-auth hint and
+  skips — defaultAudioLanguage auto-captions still work).
+
 v2.3 CHANGES (May 2026):
 
 SEO FIX 1 — Title format improved
@@ -452,6 +460,17 @@ def main():
             vid_id = resp["id"]
             print(f"  ✅ Uploaded: https://youtube.com/watch?v={vid_id}")
             upload_thumbnail(youtube, vid_id, thumb_full)
+            # v2.4: upload the per-scene .srt so YouTube auto-translates the
+            # kids captions per country. Fail-open (needs youtube.force-ssl;
+            # if the token lacks it, defaultAudioLanguage auto-captions remain).
+            srt_path = meta.get("subtitle_srt", "")
+            if srt_path and Path(srt_path).exists():
+                try:
+                    from subtitle_helper import upload_caption
+                    upload_caption(youtube, vid_id, srt_path,
+                                   meta.get("subtitle_lang", lang))
+                except Exception as e:
+                    print(f"  ⚠️ Caption upload skipped (fail-open): {e}")
             meta["youtube_video_id"]  = vid_id
             meta["youtube_video_url"] = f"https://www.youtube.com/watch?v={vid_id}"
         except Exception as e:

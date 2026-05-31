@@ -1,6 +1,18 @@
 """
-generate_kids_video.py — HerooQuest v2.5
+generate_kids_video.py — HerooQuest v2.6
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v2.6 (2026-05-31) — AUTO-TRANSLATE SUBTITLES (global reach, ₹0):
+    The kids video already declared defaultAudioLanguage, but had NO exact
+    caption track — so YouTube only had its own machine captions to translate.
+    Now `_build_kids_subtitles()` writes a per-scene .srt timed to the final
+    xfade timeline (Σ max(audio,30) − i×0.5 per scene), stored as meta
+    "subtitle_srt"; upload_kids_youtube.py uploads it after the video. This
+    lets YouTube auto-translate our EXACT captions into the viewer's language
+    (US/UK/Brazil/India). FULLY FAIL-OPEN — never blocks the render or upload.
+    NOTE: the caption upload needs the youtube.force-ssl scope on the kids
+    token; without it the uploader logs a re-auth hint and skips (fail-open),
+    while defaultAudioLanguage still gives YouTube auto-captions.
+
 v2.5 (2026-05-31) — IMAGE FIX ("only one image / not related to story"):
     ROOT CAUSE (from run logs): images were NOT placeholders — Pollinations
     succeeded every scene — but `full_prompt = "{SCENE_STYLE} Scene: {prompt}"`
@@ -381,6 +393,60 @@ def enhance_image_cinematic(img_path: Path) -> Path:
         return img_path
 
 
+# ── v2.6 NEW: AUTO-TRANSLATE SUBTITLE TRACK ──────────────────────────────────
+
+def _build_kids_subtitles(narrations: list, audio_paths: list, lang: str):
+    """
+    Build a per-scene .srt synced to the FINAL xfade-concatenated timeline so
+    YouTube can auto-translate the kids captions into the viewer's language.
+
+    Mirrors the timing model of make_video_ffmpeg_cinematic + _concat_with_xfade:
+      • each scene clip is held for its narration length (ffmpeg -shortest), and
+        _concat_with_xfade uses max(clip, 30)s as its offset unit;
+      • neighbouring clips overlap by trans_dur = 0.5s.
+    So scene i starts at  Σ_{k<i} max(audio_dur_k, 30) − i×0.5, and its caption
+    spans that scene's own narration audio length.
+
+    FULLY FAIL-OPEN → returns the .srt path, or None on any problem (no caption).
+    """
+    try:
+        from subtitle_helper import build_srt_segments
+        TRANS, MIN_CLIP = 0.5, 30.0
+
+        audio_durs = []
+        for ap in audio_paths:
+            try:
+                probe = subprocess.run(
+                    ["ffprobe", "-v", "quiet", "-show_entries", "format=duration",
+                     "-of", "csv=p=0", str(ap)],
+                    capture_output=True, text=True)
+                audio_durs.append(float((probe.stdout or "").strip() or "0"))
+            except Exception:
+                audio_durs.append(0.0)
+
+        # offset unit per scene = exactly what _concat_with_xfade probes
+        clip_units = [max(d, MIN_CLIP) for d in audio_durs]
+
+        segments, start = [], 0.0
+        for i, narr in enumerate(narrations):
+            if i > 0:
+                start += clip_units[i - 1] - TRANS
+            window = audio_durs[i] if audio_durs[i] > 0 else clip_units[i]
+            if narr and narr.strip():
+                segments.append((narr, start, window))
+
+        if not segments:
+            return None
+        out = OUTPUT_DIR / f"kids_subs_{TODAY}_{lang}.srt"
+        srt = build_srt_segments(segments, out)
+        if srt:
+            print(f"  [SUBS] Caption track built ({lang}, {len(segments)} scenes) → {Path(srt).name}")
+        return srt
+    except Exception as e:
+        print(f"  ⚠️ kids subtitle build skipped (fail-open): {e}")
+        return None
+
+
 # ── v2.3 NEW: CINEMATIC VIDEO GENERATION ─────────────────────────────────────
 
 def make_video_ffmpeg_cinematic(
@@ -747,6 +813,7 @@ def main():
 
     img_paths   = []
     audio_paths = []
+    narrations  = []   # v2.6: keep per-scene spoken text for the .srt caption track
 
     for scene in scenes:
         sid      = scene.get("id", len(img_paths)+1)
@@ -763,6 +830,7 @@ def main():
         generate_tts(narr, LANG, audio_p)
         img_paths.append(img_p)
         audio_paths.append(audio_p)
+        narrations.append(narr)
 
     # v2.3: Multi-text thumbnail (scene 1 as dramatic background)
     thumb_path = make_thumbnail_multitext(
@@ -786,6 +854,11 @@ def main():
            "-c:v","libx264","-preset","ultrafast","-crf","24","-c:a","aac",str(out_short)]
     subprocess.run(cmd, capture_output=True)
 
+    # v2.6: build a per-scene .srt synced to the final timeline so YouTube can
+    # AUTO-TRANSLATE the kids captions into the viewer's language (US/UK/Brazil).
+    # Fully fail-open — a subtitle problem must never break the video pipeline.
+    subtitle_srt = _build_kids_subtitles(narrations, audio_paths, LANG)
+
     # Save meta (unified date format)
     meta = {
         "title_hi":        title_hi,
@@ -799,6 +872,8 @@ def main():
         "video_path":      str(out_video),
         "short_path":      str(out_short),
         "thumb_path":      str(thumb_path),
+        "subtitle_srt":    str(subtitle_srt) if subtitle_srt else "",
+        "subtitle_lang":   LANG,
         "date":            TODAY,
         "scene_count":     len(scenes),
         "effects":         "cinematic: zoom+pan+fade+vignette+xfade transitions",
