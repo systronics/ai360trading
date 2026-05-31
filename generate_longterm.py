@@ -1,6 +1,13 @@
 """
-AI360 Long-Term Investment Signals — v1.6
+AI360 Long-Term Investment Signals — v1.7
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v1.7 CHANGES vs v1.6 (2026-05-31 — website embed fix):
+  FIX — PositionalLatest tab is trimmed to EXACTLY the 5 teaser columns ×
+        (picks + 1) rows after each rewrite. clear() wipes values but NOT
+        formatting/grid size, so leftover orange header fill + empty columns
+        from old 13-column runs made the published website iframe render a
+        half-empty table. resize() now keeps the public embed clean forever.
+
 v1.6 CHANGES vs v1.5 (2026-05-26 audit BUG-3 + BUG-4):
   BUG-3 FIX — _rsi() returned NaN on flat 14-day windows (no down days OR
               both gain and loss zero) because `gain / loss` → 0/0 = NaN.
@@ -701,6 +708,14 @@ def main():
             pos_sheet.clear()
             pos_sheet.append_row(pos_headers)
             pos_sheet.append_rows(pub_rows)
+            # clear() wipes VALUES but NOT formatting/grid size. Older 13-col runs
+            # left orange header fill + empty columns F+ and trailing blank rows,
+            # which the published website iframe rendered as a half-empty table.
+            # Trim the tab to EXACTLY the teaser size so the embed is always clean.
+            try:
+                pos_sheet.resize(rows=len(pub_rows) + 1, cols=len(pos_headers))
+            except Exception as e:
+                print(f"[LT] PositionalLatest resize (cosmetic, non-fatal): {e}")
             print(f"[LT] PositionalLatest refreshed (teaser) — {len(pub_rows)} picks ({week_str})")
         except Exception as e:
             print(f"[LT] PositionalLatest write: {e}")
