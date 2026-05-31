@@ -80,6 +80,46 @@ def build_srt(spoken_text: str, duration: float, out_path,
         return None
 
 
+def build_srt_segments(segments, out_path, words_per_cue: int = 7):
+    """
+    Multi-segment .srt for videos assembled from timed pieces (e.g. the education
+    video's per-slide audio, or kids per-scene narration).
+    `segments` = list of (text, start_sec, duration_sec). Each segment's text is
+    chunked into cues spread across its own window, with continuous numbering.
+    Fail-open → returns None on any problem.
+    """
+    try:
+        out, idx = [], 1
+        for text, seg_start, seg_dur in segments:
+            text = " ".join((text or "").split())
+            if not text or not seg_dur or seg_dur <= 0:
+                continue
+            words = text.split()
+            total = len(words)
+            cues = [" ".join(words[i:i + words_per_cue])
+                    for i in range(0, total, words_per_cue)]
+            t = float(seg_start)
+            for j, cue in enumerate(cues):
+                cdur = seg_dur * (len(cue.split()) / total)
+                start = t
+                end = (seg_start + seg_dur) if j == len(cues) - 1 else (t + cdur)
+                if end <= start:
+                    end = start + 0.4
+                out.append(str(idx))
+                out.append(f"{_fmt_ts(start)} --> {_fmt_ts(end)}")
+                out.append(cue)
+                out.append("")
+                idx += 1
+                t += cdur
+        if not out:
+            return None
+        Path(out_path).write_text("\n".join(out), encoding="utf-8")
+        return str(out_path)
+    except Exception as e:
+        print(f"  ⚠️ subtitle (segments) skipped (fail-open): {e}")
+        return None
+
+
 def upload_caption(youtube, video_id: str, srt_path, language: str,
                    name: str = "AI360Trading") -> bool:
     """

@@ -538,7 +538,7 @@ def make_edu_thumbnail(title_text, topic, week, path):
     return path
 
 
-def upload_to_youtube(video_path, title, description, tags, thumb_path=None):
+def upload_to_youtube(video_path, title, description, tags, thumb_path=None, srt_path=None, lang="hi"):
     youtube = get_youtube_service()
     if not youtube: return None
     body = {
@@ -546,7 +546,10 @@ def upload_to_youtube(video_path, title, description, tags, thumb_path=None):
             "title":       title[:100],
             "description": description,
             "tags":        tags,
-            "categoryId":  "27"
+            "categoryId":  "27",
+            # Lets YouTube auto-generate + auto-translate captions per country.
+            "defaultLanguage":      lang,
+            "defaultAudioLanguage": lang,
         },
         "status": {
             "privacyStatus":           "public",
@@ -571,6 +574,13 @@ def upload_to_youtube(video_path, title, description, tags, thumb_path=None):
                 print("  ✅ Custom thumbnail set")
             except Exception as te:
                 print(f"  ⚠️ Thumbnail set skipped (channel may need verification): {te}")
+        # Subtitle track for YouTube auto-translate (fail-open; needs force-ssl scope)
+        if srt_path and Path(str(srt_path)).exists():
+            try:
+                from subtitle_helper import upload_caption
+                upload_caption(youtube, vid_id, srt_path, lang)
+            except Exception as ce:
+                print(f"  ⚠️ Caption upload skipped (fail-open): {ce}")
         return vid_id
     except Exception as e:
         print(f"❌ Upload [{LANG}]: {e}")
@@ -609,6 +619,8 @@ async def run():
 
     # Render all slides + audio
     clips = []
+    srt_segments = []      # (text, start_sec, audio_duration) per slide → .srt
+    cum_t = 0.0
     for i, slide in enumerate(slides, start=1):
         slide_path = OUT / f"edu_slide_{LANG}_{today}_{i:02d}.png"
         audio_path = OUT / f"edu_audio_{LANG}_{today}_{i:02d}.mp3"
@@ -621,6 +633,8 @@ async def run():
             dur        = audio_clip.duration + 1.2  # 1.2s reading pause
             img_clip   = ImageClip(str(slide_path)).set_duration(dur).set_audio(audio_clip)
             clips.append(img_clip)
+            srt_segments.append((slide.get("content", ""), cum_t, audio_clip.duration))
+            cum_t += dur
         except Exception as e:
             print(f"⚠️  Slide {i} clip error: {e}")
 
@@ -648,8 +662,19 @@ async def run():
         print(f"⚠️ Thumbnail build failed: {e}")
         thumb_path = None
 
-    # Upload
-    vid_id = upload_to_youtube(video_path, vid_title, full_desc, youtube_tags, thumb_path)
+    # Build subtitle track (.srt) for YouTube auto-translate (fail-open)
+    srt_path = OUT / "education_video_bi.srt"
+    try:
+        from subtitle_helper import build_srt_segments
+        if not build_srt_segments(srt_segments, str(srt_path)):
+            srt_path = None
+    except Exception as e:
+        print(f"⚠️ subtitle build skipped (fail-open): {e}")
+        srt_path = None
+
+    # Upload (lang='hi' — bilingual Hinglish is Hindi-dominant; 'bi' is not a YT code)
+    vid_id = upload_to_youtube(video_path, vid_title, full_desc, youtube_tags, thumb_path,
+                               srt_path=(str(srt_path) if srt_path else None), lang="hi")
 
     # Save meta
     meta = {
