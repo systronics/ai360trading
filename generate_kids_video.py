@@ -1,12 +1,19 @@
 """
 generate_kids_video.py — HerooQuest v2.5
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-v2.5 (2026-05-31) — IMAGE RELIABILITY (fixes "only one image / not related
-  to story" = every scene was falling back to the PIL placeholder):
-    ADD Layer 0 = Cloudflare Workers AI FLUX.1-schnell (FREE, reliable API).
-    Activates when CLOUDFLARE_ACCOUNT_ID + CLOUDFLARE_API_TOKEN secrets exist.
-    Tried first (before Gemini/Pollinations/HF) so each scene gets a distinct,
-    topic-relevant Pixar still instead of the repeated placeholder.
+v2.5 (2026-05-31) — IMAGE FIX ("only one image / not related to story"):
+    ROOT CAUSE (from run logs): images were NOT placeholders — Pollinations
+    succeeded every scene — but `full_prompt = "{SCENE_STYLE} Scene: {prompt}"`
+    put the ~870-char fixed style/character prefix FIRST, longer than the
+    800-char Pollinations limit, so the scene-specific part was truncated off
+    → all 10 images near-identical / off-topic.
+    FIX 1: lead with the scene action → `"{prompt}. Main character:{HEROO}.{STYLE_3D}"`
+           + raised Pollinations truncation 800 → 1000.
+    FIX 2: ADD Layer 0 = Cloudflare Workers AI FLUX.1-schnell (FREE, reliable
+           API) tried first; activates when CLOUDFLARE_ACCOUNT_ID +
+           CLOUDFLARE_API_TOKEN secrets exist.
+    FIX 3: Gemini model name `gemini-2.5-flash-preview-image` (404 every call)
+           → `gemini-2.5-flash-image-preview`.
 
 v2.4 (2026-05-31) — NOT-SCARY FIX (kids were frightened by the thumbnails):
   The old output looked dark, red and ominous. Three causes fixed:
@@ -169,7 +176,11 @@ def generate_scene_image(prompt: str, scene_id: int) -> Path:
         print(f"  [CACHE] Scene {scene_id}")
         return img_path
 
-    full_prompt = f"{SCENE_STYLE} Scene: {prompt}"
+    # Lead with the SCENE-SPECIFIC action so every image is DISTINCT and ON-topic.
+    # (Bug: the fixed SCENE_STYLE prefix is ~870 chars — longer than the 800-char
+    #  Pollinations limit — so the scene part was truncated off and all 10 images
+    #  came out near-identical / unrelated to the story. Scene first fixes it.)
+    full_prompt = f"{prompt}. Main character: {HEROO}. {STYLE_3D}"
 
     # Layer 0: Cloudflare Workers AI — FLUX.1-schnell (FREE, reliable, automatable)
     # Activates automatically once CLOUDFLARE_ACCOUNT_ID + CLOUDFLARE_API_TOKEN
@@ -204,7 +215,7 @@ def generate_scene_image(prompt: str, scene_id: int) -> Path:
         from google.genai import types
         client   = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
         response = client.models.generate_content(
-            model="gemini-2.5-flash-preview-image",
+            model="gemini-2.5-flash-image-preview",
             contents=full_prompt,
             config=types.GenerateContentConfig(response_modalities=["IMAGE","TEXT"])
         )
@@ -222,7 +233,7 @@ def generate_scene_image(prompt: str, scene_id: int) -> Path:
     # Layer 2: Pollinations.ai FLUX Pro (FREE — no API key)
     try:
         import requests as req
-        clean    = full_prompt.replace('"','').replace("'",'')[:800]
+        clean    = full_prompt.replace('"','').replace("'",'')[:1000]
         encoded  = urllib.parse.quote(clean)
         for model in ["flux-pro", "flux", "flux-realism"]:
             try:
