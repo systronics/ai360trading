@@ -14,12 +14,35 @@
       border-bottom: 1px solid #e2e8f0;
       width: 100%;
     }
-    .header-banner-img {
-      display: block;
+    /* Text wordmark — crisp at every size, 0 KB, replaces the old clipart banner */
+    .brand-logo {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      text-decoration: none;
       margin: 0 auto 16px;
-      max-width: 720px;
-      width: 85%;
-      height: auto;
+    }
+    .brand-mark {
+      font-size: 52px;
+      font-weight: 900;
+      letter-spacing: -1.5px;
+      line-height: 1;
+      color: #0f172a;
+    }
+    .brand-mark .b360 {
+      background: linear-gradient(135deg, #0062ff 0%, #00c2ff 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      color: transparent;
+    }
+    .brand-tag {
+      margin-top: 8px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: #64748b;
     }
     .site-nav {
       display: flex;
@@ -102,14 +125,15 @@
     #cookie-accept-btn:hover { background: #004dc7; }
 
     /* ── RESPONSIVE ── */
-    @media (max-width: 1024px) { .header-banner-img { max-width: 560px; width: 88%; } }
     @media (max-width: 768px) {
-      .header-banner-img { max-width: 420px; width: 92%; }
+      .brand-mark { font-size: 42px; }
+      .brand-tag { letter-spacing: 2px; }
       .header-container { padding: 16px 12px 14px; }
       .footer-grid { grid-template-columns: repeat(2, 1fr); gap: 20px; }
     }
     @media (max-width: 480px) {
-      .header-banner-img { max-width: 100%; width: 96%; margin-bottom: 12px; }
+      .brand-mark { font-size: 34px; }
+      .brand-tag { font-size: 10px; letter-spacing: 1.5px; }
       .header-container { padding: 12px 10px; }
       .site-nav { gap: 12px; margin-bottom: 12px; }
       .nav-link { font-size: 11px; }
@@ -122,11 +146,9 @@
 <body>
 
   <header class="header-container">
-    <a href="/">
-      <img src="/public/image/header.webp"
-           alt="AI360Trading — Market Intelligence Terminal for NIFTY, S&P 500, FTSE 100 and IBOVESPA"
-           class="header-banner-img"
-           width="720" height="120">
+    <a href="/" class="brand-logo" aria-label="AI360Trading — home">
+      <span class="brand-mark">ai<span class="b360">360</span>trading</span>
+      <span class="brand-tag">Global Market Intelligence</span>
     </a>
     <!-- HEADER NAV: About + Contact in header for E-E-A-T SEO — Disclaimer + Privacy Policy in footer only -->
     <nav class="site-nav">
