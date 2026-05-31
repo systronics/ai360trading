@@ -8,6 +8,8 @@ v2.4 (2026-05-31) — NOT-SCARY FIX (kids were frightened by the thumbnails):
        "NOT scary, no dark/ominous, no creepy faces, daytime".
     2. enhance_image_cinematic() removed the dark edge VIGNETTE + warm-RED
        channel push, and raised brightness → bright cheerful frames.
+       make_video_ffmpeg_cinematic() likewise dropped its ffmpeg vignette and
+       flipped brightness -0.02 → +0.05 (the video re-darkened every frame).
     3. make_thumbnail_multitext() dark overlay 155 → 80 so the bright happy
        scene shows through (title/moral text still readable via shadows).
   NOTE: only affects NEWLY generated videos; already-uploaded thumbnails are
@@ -396,26 +398,20 @@ def make_video_ffmpeg_cinematic(
             x_expr    = "if(lte(on,1),iw/2-(iw/zoom/2),max(0,x-1))"
             y_expr    = "ih/2-(ih/zoom/2)"
 
-        # Cinematic color correction via ffmpeg eq filter
-        # contrast=1.1: slight contrast boost
-        # brightness=-0.02: very slight darken (cinematic)
-        # saturation=1.3: Pixar-style vivid colors
-        # gamma=1.05: subtle gamma correction
-        color_filter = "eq=contrast=1.1:brightness=-0.02:saturation=1.3:gamma=1.05"
+        # KID-FRIENDLY colour: brighten slightly (was brightness=-0.02 darken)
+        # and DROP the dark vignette — "cinema dark edges" made the kids content
+        # look gloomy/scary. Keep vivid saturation for fun, friendly colours.
+        color_filter = "eq=contrast=1.06:brightness=0.05:saturation=1.30:gamma=1.02"
 
-        # Vignette filter
-        vignette_filter = "vignette=PI/4"
+        # Sharpness (gentle)
+        sharpen_filter = "unsharp=5:5:0.6:3:3:0.3"
 
-        # Sharpness
-        sharpen_filter = "unsharp=5:5:0.8:3:3:0.4"
-
-        # Combine zoom + color + vignette + sharpness
+        # Combine zoom + colour + sharpness (NO vignette)
         zoom_filter = (
             f"zoompan=z='{zoom_expr}':d={int(duration*25)}"
             f":x='{x_expr}':y='{y_expr}':s=1280x720:fps=25"
             f",scale=1280:720"
             f",{color_filter}"
-            f",{vignette_filter}"
             f",{sharpen_filter}"
         )
 
