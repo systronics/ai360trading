@@ -1,19 +1,54 @@
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-YR9E0CYRCV"></script>
+<!-- ==========================================================================
+     Analytics — LAZY LOADED for mobile PageSpeed (TBT)
+     --------------------------------------------------------------------------
+     Google Analytics (gtag.js) + Microsoft Clarity are heavy third-party
+     scripts that run on the main thread. Loading them eagerly was the main
+     reason mobile PageSpeed (68) trailed desktop (99): mobile CPU is throttled
+     ~4x, so their execution dominated Total Blocking Time.
+
+     Fix: do NOT load them during initial render. Load on the first real user
+     interaction (scroll / touch / move / key / click), OR after a short idle
+     fallback so passive readers and bounces are still counted. Real readers
+     are tracked within milliseconds of interacting; only a visitor who leaves
+     within ~3s without ANY interaction is missed — i.e. an instant bounce.
+     ========================================================================== -->
 <script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+(function () {
+  var loaded = false;
+  function loadAnalytics() {
+    if (loaded) return;
+    loaded = true;
 
-  gtag('config', 'G-YR9E0CYRCV');
+    // --- Google Analytics (gtag.js) ---
+    var ga = document.createElement('script');
+    ga.async = true;
+    ga.src = 'https://www.googletagmanager.com/gtag/js?id=G-YR9E0CYRCV';
+    document.head.appendChild(ga);
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { window.dataLayer.push(arguments); }
+    window.gtag = gtag;
+    gtag('js', new Date());
+    gtag('config', 'G-YR9E0CYRCV');
+
+    // --- Microsoft Clarity (free heatmaps + session recordings) ---
+    (function (c, l, a, r, i, t, y) {
+      c[a] = c[a] || function () { (c[a].q = c[a].q || []).push(arguments) };
+      t = l.createElement(r); t.async = 1; t.src = "https://www.clarity.ms/tag/" + i;
+      y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
+    })(window, document, "clarity", "script", "wzat00soya");
+  }
+
+  // Load on the first user interaction (passive listeners → no scroll-jank).
+  var evts = ['scroll', 'mousemove', 'touchstart', 'keydown', 'click'];
+  function onInteract() { loadAnalytics(); cleanup(); }
+  function cleanup() {
+    evts.forEach(function (e) { window.removeEventListener(e, onInteract, { passive: true }); });
+  }
+  evts.forEach(function (e) { window.addEventListener(e, onInteract, { passive: true }); });
+
+  // Idle fallback so passive readers / instant bounces are still tracked.
+  function armFallback() { setTimeout(loadAnalytics, 3000); }
+  if (document.readyState === 'complete') { armFallback(); }
+  else { window.addEventListener('load', armFallback); }
+})();
 </script>
-
-<!-- Microsoft Clarity (free heatmaps + session recordings) -->
-<script type="text/javascript">
-  (function(c,l,a,r,i,t,y){
-    c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-    t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
-    y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-  })(window, document, "clarity", "script", "wzat00soya");
-</script>
-
