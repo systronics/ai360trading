@@ -129,8 +129,12 @@ def main():
                                       prompt="consent",
                                       authorization_prompt_message="")
     except Exception as e:
-        print(f"\n⚠️ Browser flow failed ({e}). Falling back to copy-paste mode…\n")
-        creds = flow.run_console(access_type="offline", prompt="consent")
+        sys.exit(
+            f"\n⚠️ Browser sign-in didn't complete ({e}).\n"
+            "   Make sure you finished 'Allow' in the browser, then just re-run\n"
+            f"   the same command:  python reauth_youtube.py --which {args.which}\n"
+            "   (If your browser didn't open at all, tell Claude — we'll use the\n"
+            "   Google Cloud Console route instead.)")
 
     new_json = creds.to_json()
     out = Path("output")
