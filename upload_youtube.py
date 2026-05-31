@@ -5,6 +5,13 @@ Uploads reels to YouTube. Handles two reel types:
   --type morning  → morning_reel_YYYYMMDD.mp4
   --type reel     → reel_YYYYMMDD.mp4 (ZENO evening reel)
 
+v2.3 (2026-05-31):
+  FIX — Stop skipping the custom thumbnail for Shorts.
+    Old code skipped thumbnails().set() for reel/morning/short on the
+    assumption Shorts thumbnails were unsupported via API. A custom thumbnail
+    still drives CTR on Search / channel Shorts grid / Browse / shared links,
+    so we now always attempt it (fail-open — never breaks the upload).
+
 v2.2 FIXES (May 2026):
 
 FIX 1 — Custom thumbnail upload for all reel types
@@ -337,20 +344,21 @@ def main():
     if not video_id:
         print("❌ Upload failed"); sys.exit(1)
 
-    # ── Set custom thumbnail ──────────────────────────────────────────────────
-    # Try thumb_path from meta first (built by reel generator)
-    is_short = reel_type in ("reel", "morning", "short")
-    if is_short:
-        print(f"[THUMB] Skipping — YouTube Shorts thumbnail not supported via API")
+    # ── Set custom thumbnail (fail-open) ──────────────────────────────────────
+    # In the in-feed Shorts player YouTube shows a video frame, but a custom
+    # thumbnail still drives CTR on Search, the channel Shorts grid, Browse and
+    # shared links (Telegram/WhatsApp/Facebook). So we always attempt it.
+    # upload_thumbnail() is fail-open — if YouTube ignores/refuses it, the upload
+    # is unaffected. (Was previously skipped for shorts on the old assumption it
+    # was unsupported via API.)
+    thumb_path = meta.get("thumb_path","")
+    if thumb_path and Path(thumb_path).exists():
+        print(f"[THUMB] Using meta thumbnail: {Path(thumb_path).name}")
+        upload_thumbnail(youtube, video_id, Path(thumb_path))
     else:
-        thumb_path = meta.get("thumb_path","")
-        if thumb_path and Path(thumb_path).exists():
-            print(f"[THUMB] Using meta thumbnail: {Path(thumb_path).name}")
-            upload_thumbnail(youtube, video_id, Path(thumb_path))
-        else:
-            print("[THUMB] Building fallback thumbnail...")
-            fb_thumb = build_fallback_thumbnail(reel_type, meta)
-            upload_thumbnail(youtube, video_id, fb_thumb)
+        print("[THUMB] Building fallback thumbnail...")
+        fb_thumb = build_fallback_thumbnail(reel_type, meta)
+        upload_thumbnail(youtube, video_id, fb_thumb)
 
     # Save meta
     meta["youtube_video_id"] = video_id

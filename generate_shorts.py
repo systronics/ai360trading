@@ -12,6 +12,13 @@ UPLOAD TARGETS:
   Short 2 (Hindi):   YouTube ✅ | Facebook AI360Trading Page ✅ | Instagram ✅
   Short 3 (English): YouTube ✅ | Facebook AI360Trading Page ✅ | Instagram ✅
 
+v3.5 (2026-05-31):
+  ADD — bold-text stop-scroll thumbnail for Short 2 + Short 3.
+    Minimal cover (1 huge headline + 1 punch line + sentiment colour),
+    set as the YouTube custom thumbnail. Fully fail-open: a thumbnail error
+    never blocks the render or the upload. Drives CTR on Search / channel
+    Shorts grid / Browse / shared links.
+
 v3.4 (2026-05-31):
   ADD — burned-in captions on Short 2 + Short 3 via caption_helper.py
     (Pillow-rendered, proportionally timed, fully fail-open → never breaks render).
@@ -127,6 +134,111 @@ def draw_text_outlined(draw, text, x, y, font, fill, outline=3, anchor="mm"):
             if dx != 0 or dy != 0:
                 draw.text((x+dx, y+dy), text, font=font, fill=(0,0,0), anchor=anchor)
     draw.text((x, y), text, font=font, fill=fill, anchor=anchor)
+
+
+# ─── BOLD-TEXT THUMBNAIL (stop-scroll cover for Shorts) ──────────────────────
+# v3.5 (2026-05-31): The video frame is a busy info-card — poor at stopping a
+# scroll. This builds a deliberately MINIMAL bold-text thumbnail (1 huge headline
+# + 1 punch line) used as the YouTube custom thumbnail. In the in-feed Shorts
+# player YouTube still shows a video frame, but this cover drives CTR on Search,
+# the channel Shorts grid, Browse and shared links (Telegram/WhatsApp/Facebook).
+# Fully fail-open: any error here is caught by the caller and never breaks render.
+
+def _wrap_to_width(draw, text, font, max_w):
+    words, lines, line = text.split(), [], ""
+    for w in words:
+        test = (line + " " + w).strip()
+        if draw.textbbox((0, 0), test, font=font)[2] <= max_w:
+            line = test
+        else:
+            if line: lines.append(line)
+            line = w
+    if line: lines.append(line)
+    return lines
+
+
+def build_short_thumbnail(headline: str, subline: str, accent, badge: str, out_name: str) -> Path:
+    """Clean bold-text stop-scroll thumbnail. Saved as JPEG (well under YouTube's
+    2 MB thumbnail limit). Caller wraps this fail-open."""
+    img  = gradient_bg((6, 10, 26), (14, 26, 54))
+    draw = ImageDraw.Draw(img, "RGBA")
+
+    # Accent frame top + bottom
+    draw.rectangle([(0, 0), (SW, 18)], fill=accent)
+    draw.rectangle([(0, SH-18), (SW, SH)], fill=accent)
+
+    # Brand badge — top
+    draw.rounded_rectangle([(40, 50), (470, 132)], radius=18, fill=accent)
+    draw.text((255, 91), "AI360TRADING", font=get_font(FONT_BOLD_PATHS, 50),
+              fill=(0, 0, 0), anchor="mm")
+
+    # Category badge
+    draw.text((SW//2, 205), badge, font=get_font(FONT_BOLD_PATHS, 46),
+              fill=(185, 205, 240), anchor="mm")
+
+    # Headline — huge, centered, auto-fit to max 3 lines
+    size   = 150
+    f_head = get_font(FONT_BOLD_PATHS, size)
+    lines  = _wrap_to_width(draw, headline.upper(), f_head, SW - 120)
+    while len(lines) > 3 and size > 90:
+        size  -= 12
+        f_head = get_font(FONT_BOLD_PATHS, size)
+        lines  = _wrap_to_width(draw, headline.upper(), f_head, SW - 120)
+
+    total_h = len(lines) * (size + 18)
+    ty = (SH - total_h) // 2 - 60
+    for line in lines[:3]:
+        for dx, dy in [(-4, 4), (4, -4), (-4, -4), (4, 4)]:
+            draw.text((SW//2+dx, ty+dy), line, font=f_head, fill=(0, 0, 0, 220), anchor="mm")
+        draw.text((SW//2, ty), line, font=f_head, fill=(255, 210, 0), anchor="mm")
+        ty += size + 18
+
+    # Supporting line — white on dark strip
+    if subline:
+        f_sub     = get_font(FONT_BOLD_PATHS, 54)
+        sub_lines = _wrap_to_width(draw, subline, f_sub, SW - 160)[:2]
+        strip_top = ty + 30
+        strip_h   = len(sub_lines) * 68 + 30
+        draw.rounded_rectangle([(50, strip_top), (SW-50, strip_top+strip_h)],
+                               radius=20, fill=(0, 0, 0, 150))
+        sy = strip_top + 48
+        for sl in sub_lines:
+            draw.text((SW//2, sy), sl, font=f_sub, fill=(255, 255, 255), anchor="mm")
+            sy += 68
+
+    # Footer CTA
+    draw.text((SW//2, SH-95), "▶  Watch • Learn • Subscribe",
+              font=get_font(FONT_BOLD_PATHS, 40), fill=accent, anchor="mm")
+
+    path = OUT / out_name
+    img.convert("RGB").save(str(path), "JPEG", quality=85)
+    print(f"  🖼️  Thumbnail built: {path.name}")
+    return path
+
+
+def short2_thumb_text(script_data: dict):
+    """Pick a punchy headline/subline/accent/badge for the Short 2 thumbnail."""
+    if CONTENT_MODE in ("holiday", "weekend"):
+        return ("WEEKEND TRADING LESSON",
+                script_data.get("insight", "Patience + discipline = profit"),
+                GOLD, "📚 LEARN TODAY")
+    stock  = script_data.get("stock", "NIFTY")
+    sent   = script_data.get("sentiment", "bullish").lower()
+    accent = BULL_GREEN if sent == "bullish" else BEAR_RED if sent == "bearish" else GOLD
+    arrow  = "📈" if sent == "bullish" else "📉" if sent == "bearish" else "⚖️"
+    return (f"{stock} {sent.upper()}",
+            script_data.get("insight", "Today's trade setup inside"),
+            accent, f"{arrow} TRADE SETUP")
+
+
+def short3_thumb_text(script_data: dict):
+    """Pick headline/subline/accent/badge for the Short 3 (global pulse) thumbnail."""
+    sent   = script_data.get("sentiment", "neutral").lower()
+    accent = BULL_GREEN if sent in ("bullish", "positive") else \
+             BEAR_RED if sent in ("bearish", "negative") else GOLD
+    return ("GLOBAL MARKETS TODAY",
+            script_data.get("insight", "Nifty • Gold • Bitcoin • S&P 500"),
+            accent, "🌍 MARKET PULSE")
 
 
 # ─── MARKET DATA ──────────────────────────────────────────────────────────────
@@ -515,7 +627,7 @@ def get_youtube_service():
         return None
 
 
-def upload_short(video_path: str, title: str, description: str, tags: list) -> str:
+def upload_short(video_path: str, title: str, description: str, tags: list, thumb_path: str = "") -> str:
     youtube = get_youtube_service()
     if not youtube: return ""
     body = {
@@ -532,6 +644,17 @@ def upload_short(video_path: str, title: str, description: str, tags: list) -> s
             if status: print(f"  {int(status.progress()*100)}%")
         vid_id = resp["id"]
         print(f"  ✅ YouTube: https://youtube.com/shorts/{vid_id}")
+        # Custom thumbnail (fail-open). Drives CTR on Search / channel grid /
+        # Browse / shared links even though the in-feed Shorts player uses a frame.
+        if thumb_path and os.path.exists(thumb_path):
+            try:
+                youtube.thumbnails().set(
+                    videoId=vid_id,
+                    media_body=MediaFileUpload(thumb_path, mimetype="image/jpeg", resumable=False)
+                ).execute()
+                print(f"  🖼️  Custom thumbnail set for {vid_id}")
+            except Exception as e:
+                print(f"  ⚠️ Thumbnail set skipped (fail-open): {e}")
         return vid_id
     except Exception as e:
         print(f"  ❌ YouTube upload failed: {e}")
@@ -932,9 +1055,17 @@ def main():
     gen_tts(s2_spoken, VOICE_SHORT2, s2_audio)
     render_short(s2_frame, s2_audio, s2_video, spoken_text=s2_spoken)
 
+    # Bold-text thumbnail (fail-open — never blocks upload)
+    s2_thumb = ""
+    try:
+        h, sub, acc, badge = short2_thumb_text(s2_data)
+        s2_thumb = str(build_short_thumbnail(h, sub, acc, badge, f"short2_thumb_{today}.jpg"))
+    except Exception as e:
+        print(f"  ⚠️ Short 2 thumbnail skipped (fail-open): {e}")
+
     s2_title  = build_title_short2(s2_data)
     s2_desc   = build_desc(s2_data, 2, part1_url)
-    short2_id = upload_short(s2_video, s2_title, s2_desc, yt_tags)
+    short2_id = upload_short(s2_video, s2_title, s2_desc, yt_tags, s2_thumb)
     if short2_id:
         print(f"  ✅ YouTube: https://youtube.com/shorts/{short2_id}")
 
@@ -954,9 +1085,17 @@ def main():
     gen_tts(s3_spoken, VOICE_SHORT3, s3_audio)
     render_short(s3_frame, s3_audio, s3_video, spoken_text=s3_spoken)
 
+    # Bold-text thumbnail (fail-open — never blocks upload)
+    s3_thumb = ""
+    try:
+        h, sub, acc, badge = short3_thumb_text(s3_data)
+        s3_thumb = str(build_short_thumbnail(h, sub, acc, badge, f"short3_thumb_{today}.jpg"))
+    except Exception as e:
+        print(f"  ⚠️ Short 3 thumbnail skipped (fail-open): {e}")
+
     s3_title  = build_title_short3(s3_data)
     s3_desc   = build_desc(s3_data, 3, part1_url)
-    short3_id = upload_short(s3_video, s3_title, s3_desc, yt_tags)
+    short3_id = upload_short(s3_video, s3_title, s3_desc, yt_tags, s3_thumb)
     if short3_id:
         print(f"  ✅ YouTube: https://youtube.com/shorts/{short3_id}")
 
