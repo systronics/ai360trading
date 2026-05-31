@@ -12,6 +12,10 @@ UPLOAD TARGETS:
   Short 2 (Hindi):   YouTube ✅ | Facebook AI360Trading Page ✅ | Instagram ✅
   Short 3 (English): YouTube ✅ | Facebook AI360Trading Page ✅ | Instagram ✅
 
+v3.4 (2026-05-31):
+  ADD — burned-in captions on Short 2 + Short 3 via caption_helper.py
+    (Pillow-rendered, proportionally timed, fully fail-open → never breaks render).
+
 v3.3 (May 2026):
   ADD — Instagram Reels upload for Short 2 + Short 3
     Uses same resumable upload flow as upload_facebook.py v2.5
@@ -471,11 +475,21 @@ def _with_cta(script: str, lang: str = "hi") -> str:
 # VIDEO RENDER — TTS ONLY
 # ══════════════════════════════════════════════════════════════════════════════
 
-def render_short(frame_path: Path, audio_path: str, out_path: str):
+def render_short(frame_path: Path, audio_path: str, out_path: str, spoken_text: str = ""):
     audio_clip = AudioFileClip(audio_path)
     duration   = audio_clip.duration + 0.5
     video      = ImageClip(str(frame_path)).set_duration(duration)
-    video      = video.set_audio(audio_clip)
+
+    # Burned-in captions (muted-autoplay retention + accessibility). Fail-open:
+    # any caption error leaves the original caption-less video untouched.
+    if spoken_text:
+        try:
+            from caption_helper import add_captions
+            video = add_captions(video, spoken_text, audio_clip.duration, (SW, SH), FONT_BOLD_PATHS)
+        except Exception as e:
+            print(f"  ⚠️ captions unavailable, rendering without (fail-open): {e}")
+
+    video = video.set_audio(audio_clip)
     video.write_videofile(out_path, fps=FPS, codec="libx264",
                           audio_codec="aac", verbose=False, logger=None)
     print(f"✅ Short rendered: {Path(out_path).name}")
@@ -914,8 +928,9 @@ def main():
     s2_frame = make_short2_frame(s2_data, market)
     s2_audio = str(OUT / f"short2_audio_{today}.mp3")
     s2_video = str(OUT / f"short2_{today}.mp4")
-    gen_tts(_with_cta(s2_data.get("script", ""), "hi"), VOICE_SHORT2, s2_audio)
-    render_short(s2_frame, s2_audio, s2_video)
+    s2_spoken = _with_cta(s2_data.get("script", ""), "hi")
+    gen_tts(s2_spoken, VOICE_SHORT2, s2_audio)
+    render_short(s2_frame, s2_audio, s2_video, spoken_text=s2_spoken)
 
     s2_title  = build_title_short2(s2_data)
     s2_desc   = build_desc(s2_data, 2, part1_url)
@@ -935,8 +950,9 @@ def main():
     s3_frame = make_short3_frame(s3_data, market)
     s3_audio = str(OUT / f"short3_audio_{today}.mp3")
     s3_video = str(OUT / f"short3_{today}.mp4")
-    gen_tts(_with_cta(s3_data.get("script", ""), "en"), VOICE_SHORT3, s3_audio)
-    render_short(s3_frame, s3_audio, s3_video)
+    s3_spoken = _with_cta(s3_data.get("script", ""), "en")
+    gen_tts(s3_spoken, VOICE_SHORT3, s3_audio)
+    render_short(s3_frame, s3_audio, s3_video, spoken_text=s3_spoken)
 
     s3_title  = build_title_short3(s3_data)
     s3_desc   = build_desc(s3_data, 3, part1_url)

@@ -5,6 +5,10 @@ Generates ZENO evening reel (8:30 PM) — 45-60 second Hinglish reel.
 
 VOICE: hi-IN-SwaraNeural (Swara — wise female, ZENO character)
 
+v2.2 (2026-05-31):
+  ADD — burned-in captions via caption_helper.py (Pillow-rendered,
+  proportionally timed, fully fail-open → never breaks the daily reel).
+
 v2.1 FIXES (May 2026):
   FIX 1 — Background music removed
     Reason: Meta mutes videos in many countries for copyright
@@ -382,7 +386,7 @@ def _with_cta(text: str) -> str:
 
 # ─── VIDEO COMPOSITION — NO BACKGROUND MUSIC ──────────────────────────────────
 
-def compose_video(frame_path, audio_path, output_path):
+def compose_video(frame_path, audio_path, output_path, spoken_text=""):
     """
     Compose final reel — TTS voice only, no background music.
     Music removed in v2.1 to prevent Meta muting in countries
@@ -392,6 +396,19 @@ def compose_video(frame_path, audio_path, output_path):
     duration   = audio_clip.duration + 0.5
 
     video = ImageClip(str(frame_path)).set_duration(duration)
+
+    # Burned-in captions (muted-autoplay retention + accessibility). Fail-open:
+    # any caption error leaves the original caption-less reel untouched.
+    if spoken_text:
+        try:
+            from caption_helper import add_captions
+            _cap_fonts = [FONT_BOLD,
+                          "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
+                          "/usr/share/fonts/truetype/freefont/FreeSansBold.ttf", FONT_REG]
+            video = add_captions(video, spoken_text, audio_clip.duration, (SW, SH), _cap_fonts)
+        except Exception as e:
+            print(f"  captions unavailable, rendering without (fail-open): {e}")
+
     video = video.set_audio(audio_clip)
     # NOTE: No CompositeAudioClip, no bgmusic — TTS only
     video.write_videofile(
@@ -448,7 +465,8 @@ async def main():
     print(f"Script ready | title: {title} | emotion: {emotion}")
 
     # Step 2: TTS audio
-    await generate_tts(_with_cta(audio_script), audio_path)
+    spoken = _with_cta(audio_script)
+    await generate_tts(spoken, audio_path)
 
     # Step 3: Build video frame
     frame_path = build_reel_frame(title, display, emotion)
@@ -458,7 +476,7 @@ async def main():
     print(f"Thumbnail built: {thumb_path}")
 
     # Step 5: Compose video — TTS only, no music
-    compose_video(frame_path, audio_path, video_path)
+    compose_video(frame_path, audio_path, video_path, spoken_text=spoken)
 
     # Step 6: Save meta
     save_meta(script, today_str, thumb_path)
