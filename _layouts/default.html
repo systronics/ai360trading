@@ -14,16 +14,28 @@
       border-bottom: 1px solid #e2e8f0;
       width: 100%;
     }
-    /* Text wordmark — crisp at every size, 0 KB, replaces the old clipart banner */
+    /* Logo mark + crisp text wordmark — replaces the old clipart banner */
     .brand-logo {
       display: inline-flex;
-      flex-direction: column;
+      flex-direction: row;
       align-items: center;
+      gap: 14px;
       text-decoration: none;
       margin: 0 auto 16px;
     }
+    .brand-icon {
+      width: 54px;
+      height: 54px;
+      display: block;
+      flex: none;
+    }
+    .brand-text {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
     .brand-mark {
-      font-size: 52px;
+      font-size: 46px;
       font-weight: 900;
       letter-spacing: -1.5px;
       line-height: 1;
@@ -126,14 +138,17 @@
 
     /* ── RESPONSIVE ── */
     @media (max-width: 768px) {
-      .brand-mark { font-size: 42px; }
+      .brand-mark { font-size: 38px; }
       .brand-tag { letter-spacing: 2px; }
+      .brand-icon { width: 46px; height: 46px; }
       .header-container { padding: 16px 12px 14px; }
       .footer-grid { grid-template-columns: repeat(2, 1fr); gap: 20px; }
     }
     @media (max-width: 480px) {
-      .brand-mark { font-size: 34px; }
+      .brand-mark { font-size: 30px; }
       .brand-tag { font-size: 10px; letter-spacing: 1.5px; }
+      .brand-icon { width: 40px; height: 40px; }
+      .brand-logo { gap: 10px; }
       .header-container { padding: 12px 10px; }
       .site-nav { gap: 12px; margin-bottom: 12px; }
       .nav-link { font-size: 11px; }
@@ -147,8 +162,12 @@
 
   <header class="header-container">
     <a href="/" class="brand-logo" aria-label="AI360Trading — home">
-      <span class="brand-mark">ai<span class="b360">360</span>trading</span>
-      <span class="brand-tag">Global Market Intelligence</span>
+      <img src="/public/image/logo.png" class="brand-icon" width="54" height="54"
+           alt="AI360Trading logo">
+      <span class="brand-text">
+        <span class="brand-mark">ai<span class="b360">360</span>trading</span>
+        <span class="brand-tag">Global Market Intelligence</span>
+      </span>
     </a>
     <!-- HEADER NAV: About + Contact in header for E-E-A-T SEO — Disclaimer + Privacy Policy in footer only -->
     <nav class="site-nav">
