@@ -24,12 +24,16 @@ on:
           - hi
           - en
   schedule:
-    - cron: '30 2 * * *'   # 8:00 AM IST every day
+    # Audience-aligned, staggered so the channel never gets two uploads at once.
+    - cron: '30 10 * * *'  # 16:00 IST → live ~16:40 IST = India kids' after-school/evening peak (Hindi)
+    - cron: '0 19 * * *'   # 19:00 UTC = 15:00 US-ET / 12:00 US-PT / 20:00 UK → US/UK after-school peak (English)
 
 jobs:
 
   # ── Hindi Full Story (~7.5 min) ────────────────────────────────────────────
   kids-hindi-full:
+    # Hindi cron only (16:00 IST); workflow_dispatch always runs it too.
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '30 10 * * *'
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
@@ -128,6 +132,8 @@ jobs:
   #   Native English HerooQuest episode for US/UK/global kids audiences. Runs in
   #   its own workspace, uploads to YouTube Kids (English title/desc + .srt).
   kids-english-full:
+    # English cron only (19:00 UTC = US/UK after-school); workflow_dispatch always runs it too.
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 19 * * *'
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:

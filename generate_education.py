@@ -30,10 +30,12 @@ Slide count: 22 slides minimum @ 100+ words each
 
 import os
 import re
+import io
 import sys
 import json
 import asyncio
 import textwrap
+import urllib.parse
 from datetime import datetime
 from pathlib import Path
 
@@ -411,17 +413,94 @@ Return ONLY valid JSON, no markdown:
             "slides": fallback_slides
         }
 
+# ─── TOPIC IMAGE (free FLUX → Pollinations, fail-open) ──────────────────────────
+# One relevant finance image per lesson, reused as a subtle background on every
+# slide + behind the thumbnail. Higher click-through + retention. ₹0 (free tiers).
+# Fail-open: any error → returns None → slides fall back to the plain gradient.
+
+_TOPIC_IMG_CACHE = {}
+
+def fetch_finance_image(prompt: str, cache_key: str, w: int = W, h: int = H):
+    if cache_key in _TOPIC_IMG_CACHE:
+        return _TOPIC_IMG_CACHE[cache_key]
+
+    full = (
+        f"Professional financial education illustration about {prompt}. "
+        "Indian stock market theme, modern clean infographic, charts graphs candlesticks, "
+        "deep blue and gold tones, cinematic lighting, high quality. "
+        "Absolutely NO text, NO words, NO letters, NO numbers in the image."
+    )
+    img = None
+
+    # Layer 0: Cloudflare Workers AI — FLUX.1-schnell (free, reliable)
+    try:
+        cf_account = os.environ.get("CLOUDFLARE_ACCOUNT_ID", "")
+        cf_token   = os.environ.get("CLOUDFLARE_API_TOKEN", "")
+        if cf_account and cf_token:
+            import requests as req, base64
+            r = req.post(
+                f"https://api.cloudflare.com/client/v4/accounts/{cf_account}"
+                f"/ai/run/@cf/black-forest-labs/flux-1-schnell",
+                headers={"Authorization": f"Bearer {cf_token}"},
+                json={"prompt": full[:2048], "steps": 8}, timeout=90)
+            if r.status_code == 200:
+                b64 = ((r.json().get("result") or {}).get("image", "")) or ""
+                if b64:
+                    img = Image.open(io.BytesIO(base64.b64decode(b64))).convert("RGB")
+                    print("  [EDU-IMG] topic image via Cloudflare FLUX ✓")
+            else:
+                print(f"  [EDU-IMG] Cloudflare {r.status_code}: {r.text[:100]}")
+    except Exception as e:
+        print(f"  [EDU-IMG] Cloudflare skip: {str(e)[:80]}")
+
+    # Layer 1: Pollinations.ai FLUX (free, no key)
+    if img is None:
+        try:
+            import requests as req
+            clean = full.replace('"', '').replace("'", '')[:1000]
+            url = (f"https://image.pollinations.ai/prompt/{urllib.parse.quote(clean)}"
+                   f"?model=flux&width={w}&height={h}&nologo=true&enhance=true")
+            r  = req.get(url, timeout=60)
+            ct = r.headers.get("content-type", "")
+            if r.status_code == 200 and (
+                "image" in ct or
+                r.content[:4] in [b'\xff\xd8\xff\xe0', b'\xff\xd8\xff\xe1', b'\x89PNG']
+            ):
+                img = Image.open(io.BytesIO(r.content)).convert("RGB")
+                print("  [EDU-IMG] topic image via Pollinations ✓")
+        except Exception as e:
+            print(f"  [EDU-IMG] Pollinations skip: {str(e)[:80]}")
+
+    if img is not None:
+        img = img.resize((w, h), Image.LANCZOS)
+    else:
+        print("  [EDU-IMG] no image — slides use plain gradient (fail-open)")
+    _TOPIC_IMG_CACHE[cache_key] = img
+    return img
+
 # ─── SLIDE RENDERER ───────────────────────────────────────────────────────────
 
-def make_edu_slide(slide, idx, total, topic, path):
+def make_edu_slide(slide, idx, total, topic, path, bg_img=None):
     level = topic.get("level", "Beginner")
     th    = LEVEL_THEMES.get(level, DEFAULT_THEME)
 
-    img = Image.new("RGB", (W, H))
-    px  = img.load()
-    for y in range(H):
-        c = lerp(th["bg_top"], th["bg_bot"], y / H)
-        for x in range(W): px[x, y] = c
+    if bg_img is not None:
+        # Topic photo as background + tinted dark scrim → premium look, text readable.
+        img   = bg_img.copy().convert("RGBA")
+        scrim = Image.new("RGBA", (W, H))
+        sdraw = ImageDraw.Draw(scrim)
+        for y in range(0, H, 4):
+            t   = y / H
+            col = lerp(th["bg_top"], th["bg_bot"], t)
+            a   = min(int(188 + t * 42), 236)   # heavier toward the bottom text
+            sdraw.rectangle([(0, y), (W, y + 4)], fill=(col[0], col[1], col[2], a))
+        img = Image.alpha_composite(img, scrim).convert("RGB")
+    else:
+        img = Image.new("RGB", (W, H))
+        px  = img.load()
+        for y in range(H):
+            c = lerp(th["bg_top"], th["bg_bot"], y / H)
+            for x in range(W): px[x, y] = c
 
     draw = ImageDraw.Draw(img, "RGBA")
     draw.rectangle([(0,0),(W,10)], fill=th["accent"])
@@ -513,17 +592,25 @@ def get_youtube_service():
         return None
 
 
-def make_edu_thumbnail(title_text, topic, week, path):
+def make_edu_thumbnail(title_text, topic, week, path, hero=None):
     """Large-text 16:9 (1280x720) thumbnail for the long-form education video —
-    big bold title drives click-through far better than an auto-grabbed frame."""
+    big bold title drives click-through. A topic image behind it (when available)
+    lifts CTR further; the outlined title stays dominant either way."""
     import textwrap
     TW, TH = 1280, 720
-    img  = Image.new("RGB", (TW, TH))
-    draw = ImageDraw.Draw(img, "RGBA")
-    # Dark gradient background
-    for y in range(TH):
-        t = y / TH
-        draw.line([(0, y), (TW, y)], fill=(int(8 + t*12), int(14 + t*26), int(30 + t*52)))
+    if hero is not None:
+        # Topic photo background + moderate dark scrim — image stays clearly visible.
+        img   = hero.resize((TW, TH), Image.LANCZOS).convert("RGBA")
+        scrim = Image.new("RGBA", (TW, TH), (6, 12, 28, 125))
+        img   = Image.alpha_composite(img, scrim).convert("RGB")
+        draw  = ImageDraw.Draw(img, "RGBA")
+    else:
+        img  = Image.new("RGB", (TW, TH))
+        draw = ImageDraw.Draw(img, "RGBA")
+        # Dark gradient background
+        for y in range(TH):
+            t = y / TH
+            draw.line([(0, y), (TW, y)], fill=(int(8 + t*12), int(14 + t*26), int(30 + t*52)))
     # Accent bars
     draw.rectangle([(0, 0), (TW, 16)], fill=(255, 200, 0))
     draw.rectangle([(0, TH-16), (TW, TH)], fill=(255, 200, 0))
@@ -637,6 +724,17 @@ async def run():
     _fn         = _funnel(lang=LANG)
     full_desc   = f"{desc}\n\n{_fn}\n\n{hashtag_str}" if _fn else f"{desc}\n\n{hashtag_str}"
 
+    # One topic-relevant finance image (free FLUX → Pollinations), reused as a
+    # subtle background on every slide AND behind the thumbnail. Fail-open.
+    hero_img = None
+    try:
+        hero_img = fetch_finance_image(
+            f"{topic['title']} ({topic.get('category', 'stock market')})",
+            cache_key=f"edu_week_{week}")
+    except Exception as e:
+        print(f"⚠️ topic image skipped (fail-open): {e}")
+        hero_img = None
+
     # Render all slides + audio
     clips = []
     srt_segments = []      # (text, start_sec, audio_duration) per slide → .srt
@@ -645,7 +743,7 @@ async def run():
         slide_path = OUT / f"edu_slide_{LANG}_{today}_{i:02d}.png"
         audio_path = OUT / f"edu_audio_{LANG}_{today}_{i:02d}.mp3"
 
-        make_edu_slide(slide, i, len(slides), topic, slide_path)
+        make_edu_slide(slide, i, len(slides), topic, slide_path, bg_img=hero_img)
         await gen_voice(slide["content"], audio_path)
 
         try:
@@ -677,7 +775,7 @@ async def run():
     # Large-text 16:9 thumbnail for higher click-through
     thumb_path = OUT / f"education_thumb_{today}.png"
     try:
-        make_edu_thumbnail(vid_title, topic, week, thumb_path)
+        make_edu_thumbnail(vid_title, topic, week, thumb_path, hero=hero_img)
     except Exception as e:
         print(f"⚠️ Thumbnail build failed: {e}")
         thumb_path = None

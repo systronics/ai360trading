@@ -9,7 +9,7 @@ name: AI360 Auto-Heal
 
 on:
   schedule:
-    - cron: "*/30 * * * *"   # every 30 min
+    - cron: "0 * * * *"   # hourly — halves the run noise, still catches transient fails fast
   workflow_dispatch:
 
 permissions:
