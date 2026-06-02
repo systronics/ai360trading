@@ -1,6 +1,11 @@
 """
 generate_reel_morning.py — Morning Reel Generator (7:00 AM IST)
 ===============================================================
+v2.5 (2026-06-02):
+  ADD — Edge TTS 503 retry in generate_tts() (4x, 5/15/30s backoff). Keeps the
+    fail-soft bool contract; transient wss://speech.platform.bing.com 503 now
+    self-heals in-run instead of crashing the morning reel job.
+
 v2.4 (2026-05-31):
   ADD — bold-text HOOK intro frame (via hook_helper.py) prepended to the
   morning reel so the in-feed cover stops the scroll on YouTube/IG/FB.
@@ -422,10 +427,21 @@ async def generate_tts(lines: list, output_path: str) -> bool:
         text += (" Video pasand aaye toh like, share aur subscribe zaroor karein."
                  if LANG == "hi" else
                  " If this helped, like, share and subscribe for daily market updates.")
-    await edge_tts.Communicate(text, voice, rate=rate_str).save(output_path)
+    # Edge TTS (wss://speech.platform.bing.com) intermittently returns 503 /
+    # WSServerHandshakeError. Retry with backoff so a transient blip self-heals
+    # in-run; keeps the fail-soft bool contract on total failure.
+    for attempt in range(1, 5):  # 4 tries: 5/15/30s backoff
+        try:
+            await edge_tts.Communicate(text, voice, rate=rate_str).save(output_path)
+            if os.path.exists(output_path) and os.path.getsize(output_path) > 0:
+                break
+        except Exception as e:
+            logger.error(f"TTS attempt {attempt}/4 failed: {e}")
+        if attempt < 4:
+            await asyncio.sleep([5, 15, 30][attempt - 1])
     ok = os.path.exists(output_path) and os.path.getsize(output_path) > 0
     if ok: logger.info(f"TTS saved: {output_path}")
-    else:  logger.error("TTS failed")
+    else:  logger.error("TTS failed after 4 attempts")
     return ok
 
 

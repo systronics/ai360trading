@@ -12,6 +12,10 @@ UPLOAD TARGETS:
   Short 2 (Hindi):   YouTube ✅ | Facebook AI360Trading Page ✅ | Instagram ✅
   Short 3 (English): YouTube ✅ | Facebook AI360Trading Page ✅ | Instagram ✅
 
+v3.8 (2026-06-02):
+  ADD — Edge TTS 503 retry in gen_tts_async() (4x, 5/15/30s backoff + non-empty
+    check). Transient wss://speech.platform.bing.com 503 now self-heals in-run.
+
 v3.7 (2026-05-31):
   FIX — English Short 3 was leaking markdown (a literal "**" got spoken by TTS
     and shown in captions) and mixing Hindi. Now: scripts run through
@@ -598,7 +602,22 @@ Return ONLY valid JSON:
 async def gen_tts_async(text: str, voice: str, path: str):
     speed    = ht.get_tts_speed()
     rate_str = f"+{int((speed-1)*100)}%" if speed >= 1 else f"{int((speed-1)*100)}%"
-    await edge_tts.Communicate(text, voice, rate=rate_str).save(path)
+    # Edge TTS (wss://speech.platform.bing.com) intermittently returns 503 /
+    # WSServerHandshakeError. Retry with backoff so a transient blip self-heals
+    # in-run instead of failing the whole job.
+    last_err = None
+    for attempt in range(1, 5):  # 4 tries: 5/15/30s backoff
+        try:
+            await edge_tts.Communicate(text, voice, rate=rate_str).save(path)
+            if os.path.exists(path) and os.path.getsize(path) > 0:
+                return
+            raise RuntimeError("edge_tts produced empty audio file")
+        except Exception as e:
+            last_err = e
+            print(f"  [TTS] attempt {attempt}/4 failed: {e}")
+            if attempt < 4:
+                await asyncio.sleep([5, 15, 30][attempt - 1])
+    raise RuntimeError(f"TTS failed after 4 attempts: {last_err}")
 
 def gen_tts(text: str, voice: str, path: str):
     asyncio.run(gen_tts_async(text, voice, path))

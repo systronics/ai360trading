@@ -5,6 +5,10 @@ Generates ZENO evening reel (8:30 PM) — 45-60 second Hinglish reel.
 
 VOICE: hi-IN-SwaraNeural (Swara — wise female, ZENO character)
 
+v2.4 (2026-06-02):
+  ADD — Edge TTS 503 retry in generate_tts() (4x, 5/15/30s backoff + non-empty
+    check). Transient wss://speech.platform.bing.com 503 now self-heals in-run.
+
 v2.3 (2026-05-31):
   ADD — bold-text HOOK intro frame (via hook_helper.py) prepended to the
   reel so the in-feed cover stops the scroll on YouTube/Instagram/Facebook.
@@ -389,8 +393,22 @@ def build_youtube_description(script_data, today_str):
 # ─── TTS ──────────────────────────────────────────────────────────────────────
 
 async def generate_tts(text, output_path):
-    communicate = edge_tts.Communicate(text, VOICE, rate="+5%")
-    await communicate.save(str(output_path))
+    # Edge TTS (wss://speech.platform.bing.com) intermittently returns 503 /
+    # WSServerHandshakeError. Retry with backoff so a transient blip self-heals
+    # in-run instead of failing the whole job.
+    last_err = None
+    for attempt in range(1, 5):  # 4 tries: 5/15/30s backoff
+        try:
+            await edge_tts.Communicate(text, VOICE, rate="+5%").save(str(output_path))
+            if os.path.exists(str(output_path)) and os.path.getsize(str(output_path)) > 0:
+                return
+            raise RuntimeError("edge_tts produced empty audio file")
+        except Exception as e:
+            last_err = e
+            print(f"  [TTS] attempt {attempt}/4 failed: {e}")
+            if attempt < 4:
+                await asyncio.sleep([5, 15, 30][attempt - 1])
+    raise RuntimeError(f"TTS failed after 4 attempts: {last_err}")
 
 # Spoken engagement CTA appended to the voiced script (shares + subs lift reach).
 _AUDIO_CTA_HI = " Video pasand aaye toh like, share aur subscribe zaroor karein."

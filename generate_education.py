@@ -1,6 +1,11 @@
 """
 generate_education.py — AI360Trading
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v1.2 (2026-06-02):
+  ADD — Edge TTS 503 retry in gen_voice() (4x, 5/15/30s backoff + non-empty
+    check). Transient wss://speech.platform.bing.com 503 now self-heals in-run
+    instead of failing the whole job. Same fix shipped to kids/reel/morning/shorts.
+
 v1.1 FIXES (May 2026):
 
 FIX 1 — CONTENT_MODE empty bug
@@ -555,7 +560,22 @@ async def gen_voice(text, path):
     tts_speed = ht.get_tts_speed()
     rate_pct  = int((tts_speed - 1.0) * 100)
     rate_str  = f"+{rate_pct}%" if rate_pct >= 0 else f"{rate_pct}%"
-    await edge_tts.Communicate(text, VOICE, rate=rate_str).save(str(path))
+    # Edge TTS (wss://speech.platform.bing.com) intermittently returns 503 /
+    # WSServerHandshakeError. Retry with backoff so a transient blip self-heals
+    # in-run instead of failing the whole job.
+    last_err = None
+    for attempt in range(1, 5):  # 4 tries: 5/15/30s backoff
+        try:
+            await edge_tts.Communicate(text, VOICE, rate=rate_str).save(str(path))
+            if os.path.exists(str(path)) and os.path.getsize(str(path)) > 0:
+                return
+            raise RuntimeError("edge_tts produced empty audio file")
+        except Exception as e:
+            last_err = e
+            print(f"  [TTS] attempt {attempt}/4 failed: {e}")
+            if attempt < 4:
+                await asyncio.sleep([5, 15, 30][attempt - 1])
+    raise RuntimeError(f"TTS failed after 4 attempts: {last_err}")
 
 # ─── DURATION CHECK ───────────────────────────────────────────────────────────
 
