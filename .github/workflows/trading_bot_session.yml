@@ -39,9 +39,18 @@ concurrency:
 
 on:
   schedule:
-    # Two daily sessions (IST). Start each a little early to absorb GitHub's
-    # scheduler lag. The loop self-exits at the window's IST end time.
-    - cron: '0 3 * * 1-5'    # 08:30 IST — morning session (→ ends 11:59 IST)
+    # Daily sessions (IST). GitHub delays low-frequency crons unpredictably
+    # (seen 2026-06-02: the 08:30 trigger fired at 13:31 IST → the whole
+    # morning had NO dense monitoring). MITIGATION: register MULTIPLE morning
+    # start attempts (08:00 / 08:30 / 09:15 IST). Whichever GitHub honours
+    # first starts the dense loop; the concurrency group `trading-bot` +
+    # cancel-in-progress:false serialises the rest, so a later trigger just
+    # queues harmlessly behind the running loop (no overlap, no double-entry).
+    # Each is "morning session" (before noon → END=11:59), so any one of them
+    # covers the 09:15 open.
+    - cron: '30 2 * * 1-5'   # 08:00 IST — morning session (early start)
+    - cron: '0 3 * * 1-5'    # 08:30 IST — morning session
+    - cron: '45 3 * * 1-5'   # 09:15 IST — morning session (open — last-resort)
     - cron: '25 6 * * 1-5'   # 11:55 IST — afternoon session (→ ends 15:50 IST)
   workflow_dispatch:
     inputs:

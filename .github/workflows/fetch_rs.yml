@@ -1,0 +1,85 @@
+name: Nifty200 RS Repair Feed
+
+# v1.0 (2026-06-02):
+#   The Nifty200 `RS` column is a GOOGLEFINANCE() historical formula. Google has
+#   been failing GOOGLEFINANCE historical calls for NSE symbols, so RS = #N/A for
+#   ALL ~210 stocks. That #N/A cascades:  Signal_Score → #N/A, FINAL_ACTION → #N/A,
+#   Sector_Rotation_Score / Master_Score → 0.  In a BEARISH market the scanner only
+#   allows a new entry via  Signal_Score>=40 AND Leader_Type="Sector Leader" AND
+#   RS>=15 — so with RS/Signal_Score dead, the entire bearish entry path is silently
+#   disabled.  fetch_rs.py computes a REAL RS via yfinance and writes the column,
+#   reviving the dependent formulas.  ₹0 (public-repo Actions + free yfinance).
+#
+# Schedule: pre-market sets RS for the trading day; a midday run keeps it fresh.
+# Writing a per-cell number into column U is atomic and does not disturb the
+# trading bot's reads.
+
+on:
+  schedule:
+    - cron: "15 3 * * 1-5"   # 08:45 IST — pre-market (RS ready before the session loop trades)
+    - cron: "0 7 * * 1-5"    # 12:30 IST — intraday refresh
+  workflow_dispatch:
+
+jobs:
+  fetch-rs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Must not run while the trading bot is mid-tick reading the sheet.
+    concurrency:
+      group: trading-bot
+      cancel-in-progress: false
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run RS repair feed (writes the RS column)
+        env:
+          GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
+        run: python fetch_rs.py --write
+
+      - name: Notify Telegram on failure
+        if: failure()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID_BASIC:      ${{ secrets.CHAT_ID_BASIC }}
+          WF_NAME:            "${{ github.workflow }}"
+          RUN_URL:            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        continue-on-error: true
+        run: |
+          python - <<'PYEOF'
+          import os, json
+          from urllib.request import Request, urlopen
+          token = os.environ.get('TELEGRAM_BOT_TOKEN','')
+          chat  = os.environ.get('CHAT_ID_BASIC','')
+          if not token or not chat:
+              print('[NOTIFY] Telegram creds missing — skip'); raise SystemExit(0)
+          msg = (
+              "⚠️ <b>System Notice — AI360Trading</b>\n\n"
+              f"Workflow failed: <b>{os.environ.get('WF_NAME','?')}</b>\n"
+              f"Run log: {os.environ.get('RUN_URL','')}\n\n"
+              "<i>This is a system message, not a trade signal. "
+              "RS will retry next run; entry signals fail-open meanwhile.</i>"
+          )
+          try:
+              req = Request(
+                  f"https://api.telegram.org/bot{token}/sendMessage",
+                  data=json.dumps({'chat_id':chat,'text':msg,'parse_mode':'HTML'}).encode(),
+                  headers={'Content-Type':'application/json'},
+              )
+              urlopen(req, timeout=10).read()
+              print('[NOTIFY] Failure alert sent to Basic channel')
+          except Exception as e:
+              print(f'[NOTIFY] Send failed: {e}')
+          PYEOF
