@@ -1,6 +1,13 @@
 """
-generate_kids_video.py — HerooQuest v2.7
+generate_kids_video.py — HerooQuest v2.8
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v2.8 (2026-06-02) — EDGE-TTS 503 RETRY (self-heal in-run):
+    edge_tts (wss://speech.platform.bing.com) intermittently returns 503 /
+    WSServerHandshakeError, which killed the whole kids-english-full job
+    (run 26784484850 attempt 1; auto-heal re-ran it an hour later). generate_tts_async
+    now retries up to 4x with 5/15/30s backoff and verifies non-empty audio,
+    so a transient TTS blip no longer needs a full workflow re-run.
+
 v2.7 (2026-05-31) — SPOKEN LIKE/SHARE/SUBSCRIBE CTA:
     The last scene's narration now ends with a warm, kid-friendly spoken
     like/share/subscribe line (KIDS_CTA, hi/en), voiced in the same soft kids
@@ -677,7 +684,22 @@ def _simple_concat(clip_paths: list, out_path: Path):
 
 async def generate_tts_async(text: str, lang: str, out_path: Path):
     voice = VOICES.get(lang, VOICES["hi"])
-    await edge_tts.Communicate(text, voice, rate="-10%").save(str(out_path))
+    # Edge TTS (wss://speech.platform.bing.com) intermittently returns 503 /
+    # WSServerHandshakeError. Retry with backoff so a transient blip does not
+    # kill the whole workflow job (was causing hourly auto-heal re-runs).
+    last_err = None
+    for attempt in range(1, 5):  # 4 tries: ~0s, 5s, 15s, 30s backoff
+        try:
+            await edge_tts.Communicate(text, voice, rate="-10%").save(str(out_path))
+            if out_path.exists() and out_path.stat().st_size > 0:
+                return
+            raise RuntimeError("edge_tts produced empty audio file")
+        except Exception as e:
+            last_err = e
+            print(f"  [TTS] attempt {attempt}/4 failed ({lang}): {e}")
+            if attempt < 4:
+                await asyncio.sleep([5, 15, 30][attempt - 1])
+    raise RuntimeError(f"TTS failed after 4 attempts ({lang}): {last_err}")
 
 def generate_tts(text: str, lang: str, out_path: Path):
     asyncio.run(generate_tts_async(text, lang, out_path))
