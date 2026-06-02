@@ -1,5 +1,5 @@
 """
-AI360 TRADING BOT — v15.14
+AI360 TRADING BOT — v15.15
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 v15.14 CHANGES vs v15.13 — H2-2026 HOLIDAY CORRECTION (2026-05-30)
   Aug-Dec 2026 holidays were approximations and materially wrong (Diwali was
@@ -306,6 +306,16 @@ except Exception as _e:
     print(f"[BOOT] institutional_edges module unavailable: {_e} — Batch-4 filters skipped, older filter set still active")
     inst_edges = None
     _INST_EDGES_AVAILABLE = False
+
+# v15.15 — entry-quality scoring (reversal-risk veto, target-room, best-of
+# ranking, confirmed-accumulation). Wrapped identically — bot runs without it.
+try:
+    import entry_quality as eq
+    _EQ_AVAILABLE = True
+except Exception as _e:
+    print(f"[BOOT] entry_quality module unavailable: {_e} — quality scoring skipped, base logic unchanged")
+    eq = None
+    _EQ_AVAILABLE = False
 
 IST       = pytz.timezone('Asia/Kolkata')
 TG_TOKEN  = os.environ.get('TELEGRAM_BOT_TOKEN')
@@ -848,6 +858,27 @@ def check_all_entry_filters(sym, mem, key, is_bullish, now, nifty_pct, today_ent
             print(f"[DLV] check failed for {sym}: {e} — fail open")
             reasons.append(f"[DLV] check errored — entry allowed")
 
+    # 12. REVERSAL-RISK VETO (v15.15) — reject "big but about-to-reverse" longs:
+    # overbought + at-ATH + over-extended + climax volume. Fail-open: any error
+    # or missing data → entry allowed (never blocks on uncertainty).
+    if _EQ_AVAILABLE and nifty_sheet is not None:
+        try:
+            ri = _reversal_inputs(nifty_sheet, sym)
+            relv = _read_nifty200_relvol(nifty_sheet, sym)
+            rev = eq.reversal_risk(
+                rsi=rsi_val if rsi_val and rsi_val > 0 else 0.0,
+                pct_below_ath=ri["pct_below_ath"] or None,
+                dist_from_20dma=ri["dist_from_20dma"] or None,
+                rel_vol=relv, is_bullish=is_bullish,
+            )
+            if rev >= eq.REVERSAL_RISK_VETO:
+                reasons.append(f"[REV] reversal-risk {rev:.0f} ≥ {eq.REVERSAL_RISK_VETO:.0f} — skip (overbought/at-ATH/extended)")
+                return False, reasons, rsi_val
+            reasons.append(f"[REV] reversal-risk {rev:.0f} ✅")
+        except Exception as e:
+            print(f"[REV] check errored for {sym}: {e} — fail open")
+            reasons.append(f"[REV] errored — entry allowed")
+
     return True, reasons, rsi_val
 
 
@@ -1197,6 +1228,41 @@ def _read_nifty200_rs(nifty_sheet, sym) -> float:
         print(f"[RS-col] {sym}: {e}")
     return 0.0
 
+
+def _read_nifty200_field(nifty_sheet, sym, exact_names, subs=None, numeric=True):
+    """Generic self-healing single-cell read from Nifty200 by header name.
+    Returns 0.0 / "" (fail-open) if the column or row is missing. Used by the
+    entry-quality layer for ATH%, 20-DMA distance, resistance, FII zone, etc."""
+    if nifty_sheet is None:
+        return 0.0 if numeric else ""
+    col = _find_nifty200_col(nifty_sheet, exact_names, subs)
+    if col < 0:
+        return 0.0 if numeric else ""
+    try:
+        clean = sym.replace("NSE:", "").strip()
+        for row in _nifty200_rows(nifty_sheet)[1:]:
+            if len(row) > col and str(row[0]).replace("NSE:", "").strip() == clean:
+                return to_f(row[col]) if numeric else str(row[col]).strip()
+    except Exception as e:
+        print(f"[N200-field] {sym}: {e}")
+    return 0.0 if numeric else ""
+
+
+def _reversal_inputs(nifty_sheet, sym):
+    """Pull the columns the reversal-risk score needs (all fail-open)."""
+    return {
+        "pct_below_ath": _read_nifty200_field(
+            nifty_sheet, sym, ["%down_from_52W_UP", "%down_from_52W_High"],
+            subs=["downfrom52w"]),
+        "dist_from_20dma": _read_nifty200_field(
+            nifty_sheet, sym, ["%Distance_from_20_DMA", "%Dist_from_20DMA"],
+            subs=["distancefrom20", "distfrom20"]),
+        "resistance": _read_nifty200_field(
+            nifty_sheet, sym, ["Pivot_Resistance", "Resistance"],
+            subs=["resistance", "pivot"]),
+    }
+
+
 def get_market_regime(nifty_sheet):
     try:
         row  = nifty_sheet.row_values(2)
@@ -1339,7 +1405,42 @@ def step_a_enter_trades(log_sheet, nifty_sheet, bm_sheet, mem, now, is_bullish, 
     if traded_count >= MAX_TRADES:
         print(f"[STEP A] Max trades {traded_count}/{MAX_TRADES}"); return mem, today_entries
 
-    for i, row in enumerate(rows[1:22], start=2):
+    # v15.15 BEST-OF RANKING — when several setups wait and only a few daily
+    # slots remain, fill them with the BEST candidate first (conviction × RR ×
+    # clean room ÷ reversal-risk), not sheet order. Fail-open: any error keeps
+    # the original top-to-bottom order. Non-WAITING rows are skipped inside the
+    # loop regardless, so their relative order is irrelevant.
+    indexed = list(enumerate(rows[1:22], start=2))
+    if _EQ_AVAILABLE:
+        try:
+            def _cand_score(item):
+                _i, _r = item
+                _r = pad(_r)
+                if "WAITING" not in str(_r[C_STATUS]).upper():
+                    return -1.0
+                _sym = str(_r[C_SYMBOL]).strip()
+                _cp  = to_f(_r[C_LIVE_PRICE]); _pri = to_f(_r[C_PRIORITY])
+                try:    _rr = float(str(_r[C_RR]).split(':')[-1]) if ':' in str(_r[C_RR]) else to_f(_r[C_RR])
+                except: _rr = 0.0
+                _atr = _read_atr_from_nifty200(nifty_sheet, _sym)
+                _ri  = _reversal_inputs(nifty_sheet, _sym)
+                _relv = _read_nifty200_relvol(nifty_sheet, _sym)
+                _rev = eq.reversal_risk(pct_below_ath=_ri["pct_below_ath"] or None,
+                                        dist_from_20dma=_ri["dist_from_20dma"] or None,
+                                        rel_vol=_relv, is_bullish=is_bullish)
+                _room = eq.target_room(_cp, _ri["resistance"], _atr)
+                return eq.composite_score(priority=_pri, rr=_rr, rev_risk=_rev, room=_room)
+            scored = sorted(indexed, key=_cand_score, reverse=True)
+            top = [it for it in scored if _cand_score(it) > 0]
+            if top:
+                print(f"[RANK] best-first: " + ", ".join(
+                    f"{str(pad(r)[C_SYMBOL]).strip()}={_cand_score((i,r)):.0f}" for i, r in top[:5]))
+            indexed = scored
+        except Exception as e:
+            print(f"[RANK] ordering errored: {e} — using sheet order")
+            indexed = list(enumerate(rows[1:22], start=2))
+
+    for i, row in indexed:
         row    = pad(row)
         status = str(row[C_STATUS]).upper()
         if "WAITING" not in status: continue
@@ -1758,7 +1859,7 @@ def send_good_morning(log_sheet, mem, is_bullish, nifty_cmp, nifty_dma, nifty_pc
         f"{window}\n"
         f"RSI filter: < {RSI_MAX_BULLISH if is_bullish else RSI_MAX_BEARISH} | Re-entry: {REENTRY_COOLDOWN_DAYS}d cooldown after target\n\n"
         f"{'Watching: ' + ', '.join(waiting_stocks[:5]) if waiting_stocks else 'No WAITING stocks'}\n\n"
-        f"<i>v15.14 — H2-2026 holidays verified + Batch5 SmallMidCap scanner</i>"
+        f"<i>v15.15 — entry-quality: reversal veto + best-of ranking + accumulation watch</i>"
     )
     watchlist_line = f"📋 Watchlist: {waiting} stock(s) identified today" if waiting else "📋 No setups in watchlist yet — scan runs at market open"
     msg_basic = (
@@ -2080,7 +2181,7 @@ def auto_maintain_sheets(bm_sheet, hist_sheet, mem, now):
 def send_test_messages():
     now = datetime.now(IST)
     msg = (
-        f"✅ <b>TEST MESSAGE — AI360 Trading Bot v15.14</b>\n"
+        f"✅ <b>TEST MESSAGE — AI360 Trading Bot v15.15</b>\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
         f"Time: {now.strftime('%d %b %Y %H:%M')} IST\n"
         f"Token: {'✅ OK' if TG_TOKEN else '❌ MISSING'}\n\n"
@@ -2094,6 +2195,90 @@ def send_test_messages():
     print(f"[TEST] CHAT_BASIC: {'set' if CHAT_BASIC else 'MISSING'}")
     print(f"[TEST] CHAT_ADVANCE: {'set' if CHAT_ADVANCE else 'MISSING'}")
     print(f"[TEST] CHAT_PREMIUM: {'set' if CHAT_PREMIUM else 'MISSING'}")
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# v15.15 — CONFIRMED-ACCUMULATION WATCH (the "corrected sector leader" case)
+# ══════════════════════════════════════════════════════════════════════════════
+ACCUM_MAX_DAILY = 1   # at most one accumulation signal per day (quality > quantity)
+
+def scan_accumulation_watch(nifty_sheet, bm_sheet, mem, now, is_bullish):
+    """
+    Finds a genuine "buy the corrected SECTOR LEADER" setup that the normal
+    breakout scan misses in a weak index — sector leader + FII accumulating +
+    VALUE BUY/BASE PREPARED + price reclaimed its 20-DMA + sector rotating up.
+    This is the falling-knife-vs-accumulation distinction (see entry_quality).
+
+    SAFE BY DESIGN — this never writes AlertLog, so it CANNOT affect live trades
+    or break the income pipeline:
+      • Default = WATCH: sends one 'ACCUMULATION WATCH' alert per stock per day to
+        Advance+Premium and records a shadow entry in BotMemory (to score later).
+      • Set secret ACCUM_AUTOTRADE=true to graduate it to real (paper) auto-entry
+        once the shadow track record looks good — a one-flag change, no code edit.
+    Fully fail-open. Only runs in a BEARISH/weak index (bullish already trades these).
+    """
+    if not _EQ_AVAILABLE or nifty_sheet is None or is_bullish:
+        return mem
+    today_s = now.strftime("%Y-%m-%d")
+    try:
+        rows = _nifty200_rows(nifty_sheet)
+        if not rows or len(rows) < 2:
+            return mem
+        col = lambda *names, subs=None: _find_nifty200_col(nifty_sheet, list(names), subs)
+        c_sym  = 0
+        c_cmp  = col("CMP", subs=["cmp", "ltp"])
+        c_lt   = col("Leader_Type", subs=["leadertype"])
+        c_fii  = col("FII_Buy_Zone", subs=["fiibuyzone"])
+        c_fa   = col("FINAL_ACTION", subs=["finalaction"])
+        c_rs   = col("RS")
+        c_dma  = col("20_DMA", subs=["20dma", "20_dma"])
+        c_sect = col("Sector_Rotation_Score", subs=["sectorrotation"])
+        if min(c_cmp, c_lt, c_fii, c_fa, c_dma) < 0:
+            return mem   # required columns missing → fail-open, do nothing
+        found = 0
+        for r in rows[1:]:
+            if found >= ACCUM_MAX_DAILY:
+                break
+            if len(r) <= max(c_cmp, c_lt, c_fii, c_fa, c_dma):
+                continue
+            sym = str(r[c_sym]).replace("NSE:", "").strip()
+            if not sym or "NIFTY" in sym.upper():
+                continue
+            ok, why = eq.is_confirmed_accumulation(
+                leader_type=r[c_lt], fii_zone=r[c_fii], final_action=r[c_fa],
+                rs=to_f(r[c_rs]) if c_rs >= 0 else 0.0,
+                cmp=to_f(r[c_cmp]), dma20=to_f(r[c_dma]),
+                sector_rotation=to_f(r[c_sect]) if c_sect >= 0 else 0.0,
+            )
+            if not ok:
+                continue
+            key = sym_key(sym)
+            flag = f"{today_s}_ACCUMW_{key}"
+            if _mem_get(mem, flag):     # already alerted this stock today
+                continue
+            cmp = to_f(r[c_cmp]); dma = to_f(r[c_dma]); rs = to_f(r[c_rs]) if c_rs >= 0 else 0.0
+            atr = _read_atr_from_nifty200(nifty_sheet, sym) or (cmp * 0.03)
+            sl  = round(min(dma * 0.985, cmp - 2 * atr), 2)   # hard stop just below the reclaimed 20-DMA
+            tgt = round(cmp + 5 * atr, 2)
+            mem = _mem_set(mem, flag, "1")
+            mem = _mem_set(mem, f"ACCUM_{today_s}_{key}", f"{cmp}")   # shadow entry for scoring
+            found += 1
+            auto = os.environ.get("ACCUM_AUTOTRADE", "").lower() in ("1", "true", "yes")
+            print(f"[ACCUM] {sym}: {why} | CMP ₹{cmp:.2f} SL ₹{sl:.2f} Tgt ₹{tgt:.2f} RS {rs:.1f} | autotrade={auto}")
+            msg = (
+                f"🏦 <b>ACCUMULATION WATCH</b> {'(half-size)' if auto else '(watch)'}\n"
+                f"━━━━━━━━━━━━━━━━━━━━\n"
+                f"<b>{sym}</b> — corrected sector leader, FII accumulating, reclaimed 20-DMA\n"
+                f"CMP ₹{cmp:.2f} | SL ₹{sl:.2f} | Target ₹{tgt:.2f}\n"
+                f"RS {rs:+.1f} · sector rotating up\n\n"
+                f"<i>Lower-risk accumulation in a weak market — small/staggered size, "
+                f"hard stop below the base. Not a breakout chase.</i>"
+            )
+            send_advance_and_premium(msg)
+        return mem
+    except Exception as e:
+        print(f"[ACCUM] scan errored: {e} — fail open")
+        return mem
 
 
 def main():
@@ -2110,7 +2295,7 @@ def main():
     dow      = now.weekday()
 
     print(f"\n{'='*55}")
-    print(f"AI360 Trading Bot v15.14 — {now.strftime('%d %b %Y %H:%M')} IST")
+    print(f"AI360 Trading Bot v15.15 — {now.strftime('%d %b %Y %H:%M')} IST")
     print(f"{'='*55}")
 
     if is_holiday(today_s): print(f"[SKIP] Holiday: {today_s}"); return
@@ -2184,6 +2369,11 @@ def main():
             log, nifty, bm, mem, now, is_bullish, nifty_pct, today_entries, vix_val
         )
         mem = step_b_monitor_trades(log, hist, nifty, mem, now, is_bullish)
+
+        # v15.15 — confirmed-accumulation watch (bearish/weak index only; the
+        # function self-gates on is_bullish + ACCUM entry window). Fail-open.
+        if (now.hour, now.minute) <= ENTRY_WINDOW_BEARISH_END:
+            mem = scan_accumulation_watch(nifty, bm, mem, now, is_bullish)
 
         if "12:28" <= time_str <= "12:38":
             mem = send_midday_pulse(log, mem, now, is_bullish)
