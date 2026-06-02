@@ -108,15 +108,22 @@ def comment_text(lang: str = "hi") -> str:
     )
 
 
-def post_first_comment(youtube, video_id: str, lang: str = "hi") -> bool:
+def post_first_comment(youtube, video_id: str, lang: str = "hi",
+                       made_for_kids: bool = False) -> bool:
     """
     Auto-post the channel's own top comment with the money funnel right after a
     video uploads (the first comment is prime real estate for the Telegram link).
     NOTE: the YouTube Data API cannot programmatically PIN a comment — posting
     the channel's own comment is the practical equivalent. Needs youtube.force-ssl.
+    made_for_kids=True → skip silently: YouTube DISABLES comments on "made for
+    kids" content by policy, so the API always rejects it (HTTP 400). This is
+    expected and unfixable — not an error worth alarming about.
     FAIL-OPEN — any problem (missing scope, API error) returns False, never raises.
     """
     if not youtube or not video_id:
+        return False
+    if made_for_kids:
+        print("  ℹ️ Auto-comment skipped — comments are disabled on made-for-kids videos (by design)")
         return False
     try:
         body = {"snippet": {"videoId": video_id, "topLevelComment": {

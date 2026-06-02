@@ -474,7 +474,7 @@ def main():
             # Auto-post the channel's own top comment with the Telegram funnel.
             try:
                 import money_funnel as _mf
-                _mf.post_first_comment(youtube, vid_id, lang)
+                _mf.post_first_comment(youtube, vid_id, lang, made_for_kids=True)
             except Exception:
                 pass
             meta["youtube_video_id"]  = vid_id
