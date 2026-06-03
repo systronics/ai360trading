@@ -54,7 +54,7 @@ include:
 # FIX (May 2026):
 #   REMOVED: generate_analysis.py (deleted from repo)
 #   REMOVED: generate_community_post.py (deleted from repo)
-#   REMOVED: upload_instagram.py (deleted from repo)
+#   REMOVED: upload_instagram.py (actually deleted 2026-06-03 — orphaned, IG auto never wired)
 #   ADDED: kids_content_calendar.py (new file, must be excluded)
 exclude:
   - generate_articles.py

@@ -74,7 +74,6 @@ fetch_holidays.py        : v1.2
 token_refresh.py         : v2.2
 upload_youtube.py        : v2.2
 upload_facebook.py       : v2.6
-upload_instagram.py      : v1.0
 upload_kids_youtube.py   : v2.3
 content_calendar.py      : v2.3
 indian_holidays.py       : no version tag

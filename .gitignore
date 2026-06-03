@@ -184,7 +184,6 @@ TRADING_PLAYBOOK.md
 # ── Upload scripts ─────────────────────────────────────────
 !upload_youtube.py
 !upload_facebook.py
-!upload_instagram.py
 !upload_kids_youtube.py
 
 # ── Website ────────────────────────────────────────────────
