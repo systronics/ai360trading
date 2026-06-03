@@ -1,5 +1,18 @@
 """
-AI360 SMALL/MID CAP MOMENTUM SCANNER — v1.2
+AI360 SMALL/MID CAP MOMENTUM SCANNER — v1.3
+
+v1.3 (2026-06-03) — ACTIONABLE ALERTS (clear entry/SL/target, no confusion):
+  • Every pick now carries a CONCRETE trade plan computed from bhavcopy:
+      Entry  = today's close (enter next session only if price holds above it)
+      SL     = today's low × 0.98, tightened so risk never exceeds 3%
+      Target = Entry + 2 × risk (1:2), then trail momentum
+  • NEW clean board tab `SmallMidLive` — a mini-AlertLog showing ONLY the
+    current actionable setups (Symbol, Signal, Entry, SL, Target, R:R,
+    Risk%, Status). Cleared + rewritten every run, so it never mixes with
+    the SmallMidCap raw scan log. SAFE BY DESIGN: never writes AlertLog or
+    touches the trading bot, so it CANNOT affect live trades.
+  • Telegram digest now shows the real Entry/SL/Target numbers per pick
+    instead of a generic "today's low × 0.98" instruction.
 
 v1.2 (2026-05-31) — AUTO-TRIM:
   The SmallMidCap tab appends a row (or rows) every scan and grew without
@@ -18,10 +31,12 @@ momentum profit, no loss tolerance". So this is HIGHLY SELECTIVE — typically
 accumulation + momentum, not lottery-ticket upper-circuit hits.
 
 OUTPUTS:
-  1. Sheet tab `SmallMidCap` — auto-created on first run; a status row is
-     written EVERY scan (even on 0-pick days) so the run is always observable.
-  2. BotMemory keys `SMC_{YYYY-MM-DD}_RANK{N}_{SYM}` — for downstream tracking
-  3. Telegram digest to Advance + Premium (Hinglish, actionable)
+  1. Sheet tab `SmallMidCap` — raw scan log; a status row is written EVERY
+     scan (even on 0-pick days) so the run is always observable.
+  2. Sheet tab `SmallMidLive` — clean actionable board with entry/SL/target/RR,
+     cleared + rewritten each run. The tab to ACT from. (v1.3)
+  3. BotMemory keys `SMC_{YYYY-MM-DD}_RANK{N}_{SYM}` — for downstream tracking
+  4. Telegram digest to Advance + Premium with concrete entry/SL/target
 
 SOURCE: NSE cash bhavcopy CSV `sec_bhavdata_full_DDMMYYYY.csv` — same file
         used by fetch_bhavcopy.py, no new API needed.
@@ -100,6 +115,12 @@ VOL_HISTORY_DAYS     = 5       # how many prior trading days form the average
 VOL_HISTORY_MIN_DAYS = 3       # need at least this many prior days to trust it
 TOP_N                = 3       # max signals per day (selective)
 STALE_DAYS           = 14      # purge SMC_* memory rows older than this
+
+# Trade-plan + actionable board (v1.3) — concrete entry/SL/target per pick
+SML_TAB        = "SmallMidLive"  # clean actionable board; the tab to ACT from
+RR_TARGET      = 2.0             # displayed reward:risk (then trail momentum)
+SL_BUFFER      = 0.98            # SL = today's low × this ...
+MAX_RISK_PCT   = 3.0             # ... but never risk more than this % from entry
 
 DEFAULT_HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
@@ -214,6 +235,25 @@ def _g(row: dict, key: str) -> str:
     return (row.get(key) or row.get(" " + key) or "").strip()
 
 
+def _trade_plan(close: float, low: float) -> dict:
+    """
+    Concrete trade plan for one momentum pick (v1.3). Entry = today's close —
+    the signal is to enter the NEXT session only if price holds above it. SL =
+    today's low × SL_BUFFER, but tightened so the loss never exceeds
+    MAX_RISK_PCT. Target = Entry + RR_TARGET × risk; ride further with a
+    momentum trail. Returns entry/sl/target/rr/risk_pct (all rounded).
+    """
+    entry    = round(close, 2)
+    raw_sl   = low * SL_BUFFER if low > 0 else entry * (1 - MAX_RISK_PCT / 100.0)
+    floor_sl = entry * (1 - MAX_RISK_PCT / 100.0)   # cap loss at MAX_RISK_PCT
+    sl       = round(max(raw_sl, floor_sl), 2)       # whichever is tighter
+    risk     = max(entry - sl, 0.01)
+    target   = round(entry + RR_TARGET * risk, 2)
+    risk_pct = round((risk / entry) * 100, 2) if entry > 0 else 0.0
+    return {"entry": entry, "sl": sl, "target": target,
+            "rr": RR_TARGET, "risk_pct": risk_pct}
+
+
 def build_avg_volume(window: list) -> tuple:
     """
     Build per-symbol average traded quantity from the PRIOR days only (i.e.
@@ -264,6 +304,7 @@ def filter_and_score(today_rows: list, nifty200: set, avg_vol: dict, prior_days:
 
         close      = _f(_g(r, "CLOSE_PRICE"))
         prev_close = _f(_g(r, "PREV_CLOSE"))
+        low        = _f(_g(r, "LOW_PRICE"))   # for SL (v1.3)
         if prev_close <= 0 or close <= 0:
             continue
         pct_change = (close - prev_close) / prev_close * 100
@@ -301,10 +342,11 @@ def filter_and_score(today_rows: list, nifty200: set, avg_vol: dict, prior_days:
             pct_change * dlv_pct * min(vol_mult, 6.0) / 100.0,
             2,
         )
-        picks.append({
+        pick = {
             "symbol":         sym,
             "close":          round(close, 2),
             "prev_close":     round(prev_close, 2),
+            "low":            round(low, 2),
             "pct_change":     round(pct_change, 2),
             "turnover_cr":    round(turnover_cr, 1),
             "delivery_pct":   round(dlv_pct, 1),
@@ -312,7 +354,9 @@ def filter_and_score(today_rows: list, nifty200: set, avg_vol: dict, prior_days:
             "deliv_qty":      int(deliv_qty),
             "today_qty":      int(today_qty),
             "score":          score,
-        })
+        }
+        pick.update(_trade_plan(close, low))   # entry/sl/target/rr/risk_pct (v1.3)
+        picks.append(pick)
 
     picks.sort(key=lambda p: p["score"], reverse=True)
     return picks[:TOP_N]
@@ -399,6 +443,67 @@ def write_smc_sheet(ss, picks: list, bhav_date: str):
     sheet.append_rows(new_rows, value_input_option="USER_ENTERED")
     print(f"[SHEET] appended {len(new_rows)} rows to {SMC_TAB}")
     _trim_smc_tab(sheet)
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# SMALLMIDLIVE — CLEAN ACTIONABLE BOARD (v1.3)
+# ════════════════════════════════════════════════════════════════════════════
+
+SML_HEADER = [
+    "Date", "Symbol", "Signal", "Entry ₹", "Stop Loss ₹",
+    "Target ₹", "R:R", "Risk %", "Score", "Status", "Plan",
+]
+
+def _ensure_sml_tab(ss):
+    """Create SmallMidLive tab if missing. Self-repair."""
+    try:
+        return ss.worksheet(SML_TAB)
+    except gspread.WorksheetNotFound:
+        sheet = ss.add_worksheet(title=SML_TAB, rows=50, cols=len(SML_HEADER))
+        print(f"[SHEET] created tab {SML_TAB!r}")
+        return sheet
+
+
+def write_sml_board(ss, picks: list, bhav_date: str):
+    """
+    Clean actionable trade board (a mini-AlertLog) for small/mid-cap picks.
+    Cleared + rewritten every run so it always shows ONLY the current setups —
+    no confusion with the SmallMidCap raw scan log. On a 0-pick day it shows a
+    single 'NO SETUPS' row so the board is never blank/stale.
+
+    SAFE BY DESIGN: this writes ONLY the SmallMidLive tab. It never touches
+    AlertLog or BotMemory, so it CANNOT affect the live trading bot. Fail-open:
+    any error here is logged and skipped — it never aborts the scan.
+    """
+    try:
+        sheet = _ensure_sml_tab(ss)
+        rows  = [SML_HEADER]
+        if not picks:
+            rows.append([
+                bhav_date, "— NO SETUPS —", "WAIT", "", "", "", "", "", "",
+                "No qualifying small/mid-cap momentum today", "",
+            ])
+        else:
+            for p in picks:
+                rows.append([
+                    bhav_date, p["symbol"], "🚀 MOMENTUM BUY",
+                    p["entry"], p["sl"], p["target"], f'1:{p["rr"]:.0f}',
+                    f'{p["risk_pct"]:.1f}%', p["score"],
+                    "⏳ WAIT — enter above close next session",
+                    (f'Enter >₹{p["entry"]:.2f} | SL ₹{p["sl"]:.2f} | '
+                     f'Target ₹{p["target"]:.2f} | then trail momentum'),
+                ])
+        sheet.clear()
+        sheet.update(range_name="A1", values=rows, value_input_option="USER_ENTERED")
+        # keep the grid tidy (in case the tab is ever embedded on the website)
+        try:
+            sheet.resize(rows=max(len(rows), 2), cols=len(SML_HEADER))
+        except Exception:
+            pass
+        n = 0 if not picks else len(picks)
+        print(f"[SHEET] {SML_TAB} board rewritten ({n} setup(s))")
+    except Exception as e:
+        print(f"[SHEET] {SML_TAB} write skipped (non-fatal): {e}")
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -494,16 +599,18 @@ def send_digest(picks: list, bhav_date: str):
     for rank, p in enumerate(picks, start=1):
         lines.append(
             f"<b>#{rank}  {p['symbol']}</b>  ₹{p['close']:.2f}  ({p['pct_change']:+.2f}%)\n"
+            f"   📥 Entry: above ₹{p['entry']:.2f}  |  🛑 SL: ₹{p['sl']:.2f} (-{p['risk_pct']:.1f}%)  "
+            f"|  🎯 Target: ₹{p['target']:.2f} (1:{p['rr']:.0f})\n"
             f"   Turnover ₹{p['turnover_cr']:.1f} Cr  |  Delivery {p['delivery_pct']:.0f}%  "
             f"|  Vol {p['vol_mult']:.1f}× (5d avg)\n"
             f"   <i>Score: {p['score']}</i>"
         )
     lines.append("")
-    lines.append("📌 <b>Trade plan idea (manual entry):</b>")
-    lines.append("   • Entry: tomorrow 9:30-10:00 AM if holding above today's close")
-    lines.append("   • SL: today's low × 0.98  (max -3%)")
-    lines.append("   • Target: ride with Chandelier trail — let momentum extend")
-    lines.append("   • Position size: small (1-2% of capital) — small-caps swing wider")
+    lines.append("📌 <b>How to act (manual / paper):</b>")
+    lines.append("   • Enter next session ONLY if price holds above the entry level")
+    lines.append("   • Hard SL as shown; book at 1:2, then trail momentum for more")
+    lines.append("   • Position size small (1-2% of capital) — small-caps swing wider")
+    lines.append("   • Full board in the <b>SmallMidLive</b> sheet tab")
     lines.append("")
     lines.append("⚠️ <i>Educational signals. Paper trading only — Phase 4 auto-trade not enabled.</i>")
     msg = "\n".join(lines)
@@ -546,6 +653,12 @@ def main():
         write_smc_sheet(ss, picks, bhav_date)
     except Exception as e:
         print(f"[SMC] sheet write error: {e}")
+
+    # Clean actionable board (v1.3) — entry/SL/target. Never touches AlertLog.
+    try:
+        write_sml_board(ss, picks, bhav_date)
+    except Exception as e:
+        print(f"[SMC] SmallMidLive write error: {e}")
 
     try:
         write_bm_keys(ss, picks, bhav_date)
