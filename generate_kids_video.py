@@ -238,7 +238,12 @@ MAKE IT FEEL ALIVE (most important):
 - Invent ONE fun CATCHPHRASE Heroo repeats in several scenes (kids love repeating it).
 - 2-3 times across the story, a character asks the VIEWER a question
   ("Can you help us count? Say it with me!") to pull kids in.
-- Keep every line SHORT and simple. End with a clear, kind moral shown through ACTION.
+- Each dialogue line is a NATURAL full sentence (one or two simple sentences) —
+  NOT just 2-3 words. Kids should hear real talking, with detail and feeling.
+- The story must feel COMPLETE and satisfying: a proper beginning, a real
+  adventure with ups and downs in the middle, and a happy, well-earned ending.
+  NEVER end abruptly or leave it half-told. End with a clear, kind moral shown
+  through ACTION.
 
 Output ONLY valid JSON, no markdown:
 {{
@@ -264,9 +269,10 @@ Output ONLY valid JSON, no markdown:
 
 Rules:
 - Create EXACTLY 10 scenes. Arc: introduce (2), problem appears (2), adventure (4), solve + moral (2).
-- Each scene has 4-7 SHORT dialogue lines (a real back-and-forth), ~40-50 seconds aloud.
+- Each scene has 6-8 dialogue lines (a rich, real back-and-forth), about 55-75 seconds aloud.
+  (The 3-line example above is ONLY a format sample — every real scene needs 6-8 lines.)
 - Heroo speaks in most scenes; Arya speaks often; Narrator rarely.
-- BOTH "hi" and "en" are required for EVERY dialogue line.
+- BOTH "hi" and "en" are required for EVERY dialogue line, each a full natural sentence.
 """
     return ai.generate_json(prompt, content_mode=CONTENT_MODE, lang="hi")
 

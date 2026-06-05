@@ -1,5 +1,8 @@
 """
-upload_kids_youtube.py v2.4 — HerooQuest YouTube Upload
+upload_kids_youtube.py v2.5 — HerooQuest YouTube Upload
+  v2.5 (2026-06-05): build_title() is now LANGUAGE-AWARE — the English video no
+    longer gets the "Hindi Moral Story" suffix (was hardcoded). EN → "Heroo's
+    Story | … | English Moral Story for Kids"; HI unchanged.
 =========================================================
 v2.4 (2026-05-31): AUTO-TRANSLATE SUBTITLES
   After the full video uploads, also upload the per-scene .srt caption track
@@ -134,16 +137,19 @@ def get_short_path(meta: dict) -> str:
 
 def build_title(ep_info: dict) -> str:
     """
-    v2.3: SEO-optimised title.
-    Structure: {Story Name} | Heroo Ki Kahani | HerooQuest | Hindi Moral Story 2026
-    Why: Parents search "Hindi Moral Story 2026" and "Heroo Ki Kahani"
-    Story name first = algorithm catches specific search intent
+    v2.5: SEO-optimised, LANGUAGE-AWARE title (was hardcoded "Hindi" on the
+    English video too). Structure:
+      EN \u2192 {Story} | Heroo's Story | HerooQuest | English Moral Story for Kids 2026
+      HI \u2192 {Story} | Heroo Ki Kahani | HerooQuest | Hindi Moral Story 2026
+    Story name first = algorithm catches specific search intent.
     """
     ep_title = ep_info["ep_title"]
     # Clean Hindi chars for YouTube title (use English version)
     safe = re.sub(r'[\u0900-\u097F]+', '', ep_title).strip()
     if not safe:
         safe = ep_info.get("topic_en", "Heroo Story")[:25]
+    if (ep_info.get("lang") or "hi").lower() == "en":
+        return f"{safe} | Heroo's Story | HerooQuest | English Moral Story for Kids {YEAR}"[:100]
     return f"{safe} | Heroo Ki Kahani | HerooQuest | Hindi Moral Story {YEAR}"[:100]
 
 
