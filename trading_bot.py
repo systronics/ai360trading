@@ -1,6 +1,19 @@
 """
-AI360 TRADING BOT — v15.15
+AI360 TRADING BOT — v15.16
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v15.16 CHANGES vs v15.15 — WEEKEND-GAP GUARD + OPTION-BASED P/L (2026-06-05)
+  Owner ask (audit follow-up): limit weekend gap losses (e.g. PNBHOUSING −6.86%
+  blew past its −3.38% SL on a Monday gap-down) and show the REAL option P/L on
+  option trades (stock P/L understates it).
+  1. WEEKEND-GAP GUARD — on Friday's close summary, append a per-position
+     weekend advisory (book partial on winners, EXIT laggards before close —
+     2 shut days can gap a stock past its stop). Signal-only; no exit-logic
+     change. New-entry side was already blocked after 2 PM Friday (existing).
+  2. OPTION-BASED P/L — for 📊 Options Alert trades, the exit Telegram + the
+     History "Options Note" column now show an estimated option-premium P/L
+     (stock move × OPTION_LEVERAGE_EST≈10 for an ITM ~0.7Δ option), clearly
+     labelled "(est.)". Numeric ledger columns keep the stock P/L unchanged.
+
 v15.14 CHANGES vs v15.13 — H2-2026 HOLIDAY CORRECTION (2026-05-30)
   Aug-Dec 2026 holidays were approximations and materially wrong (Diwali was
   guessed at 21/22-Oct; actual Balipratipada is 10-Nov; Ganesh Chaturthi 14-Sep
@@ -364,6 +377,12 @@ TIME_STOP_DAYS           = 5     # exit if hold_days >= this AND gain < TIME_STO
 TIME_STOP_MIN_GAIN_PCT   = 3.0
 VIX_MAX                  = 22.0  # block new entries above this India VIX value
 VIX_CALM                 = 15.0  # purely informational — for entry message
+
+# v15.16: ITM ~0.7Δ option moves ~10× the stock in premium % terms (stock −1.5%
+# ≈ option −15%, stock +5% ≈ option +50% — the same convention used across the
+# option module). Used ONLY to ESTIMATE displayed option P/L; no real premium
+# is tracked (paper, stock-anchored). Always shown labelled "(est.)".
+OPTION_LEVERAGE_EST      = 10.0
 
 CAPITAL_HIGH = 13000
 CAPITAL_MED  = 10000
@@ -980,6 +999,18 @@ def get_capital_from_mem(mem,key):
 
 def is_cash_trade(ttype):
     return "CASH" in str(ttype).upper()
+
+
+def is_option_trade(ttype):
+    """v15.16: True for the 📊 Options Alert trade type (option-buying signals)."""
+    return "OPTION" in str(ttype).upper()
+
+
+def est_option_pnl_pct(stock_pnl_pct):
+    """v15.16: rough option-premium P/L from the stock move, for DISPLAY only.
+    ITM ~0.7Δ option ≈ OPTION_LEVERAGE_EST× the stock %. Returns a rounded %.
+    """
+    return round(stock_pnl_pct * OPTION_LEVERAGE_EST, 0)
 
 
 def calc_new_tsl(cp, ent, init_sl, atr, ttype, mem, key, now, ent_time=""):
@@ -1716,6 +1747,13 @@ def _exit_trade(log_sheet, hist_sheet, row_idx, sym, ent, exit_p, tgt, sl, tsl_a
     eff_qty  = int(qty) if qty and qty > 0 else (int(cap // ent) if ent > 0 else 0)
     pnl_rs   = round((exit_p - ent) * eff_qty, 2) if ent > 0 else 0
 
+    # v15.16: for option trades, estimate the option-premium P/L (stock P/L
+    # understates it). Display only — numeric ledger columns keep the stock P/L.
+    opt_note = ""
+    if is_option_trade(ttype):
+        opt_pct  = est_option_pnl_pct(pnl_pct)
+        opt_note = f"Option ≈ {opt_pct:+.0f}% (est., ITM ~0.7Δ; stock {pnl_pct:+.2f}%)"
+
     try:
         log_sheet.update(f"K{row_idx}", [[f"EXITED ({reason})"]])
     except Exception as e:
@@ -1725,7 +1763,7 @@ def _exit_trade(log_sheet, hist_sheet, row_idx, sym, ent, exit_p, tgt, sl, tsl_a
         hist_sheet.append_row([
             sym, today_str, ent, today_str, exit_p,
             f"{pnl_pct:.2f}%", result, strat, reason, ttype,
-            sl, tsl_at_exit, get_max_price(mem, key), atr, days, cap, pnl_rs, ""
+            sl, tsl_at_exit, get_max_price(mem, key), atr, days, cap, pnl_rs, opt_note
         ])
     except Exception as e:
         print(f"[EXIT] History: {e}")
@@ -1742,7 +1780,8 @@ def _exit_trade(log_sheet, hist_sheet, row_idx, sym, ent, exit_p, tgt, sl, tsl_a
         f"Stock: {sym.replace('NSE:','')}\n"
         f"Entry: ₹{ent:.2f} → Exit: ₹{exit_p:.2f}\n"
         f"P/L: <b>{pnl_pct:+.2f}% (₹{pnl_rs:+.0f})</b>\n"
-        f"Hold: {hold_str} | {reason}\n"
+        + (f"📊 {opt_note}\n" if opt_note else "")
+        + f"Hold: {hold_str} | {reason}\n"
         f"TSL at exit: ₹{tsl_at_exit:.2f}"
     )
     if is_target_hit:
@@ -1927,8 +1966,10 @@ def send_market_close_summary(log_sheet, hist_sheet, mem, now, is_bullish, nifty
     # v15.4: exact-key lookup (was substring `in mem` — safe in practice but fragile)
     if _mem_get(mem, flag_key):
         print(f"[CLOSE] Already sent today — skip"); return mem
+    is_friday = (now.weekday() == 4)   # v15.16: weekend-gap guard fires on Fridays
     try:
         rows = log_sheet.get_all_values(); open_list = []; total_unrl = 0.0
+        weekend_advice = []
         for row in rows[1:22]:
             row = pad(row); st = str(row[C_STATUS]).upper()
             if "TRADED" not in st or "EXITED" in st: continue
@@ -1939,6 +1980,16 @@ def send_market_close_summary(log_sheet, hist_sheet, mem, now, is_bullish, nifty
             qty  = to_f(row[C_QTY]); pnl_r = round((cp-ent)*qty,0) if qty>0 else 0
             total_unrl += pnl_r
             open_list.append(f"{'✅' if pct>=0 else '🔴'} {sym} {pct:+.2f}% | TSL ₹{tsl:.0f}")
+            # v15.16 WEEKEND-GAP GUARD — 2 shut days can gap a stock past its SL
+            # (e.g. PNBHOUSING opened well below its stop on a Monday). Advise per
+            # position: book winners, EXIT laggards before the weekend.
+            if is_friday:
+                if pct <= 0:
+                    weekend_advice.append(f"🔴 {sym} {pct:+.1f}% — laggard: EXIT before close (weekend gap risk)")
+                elif pct < 3:
+                    weekend_advice.append(f"🟡 {sym} {pct:+.1f}% — small gain: tighten SL or book partial")
+                else:
+                    weekend_advice.append(f"✅ {sym} {pct:+.1f}% — book ~50%, trail the rest over the weekend")
         today_str = now.strftime("%Y-%m-%d"); wins=losses=0; today_pnl=0.0
         try:
             for r in hist_sheet.get_all_values()[1:]:
@@ -1958,12 +2009,23 @@ def send_market_close_summary(log_sheet, hist_sheet, mem, now, is_bullish, nifty
             f"{chr(10).join(open_list) if open_list else 'No overnight holds'}\n\n"
             f"Unrealised: ₹{total_unrl:+.0f}\n✅ Overnight holds monitored via TSL"
         )
+        # v15.16: weekend-gap guard block (Friday only, when something is held)
+        if is_friday and weekend_advice:
+            msg_adv += (
+                f"\n\n⚠️ <b>WEEKEND-GAP GUARD (Friday)</b>\n"
+                f"Markets shut 2 days — a stock can OPEN past your SL on Monday "
+                f"(stops can't fire while shut). Per overnight hold:\n"
+                + "\n".join(weekend_advice)
+                + "\n<i>Rule: book partials on winners, exit laggards. Never carry a "
+                  "losing position over the weekend just to hope.</i>"
+            )
         pnl_emoji = "💰" if today_pnl >= 0 else "📉"
         msg_basic = (
             f"🔔 <b>Market Closed — {today_str}</b>\n"
             f"Today: {wins}✅ {losses}❌ | {pnl_emoji} Realised: ₹{today_pnl:+.0f}\n"
-            f"Holding overnight: {len(open_list)} trade(s)\n\n"
-            f"📊 Full report and overnight TSL alerts sent to Advance/Premium\n"
+            f"Holding overnight: {len(open_list)} trade(s)\n"
+            + (f"⚠️ Weekend gap risk — manage open trades before close\n\n" if (is_friday and open_list) else "\n")
+            + f"📊 Full report and overnight TSL alerts sent to Advance/Premium\n"
             f"📈 <b>Join Advance @ ₹699/month</b>\n"
             f"📱 ai360trading.in/membership"
         )
@@ -2181,7 +2243,7 @@ def auto_maintain_sheets(bm_sheet, hist_sheet, mem, now):
 def send_test_messages():
     now = datetime.now(IST)
     msg = (
-        f"✅ <b>TEST MESSAGE — AI360 Trading Bot v15.15</b>\n"
+        f"✅ <b>TEST MESSAGE — AI360 Trading Bot v15.16</b>\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
         f"Time: {now.strftime('%d %b %Y %H:%M')} IST\n"
         f"Token: {'✅ OK' if TG_TOKEN else '❌ MISSING'}\n\n"
@@ -2295,7 +2357,7 @@ def main():
     dow      = now.weekday()
 
     print(f"\n{'='*55}")
-    print(f"AI360 Trading Bot v15.15 — {now.strftime('%d %b %Y %H:%M')} IST")
+    print(f"AI360 Trading Bot v15.16 — {now.strftime('%d %b %Y %H:%M')} IST")
     print(f"{'='*55}")
 
     if is_holiday(today_s): print(f"[SKIP] Holiday: {today_s}"); return
