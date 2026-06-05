@@ -268,13 +268,16 @@ Output ONLY valid JSON, no markdown:
 }}
 
 Rules:
-- Create EXACTLY 10 scenes. Arc: introduce (2), problem appears (2), adventure (4), solve + moral (2).
+- Create EXACTLY 8 scenes. Arc: introduce (2), problem appears (2), adventure (2), solve + moral (2).
 - Each scene has 6-8 dialogue lines (a rich, real back-and-forth), about 55-75 seconds aloud.
   (The 3-line example above is ONLY a format sample — every real scene needs 6-8 lines.)
+- The FINAL scene must give a clear, happy ENDING + the moral — never stop early.
 - Heroo speaks in most scenes; Arya speaks often; Narrator rarely.
 - BOTH "hi" and "en" are required for EVERY dialogue line, each a full natural sentence.
 """
-    return ai.generate_json(prompt, content_mode=CONTENT_MODE, lang="hi")
+    # max_tokens raised so all 8 bilingual scenes (6-8 lines each) fit without
+    # truncation — a cut-off last scene was making the story feel "half".
+    return ai.generate_json(prompt, content_mode=CONTENT_MODE, lang="hi", max_tokens=6000)
 
 
 # ── IMAGE GENERATION — 5 LAYER FALLBACK CHAIN ────────────────────────────────

@@ -231,11 +231,15 @@ class AIClient:
         system_prompt: Optional[str] = None,
         content_mode: str = "market",
         lang: str = "hi",
+        max_tokens: int = 4000,
     ) -> dict:
+        # max_tokens is overridable (default 4000 — unchanged for existing
+        # callers) so large structured outputs (e.g. a 8-scene bilingual kids
+        # story with 6-8 dialogue lines each) don't get truncated mid-JSON.
         raw = self.generate(
             prompt, system_prompt, content_mode, lang,
             json_mode=True,
-            max_tokens=4000,
+            max_tokens=max_tokens,
         )
         try:
             clean = raw.strip()
