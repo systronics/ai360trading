@@ -612,46 +612,112 @@ def get_youtube_service():
         return None
 
 
+# Robust bold-font lookup — CI (Linux DejaVu), Windows, macOS, then default.
+_FONT_CANDIDATES = [
+    "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+    "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
+    "C:/Windows/Fonts/arialbd.ttf",
+    "C:/Windows/Fonts/segoeuib.ttf",
+    "/System/Library/Fonts/Supplemental/Arial Bold.ttf",
+]
+def _edu_font(sz):
+    for p in _FONT_CANDIDATES:
+        try:
+            if os.path.exists(p):
+                return ImageFont.truetype(p, sz)
+        except Exception:
+            continue
+    try:
+        return ImageFont.truetype("DejaVuSans-Bold.ttf", sz)
+    except Exception:
+        return ImageFont.load_default()
+
+
+def _draw_candles(draw, x0, y0, w, h):
+    """A small rising candlestick chart + green trend arrow — instant 'stock
+    market' visual cue that lifts finance-thumbnail CTR. Pure Pillow, ₹0."""
+    vals = [0.26, 0.20, 0.38, 0.31, 0.50, 0.43, 0.60, 0.54, 0.75, 0.66, 0.92]
+    n  = len(vals); cw = w / n
+    tops = []
+    for i, v in enumerate(vals):
+        cx   = x0 + cw * (i + 0.5)
+        top  = y0 + h * (1 - v)
+        up   = (i == 0) or (v >= vals[i - 1])
+        col  = (34, 197, 122, 235) if up else (239, 68, 76, 235)
+        bh   = h * 0.13
+        draw.line([(cx, top - bh*0.9), (cx, top + bh*1.1)], fill=col, width=4)         # wick
+        draw.rectangle([cx - cw*0.24, top - bh*0.5, cx + cw*0.24, top + bh*0.6], fill=col)  # body
+        tops.append((cx, top))
+    # rising trend line + arrow head at the last (highest) candle
+    draw.line(tops, fill=(86, 230, 152, 230), width=5)
+    ax, ay = tops[-1]
+    draw.polygon([(ax+2, ay-2), (ax-22, ay-6), (ax-8, ay+14)], fill=(86, 230, 152, 255))
+
+
 def make_edu_thumbnail(title_text, topic, week, path, hero=None):
-    """Large-text 16:9 (1280x720) thumbnail for the long-form education video —
-    big bold title drives click-through. A topic image behind it (when available)
-    lifts CTR further; the outlined title stays dominant either way."""
+    """Large-text 16:9 (1280x720) thumbnail for the long-form education video.
+    v2: finance visual (candlestick chart + rising green arrow) + market-colour
+    accents + a hook badge + a readability panel behind the title → built to
+    attract clicks & shares. A topic image behind it (when available) lifts CTR
+    further; the outlined title stays dominant either way."""
     import textwrap
     TW, TH = 1280, 720
     if hero is not None:
-        # Topic photo background + moderate dark scrim — image stays clearly visible.
-        img   = hero.resize((TW, TH), Image.LANCZOS).convert("RGBA")
-        scrim = Image.new("RGBA", (TW, TH), (6, 12, 28, 125))
-        img   = Image.alpha_composite(img, scrim).convert("RGB")
-        draw  = ImageDraw.Draw(img, "RGBA")
+        # Topic photo background. Left-weighted scrim: darker on the left (for the
+        # title) and lighter on the right so the photo stays clearly visible.
+        img  = hero.resize((TW, TH), Image.LANCZOS).convert("RGBA")
+        ov   = Image.new("RGBA", (TW, TH), (0, 0, 0, 0))
+        od   = ImageDraw.Draw(ov)
+        for x in range(TW):
+            a = int(205 - (x / TW) * 150)   # 205 → 55 alpha across the width
+            od.line([(x, 0), (x, TH)], fill=(6, 11, 26, max(40, a)))
+        img  = Image.alpha_composite(img, ov).convert("RGB")
+        draw = ImageDraw.Draw(img, "RGBA")
     else:
         img  = Image.new("RGB", (TW, TH))
         draw = ImageDraw.Draw(img, "RGBA")
-        # Dark gradient background
-        for y in range(TH):
+        for y in range(TH):                  # deep navy vertical gradient
             t = y / TH
-            draw.line([(0, y), (TW, y)], fill=(int(8 + t*12), int(14 + t*26), int(30 + t*52)))
-    # Accent bars
-    draw.rectangle([(0, 0), (TW, 16)], fill=(255, 200, 0))
-    draw.rectangle([(0, TH-16), (TW, TH)], fill=(255, 200, 0))
-    FB = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
-    def _f(sz):
-        try:    return ImageFont.truetype(FB, sz)
-        except Exception: return ImageFont.load_default()
-    f_week, f_title, f_brand = _f(46), _f(120), _f(40)
-    # Week badge
-    draw.rounded_rectangle([(48, 48), (430, 130)], radius=18, fill=(255, 200, 0))
-    draw.text((239, 89), f"WEEK {week}", font=f_week, fill=(0, 0, 0), anchor="mm")
-    # Big bold title (up to 3 lines, centered)
+            draw.line([(0, y), (TW, y)], fill=(int(9 + t*13), int(16 + t*30), int(40 + t*55)))
+
+    # Finance visual on the lower-right (drawn before text so text sits on top)
+    try:
+        _draw_candles(draw, int(TW*0.46), int(TH*0.40), int(TW*0.50), int(TH*0.42))
+    except Exception:
+        pass
+
+    # Accent bars (market green top, red bottom = instant trading vibe)
+    draw.rectangle([(0, 0), (TW, 14)], fill=(34, 197, 122))
+    draw.rectangle([(0, TH-14), (TW, TH)], fill=(239, 68, 76))
+
+    f_week, f_title, f_brand, f_hook = _edu_font(46), _edu_font(116), _edu_font(40), _edu_font(40)
+
+    # Week badge (top-left)
+    draw.rounded_rectangle([(48, 44), (430, 126)], radius=18, fill=(255, 200, 0))
+    draw.text((239, 85), f"WEEK {week}", font=f_week, fill=(0, 0, 0), anchor="mm")
+
+    # Hook badge (top-right) — curiosity/learn cue
+    draw.rounded_rectangle([(TW-330, 44), (TW-48, 126)], radius=18, fill=(239, 68, 76))
+    draw.text((TW-189, 85), "MUST WATCH", font=f_hook, fill=(255, 255, 255), anchor="mm")
+
+    # Big bold title (left-aligned, up to 3 lines) on a translucent panel for contrast
     safe  = (topic.get("title") or title_text or "TRADING LESSON").upper()
-    lines = textwrap.wrap(safe, width=14)[:3]
-    ty = (TH - len(lines)*132)//2 + 80
+    lines = textwrap.wrap(safe, width=15)[:3]
+    line_h = 124
+    block_h = len(lines) * line_h
+    ty = (TH - block_h)//2 + 70
+    # readability panel behind the text block (left 64%)
+    pad = 26
+    draw.rounded_rectangle([(40, ty-70-pad), (int(TW*0.70), ty - line_h + block_h + pad)],
+                           radius=22, fill=(8, 12, 26, 150))
+    tx = 70
     for line in lines:
-        for dx, dy in [(-4,4),(4,-4),(-4,-4),(4,4)]:
-            draw.text((TW//2+dx, ty+dy), line, font=f_title, fill=(0,0,0,210), anchor="mm")
-        draw.text((TW//2, ty), line, font=f_title, fill=(255, 210, 0), anchor="mm")
-        ty += 132
-    draw.text((TW//2, TH-50), "AI360TRADING — Daily Market Lessons",
+        for dx, dy in [(-4,4),(4,-4),(-4,-4),(4,4),(0,5)]:
+            draw.text((tx+dx, ty+dy), line, font=f_title, fill=(0,0,0,220), anchor="lm")
+        draw.text((tx, ty), line, font=f_title, fill=(255, 210, 0), anchor="lm")
+        ty += line_h
+
+    draw.text((TW//2, TH-48), "AI360TRADING — Daily Market Lessons",
               font=f_brand, fill=(226, 232, 240), anchor="mm")
     img.save(str(path), quality=95)
     print(f"[THUMB] education thumbnail: {path}")
