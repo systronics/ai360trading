@@ -52,6 +52,14 @@ on:
     - cron: '0 3 * * 1-5'    # 08:30 IST — morning session
     - cron: '45 3 * * 1-5'   # 09:15 IST — morning session (open — last-resort)
     - cron: '25 6 * * 1-5'   # 11:55 IST — afternoon session (→ ends 15:50 IST)
+    # v15.18: afternoon fallbacks — GitHub sometimes delays the 11:55 trigger by
+    # hours (seen 2026-06-02), which would blind afternoon SL/target monitoring.
+    # These extra at/after-noon starts each open an afternoon session (END=15:50).
+    # The `trading-bot` concurrency group + cancel-in-progress:false serialises
+    # them: if 11:55's loop is already running they queue harmlessly; if it was
+    # delayed/skipped, whichever fires first restarts the dense afternoon loop.
+    - cron: '0 7 * * 1-5'    # 12:30 IST — afternoon session (fallback)
+    - cron: '0 8 * * 1-5'    # 13:30 IST — afternoon session (last-resort)
   workflow_dispatch:
     inputs:
       end_time:

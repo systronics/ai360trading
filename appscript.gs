@@ -1,6 +1,16 @@
 /**
- * AI360 TRADING — APPSCRIPT v15.17
+ * AI360 TRADING — APPSCRIPT v15.18
  * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ * v15.18 CHANGES (2026-06-05) — BIGGER+SAFER TARGETS + OPTION LOSS CAP
+ *   Owner directive: "minimum stop-loss, maximum target above 5%, no big loss
+ *   on option buying." (1) Reachability-aware +5% target FLOOR on multi-day
+ *   equity holds (swing/mom/positional/base) — applied only when ATR% >=
+ *   MIN_TARGET_ATRPCT so low-vol large-caps keep their ATR target and still
+ *   book the win (no time-stop stranding). Lifting target only improves RR, so
+ *   it can never reject a previously-valid setup. (2) Option exit rule changed
+ *   from the loose "option −40%" to STOCK-anchored (exit when stock breaks SL ≈
+ *   option −15-20%, hard cap 20%) so option losses stay small.
+ *
  * v15.17 CHANGES (2026-05-30) — H2-2026 HOLIDAY CORRECTION + VERSION STRINGS
  *   The Aug-Dec 2026 holidays in NSE_HOLIDAYS_2026 were approximations and
  *   materially wrong: Diwali had been guessed at 21/22-Oct (actual Balipratipada
@@ -334,6 +344,15 @@ const CONFIG = {
   ATR_TGT_SWING_LEADER: 4.0,
   ATR_TGT_BASE        : 5.0,
   ATR_TGT_POSITIONAL  : 4.0,
+
+  // v15.18: lift multi-day (swing/mom/positional/base) targets toward +5%, but
+  // ONLY when the stock's ATR makes +5% reachable — so sleepy low-vol large-caps
+  // keep their ATR target and still book the win instead of stranding at the
+  // time-stop. Owner rule: "maximum target above 5%". Cash/intraday/options keep
+  // their own faster targets. RR>=MIN_RR still gates AFTER the lift (lifting the
+  // target only improves RR, so it can never reject a previously-valid setup).
+  MIN_TARGET_PCT      : 0.05,  // +5% target floor (when reachable)
+  MIN_TARGET_ATRPCT   : 1.3,   // only apply the floor if ATR% >= this
 
   BATCH_SIZE    : 60,
   TOTAL_COLS    : 19,
@@ -710,9 +729,12 @@ function _sendOptionsAlertPremium(sym, cmp, optSignal, stage, sl, target, rr, bm
   const entryRule = isBase
     ? "✅ Buy anytime during 9:30 AM – 12:00 PM\n✅ Stock must be above 20DMA when buying"
     : "✅ Buy between 9:30-9:45 AM only";
+  // v15.18: stock-anchored exit (was a loose "option −40%"). An ITM ~0.7Δ option
+  // moves ~70% of the stock, so stock −1.5% ≈ option −15%. Exit on the STOCK
+  // breaking SL keeps option losses small (cap 20%) instead of bleeding to −40%.
   const holdRule  = isBase
-    ? "✅ Hold up to 15 trading days\n✅ Exit if option loses 40% of value\n✅ Exit if stock hits Target\n⚠️ Exit if stock goes below SL"
-    : "✅ Exit if option loses 40% of value\n✅ Exit if stock hits Target price";
+    ? "✅ Hold up to 15 trading days\n✅ Exit when STOCK hits Target\n🛑 Exit when STOCK breaks SL (≈ option −15-20%)\n⚠️ Hard cap: never let the option lose more than 20%"
+    : "✅ Exit when STOCK hits Target price\n🛑 Exit when STOCK breaks SL (≈ option −15-20%)\n⚠️ Hard cap: never let the option lose more than 20%";
   const tradeNote = isBase
     ? "\n📌 <b>BASE TRADE NOTE:</b> Patient trade — 2-4 weeks. Exit option after 12 trading days if target not hit."
     : "";
@@ -737,7 +759,7 @@ function _sendOptionsAlertPremium(sym, cmp, optSignal, stage, sl, target, rr, bm
     `❌ Do NOT average down on options\n` +
     `❌ Do NOT hold past expiry week\n` +
     `${tradeNote}\n\n` +
-    `<i>Educational only. Not SEBI advice. v15.17</i>`;
+    `<i>Educational only. Not SEBI advice. v15.18</i>`;
 
   _sendTelegramPremium(msg);
   _bmSet(ss, bm, flagKey, "1", sym, "FLAG");
@@ -982,7 +1004,7 @@ function sendDailySummary() {
     `📊 <b>MARKET SUMMARY</b>\n━━━━━━━━━━━━━━━━━━━━\n` +
     `🔹 <b>Active Trades:</b> ${traded}/${CONFIG.MAX_TRADES}\n` +
     `🔸 <b>Waiting Slots:</b> ${waiting}\n` +
-    `✅ <i>System: Online v15.17</i>`
+    `✅ <i>System: Online v15.18</i>`
   );
 }
 
@@ -1430,6 +1452,18 @@ function _runScanner(startRow, endRow) {
     }
 
     if (sl >= cmp) sl = parseFloat((cmp * 0.97).toFixed(2));
+
+    // v15.18: reachability-aware +5% target floor for multi-day equity holds.
+    // Skips cash/intraday/options (they have faster, fixed targets). Only lifts
+    // when ATR% >= MIN_TARGET_ATRPCT so a +5% target is realistically hittable
+    // within the swing window; low-vol names keep their ATR target (no stranding).
+    if (ttype !== "⚡ Intraday" && ttype !== "📊 Options Alert") {
+      const atrPctTgt = atr > 0 ? (atr / cmp) * 100 : 0;
+      if (atrPctTgt >= CONFIG.MIN_TARGET_ATRPCT) {
+        const floorTgt = parseFloat((cmp * (1 + CONFIG.MIN_TARGET_PCT)).toFixed(2));
+        if (floorTgt > target) target = floorTgt;
+      }
+    }
 
     const risk   = cmp - sl;
     const reward = target - cmp;
@@ -1929,7 +1963,7 @@ function sendWeeklySummary() {
   if (best)              msg += `🏆 Best:  <b>${best[0]}</b> ₹${Math.round(parseFloat(best[16])  || 0)}\n`;
   if (worst && worst !== best) msg += `💀 Worst: <b>${worst[0]}</b> ₹${Math.round(parseFloat(worst[16]) || 0)}\n`;
   msg += `\n📌 Open: ${openTrades.length}/${CONFIG.MAX_TRADES}\n`;
-  msg += `<i>AI360 Trading v15.17 — Base + Breakout + Momentum + Options (Last-Tue expiry)</i>`;
+  msg += `<i>AI360 Trading v15.18 — Base + Breakout + Momentum + Options (Last-Tue expiry)</i>`;
   _sendTelegramAdvanceAndPremium(msg);
 
   // Basic channel — weekly social proof to build trust and drive upgrades
