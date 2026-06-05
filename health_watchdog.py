@@ -1,5 +1,5 @@
 """
-AI360 SYSTEM WATCHDOG — v1.0
+AI360 SYSTEM WATCHDOG — v1.1
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Once-daily health check that makes the system observable WITHOUT a developer.
 
@@ -13,6 +13,11 @@ CHECKS (each independent, all fail-safe — one check failing never blocks other
   3. NSE data feed freshness — FII/DII/bhavcopy keys updated recently?
   4. GitHub Actions failures in the last 24h (via GITHUB_TOKEN)
   5. Telegram bot token still valid
+  6. GH_TOKEN PAT expiry — warns WEEKS before it expires. This PAT is what
+     token_refresh.py uses to write the refreshed META token back, and what
+     auto_heal uses to re-run failed jobs. If it expires silently, FB/IG
+     content dies (~60 days later) and self-healing stops. Early warning lets
+     the family regenerate it in time. Absent expiry header = no-expiry PAT = OK.
 
 OUTPUT:
   • Problems found  → 🔴 alert to Basic channel, plain language + fix step.
@@ -36,10 +41,12 @@ SHEET_NAME   = "Ai360tradingAlgo"
 TG_TOKEN     = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 CHAT_BASIC   = os.environ.get("CHAT_ID_BASIC", "")
 GH_TOKEN     = os.environ.get("GITHUB_TOKEN", "")
+GH_PAT       = os.environ.get("GH_PAT", "")   # the long-lived PAT secret (GH_TOKEN secret), not the per-run built-in
 GH_REPO      = os.environ.get("GITHUB_REPOSITORY", "systronics/ai360trading")
 
 # Freshness thresholds (hours / days)
 NSE_STALE_DAYS = 4      # FII/DII/bhavcopy data older than this = feed problem
+PAT_WARN_DAYS  = 21     # warn this many days before the GH_TOKEN PAT expires
 
 
 # ── Telegram (stdlib — works even if pip failed) ───────────────────────────
@@ -190,12 +197,68 @@ def check_telegram(problems):
         print(f"[CHK] Telegram getMe error: {e}")
 
 
+# ── CHECK 6: GH_TOKEN PAT expiry early-warning ─────────────────────────────
+def check_pat_expiry(problems):
+    """The GH_TOKEN secret (PAT) lets token_refresh.py write the new META token
+    back + lets auto_heal re-run failed jobs. A classic/fine-grained PAT can
+    expire silently → FB/IG content dies ~60 days later + self-healing stops.
+    GitHub returns the expiry in the 'github-authentication-token-expiration'
+    response header for any authenticated request. Absent header = no-expiry
+    PAT (the recommended setup) → nothing to warn about."""
+    if not GH_PAT:
+        print("[CHK] GH_PAT not provided — skipping PAT-expiry check"); return
+    try:
+        req = Request("https://api.github.com/rate_limit", headers={
+            "Authorization": f"Bearer {GH_PAT}",
+            "Accept": "application/vnd.github+json",
+            "User-Agent": "ai360-watchdog",
+        })
+        resp = urlopen(req, timeout=20)
+        exp_raw = (resp.headers.get("github-authentication-token-expiration") or "").strip()
+        if not exp_raw:
+            print("[CHK] GH_TOKEN PAT has no expiry (good — no-expiry token)"); return
+        # Formats seen: '2026-12-31 23:59:59 +0000' or '2026-12-31 23:59:59 UTC'
+        exp_clean = exp_raw.replace("UTC", "+0000").strip()
+        exp_dt = None
+        for fmt in ("%Y-%m-%d %H:%M:%S %z", "%Y-%m-%d %H:%M:%S"):
+            try:
+                exp_dt = datetime.strptime(exp_clean, fmt)
+                if exp_dt.tzinfo is None:
+                    exp_dt = exp_dt.replace(tzinfo=timezone.utc)
+                break
+            except Exception:
+                continue
+        if exp_dt is None:
+            print(f"[CHK] could not parse PAT expiry '{exp_raw}' — skipping"); return
+        days_left = (exp_dt - datetime.now(timezone.utc)).total_seconds() / 86400.0
+        print(f"[CHK] GH_TOKEN PAT expires in {days_left:.0f} day(s) ({exp_dt:%Y-%m-%d})")
+        if days_left <= PAT_WARN_DAYS:
+            problems.append(("GitHub access token (GH_TOKEN) expiring soon",
+                             f"The GH_TOKEN secret expires on {exp_dt:%d %b %Y} "
+                             f"(~{days_left:.0f} days). When it expires, the META "
+                             f"(Facebook/Instagram) token can no longer auto-refresh "
+                             f"and self-healing stops. FIX: GitHub → Settings → "
+                             f"Developer settings → Personal access tokens → regenerate "
+                             f"with NO expiration, then update the GH_TOKEN repo secret. "
+                             f"See RUNBOOK → 'GitHub token'."))
+    except Exception as e:
+        # 401 etc. → the PAT is already invalid; surface it.
+        msg = str(e)
+        if "401" in msg or "403" in msg:
+            problems.append(("GitHub access token (GH_TOKEN) invalid",
+                             "GitHub rejected the GH_TOKEN secret — META token refresh "
+                             "and auto-heal cannot write changes. FIX: regenerate the PAT "
+                             "(no expiration) and update the GH_TOKEN secret. RUNBOOK → 'GitHub token'."))
+        else:
+            print(f"[CHK] PAT-expiry check error (non-fatal): {e}")
+
+
 def main():
     now = datetime.now(IST)
     print(f"[WATCHDOG] start {now:%Y-%m-%d %H:%M} IST")
     problems = []
 
-    for chk in (check_sheet_and_freshness, check_github_failures, check_telegram):
+    for chk in (check_sheet_and_freshness, check_github_failures, check_telegram, check_pat_expiry):
         try:
             chk(problems)
         except Exception as e:

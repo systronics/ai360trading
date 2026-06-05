@@ -69,6 +69,15 @@ The alert tells you the issue title. Find it below.
 - **What happens:** Trading signals are **unaffected**. Only auto-posting to FB/Instagram pauses.
 - **What to tell a developer:** *"Refresh the Meta (Facebook/Instagram) long-lived access token and update the GitHub secret. Check `publish_to_groups` scope for the FB group."*
 
+### H. "GitHub access token (GH_TOKEN) expiring soon / invalid"
+- **Meaning:** A GitHub password-key (called `GH_TOKEN`) is used to (1) auto-refresh the Facebook/Instagram token and (2) auto-restart failed jobs. If it expires, FB/Instagram posting will stop in a few weeks and auto-repair will stop. You get this alert **~3 weeks early** so there's plenty of time.
+- **What's safe:** Trading signals are **unaffected**. Nothing breaks immediately.
+- **Fix (best done with whoever set it up, ~5 min):**
+  1. Go to **GitHub → top-right photo → Settings → Developer settings → Personal access tokens**.
+  2. Find the token used for this repo, **regenerate** it — and set **Expiration = No expiration** (so this never happens again).
+  3. Copy the new token, then go to the repo → **Settings → Secrets and variables → Actions → `GH_TOKEN` → Update** → paste → Save.
+- **If unsure:** hand this section to a developer — it's a quick, well-known task.
+
 ### G. No weekly ✅ message for 2 weeks
 - **Meaning:** The watchdog itself may have stopped (GitHub disables jobs after long inactivity, though KeepAlive should prevent this).
 - **Fix (you can try):** Do step **C** → open **"System Watchdog — Daily Health Check"** → **"Run workflow"** with **test_alert = true**. If you get a ✅ message, it's alive again.

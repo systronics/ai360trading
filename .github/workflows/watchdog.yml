@@ -46,6 +46,7 @@ jobs:
           TELEGRAM_BOT_TOKEN:       ${{ secrets.TELEGRAM_BOT_TOKEN }}
           CHAT_ID_BASIC:            ${{ secrets.CHAT_ID_BASIC }}
           GITHUB_TOKEN:             ${{ secrets.GITHUB_TOKEN }}
+          GH_PAT:                   ${{ secrets.GH_TOKEN }}
           GITHUB_REPOSITORY:        ${{ github.repository }}
           WATCHDOG_TEST:            ${{ github.event.inputs.test_alert == 'true' && '1' || '0' }}
         run: python health_watchdog.py
