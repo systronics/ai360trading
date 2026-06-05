@@ -654,14 +654,35 @@ def _draw_candles(draw, x0, y0, w, h):
     draw.polygon([(ax+2, ay-2), (ax-22, ay-6), (ax-8, ay+14)], fill=(86, 230, 152, 255))
 
 
+# Per-topic colour themes so consecutive videos DON'T all look the same. One is
+# picked deterministically from the title (stable per topic, varied across the
+# channel grid). WEEK badge stays yellow as the constant brand anchor.
+_EDU_PALETTES = [
+    dict(bg1=(9, 16, 40),  bg2=(24, 30, 74),   top=(34, 197, 122), bot=(239, 68, 76),  hook=(239, 68, 76),  title=(255, 210, 0)),   # navy / gold
+    dict(bg1=(6, 40, 44),  bg2=(10, 70, 74),   top=(255, 176, 32), bot=(20, 170, 175), hook=(255, 140, 30), title=(255, 236, 130)), # teal / amber
+    dict(bg1=(34, 12, 58), bg2=(74, 26, 110),  top=(0, 210, 210),  bot=(236, 72, 153), hook=(236, 72, 153), title=(255, 224, 80)),  # purple / magenta
+    dict(bg1=(48, 10, 20), bg2=(98, 20, 34),   top=(255, 200, 0),  bot=(239, 68, 76),  hook=(18, 18, 22),   title=(255, 255, 255)), # crimson
+    dict(bg1=(8, 40, 24),  bg2=(14, 74, 42),   top=(180, 240, 90), bot=(255, 200, 0),  hook=(22, 86, 48),   title=(255, 255, 255)), # forest green
+    dict(bg1=(12, 20, 58), bg2=(22, 42, 106),  top=(0, 200, 255),  bot=(255, 180, 40), hook=(0, 140, 200),  title=(255, 224, 80)),  # indigo / cyan
+    dict(bg1=(22, 20, 26), bg2=(48, 34, 20),   top=(255, 150, 20), bot=(255, 200, 0),  hook=(255, 120, 10), title=(255, 255, 255)), # charcoal / orange
+    dict(bg1=(14, 24, 44), bg2=(30, 48, 84),   top=(120, 200, 255),bot=(255, 196, 64), hook=(60, 120, 200), title=(255, 224, 80)),  # slate / sky
+]
+_EDU_HOOKS = ["MUST WATCH", "EXPLAINED", "BEGINNER GUIDE", "WATCH NOW",
+              "2026 GUIDE", "SIMPLE GUIDE", "PRO TIPS", "FULL LESSON"]
+
+
 def make_edu_thumbnail(title_text, topic, week, path, hero=None):
     """Large-text 16:9 (1280x720) thumbnail for the long-form education video.
-    v2: finance visual (candlestick chart + rising green arrow) + market-colour
-    accents + a hook badge + a readability panel behind the title → built to
-    attract clicks & shares. A topic image behind it (when available) lifts CTR
-    further; the outlined title stays dominant either way."""
-    import textwrap
+    v3: per-topic COLOUR THEME (so videos don't all look identical) + finance
+    visual (candlestick chart + rising arrow) + a hook badge + a readability
+    panel behind the title → built to attract clicks & shares. A topic image
+    behind it (when available) lifts CTR further; the title stays dominant."""
+    import textwrap, hashlib
     TW, TH = 1280, 720
+    safe = (topic.get("title") or title_text or "TRADING LESSON").upper()
+    _h   = int(hashlib.md5(safe.encode("utf-8")).hexdigest(), 16)
+    pal  = _EDU_PALETTES[_h % len(_EDU_PALETTES)]
+    hook = _EDU_HOOKS[_h % len(_EDU_HOOKS)]
     if hero is not None:
         # Topic photo background. Left-weighted scrim: darker on the left (for the
         # title) and lighter on the right so the photo stays clearly visible.
@@ -676,9 +697,12 @@ def make_edu_thumbnail(title_text, topic, week, path, hero=None):
     else:
         img  = Image.new("RGB", (TW, TH))
         draw = ImageDraw.Draw(img, "RGBA")
-        for y in range(TH):                  # deep navy vertical gradient
+        b1, b2 = pal["bg1"], pal["bg2"]      # per-topic vertical gradient
+        for y in range(TH):
             t = y / TH
-            draw.line([(0, y), (TW, y)], fill=(int(9 + t*13), int(16 + t*30), int(40 + t*55)))
+            draw.line([(0, y), (TW, y)], fill=(int(b1[0]+(b2[0]-b1[0])*t),
+                                               int(b1[1]+(b2[1]-b1[1])*t),
+                                               int(b1[2]+(b2[2]-b1[2])*t)))
 
     # Finance visual on the lower-right (drawn before text so text sits on top)
     try:
@@ -686,22 +710,24 @@ def make_edu_thumbnail(title_text, topic, week, path, hero=None):
     except Exception:
         pass
 
-    # Accent bars (market green top, red bottom = instant trading vibe)
-    draw.rectangle([(0, 0), (TW, 14)], fill=(34, 197, 122))
-    draw.rectangle([(0, TH-14), (TW, TH)], fill=(239, 68, 76))
+    # Accent bars (theme colour top, contrast bottom)
+    draw.rectangle([(0, 0), (TW, 14)], fill=pal["top"])
+    draw.rectangle([(0, TH-14), (TW, TH)], fill=pal["bot"])
 
     f_week, f_title, f_brand, f_hook = _edu_font(46), _edu_font(116), _edu_font(40), _edu_font(40)
 
-    # Week badge (top-left)
+    # Week badge (top-left) — constant yellow brand anchor
     draw.rounded_rectangle([(48, 44), (430, 126)], radius=18, fill=(255, 200, 0))
     draw.text((239, 85), f"WEEK {week}", font=f_week, fill=(0, 0, 0), anchor="mm")
 
-    # Hook badge (top-right) — curiosity/learn cue
-    draw.rounded_rectangle([(TW-330, 44), (TW-48, 126)], radius=18, fill=(239, 68, 76))
-    draw.text((TW-189, 85), "MUST WATCH", font=f_hook, fill=(255, 255, 255), anchor="mm")
+    # Hook badge (top-right) — rotating curiosity cue, width fit to its text
+    try:    hw = draw.textlength(hook, font=f_hook)
+    except Exception: hw = len(hook) * 22
+    bx0 = TW - 48 - hw - 56
+    draw.rounded_rectangle([(bx0, 44), (TW-48, 126)], radius=18, fill=pal["hook"])
+    draw.text(((bx0 + TW - 48)//2, 85), hook, font=f_hook, fill=(255, 255, 255), anchor="mm")
 
     # Big bold title (left-aligned, up to 3 lines) on a translucent panel for contrast
-    safe  = (topic.get("title") or title_text or "TRADING LESSON").upper()
     lines = textwrap.wrap(safe, width=15)[:3]
     line_h = 124
     block_h = len(lines) * line_h
@@ -714,7 +740,7 @@ def make_edu_thumbnail(title_text, topic, week, path, hero=None):
     for line in lines:
         for dx, dy in [(-4,4),(4,-4),(-4,-4),(4,4),(0,5)]:
             draw.text((tx+dx, ty+dy), line, font=f_title, fill=(0,0,0,220), anchor="lm")
-        draw.text((tx, ty), line, font=f_title, fill=(255, 210, 0), anchor="lm")
+        draw.text((tx, ty), line, font=f_title, fill=pal["title"], anchor="lm")
         ty += line_h
 
     draw.text((TW//2, TH-48), "AI360TRADING — Daily Market Lessons",
