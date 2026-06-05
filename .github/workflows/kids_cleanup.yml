@@ -1,0 +1,53 @@
+name: Kids Channel — Delete Videos (manual cleanup)
+
+# One-off manual tool to delete specific videos from the kids channel
+# (e.g. test uploads). Manual-dispatch ONLY — never scheduled. Pass a
+# comma-separated list of YouTube video IDs. Uses the kids OAuth token
+# (youtube.force-ssl scope) already stored as YOUTUBE_CREDENTIALS_KIDS.
+
+on:
+  workflow_dispatch:
+    inputs:
+      video_ids:
+        description: "Comma-separated YouTube video IDs to delete"
+        required: true
+        type: string
+
+jobs:
+  delete:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install deps
+        run: pip install google-api-python-client google-auth
+      - name: Delete videos
+        env:
+          YOUTUBE_CREDENTIALS_KIDS: ${{ secrets.YOUTUBE_CREDENTIALS_KIDS }}
+          VIDEO_IDS: ${{ github.event.inputs.video_ids }}
+        run: |
+          python - <<'PYEOF'
+          import os, json
+          from google.oauth2.credentials import Credentials
+          from googleapiclient.discovery import build
+
+          creds_json = os.environ.get("YOUTUBE_CREDENTIALS_KIDS", "")
+          ids = [x.strip() for x in os.environ.get("VIDEO_IDS", "").split(",") if x.strip()]
+          if not creds_json or not ids:
+              raise SystemExit("Missing credentials or video IDs")
+
+          yt = build("youtube", "v3", credentials=Credentials.from_authorized_user_info(json.loads(creds_json)))
+          ok, fail = [], []
+          for vid in ids:
+              try:
+                  yt.videos().delete(id=vid).execute()
+                  print(f"  ✅ deleted {vid}")
+                  ok.append(vid)
+              except Exception as e:
+                  print(f"  ⚠️ could not delete {vid}: {e}")
+                  fail.append(vid)
+          print(f"\nDONE — deleted {len(ok)}/{len(ids)}; failed: {fail}")
+          PYEOF
