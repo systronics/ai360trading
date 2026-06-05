@@ -1,6 +1,19 @@
 """
-generate_kids_video.py — HerooQuest v2.8
+generate_kids_video.py — HerooQuest v2.9
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v2.9 (2026-06-05) — DIALOGUE + MULTI-VOICE (engagement / retention):
+    Two upgrades so the story feels like a real cartoon, not a single-narrator
+    audiobook (drives watch-time = the #1 YouTube reach signal):
+    LAYER 1 — the script is now CONVERSATION-driven: each scene is a back-and-
+      forth between Heroo, Arya (+ optional Mom/Dad) with a problem, emotions,
+      a repeated catchphrase, and direct questions to the viewer.
+    LAYER 2 — MULTI-VOICE render: each character speaks in a distinct voice
+      (English uses true child voices Ana/Maisie; Hindi's 2 voices are split by
+      pitch/rate per role). Per-line clips are concatenated into one per-scene
+      mp3, so the existing video + subtitle pipeline is unchanged (low risk).
+    Fully back-compatible + fail-open: a script without "dialogue", or any
+    multi-voice error, falls back to the old single-voice narration path.
+
 v2.8 (2026-06-02) — EDGE-TTS 503 RETRY (self-heal in-run):
     edge_tts (wss://speech.platform.bing.com) intermittently returns 503 /
     WSServerHandshakeError, which killed the whole kids-english-full job
@@ -92,6 +105,7 @@ import os
 import json
 import asyncio
 import time
+import shutil
 import urllib.parse
 import urllib.request
 import subprocess
@@ -119,6 +133,38 @@ VOICES = {
     "hi": "hi-IN-SwaraNeural",
     "en": "en-US-JennyNeural",
 }
+
+# v2.9 — MULTI-VOICE DIALOGUE. Each character gets a distinct voice so the story
+# feels like a real cartoon conversation. Hindi has only two hi-IN neural voices
+# (Swara F / Madhur M), so roles are separated further by pitch + rate. English
+# has TRUE child voices (Ana, Maisie) — perfect for the kid characters.
+SPEAKER_VOICES = {
+    "hi": {
+        "Narrator": {"voice": "hi-IN-MadhurNeural", "rate": "-6%", "pitch": "+0Hz"},
+        "Heroo":    {"voice": "hi-IN-MadhurNeural", "rate": "+8%", "pitch": "+30Hz"},   # bright young boy
+        "Arya":     {"voice": "hi-IN-SwaraNeural",  "rate": "+8%", "pitch": "+35Hz"},   # young girl
+        "Mom":      {"voice": "hi-IN-SwaraNeural",  "rate": "-4%", "pitch": "+0Hz"},
+        "Dad":      {"voice": "hi-IN-MadhurNeural", "rate": "-2%", "pitch": "-12Hz"},
+        "default":  {"voice": "hi-IN-SwaraNeural",  "rate": "+0%", "pitch": "+12Hz"},
+    },
+    "en": {
+        "Narrator": {"voice": "en-IN-PrabhatNeural", "rate": "-6%", "pitch": "+0Hz"},
+        "Heroo":    {"voice": "en-US-AnaNeural",     "rate": "+0%", "pitch": "+0Hz"},    # genuine child voice
+        "Arya":     {"voice": "en-GB-MaisieNeural",  "rate": "+0%", "pitch": "+0Hz"},    # child girl voice
+        "Mom":      {"voice": "en-US-JennyNeural",   "rate": "-2%", "pitch": "+0Hz"},
+        "Dad":      {"voice": "en-US-GuyNeural",     "rate": "-2%", "pitch": "-12Hz"},
+        "default":  {"voice": "en-US-JennyNeural",   "rate": "+0%", "pitch": "+0Hz"},
+    },
+}
+
+def _speaker_style(speaker: str, lang: str) -> dict:
+    """Map a dialogue speaker name → {voice, rate, pitch}. Tolerant of messy
+    names like 'Heroo (excited)' or 'narrator:'; unknown speakers → default."""
+    table = SPEAKER_VOICES.get(lang, SPEAKER_VOICES["hi"])
+    if not speaker:
+        return table["default"]
+    key = speaker.strip().split("(")[0].split(":")[0].strip().title()
+    return table.get(key, table["default"])
 
 # v2.7: warm, kid-friendly spoken outro (like/share/subscribe) added to the last
 # scene's narration so it's voiced in the same soft kids voice + caption follows.
@@ -171,14 +217,28 @@ print(f"[TOPIC] {topic['hindi_title']} / {topic['english_title']}")
 
 def generate_script(topic: dict) -> dict:
     prompt = f"""
-You are a master kids storyteller. Create a bilingual animated story starring Heroo.
+You are a master children's cartoon writer (think Bluey, Gattu Battu, ChuChu TV).
+Create a bilingual (Hindi + English) animated EPISODE starring Heroo.
+
 Topic (Hindi): {topic['hindi_title']}
 Topic (English): {topic['english_title']}
 Category: {topic['category']}
-Target: children 4-12 years
+Audience: children 4-12 years.
 
-IMPORTANT: Heroo is the MAIN CHARACTER in every scene.
-Arya is his curious friend.
+CHARACTERS who SPEAK (use these EXACT names as "speaker"):
+- "Heroo": brave, kind 10-year-old boy hero — the main character, in every scene
+- "Arya": his curious, funny 8-year-old best friend
+- "Narrator": warm storyteller — used SPARINGLY, only to set a scene briefly
+- optional "Mom" or "Dad" — a guest character only if the story needs one
+
+MAKE IT FEEL ALIVE (most important):
+- Tell the story through CONVERSATION between characters, not narration.
+- Give every scene a small PROBLEM or surprise so kids want to know what happens next.
+- Show feelings OUT LOUD: "Oh no!", "Wow!", "Yay!", gasps, giggles.
+- Invent ONE fun CATCHPHRASE Heroo repeats in several scenes (kids love repeating it).
+- 2-3 times across the story, a character asks the VIEWER a question
+  ("Can you help us count? Say it with me!") to pull kids in.
+- Keep every line SHORT and simple. End with a clear, kind moral shown through ACTION.
 
 Output ONLY valid JSON, no markdown:
 {{
@@ -187,19 +247,26 @@ Output ONLY valid JSON, no markdown:
   "scenes": [
     {{
       "id": 1,
-      "narration_hi": "8-10 simple Hindi sentences spoken by Heroo. 40-50 seconds when read aloud.",
-      "narration_en": "8-10 simple English sentences spoken by Heroo. 40-50 seconds when read aloud.",
-      "image_prompt": "Specific visual: what Heroo and Arya are doing, their exact poses and expressions, detailed magical background. Very specific for AI image generation.",
+      "dialogue": [
+        {{"speaker": "Narrator", "hi": "1 short Hindi line", "en": "1 short English line"}},
+        {{"speaker": "Heroo", "hi": "short Hindi line", "en": "short English line", "emotion": "excited"}},
+        {{"speaker": "Arya", "hi": "short Hindi line", "en": "short English line"}}
+      ],
+      "image_prompt": "Specific visual: what Heroo and Arya are doing, their poses, expressions and the magical background. Very detailed for AI image generation.",
       "emotion": "excited",
       "transition": "fade"
     }}
   ],
-  "moral_hi": "1 sentence Hindi moral from Heroo",
-  "moral_en": "1 sentence English moral from Heroo",
+  "moral_hi": "1 sentence Hindi moral",
+  "moral_en": "1 sentence English moral",
   "seo_description_en": "60 word YouTube description with keywords mentioning Heroo"
 }}
-Create exactly 10 scenes. Build: introduce (2), develop (2), adventure (4), moral (2).
-Each narration 8-10 sentences = 40-50 seconds = ~7.5 min total.
+
+Rules:
+- Create EXACTLY 10 scenes. Arc: introduce (2), problem appears (2), adventure (4), solve + moral (2).
+- Each scene has 4-7 SHORT dialogue lines (a real back-and-forth), ~40-50 seconds aloud.
+- Heroo speaks in most scenes; Arya speaks often; Narrator rarely.
+- BOTH "hi" and "en" are required for EVERY dialogue line.
 """
     return ai.generate_json(prompt, content_mode=CONTENT_MODE, lang="hi")
 
@@ -682,27 +749,115 @@ def _simple_concat(clip_paths: list, out_path: Path):
 
 # ── TTS ───────────────────────────────────────────────────────────────────────
 
-async def generate_tts_async(text: str, lang: str, out_path: Path):
-    voice = VOICES.get(lang, VOICES["hi"])
-    # Edge TTS (wss://speech.platform.bing.com) intermittently returns 503 /
-    # WSServerHandshakeError. Retry with backoff so a transient blip does not
-    # kill the whole workflow job (was causing hourly auto-heal re-runs).
+async def _tts_one(text: str, voice: str, rate: str, pitch: str, out_path: Path):
+    """Render ONE line in a specific voice/rate/pitch, with 503 retry.
+    Edge TTS (wss://speech.platform.bing.com) intermittently returns 503 /
+    WSServerHandshakeError; retry with backoff so a transient blip does not
+    kill the whole workflow job (was causing hourly auto-heal re-runs)."""
     last_err = None
     for attempt in range(1, 5):  # 4 tries: ~0s, 5s, 15s, 30s backoff
         try:
-            await edge_tts.Communicate(text, voice, rate="-10%").save(str(out_path))
+            await edge_tts.Communicate(text, voice, rate=rate, pitch=pitch).save(str(out_path))
             if out_path.exists() and out_path.stat().st_size > 0:
                 return
             raise RuntimeError("edge_tts produced empty audio file")
         except Exception as e:
             last_err = e
-            print(f"  [TTS] attempt {attempt}/4 failed ({lang}): {e}")
+            print(f"  [TTS] attempt {attempt}/4 failed ({voice}): {e}")
             if attempt < 4:
                 await asyncio.sleep([5, 15, 30][attempt - 1])
-    raise RuntimeError(f"TTS failed after 4 attempts ({lang}): {last_err}")
+    raise RuntimeError(f"TTS failed after 4 attempts ({voice}): {last_err}")
+
+
+async def generate_tts_async(text: str, lang: str, out_path: Path):
+    """Single-voice render — fallback for non-dialogue scenes / safety path."""
+    await _tts_one(text, VOICES.get(lang, VOICES["hi"]), "-10%", "+0Hz", out_path)
 
 def generate_tts(text: str, lang: str, out_path: Path):
     asyncio.run(generate_tts_async(text, lang, out_path))
+
+
+# ── v2.9 MULTI-VOICE DIALOGUE ──────────────────────────────────────────────────
+_SILENCE_PATH = OUTPUT_DIR / "kids_gap_silence.mp3"
+
+def _ensure_silence(gap: float = 0.32) -> bool:
+    """A tiny silence clip inserted between speakers for natural dialogue rhythm."""
+    if _SILENCE_PATH.exists() and _SILENCE_PATH.stat().st_size > 0:
+        return True
+    try:
+        subprocess.run(
+            ["ffmpeg", "-y", "-f", "lavfi", "-i", "anullsrc=r=24000:cl=mono",
+             "-t", str(gap), "-c:a", "libmp3lame", "-q:a", "4", str(_SILENCE_PATH)],
+            capture_output=True)
+        return _SILENCE_PATH.exists() and _SILENCE_PATH.stat().st_size > 0
+    except Exception:
+        return False
+
+def _concat_audio(parts: list, out_path: Path, gap: float = 0.32):
+    """Concatenate per-line mp3s into one scene mp3 (re-encoded for a uniform
+    stream), with a short pause between speakers."""
+    parts = [p for p in parts if p and Path(p).exists() and Path(p).stat().st_size > 0]
+    if not parts:
+        raise RuntimeError("no audio parts to concat")
+    if len(parts) == 1:
+        r = subprocess.run(["ffmpeg", "-y", "-i", str(parts[0]),
+                            "-c:a", "libmp3lame", "-q:a", "4", str(out_path)],
+                           capture_output=True)
+        if not (out_path.exists() and out_path.stat().st_size > 0):
+            shutil.copyfile(parts[0], out_path)
+        return
+    use_gap = _ensure_silence(gap)
+    listf = OUTPUT_DIR / f"{out_path.stem}_concat.txt"
+    lines = []
+    for i, p in enumerate(parts):
+        if i > 0 and use_gap:
+            lines.append(f"file '{_SILENCE_PATH.resolve().as_posix()}'")
+        lines.append(f"file '{Path(p).resolve().as_posix()}'")
+    listf.write_text("\n".join(lines), encoding="utf-8")
+    subprocess.run(["ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", str(listf),
+                    "-c:a", "libmp3lame", "-q:a", "4", str(out_path)], capture_output=True)
+    if not (out_path.exists() and out_path.stat().st_size > 0):
+        raise RuntimeError("ffmpeg concat produced no output")
+
+def _scene_dialogue_lines(scene: dict, lang: str) -> list:
+    """Extract [(speaker, text), ...] from a scene. Prefers the new 'dialogue'
+    array; falls back to the old single-narration field so older / templated
+    scripts still render (fail-safe)."""
+    out = []
+    dlg = scene.get("dialogue")
+    if isinstance(dlg, list) and dlg:
+        for d in dlg:
+            if not isinstance(d, dict):
+                continue
+            speaker = (d.get("speaker") or "Narrator").strip()
+            text = (d.get(lang) or d.get(f"text_{lang}") or d.get("text")
+                    or d.get("hi") or d.get("en") or "").strip()
+            if text:
+                out.append((speaker, text))
+    if not out:
+        narr = (scene.get(f"narration_{lang}") or scene.get("narration_hi")
+                or scene.get("narration_en") or "").strip()
+        if narr:
+            out.append(("Heroo", narr))
+    return out
+
+async def _render_dialogue_async(lines: list, lang: str, out_path: Path):
+    part_paths = []
+    for j, (speaker, text) in enumerate(lines):
+        if not text or not text.strip():
+            continue
+        st = _speaker_style(speaker, lang)
+        p = OUTPUT_DIR / f"{out_path.stem}_l{j:02d}.mp3"
+        await _tts_one(text.strip(), st["voice"], st["rate"], st["pitch"], p)
+        part_paths.append(p)
+    if not part_paths:
+        raise RuntimeError("no spoken dialogue lines")
+    _concat_audio(part_paths, out_path)
+
+def generate_tts_dialogue(lines: list, lang: str, out_path: Path):
+    """lines: list of (speaker, text). Renders each line in its character's
+    voice and concatenates into one scene audio file."""
+    asyncio.run(_render_dialogue_async(lines, lang, out_path))
 
 
 # ── v2.3 IMPROVED THUMBNAIL ───────────────────────────────────────────────────
@@ -856,20 +1011,32 @@ def main():
 
     for _idx, scene in enumerate(scenes):
         sid      = scene.get("id", len(img_paths)+1)
-        narr     = scene.get(f"narration_{LANG}", scene.get("narration_hi",""))
-        # v2.7: append the soft spoken like/share/subscribe CTA to the LAST scene
-        if _idx == len(scenes) - 1:
-            narr = (narr or "").rstrip() + KIDS_CTA.get(LANG, KIDS_CTA["hi"])
-        img_pr   = scene.get("image_prompt", "Heroo in an exciting adventure scene")
+        is_last  = (_idx == len(scenes) - 1)
 
-        print(f"[SCENE {sid}] Generating image + audio...")
+        # v2.9: build the spoken DIALOGUE lines for this scene (multi-voice).
+        # Back-compat: a script with no "dialogue" falls back to narration.
+        lines = _scene_dialogue_lines(scene, LANG)
+        # v2.7: the soft spoken like/share/subscribe CTA on the LAST scene
+        if is_last:
+            lines.append(("Narrator", KIDS_CTA.get(LANG, KIDS_CTA["hi"])))
+        if not lines:
+            lines = [("Heroo", "...")]
+        # combined text drives the auto-translate .srt caption for the scene
+        narr = " ".join(t for _, t in lines if t and t.strip())
+
+        img_pr   = scene.get("image_prompt", "Heroo in an exciting adventure scene")
+        print(f"[SCENE {sid}] {len(lines)} dialogue line(s) — generating image + voices...")
         img_p    = generate_scene_image(img_pr, sid)
 
         # v2.3: Enhance every image cinematically
         img_p    = enhance_image_cinematic(img_p)
 
         audio_p  = OUTPUT_DIR / f"kids_audio_{sid:02d}.mp3"
-        generate_tts(narr, LANG, audio_p)
+        try:
+            generate_tts_dialogue(lines, LANG, audio_p)   # v2.9 multi-voice
+        except Exception as e:
+            print(f"  ⚠️ multi-voice render failed ({e}) — fallback to single voice")
+            generate_tts(narr or "...", LANG, audio_p)
         img_paths.append(img_p)
         audio_paths.append(audio_p)
         narrations.append(narr)
