@@ -31,52 +31,51 @@ One broken file = zero income that day. Treat every edit as critical.
 ---
 
 ## CURRENT FILE VERSIONS
-*(Read from actual files — 2026-05-27)*
+*(Read from actual files — 2026-06-07)*
 
 ### Trading Engine
 | File | Version |
 |---|---|
-| `trading_bot.py` | v15.14 |
+| `trading_bot.py` | v15.16 |
 | `option_intelligence.py` | v1.0 (Batch 3) |
 | `institutional_edges.py` | v1.0 (Batch 4) |
 | `fetch_earnings.py` | v1.0 (Batch 3, daily 18:30 IST) |
 | `fetch_bhavcopy.py` | v1.0 (Batch 4, Mon-Fri 20:00 IST) |
 | `fetch_smallmidcap.py` | v1.3 (Mon-Fri 20:30 IST — REAL 5d volume + observable tab + SmallMidLive actionable board w/ entry/SL/target) |
-| `appscript.gs` | v15.17 (LIVE in editor; deploy via `.\deploy_appscript.ps1` — clasp-based, no manual paste) |
+| `appscript.gs` | v15.18 (LIVE in editor; deploy via `.\deploy_appscript.ps1` — clasp-based, no manual paste) |
 
 ### Long-Term Signals
 | File | Version |
 |---|---|
-| `generate_longterm.py` | v1.6 |
+| `generate_longterm.py` | v1.7 |
 | `refresh_cashwatchlist.py` | v1.3 |
-| `fetch_holidays.py` | v1.2 |
+| `fetch_holidays.py` | v1.3 |
 
 ### Core Infrastructure
 | File | Version |
 |---|---|
-| `ai_client.py` | v2.4 |
+| `ai_client.py` | v2.5 |
 | `human_touch.py` | v2.2 |
 | `token_refresh.py` | v2.2 |
-| `content_calendar.py` | v2.3 |
+| `content_calendar.py` | v2.4 |
 | `indian_holidays.py` | current (no version tag) |
 
 ### Content Generators
 | File | Version |
 |---|---|
-| `generate_education.py` | v1.1 |
-| `generate_reel.py` | v2.1 |
-| `generate_reel_morning.py` | v2.3 |
-| `generate_shorts.py` | v3.3 |
+| `generate_education.py` | v1.2 |
+| `generate_reel.py` | v2.4 |
+| `generate_reel_morning.py` | v2.5 |
+| `generate_shorts.py` | v3.8 |
 | `generate_articles.py` | current (no version tag) |
-| `generate_kids_video.py` | v2.3 |
+| `generate_kids_video.py` | v2.9 |
 
 ### Upload & Distribution
 | File | Version |
 |---|---|
-| `upload_youtube.py` | v2.2 |
+| `upload_youtube.py` | v2.3 |
 | `upload_facebook.py` | v2.6 |
-| `upload_kids_youtube.py` | current |
-| `upload_instagram.py` | current |
+| `upload_kids_youtube.py` | v2.5 |
 
 ---
 
