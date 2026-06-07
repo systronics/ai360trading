@@ -558,6 +558,33 @@ def safe_tts_price(val, lang: str = "hi") -> str:
 
 
 # ─────────────────────────────────────────────
+# AI CONTENT DISCLOSURE  (Meta + YouTube policy compliance)
+# ─────────────────────────────────────────────
+# Both Meta (Facebook/Instagram) and YouTube now REQUIRE creators to disclose
+# AI-assisted / synthetic content. Disclosing PROTECTS the account — hiding it
+# is what triggers removal / demonetization. The wording below is deliberately
+# subtle and trust-positive: it discloses the PRODUCTION METHOD while making
+# clear the DATA and ANALYSIS are real, so the audience keeps trusting the
+# content even though it is AI-produced.
+AI_DISCLOSURE = {
+    "hi": "🤖 AI tools se banaya gaya · 📊 Real market data aur analysis · Sirf shiksha ke liye",
+    "en": "🤖 Produced with AI tools · 📊 Real market data & analysis · Educational only",
+}
+
+
+def ai_disclosure(lang: str = "en") -> str:
+    """Return a one-line AI-content disclosure for captions / descriptions.
+
+    Required by Meta + YouTube policy. Discloses that AI tools were used while
+    affirming the market data + analysis are real — compliant AND keeps audience
+    trust. Fail-safe: always returns a string (never raises)."""
+    try:
+        return AI_DISCLOSURE.get(lang, AI_DISCLOSURE["en"])
+    except Exception:
+        return AI_DISCLOSURE["en"]
+
+
+# ─────────────────────────────────────────────
 # SINGLETON INSTANCES
 # ─────────────────────────────────────────────
 

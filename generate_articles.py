@@ -1703,8 +1703,17 @@ End with:
         except Exception:
             cta_footer = ""
 
+        # AI-content disclosure (Google/AdSense + social-share policy compliance).
+        # Subtle and trust-positive: discloses AI assistance while affirming the
+        # data and sources are real. Required now that platforms flag undisclosed
+        # AI content; disclosing protects the site from demotion.
+        ai_disc_footer = (
+            "\n\n*🤖 Produced with AI tools · 📊 Based on real market data and "
+            "sources · Educational only, not investment advice.*\n"
+        )
+
         with open(file_path, "w", encoding="utf-8") as f:
-            f.write(header + schema_block + hero_block + media_content + cta_footer)
+            f.write(header + schema_block + hero_block + media_content + cta_footer + ai_disc_footer)
 
         article_url = f"{SITE_URL}/{pillar['permalink_base']}/{chosen_slug}/"
         print(f"  ✅ /{pillar['permalink_base']}/{chosen_slug}/")

@@ -229,6 +229,7 @@ def build_description(ep_info: dict, video_duration_min: int = 8) -> str:
         f"Yeh video bachon ke liye ek animated moral story hai jisme Heroo — "
         f"ek brave 10-saal-ka ladka — {topic_en} ke baare mein seekhta hai. "
         f"Har episode mein ek nayi seekh hai jo aapke bachon ko life mein help karegi.\n\n"
+        f"🤖 AI tools se banayi gayi animated kahani · Family-friendly\n\n"
         f"{hashtags}"
     )[:5000]
 
@@ -498,6 +499,7 @@ def main():
         short_desc = (
             f"😱 Kya hua Heroo ke saath? Full story dekho channel pe!\n"
             f"💡 Moral: {ep_info['moral']}\n\n"
+            f"🤖 AI tools se banayi gayi animated kahani · Family-friendly\n\n"
             f"#HerooQuest #KidsShorts #HindiKahani #MoralStories #BachonKiKahani"
         )
         short_body = {

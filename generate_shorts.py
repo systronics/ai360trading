@@ -78,7 +78,7 @@ from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 
-from human_touch import ht, seo
+from human_touch import ht, seo, ai_disclosure
 
 # Money funnel (free Telegram → membership + broker referrals + comment prompt).
 # Fail-open: if the module is missing, descriptions just skip the extra block.
@@ -1081,7 +1081,8 @@ def build_desc(script_data: dict, short_num: int, part1_url: str) -> str:
         f"💡 {insight}\n\n"
         f"👍 Like • 🔔 Subscribe • 📤 Share this with a trader friend{cta}\n\n"
         f"{funnel}"
-        f"⚠️ Educational only. Not SEBI registered.\n\n"
+        f"⚠️ Educational only. Not SEBI registered.\n"
+        f"{ai_disclosure(lang)}\n\n"
         f"{htags}"
     )
 
@@ -1095,6 +1096,7 @@ def build_fb_caption(script_data: dict, short_num: int) -> str:
             f"📚 Weekend Learning!\n\n"
             f"💡 {insight}\n\n"
             f"{funnel}"
+            f"{ai_disclosure(lang)}\n"
             f"#ai360trading #StockMarket #Trading #WeekendLearning"
         )
     stock = script_data.get("stock", "Market")
@@ -1104,6 +1106,7 @@ def build_fb_caption(script_data: dict, short_num: int) -> str:
         f"💡 {insight}\n\n"
         f"{funnel}"
         f"⚠️ Educational only.\n"
+        f"{ai_disclosure(lang)}\n"
         f"#ai360trading #StockMarket #{stock.replace(' ','')}"
     )
 
@@ -1118,6 +1121,7 @@ def build_ig_caption_short2(script_data: dict) -> str:
             f"📚 Weekend Learning!\n\n"
             f"💡 {insight}\n\n"
             f"{funnel}"
+            f"{ai_disclosure('hi')}\n"
             f"#ai360trading #StockMarket #Trading #Investing"
         )
     return (
@@ -1125,6 +1129,7 @@ def build_ig_caption_short2(script_data: dict) -> str:
         f"💡 {insight}\n\n"
         f"{funnel}"
         f"⚠️ Educational only.\n"
+        f"{ai_disclosure('hi')}\n"
         f"#ai360trading #Nifty50 #StockMarket #TradingIndia"
     )
 
@@ -1137,6 +1142,7 @@ def build_ig_caption_short3(script_data: dict) -> str:
             f"🌍 Global Market Wisdom!\n\n"
             f"💡 {insight}\n\n"
             f"{funnel}"
+            f"{ai_disclosure('en')}\n"
             f"#GlobalMarkets #Bitcoin #Gold #SP500 #ai360trading"
         )
     return (
@@ -1144,6 +1150,7 @@ def build_ig_caption_short3(script_data: dict) -> str:
         f"💡 {insight}\n\n"
         f"{funnel}"
         f"⚠️ Educational only.\n"
+        f"{ai_disclosure('en')}\n"
         f"#GlobalMarkets #Bitcoin #Gold #Nifty #ai360trading"
     )
 

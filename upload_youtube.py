@@ -279,6 +279,15 @@ def build_fallback_metadata(reel_type: str, today: str):
 
 
 def upload_video(youtube, video_path: Path, title: str, description: str, tags: list, lang: str = "hi"):
+    # AI-content disclosure (YouTube policy) — appended once at the single upload
+    # chokepoint so it covers BOTH meta-based and fallback descriptions. Fail-open.
+    try:
+        from human_touch import ai_disclosure
+        disc = ai_disclosure(lang)
+        if disc and "AI tools" not in (description or ""):
+            description = f"{description}\n\n{disc}"
+    except Exception:
+        pass
     body = {
         # defaultAudioLanguage lets YouTube auto-generate + auto-translate
         # captions per viewer country (works even without our own .srt).

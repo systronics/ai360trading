@@ -38,6 +38,15 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 from datetime import datetime
 
+# AI-content disclosure (Meta policy). Fail-open: if human_touch is unavailable
+# for any reason, fall back to a plain English disclosure string so captions are
+# always compliant.
+try:
+    from human_touch import ai_disclosure
+except Exception:
+    def ai_disclosure(lang="en"):
+        return "🤖 Produced with AI tools · 📊 Real market data & analysis · Educational only"
+
 # ─── ARGS ─────────────────────────────────────────────────────────────────────
 
 def parse_args():
@@ -473,6 +482,7 @@ def build_caption(meta: dict, prefix: str) -> str:
             f"📖 {ep_title}\n"
             f"💡 Aaj ki seekh: {moral}\n\n"
             f"Apne bachon ke saath dekho! ❤️\n"
+            f"🤖 AI tools se banayi gayi animated kahani · Family-friendly\n"
             f"#HerooQuest #KidsStories #AnimatedStories #HindiKahani"
         )
 
@@ -485,6 +495,7 @@ def build_caption(meta: dict, prefix: str) -> str:
             f"🎯 FREE daily signals → t.me/ai360trading\n"
             f"🌐 ai360trading.in\n"
             f"⚠️ Educational only. Not SEBI registered.\n"
+            f"{ai_disclosure('en')}\n"
             f"#ai360trading #StockMarket #TradingForBeginners #Investing #ShareMarket"
         )
 
@@ -499,6 +510,7 @@ def build_caption(meta: dict, prefix: str) -> str:
             f"💡 {desc[:120]}\n\n"
             f"🌐 ai360trading.in | 📱 t.me/ai360trading\n"
             f"⚠️ Educational only.\n"
+            f"{ai_disclosure('hi')}\n"
             f"#ai360trading #HolidayLearning #StockMarket"
         )
     elif mode == "weekend":
@@ -506,6 +518,8 @@ def build_caption(meta: dict, prefix: str) -> str:
             f"📚 Weekend Wisdom — {today_str}\n\n"
             f"💡 {desc[:120]}\n\n"
             f"🌐 ai360trading.in | 📱 t.me/ai360trading\n"
+            f"⚠️ Educational only.\n"
+            f"{ai_disclosure('hi')}\n"
             f"#ai360trading #WeekendWisdom #Trading"
         )
     else:
@@ -514,6 +528,7 @@ def build_caption(meta: dict, prefix: str) -> str:
             f"💡 {desc[:120]}\n\n"
             f"🌐 ai360trading.in | 📱 t.me/ai360trading\n"
             f"⚠️ Educational only.\n"
+            f"{ai_disclosure('hi')}\n"
             f"#ai360trading #StockMarket #Nifty #Trading"
         )
 
