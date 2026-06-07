@@ -12,6 +12,14 @@ UPLOAD TARGETS:
   Short 2 (Hindi):   YouTube ✅ | Facebook AI360Trading Page ✅ | Instagram ✅
   Short 3 (English): YouTube ✅ | Facebook AI360Trading Page ✅ | Instagram ✅
 
+v3.9 (2026-06-07):
+  ADD — Real CURIOSITY HOOK on the in-feed cover (retention fix). The AI now
+    returns a dedicated "hook" field (max 6 words, curiosity gap — number/result/
+    bold question/mistake, NOT a label); main() feeds it to the hook frame instead
+    of the "STOCK SENTIMENT" label. Falls back to the old label if absent.
+    Pairs with hook_helper HOOK_SECONDS 1.4→2.0 so the hook is readable.
+    Goal: lift the ~2-5s average watch time that was killing reach.
+
 v3.8 (2026-06-02):
   ADD — Edge TTS 503 retry in gen_tts_async() (4x, 5/15/30s backoff + non-empty
     check). Transient wss://speech.platform.bing.com 503 now self-heals in-run.
@@ -522,6 +530,7 @@ Mode: {CONTENT_MODE}
 
 Return ONLY valid JSON:
 {{
+  "hook":    "SCROLL-STOPPING opening line for the in-feed cover frame. MAX 6 words. Hinglish (Roman script). Create a CURIOSITY GAP using a number, a result, a bold question, or a mistake — NEVER a plain label. GOOD: 'Ye stock 18% bhaaga aaj', 'Ye galti 5000 le dubti hai', 'Nifty girega par ye chadhega'. BAD: 'TCS Bullish', 'Trade Setup', 'Market Update'.",
   "title": "Short title max 8 words for YouTube",
   "stock": "Stock name or topic (max 3 words, English only)",
   "sentiment": "bullish or bearish or neutral",
@@ -547,6 +556,7 @@ Return ONLY valid JSON:
         "target": "Growth",
         "sl": "Stay Disciplined",
         "horizon": "Long Term",
+        "hook": "Market band? Phir bhi seekho",
         "insight": "Patience and discipline are the real edge in markets.",
         "script": "Doston, trading mein sabse important hai patience aur discipline. Market band ho ya open, seekhna kabhi band mat karo. Ek consistent trader hi long run mein jeetta hai. Subscribe karo aur join karo t.me/ai360trading.",
         "hashtags": "#Trading #StockMarket #NiftyTrading #Investing #ai360trading"
@@ -574,6 +584,7 @@ video is voiced by an English (en-IN) speaker. No markdown, no asterisks.
 
 Return ONLY valid JSON:
 {{
+  "hook":    "SCROLL-STOPPING opening line for the in-feed cover frame. MAX 6 words. ENGLISH only. Create a CURIOSITY GAP using a number, a result, or a bold question — NEVER a plain label. GOOD: 'US markets just did this', 'This moved 18% overnight', 'Gold is flashing a warning'. BAD: 'Global Market Pulse', 'Market Update'.",
   "title": "Global Market Pulse — short title",
   "sentiment": "bullish or bearish or neutral",
   "insight": "One key market insight sentence (English, max 15 words)",
@@ -589,6 +600,7 @@ Return ONLY valid JSON:
     return {
         "title": "Weekend Market Wisdom",
         "sentiment": "neutral",
+        "hook": "Global markets just shifted",
         "insight": "Global markets always reward the patient, disciplined investor.",
         "script": "Friends, global markets move every day. Gold, Bitcoin, S&P 500 — all connected to India. The smart trader watches globally and acts locally. Stay disciplined. Subscribe for daily insights at ai360trading.in.",
         "hashtags": "#GlobalMarkets #Bitcoin #Gold #SP500 #ai360trading"
@@ -643,7 +655,7 @@ def _sanitize_script(data: dict, lang: str) -> dict:
     YouTube/FB/IG title+description (e.g. a stray '**' the model returned)."""
     if not isinstance(data, dict):
         return data
-    for k in ("script", "insight", "title", "stock", "entry", "target", "sl", "horizon"):
+    for k in ("hook", "script", "insight", "title", "stock", "entry", "target", "sl", "horizon"):
         v = data.get(k)
         if isinstance(v, str):
             data[k] = ht.humanize(v, lang)
@@ -1178,9 +1190,11 @@ def main():
     s2_spoken = _with_cta(s2_data.get("script", ""), "hi")
     gen_tts(s2_spoken, VOICE_SHORT2, s2_audio)
     s2_head, s2_sub, s2_acc, s2_badge = short2_thumb_text(s2_data)
+    # In-feed cover = curiosity HOOK from the AI (falls back to the label if none).
+    s2_hook = (s2_data.get("hook") or "").strip() or s2_head
     s2_srt = str(OUT / f"short2_{today}.srt")
     render_short(s2_frame, s2_audio, s2_video, spoken_text=s2_spoken,
-                 hook_text=s2_head, hook_accent=s2_acc, srt_path=s2_srt, srt_lang="hi")
+                 hook_text=s2_hook, hook_accent=s2_acc, srt_path=s2_srt, srt_lang="hi")
 
     # Bold-text thumbnail (fail-open — never blocks upload)
     s2_thumb = ""
@@ -1211,9 +1225,11 @@ def main():
     s3_spoken = _with_cta(s3_data.get("script", ""), "en")
     gen_tts(s3_spoken, VOICE_SHORT3, s3_audio)
     s3_head, s3_sub, s3_acc, s3_badge = short3_thumb_text(s3_data)
+    # In-feed cover = curiosity HOOK from the AI (falls back to the label if none).
+    s3_hook = (s3_data.get("hook") or "").strip() or s3_head
     s3_srt = str(OUT / f"short3_{today}.srt")
     render_short(s3_frame, s3_audio, s3_video, spoken_text=s3_spoken,
-                 hook_text=s3_head, hook_accent=s3_acc, srt_path=s3_srt, srt_lang="en")
+                 hook_text=s3_hook, hook_accent=s3_acc, srt_path=s3_srt, srt_lang="en")
 
     # Bold-text thumbnail (fail-open — never blocks upload)
     s3_thumb = ""

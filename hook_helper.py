@@ -21,7 +21,9 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
 # How long the hook card is shown before the main content (seconds).
-HOOK_SECONDS = 1.4
+# 2.0s (was 1.4s) so viewers can actually READ a ~6-word curiosity hook before
+# the narration starts — too short and the hook can't do its job.
+HOOK_SECONDS = 2.0
 
 
 def _get_font(paths, size):
