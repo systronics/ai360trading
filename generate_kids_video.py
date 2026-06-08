@@ -1,6 +1,23 @@
 """
-generate_kids_video.py — HerooQuest v2.9
+generate_kids_video.py — HerooQuest v3.0
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v3.0 (2026-06-08) — VARIETY + INTEREST + BRIGHTNESS (owner feedback):
+    Owner: "conversation lines are similar in all videos, repetitive… stories
+    not interesting… and the in-video image is too bright (thumbnail is fine)."
+    1. STORY: generate_script() now injects a randomised per-episode RECIPE
+       (way-in / story-shape / tone / viewer-game) AND makes the topic's REAL
+       characters (Akbar, Birbal, Einstein, the astronauts…) the speaking stars,
+       with Heroo/Arya as the explorers who arrive and react. Fresh catchphrase
+       per episode; no more canned "Oh no/Wow/Yay" sameness. → varied, on-topic,
+       genuinely educational stories instead of the same two kids every time.
+    2. VOICES: real story characters get distinct guest-pool voices (hashed by
+       name) instead of one flat "default" → multi-character stories sound real.
+    3. BRIGHTNESS: the video ran an eq pass ON TOP of enhance_image_cinematic()
+       → washed-out/too-bright frames (the thumbnail skips eq, so it looked fine).
+       Trimmed enhance (bright 1.18→1.08, sat 1.40→1.25) and neutralised the eq
+       (brightness 0.05→0, sat 1.30→1.06) so video matches the thumbnail. Still
+       bright/cheerful — anti-scary grade intact.
+
 v2.9 (2026-06-05) — DIALOGUE + MULTI-VOICE (engagement / retention):
     Two upgrades so the story feels like a real cartoon, not a single-narrator
     audiobook (drives watch-time = the #1 YouTube reach signal):
@@ -157,14 +174,41 @@ SPEAKER_VOICES = {
     },
 }
 
+# Story characters (Akbar, Birbal, Rama, Einstein, the astronauts...) are not in
+# SPEAKER_VOICES. Instead of giving them all one flat "default" voice, assign each
+# a distinct, CONSISTENT voice from a small pool (hashed by name) so a multi-
+# character story actually sounds like different people. Hindi has only 2 neural
+# voices, so we vary pitch/rate to differentiate; English has more true voices.
+GUEST_VOICES = {
+    "hi": [
+        {"voice": "hi-IN-MadhurNeural", "rate": "-3%", "pitch": "-8Hz"},
+        {"voice": "hi-IN-SwaraNeural",  "rate": "-2%", "pitch": "+4Hz"},
+        {"voice": "hi-IN-MadhurNeural", "rate": "+2%", "pitch": "+12Hz"},
+        {"voice": "hi-IN-SwaraNeural",  "rate": "+0%", "pitch": "-6Hz"},
+    ],
+    "en": [
+        {"voice": "en-IN-PrabhatNeural",     "rate": "-2%", "pitch": "-6Hz"},
+        {"voice": "en-US-GuyNeural",         "rate": "+0%", "pitch": "+4Hz"},
+        {"voice": "en-US-ChristopherNeural", "rate": "-2%", "pitch": "+0Hz"},
+        {"voice": "en-GB-RyanNeural",        "rate": "+0%", "pitch": "+2Hz"},
+    ],
+}
+
 def _speaker_style(speaker: str, lang: str) -> dict:
     """Map a dialogue speaker name → {voice, rate, pitch}. Tolerant of messy
-    names like 'Heroo (excited)' or 'narrator:'; unknown speakers → default."""
+    names like 'Heroo (excited)' or 'narrator:'. Known cast → their fixed voice;
+    a story's real characters (unknown names) → a distinct guest-pool voice."""
     table = SPEAKER_VOICES.get(lang, SPEAKER_VOICES["hi"])
     if not speaker:
         return table["default"]
     key = speaker.strip().split("(")[0].split(":")[0].strip().title()
-    return table.get(key, table["default"])
+    if key in table:
+        return table[key]
+    # Real story character → consistent distinct voice (hashed by name).
+    import hashlib
+    pool = GUEST_VOICES.get(lang, GUEST_VOICES["hi"])
+    idx  = int(hashlib.md5(key.encode("utf-8")).hexdigest(), 16) % len(pool)
+    return pool[idx]
 
 # v2.7: warm, kid-friendly spoken outro (like/share/subscribe) added to the last
 # scene's narration so it's voiced in the same soft kids voice + caption follows.
@@ -216,34 +260,78 @@ print(f"[TOPIC] {topic['hindi_title']} / {topic['english_title']}")
 # ── SCRIPT GENERATION ─────────────────────────────────────────────────────────
 
 def generate_script(topic: dict) -> dict:
+    import random
+    # ── Per-episode STORY RECIPE — randomised so no two episodes feel the same.
+    # The old prompt was identical every time (same arc, same "Oh no/Wow/Yay",
+    # same catchphrase mechanic), so every video sounded alike. These knobs force
+    # a fresh plot, tone and viewer-game each episode.
+    portal = random.choice([
+        "a glowing time-portal that drops Heroo and Arya right into the story",
+        "a magical flying book whose pages open into the real place",
+        "Heroo's wrist-gadget that zooms them down into the scene",
+        "a friendly talking guide (an animal or spirit) who leads them through the tale",
+        "a vivid dream where the whole story comes alive around them",
+    ])
+    shape = random.choice([
+        "a mystery they solve clue by clue",
+        "a race against time to help someone in need",
+        "a funny misunderstanding that turns sweet by the end",
+        "a brave rescue with a tense (but never scary) obstacle",
+        "a friendly contest or challenge with a surprising winner",
+        "a quiet, heart-warming journey about a big feeling",
+    ])
+    game = random.choice([
+        "ask kids to shout the catchphrase along with Heroo",
+        "ask kids to count something on screen out loud",
+        "ask kids to guess what happens next before the reveal",
+        "ask kids to copy an action — clap, roar, or jump",
+        "ask kids to spot a hidden object in the scene",
+    ])
+    tone = random.choice([
+        "funny and giggly", "exciting and adventurous",
+        "warm and emotional", "curious and full of wonder",
+    ])
+
     prompt = f"""
 You are a master children's cartoon writer (think Bluey, Gattu Battu, ChuChu TV).
-Create a bilingual (Hindi + English) animated EPISODE starring Heroo.
+Create a bilingual (Hindi + English) animated EPISODE.
 
 Topic (Hindi): {topic['hindi_title']}
 Topic (English): {topic['english_title']}
 Category: {topic['category']}
 Audience: children 4-12 years.
 
-CHARACTERS who SPEAK (use these EXACT names as "speaker"):
-- "Heroo": brave, kind 10-year-old boy hero — the main character, in every scene
-- "Arya": his curious, funny 8-year-old best friend
-- "Narrator": warm storyteller — used SPARINGLY, only to set a scene briefly
-- optional "Mom" or "Dad" — a guest character only if the story needs one
+THIS EPISODE'S UNIQUE RECIPE (follow it so this story is NOTHING like the last one):
+- Way in: {portal}
+- Story shape: {shape}
+- Overall tone: {tone}
+- Viewer moment: at least twice, {game}
+
+WHO SPEAKS — make the TOPIC'S OWN CHARACTERS the heart of the story:
+- The REAL figures from this topic MUST appear and SPEAK, using their real names
+  as the "speaker" (e.g. Akbar/Birbal → "Akbar","Birbal"; Apollo 11 → "Neil",
+  "Buzz"; Young Einstein → "Albert"; a volcano science topic → a "Professor" or
+  the kids' own discovery). THEY drive the story — not Heroo.
+- "Heroo": the brave, kind 10-year-old who ARRIVES via the way-in above to watch,
+  ask, react and help. He is always on screen (he's the channel's hero) but he
+  does NOT take over the real characters' story.
+- "Arya": Heroo's curious 8-year-old friend who often comes along.
+- "Narrator": warm storyteller — used SPARINGLY, just to set a scene.
+- Use the real characters' names freely; each gets its own voice automatically.
 
 MAKE IT FEEL ALIVE (most important):
-- Tell the story through CONVERSATION between characters, not narration.
-- Give every scene a small PROBLEM or surprise so kids want to know what happens next.
-- Show feelings OUT LOUD: "Oh no!", "Wow!", "Yay!", gasps, giggles.
-- Invent ONE fun CATCHPHRASE Heroo repeats in several scenes (kids love repeating it).
-- 2-3 times across the story, a character asks the VIEWER a question
-  ("Can you help us count? Say it with me!") to pull kids in.
-- Each dialogue line is a NATURAL full sentence (one or two simple sentences) —
-  NOT just 2-3 words. Kids should hear real talking, with detail and feeling.
-- The story must feel COMPLETE and satisfying: a proper beginning, a real
-  adventure with ups and downs in the middle, and a happy, well-earned ending.
-  NEVER end abruptly or leave it half-told. End with a clear, kind moral shown
-  through ACTION.
+- Tell the story through real CONVERSATION, mostly between the topic's own characters.
+- Give every scene a small problem, question or surprise so kids lean in.
+- Let feelings show through what characters SAY and DO — vary it, don't repeat the
+  same few exclamations in every scene.
+- Invent a FRESH catchphrase that fits THIS episode's tone ({tone}); do not reuse a
+  generic one. Heroo can echo it a couple of times.
+- Each dialogue line is a NATURAL full sentence or two (not 2-3 words), with real
+  detail and feeling — and, for historical/religious/biography topics, faithful to
+  the real story so kids actually LEARN something true.
+- The story must feel COMPLETE: a proper beginning, a real middle with ups and
+  downs, and a happy, well-earned ending. NEVER end abruptly. End with a clear,
+  kind moral shown through ACTION.
 
 Output ONLY valid JSON, no markdown:
 {{
@@ -257,7 +345,7 @@ Output ONLY valid JSON, no markdown:
         {{"speaker": "Heroo", "hi": "short Hindi line", "en": "short English line", "emotion": "excited"}},
         {{"speaker": "Arya", "hi": "short Hindi line", "en": "short English line"}}
       ],
-      "image_prompt": "Specific visual: what Heroo and Arya are doing, their poses, expressions and the magical background. Very detailed for AI image generation.",
+      "image_prompt": "Specific visual: the topic's real characters AND Heroo (plus Arya) together in this scene's setting — their poses, expressions and the background. Very detailed for AI image generation.",
       "emotion": "excited",
       "transition": "fade"
     }}
@@ -268,11 +356,12 @@ Output ONLY valid JSON, no markdown:
 }}
 
 Rules:
-- Create EXACTLY 8 scenes. Arc: introduce (2), problem appears (2), adventure (2), solve + moral (2).
+- Create EXACTLY 8 scenes. Arc: arrive into the world (2), the problem/quest (2), the adventure (2), solve + moral (2).
 - Each scene has 6-8 dialogue lines (a rich, real back-and-forth), about 55-75 seconds aloud.
   (The 3-line example above is ONLY a format sample — every real scene needs 6-8 lines.)
 - The FINAL scene must give a clear, happy ENDING + the moral — never stop early.
-- Heroo speaks in most scenes; Arya speaks often; Narrator rarely.
+- The topic's REAL characters speak the most; Heroo reacts/asks/helps in every scene;
+  Arya joins often; Narrator rarely. Aim for 3-5 distinct speaking characters per episode.
 - BOTH "hi" and "en" are required for EVERY dialogue line, each a full natural sentence.
 """
     # max_tokens raised so all 8 bilingual scenes (6-8 lines each) fit without
@@ -475,11 +564,12 @@ def enhance_image_cinematic(img_path: Path) -> Path:
         # (The old dark edge vignette + warm-red channel push made the faces
         #  look dark, red and ominous — kids were scared by it.)
         # 1. Gentle contrast (soft, not harsh)
-        img = ImageEnhance.Contrast(img).enhance(1.10)
-        # 2. Saturation boost — fun, candy-bright colours
-        img = ImageEnhance.Color(img).enhance(1.40)
-        # 3. Brightness UP — bright and cheerful
-        img = ImageEnhance.Brightness(img).enhance(1.18)
+        img = ImageEnhance.Contrast(img).enhance(1.08)
+        # 2. Saturation boost — vibrant but not blown-out candy
+        img = ImageEnhance.Color(img).enhance(1.25)
+        # 3. Brightness — cheerful but NOT washed out. The video also runs an
+        #    eq pass, so this stays modest to avoid the over-bright look.
+        img = ImageEnhance.Brightness(img).enhance(1.08)
         # 4. Light sharpness
         img = ImageEnhance.Sharpness(img).enhance(1.25)
         # (Removed: warm-red channel push + dark vignette — both made the
@@ -609,10 +699,12 @@ def make_video_ffmpeg_cinematic(
             x_expr    = "if(lte(on,1),iw/2-(iw/zoom/2),max(0,x-1))"
             y_expr    = "ih/2-(ih/zoom/2)"
 
-        # KID-FRIENDLY colour: brighten slightly (was brightness=-0.02 darken)
-        # and DROP the dark vignette — "cinema dark edges" made the kids content
-        # look gloomy/scary. Keep vivid saturation for fun, friendly colours.
-        color_filter = "eq=contrast=1.06:brightness=0.05:saturation=1.30:gamma=1.02"
+        # KID-FRIENDLY colour: NEUTRAL pass — enhance_image_cinematic() already
+        # grades each frame, so this no longer adds extra brightness/saturation
+        # (that double pass made the in-video frames look washed-out / too bright,
+        # while the thumbnail — which skips this eq — looked correct). Kept very
+        # gentle so the video matches the thumbnail; NOT dark (anti-scary intact).
+        color_filter = "eq=contrast=1.03:brightness=0.0:saturation=1.06:gamma=1.0"
 
         # Sharpness (gentle)
         sharpen_filter = "unsharp=5:5:0.6:3:3:0.3"
