@@ -337,6 +337,7 @@ Output ONLY valid JSON, no markdown:
 {{
   "title_hi": "Hindi title max 10 words",
   "title_en": "English title max 10 words",
+  "thumbnail_hook": "2-4 word ULTRA-punchy ENGLISH curiosity hook for the thumbnail — emotion or a question, NOT the full title (e.g. 'HE DID IT!', 'THE SECRET CAVE', 'WHO WINS?', 'TOO LATE?')",
   "scenes": [
     {{
       "id": 1,
@@ -363,6 +364,9 @@ Rules:
 - The topic's REAL characters speak the most; Heroo reacts/asks/helps in every scene;
   Arya joins often; Narrator rarely. Aim for 3-5 distinct speaking characters per episode.
 - BOTH "hi" and "en" are required for EVERY dialogue line, each a full natural sentence.
+- "thumbnail_hook" must be a 2-4 word punchy English curiosity hook (for the thumbnail).
+- Give the scene with the biggest moment a strong "emotion" (e.g. "shocked",
+  "amazed", "scared", "excited") — the thumbnail is built from the most emotional scene.
 """
     # max_tokens raised so all 8 bilingual scenes (6-8 lines each) fit without
     # truncation — a cut-off last scene was making the story feel "half".
@@ -961,11 +965,39 @@ def generate_tts_dialogue(lines: list, lang: str, out_path: Path):
     asyncio.run(_render_dialogue_async(lines, lang, out_path))
 
 
-# ── v2.3 IMPROVED THUMBNAIL ───────────────────────────────────────────────────
+# ── v3.0 THUMBNAIL — emotional frame + punchy hook (CTR upgrade) ──────────────
+
+# How "scroll-stopping" each emotion is. The thumbnail is built from the scene
+# with the highest score — a big emotive frame beats the calm opening scene.
+_EMO_AROUSAL = {
+    "shocked": 10, "surprised": 9, "amazed": 9, "astonished": 9, "scared": 8,
+    "afraid": 8, "worried": 7, "nervous": 7, "excited": 7, "thrilled": 7,
+    "angry": 6, "curious": 6, "determined": 5, "proud": 5, "hopeful": 4,
+    "happy": 4, "joyful": 4, "relieved": 3, "sad": 3, "thoughtful": 2,
+    "calm": 1, "peaceful": 1,
+}
+
+def _pick_thumb_scene(scenes: list) -> int:
+    """Index of the most emotionally intense scene (for the thumbnail base)."""
+    best_i, best_score = 0, -1
+    for i, sc in enumerate(scenes or []):
+        if not isinstance(sc, dict):
+            continue
+        score = _EMO_AROUSAL.get(str(sc.get("emotion", "")).lower().strip(), 2)
+        for d in (sc.get("dialogue") or []):
+            if isinstance(d, dict):
+                score = max(score, _EMO_AROUSAL.get(
+                    str(d.get("emotion", "")).lower().strip(), 0))
+        if i == 0:           # the intro scene is usually calm — nudge it down
+            score -= 1
+        if score > best_score:
+            best_score, best_i = score, i
+    return best_i
+
 
 def make_thumbnail_multitext(
     title_hi: str, title_en: str, moral_en: str,
-    episode_num: int, scene_img_path: Path
+    episode_num: int, scene_img_path: Path, hook: str = ""
 ) -> Path:
     """
     Multi-text thumbnail that drives CTR.
@@ -1031,14 +1063,22 @@ def make_thumbnail_multitext(
 
     draw = ImageDraw.Draw(base, "RGBA")
 
-    try:
-        f_brand  = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",  38)
-        f_ep     = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",  34)
-        f_title  = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 110)
-        f_sub    = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",  64)
-        f_moral  = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",  42)
-    except:
-        f_brand = f_ep = f_title = f_sub = f_moral = ImageFont.load_default()
+    # Robust bold font across CI (Linux DejaVu), Windows and macOS.
+    _bold_paths = [
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+        "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
+        "C:/Windows/Fonts/arialbd.ttf", "C:/Windows/Fonts/segoeuib.ttf",
+        "/System/Library/Fonts/Supplemental/Arial Bold.ttf",
+    ]
+    def _kfont(sz):
+        for p in _bold_paths:
+            try:
+                if os.path.exists(p):
+                    return ImageFont.truetype(p, sz)
+            except Exception:
+                continue
+        return ImageFont.load_default()
+    f_brand, f_ep, f_title, f_sub, f_moral = _kfont(38), _kfont(34), _kfont(110), _kfont(64), _kfont(42)
 
     # HerooQuest brand (top left)
     draw.rounded_rectangle([(15,15),(260,65)], radius=14, fill=(220,30,30))
@@ -1050,24 +1090,22 @@ def make_thumbnail_multitext(
     draw.text((W-87,40), ep_txt, font=f_ep, fill=(0,0,0), anchor="mm")
 
     # Main title — HUGE yellow (most important element)
-    use_title = title_en or title_hi
+    # hook = short punchy thumbnail headline (falls back to the title)
+    use_title = (hook or title_en or title_hi)
     safe_title= re.sub(r'[\u0900-\u097F]+','',use_title).strip().upper()
     if not safe_title: safe_title = "HEROOQUEST STORY"
 
-    title_lines = textwrap.wrap(safe_title, width=12)
-    ty = 100
-    for line in title_lines[:2]:
-        # Drop shadow for readability
+    # Punchy hook → fewer words, BIGGER text (max 2 lines).
+    title_lines = textwrap.wrap(safe_title, width=11)[:2]
+    ty = 120
+    for line in title_lines:
+        # Thick drop shadow for readability on any background
         for dx,dy in [(-4,4),(4,-4),(-4,-4),(4,4),(-4,0),(4,0),(0,4),(0,-4)]:
-            draw.text((55+dx,ty+dy), line, font=f_title, fill=(0,0,0,230), anchor="la")
+            draw.text((55+dx,ty+dy), line, font=f_title, fill=(0,0,0,235), anchor="la")
         draw.text((55,ty), line, font=f_title, fill=(255,200,0), anchor="la")
-        ty += 125
+        ty += 128
 
-    # Subtitle line
-    topic_name = topic['english_title'][:25] if hasattr(topic,'get') else ""
-    if topic_name:
-        draw.text((55,ty), topic_name.upper(), font=f_sub, fill=(255,255,255), anchor="la")
-        ty += 80
+    # (Topic-name subtitle removed — it cluttered the frame and shrank the hook.)
 
     # Moral line — curiosity gap
     safe_moral = re.sub(r'[\u0900-\u097F]+','',moral_en).strip()[:50]
@@ -1142,13 +1180,18 @@ def main():
         audio_paths.append(audio_p)
         narrations.append(narr)
 
-    # v2.3: Multi-text thumbnail (scene 1 as dramatic background)
+    # v3.0: thumbnail from the MOST EMOTIONAL scene + a short punchy hook.
+    thumb_hook = (script.get("thumbnail_hook") or "").strip()
+    thumb_idx  = _pick_thumb_scene(scenes)
+    thumb_img  = img_paths[thumb_idx] if (img_paths and thumb_idx < len(img_paths)) else (img_paths[0] if img_paths else None)
+    print(f"[THUMB] base = scene {thumb_idx+1} (most emotional) | hook = {thumb_hook or '(title)'}")
     thumb_path = make_thumbnail_multitext(
         title_hi   = title_hi,
         title_en   = title_en,
         moral_en   = moral_en,
         episode_num= 1,
-        scene_img_path = img_paths[0] if img_paths else None
+        scene_img_path = thumb_img,
+        hook       = thumb_hook,
     )
 
     # v2.3: Cinematic video with transitions

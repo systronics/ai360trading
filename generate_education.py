@@ -709,8 +709,10 @@ _EDU_PALETTES = [
     dict(bg1=(22, 20, 26), bg2=(48, 34, 20),   top=(255, 150, 20), bot=(255, 200, 0),  hook=(255, 120, 10), title=(255, 255, 255)), # charcoal / orange
     dict(bg1=(14, 24, 44), bg2=(30, 48, 84),   top=(120, 200, 255),bot=(255, 196, 64), hook=(60, 120, 200), title=(255, 224, 80)),  # slate / sky
 ]
-_EDU_HOOKS = ["MUST WATCH", "EXPLAINED", "BEGINNER GUIDE", "WATCH NOW",
-              "2026 GUIDE", "SIMPLE GUIDE", "PRO TIPS", "FULL LESSON"]
+# Curiosity-gap badges beat flat labels for CTR ("THE TRUTH" > "EXPLAINED").
+_EDU_HOOKS = ["THE TRUTH", "DON'T SKIP THIS", "MOST GET THIS WRONG",
+              "BEFORE YOU TRADE", "PRO SECRET", "BIGGEST MISTAKE",
+              "EXPLAINED SIMPLY", "WATCH FIRST"]
 
 
 def make_edu_thumbnail(title_text, topic, week, path, hero=None):
@@ -719,9 +721,16 @@ def make_edu_thumbnail(title_text, topic, week, path, hero=None):
     visual (candlestick chart + rising arrow) + a hook badge + a readability
     panel behind the title → built to attract clicks & shares. A topic image
     behind it (when available) lifts CTR further; the title stays dominant."""
-    import textwrap, hashlib
+    import textwrap, hashlib, re
     TW, TH = 1280, 720
     safe = (topic.get("title") or title_text or "TRADING LESSON").upper()
+    # Punchy headline: keep the CORE phrase (before any dash/colon/pipe) and cap
+    # to ~5 words so the text stays BIG and readable at thumbnail size. Long
+    # titles wrap to 3 small lines and lose the scroll-stopping impact.
+    headline = re.split(r'[—\-:|]', safe)[0].strip() or safe
+    _words   = headline.split()
+    if len(_words) > 5:
+        headline = " ".join(_words[:5])
     _h   = int(hashlib.md5(safe.encode("utf-8")).hexdigest(), 16)
     pal  = _EDU_PALETTES[_h % len(_EDU_PALETTES)]
     hook = _EDU_HOOKS[_h % len(_EDU_HOOKS)]
@@ -769,8 +778,9 @@ def make_edu_thumbnail(title_text, topic, week, path, hero=None):
     draw.rounded_rectangle([(bx0, 44), (TW-48, 126)], radius=18, fill=pal["hook"])
     draw.text(((bx0 + TW - 48)//2, 85), hook, font=f_hook, fill=(255, 255, 255), anchor="mm")
 
-    # Big bold title (left-aligned, up to 3 lines) on a translucent panel for contrast
-    lines = textwrap.wrap(safe, width=15)[:3]
+    # Big bold headline (left-aligned, max 2 lines) on a translucent panel —
+    # fewer, bigger words read better at small sizes than a 3-line full title.
+    lines = textwrap.wrap(headline, width=13)[:2]
     line_h = 124
     block_h = len(lines) * line_h
     ty = (TH - block_h)//2 + 70
