@@ -1375,6 +1375,15 @@ def ce_candidate_flag(cp, atr, stage, is_bullish, rank=99,
 # ENTRY MESSAGE BUILDERS
 # ══════════════════════════════════════════════════════════════════════════════
 
+# Compliance footer on EVERY member trade alert. We DO share the trade's logic
+# (Setup/RSI/Nifty) for education + trust — but AI360Trading is NOT SEBI
+# registered, so each alert is framed as educational analysis, not personalised
+# advice. (The options alert already carries this; the cash-entry alerts did not.)
+ALERT_DISCLAIMER = (
+    "\n\n<i>📚 Educational analysis only — AI360Trading is NOT SEBI registered. "
+    "Not investment advice. Do your own research and manage your own risk.</i>"
+)
+
 def build_entry_advance(sym, cp, stage, sl, tgt, rr, ttype, atr, rank, capital, is_bullish,
                         rsi_val=-1, nifty_pct=0, opt_signal="", opt_strike="", opt_expiry="", opt_theta=""):
     rsi_str   = f"RSI: {rsi_val}" if rsi_val > 0 else ""
@@ -1585,7 +1594,10 @@ def step_a_enter_trades(log_sheet, nifty_sheet, bm_sheet, mem, now, is_bullish, 
                                           opt_signal, opt_strike, opt_expiry, opt_theta,
                                           mem=mem, now=now)
         msg_basic   = build_entry_basic(sym, cp, stage, to_f(row[C_PNL]))
-        send_basic(msg_basic); send_advance(msg_advance); send_premium(msg_premium)
+        # Append the educational/not-SEBI disclaimer to every member alert.
+        send_basic(msg_basic + ALERT_DISCLAIMER)
+        send_advance(msg_advance + ALERT_DISCLAIMER)
+        send_premium(msg_premium + ALERT_DISCLAIMER)
 
         traded_count += 1
         if traded_count >= MAX_TRADES: break
