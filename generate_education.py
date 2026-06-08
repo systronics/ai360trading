@@ -1,6 +1,16 @@
 """
 generate_education.py — AI360Trading
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v1.3 (2026-06-08):
+  FIX — DUPLICATE upload bug. The 52-week course returns ONE topic per week
+    (week_idx = days_since_start // 7), but daily-videos.yml runs this DAILY,
+    so the same "... | Week N | ..." lesson was re-uploaded ~6-7x/week to BOTH
+    YouTube and Facebook (e.g. "IPO Mein Invest... Week 4" appeared 3x).
+    ADD already_posted_this_week(): checks the channel's recent uploads and
+    skips generation+upload if Week N's lesson is already live. The Facebook
+    step then finds no video file and skips too. Self-correcting (a failed day
+    retries next day) and fail-open (any check error → proceed). No cron change.
+
 v1.2 (2026-06-02):
   ADD — Edge TTS 503 retry in gen_voice() (4x, 5/15/30s backoff + non-empty
     check). Transient wss://speech.platform.bing.com 503 now self-heals in-run
@@ -612,6 +622,38 @@ def get_youtube_service():
         return None
 
 
+def already_posted_this_week(week: int) -> bool:
+    """Skip-guard against the daily-cron duplicate bug.
+
+    The course returns ONE topic per week, but this script runs daily — so the
+    same '... | Week N | ...' video was being uploaded ~6-7x/week to YouTube and
+    Facebook. This checks the channel's recent uploads and returns True if Week
+    N's lesson is already live, so the rest of the week skips. Self-correcting:
+    a failed day simply uploads next day; once it's up, further days skip.
+    Fail-open: any error → False (proceed, so we never block forever)."""
+    try:
+        yt = get_youtube_service()
+        if not yt:
+            return False
+        ch = yt.channels().list(part="contentDetails", mine=True).execute()
+        uploads = ch["items"][0]["contentDetails"]["relatedPlaylists"]["uploads"]
+        items = yt.playlistItems().list(
+            part="snippet", playlistId=uploads, maxResults=25
+        ).execute()
+        for it in items.get("items", []):
+            title = it.get("snippet", {}).get("title", "")
+            # Titles are "Topic | Week N | AI360 Trading"; the trailing space/pipe
+            # keeps "Week 4" from matching "Week 40".
+            if f"Week {week} |" in title or f"| Week {week} " in title:
+                print(f"⏭️  Week {week} lesson already published — '{title[:60]}' "
+                      f"— skipping to avoid a duplicate upload.")
+                return True
+        return False
+    except Exception as e:
+        print(f"⚠️ Duplicate-check skipped (fail-open, proceeding): {e}")
+        return False
+
+
 # Robust bold-font lookup — CI (Linux DejaVu), Windows, macOS, then default.
 _FONT_CANDIDATES = [
     "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
@@ -815,6 +857,13 @@ async def run():
     week  = topic.get("week", 1)
 
     print(f"📖 Course Week {week}: {topic['title']} — {topic.get('description','')}")
+
+    # Daily cron + weekly topic = the same lesson every day. Skip if this week's
+    # video is already on the channel (the Facebook step then finds no file and
+    # skips too) — this is what stops the duplicate uploads.
+    if already_posted_this_week(week):
+        print(f"✅ Week {week} already live — no duplicate generated today.")
+        return
 
     # Generate slides
     data   = generate_edu_slides(topic, week)

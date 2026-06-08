@@ -89,22 +89,54 @@ jobs:
 
           msg = "\n".join(lines)
 
-          for entity_id in [PAGE_ID, GROUP_ID]:
-              if META_TOKEN and entity_id:
-                  try:
-                      r = requests.post(
-                          f"{GRAPH}/{entity_id}/feed",
-                          data={"message": msg, "access_token": META_TOKEN},
-                          timeout=15,
-                      )
-                      label = "Page" if entity_id == PAGE_ID else "Group"
-                      resp_data = r.json()
-                      if "id" in resp_data:
-                          print(f"✅ {label}: posted {resp_data['id']}")
-                      else:
-                          print(f"⚠️  {label}: {resp_data}")
-                  except Exception as e:
-                      print(f"❌ {label} error: {e}")
-              else:
-                  print(f"⚠️  Skipping — META_ACCESS_TOKEN or entity ID not set")
+          def get_page_token(page_id, user_token):
+              # Posting to a Page feed needs a PAGE token, not the raw user token
+              # (same bug fixed in daily-articles.yml). Mirrors upload_facebook.py.
+              if not user_token or not page_id:
+                  return user_token
+              try:
+                  d = requests.get(f"{GRAPH}/{page_id}",
+                                   params={"fields": "access_token", "access_token": user_token},
+                                   timeout=15).json()
+                  if d.get("access_token"):
+                      print(f"  ✅ Page token retrieved for page {page_id}")
+                      return d["access_token"]
+              except Exception as e:
+                  print(f"  ⚠️ Direct page token fetch failed: {e}")
+              try:
+                  data = requests.get(f"{GRAPH}/me/accounts",
+                                      params={"access_token": user_token, "limit": 200},
+                                      timeout=15).json().get("data", [])
+                  for page in data:
+                      if str(page.get("id", "")) == str(page_id) and page.get("access_token"):
+                          print(f"  ✅ Page token via /me/accounts for page {page_id}")
+                          return page["access_token"]
+              except Exception as e:
+                  print(f"  ⚠️ /me/accounts lookup failed: {e}")
+              print("  ⚠️ Falling back to user token (page token unavailable)")
+              return user_token
+
+          def post_feed(entity_id, label, token):
+              try:
+                  res = requests.post(f"{GRAPH}/{entity_id}/feed",
+                                      data={"message": msg, "access_token": token},
+                                      timeout=20).json()
+                  if "id" in res:
+                      print(f"✅ {label}: posted {res['id']}")
+                  else:
+                      err = res.get("error", {})
+                      print(f"❌ {label} failed — Error {err.get('code','?')}: {err.get('message', str(res))}")
+              except Exception as e:
+                  print(f"❌ {label} error: {e}")
+
+          # Page: post with a real PAGE token (the fix)
+          if META_TOKEN and PAGE_ID:
+              post_feed(PAGE_ID, "Page", get_page_token(PAGE_ID, META_TOKEN))
+          else:
+              print("⚠️  Skipping Page — META_ACCESS_TOKEN or FACEBOOK_PAGE_ID not set")
+
+          # Group: Meta deprecated Groups API publishing (Apr 2024) — best-effort,
+          # failure expected until publish_to_groups (Phase 3).
+          if META_TOKEN and GROUP_ID:
+              post_feed(GROUP_ID, "Group", META_TOKEN)
           EOF

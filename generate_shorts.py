@@ -1,6 +1,10 @@
 """
 generate_shorts.py — AI360Trading
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v3.10 (2026-06-08): Weekend shorts used ONE hardcoded prompt → near-identical
+  "patience/discipline" videos every weekend. Added _WEEKEND_THEMES rotation
+  (by ISO week); short2 and short3 now teach different weekly themes for variety.
+
 Generates Short 2 (Trade Setup) + Short 3 (Global Market Pulse).
 
 VOICE ASSIGNMENTS:
@@ -497,6 +501,28 @@ def make_short3_frame(script_data, market):
 # SCRIPT GENERATION
 # ══════════════════════════════════════════════════════════════════════════════
 
+# Weekend shorts used ONE hardcoded prompt → every weekend produced near-identical
+# "patience/discipline" videos (visible as duplicate "PATIENCE IS KEY" shorts).
+# Rotate a small curriculum by ISO week so each weekend covers a fresh theme.
+_WEEKEND_THEMES = [
+    "risk management — position sizing and where to place a stop-loss",
+    "the psychology of patience — why overtrading destroys returns",
+    "compounding — how small, consistent gains build real wealth",
+    "reading candlestick charts — what each candle is telling you",
+    "support and resistance — the foundation under every trade",
+    "trend following vs trying to catch tops and bottoms",
+    "building a simple written trading plan and actually sticking to it",
+    "diversification — why one trade should never sink your account",
+    "FOMO and revenge trading — the two costliest beginner mistakes",
+    "keeping a trade journal — how disciplined traders keep improving",
+]
+
+def _weekend_theme(offset: int = 0) -> str:
+    import datetime as _dt
+    wk = _dt.date.today().isocalendar()[1]
+    return _WEEKEND_THEMES[(wk + offset) % len(_WEEKEND_THEMES)]
+
+
 def generate_short2_script(market: dict, part1_url: str) -> dict:
     from ai_client import ai
     nifty_val = market.get("nifty", {}).get("val", "N/A")
@@ -505,7 +531,7 @@ def generate_short2_script(market: dict, part1_url: str) -> dict:
     if CONTENT_MODE == "holiday":
         topic = f"Market holiday special — {HOLIDAY_NAME}. Motivational investing lesson. No live data."
     elif CONTENT_MODE == "weekend":
-        topic = "Weekend trading education — patience, discipline, risk management. No live signals."
+        topic = f"Weekend trading education on: {_weekend_theme()}. Teach this ONE theme clearly. No live signals."
     else:
         topic = f"Today's Nifty: {nifty_val} ({nifty_chg}). Top Nifty200 swing trade setup or learning."
 
@@ -572,7 +598,7 @@ def generate_short3_script(market: dict) -> dict:
     nifty_val = market.get("nifty",  {}).get("val", "N/A")
 
     if CONTENT_MODE in ("holiday", "weekend"):
-        mkt_context = "Market holiday/weekend — global investing wisdom, no specific calls."
+        mkt_context = f"Market holiday/weekend — global investing wisdom on: {_weekend_theme(offset=5)}. No specific calls."
     else:
         mkt_context = f"Nifty:{nifty_val} | BTC:{btc_val} | Gold:{gold_val} | S&P500:{sp5_val} | USD/INR:{inr_val}"
 
