@@ -6,10 +6,7 @@
 User-agent: *
 Allow: /
 
-# Block technical & internal folders
-Disallow: /assets/css/
-Disallow: /assets/js/
-Disallow: /cgi-bin/
+# Block Jekyll build output (not deployed, but keep as a guard)
 Disallow: /_site/
 
 # Block Jekyll system files
