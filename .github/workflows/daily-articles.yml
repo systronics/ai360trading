@@ -131,16 +131,63 @@ jobs:
                   f"#StockMarket #Nifty #Trading #ai360trading #India"
               )
 
-          for entity_id in [PAGE_ID, GROUP_ID]:
-              if META_TOKEN and entity_id:
-                  try:
-                      r = requests.post(
-                          f"{GRAPH}/{entity_id}/feed",
-                          data={"message": msg, "link": "https://ai360trading.in", "access_token": META_TOKEN},
-                          timeout=15
-                      )
-                      label = "Page" if entity_id == PAGE_ID else "Group"
-                      print(f"✅ {label} [{mode} mode]: {r.json().get('id', 'error')}")
-                  except Exception as e:
-                      print(f"❌ Post failed: {e}")
+          def get_page_token(page_id, user_token):
+              # Exchange the user token for a PAGE access token (required to post to
+              # a Page feed). Mirrors upload_facebook.py get_page_token() — the reel
+              # uploader uses this and posts fine; the article step previously posted
+              # with the raw user token and silently failed with no post ID.
+              if not user_token or not page_id:
+                  return user_token
+              try:
+                  d = requests.get(f"{GRAPH}/{page_id}",
+                                   params={"fields": "access_token", "access_token": user_token},
+                                   timeout=15).json()
+                  if d.get("access_token"):
+                      print(f"  ✅ Page token retrieved for page {page_id}")
+                      return d["access_token"]
+                  err = d.get("error", {})
+                  if err:
+                      print(f"  ⚠️ Direct page token: {err.get('code')} {err.get('message','')}")
+              except Exception as e:
+                  print(f"  ⚠️ Direct page token fetch failed: {e}")
+              try:
+                  data = requests.get(f"{GRAPH}/me/accounts",
+                                      params={"access_token": user_token, "limit": 200},
+                                      timeout=15).json().get("data", [])
+                  for page in data:
+                      if str(page.get("id", "")) == str(page_id) and page.get("access_token"):
+                          print(f"  ✅ Page token retrieved via /me/accounts for page {page_id}")
+                          return page["access_token"]
+              except Exception as e:
+                  print(f"  ⚠️ /me/accounts lookup failed: {e}")
+              print("  ⚠️ Falling back to user token (page token unavailable)")
+              return user_token
+
+          def post_feed(entity_id, label, token):
+              try:
+                  res = requests.post(
+                      f"{GRAPH}/{entity_id}/feed",
+                      data={"message": msg, "link": "https://ai360trading.in", "access_token": token},
+                      timeout=20
+                  ).json()
+                  if "id" in res:
+                      print(f"  ✅ {label} posted — ID: {res['id']}")
+                      return True
+                  err = res.get("error", {})
+                  print(f"  ❌ {label} failed — Error {err.get('code','?')}: {err.get('message', str(res))}")
+              except Exception as e:
+                  print(f"  ❌ {label} error: {e}")
+              return False
+
+          # Page: post with a real PAGE token (the actual fix)
+          if META_TOKEN and PAGE_ID:
+              post_feed(PAGE_ID, f"Page [{mode} mode]", get_page_token(PAGE_ID, META_TOKEN))
+          else:
+              print("  ⚠️ META_ACCESS_TOKEN or FACEBOOK_PAGE_ID missing — skipping Page post")
+
+          # Group: Meta DEPRECATED Groups API publishing (Apr 2024). Best-effort only —
+          # a failure here is EXPECTED, not a regression. Re-enables automatically if
+          # Meta restores it / a valid publish_to_groups scope is granted (Phase 3).
+          if META_TOKEN and GROUP_ID:
+              post_feed(GROUP_ID, f"Group [{mode} mode]", META_TOKEN)
           EOF
