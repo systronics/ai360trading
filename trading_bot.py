@@ -1727,7 +1727,7 @@ def _send_partial_book_alert(sym, cp, ent, pnl_pct, qty, tsl_now):
         f"   🎯 Let winners ride to target on the leftover qty\n\n"
         f"<i>Why: removing initial risk turns this into a free trade.</i>"
     )
-    send_advance_and_premium(msg)
+    send_advance_and_premium(msg + ALERT_DISCLAIMER)
 
 
 def _send_tsl_update(sym, cp, ent, new_tsl, pnl_pct, pnl_rs, reason):
@@ -1736,7 +1736,7 @@ def _send_tsl_update(sym, cp, ent, new_tsl, pnl_pct, pnl_rs, reason):
         f"{sym.replace('NSE:','')} LTP ₹{cp:.2f} | P/L {pnl_pct:+.2f}%\n"
         f"Trail SL: ₹{new_tsl:.2f} — {reason}\nP/L: ₹{pnl_rs:+.0f}"
     )
-    send_advance_and_premium(msg)
+    send_advance_and_premium(msg + ALERT_DISCLAIMER)
 
 
 def _exit_trade(log_sheet, hist_sheet, row_idx, sym, ent, exit_p, tgt, sl, tsl_at_exit,
@@ -1799,7 +1799,7 @@ def _exit_trade(log_sheet, hist_sheet, row_idx, sym, ent, exit_p, tgt, sl, tsl_a
     if is_target_hit:
         msg += f"\n⏳ Re-entry blocked for {REENTRY_COOLDOWN_DAYS} trading days"
 
-    send_advance_and_premium(msg)
+    send_advance_and_premium(msg + ALERT_DISCLAIMER)
     if exit_p > ent:
         basic_exit = (
             f"✅ <b>TRADE CLOSED — {sym.replace('NSE:', '')}</b>\n"
@@ -1818,7 +1818,7 @@ def _exit_trade(log_sheet, hist_sheet, row_idx, sym, ent, exit_p, tgt, sl, tsl_a
             f"<b>Join Advance @ ₹699/month</b>\n"
             f"📱 ai360trading.in/membership"
         )
-    send_basic(basic_exit)
+    send_basic(basic_exit + ALERT_DISCLAIMER)
 
     return mem
 
@@ -2348,7 +2348,7 @@ def scan_accumulation_watch(nifty_sheet, bm_sheet, mem, now, is_bullish):
                 f"<i>Lower-risk accumulation in a weak market — small/staggered size, "
                 f"hard stop below the base. Not a breakout chase.</i>"
             )
-            send_advance_and_premium(msg)
+            send_advance_and_premium(msg + ALERT_DISCLAIMER)
         return mem
     except Exception as e:
         print(f"[ACCUM] scan errored: {e} — fail open")
