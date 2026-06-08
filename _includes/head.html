@@ -15,13 +15,27 @@
   <!-- Canonical -->
   <link rel="canonical" href="{{ page.url | replace:'index.html','' | absolute_url }}">
 
+  <!-- Social share image: topic-matched card by pillar, brand card as fallback, page.image wins if set -->
+  {%- assign og_img = '/public/image/og-card.png' -%}
+  {%- case page.pillar -%}
+    {%- when 'stock-market'     -%}{%- assign og_img = '/public/image/og-stock-market.png' -%}
+    {%- when 'personal-finance' -%}{%- assign og_img = '/public/image/og-personal-finance.png' -%}
+    {%- when 'bitcoin'          -%}{%- assign og_img = '/public/image/og-bitcoin.png' -%}
+    {%- when 'ai-trading'       -%}{%- assign og_img = '/public/image/og-ai-trading.png' -%}
+    {%- when 'world-markets'    -%}{%- assign og_img = '/public/image/og-world-markets.png' -%}
+    {%- when 'gold'             -%}{%- assign og_img = '/public/image/og-gold.png' -%}
+    {%- when 'mutual-funds'     -%}{%- assign og_img = '/public/image/og-mutual-funds.png' -%}
+    {%- when 'ipo'              -%}{%- assign og_img = '/public/image/og-ipo.png' -%}
+  {%- endcase -%}
+  {%- if page.image -%}{%- assign og_img = page.image -%}{%- endif -%}
+
   <!-- Open Graph -->
   <meta property="og:type" content="{% if page.layout == 'post' %}article{% else %}website{% endif %}">
   <meta property="og:title" content="{% if page.title %}{{ page.title }}{% else %}AI360Trading | Global Market Intelligence{% endif %}">
   <meta property="og:description" content="{% if page.description %}{{ page.description }}{% else %}Daily AI-powered market intelligence for NIFTY, S&P 500, FTSE 100 and IBOVESPA.{% endif %}">
   <meta property="og:url" content="{{ page.url | absolute_url }}">
   <meta property="og:site_name" content="AI360Trading">
-  <meta property="og:image" content="{% if page.image %}{{ page.image | absolute_url }}{% else %}{{ '/public/image/og-card.png' | absolute_url }}{% endif %}">
+  <meta property="og:image" content="{{ og_img | absolute_url }}">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
 
@@ -29,7 +43,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="{% if page.title %}{{ page.title }}{% else %}AI360Trading{% endif %}">
   <meta name="twitter:description" content="{% if page.description %}{{ page.description }}{% else %}Daily AI-powered market intelligence for NIFTY, S&P 500, FTSE 100 and IBOVESPA.{% endif %}">
-  <meta name="twitter:image" content="{% if page.image %}{{ page.image | absolute_url }}{% else %}{{ '/public/image/og-card.png' | absolute_url }}{% endif %}">
+  <meta name="twitter:image" content="{{ og_img | absolute_url }}">
 
   <!-- Favicon -->
   <link rel="shortcut icon" href="{{ '/favicon.ico' | relative_url }}">
