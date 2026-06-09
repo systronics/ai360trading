@@ -1,0 +1,142 @@
+---
+layout: default
+title: "FD Calculator — Fixed Deposit Maturity &amp; Interest (Free) | AI360Trading"
+description: "Free fixed deposit (FD) calculator. Instantly find your FD maturity amount and interest earned with quarterly, monthly, half-yearly or yearly compounding. Fast and private."
+permalink: /tools/fd-calculator/
+canonical: https://ai360trading.in/tools/fd-calculator/
+meta-og:title: "Free FD Calculator — Fixed Deposit Maturity"
+meta-og:description: "Calculate your fixed deposit maturity and interest instantly. Free and private."
+meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
+---
+
+{% raw %}
+<style>
+  .calc-hero{text-align:center;margin-bottom:22px;padding:24px 18px;background:linear-gradient(135deg,#eef4ff,#f0f7ff);border-radius:14px}
+  .calc-hero h1{margin:0 0 6px;font-size:26px;font-weight:900;color:#1e293b}
+  .calc-hero p{margin:0;color:#475569;font-size:14px}
+  .calc-wrap{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin:22px 0}
+  .calc-card{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:24px;box-shadow:0 4px 14px rgba(0,0,0,.05)}
+  .calc-field{margin:16px 0}
+  .calc-field label{display:block;font-weight:700;font-size:13px;color:#334155;margin-bottom:6px}
+  .calc-field input,.calc-field select{width:100%;padding:11px 13px;border:1px solid #cbd5e0;border-radius:9px;font-size:15px}
+  .res-big{font-size:34px;font-weight:900;color:#0062ff;margin:4px 0 2px}
+  .res-sub{font-size:13px;color:#64748b;margin-bottom:18px}
+  .res-row{display:flex;justify-content:space-between;padding:10px 0;border-top:1px solid #eef2f7;font-size:14px;color:#334155}
+  .res-row b{color:#0f172a}
+  .bar{display:flex;height:16px;border-radius:50px;overflow:hidden;margin:18px 0 8px}
+  .bar i{display:block;height:100%}
+  .legend{display:flex;gap:18px;font-size:12px;color:#64748b}
+  .legend span{display:flex;align-items:center;gap:6px}
+  .dot{width:11px;height:11px;border-radius:3px;display:inline-block}
+  .calc-body{margin:30px 0;font-size:15px;line-height:1.7;color:#334155}
+  .calc-body h2{font-size:20px;font-weight:800;color:#0f172a;margin:26px 0 10px}
+  .calc-body h3{font-size:16px;font-weight:800;color:#0f172a;margin:18px 0 6px}
+  .faq dt{font-weight:800;color:#0f172a;margin-top:14px}
+  .faq dd{margin:4px 0 0;color:#475569}
+  .calc-cta{margin:26px 0;padding:20px;background:#f0f7ff;border:1px solid #bfdbfe;border-radius:12px;text-align:center}
+  .calc-cta a{display:inline-block;margin:6px;background:#0088cc;color:#fff!important;text-decoration:none;padding:10px 22px;border-radius:50px;font-weight:800;font-size:14px}
+  .calc-cta a.alt{background:#0062ff}
+  .more-tools{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0}
+  .more-tools a{background:#f1f5f9;color:#0062ff!important;text-decoration:none;padding:8px 16px;border-radius:50px;font-weight:700;font-size:13px;border:1px solid #e2e8f0}
+  .disc{font-size:12px;color:#94a3b8;text-align:center;margin-top:18px;line-height:1.6}
+  @media(max-width:760px){.calc-wrap{grid-template-columns:1fr}}
+</style>
+
+<div class="calc-hero">
+  <h1>🏦 FD Calculator</h1>
+  <p>Find your fixed deposit maturity amount and interest earned — instantly &amp; free.</p>
+</div>
+
+<div class="calc-wrap">
+  <div class="calc-card">
+    <div class="calc-field"><label>Deposit Amount (₹)</label><input type="number" id="amt" value="100000" min="0"></div>
+    <div class="calc-field"><label>Interest Rate (% per year)</label><input type="number" id="rate" value="7" step="0.1" min="0"></div>
+    <div class="calc-field"><label>Tenure (years)</label><input type="number" id="years" value="5" step="0.5" min="0"></div>
+    <div class="calc-field"><label>Compounding</label>
+      <select id="freq">
+        <option value="4" selected>Quarterly</option>
+        <option value="12">Monthly</option>
+        <option value="2">Half-yearly</option>
+        <option value="1">Yearly</option>
+      </select>
+    </div>
+  </div>
+  <div class="calc-card">
+    <div class="res-sub">Maturity Amount</div>
+    <div class="res-big" id="r-mat">₹0</div>
+    <div class="bar"><i id="bp" style="background:#0062ff"></i><i id="bi" style="background:#f59e0b"></i></div>
+    <div class="legend"><span><i class="dot" style="background:#0062ff"></i>Principal</span><span><i class="dot" style="background:#f59e0b"></i>Interest</span></div>
+    <div class="res-row">Principal <b id="r-pri">₹0</b></div>
+    <div class="res-row">Interest earned <b id="r-int">₹0</b></div>
+    <div class="res-row">Maturity value <b id="r-tot">₹0</b></div>
+  </div>
+</div>
+
+<div class="calc-cta">
+  <p style="margin:0 0 12px;font-size:14px;color:#1e3a5f">📈 Looking for higher returns than FD? Get our free daily market insights.</p>
+  <a href="https://t.me/ai360trading" target="_blank" rel="noopener">📣 Join Free Telegram</a>
+  <a class="alt" href="https://zerodha.com/open-account?c=YS3694" target="_blank" rel="nofollow noopener">Open a Free Investment Account →</a>
+</div>
+
+<div class="calc-body">
+  <h2>How FD maturity is calculated</h2>
+  <p>A fixed deposit pays compound interest on your money for the chosen tenure. The maturity amount is calculated as:</p>
+  <p style="background:#f8faff;border:1px solid #e2e8f0;border-radius:8px;padding:12px 14px;font-family:monospace;font-size:14px">A = P × (1 + r ÷ n)<sup>n × t</sup></p>
+  <p>Where <b>P</b> = deposit amount, <b>r</b> = annual interest rate (as a decimal), <b>n</b> = times interest is compounded per year, and <b>t</b> = tenure in years. More frequent compounding gives a slightly higher maturity value.</p>
+
+  <h3>FD tips</h3>
+  <p>Senior citizens usually get a higher rate. Interest is taxable as per your income slab, and TDS may apply if interest crosses the limit. Compare rates across banks and small finance banks before locking in.</p>
+
+  <h2 style="margin-top:28px">Frequently Asked Questions</h2>
+  <dl class="faq">
+    <dt>Is FD interest taxable?</dt>
+    <dd>Yes, FD interest is added to your income and taxed as per your slab. Banks may deduct TDS if interest exceeds the threshold in a year.</dd>
+    <dt>Which compounding gives more returns?</dt>
+    <dd>Monthly compounding gives slightly more than quarterly or yearly for the same rate, because interest is added more often.</dd>
+    <dt>Is this FD calculator free?</dt>
+    <dd>Yes — completely free, no sign-up, and it runs entirely in your browser.</dd>
+  </dl>
+
+  <h3>More free calculators</h3>
+  <div class="more-tools">
+    <a href="/tools/emi-calculator/">EMI Calculator</a>
+    <a href="/tools/sip-calculator/">SIP Calculator</a>
+    <a href="/tools/gst-calculator/">GST Calculator</a>
+    <a href="/tools/">All Tools →</a>
+  </div>
+</div>
+
+<p class="disc">⚠️ This calculator is for educational and estimation purposes only and is not financial advice. AI360Trading is not SEBI registered. Confirm exact figures and tax treatment with your bank.</p>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Is FD interest taxable?","acceptedAnswer":{"@type":"Answer","text":"Yes, FD interest is added to your income and taxed as per your slab. Banks may deduct TDS if interest exceeds the threshold in a year."}},
+{"@type":"Question","name":"Which compounding gives more returns?","acceptedAnswer":{"@type":"Answer","text":"Monthly compounding gives slightly more than quarterly or yearly for the same rate, because interest is added more often."}},
+{"@type":"Question","name":"Is this FD calculator free?","acceptedAnswer":{"@type":"Answer","text":"Yes, completely free, no sign-up, and it runs entirely in your browser."}}
+]}
+</script>
+
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id);};
+  function inr(n){return '₹'+Math.round(n).toLocaleString('en-IN');}
+  function calc(){
+    var P=parseFloat($("amt").value)||0;
+    var annual=parseFloat($("rate").value)||0;
+    var t=parseFloat($("years").value)||0;
+    var n=parseInt($("freq").value,10)||1;
+    if(P<=0||t<=0){$("r-mat").textContent='₹0';return;}
+    var A=P*Math.pow(1+(annual/100)/n,n*t);
+    var interest=A-P;
+    $("r-mat").textContent=inr(A);
+    $("r-pri").textContent=inr(P);
+    $("r-int").textContent=inr(interest);
+    $("r-tot").textContent=inr(A);
+    var pPct=A>0?(P/A*100):50;
+    $("bp").style.width=pPct+'%'; $("bi").style.width=(100-pPct)+'%';
+  }
+  ["amt","rate","years","freq"].forEach(function(id){$(id).addEventListener("input",calc);$(id).addEventListener("change",calc);});
+  calc();
+})();
+</script>
+{% endraw %}
