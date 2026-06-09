@@ -1,11 +1,11 @@
 ---
 layout: default
-title: "Free Online File Converter — PDF, Word, Excel, Image &amp; OCR | AI360Trading"
-description: "Free file converter tools. Convert images to PDF, PDF to Word, Word/Excel to PDF, merge, split, rotate, and OCR scanned documents. 100% private — files never leave your device."
+title: "Free Online Tools — PDF, Word, Excel, OCR, Unit &amp; Age Calculator | AI360Trading"
+description: "Free daily-use tools: convert &amp; merge PDF, Word/Excel/Image conversion, OCR, page numbers, watermark, header/footer, unit converter, age (DOB) calculator and scientific calculator. 100% private — files never leave your device."
 permalink: /tools/
 canonical: https://ai360trading.in/tools/
-meta-og:title: "Free Online File Converter — PDF, Word, Excel &amp; OCR"
-meta-og:description: "Convert, merge, split and OCR your files for free. Everything runs in your browser — your files are never uploaded."
+meta-og:title: "Free Online Tools — PDF, Converters &amp; Calculators"
+meta-og:description: "PDF tools, file converters, OCR, unit converter, age calculator and scientific calculator. Everything runs in your browser — nothing is uploaded."
 meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
 ---
 
@@ -13,10 +13,12 @@ meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
 <style>
   .tools-hero { text-align:center; margin-bottom:26px; padding:28px 20px; background:linear-gradient(135deg,#eef4ff 0%,#f0f7ff 100%); border-radius:14px; }
   .tools-hero h1 { margin:0 0 8px; color:#1e293b; font-size:28px; font-weight:900; }
-  .tools-hero p { font-size:15px; color:#475569; margin:0 auto; max-width:620px; line-height:1.6; }
+  .tools-hero p { font-size:15px; color:#475569; margin:0 auto; max-width:640px; line-height:1.6; }
   .privacy-badge { display:inline-flex; align-items:center; gap:8px; margin-top:16px; background:#d1fae5; color:#065f46; font-weight:800; font-size:13px; padding:8px 18px; border-radius:50px; }
 
-  .tools-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:16px; margin:26px 0; }
+  .tools-section { margin:30px 0; }
+  .tools-section > h2.cat { font-size:18px; font-weight:900; color:#0f172a; margin:0 0 14px; padding-bottom:8px; border-bottom:2px solid #e2e8f0; }
+  .tools-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:16px; }
   .tool-card { background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:20px; cursor:pointer; transition:all .25s ease; box-shadow:0 2px 8px rgba(0,0,0,.04); text-align:left; }
   .tool-card:hover { transform:translateY(-4px); border-color:#0062ff; box-shadow:0 10px 24px rgba(0,98,255,.12); }
   .tool-card .ico { font-size:30px; display:block; margin-bottom:10px; }
@@ -68,32 +70,77 @@ meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
   .thumb a { display:block; text-align:center; background:#059669; color:#fff !important; text-decoration:none; padding:7px; font-size:12px; font-weight:800; }
   #ocr-text { width:100%; min-height:160px; margin-top:14px; border:1px solid #cbd5e0; border-radius:8px; padding:12px; font-size:13px; font-family:monospace; display:none; }
 
+  /* App tools (calculators / converters) */
+  #app-area { display:none; }
+  .app-panel { max-width:520px; }
+  .app-row { margin:14px 0; }
+  .app-row label { display:block; font-weight:700; font-size:13px; color:#334155; margin-bottom:6px; }
+  .app-row input, .app-row select { width:100%; padding:11px 13px; border:1px solid #cbd5e0; border-radius:9px; font-size:15px; background:#fff; }
+  .app-2col { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .app-out { margin-top:16px; padding:18px; background:#f0f7ff; border:1px solid #bfdbfe; border-radius:10px; font-size:15px; color:#0f172a; line-height:1.6; }
+  .big-num { font-size:28px; font-weight:900; color:#0062ff; }
+
+  .calc { max-width:340px; margin:0 auto; }
+  .calc-display { background:#0f172a; color:#fff; border-radius:10px; padding:12px 14px; text-align:right; margin-bottom:10px; }
+  .calc-display .expr { font-size:13px; color:#94a3b8; min-height:18px; word-break:break-all; }
+  .calc-display .main { font-size:26px; font-weight:700; font-family:'Consolas',monospace; min-height:34px; word-break:break-all; }
+  .calc-keys { display:grid; grid-template-columns:repeat(5,1fr); gap:7px; }
+  .calc-keys button { padding:14px 0; border:none; border-radius:9px; font-size:15px; font-weight:700; cursor:pointer; background:#f1f5f9; color:#1e293b; transition:background .15s; }
+  .calc-keys button:hover { background:#e2e8f0; }
+  .calc-keys button.op { background:#dbeafe; color:#0062ff; }
+  .calc-keys button.fn { background:#eef2f7; color:#475569; font-size:13px; }
+  .calc-keys button.eq { background:#0062ff; color:#fff; }
+  .calc-keys button.clr { background:#fee2e2; color:#dc2626; }
+
   .tools-cta { margin:36px 0 10px; padding:22px; background:#f0f7ff; border:1px solid #bfdbfe; border-radius:12px; text-align:center; }
   .tools-cta p { margin:0 0 14px; font-size:14px; color:#1e3a5f; }
   .tools-cta a { background:#0088cc; color:#fff !important; text-decoration:none; padding:11px 26px; border-radius:50px; font-weight:800; font-size:14px; }
 
   .tools-disclaimer { margin-top:24px; font-size:12px; color:#94a3b8; text-align:center; line-height:1.6; }
 
-  @media (max-width:600px){ .tools-grid{ grid-template-columns:1fr 1fr; } .tool-card{ padding:16px; } .tools-hero h1{ font-size:22px; } }
+  @media (max-width:600px){ .tools-grid{ grid-template-columns:1fr 1fr; } .tool-card{ padding:16px; } .tools-hero h1{ font-size:22px; } .app-2col{ grid-template-columns:1fr; } }
 </style>
 
 <div class="tools-hero">
-  <h1>🛠️ Free File Converter Tools</h1>
-  <p>Convert, merge, split and OCR your documents — PDF, Word, Excel and images. No sign-up, no watermark, no limits.</p>
+  <h1>🛠️ Free Online Tools</h1>
+  <p>PDF tools, file converters, OCR and handy daily calculators — all in one place. No sign-up, no watermark, no limits.</p>
   <div class="privacy-badge">🔒 100% Private — your files never leave your device</div>
 </div>
 
-<div id="tools-grid" class="tools-grid">
-  <div class="tool-card" data-tool="img2pdf"><span class="ico">🖼️</span><h3>Image → PDF</h3><p>JPG / PNG photos into one PDF</p></div>
-  <div class="tool-card" data-tool="pdf2img"><span class="ico">📄</span><h3>PDF → Image</h3><p>Save each PDF page as PNG</p></div>
-  <div class="tool-card" data-tool="merge"><span class="ico">🔗</span><h3>Merge PDF</h3><p>Combine many PDFs into one</p></div>
-  <div class="tool-card" data-tool="split"><span class="ico">✂️</span><h3>Split / Extract</h3><p>Pull out chosen pages</p></div>
-  <div class="tool-card" data-tool="rotate"><span class="ico">🔄</span><h3>Rotate PDF</h3><p>Turn pages 90° / 180° / 270°</p></div>
-  <div class="tool-card" data-tool="delpages"><span class="ico">🗑️</span><h3>Delete Pages</h3><p>Remove unwanted pages</p></div>
-  <div class="tool-card" data-tool="word2pdf"><span class="ico">📝</span><h3>Word → PDF</h3><p>.docx document to PDF</p></div>
-  <div class="tool-card" data-tool="excel2pdf"><span class="ico">📊</span><h3>Excel → PDF</h3><p>.xlsx / .csv sheet to PDF</p></div>
-  <div class="tool-card" data-tool="pdf2word"><span class="ico">📰</span><h3>PDF → Word</h3><p>Extract text into a .doc file</p></div>
-  <div class="tool-card" data-tool="ocr"><span class="ico">🔍</span><h3>OCR (Scan → Text)</h3><p>Read text from scans / photos</p></div>
+<div id="tools-home">
+  <div class="tools-section">
+    <h2 class="cat">📄 PDF Tools</h2>
+    <div class="tools-grid">
+      <div class="tool-card" data-tool="img2pdf"><span class="ico">🖼️</span><h3>Image → PDF</h3><p>JPG / PNG photos into one PDF</p></div>
+      <div class="tool-card" data-tool="pdf2img"><span class="ico">📄</span><h3>PDF → Image</h3><p>Save each PDF page as PNG</p></div>
+      <div class="tool-card" data-tool="merge"><span class="ico">🔗</span><h3>Merge PDF</h3><p>Combine many PDFs into one</p></div>
+      <div class="tool-card" data-tool="split"><span class="ico">✂️</span><h3>Split / Extract</h3><p>Pull out chosen pages</p></div>
+      <div class="tool-card" data-tool="rotate"><span class="ico">🔄</span><h3>Rotate PDF</h3><p>Turn pages 90° / 180° / 270°</p></div>
+      <div class="tool-card" data-tool="delpages"><span class="ico">🗑️</span><h3>Delete Pages</h3><p>Remove unwanted pages</p></div>
+      <div class="tool-card" data-tool="pagenum"><span class="ico">🔢</span><h3>Page Numbers</h3><p>Add page numbers to a PDF</p></div>
+      <div class="tool-card" data-tool="headerfooter"><span class="ico">📑</span><h3>Header &amp; Footer</h3><p>Add top / bottom text</p></div>
+      <div class="tool-card" data-tool="watermark"><span class="ico">💧</span><h3>Watermark</h3><p>Stamp text across pages</p></div>
+    </div>
+  </div>
+
+  <div class="tools-section">
+    <h2 class="cat">🔁 File Converters</h2>
+    <div class="tools-grid">
+      <div class="tool-card" data-tool="word2pdf"><span class="ico">📝</span><h3>Word → PDF</h3><p>.docx document to PDF</p></div>
+      <div class="tool-card" data-tool="excel2pdf"><span class="ico">📊</span><h3>Excel → PDF</h3><p>.xlsx / .csv sheet to PDF</p></div>
+      <div class="tool-card" data-tool="pdf2word"><span class="ico">📰</span><h3>PDF → Word</h3><p>Extract text into a .doc file</p></div>
+      <div class="tool-card" data-tool="ocr"><span class="ico">🔍</span><h3>OCR (Scan → Text)</h3><p>Read text from scans / photos</p></div>
+    </div>
+  </div>
+
+  <div class="tools-section">
+    <h2 class="cat">🧮 Calculators &amp; Utilities</h2>
+    <div class="tools-grid">
+      <div class="tool-card" data-tool="unitconv"><span class="ico">📐</span><h3>Unit Converter</h3><p>Length, weight, temp, area &amp; more</p></div>
+      <div class="tool-card" data-tool="agecalc"><span class="ico">🎂</span><h3>Age / DOB Calculator</h3><p>Exact age, days &amp; next birthday</p></div>
+      <div class="tool-card" data-tool="scicalc"><span class="ico">🧪</span><h3>Scientific Calculator</h3><p>sin, cos, log, powers, π…</p></div>
+    </div>
+  </div>
 </div>
 
 <div id="workbench">
@@ -102,24 +149,28 @@ meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
     <button class="wb-back" id="wb-back">← All tools</button>
   </div>
 
-  <div class="drop-zone" id="drop-zone">
-    <span class="dz-ico">📁</span>
-    <p><strong>Click to browse</strong> or drag &amp; drop here</p>
-    <p class="dz-sub" id="dz-accept">Select a file</p>
-    <input type="file" id="file-input" style="display:none">
+  <div id="file-area">
+    <div class="drop-zone" id="drop-zone">
+      <span class="dz-ico">📁</span>
+      <p><strong>Click to browse</strong> or drag &amp; drop here</p>
+      <p class="dz-sub" id="dz-accept">Select a file</p>
+      <input type="file" id="file-input" style="display:none">
+    </div>
+
+    <ul class="file-list" id="file-list"></ul>
+
+    <div id="opt-area"></div>
+
+    <button class="go-btn" id="go-btn" disabled>Convert</button>
+
+    <div class="status" id="status"></div>
+    <div class="bar" id="bar"><span id="bar-fill"></span></div>
+
+    <div class="results" id="results"></div>
+    <textarea id="ocr-text" placeholder="Recognized text will appear here..."></textarea>
   </div>
 
-  <ul class="file-list" id="file-list"></ul>
-
-  <div id="opt-area"></div>
-
-  <button class="go-btn" id="go-btn" disabled>Convert</button>
-
-  <div class="status" id="status"></div>
-  <div class="bar" id="bar"><span id="bar-fill"></span></div>
-
-  <div class="results" id="results"></div>
-  <textarea id="ocr-text" placeholder="Recognized text will appear here..."></textarea>
+  <div id="app-area"></div>
 </div>
 
 <div class="tools-cta">
@@ -128,8 +179,9 @@ meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
 </div>
 
 <p class="tools-disclaimer">
-  All conversions run locally inside your web browser using open-source libraries — no file is ever uploaded to any server.
-  Complex Word / PowerPoint layouts may shift slightly when converted to PDF. These tools are provided free, as-is, for convenience.
+  All file conversions run locally inside your web browser using open-source libraries — no file is ever uploaded to any server.
+  Complex Word / PowerPoint layouts may shift slightly when converted to PDF, and OCR is never 100% accurate — always check the result.
+  These tools are provided free, as-is, for convenience.
 </p>
 
 <script>
@@ -160,7 +212,6 @@ meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
 
   /* ---------- Small helpers ---------- */
   var $ = function(id){ return document.getElementById(id); };
-  function show(el, on){ el.style.display = on ? "" : "none"; }
   function setStatus(msg, kind){
     var s = $("status"); s.textContent = msg;
     s.className = "status show " + (kind || "info");
@@ -170,13 +221,6 @@ meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
     var b = $("bar"); b.className = "bar show"; $("bar-fill").style.width = Math.round(pct) + "%";
   }
   function hideBar(){ $("bar").className = "bar"; $("bar-fill").style.width = "0"; }
-  function download(blob, name){
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement("a");
-    a.href = url; a.download = name;
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
-  }
   function addResultLink(blob, name, label){
     var url = URL.createObjectURL(blob);
     var a = document.createElement("a");
@@ -186,7 +230,7 @@ meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
   }
   function baseName(fn){ return fn.replace(/\.[^.]+$/, ""); }
   // Build a Word-compatible .doc from HTML (opens in MS Word / Google Docs)
-  function makeDoc(bodyHtml, name){
+  function makeDoc(bodyHtml){
     var html = "<html xmlns:o='urn:schemas-microsoft-com:office:office' " +
                "xmlns:w='urn:schemas-microsoft-com:office:word' " +
                "xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'></head><body>" +
@@ -210,8 +254,16 @@ meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
     });
     return out;
   }
+  function readAsArrayBuffer(file){
+    return new Promise(function(res, rej){
+      var r = new FileReader();
+      r.onload = function(){ res(r.result); };
+      r.onerror = function(){ rej(new Error("Could not read " + file.name)); };
+      r.readAsArrayBuffer(file);
+    });
+  }
 
-  /* ---------- Tool definitions ---------- */
+  /* ---------- File-tool definitions ---------- */
   var TOOLS = {
     img2pdf:  { title:"Image → PDF", accept:"image/jpeg,image/png", multiple:true,  hint:"Select one or more JPG / PNG images", btn:"Create PDF" },
     pdf2img:  { title:"PDF → Image", accept:"application/pdf",      multiple:false, hint:"Select a PDF file", btn:"Convert to images" },
@@ -222,6 +274,14 @@ meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
                 opts:"<div class='opt-row'><label>Turn by:</label><select id='opt-angle'><option value='90'>90° right</option><option value='180'>180°</option><option value='270'>90° left</option></select></div>" },
     delpages: { title:"Delete Pages", accept:"application/pdf",     multiple:false, hint:"Select a PDF file", btn:"Delete pages",
                 opts:"<div class='opt-row'><label>Remove pages:</label><input type='text' id='opt-range' placeholder='e.g. 2,4-6'></div>" },
+    pagenum:  { title:"Add Page Numbers", accept:"application/pdf", multiple:false, hint:"Select a PDF file", btn:"Add page numbers",
+                opts:"<div class='opt-row'><label>Position:</label><select id='opt-pos'><option value='bc'>Bottom center</option><option value='br'>Bottom right</option><option value='bl'>Bottom left</option></select>"
+                   + "<label>Format:</label><select id='opt-fmt'><option value='n'>1, 2, 3…</option><option value='nofN'>Page 1 of N</option></select></div>" },
+    headerfooter:{ title:"Header &amp; Footer", accept:"application/pdf", multiple:false, hint:"Select a PDF file", btn:"Add header / footer",
+                opts:"<div class='opt-row'><label>Header:</label><input type='text' id='opt-head' placeholder='Top text (optional)'></div>"
+                   + "<div class='opt-row'><label>Footer:</label><input type='text' id='opt-foot' placeholder='Bottom text (optional)'></div>" },
+    watermark:{ title:"Watermark", accept:"application/pdf",        multiple:false, hint:"Select a PDF file", btn:"Add watermark",
+                opts:"<div class='opt-row'><label>Text:</label><input type='text' id='opt-wm' placeholder='CONFIDENTIAL'></div>" },
     word2pdf: { title:"Word → PDF",  accept:".docx",                multiple:false, hint:"Select a .docx Word file", btn:"Convert to PDF" },
     excel2pdf:{ title:"Excel → PDF", accept:".xlsx,.xls,.csv",      multiple:false, hint:"Select a .xlsx / .xls / .csv file", btn:"Convert to PDF" },
     pdf2word: { title:"PDF → Word",  accept:"application/pdf",      multiple:false, hint:"Select a text-based PDF file", btn:"Convert to Word" },
@@ -239,25 +299,37 @@ meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
 
   function openTool(key){
     current = key; files = [];
-    var t = TOOLS[key];
-    $("wb-title").textContent = t.title;
-    $("dz-accept").textContent = t.hint;
-    $("file-input").accept = t.accept;
-    $("file-input").multiple = !!t.multiple;
-    $("opt-area").innerHTML = t.opts || "";
-    $("go-btn").textContent = t.btn;
-    $("go-btn").disabled = true;
-    $("file-list").innerHTML = "";
-    $("results").innerHTML = "";
-    clearStatus(); hideBar();
-    $("ocr-text").style.display = "none"; $("ocr-text").value = "";
-    $("tools-grid").style.display = "none";
+    $("results").innerHTML = ""; clearStatus(); hideBar();
+    $("tools-home").style.display = "none";
     $("workbench").className = "active";
+
+    if (APP[key]){
+      // Interactive "app" tool — render its own UI, hide the file pipeline
+      $("wb-title").textContent = APP[key].title;
+      $("file-area").style.display = "none";
+      var area = $("app-area"); area.style.display = "block"; area.innerHTML = "";
+      APP[key].render(area);
+    } else {
+      // File-based tool — use the drop-zone + convert pipeline
+      var t = TOOLS[key];
+      $("wb-title").innerHTML = t.title;
+      $("file-area").style.display = "block";
+      $("app-area").style.display = "none";
+      $("dz-accept").textContent = t.hint;
+      $("file-input").accept = t.accept;
+      $("file-input").multiple = !!t.multiple;
+      $("opt-area").innerHTML = t.opts || "";
+      $("go-btn").textContent = t.btn;
+      $("go-btn").disabled = true;
+      $("file-list").innerHTML = "";
+      $("ocr-text").style.display = "none"; $("ocr-text").value = "";
+    }
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
   function closeTool(){
     $("workbench").className = "";
-    $("tools-grid").style.display = "";
+    $("app-area").innerHTML = "";
+    $("tools-home").style.display = "";
     current = null; files = [];
   }
 
@@ -272,7 +344,7 @@ meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
   function addFiles(list){
     var t = TOOLS[current];
     var arr = Array.prototype.slice.call(list);
-    if (!t.multiple){ files = arr.slice(0,1); } else { files = files.concat(arr); }
+    if (!t || !t.multiple){ files = arr.slice(0,1); } else { files = files.concat(arr); }
     renderFiles();
   }
   function renderFiles(){
@@ -288,7 +360,7 @@ meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
     $("go-btn").disabled = files.length === 0;
   }
 
-  // Run button
+  // Run button (file tools only)
   $("go-btn").addEventListener("click", function(){
     if (!files.length) return;
     $("go-btn").disabled = true; $("results").innerHTML = "";
@@ -303,16 +375,7 @@ meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
     });
   });
 
-  /* ---------- Conversion handlers ---------- */
-  function readAsArrayBuffer(file){
-    return new Promise(function(res, rej){
-      var r = new FileReader();
-      r.onload = function(){ res(r.result); };
-      r.onerror = function(){ rej(new Error("Could not read " + file.name)); };
-      r.readAsArrayBuffer(file);
-    });
-  }
-
+  /* ---------- File-tool handlers ---------- */
   var HANDLERS = {
     img2pdf: function(){
       setStatus("Building PDF…", "info");
@@ -451,6 +514,76 @@ meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
         });
     },
 
+    pagenum: function(){
+      setStatus("Adding page numbers…", "info");
+      var pos = ($("opt-pos") && $("opt-pos").value) || "bc";
+      var fmt = ($("opt-fmt") && $("opt-fmt").value) || "n";
+      return loadLib("pdflib").then(function(){ return readAsArrayBuffer(files[0]); })
+        .then(function(buf){ return PDFLib.PDFDocument.load(buf); })
+        .then(function(doc){
+          return doc.embedFont(PDFLib.StandardFonts.Helvetica).then(function(font){
+            var pages = doc.getPages(), total = pages.length;
+            pages.forEach(function(pg, i){
+              var w = pg.getSize().width;
+              var text = fmt === "nofN" ? ("Page " + (i+1) + " of " + total) : ("" + (i+1));
+              var size = 11, tw = font.widthOfTextAtSize(text, size);
+              var x = pos === "br" ? (w - tw - 40) : pos === "bl" ? 40 : (w - tw)/2;
+              pg.drawText(text, { x:x, y:22, size:size, font:font, color: PDFLib.rgb(0.25,0.25,0.25) });
+            });
+            return doc.save();
+          });
+        }).then(function(bytes){
+          addResultLink(new Blob([bytes], {type:"application/pdf"}), baseName(files[0].name) + "-numbered.pdf", "⬇ Download PDF");
+          setStatus("✅ Page numbers added.", "ok");
+        });
+    },
+
+    headerfooter: function(){
+      var head = ($("opt-head") && $("opt-head").value || "").trim();
+      var foot = ($("opt-foot") && $("opt-foot").value || "").trim();
+      if (!head && !foot){ setStatus("Type a header or a footer (or both).", "err"); return; }
+      setStatus("Adding header / footer…", "info");
+      return loadLib("pdflib").then(function(){ return readAsArrayBuffer(files[0]); })
+        .then(function(buf){ return PDFLib.PDFDocument.load(buf); })
+        .then(function(doc){
+          return doc.embedFont(PDFLib.StandardFonts.Helvetica).then(function(font){
+            var size = 10, col = PDFLib.rgb(0.2,0.2,0.2);
+            doc.getPages().forEach(function(pg){
+              var sz = pg.getSize();
+              if (head){ var hw = font.widthOfTextAtSize(head, size); pg.drawText(head, { x:(sz.width-hw)/2, y:sz.height-26, size:size, font:font, color:col }); }
+              if (foot){ var fw = font.widthOfTextAtSize(foot, size); pg.drawText(foot, { x:(sz.width-fw)/2, y:18, size:size, font:font, color:col }); }
+            });
+            return doc.save();
+          });
+        }).then(function(bytes){
+          addResultLink(new Blob([bytes], {type:"application/pdf"}), baseName(files[0].name) + "-hf.pdf", "⬇ Download PDF");
+          setStatus("✅ Header / footer added.", "ok");
+        });
+    },
+
+    watermark: function(){
+      var text = ($("opt-wm") && $("opt-wm").value || "").trim() || "CONFIDENTIAL";
+      setStatus("Adding watermark…", "info");
+      return loadLib("pdflib").then(function(){ return readAsArrayBuffer(files[0]); })
+        .then(function(buf){ return PDFLib.PDFDocument.load(buf); })
+        .then(function(doc){
+          return doc.embedFont(PDFLib.StandardFonts.HelveticaBold).then(function(font){
+            doc.getPages().forEach(function(pg){
+              var sz = pg.getSize();
+              var size = Math.max(28, Math.min(sz.width, sz.height) / Math.max(text.length, 7) * 1.6);
+              pg.drawText(text, {
+                x: sz.width * 0.18, y: sz.height * 0.38, size: size, font: font,
+                color: PDFLib.rgb(0.6,0.6,0.6), rotate: PDFLib.degrees(45), opacity: 0.3
+              });
+            });
+            return doc.save();
+          });
+        }).then(function(bytes){
+          addResultLink(new Blob([bytes], {type:"application/pdf"}), baseName(files[0].name) + "-watermark.pdf", "⬇ Download PDF");
+          setStatus("✅ Watermark added.", "ok");
+        });
+    },
+
     word2pdf: function(){
       setStatus("Converting Word…", "info");
       return loadLib("mammoth").then(function(){ return loadLib("html2pdf"); })
@@ -484,7 +617,6 @@ meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
             var html = window.XLSX.utils.sheet_to_html(wb.Sheets[name]);
             holder.innerHTML += "<h3 style='font-size:14px;margin:12px 0 6px'>" + name + "</h3>" + html;
           });
-          // basic table borders
           Array.prototype.forEach.call(holder.querySelectorAll("td,th"), function(c){
             c.style.border = "1px solid #999"; c.style.padding = "3px 6px";
           });
@@ -534,7 +666,6 @@ meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
                 }
               });
               if (cur.length) lines.push({ y: baseY, text: cur.join(" ").replace(/\s+/g," ").trim() });
-              // Typical line gap (median) → decide where blank lines between sections go
               gaps.sort(function(a,b){ return a - b; });
               var med = gaps.length ? gaps[Math.floor(gaps.length/2)] : 14;
               var prevY = null;
@@ -553,7 +684,7 @@ meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
         return chain.then(function(){
           if (!body.replace(/<[^>]+>/g,"").trim())
             throw new Error("No selectable text found — this looks like a scanned PDF. Use the OCR tool instead.");
-          addResultLink(makeDoc(body, ""), baseName(files[0].name)+".doc", "⬇ Download Word (.doc)");
+          addResultLink(makeDoc(body), baseName(files[0].name)+".doc", "⬇ Download Word (.doc)");
           setStatus("✅ Text extracted into a Word file.", "ok");
         });
       });
@@ -602,12 +733,171 @@ meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
             return "<p>" + para.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/\n/g,"<br>") + "</p>";
           }).join("");
           addResultLink(new Blob([allText], {type:"text/plain"}), baseName(files[0].name)+".txt", "⬇ Download Text (.txt)");
-          addResultLink(makeDoc(bodyHtml, ""), baseName(files[0].name)+".doc", "⬇ Download Word (.doc)");
+          addResultLink(makeDoc(bodyHtml), baseName(files[0].name)+".doc", "⬇ Download Word (.doc)");
           setStatus("✅ OCR complete. Edit the text above if needed, then download.", "ok");
         });
       }
     }
   };
+
+  /* ---------- Interactive "app" tools (no file upload) ---------- */
+  function round(n, p){ var f = Math.pow(10, p || 8); return Math.round(n * f) / f; }
+
+  // Scientific-calculator expression evaluator (whitelisted, no raw eval of user words)
+  function fact(n){ n = Math.round(n); if (n < 0 || n > 170) return NaN; var r = 1; for (var i=2;i<=n;i++) r*=i; return r; }
+  function calcEval(expr, deg){
+    var rad = deg ? Math.PI/180 : 1;
+    var s = expr;
+    s = s.replace(/(\d+(?:\.\d+)?)%/g, "($1/100)");
+    s = s.replace(/(\d+(?:\.\d+)?)!/g, "fact($1)");
+    s = s.replace(/×/g, "*").replace(/÷/g, "/").replace(/−/g, "-");
+    s = s.replace(/√\(/g, "sqrt(").replace(/√/g, "sqrt");
+    s = s.replace(/π/g, "(PI)");
+    s = s.replace(/\^/g, "**");
+    // validate: after removing known function/constant names, only math chars may remain
+    var stripped = s.replace(/sin|cos|tan|asin|acos|atan|sqrt|log|ln|fact|PI|E/g, "");
+    if (/[^0-9+\-*/(). ]/.test(stripped)) throw new Error("Invalid expression");
+    var fn = Function("sin","cos","tan","asin","acos","atan","sqrt","log","ln","fact","PI","E",
+                      "return (" + s + ");");
+    var val = fn(
+      function(x){ return Math.sin(x*rad); }, function(x){ return Math.cos(x*rad); }, function(x){ return Math.tan(x*rad); },
+      function(x){ return Math.asin(x)/rad; }, function(x){ return Math.acos(x)/rad; }, function(x){ return Math.atan(x)/rad; },
+      Math.sqrt, function(x){ return Math.log(x)/Math.LN10; }, Math.log, fact, Math.PI, Math.E
+    );
+    if (typeof val !== "number" || !isFinite(val)) throw new Error("Math error");
+    return round(val, 10);
+  }
+
+  var APP = {
+    unitconv: {
+      title: "📐 Unit Converter",
+      render: function(area){
+        var UNITS = {
+          Length: { units: { "Meter":1, "Kilometer":1000, "Centimeter":0.01, "Millimeter":0.001, "Mile":1609.344, "Yard":0.9144, "Foot":0.3048, "Inch":0.0254, "Nautical mile":1852 } },
+          Weight: { units: { "Kilogram":1, "Gram":0.001, "Milligram":0.000001, "Tonne":1000, "Quintal":100, "Pound":0.45359237, "Ounce":0.0283495231 } },
+          Temperature: { temp:true, units: { "Celsius":1, "Fahrenheit":1, "Kelvin":1 } },
+          Area: { units: { "Sq meter":1, "Sq kilometer":1000000, "Sq foot":0.09290304, "Sq yard":0.83612736, "Acre":4046.8564224, "Hectare":10000, "Sq mile":2589988.110336 } },
+          Volume: { units: { "Liter":1, "Milliliter":0.001, "Cubic meter":1000, "Gallon (US)":3.785411784, "Gallon (UK)":4.54609, "Cup":0.2365882365, "Pint (US)":0.473176473 } },
+          Speed: { units: { "m/s":1, "km/h":0.2777777778, "mph":0.44704, "Knot":0.5144444444, "ft/s":0.3048 } },
+          Data: { units: { "Byte":1, "Kilobyte":1024, "Megabyte":1048576, "Gigabyte":1073741824, "Terabyte":1099511627776, "Bit":0.125 } },
+          Time: { units: { "Second":1, "Minute":60, "Hour":3600, "Day":86400, "Week":604800, "Month (30d)":2592000, "Year (365d)":31536000 } }
+        };
+        function tempConv(v, from, to){
+          var c = from === "Celsius" ? v : from === "Fahrenheit" ? (v-32)*5/9 : v-273.15;
+          return to === "Celsius" ? c : to === "Fahrenheit" ? c*9/5+32 : c+273.15;
+        }
+        area.innerHTML =
+          '<div class="app-panel">' +
+            '<div class="app-row"><label>Category</label><select id="uc-cat"></select></div>' +
+            '<div class="app-2col">' +
+              '<div class="app-row"><label>From</label><select id="uc-from"></select></div>' +
+              '<div class="app-row"><label>To</label><select id="uc-to"></select></div>' +
+            '</div>' +
+            '<div class="app-row"><label>Value</label><input type="number" id="uc-val" value="1"></div>' +
+            '<div class="app-out" id="uc-out"></div>' +
+          '</div>';
+        var catSel=$("uc-cat"), fromSel=$("uc-from"), toSel=$("uc-to"), valIn=$("uc-val"), out=$("uc-out");
+        Object.keys(UNITS).forEach(function(c){ catSel.add(new Option(c, c)); });
+        function fillUnits(){
+          var names = Object.keys(UNITS[catSel.value].units);
+          fromSel.innerHTML = ""; toSel.innerHTML = "";
+          names.forEach(function(n){ fromSel.add(new Option(n, n)); toSel.add(new Option(n, n)); });
+          toSel.selectedIndex = Math.min(1, names.length - 1);
+          compute();
+        }
+        function compute(){
+          var cat = UNITS[catSel.value], v = parseFloat(valIn.value);
+          if (isNaN(v)){ out.innerHTML = "Enter a number to convert."; return; }
+          var res = cat.temp ? tempConv(v, fromSel.value, toSel.value) : (v * cat.units[fromSel.value] / cat.units[toSel.value]);
+          res = round(res, 8);
+          out.innerHTML = '<span class="big-num">' + res + '</span> ' + toSel.value +
+            '<br><span style="font-size:13px;color:#64748b">' + v + ' ' + fromSel.value + ' = ' + res + ' ' + toSel.value + '</span>';
+        }
+        catSel.addEventListener("change", fillUnits);
+        fromSel.addEventListener("change", compute);
+        toSel.addEventListener("change", compute);
+        valIn.addEventListener("input", compute);
+        fillUnits();
+      }
+    },
+
+    agecalc: {
+      title: "🎂 Age / Date Calculator",
+      render: function(area){
+        area.innerHTML =
+          '<div class="app-panel">' +
+            '<div class="app-row"><label>Date of Birth</label><input type="date" id="ag-dob"></div>' +
+            '<div class="app-row"><label>Age at date (default: today)</label><input type="date" id="ag-at"></div>' +
+            '<div class="app-out" id="ag-out">Pick your date of birth to see your exact age.</div>' +
+          '</div>';
+        var dob=$("ag-dob"), at=$("ag-at"), out=$("ag-out");
+        at.value = new Date().toISOString().slice(0,10);
+        function compute(){
+          if (!dob.value){ out.innerHTML = "Pick your date of birth to see your exact age."; return; }
+          var d = new Date(dob.value + "T00:00:00");
+          var a = at.value ? new Date(at.value + "T00:00:00") : new Date();
+          if (d > a){ out.innerHTML = "⚠️ Date of birth is after the target date."; return; }
+          var y = a.getFullYear() - d.getFullYear();
+          var m = a.getMonth() - d.getMonth();
+          var day = a.getDate() - d.getDate();
+          if (day < 0){ m--; day += new Date(a.getFullYear(), a.getMonth(), 0).getDate(); }
+          if (m < 0){ y--; m += 12; }
+          var totalDays = Math.floor((a - d) / 86400000);
+          var nb = new Date(a.getFullYear(), d.getMonth(), d.getDate());
+          if (nb < a) nb.setFullYear(a.getFullYear() + 1);
+          var toBday = Math.ceil((nb - a) / 86400000);
+          out.innerHTML =
+            '<span class="big-num">' + y + '</span> years, ' + m + ' months, ' + day + ' days' +
+            '<br><span style="font-size:13px;color:#64748b">' +
+              'Total: ' + totalDays.toLocaleString() + ' days &nbsp;•&nbsp; ' + Math.floor(totalDays/7).toLocaleString() + ' weeks &nbsp;•&nbsp; ' + (totalDays*24).toLocaleString() + ' hours<br>' +
+              '🎂 Next birthday in <b>' + toBday + '</b> day(s)</span>';
+        }
+        dob.addEventListener("change", compute);
+        at.addEventListener("change", compute);
+      }
+    },
+
+    scicalc: {
+      title: "🧪 Scientific Calculator",
+      render: function(area){
+        var deg = true, expr = "";
+        area.innerHTML =
+          '<div class="calc">' +
+            '<div class="calc-display"><div class="expr" id="sc-expr">&nbsp;</div><div class="main" id="sc-main">0</div></div>' +
+            '<div class="calc-keys" id="sc-keys"></div>' +
+            '<p style="font-size:11px;color:#94a3b8;margin-top:8px;text-align:center">Angle mode: <b id="sc-mode">DEG</b> — tap the DEG/RAD key to switch</p>' +
+          '</div>';
+        var keys = [
+          {l:"DEG/RAD",c:"fn",a:"deg"},{l:"C",c:"clr",a:"clr"},{l:"⌫",c:"fn",a:"back"},{l:"(",c:"op",a:"ins",t:"("},{l:")",c:"op",a:"ins",t:")"},
+          {l:"sin",c:"fn",a:"ins",t:"sin("},{l:"cos",c:"fn",a:"ins",t:"cos("},{l:"tan",c:"fn",a:"ins",t:"tan("},{l:"ln",c:"fn",a:"ins",t:"ln("},{l:"log",c:"fn",a:"ins",t:"log("},
+          {l:"7",a:"ins",t:"7"},{l:"8",a:"ins",t:"8"},{l:"9",a:"ins",t:"9"},{l:"÷",c:"op",a:"ins",t:"÷"},{l:"√",c:"fn",a:"ins",t:"√("},
+          {l:"4",a:"ins",t:"4"},{l:"5",a:"ins",t:"5"},{l:"6",a:"ins",t:"6"},{l:"×",c:"op",a:"ins",t:"×"},{l:"xʸ",c:"fn",a:"ins",t:"^"},
+          {l:"1",a:"ins",t:"1"},{l:"2",a:"ins",t:"2"},{l:"3",a:"ins",t:"3"},{l:"−",c:"op",a:"ins",t:"−"},{l:"n!",c:"fn",a:"ins",t:"!"},
+          {l:"0",a:"ins",t:"0"},{l:".",a:"ins",t:"."},{l:"π",c:"fn",a:"ins",t:"π"},{l:"+",c:"op",a:"ins",t:"+"},{l:"=",c:"eq",a:"eq"}
+        ];
+        var keysEl = $("sc-keys"), mainEl = $("sc-main"), exprEl = $("sc-expr"), modeEl = $("sc-mode");
+        function refresh(){ mainEl.textContent = expr === "" ? "0" : expr; }
+        keys.forEach(function(k){
+          var b = document.createElement("button");
+          b.textContent = k.l; if (k.c) b.className = k.c;
+          b.addEventListener("click", function(){
+            if (k.a === "ins"){ expr += k.t; refresh(); }
+            else if (k.a === "back"){ expr = expr.slice(0, -1); refresh(); }
+            else if (k.a === "clr"){ expr = ""; exprEl.innerHTML = "&nbsp;"; refresh(); }
+            else if (k.a === "deg"){ deg = !deg; modeEl.textContent = deg ? "DEG" : "RAD"; }
+            else if (k.a === "eq"){
+              if (!expr) return;
+              try { var r = calcEval(expr, deg); exprEl.textContent = expr + " ="; expr = String(r); refresh(); }
+              catch(e){ exprEl.textContent = expr + " ="; mainEl.textContent = "Error"; expr = ""; }
+            }
+          });
+          keysEl.appendChild(b);
+        });
+        refresh();
+      }
+    }
+  };
+
 })();
 </script>
 {% endraw %}
