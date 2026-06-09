@@ -514,9 +514,33 @@ meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
             chain = chain.then(function(){ return pdf.getPage(n); }).then(function(page){
               return page.getTextContent();
             }).then(function(tc){
-              var txt = tc.items.map(function(it){ return it.str; }).join(" ");
-              body += "<p>" + (txt.replace(/&/g,"&amp;").replace(/</g,"&lt;") || "&nbsp;") + "</p>";
-              if (n < pdf.numPages) body += "<br style='page-break-after:always'>";
+              var esc = function(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); };
+              // Reconstruct lines using each text item's Y position (PDF y grows upward)
+              var lines = [], cur = [], lastY = null, gaps = [];
+              tc.items.forEach(function(it){
+                if (typeof it.str !== "string") return;
+                var y = it.transform[5];
+                if (lastY !== null && Math.abs(y - lastY) > 3){
+                  gaps.push(Math.abs(y - lastY));
+                  lines.push({ y: lastY, text: cur.join(" ").replace(/\s+/g," ").trim() });
+                  cur = [];
+                }
+                if (it.str) cur.push(it.str);
+                lastY = y;
+              });
+              if (cur.length) lines.push({ y: lastY, text: cur.join(" ").replace(/\s+/g," ").trim() });
+              // Typical line gap (median) → decide where blank lines between sections go
+              gaps.sort(function(a,b){ return a - b; });
+              var med = gaps.length ? gaps[Math.floor(gaps.length/2)] : 14;
+              var prevY = null;
+              lines.forEach(function(ln){
+                if (!ln.text){ prevY = ln.y; return; }
+                if (/^\d+\s*\|\s*\d+(\s|$)/.test(ln.text)){ prevY = ln.y; return; } // strip "1 | 2 …" page header/footer
+                if (prevY !== null && (prevY - ln.y) > med * 1.7) body += "<p style='margin:0'>&nbsp;</p>";
+                body += "<p style='margin:0'>" + esc(ln.text) + "</p>";
+                prevY = ln.y;
+              });
+              if (n < pdf.numPages) body += "<p style='margin:0;page-break-after:always'>&nbsp;</p>";
               setBar((n / pdf.numPages) * 100);
             });
           })(p);
