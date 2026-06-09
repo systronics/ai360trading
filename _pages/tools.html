@@ -515,20 +515,25 @@ meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
               return page.getTextContent();
             }).then(function(tc){
               var esc = function(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); };
-              // Reconstruct lines using each text item's Y position (PDF y grows upward)
-              var lines = [], cur = [], lastY = null, gaps = [];
+              // Reconstruct lines from text-item positions. Each item is compared to the
+              // current line's baseline (not the previous item) with a small vertical
+              // tolerance, so super/subscripts (e.g. 10th, 26th) stay on the same line.
+              var lines = [], cur = [], baseY = null, lineH = 12, gaps = [];
               tc.items.forEach(function(it){
                 if (typeof it.str !== "string") return;
                 var y = it.transform[5];
-                if (lastY !== null && Math.abs(y - lastY) > 3){
-                  gaps.push(Math.abs(y - lastY));
-                  lines.push({ y: lastY, text: cur.join(" ").replace(/\s+/g," ").trim() });
-                  cur = [];
+                var h = it.height || Math.abs(it.transform[3]) || 12;
+                if (baseY === null){ baseY = y; lineH = h; cur.push(it.str); return; }
+                if (Math.abs(y - baseY) <= Math.max(4, lineH * 0.6)){
+                  cur.push(it.str);
+                  if (h > lineH) lineH = h;
+                } else {
+                  gaps.push(Math.abs(y - baseY));
+                  lines.push({ y: baseY, text: cur.join(" ").replace(/\s+/g," ").trim() });
+                  cur = [it.str]; baseY = y; lineH = h;
                 }
-                if (it.str) cur.push(it.str);
-                lastY = y;
               });
-              if (cur.length) lines.push({ y: lastY, text: cur.join(" ").replace(/\s+/g," ").trim() });
+              if (cur.length) lines.push({ y: baseY, text: cur.join(" ").replace(/\s+/g," ").trim() });
               // Typical line gap (median) → decide where blank lines between sections go
               gaps.sort(function(a,b){ return a - b; });
               var med = gaps.length ? gaps[Math.floor(gaps.length/2)] : 14;
