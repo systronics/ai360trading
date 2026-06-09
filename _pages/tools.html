@@ -1,0 +1,584 @@
+---
+layout: default
+title: "Free Online File Converter — PDF, Word, Excel, Image &amp; OCR | AI360Trading"
+description: "Free file converter tools. Convert images to PDF, PDF to Word, Word/Excel to PDF, merge, split, rotate, and OCR scanned documents. 100% private — files never leave your device."
+permalink: /tools/
+canonical: https://ai360trading.in/tools/
+meta-og:title: "Free Online File Converter — PDF, Word, Excel &amp; OCR"
+meta-og:description: "Convert, merge, split and OCR your files for free. Everything runs in your browser — your files are never uploaded."
+meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
+---
+
+{% raw %}
+<style>
+  .tools-hero { text-align:center; margin-bottom:26px; padding:28px 20px; background:linear-gradient(135deg,#eef4ff 0%,#f0f7ff 100%); border-radius:14px; }
+  .tools-hero h1 { margin:0 0 8px; color:#1e293b; font-size:28px; font-weight:900; }
+  .tools-hero p { font-size:15px; color:#475569; margin:0 auto; max-width:620px; line-height:1.6; }
+  .privacy-badge { display:inline-flex; align-items:center; gap:8px; margin-top:16px; background:#d1fae5; color:#065f46; font-weight:800; font-size:13px; padding:8px 18px; border-radius:50px; }
+
+  .tools-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:16px; margin:26px 0; }
+  .tool-card { background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:20px; cursor:pointer; transition:all .25s ease; box-shadow:0 2px 8px rgba(0,0,0,.04); text-align:left; }
+  .tool-card:hover { transform:translateY(-4px); border-color:#0062ff; box-shadow:0 10px 24px rgba(0,98,255,.12); }
+  .tool-card .ico { font-size:30px; display:block; margin-bottom:10px; }
+  .tool-card h3 { font-size:15px; font-weight:800; color:#0f172a; margin:0 0 6px; }
+  .tool-card p { font-size:13px; color:#64748b; margin:0; line-height:1.5; }
+
+  /* Workbench (active tool panel) */
+  #workbench { display:none; background:#fff; border:1px solid #e2e8f0; border-radius:14px; padding:26px; margin:26px 0; box-shadow:0 6px 20px rgba(0,0,0,.06); }
+  #workbench.active { display:block; }
+  .wb-head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:18px; flex-wrap:wrap; }
+  .wb-head h2 { font-size:20px; font-weight:900; color:#0f172a; margin:0; }
+  .wb-back { background:#f1f5f9; border:1px solid #e2e8f0; color:#475569; font-weight:800; font-size:13px; padding:8px 16px; border-radius:8px; cursor:pointer; }
+  .wb-back:hover { background:#e2e8f0; }
+
+  .drop-zone { border:2px dashed #bfdbfe; border-radius:12px; background:#f8faff; padding:34px 20px; text-align:center; cursor:pointer; transition:all .2s; }
+  .drop-zone.drag { background:#eef4ff; border-color:#0062ff; }
+  .drop-zone .dz-ico { font-size:40px; display:block; margin-bottom:10px; }
+  .drop-zone p { margin:0; color:#475569; font-size:14px; }
+  .drop-zone .dz-sub { font-size:12px; color:#94a3b8; margin-top:6px; }
+
+  .file-list { list-style:none; padding:0; margin:14px 0 0; }
+  .file-list li { display:flex; align-items:center; justify-content:space-between; gap:10px; background:#f8faff; border:1px solid #e2e8f0; border-radius:8px; padding:9px 14px; margin-bottom:7px; font-size:13px; color:#1e293b; }
+  .file-list .rm { color:#ef4444; cursor:pointer; font-weight:900; }
+
+  .opt-row { margin:16px 0 0; display:flex; align-items:center; gap:10px; flex-wrap:wrap; font-size:14px; color:#334155; }
+  .opt-row label { font-weight:700; }
+  .opt-row input[type=text], .opt-row select { padding:8px 12px; border:1px solid #cbd5e0; border-radius:8px; font-size:14px; }
+  .opt-row .hint { font-size:12px; color:#94a3b8; }
+
+  .go-btn { margin-top:20px; background:#0062ff; color:#fff; border:none; padding:13px 30px; border-radius:10px; font-size:15px; font-weight:800; cursor:pointer; transition:background .2s; }
+  .go-btn:hover { background:#004dc7; }
+  .go-btn:disabled { background:#94a3b8; cursor:not-allowed; }
+
+  .status { margin-top:16px; font-size:14px; font-weight:700; display:none; }
+  .status.show { display:block; }
+  .status.info { color:#0062ff; }
+  .status.ok { color:#059669; }
+  .status.err { color:#dc2626; }
+  .bar { height:8px; background:#e2e8f0; border-radius:50px; overflow:hidden; margin-top:10px; display:none; }
+  .bar.show { display:block; }
+  .bar > span { display:block; height:100%; width:0; background:#0062ff; transition:width .2s; }
+
+  .results { margin-top:18px; }
+  .results a.dl { display:inline-block; margin:6px 8px 0 0; background:#059669; color:#fff !important; text-decoration:none; padding:10px 20px; border-radius:8px; font-weight:800; font-size:14px; }
+  .results a.dl:hover { background:#047857; }
+  .thumb-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:14px; margin-top:14px; }
+  .thumb { border:1px solid #e2e8f0; border-radius:10px; overflow:hidden; background:#fff; }
+  .thumb img { width:100%; display:block; }
+  .thumb a { display:block; text-align:center; background:#059669; color:#fff !important; text-decoration:none; padding:7px; font-size:12px; font-weight:800; }
+  #ocr-text { width:100%; min-height:160px; margin-top:14px; border:1px solid #cbd5e0; border-radius:8px; padding:12px; font-size:13px; font-family:monospace; display:none; }
+
+  .tools-cta { margin:36px 0 10px; padding:22px; background:#f0f7ff; border:1px solid #bfdbfe; border-radius:12px; text-align:center; }
+  .tools-cta p { margin:0 0 14px; font-size:14px; color:#1e3a5f; }
+  .tools-cta a { background:#0088cc; color:#fff !important; text-decoration:none; padding:11px 26px; border-radius:50px; font-weight:800; font-size:14px; }
+
+  .tools-disclaimer { margin-top:24px; font-size:12px; color:#94a3b8; text-align:center; line-height:1.6; }
+
+  @media (max-width:600px){ .tools-grid{ grid-template-columns:1fr 1fr; } .tool-card{ padding:16px; } .tools-hero h1{ font-size:22px; } }
+</style>
+
+<div class="tools-hero">
+  <h1>🛠️ Free File Converter Tools</h1>
+  <p>Convert, merge, split and OCR your documents — PDF, Word, Excel and images. No sign-up, no watermark, no limits.</p>
+  <div class="privacy-badge">🔒 100% Private — your files never leave your device</div>
+</div>
+
+<div id="tools-grid" class="tools-grid">
+  <div class="tool-card" data-tool="img2pdf"><span class="ico">🖼️</span><h3>Image → PDF</h3><p>JPG / PNG photos into one PDF</p></div>
+  <div class="tool-card" data-tool="pdf2img"><span class="ico">📄</span><h3>PDF → Image</h3><p>Save each PDF page as PNG</p></div>
+  <div class="tool-card" data-tool="merge"><span class="ico">🔗</span><h3>Merge PDF</h3><p>Combine many PDFs into one</p></div>
+  <div class="tool-card" data-tool="split"><span class="ico">✂️</span><h3>Split / Extract</h3><p>Pull out chosen pages</p></div>
+  <div class="tool-card" data-tool="rotate"><span class="ico">🔄</span><h3>Rotate PDF</h3><p>Turn pages 90° / 180° / 270°</p></div>
+  <div class="tool-card" data-tool="delpages"><span class="ico">🗑️</span><h3>Delete Pages</h3><p>Remove unwanted pages</p></div>
+  <div class="tool-card" data-tool="word2pdf"><span class="ico">📝</span><h3>Word → PDF</h3><p>.docx document to PDF</p></div>
+  <div class="tool-card" data-tool="excel2pdf"><span class="ico">📊</span><h3>Excel → PDF</h3><p>.xlsx / .csv sheet to PDF</p></div>
+  <div class="tool-card" data-tool="pdf2word"><span class="ico">📰</span><h3>PDF → Word</h3><p>Extract text into a .doc file</p></div>
+  <div class="tool-card" data-tool="ocr"><span class="ico">🔍</span><h3>OCR (Scan → Text)</h3><p>Read text from scans / photos</p></div>
+</div>
+
+<div id="workbench">
+  <div class="wb-head">
+    <h2 id="wb-title">Tool</h2>
+    <button class="wb-back" id="wb-back">← All tools</button>
+  </div>
+
+  <div class="drop-zone" id="drop-zone">
+    <span class="dz-ico">📁</span>
+    <p><strong>Click to browse</strong> or drag &amp; drop here</p>
+    <p class="dz-sub" id="dz-accept">Select a file</p>
+    <input type="file" id="file-input" style="display:none">
+  </div>
+
+  <ul class="file-list" id="file-list"></ul>
+
+  <div id="opt-area"></div>
+
+  <button class="go-btn" id="go-btn" disabled>Convert</button>
+
+  <div class="status" id="status"></div>
+  <div class="bar" id="bar"><span id="bar-fill"></span></div>
+
+  <div class="results" id="results"></div>
+  <textarea id="ocr-text" placeholder="Recognized text will appear here..."></textarea>
+</div>
+
+<div class="tools-cta">
+  <p>📈 Like these free tools? Get our free daily NIFTY &amp; market signals too.</p>
+  <a href="https://t.me/ai360trading" target="_blank" rel="noopener">📣 Join Free Telegram</a>
+</div>
+
+<p class="tools-disclaimer">
+  All conversions run locally inside your web browser using open-source libraries — no file is ever uploaded to any server.
+  Complex Word / PowerPoint layouts may shift slightly when converted to PDF. These tools are provided free, as-is, for convenience.
+</p>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------- Lazy CDN loaders (only fetch a library when its tool is used) ---------- */
+  var SRC = {
+    pdflib:   "https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js",
+    pdfjs:    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js",
+    tesseract:"https://cdn.jsdelivr.net/npm/tesseract.js@5.1.0/dist/tesseract.min.js",
+    mammoth:  "https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js",
+    xlsx:     "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js",
+    html2pdf: "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"
+  };
+  var PDFJS_WORKER = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+  var loaded = {};
+  function loadLib(key){
+    return new Promise(function(res, rej){
+      if (loaded[key]) return res();
+      var s = document.createElement("script");
+      s.src = SRC[key];
+      s.onload = function(){ loaded[key] = true; res(); };
+      s.onerror = function(){ rej(new Error("Could not load required library (" + key + "). Check your internet connection.")); };
+      document.head.appendChild(s);
+    });
+  }
+
+  /* ---------- Small helpers ---------- */
+  var $ = function(id){ return document.getElementById(id); };
+  function show(el, on){ el.style.display = on ? "" : "none"; }
+  function setStatus(msg, kind){
+    var s = $("status"); s.textContent = msg;
+    s.className = "status show " + (kind || "info");
+  }
+  function clearStatus(){ $("status").className = "status"; }
+  function setBar(pct){
+    var b = $("bar"); b.className = "bar show"; $("bar-fill").style.width = Math.round(pct) + "%";
+  }
+  function hideBar(){ $("bar").className = "bar"; $("bar-fill").style.width = "0"; }
+  function download(blob, name){
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+  }
+  function addResultLink(blob, name, label){
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url; a.download = name; a.className = "dl";
+    a.textContent = label || ("⬇ Download " + name);
+    $("results").appendChild(a);
+  }
+  function baseName(fn){ return fn.replace(/\.[^.]+$/, ""); }
+  // Build a Word-compatible .doc from HTML (opens in MS Word / Google Docs)
+  function makeDoc(bodyHtml, name){
+    var html = "<html xmlns:o='urn:schemas-microsoft-com:office:office' " +
+               "xmlns:w='urn:schemas-microsoft-com:office:word' " +
+               "xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'></head><body>" +
+               bodyHtml + "</body></html>";
+    return new Blob(["﻿", html], { type: "application/msword" });
+  }
+  // Parse a page range like "1-3,5,8" -> [0,1,2,4,7] (0-based), clamped to total
+  function parseRange(str, total){
+    var out = [], seen = {};
+    (str || "").split(",").forEach(function(part){
+      part = part.trim(); if (!part) return;
+      var m = part.match(/^(\d+)\s*-\s*(\d+)$/);
+      if (m){
+        var a = parseInt(m[1],10), b = parseInt(m[2],10);
+        if (a > b){ var t=a; a=b; b=t; }
+        for (var i=a; i<=b; i++){ if(i>=1 && i<=total && !seen[i]){ seen[i]=1; out.push(i-1);} }
+      } else if (/^\d+$/.test(part)){
+        var n = parseInt(part,10);
+        if (n>=1 && n<=total && !seen[n]){ seen[n]=1; out.push(n-1); }
+      }
+    });
+    return out;
+  }
+
+  /* ---------- Tool definitions ---------- */
+  var TOOLS = {
+    img2pdf:  { title:"Image → PDF", accept:"image/jpeg,image/png", multiple:true,  hint:"Select one or more JPG / PNG images", btn:"Create PDF" },
+    pdf2img:  { title:"PDF → Image", accept:"application/pdf",      multiple:false, hint:"Select a PDF file", btn:"Convert to images" },
+    merge:    { title:"Merge PDF",   accept:"application/pdf",      multiple:true,  hint:"Select 2 or more PDF files (in the order you want)", btn:"Merge PDFs" },
+    split:    { title:"Split / Extract Pages", accept:"application/pdf", multiple:false, hint:"Select a PDF file", btn:"Extract pages",
+                opts:"<div class='opt-row'><label>Pages:</label><input type='text' id='opt-range' placeholder='e.g. 1-3,5'><span class='hint'>Leave blank for all pages</span></div>" },
+    rotate:   { title:"Rotate PDF",  accept:"application/pdf",      multiple:false, hint:"Select a PDF file", btn:"Rotate PDF",
+                opts:"<div class='opt-row'><label>Turn by:</label><select id='opt-angle'><option value='90'>90° right</option><option value='180'>180°</option><option value='270'>90° left</option></select></div>" },
+    delpages: { title:"Delete Pages", accept:"application/pdf",     multiple:false, hint:"Select a PDF file", btn:"Delete pages",
+                opts:"<div class='opt-row'><label>Remove pages:</label><input type='text' id='opt-range' placeholder='e.g. 2,4-6'></div>" },
+    word2pdf: { title:"Word → PDF",  accept:".docx",                multiple:false, hint:"Select a .docx Word file", btn:"Convert to PDF" },
+    excel2pdf:{ title:"Excel → PDF", accept:".xlsx,.xls,.csv",      multiple:false, hint:"Select a .xlsx / .xls / .csv file", btn:"Convert to PDF" },
+    pdf2word: { title:"PDF → Word",  accept:"application/pdf",      multiple:false, hint:"Select a text-based PDF file", btn:"Convert to Word" },
+    ocr:      { title:"OCR — Scan to Text", accept:"image/*,application/pdf", multiple:false, hint:"Select a scanned PDF or photo", btn:"Read text (OCR)" }
+  };
+
+  var current = null;     // current tool key
+  var files = [];         // selected File objects
+
+  /* ---------- UI wiring ---------- */
+  Array.prototype.forEach.call(document.querySelectorAll(".tool-card"), function(card){
+    card.addEventListener("click", function(){ openTool(card.getAttribute("data-tool")); });
+  });
+  $("wb-back").addEventListener("click", closeTool);
+
+  function openTool(key){
+    current = key; files = [];
+    var t = TOOLS[key];
+    $("wb-title").textContent = t.title;
+    $("dz-accept").textContent = t.hint;
+    $("file-input").accept = t.accept;
+    $("file-input").multiple = !!t.multiple;
+    $("opt-area").innerHTML = t.opts || "";
+    $("go-btn").textContent = t.btn;
+    $("go-btn").disabled = true;
+    $("file-list").innerHTML = "";
+    $("results").innerHTML = "";
+    clearStatus(); hideBar();
+    $("ocr-text").style.display = "none"; $("ocr-text").value = "";
+    $("tools-grid").style.display = "none";
+    $("workbench").className = "active";
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+  function closeTool(){
+    $("workbench").className = "";
+    $("tools-grid").style.display = "";
+    current = null; files = [];
+  }
+
+  // File input + drag/drop
+  var dz = $("drop-zone");
+  dz.addEventListener("click", function(){ $("file-input").click(); });
+  $("file-input").addEventListener("change", function(e){ addFiles(e.target.files); });
+  ["dragover","dragenter"].forEach(function(ev){ dz.addEventListener(ev, function(e){ e.preventDefault(); dz.classList.add("drag"); }); });
+  ["dragleave","drop"].forEach(function(ev){ dz.addEventListener(ev, function(e){ e.preventDefault(); dz.classList.remove("drag"); }); });
+  dz.addEventListener("drop", function(e){ addFiles(e.dataTransfer.files); });
+
+  function addFiles(list){
+    var t = TOOLS[current];
+    var arr = Array.prototype.slice.call(list);
+    if (!t.multiple){ files = arr.slice(0,1); } else { files = files.concat(arr); }
+    renderFiles();
+  }
+  function renderFiles(){
+    var ul = $("file-list"); ul.innerHTML = "";
+    files.forEach(function(f, i){
+      var li = document.createElement("li");
+      var kb = (f.size/1024); var sz = kb > 1024 ? (kb/1024).toFixed(1)+" MB" : Math.round(kb)+" KB";
+      li.innerHTML = "<span>📎 " + f.name + " <span style='color:#94a3b8'>(" + sz + ")</span></span>";
+      var rm = document.createElement("span"); rm.className = "rm"; rm.textContent = "✕";
+      rm.addEventListener("click", function(){ files.splice(i,1); renderFiles(); });
+      li.appendChild(rm); ul.appendChild(li);
+    });
+    $("go-btn").disabled = files.length === 0;
+  }
+
+  // Run button
+  $("go-btn").addEventListener("click", function(){
+    if (!files.length) return;
+    $("go-btn").disabled = true; $("results").innerHTML = "";
+    $("ocr-text").style.display = "none";
+    var fn = HANDLERS[current];
+    Promise.resolve().then(fn).then(function(){
+      $("go-btn").disabled = false; hideBar();
+    }).catch(function(err){
+      console.error(err);
+      setStatus("⚠️ " + (err && err.message ? err.message : "Something went wrong. Please try a different file."), "err");
+      $("go-btn").disabled = false; hideBar();
+    });
+  });
+
+  /* ---------- Conversion handlers ---------- */
+  function readAsArrayBuffer(file){
+    return new Promise(function(res, rej){
+      var r = new FileReader();
+      r.onload = function(){ res(r.result); };
+      r.onerror = function(){ rej(new Error("Could not read " + file.name)); };
+      r.readAsArrayBuffer(file);
+    });
+  }
+
+  var HANDLERS = {
+    img2pdf: function(){
+      setStatus("Building PDF…", "info");
+      return loadLib("pdflib").then(function(){
+        return PDFLib.PDFDocument.create();
+      }).then(function(doc){
+        var chain = Promise.resolve();
+        files.forEach(function(f){
+          chain = chain.then(function(){ return readAsArrayBuffer(f); }).then(function(buf){
+            var isPng = /png$/i.test(f.type) || /\.png$/i.test(f.name);
+            return (isPng ? doc.embedPng(buf) : doc.embedJpg(buf)).then(function(img){
+              var page = doc.addPage([img.width, img.height]);
+              page.drawImage(img, { x:0, y:0, width:img.width, height:img.height });
+            });
+          });
+        });
+        return chain.then(function(){ return doc.save(); });
+      }).then(function(bytes){
+        addResultLink(new Blob([bytes], {type:"application/pdf"}), "converted.pdf", "⬇ Download PDF");
+        setStatus("✅ Done! " + files.length + " image(s) → PDF.", "ok");
+      });
+    },
+
+    pdf2img: function(){
+      setStatus("Rendering pages…", "info");
+      return loadLib("pdfjs").then(function(){
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER;
+        return readAsArrayBuffer(files[0]);
+      }).then(function(buf){
+        return window.pdfjsLib.getDocument({ data: buf }).promise;
+      }).then(function(pdf){
+        var grid = document.createElement("div"); grid.className = "thumb-grid";
+        $("results").appendChild(grid);
+        var chain = Promise.resolve();
+        for (var p = 1; p <= pdf.numPages; p++){
+          (function(pageNum){
+            chain = chain.then(function(){ return pdf.getPage(pageNum); }).then(function(page){
+              var vp = page.getViewport({ scale: 2 });
+              var canvas = document.createElement("canvas");
+              canvas.width = vp.width; canvas.height = vp.height;
+              return page.render({ canvasContext: canvas.getContext("2d"), viewport: vp }).promise.then(function(){
+                return new Promise(function(res){
+                  canvas.toBlob(function(blob){
+                    var url = URL.createObjectURL(blob);
+                    var box = document.createElement("div"); box.className = "thumb";
+                    box.innerHTML = "<img src='" + url + "'>";
+                    var a = document.createElement("a");
+                    a.href = url; a.download = "page-" + pageNum + ".png"; a.textContent = "⬇ Page " + pageNum;
+                    box.appendChild(a); grid.appendChild(box);
+                    setBar((pageNum / pdf.numPages) * 100); res();
+                  }, "image/png");
+                });
+              });
+            });
+          })(p);
+        }
+        return chain.then(function(){ setStatus("✅ " + pdf.numPages + " page(s) ready. Click each to save.", "ok"); });
+      });
+    },
+
+    merge: function(){
+      if (files.length < 2) { setStatus("Please add at least 2 PDFs.", "err"); return; }
+      setStatus("Merging…", "info");
+      return loadLib("pdflib").then(function(){
+        return PDFLib.PDFDocument.create();
+      }).then(function(out){
+        var chain = Promise.resolve();
+        files.forEach(function(f){
+          chain = chain.then(function(){ return readAsArrayBuffer(f); }).then(function(buf){
+            return PDFLib.PDFDocument.load(buf).then(function(src){
+              return out.copyPages(src, src.getPageIndices()).then(function(pages){
+                pages.forEach(function(pg){ out.addPage(pg); });
+              });
+            });
+          });
+        });
+        return chain.then(function(){ return out.save(); });
+      }).then(function(bytes){
+        addResultLink(new Blob([bytes], {type:"application/pdf"}), "merged.pdf", "⬇ Download merged PDF");
+        setStatus("✅ Merged " + files.length + " files.", "ok");
+      });
+    },
+
+    split: function(){
+      setStatus("Extracting…", "info");
+      return loadLib("pdflib").then(function(){ return readAsArrayBuffer(files[0]); })
+        .then(function(buf){ return PDFLib.PDFDocument.load(buf); })
+        .then(function(src){
+          var total = src.getPageCount();
+          var rangeStr = ($("opt-range") && $("opt-range").value || "").trim();
+          var idx = rangeStr ? parseRange(rangeStr, total) : src.getPageIndices();
+          if (!idx.length) throw new Error("No valid pages in that range (file has " + total + " pages).");
+          return PDFLib.PDFDocument.create().then(function(out){
+            return out.copyPages(src, idx).then(function(pages){
+              pages.forEach(function(pg){ out.addPage(pg); });
+              return out.save();
+            });
+          }).then(function(bytes){
+            addResultLink(new Blob([bytes], {type:"application/pdf"}), baseName(files[0].name) + "-extract.pdf", "⬇ Download PDF");
+            setStatus("✅ Extracted " + idx.length + " page(s).", "ok");
+          });
+        });
+    },
+
+    rotate: function(){
+      setStatus("Rotating…", "info");
+      var angle = parseInt(($("opt-angle") && $("opt-angle").value) || "90", 10);
+      return loadLib("pdflib").then(function(){ return readAsArrayBuffer(files[0]); })
+        .then(function(buf){ return PDFLib.PDFDocument.load(buf); })
+        .then(function(doc){
+          doc.getPages().forEach(function(pg){
+            var cur = pg.getRotation().angle || 0;
+            pg.setRotation(PDFLib.degrees((cur + angle) % 360));
+          });
+          return doc.save();
+        }).then(function(bytes){
+          addResultLink(new Blob([bytes], {type:"application/pdf"}), baseName(files[0].name) + "-rotated.pdf", "⬇ Download PDF");
+          setStatus("✅ Rotated by " + angle + "°.", "ok");
+        });
+    },
+
+    delpages: function(){
+      setStatus("Removing pages…", "info");
+      return loadLib("pdflib").then(function(){ return readAsArrayBuffer(files[0]); })
+        .then(function(buf){ return PDFLib.PDFDocument.load(buf); })
+        .then(function(doc){
+          var total = doc.getPageCount();
+          var rm = parseRange(($("opt-range") && $("opt-range").value) || "", total);
+          if (!rm.length) throw new Error("Type which pages to delete, e.g. 2,4-6.");
+          if (rm.length >= total) throw new Error("That would delete every page.");
+          rm.sort(function(a,b){ return b-a; }).forEach(function(i){ doc.removePage(i); });
+          return doc.save();
+        }).then(function(bytes){
+          addResultLink(new Blob([bytes], {type:"application/pdf"}), baseName(files[0].name) + "-edited.pdf", "⬇ Download PDF");
+          setStatus("✅ Pages removed.", "ok");
+        });
+    },
+
+    word2pdf: function(){
+      setStatus("Converting Word…", "info");
+      return loadLib("mammoth").then(function(){ return loadLib("html2pdf"); })
+        .then(function(){ return readAsArrayBuffer(files[0]); })
+        .then(function(buf){ return window.mammoth.convertToHtml({ arrayBuffer: buf }); })
+        .then(function(result){
+          var holder = document.createElement("div");
+          holder.style.cssText = "padding:24px;font-family:Arial,sans-serif;font-size:13px;line-height:1.6;color:#000;width:760px;";
+          holder.innerHTML = result.value || "<p>(empty document)</p>";
+          return window.html2pdf().set({
+            margin:[10,10,10,10], filename: baseName(files[0].name)+".pdf",
+            image:{type:"jpeg",quality:0.95}, html2canvas:{scale:2,useCORS:true},
+            jsPDF:{unit:"mm",format:"a4",orientation:"portrait"},
+            pagebreak:{mode:["avoid-all","css","legacy"]}
+          }).from(holder).outputPdf("blob");
+        }).then(function(blob){
+          addResultLink(blob, baseName(files[0].name)+".pdf", "⬇ Download PDF");
+          setStatus("✅ Word converted to PDF.", "ok");
+        });
+    },
+
+    excel2pdf: function(){
+      setStatus("Converting spreadsheet…", "info");
+      return loadLib("xlsx").then(function(){ return loadLib("html2pdf"); })
+        .then(function(){ return readAsArrayBuffer(files[0]); })
+        .then(function(buf){
+          var wb = window.XLSX.read(buf, { type:"array" });
+          var holder = document.createElement("div");
+          holder.style.cssText = "padding:16px;font-family:Arial,sans-serif;font-size:11px;color:#000;width:1040px;";
+          wb.SheetNames.forEach(function(name){
+            var html = window.XLSX.utils.sheet_to_html(wb.Sheets[name]);
+            holder.innerHTML += "<h3 style='font-size:14px;margin:12px 0 6px'>" + name + "</h3>" + html;
+          });
+          // basic table borders
+          Array.prototype.forEach.call(holder.querySelectorAll("td,th"), function(c){
+            c.style.border = "1px solid #999"; c.style.padding = "3px 6px";
+          });
+          return window.html2pdf().set({
+            margin:[8,8,8,8], filename: baseName(files[0].name)+".pdf",
+            image:{type:"jpeg",quality:0.95}, html2canvas:{scale:2},
+            jsPDF:{unit:"mm",format:"a4",orientation:"landscape"}
+          }).from(holder).outputPdf("blob");
+        }).then(function(blob){
+          addResultLink(blob, baseName(files[0].name)+".pdf", "⬇ Download PDF");
+          setStatus("✅ Spreadsheet converted to PDF.", "ok");
+        });
+    },
+
+    pdf2word: function(){
+      setStatus("Extracting text…", "info");
+      return loadLib("pdfjs").then(function(){
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER;
+        return readAsArrayBuffer(files[0]);
+      }).then(function(buf){
+        return window.pdfjsLib.getDocument({ data: buf }).promise;
+      }).then(function(pdf){
+        var body = "";
+        var chain = Promise.resolve();
+        for (var p = 1; p <= pdf.numPages; p++){
+          (function(n){
+            chain = chain.then(function(){ return pdf.getPage(n); }).then(function(page){
+              return page.getTextContent();
+            }).then(function(tc){
+              var txt = tc.items.map(function(it){ return it.str; }).join(" ");
+              body += "<p>" + (txt.replace(/&/g,"&amp;").replace(/</g,"&lt;") || "&nbsp;") + "</p>";
+              if (n < pdf.numPages) body += "<br style='page-break-after:always'>";
+              setBar((n / pdf.numPages) * 100);
+            });
+          })(p);
+        }
+        return chain.then(function(){
+          if (!body.replace(/<[^>]+>/g,"").trim())
+            throw new Error("No selectable text found — this looks like a scanned PDF. Use the OCR tool instead.");
+          addResultLink(makeDoc(body, ""), baseName(files[0].name)+".doc", "⬇ Download Word (.doc)");
+          setStatus("✅ Text extracted into a Word file.", "ok");
+        });
+      });
+    },
+
+    ocr: function(){
+      setStatus("Loading OCR engine (first run downloads ~5 MB)…", "info");
+      var isPdf = /pdf$/i.test(files[0].type) || /\.pdf$/i.test(files[0].name);
+      var prep = isPdf
+        ? loadLib("pdfjs").then(function(){ window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER; }).then(function(){ return loadLib("tesseract"); })
+        : loadLib("tesseract");
+
+      return prep.then(function(){
+        if (isPdf){
+          return readAsArrayBuffer(files[0]).then(function(buf){
+            return window.pdfjsLib.getDocument({ data: buf }).promise;
+          }).then(function(pdf){
+            var canvases = [], chain = Promise.resolve();
+            for (var p=1; p<=pdf.numPages; p++){
+              (function(n){
+                chain = chain.then(function(){ return pdf.getPage(n); }).then(function(page){
+                  var vp = page.getViewport({ scale: 2 });
+                  var c = document.createElement("canvas"); c.width = vp.width; c.height = vp.height;
+                  return page.render({ canvasContext:c.getContext("2d"), viewport:vp }).promise.then(function(){ canvases.push(c); });
+                });
+              })(p);
+            }
+            return chain.then(function(){ return ocrImages(canvases); });
+          });
+        }
+        return ocrImages([files[0]]);
+      });
+
+      function ocrImages(items){
+        var allText = "";
+        return items.reduce(function(prom, item, i){
+          return prom.then(function(){
+            setStatus("Reading page " + (i+1) + " of " + items.length + "…", "info");
+            return window.Tesseract.recognize(item, "eng", {
+              logger: function(m){ if (m.status === "recognizing text") setBar(((i + m.progress) / items.length) * 100); }
+            }).then(function(r){ allText += r.data.text + "\n\n"; });
+          });
+        }, Promise.resolve()).then(function(){
+          var ta = $("ocr-text"); ta.style.display = "block"; ta.value = allText.trim();
+          var bodyHtml = allText.trim().split(/\n{2,}/).map(function(para){
+            return "<p>" + para.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/\n/g,"<br>") + "</p>";
+          }).join("");
+          addResultLink(new Blob([allText], {type:"text/plain"}), baseName(files[0].name)+".txt", "⬇ Download Text (.txt)");
+          addResultLink(makeDoc(bodyHtml, ""), baseName(files[0].name)+".doc", "⬇ Download Word (.doc)");
+          setStatus("✅ OCR complete. Edit the text above if needed, then download.", "ok");
+        });
+      }
+    }
+  };
+})();
+</script>
+{% endraw %}
