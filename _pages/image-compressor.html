@@ -1,0 +1,145 @@
+---
+layout: default
+title: "Image Compressor — Compress JPG / PNG to KB Online (Free) | AI360Trading"
+description: "Free image compressor. Reduce JPG / PNG file size, compress photos to a target KB, and resize for forms or uploads. 100% private — images never leave your browser."
+permalink: /tools/image-compressor/
+canonical: https://ai360trading.in/tools/image-compressor/
+meta-og:title: "Free Image Compressor — Compress JPG/PNG to KB"
+meta-og:description: "Compress and resize images to a target size right in your browser. Private and free."
+meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
+---
+
+{% raw %}
+<style>
+ .ch{text-align:center;margin-bottom:22px;padding:24px 18px;background:linear-gradient(135deg,#eef4ff,#f0f7ff);border-radius:14px}
+ .ch h1{margin:0 0 6px;font-size:26px;font-weight:900;color:#1e293b}.ch p{margin:0;color:#475569;font-size:14px}
+ .badge{display:inline-flex;gap:8px;margin-top:12px;background:#d1fae5;color:#065f46;font-weight:800;font-size:12px;padding:7px 16px;border-radius:50px}
+ .cc{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:24px;box-shadow:0 4px 14px rgba(0,0,0,.05);margin:18px 0}
+ .dz{border:2px dashed #bfdbfe;border-radius:12px;background:#f8faff;padding:30px 18px;text-align:center;cursor:pointer}
+ .dz .i{font-size:38px}.dz p{margin:8px 0 0;color:#475569;font-size:14px}
+ .cf{margin:16px 0}.cf label{display:block;font-weight:700;font-size:13px;color:#334155;margin-bottom:6px}
+ .cf input[type=range]{width:100%}.cf input[type=number],.cf select{padding:10px 12px;border:1px solid #cbd5e0;border-radius:9px;font-size:15px;width:140px}
+ .btn{background:#0062ff;color:#fff;border:none;padding:12px 26px;border-radius:9px;font-size:15px;font-weight:800;cursor:pointer;margin-top:8px}
+ .btn:disabled{background:#94a3b8;cursor:not-allowed}
+ .res{margin-top:18px;display:none;gap:18px;align-items:center;flex-wrap:wrap}
+ .res.show{display:flex}.res img{max-width:180px;border:1px solid #e2e8f0;border-radius:10px}
+ .res .info{font-size:14px;color:#334155;line-height:1.8}
+ .res .info b{color:#059669}.dl{display:inline-block;margin-top:8px;background:#059669;color:#fff!important;text-decoration:none;padding:10px 22px;border-radius:8px;font-weight:800;font-size:14px}
+ .cb{margin:28px 0;font-size:15px;line-height:1.7;color:#334155}.cb h2{font-size:20px;font-weight:800;color:#0f172a;margin:24px 0 10px}
+ .faq dt{font-weight:800;color:#0f172a;margin-top:14px}.faq dd{margin:4px 0 0;color:#475569}
+ .cta{margin:24px 0;padding:18px;background:#f0f7ff;border:1px solid #bfdbfe;border-radius:12px;text-align:center}
+ .cta a{display:inline-block;margin:5px;background:#0088cc;color:#fff!important;text-decoration:none;padding:10px 22px;border-radius:50px;font-weight:800;font-size:14px}
+ .mt{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}.mt a{background:#f1f5f9;color:#0062ff!important;text-decoration:none;padding:8px 16px;border-radius:50px;font-weight:700;font-size:13px;border:1px solid #e2e8f0}
+ .disc{font-size:12px;color:#94a3b8;text-align:center;margin-top:16px;line-height:1.6}
+</style>
+
+<div class="ch"><h1>🗜️ Image Compressor</h1><p>Compress JPG / PNG photos and resize to a target size — for forms, uploads &amp; email.</p>
+<div class="badge">🔒 100% Private — images never leave your device</div></div>
+
+<div class="cc">
+  <div class="dz" id="dz"><div class="i">🖼️</div><p><strong>Click to choose an image</strong> or drag &amp; drop (JPG / PNG)</p>
+    <input type="file" id="file" accept="image/jpeg,image/png" style="display:none"></div>
+
+  <div class="cf"><label>Quality: <span id="qval">80</span>%</label><input type="range" id="quality" min="10" max="100" value="80"></div>
+  <div class="cf"><label>Resize — max width (px, optional)</label><input type="number" id="maxw" placeholder="e.g. 1280" min="50"></div>
+  <div class="cf"><label>Target size (KB, optional — auto-adjusts quality)</label><input type="number" id="target" placeholder="e.g. 100" min="5"></div>
+  <button class="btn" id="go" disabled>Compress Image</button>
+
+  <div class="res" id="res">
+    <img id="preview" alt="compressed preview">
+    <div class="info" id="info"></div>
+  </div>
+</div>
+
+<div class="cta">
+  <p style="margin:0 0 12px;font-size:14px;color:#1e3a5f">📈 Get our free daily market &amp; finance insights on Telegram.</p>
+  <a href="https://t.me/ai360trading" target="_blank" rel="noopener">📣 Join Free Telegram</a>
+</div>
+
+<div class="cb">
+  <h2>How to compress an image to a target KB</h2>
+  <p>Upload a JPG or PNG, then either set a quality level or type a target size in KB. The tool re-encodes the image right in your browser, lowering quality step by step until it reaches your target size. Optionally set a maximum width to resize large photos — perfect for online forms that demand "photo under 100 KB" or "signature under 20 KB".</p>
+
+  <h2>Frequently Asked Questions</h2>
+  <dl class="faq">
+    <dt>Are my images uploaded to a server?</dt>
+    <dd>No. Compression happens entirely inside your browser — your images never leave your device.</dd>
+    <dt>Can I compress an image to exactly 100 KB or 20 KB?</dt>
+    <dd>Yes. Enter the target KB and the tool reduces quality until the file is at or below that size.</dd>
+    <dt>Does it support PNG and JPG?</dt>
+    <dd>Yes. The output is saved as an optimised JPG, which gives the smallest size for photos.</dd>
+  </dl>
+
+  <h2>More free tools</h2>
+  <div class="mt">
+    <a href="/tools/qr-code-generator/">QR Code Generator</a>
+    <a href="/tools/">PDF Tools</a>
+    <a href="/tools/word-counter/">Word Counter</a>
+    <a href="/tools/">All Tools →</a>
+  </div>
+</div>
+
+<p class="disc">⚠️ Provided free, as-is, for convenience. Output is an optimised JPG; very low sizes reduce visible quality.</p>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Are my images uploaded to a server?","acceptedAnswer":{"@type":"Answer","text":"No. Compression happens entirely inside your browser. Your images never leave your device."}},
+{"@type":"Question","name":"Can I compress an image to exactly 100 KB or 20 KB?","acceptedAnswer":{"@type":"Answer","text":"Yes. Enter the target KB and the tool reduces quality until the file is at or below that size."}},
+{"@type":"Question","name":"Does it support PNG and JPG?","acceptedAnswer":{"@type":"Answer","text":"Yes. The output is saved as an optimised JPG, which gives the smallest size for photos."}}
+]}
+</script>
+
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id);};
+  var file=null, origSize=0;
+  var dz=$("dz"),input=$("file"),go=$("go");
+  $("quality").addEventListener("input",function(){$("qval").textContent=$("quality").value;});
+  dz.addEventListener("click",function(){input.click();});
+  ["dragover","dragenter"].forEach(function(e){dz.addEventListener(e,function(ev){ev.preventDefault();dz.style.background="#eef4ff";});});
+  ["dragleave","drop"].forEach(function(e){dz.addEventListener(e,function(ev){ev.preventDefault();dz.style.background="#f8faff";});});
+  dz.addEventListener("drop",function(ev){ev.preventDefault();if(ev.dataTransfer.files[0])pick(ev.dataTransfer.files[0]);});
+  input.addEventListener("change",function(e){if(e.target.files[0])pick(e.target.files[0]);});
+  function pick(f){file=f;origSize=f.size;go.disabled=false;dz.querySelector("p").innerHTML="<strong>"+f.name+"</strong> ("+kb(f.size)+")";}
+  function kb(b){return b>1048576?(b/1048576).toFixed(2)+" MB":Math.round(b/1024)+" KB";}
+
+  go.addEventListener("click",function(){
+    if(!file)return;
+    go.disabled=true;go.textContent="Compressing…";
+    var img=new Image();
+    img.onload=function(){
+      var maxw=parseInt($("maxw").value,10);
+      var scale=(maxw&&img.width>maxw)?maxw/img.width:1;
+      var cw=Math.round(img.width*scale),chh=Math.round(img.height*scale);
+      var canvas=document.createElement("canvas");canvas.width=cw;canvas.height=chh;
+      canvas.getContext("2d").drawImage(img,0,0,cw,chh);
+      var target=parseInt($("target").value,10);
+      function done(blob,q){
+        var url=URL.createObjectURL(blob);
+        $("preview").src=url;
+        var saved=origSize>0?Math.max(0,Math.round((1-blob.size/origSize)*100)):0;
+        $("info").innerHTML="Original: "+kb(origSize)+"<br>Compressed: <b>"+kb(blob.size)+"</b> (−"+saved+"%)<br>Quality: "+Math.round(q*100)+"% &nbsp; Size: "+cw+"×"+chh+
+          "<br><a class='dl' href='"+url+"' download='compressed.jpg'>⬇ Download</a>";
+        $("res").className="res show";
+        go.disabled=false;go.textContent="Compress Image";
+      }
+      if(target){
+        // step quality down until <= target KB (or quality floor)
+        var q=0.92;
+        (function step(){
+          canvas.toBlob(function(blob){
+            if(!blob){done(new Blob(),q);return;}
+            if(blob.size/1024<=target || q<=0.12){done(blob,q);}
+            else{q-=0.07;step();}
+          },"image/jpeg",q);
+        })();
+      } else {
+        var q2=(parseInt($("quality").value,10)||80)/100;
+        canvas.toBlob(function(blob){done(blob,q2);},"image/jpeg",q2);
+      }
+    };
+    img.src=URL.createObjectURL(file);
+  });
+})();
+</script>
+{% endraw %}

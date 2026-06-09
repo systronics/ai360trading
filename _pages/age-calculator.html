@@ -1,0 +1,96 @@
+---
+layout: default
+title: "Age Calculator — Exact Age in Years, Months &amp; Days (Free) | AI360Trading"
+description: "Free age calculator. Find your exact age in years, months and days from your date of birth, plus total days, weeks, hours and a countdown to your next birthday."
+permalink: /tools/age-calculator/
+canonical: https://ai360trading.in/tools/age-calculator/
+meta-og:title: "Free Age Calculator — Exact Age from Date of Birth"
+meta-og:description: "Calculate your exact age in years, months, days and your next birthday countdown."
+meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
+---
+
+{% raw %}
+<style>
+ .ch{text-align:center;margin-bottom:22px;padding:24px 18px;background:linear-gradient(135deg,#eef4ff,#f0f7ff);border-radius:14px}
+ .ch h1{margin:0 0 6px;font-size:26px;font-weight:900;color:#1e293b}.ch p{margin:0;color:#475569;font-size:14px}
+ .cc{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:24px;box-shadow:0 4px 14px rgba(0,0,0,.05);margin:18px 0;max-width:520px}
+ .cf{margin:14px 0}.cf label{display:block;font-weight:700;font-size:13px;color:#334155;margin-bottom:6px}
+ .cf input{width:100%;padding:11px 13px;border:1px solid #cbd5e0;border-radius:9px;font-size:15px}
+ .out{margin-top:8px;padding:18px;background:#f0f7ff;border:1px solid #bfdbfe;border-radius:10px;font-size:15px;color:#0f172a;line-height:1.6}
+ .rb{font-size:30px;font-weight:900;color:#0062ff}
+ .cb{margin:28px 0;font-size:15px;line-height:1.7;color:#334155}.cb h2{font-size:20px;font-weight:800;color:#0f172a;margin:24px 0 10px}
+ .faq dt{font-weight:800;color:#0f172a;margin-top:14px}.faq dd{margin:4px 0 0;color:#475569}
+ .cta{margin:24px 0;padding:18px;background:#f0f7ff;border:1px solid #bfdbfe;border-radius:12px;text-align:center}
+ .cta a{display:inline-block;margin:5px;background:#0088cc;color:#fff!important;text-decoration:none;padding:10px 22px;border-radius:50px;font-weight:800;font-size:14px}
+ .mt{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}.mt a{background:#f1f5f9;color:#0062ff!important;text-decoration:none;padding:8px 16px;border-radius:50px;font-weight:700;font-size:13px;border:1px solid #e2e8f0}
+ .disc{font-size:12px;color:#94a3b8;text-align:center;margin-top:16px;line-height:1.6}
+</style>
+
+<div class="ch"><h1>🎂 Age Calculator</h1><p>Find your exact age and your next birthday countdown — free.</p></div>
+
+<div class="cc">
+  <div class="cf"><label>Date of Birth</label><input type="date" id="dob"></div>
+  <div class="cf"><label>Age at date (default: today)</label><input type="date" id="at"></div>
+  <div class="out" id="out">Pick your date of birth to see your exact age.</div>
+</div>
+
+<div class="cta">
+  <p style="margin:0 0 12px;font-size:14px;color:#1e3a5f">📈 Get our free daily market &amp; finance insights on Telegram.</p>
+  <a href="https://t.me/ai360trading" target="_blank" rel="noopener">📣 Join Free Telegram</a>
+</div>
+
+<div class="cb">
+  <h2>How age is calculated</h2>
+  <p>Your age is the time between your date of birth and the chosen date. We count complete years first, then the remaining months, then the remaining days — the same way age is officially counted. We also show your total days lived and a countdown to your next birthday.</p>
+
+  <h2>Frequently Asked Questions</h2>
+  <dl class="faq">
+    <dt>How do I calculate my exact age?</dt>
+    <dd>Enter your date of birth above. The tool instantly shows your age in years, months and days, plus total days and your next birthday.</dd>
+    <dt>Can I find my age on a future or past date?</dt>
+    <dd>Yes. Change the second date to any date and the age updates for that date.</dd>
+    <dt>Is this age calculator free?</dt>
+    <dd>Yes — completely free, no sign-up, and it runs entirely in your browser.</dd>
+  </dl>
+
+  <h2>More free calculators</h2>
+  <div class="mt">
+    <a href="/tools/percentage-calculator/">Percentage Calculator</a>
+    <a href="/tools/cgpa-to-percentage-calculator/">CGPA → Percentage</a>
+    <a href="/tools/word-counter/">Word Counter</a>
+    <a href="/tools/">All Tools →</a>
+  </div>
+</div>
+
+<p class="disc">⚠️ Provided free, as-is, for convenience.</p>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"How do I calculate my exact age?","acceptedAnswer":{"@type":"Answer","text":"Enter your date of birth. The tool instantly shows your age in years, months and days, plus total days and your next birthday."}},
+{"@type":"Question","name":"Can I find my age on a future or past date?","acceptedAnswer":{"@type":"Answer","text":"Yes. Change the second date to any date and the age updates for that date."}},
+{"@type":"Question","name":"Is this age calculator free?","acceptedAnswer":{"@type":"Answer","text":"Yes, completely free, no sign-up, and it runs entirely in your browser."}}
+]}
+</script>
+
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id);};
+  var dob=$("dob"),at=$("at"),out=$("out");
+  at.value=new Date().toISOString().slice(0,10);
+  function compute(){
+    if(!dob.value){out.innerHTML="Pick your date of birth to see your exact age.";return;}
+    var d=new Date(dob.value+"T00:00:00"),a=at.value?new Date(at.value+"T00:00:00"):new Date();
+    if(d>a){out.innerHTML="⚠️ Date of birth is after the target date.";return;}
+    var y=a.getFullYear()-d.getFullYear(),m=a.getMonth()-d.getMonth(),day=a.getDate()-d.getDate();
+    if(day<0){m--;day+=new Date(a.getFullYear(),a.getMonth(),0).getDate();}
+    if(m<0){y--;m+=12;}
+    var total=Math.floor((a-d)/86400000);
+    var nb=new Date(a.getFullYear(),d.getMonth(),d.getDate());if(nb<a)nb.setFullYear(a.getFullYear()+1);
+    var toB=Math.ceil((nb-a)/86400000);
+    out.innerHTML='<span class="rb">'+y+'</span> years, '+m+' months, '+day+' days'+
+      '<br><span style="font-size:13px;color:#64748b">Total: '+total.toLocaleString()+' days &nbsp;•&nbsp; '+Math.floor(total/7).toLocaleString()+' weeks &nbsp;•&nbsp; '+(total*24).toLocaleString()+' hours<br>🎂 Next birthday in <b>'+toB+'</b> day(s)</span>';
+  }
+  dob.addEventListener("change",compute);at.addEventListener("change",compute);
+})();
+</script>
+{% endraw %}

@@ -1,0 +1,103 @@
+---
+layout: default
+title: "Word Counter — Count Words, Characters &amp; Reading Time (Free) | AI360Trading"
+description: "Free online word counter. Instantly count words, characters, sentences, paragraphs and reading time as you type. No sign-up, runs privately in your browser."
+permalink: /tools/word-counter/
+canonical: https://ai360trading.in/tools/word-counter/
+meta-og:title: "Free Word Counter — Words, Characters &amp; Reading Time"
+meta-og:description: "Count words, characters, sentences and reading time instantly as you type."
+meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
+---
+
+{% raw %}
+<style>
+ .ch{text-align:center;margin-bottom:22px;padding:24px 18px;background:linear-gradient(135deg,#eef4ff,#f0f7ff);border-radius:14px}
+ .ch h1{margin:0 0 6px;font-size:26px;font-weight:900;color:#1e293b}.ch p{margin:0;color:#475569;font-size:14px}
+ .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin:18px 0}
+ .stat{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+ .stat b{display:block;font-size:26px;font-weight:900;color:#0062ff}
+ .stat span{font-size:12px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+ #txt{width:100%;min-height:220px;padding:14px;border:1px solid #cbd5e0;border-radius:12px;font-size:15px;line-height:1.6;font-family:inherit;resize:vertical}
+ .cb{margin:28px 0;font-size:15px;line-height:1.7;color:#334155}.cb h2{font-size:20px;font-weight:800;color:#0f172a;margin:24px 0 10px}
+ .faq dt{font-weight:800;color:#0f172a;margin-top:14px}.faq dd{margin:4px 0 0;color:#475569}
+ .cta{margin:24px 0;padding:18px;background:#f0f7ff;border:1px solid #bfdbfe;border-radius:12px;text-align:center}
+ .cta a{display:inline-block;margin:5px;background:#0088cc;color:#fff!important;text-decoration:none;padding:10px 22px;border-radius:50px;font-weight:800;font-size:14px}
+ .mt{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}.mt a{background:#f1f5f9;color:#0062ff!important;text-decoration:none;padding:8px 16px;border-radius:50px;font-weight:700;font-size:13px;border:1px solid #e2e8f0}
+ .disc{font-size:12px;color:#94a3b8;text-align:center;margin-top:16px;line-height:1.6}
+</style>
+
+<div class="ch"><h1>📝 Word Counter</h1><p>Count words, characters, sentences &amp; reading time live as you type.</p></div>
+
+<div class="stats">
+  <div class="stat"><b id="s-words">0</b><span>Words</span></div>
+  <div class="stat"><b id="s-chars">0</b><span>Characters</span></div>
+  <div class="stat"><b id="s-nospace">0</b><span>No Spaces</span></div>
+  <div class="stat"><b id="s-sent">0</b><span>Sentences</span></div>
+  <div class="stat"><b id="s-para">0</b><span>Paragraphs</span></div>
+  <div class="stat"><b id="s-read">0s</b><span>Read Time</span></div>
+</div>
+
+<textarea id="txt" placeholder="Start typing or paste your text here..."></textarea>
+
+<div class="cta">
+  <p style="margin:0 0 12px;font-size:14px;color:#1e3a5f">📈 Get our free daily market &amp; finance insights on Telegram.</p>
+  <a href="https://t.me/ai360trading" target="_blank" rel="noopener">📣 Join Free Telegram</a>
+</div>
+
+<div class="cb">
+  <h2>Why use a word counter?</h2>
+  <p>Word and character limits matter for essays, assignments, social media posts, meta descriptions, resumes and job applications. This tool counts everything instantly as you type and never sends your text anywhere — it all stays in your browser.</p>
+
+  <h2>Frequently Asked Questions</h2>
+  <dl class="faq">
+    <dt>How is reading time estimated?</dt>
+    <dd>Reading time is based on an average reading speed of about 200 words per minute.</dd>
+    <dt>Does it count characters with and without spaces?</dt>
+    <dd>Yes — both totals are shown, which is useful for platforms with strict character limits.</dd>
+    <dt>Is my text private?</dt>
+    <dd>Completely. Nothing is uploaded — all counting happens locally in your browser.</dd>
+  </dl>
+
+  <h2>More free tools</h2>
+  <div class="mt">
+    <a href="/tools/percentage-calculator/">Percentage Calculator</a>
+    <a href="/tools/age-calculator/">Age Calculator</a>
+    <a href="/tools/qr-code-generator/">QR Code Generator</a>
+    <a href="/tools/">All Tools →</a>
+  </div>
+</div>
+
+<p class="disc">⚠️ Provided free, as-is, for convenience. Your text never leaves your device.</p>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"How is reading time estimated?","acceptedAnswer":{"@type":"Answer","text":"Reading time is based on an average reading speed of about 200 words per minute."}},
+{"@type":"Question","name":"Does it count characters with and without spaces?","acceptedAnswer":{"@type":"Answer","text":"Yes, both totals are shown, which is useful for platforms with strict character limits."}},
+{"@type":"Question","name":"Is my text private?","acceptedAnswer":{"@type":"Answer","text":"Completely. Nothing is uploaded. All counting happens locally in your browser."}}
+]}
+</script>
+
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id);};
+  var txt=$("txt");
+  function count(){
+    var t=txt.value;
+    var words=(t.trim().match(/\S+/g)||[]).length;
+    var chars=t.length;
+    var nospace=t.replace(/\s/g,"").length;
+    var sent=(t.match(/[^.!?]+[.!?]+/g)||[]).length || (t.trim()?1:0);
+    var para=(t.split(/\n{1,}/).filter(function(p){return p.trim().length;})).length;
+    var secs=Math.round(words/200*60);
+    var read=secs<60?secs+"s":Math.floor(secs/60)+"m "+(secs%60)+"s";
+    $("s-words").textContent=words.toLocaleString();
+    $("s-chars").textContent=chars.toLocaleString();
+    $("s-nospace").textContent=nospace.toLocaleString();
+    $("s-sent").textContent=sent.toLocaleString();
+    $("s-para").textContent=para.toLocaleString();
+    $("s-read").textContent=read;
+  }
+  txt.addEventListener("input",count);count();
+})();
+</script>
+{% endraw %}
