@@ -1,6 +1,17 @@
 """
-AI360 TRADING BOT — v15.17
+AI360 TRADING BOT — v15.18
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v15.18 CHANGES vs v15.17 — HISTORY ENTRY-DATE FIX (2026-07-13)
+  Bug found in full-system audit: _exit_trade wrote today_str (the EXIT date)
+  into BOTH the "Entry Date" AND "Exit Date" columns of the History sheet, so
+  every closed trade showed Entry Date == Exit Date (e.g. ANGELONE entry
+  2026-06-22 / exit 2026-06-22 / Days Held 6 — impossible). The real entry
+  timestamp (ent_time, from AlertLog col M) was already available in the same
+  function — it drives Days Held — but was never used for the date column.
+  Now Entry Date = date part of ent_time (fail-open: falls back to today_str
+  if ent_time is missing/unparseable). Display/ledger only — no trading logic,
+  entry math, SL, trailing or alert behaviour touched.
+
 v15.17 CHANGES vs v15.16 — RESISTANCE-ROOM VETO + LOSS COOLDOWN (2026-07-12)
   Owner ask (2-month live-trade audit before going to real money): the losing
   trades ALL shared one tell — price moved only +0.2% to +0.7% above entry then
@@ -1827,9 +1838,17 @@ def _exit_trade(log_sheet, hist_sheet, row_idx, sym, ent, exit_p, tgt, sl, tsl_a
     except Exception as e:
         print(f"[EXIT] Sheet update: {e}")
 
+    # v15.18: Entry Date must be the REAL entry date (from AlertLog ent_time),
+    # not today_str — History showed Entry Date == Exit Date on every trade.
+    try:
+        datetime.strptime(str(ent_time)[:10], '%Y-%m-%d')
+        ent_date = str(ent_time)[:10]
+    except Exception:
+        ent_date = today_str
+
     try:
         hist_sheet.append_row([
-            sym, today_str, ent, today_str, exit_p,
+            sym, ent_date, ent, today_str, exit_p,
             f"{pnl_pct:.2f}%", result, strat, reason, ttype,
             sl, tsl_at_exit, get_max_price(mem, key), atr, days, cap, pnl_rs, opt_note
         ])
@@ -1972,7 +1991,7 @@ def send_good_morning(log_sheet, mem, is_bullish, nifty_cmp, nifty_dma, nifty_pc
         f"{window}\n"
         f"RSI filter: < {RSI_MAX_BULLISH if is_bullish else RSI_MAX_BEARISH} | Re-entry: {REENTRY_COOLDOWN_DAYS}d cooldown after target\n\n"
         f"{'Watching: ' + ', '.join(waiting_stocks[:5]) if waiting_stocks else 'No WAITING stocks'}\n\n"
-        f"<i>v15.17 — entry-quality: reversal veto + resistance-room veto + loss cooldown + best-of ranking</i>"
+        f"<i>v15.18 — entry-quality: reversal veto + resistance-room veto + loss cooldown + best-of ranking</i>"
     )
     watchlist_line = f"📋 Watchlist: {waiting} stock(s) identified today" if waiting else "📋 No setups in watchlist yet — scan runs at market open"
     msg_basic = (
