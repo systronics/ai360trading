@@ -1,6 +1,23 @@
 """
-AI360 TRADING BOT — v15.16
+AI360 TRADING BOT — v15.17
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v15.17 CHANGES vs v15.16 — RESISTANCE-ROOM VETO + LOSS COOLDOWN (2026-07-12)
+  Owner ask (2-month live-trade audit before going to real money): the losing
+  trades ALL shared one tell — price moved only +0.2% to +0.7% above entry then
+  stalled/reversed (no follow-through), and EICHERMOT was bought TWICE pinned
+  right under the same ~₹7440 ceiling. Two surgical, fail-open fixes:
+  1. RESISTANCE-ROOM VETO — a fresh long is skipped when the clean runway to the
+     next resistance (Pivot_Resistance, in ATR multiples via entry_quality.
+     target_room) is below MIN_TARGET_ROOM_ATR (1.5). target_room was computed
+     for ranking since v15.15 but NEVER enforced as a gate — now it is. Only
+     fires when resistance data exists AND price is below it; a genuine breakout
+     ABOVE resistance (room→0.0) or missing data is never blocked (fail-open).
+  2. LOSS COOLDOWN — the re-entry cooldown (v15.0) fired ONLY after a TARGET HIT.
+     A losing exit set no cooldown, so the bot could immediately re-buy a name
+     that just failed (EICHERMOT lost, then was re-entered and lost again). Now
+     any losing exit sets the same proven RECD cooldown too.
+  NOT changed: entry math, SL multiples, trailing logic, appscript — untouched.
+
 v15.16 CHANGES vs v15.15 — WEEKEND-GAP GUARD + OPTION-BASED P/L (2026-06-05)
   Owner ask (audit follow-up): limit weekend gap losses (e.g. PNBHOUSING −6.86%
   blew past its −3.38% SL on a Monday gap-down) and show the REAL option P/L on
@@ -606,9 +623,9 @@ def check_reentry_allowed(mem: str, key: str, sym: str, now: datetime) -> tuple:
     if days_since < REENTRY_COOLDOWN_DAYS:
         remaining = REENTRY_COOLDOWN_DAYS - days_since
         reason = (
-            f"TARGET HIT cooldown active — {days_since}/{REENTRY_COOLDOWN_DAYS} trading days since {recd_date}. "
+            f"Re-entry cooldown active (after target/loss) — {days_since}/{REENTRY_COOLDOWN_DAYS} trading days since {recd_date}. "
             f"{remaining} more trading days before re-entry allowed. "
-            f"Stock needs to reset after hitting target."
+            f"Stock needs to reset after the last exit."
         )
         return False, reason
 
@@ -894,9 +911,27 @@ def check_all_entry_filters(sym, mem, key, is_bullish, now, nifty_pct, today_ent
                 reasons.append(f"[REV] reversal-risk {rev:.0f} ≥ {eq.REVERSAL_RISK_VETO:.0f} — skip (overbought/at-ATH/extended)")
                 return False, reasons, rsi_val
             reasons.append(f"[REV] reversal-risk {rev:.0f} ✅")
+
+            # 13. RESISTANCE-ROOM VETO (v15.17) — skip longs pinned right under a
+            # ceiling with too little clean runway (in ATR) to the next
+            # resistance. Dominant losing pattern in the 2026-07 audit: EICHERMOT
+            # bought twice under ~₹7440 with <0.3 ATR of room → stalled → stop.
+            # Reuses `ri` above (no extra sheet read). Fail-open: only fires when
+            # resistance data EXISTS and price is BELOW it with room below the
+            # threshold. A genuine breakout ABOVE resistance (target_room → 0.0)
+            # or missing data is never blocked.
+            resl  = ri.get("resistance") or 0.0
+            if resl and resl > cp and cp > 0:
+                atr_r = _read_atr_from_nifty200(nifty_sheet, sym)
+                if atr_r > 0:
+                    room = eq.target_room(cp, resl, atr_r)
+                    if 0 < room < eq.MIN_TARGET_ROOM_ATR:
+                        reasons.append(f"[ROOM] only {room:.2f} ATR to resistance ₹{resl:.2f} < {eq.MIN_TARGET_ROOM_ATR:.1f} — skip (capped by resistance)")
+                        return False, reasons, rsi_val
+                    reasons.append(f"[ROOM] {room:.2f} ATR runway to ₹{resl:.2f} ✅")
         except Exception as e:
-            print(f"[REV] check errored for {sym}: {e} — fail open")
-            reasons.append(f"[REV] errored — entry allowed")
+            print(f"[REV/ROOM] check errored for {sym}: {e} — fail open")
+            reasons.append(f"[REV/ROOM] errored — entry allowed")
 
     return True, reasons, rsi_val
 
@@ -1780,11 +1815,17 @@ def _exit_trade(log_sheet, hist_sheet, row_idx, sym, ent, exit_p, tgt, sl, tsl_a
     except Exception as e:
         print(f"[EXIT] History: {e}")
 
-    # ── v15.0: Set re-entry cooldown ONLY on TARGET HIT ──────────────────────
-    if is_target_hit:
+    # ── v15.0: re-entry cooldown after TARGET HIT.
+    # ── v15.17: ALSO set the cooldown after a LOSING exit — prevents the bot
+    #    from immediately re-buying a name that just failed. Audit finding:
+    #    EICHERMOT was re-entered after a loss and lost again. Same proven RECD
+    #    mechanism; the cooldown key survives _clear_mem_keys so it persists.
+    is_loss    = exit_p < ent
+    set_cd     = is_target_hit or is_loss
+    if set_cd:
         mem = set_reentry_cooldown(mem, key, today_str)
 
-    print(f"[EXIT] {sym} @ ₹{exit_p:.2f} | {pnl_pct:+.2f}% | {result} | {reason} | RECD:{is_target_hit}")
+    print(f"[EXIT] {sym} @ ₹{exit_p:.2f} | {pnl_pct:+.2f}% | {result} | {reason} | RECD:{set_cd}")
 
     msg = (
         f"{'🎯' if 'TARGET' in reason else '🔔' if 'TRAIL' in reason else '❌'} "
@@ -1796,7 +1837,7 @@ def _exit_trade(log_sheet, hist_sheet, row_idx, sym, ent, exit_p, tgt, sl, tsl_a
         + f"Hold: {hold_str} | {reason}\n"
         f"TSL at exit: ₹{tsl_at_exit:.2f}"
     )
-    if is_target_hit:
+    if set_cd:
         msg += f"\n⏳ Re-entry blocked for {REENTRY_COOLDOWN_DAYS} trading days"
 
     send_advance_and_premium(msg + ALERT_DISCLAIMER)
@@ -1910,7 +1951,7 @@ def send_good_morning(log_sheet, mem, is_bullish, nifty_cmp, nifty_dma, nifty_pc
         f"{window}\n"
         f"RSI filter: < {RSI_MAX_BULLISH if is_bullish else RSI_MAX_BEARISH} | Re-entry: {REENTRY_COOLDOWN_DAYS}d cooldown after target\n\n"
         f"{'Watching: ' + ', '.join(waiting_stocks[:5]) if waiting_stocks else 'No WAITING stocks'}\n\n"
-        f"<i>v15.15 — entry-quality: reversal veto + best-of ranking + accumulation watch</i>"
+        f"<i>v15.17 — entry-quality: reversal veto + resistance-room veto + loss cooldown + best-of ranking</i>"
     )
     watchlist_line = f"📋 Watchlist: {waiting} stock(s) identified today" if waiting else "📋 No setups in watchlist yet — scan runs at market open"
     msg_basic = (
