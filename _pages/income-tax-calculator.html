@@ -1,0 +1,140 @@
+---
+layout: default
+title: "Income Tax Calculator (New Regime FY 2025-26) Free | AI360Trading"
+description: "Free income tax calculator for India under the New Tax Regime (FY 2025-26 / AY 2026-27). Instantly estimate your income tax, rebate, cess and total tax payable. Fast and private."
+permalink: /tools/income-tax-calculator/
+canonical: https://ai360trading.in/tools/income-tax-calculator/
+meta-og:title: "Free Income Tax Calculator — New Regime"
+meta-og:description: "Estimate your income tax under India's New Tax Regime instantly. Free and private."
+meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
+---
+
+{% raw %}
+<style>
+ .ch{text-align:center;margin-bottom:18px;padding:24px 18px;background:linear-gradient(135deg,#eef4ff,#f0f7ff);border-radius:14px}
+ .ch h1{margin:0 0 6px;font-size:25px;font-weight:900;color:#1e293b}.ch p{margin:0;color:#475569;font-size:14px}
+ .fy{display:inline-block;margin-top:10px;background:#dbeafe;color:#0062ff;font-weight:800;font-size:12px;padding:6px 14px;border-radius:50px}
+ .cw{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin:18px 0}
+ .cc{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:24px;box-shadow:0 4px 14px rgba(0,0,0,.05)}
+ .cf{margin:16px 0}.cf label{display:block;font-weight:700;font-size:13px;color:#334155;margin-bottom:6px}
+ .cf input{width:100%;padding:11px 13px;border:1px solid #cbd5e0;border-radius:9px;font-size:15px}
+ .chk{display:flex;align-items:center;gap:8px;font-size:14px;color:#334155;margin-top:10px}.chk input{width:auto}
+ .rb{font-size:32px;font-weight:900;color:#0062ff;margin:4px 0 2px}.rs{font-size:13px;color:#64748b;margin-bottom:14px}
+ .rr{display:flex;justify-content:space-between;padding:9px 0;border-top:1px solid #eef2f7;font-size:14px;color:#334155}.rr b{color:#0f172a}
+ .nil{background:#d1fae5;color:#065f46;font-weight:800;padding:10px;border-radius:8px;text-align:center;margin-top:10px;font-size:14px;display:none}
+ .cb{margin:26px 0;font-size:15px;line-height:1.7;color:#334155}.cb h2{font-size:20px;font-weight:800;color:#0f172a;margin:24px 0 10px}
+ table.slab{width:100%;border-collapse:collapse;margin:10px 0;font-size:14px}
+ table.slab th,table.slab td{border:1px solid #e2e8f0;padding:8px 10px;text-align:left}table.slab th{background:#f8faff}
+ .faq dt{font-weight:800;color:#0f172a;margin-top:14px}.faq dd{margin:4px 0 0;color:#475569}
+ .cta{margin:24px 0;padding:18px;background:#f0f7ff;border:1px solid #bfdbfe;border-radius:12px;text-align:center}
+ .cta a{display:inline-block;margin:5px;background:#0088cc;color:#fff!important;text-decoration:none;padding:10px 22px;border-radius:50px;font-weight:800;font-size:14px}.cta a.alt{background:#0062ff}
+ .mt{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}.mt a{background:#f1f5f9;color:#0062ff!important;text-decoration:none;padding:8px 16px;border-radius:50px;font-weight:700;font-size:13px;border:1px solid #e2e8f0}
+ .disc{font-size:12px;color:#94a3b8;text-align:center;margin-top:16px;line-height:1.6}
+ @media(max-width:760px){.cw{grid-template-columns:1fr}}
+</style>
+
+<div class="ch"><h1>🧾 Income Tax Calculator</h1><p>Estimate your tax under India's New Tax Regime — instantly &amp; free.</p>
+<div class="fy">New Regime · FY 2025-26 (AY 2026-27)</div></div>
+
+<div class="cw">
+  <div class="cc">
+    <div class="cf"><label>Annual Gross Income (₹)</label><input type="number" id="inc" value="1200000" min="0"></div>
+    <div class="cf"><label>Other Deductions / Exemptions (₹, optional)</label><input type="number" id="ded" value="0" min="0"></div>
+    <label class="chk"><input type="checkbox" id="sal" checked> I am salaried (apply ₹75,000 standard deduction)</label>
+  </div>
+  <div class="cc">
+    <div class="rs">Total Tax Payable (incl. 4% cess)</div>
+    <div class="rb" id="r-tax">₹0</div>
+    <div class="rr">Taxable income <b id="r-ti">₹0</b></div>
+    <div class="rr">Tax before rebate <b id="r-pre">₹0</b></div>
+    <div class="rr">Rebate (Sec 87A) <b id="r-reb">₹0</b></div>
+    <div class="rr">Health &amp; Edu cess (4%) <b id="r-cess">₹0</b></div>
+    <div class="rr">Effective tax rate <b id="r-eff">0%</b></div>
+    <div class="nil" id="r-nil">🎉 No tax payable!</div>
+  </div>
+</div>
+
+<div class="cta">
+  <p style="margin:0 0 12px;font-size:14px;color:#1e3a5f">📈 Want to grow your savings? Get our free daily market insights on Telegram.</p>
+  <a href="https://t.me/ai360trading" target="_blank" rel="noopener">📣 Join Free Telegram</a>
+  <a class="alt" href="https://zerodha.com/open-account?c=YS3694" target="_blank" rel="nofollow noopener">Open a Free Investment Account →</a>
+</div>
+
+<div class="cb">
+  <h2>New Tax Regime slabs (FY 2025-26)</h2>
+  <table class="slab"><tr><th>Income slab</th><th>Rate</th></tr>
+    <tr><td>Up to ₹4,00,000</td><td>Nil</td></tr>
+    <tr><td>₹4,00,001 – ₹8,00,000</td><td>5%</td></tr>
+    <tr><td>₹8,00,001 – ₹12,00,000</td><td>10%</td></tr>
+    <tr><td>₹12,00,001 – ₹16,00,000</td><td>15%</td></tr>
+    <tr><td>₹16,00,001 – ₹20,00,000</td><td>20%</td></tr>
+    <tr><td>₹20,00,001 – ₹24,00,000</td><td>25%</td></tr>
+    <tr><td>Above ₹24,00,000</td><td>30%</td></tr>
+  </table>
+  <p>Salaried taxpayers get a ₹75,000 standard deduction. Under Section 87A, income up to ₹12,00,000 (taxable) attracts full rebate — meaning a salaried person earning up to about ₹12.75 lakh pays <b>zero tax</b>. A 4% health &amp; education cess applies on the tax amount.</p>
+
+  <h2>Frequently Asked Questions</h2>
+  <dl class="faq">
+    <dt>Up to what salary is income tax zero in the new regime?</dt>
+    <dd>With the ₹75,000 standard deduction and Section 87A rebate, a salaried person earning up to about ₹12.75 lakh pays no income tax.</dd>
+    <dt>Does this include the old tax regime?</dt>
+    <dd>This calculator uses the New Tax Regime (the default). The old regime allows more deductions and needs to be opted for separately.</dd>
+    <dt>Is this calculator official?</dt>
+    <dd>No — it is a free estimate for guidance. Always verify with the Income Tax Department or a tax professional, and check the latest Budget for any slab changes.</dd>
+  </dl>
+
+  <h2>More free calculators</h2>
+  <div class="mt">
+    <a href="/tools/emi-calculator/">EMI Calculator</a>
+    <a href="/tools/sip-calculator/">SIP Calculator</a>
+    <a href="/tools/gst-calculator/">GST Calculator</a>
+    <a href="/tools/">All Tools →</a>
+  </div>
+</div>
+
+<p class="disc">⚠️ Estimate only, based on New Tax Regime slabs for FY 2025-26 (AY 2026-27). Not tax advice. Tax slabs can change each Budget — verify the latest rules with a qualified tax professional or the Income Tax Department.</p>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Up to what salary is income tax zero in the new regime?","acceptedAnswer":{"@type":"Answer","text":"With the 75,000 standard deduction and Section 87A rebate, a salaried person earning up to about 12.75 lakh pays no income tax."}},
+{"@type":"Question","name":"Does this include the old tax regime?","acceptedAnswer":{"@type":"Answer","text":"This calculator uses the New Tax Regime, the default. The old regime allows more deductions and must be opted for separately."}},
+{"@type":"Question","name":"Is this calculator official?","acceptedAnswer":{"@type":"Answer","text":"No, it is a free estimate for guidance. Always verify with the Income Tax Department or a tax professional, and check the latest Budget for slab changes."}}
+]}
+</script>
+
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id);};
+  // New Tax Regime FY 2025-26 (AY 2026-27). To update for a new year, edit SLABS / STD_DED / REBATE_LIMIT.
+  var SLABS=[[400000,0],[800000,0.05],[1200000,0.10],[1600000,0.15],[2000000,0.20],[2400000,0.25],[Infinity,0.30]];
+  var STD_DED=75000, REBATE_LIMIT=1200000, CESS=0.04;
+  function inr(n){return '₹'+Math.round(n).toLocaleString('en-IN');}
+  function slabTax(ti){
+    var tax=0, lower=0;
+    for(var i=0;i<SLABS.length;i++){ var cap=SLABS[i][0],rate=SLABS[i][1];
+      if(ti>lower){ tax+=(Math.min(ti,cap)-lower)*rate; lower=cap; } else break; }
+    return tax;
+  }
+  function calc(){
+    var gross=parseFloat($("inc").value)||0;
+    var ded=parseFloat($("ded").value)||0;
+    var std=$("sal").checked?STD_DED:0;
+    var ti=Math.max(0,gross-std-ded);
+    var pre=slabTax(ti);
+    var rebate=(ti<=REBATE_LIMIT)?pre:0;
+    var afterReb=pre-rebate;
+    var cess=afterReb*CESS;
+    var total=afterReb+cess;
+    $("r-ti").textContent=inr(ti);
+    $("r-pre").textContent=inr(pre);
+    $("r-reb").textContent=rebate>0?('− '+inr(rebate)):'₹0';
+    $("r-cess").textContent=inr(cess);
+    $("r-tax").textContent=inr(total);
+    $("r-eff").textContent=(gross>0?(total/gross*100).toFixed(2):'0')+'%';
+    $("r-nil").style.display=total<=0?'block':'none';
+  }
+  ["inc","ded","sal"].forEach(function(id){$(id).addEventListener("input",calc);$(id).addEventListener("change",calc);});
+  calc();
+})();
+</script>
+{% endraw %}
