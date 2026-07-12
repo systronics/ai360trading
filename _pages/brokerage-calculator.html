@@ -1,0 +1,163 @@
+---
+layout: default
+title: "Brokerage Calculator — Zerodha-style Delivery & Intraday Charges (Free) | AI360Trading"
+description: "Free brokerage calculator for India. Instantly see brokerage, STT, exchange, GST, SEBI, stamp duty and net profit for equity delivery & intraday trades. Discount-broker rates. Fast & private."
+permalink: /tools/brokerage-calculator/
+canonical: https://ai360trading.in/tools/brokerage-calculator/
+meta-og:title: "Free Brokerage Calculator — Net P&L After Charges"
+meta-og:description: "See your real profit after all trading charges — brokerage, STT, GST, exchange, stamp. Free and private."
+meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
+---
+
+{% raw %}
+<style>
+ .ch{text-align:center;margin-bottom:18px;padding:24px 18px;background:linear-gradient(135deg,#eef4ff,#f0f7ff);border-radius:14px}
+ .ch h1{margin:0 0 6px;font-size:25px;font-weight:900;color:#1e293b}.ch p{margin:0;color:#475569;font-size:14px}
+ .seg{display:inline-flex;margin-top:12px;background:#e2e8f0;border-radius:50px;padding:4px}
+ .seg button{border:0;background:transparent;padding:8px 20px;border-radius:50px;font-weight:800;font-size:13px;color:#475569;cursor:pointer}
+ .seg button.on{background:#0062ff;color:#fff}
+ .cw{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin:18px 0}
+ .cc{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:24px;box-shadow:0 4px 14px rgba(0,0,0,.05)}
+ .cf{margin:16px 0}.cf label{display:block;font-weight:700;font-size:13px;color:#334155;margin-bottom:6px}
+ .cf input{width:100%;padding:11px 13px;border:1px solid #cbd5e0;border-radius:9px;font-size:15px}
+ .rb{font-size:32px;font-weight:900;margin:4px 0 2px}.rb.win{color:#059669}.rb.loss{color:#dc2626}
+ .rs{font-size:13px;color:#64748b;margin-bottom:14px}
+ .rr{display:flex;justify-content:space-between;padding:8px 0;border-top:1px solid #eef2f7;font-size:14px;color:#334155}.rr b{color:#0f172a}
+ .rr.tot b{color:#0062ff}
+ .cb{margin:26px 0;font-size:15px;line-height:1.7;color:#334155}.cb h2{font-size:20px;font-weight:800;color:#0f172a;margin:24px 0 10px}
+ .faq dt{font-weight:800;color:#0f172a;margin-top:14px}.faq dd{margin:4px 0 0;color:#475569}
+ .cta{margin:24px 0;padding:20px;background:linear-gradient(135deg,#eff6ff,#f0fdf4);border:1px solid #bfdbfe;border-radius:12px;text-align:center}
+ .cta h3{margin:0 0 6px;font-size:17px;color:#0f172a}.cta p{margin:0 0 12px;font-size:13px;color:#475569}
+ .cta a{display:inline-block;margin:5px;background:#0088cc;color:#fff!important;text-decoration:none;padding:11px 22px;border-radius:50px;font-weight:800;font-size:14px}.cta a.z{background:#387ed1}.cta a.d{background:#00b386}
+ .mt{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}.mt a{background:#f1f5f9;color:#0062ff!important;text-decoration:none;padding:8px 16px;border-radius:50px;font-weight:700;font-size:13px;border:1px solid #e2e8f0}
+ .disc{font-size:12px;color:#94a3b8;text-align:center;margin-top:16px;line-height:1.6}
+ @media(max-width:760px){.cw{grid-template-columns:1fr}}
+</style>
+
+<div class="ch"><h1>🧮 Brokerage Calculator</h1><p>Your real profit after brokerage, STT, GST &amp; all charges.</p>
+<div class="seg"><button id="s-del" class="on">Delivery</button><button id="s-int">Intraday</button></div></div>
+
+<div class="cw">
+  <div class="cc">
+    <div class="cf"><label>Buy Price (₹)</label><input type="number" id="buy" value="100" min="0" step="0.05"></div>
+    <div class="cf"><label>Sell Price (₹)</label><input type="number" id="sell" value="105" min="0" step="0.05"></div>
+    <div class="cf"><label>Quantity (shares)</label><input type="number" id="qty" value="100" min="1"></div>
+  </div>
+  <div class="cc">
+    <div class="rs">Net Profit / Loss (after all charges)</div>
+    <div class="rb win" id="r-net">₹0</div>
+    <div class="rr">Gross P&amp;L <b id="r-gross">₹0</b></div>
+    <div class="rr">Brokerage <b id="r-brk">₹0</b></div>
+    <div class="rr">STT <b id="r-stt">₹0</b></div>
+    <div class="rr">Exchange + SEBI <b id="r-exc">₹0</b></div>
+    <div class="rr">GST (18%) <b id="r-gst">₹0</b></div>
+    <div class="rr">Stamp + DP <b id="r-stp">₹0</b></div>
+    <div class="rr tot">Total charges <b id="r-tot">₹0</b></div>
+    <div class="rr">Breakeven move needed <b id="r-be">₹0</b></div>
+  </div>
+</div>
+
+<div class="cta">
+  <h3>💡 Delivery brokerage here is ₹0 — because it assumes a discount broker.</h3>
+  <p>Full-service brokers can charge 0.3–0.5% per trade and eat your profit. Trade on a ₹0-delivery discount broker instead:</p>
+  <a class="z" href="https://zerodha.com/open-account?c=YS3694" target="_blank" rel="nofollow noopener">Open a Free Zerodha Account →</a>
+  <p style="margin-top:12px">📣 Plus free daily trade ideas on <a href="https://t.me/ai360trading" target="_blank" rel="noopener" style="background:none;color:#0088cc!important;padding:0;font-weight:800;text-decoration:underline">Telegram</a></p>
+</div>
+
+<div class="cb">
+  <h2>What eats into your trading profit</h2>
+  <p>Your <b>gross</b> profit is just (sell − buy) × quantity. But your <b>real</b> take-home is lower because of statutory + broker charges:</p>
+  <ul>
+    <li><b>Brokerage</b> — the broker's fee. Discount brokers: ₹0 on delivery, and ₹20 (or 0.03%) per intraday order.</li>
+    <li><b>STT</b> — Securities Transaction Tax. Delivery 0.1% both sides; intraday 0.025% on sell.</li>
+    <li><b>Exchange + SEBI</b> — tiny turnover-based charges.</li>
+    <li><b>GST</b> — 18% on brokerage + exchange charges.</li>
+    <li><b>Stamp duty</b> — on the buy side; plus a small <b>DP charge</b> when you sell delivery holdings.</li>
+  </ul>
+  <p>For small trades these charges can be larger than a thin profit — which is exactly why the <b>breakeven move</b> figure matters: the price move you need just to cover costs.</p>
+
+  <h2>Frequently Asked Questions</h2>
+  <dl class="faq">
+    <dt>How is brokerage calculated in India?</dt>
+    <dd>Brokerage plus STT, exchange transaction charges, SEBI fee, 18% GST (on brokerage + exchange), stamp duty and DP charges. Discount brokers charge ₹0 on delivery and ₹20 (or 0.03%) per intraday order.</dd>
+    <dt>Why is my actual profit less than (sell − buy)?</dt>
+    <dd>Because STT, GST, exchange, stamp and DP charges are deducted on top of brokerage. On small trades these can exceed a thin profit.</dd>
+    <dt>Is delivery really zero brokerage?</dt>
+    <dd>With discount brokers, yes — delivery brokerage is ₹0 (you still pay STT, stamp and a small DP charge). Full-service brokers may charge a percentage.</dd>
+    <dt>Are these charges exact?</dt>
+    <dd>They are close estimates using standard discount-broker (NSE equity) rates. Exact figures vary slightly by broker, exchange and any rate revisions — check your contract note.</dd>
+  </dl>
+
+  <h2>More free calculators</h2>
+  <div class="mt">
+    <a href="/tools/cagr-calculator/">CAGR Calculator</a>
+    <a href="/tools/sip-calculator/">SIP Calculator</a>
+    <a href="/tools/income-tax-calculator/">Income Tax Calculator</a>
+    <a href="/tools/">All Tools →</a>
+  </div>
+</div>
+
+<p class="disc">⚠️ Estimate only, using standard discount-broker NSE equity rates (FY 2025-26). Actual charges vary by broker, segment, exchange and rate changes. Not investment advice — always verify with your broker's contract note.</p>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"How is brokerage calculated in India?","acceptedAnswer":{"@type":"Answer","text":"Brokerage plus STT, exchange transaction charges, SEBI fee, 18 percent GST on brokerage and exchange, stamp duty and DP charges. Discount brokers charge zero on delivery and 20 rupees or 0.03 percent per intraday order."}},
+{"@type":"Question","name":"Why is my actual profit less than sell minus buy?","acceptedAnswer":{"@type":"Answer","text":"Because STT, GST, exchange, stamp and DP charges are deducted on top of brokerage. On small trades these can exceed a thin profit."}},
+{"@type":"Question","name":"Is delivery really zero brokerage?","acceptedAnswer":{"@type":"Answer","text":"With discount brokers yes, delivery brokerage is zero. You still pay STT, stamp and a small DP charge. Full-service brokers may charge a percentage."}},
+{"@type":"Question","name":"Are these charges exact?","acceptedAnswer":{"@type":"Answer","text":"They are close estimates using standard discount-broker NSE equity rates. Exact figures vary slightly by broker, exchange and rate revisions. Check your contract note."}}
+]}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[
+{"@type":"ListItem","position":1,"name":"Home","item":"https://ai360trading.in/"},
+{"@type":"ListItem","position":2,"name":"Tools","item":"https://ai360trading.in/tools/"},
+{"@type":"ListItem","position":3,"name":"Brokerage Calculator","item":"https://ai360trading.in/tools/brokerage-calculator/"}
+]}
+</script>
+
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id);};
+  var intraday=false;
+  function inr(n){return '₹'+(n<0?'-':'')+Math.abs(n).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});}
+  function calc(){
+    var buy=parseFloat($("buy").value)||0, sell=parseFloat($("sell").value)||0, qty=parseFloat($("qty").value)||0;
+    var tbuy=buy*qty, tsell=sell*qty, turn=tbuy+tsell;
+    var brk,stt,stamp,dp;
+    if(intraday){
+      brk=Math.min(0.0003*tbuy,20)+Math.min(0.0003*tsell,20);
+      stt=0.00025*tsell;              // 0.025% sell side
+      stamp=0.00003*tbuy;             // 0.003% buy
+      dp=0;
+    }else{
+      brk=0;                          // ₹0 delivery
+      stt=0.001*tbuy+0.001*tsell;     // 0.1% both sides
+      stamp=0.00015*tbuy;             // 0.015% buy
+      dp=15.34;                       // DP charge on delivery sell
+    }
+    var exch=0.0000297*turn;          // NSE txn charge
+    var sebi=0.000001*turn;           // ₹10/crore
+    var gst=0.18*(brk+exch+sebi);
+    var total=brk+stt+exch+sebi+stamp+gst+dp;
+    var gross=(sell-buy)*qty, net=gross-total;
+    var be=qty>0?total/qty:0;
+    $("r-gross").textContent=inr(gross);
+    $("r-brk").textContent=inr(brk);
+    $("r-stt").textContent=inr(stt);
+    $("r-exc").textContent=inr(exch+sebi);
+    $("r-gst").textContent=inr(gst);
+    $("r-stp").textContent=inr(stamp+dp);
+    $("r-tot").textContent=inr(total);
+    $("r-be").textContent='₹'+be.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})+' / share';
+    var el=$("r-net");
+    el.textContent=inr(net);
+    el.className='rb '+(net>=0?'win':'loss');
+  }
+  function setSeg(i){intraday=i;$("s-del").className=i?'':'on';$("s-int").className=i?'on':'';calc();}
+  $("s-del").addEventListener("click",function(){setSeg(false);});
+  $("s-int").addEventListener("click",function(){setSeg(true);});
+  ["buy","sell","qty"].forEach(function(id){$(id).addEventListener("input",calc);$(id).addEventListener("change",calc);});
+  calc();
+})();
+</script>
+{% endraw %}
