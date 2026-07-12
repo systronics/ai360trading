@@ -23,6 +23,7 @@ LINKS = {
     "website":  "https://ai360trading.in",
     "zerodha":  "https://zerodha.com/open-account?c=YS3694",
     "dhan":     "https://join.dhan.co/?invite=MSIVC45309",
+    "groww":    "https://app.groww.in/v3cO/gdbyojxy",
     "coindcx":  "https://invite.coindcx.com/13383200",
 }
 MEMBERSHIP = "₹699 Advance / ₹1,499 Premium"
@@ -61,6 +62,7 @@ def broker_lines(lang: str = "en", bullet: str = "•") -> str:
         f"{head}\n"
         f"   {bullet} Zerodha: {LINKS['zerodha']}\n"
         f"   {bullet} Dhan: {LINKS['dhan']}\n"
+        f"   {bullet} Groww: {LINKS['groww']}\n"
         f"   {bullet} Crypto (CoinDCX): {LINKS['coindcx']}"
     )
 
@@ -75,9 +77,9 @@ def funnel_block(lang: str = "hi", compact: bool = False) -> str:
         free = ("🎯 FREE roz ke signals → " if lang == "hi"
                 else "🎯 FREE daily signals → ") + tg
         prem = (f"💎 Premium signals: {MEMBERSHIP} — DM on Telegram")
-        demat = ("📈 FREE demat (Zerodha/Dhan): " + site
+        demat = ("📈 FREE demat (Zerodha/Dhan/Groww): " + site
                  if lang == "hi" else
-                 "📈 Free demat (Zerodha/Dhan): " + site)
+                 "📈 Free demat (Zerodha/Dhan/Groww): " + site)
         return "\n".join([free, prem, demat, engagement_prompt(lang)])
 
     free = (f"🎯 FREE daily trading signals → Telegram: {tg}")
@@ -103,7 +105,7 @@ def comment_text(lang: str = "hi") -> str:
         f"{head}\n"
         f"📱 Telegram: {L['telegram']}\n"
         f"💎 Premium (entry/SL/target): {MEMBERSHIP} — DM on Telegram\n"
-        f"📈 Free demat: Zerodha {L['zerodha']} | Dhan {L['dhan']}\n"
+        f"📈 Free demat: Zerodha {L['zerodha']} | Dhan {L['dhan']} | Groww {L['groww']}\n"
         f"{engagement_prompt(lang)}"
     )
 
@@ -155,6 +157,7 @@ def article_cta_html() -> str:
         '<p style="margin:6px 0">🪙 Open a <b>free demat</b> to trade these ideas: '
         f'<a href="{L["zerodha"]}">Zerodha</a> · '
         f'<a href="{L["dhan"]}">Dhan</a> · '
+        f'<a href="{L["groww"]}">Groww</a> · '
         f'<a href="{L["coindcx"]}">CoinDCX (crypto)</a></p>\n'
         '<p style="margin:6px 0;font-size:0.9em;color:#555">💬 Found this useful? '
         'Share it with a trader friend. <i>Educational only — not SEBI registered.</i></p>\n'
