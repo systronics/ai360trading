@@ -153,6 +153,11 @@ CHANGELOG.md
 TRADING_PLAYBOOK.md
 GROWTH_PLAYBOOK.md
 
+# TradingView Pine strategy/indicator source — owner's private edge.
+# Local backup only; must NOT be published to the public repo.
+tradingview/
+*.pine
+
 # ============================================================
 # EXPLICITLY TRACKED — DO NOT IGNORE
 # ============================================================
