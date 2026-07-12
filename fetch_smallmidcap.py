@@ -1,5 +1,14 @@
 """
-AI360 SMALL/MID CAP MOMENTUM SCANNER — v1.3
+AI360 SMALL/MID CAP MOMENTUM SCANNER — v1.4
+
+v1.4 (2026-07-12) — TARGET FLOOR + HONEST R:R (audit follow-up):
+  • Owner rule "target ≥5%". A tight SL could make the 1:2 target land under
+    +5% (e.g. risk 2% → target +4%). Now target = max(1:2, +5% floor). These
+    picks are already ≥4%-move + ≥3× real-volume momentum, so +5% is reachable.
+  • The board + Telegram digest now show the REAL R:R (after the floor, which
+    can exceed 1:2) and the target % — no more implied-but-wrong "1:2".
+  • Isolated module: still writes ONLY SmallMidCap / SmallMidLive / SMC_ memory,
+    never AlertLog → cannot affect the live trading bot.
 
 v1.3 (2026-06-03) — ACTIONABLE ALERTS (clear entry/SL/target, no confusion):
   • Every pick now carries a CONCRETE trade plan computed from bhavcopy:
@@ -118,9 +127,13 @@ STALE_DAYS           = 14      # purge SMC_* memory rows older than this
 
 # Trade-plan + actionable board (v1.3) — concrete entry/SL/target per pick
 SML_TAB        = "SmallMidLive"  # clean actionable board; the tab to ACT from
-RR_TARGET      = 2.0             # displayed reward:risk (then trail momentum)
+RR_TARGET      = 2.0             # base reward:risk (then trail momentum)
 SL_BUFFER      = 0.98            # SL = today's low × this ...
 MAX_RISK_PCT   = 3.0             # ... but never risk more than this % from entry
+MIN_TARGET_PCT = 5.0            # v1.4: owner rule "target ≥5%". These picks are
+                               # already ≥4%-move + ≥3× real volume momentum, so
+                               # a +5% target is reachable — never below it even
+                               # when a tight SL makes 1:2 land under 5%.
 
 DEFAULT_HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
@@ -248,10 +261,17 @@ def _trade_plan(close: float, low: float) -> dict:
     floor_sl = entry * (1 - MAX_RISK_PCT / 100.0)   # cap loss at MAX_RISK_PCT
     sl       = round(max(raw_sl, floor_sl), 2)       # whichever is tighter
     risk     = max(entry - sl, 0.01)
-    target   = round(entry + RR_TARGET * risk, 2)
-    risk_pct = round((risk / entry) * 100, 2) if entry > 0 else 0.0
+    # v1.4: target = the greater of 1:2 (RR_TARGET) and the +5% floor. Whichever
+    # is higher wins, so a tight SL can never leave a sub-5% target.
+    rr_target  = entry + RR_TARGET * risk
+    min_target = entry * (1 + MIN_TARGET_PCT / 100.0)
+    target     = round(max(rr_target, min_target), 2)
+    risk_pct   = round((risk / entry) * 100, 2) if entry > 0 else 0.0
+    tgt_pct    = round((target - entry) / entry * 100, 2) if entry > 0 else 0.0
+    # Real R:R after the floor (may exceed RR_TARGET when the floor lifts it).
+    rr_actual  = round((target - entry) / risk, 1) if risk > 0 else RR_TARGET
     return {"entry": entry, "sl": sl, "target": target,
-            "rr": RR_TARGET, "risk_pct": risk_pct}
+            "rr": rr_actual, "risk_pct": risk_pct, "tgt_pct": tgt_pct}
 
 
 def build_avg_volume(window: list) -> tuple:
@@ -487,11 +507,11 @@ def write_sml_board(ss, picks: list, bhav_date: str):
             for p in picks:
                 rows.append([
                     bhav_date, p["symbol"], "🚀 MOMENTUM BUY",
-                    p["entry"], p["sl"], p["target"], f'1:{p["rr"]:.0f}',
+                    p["entry"], p["sl"], p["target"], f'1:{p["rr"]:.1f}',
                     f'{p["risk_pct"]:.1f}%', p["score"],
                     "⏳ WAIT — enter above close next session",
                     (f'Enter >₹{p["entry"]:.2f} | SL ₹{p["sl"]:.2f} | '
-                     f'Target ₹{p["target"]:.2f} | then trail momentum'),
+                     f'Target ₹{p["target"]:.2f} (+{p["tgt_pct"]:.1f}%) | then trail momentum'),
                 ])
         sheet.clear()
         sheet.update(range_name="A1", values=rows, value_input_option="USER_ENTERED")
@@ -600,7 +620,7 @@ def send_digest(picks: list, bhav_date: str):
         lines.append(
             f"<b>#{rank}  {p['symbol']}</b>  ₹{p['close']:.2f}  ({p['pct_change']:+.2f}%)\n"
             f"   📥 Entry: above ₹{p['entry']:.2f}  |  🛑 SL: ₹{p['sl']:.2f} (-{p['risk_pct']:.1f}%)  "
-            f"|  🎯 Target: ₹{p['target']:.2f} (1:{p['rr']:.0f})\n"
+            f"|  🎯 Target: ₹{p['target']:.2f} (+{p['tgt_pct']:.1f}%, 1:{p['rr']:.1f})\n"
             f"   Turnover ₹{p['turnover_cr']:.1f} Cr  |  Delivery {p['delivery_pct']:.0f}%  "
             f"|  Vol {p['vol_mult']:.1f}× (5d avg)\n"
             f"   <i>Score: {p['score']}</i>"

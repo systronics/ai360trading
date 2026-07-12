@@ -16,6 +16,9 @@ v15.17 CHANGES vs v15.16 — RESISTANCE-ROOM VETO + LOSS COOLDOWN (2026-07-12)
      A losing exit set no cooldown, so the bot could immediately re-buy a name
      that just failed (EICHERMOT lost, then was re-entered and lost again). Now
      any losing exit sets the same proven RECD cooldown too.
+  3. CASH ROOM VETO — cash intraday gap-trades bypassed ALL filters (allowed =
+     cp>0). They now also run the fail-open resistance-room veto so a cash entry
+     isn't bought right under a ceiling. Still skip RSI/Nifty/time (gap-driven).
   NOT changed: entry math, SL multiples, trailing logic, appscript — untouched.
 
 v15.16 CHANGES vs v15.15 — WEEKEND-GAP GUARD + OPTION-BASED P/L (2026-06-05)
@@ -1575,6 +1578,24 @@ def step_a_enter_trades(log_sheet, nifty_sheet, bm_sheet, mem, now, is_bullish, 
             allowed = cp > 0
             filter_reasons = [f"[CASH] Volume breakout trade — standard filters bypassed"]
             rsi_val = -1
+            # v15.17: even a cash gap-trade must not be bought right under a
+            # ceiling (the audit's dominant loss pattern). Fail-open resistance-
+            # room veto — only fires when Nifty200 has resistance data for this
+            # symbol AND price is below it with <MIN_TARGET_ROOM_ATR of runway.
+            if allowed and _EQ_AVAILABLE and nifty_sheet is not None:
+                try:
+                    _cri  = _reversal_inputs(nifty_sheet, sym)
+                    _cres = _cri.get("resistance") or 0.0
+                    if _cres and _cres > cp and cp > 0:
+                        _catr = _read_atr_from_nifty200(nifty_sheet, sym)
+                        if _catr > 0:
+                            _croom = eq.target_room(cp, _cres, _catr)
+                            if 0 < _croom < eq.MIN_TARGET_ROOM_ATR:
+                                allowed = False
+                                filter_reasons.append(
+                                    f"[ROOM] cash: only {_croom:.2f} ATR to resistance ₹{_cres:.2f} — skip (capped)")
+                except Exception as _ce:
+                    print(f"[ROOM] cash check errored for {sym}: {_ce} — fail open")
         else:
             # v15.12: pass cp + nifty_sheet + bm_data so Batch-4 institutional
             # filters can do RS / volume / FII / PCR / delivery checks.
