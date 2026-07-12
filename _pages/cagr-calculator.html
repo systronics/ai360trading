@@ -1,0 +1,124 @@
+---
+layout: default
+title: "CAGR Calculator — Compound Annual Growth Rate (Free) | AI360Trading"
+description: "Free CAGR calculator. Instantly find the compound annual growth rate of any investment from its start value, end value and number of years. See absolute return too. Fast & private."
+permalink: /tools/cagr-calculator/
+canonical: https://ai360trading.in/tools/cagr-calculator/
+meta-og:title: "Free CAGR Calculator — Investment Growth Rate"
+meta-og:description: "Calculate the compound annual growth rate (CAGR) of any investment instantly. Free, fast and private."
+meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
+---
+
+{% raw %}
+<style>
+ .ch{text-align:center;margin-bottom:18px;padding:24px 18px;background:linear-gradient(135deg,#eef4ff,#f0f7ff);border-radius:14px}
+ .ch h1{margin:0 0 6px;font-size:25px;font-weight:900;color:#1e293b}.ch p{margin:0;color:#475569;font-size:14px}
+ .cw{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin:18px 0}
+ .cc{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:24px;box-shadow:0 4px 14px rgba(0,0,0,.05)}
+ .cf{margin:16px 0}.cf label{display:block;font-weight:700;font-size:13px;color:#334155;margin-bottom:6px}
+ .cf input{width:100%;padding:11px 13px;border:1px solid #cbd5e0;border-radius:9px;font-size:15px}
+ .rb{font-size:36px;font-weight:900;color:#0062ff;margin:4px 0 2px}.rs{font-size:13px;color:#64748b;margin-bottom:14px}
+ .rr{display:flex;justify-content:space-between;padding:9px 0;border-top:1px solid #eef2f7;font-size:14px;color:#334155}.rr b{color:#0f172a}
+ .cb{margin:26px 0;font-size:15px;line-height:1.7;color:#334155}.cb h2{font-size:20px;font-weight:800;color:#0f172a;margin:24px 0 10px}
+ .faq dt{font-weight:800;color:#0f172a;margin-top:14px}.faq dd{margin:4px 0 0;color:#475569}
+ .cta{margin:24px 0;padding:18px;background:#f0f7ff;border:1px solid #bfdbfe;border-radius:12px;text-align:center}
+ .cta a{display:inline-block;margin:5px;background:#0088cc;color:#fff!important;text-decoration:none;padding:10px 22px;border-radius:50px;font-weight:800;font-size:14px}.cta a.alt{background:#0062ff}
+ .mt{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}.mt a{background:#f1f5f9;color:#0062ff!important;text-decoration:none;padding:8px 16px;border-radius:50px;font-weight:700;font-size:13px;border:1px solid #e2e8f0}
+ .disc{font-size:12px;color:#94a3b8;text-align:center;margin-top:16px;line-height:1.6}
+ @media(max-width:760px){.cw{grid-template-columns:1fr}}
+</style>
+
+<div class="ch"><h1>📊 CAGR Calculator</h1><p>Find the compound annual growth rate of any investment — instantly &amp; free.</p></div>
+
+<div class="cw">
+  <div class="cc">
+    <div class="cf"><label>Initial Investment Value (₹)</label><input type="number" id="init" value="100000" min="0"></div>
+    <div class="cf"><label>Final Value (₹)</label><input type="number" id="fin" value="250000" min="0"></div>
+    <div class="cf"><label>Period (years)</label><input type="number" id="yrs" value="5" min="0.1" step="0.5"></div>
+  </div>
+  <div class="cc">
+    <div class="rs">CAGR (Compound Annual Growth Rate)</div>
+    <div class="rb" id="r-cagr">0%</div>
+    <div class="rr">Absolute total return <b id="r-abs">0%</b></div>
+    <div class="rr">Total gain <b id="r-gain">₹0</b></div>
+    <div class="rr">Times your money grew <b id="r-x">1×</b></div>
+    <div class="rr">Period <b id="r-yr">0 yr</b></div>
+  </div>
+</div>
+
+<div class="cta">
+  <p style="margin:0 0 12px;font-size:14px;color:#1e3a5f">📈 Want investments that compound? Get free daily market insights on Telegram.</p>
+  <a href="https://t.me/ai360trading" target="_blank" rel="noopener">📣 Join Free Telegram</a>
+  <a class="alt" href="https://zerodha.com/open-account?c=YS3694" target="_blank" rel="nofollow noopener">Open a Free Investment Account →</a>
+</div>
+
+<div class="cb">
+  <h2>What is CAGR?</h2>
+  <p><b>CAGR</b> (Compound Annual Growth Rate) is the steady yearly rate at which an investment would have grown from its start value to its end value, if it compounded every year. It smooths out the ups and downs into one comparable number — which is why it's the standard way to compare mutual funds, stocks and businesses.</p>
+  <p style="text-align:center;font-weight:700;color:#0f172a">CAGR = (Final ÷ Initial)<sup>(1 ÷ years)</sup> − 1</p>
+  <p>Unlike a simple average return, CAGR accounts for compounding. A ₹1,00,000 investment that becomes ₹2,50,000 in 5 years has a 150% absolute return, but a CAGR of about 20% per year.</p>
+
+  <h2>Frequently Asked Questions</h2>
+  <dl class="faq">
+    <dt>What is a good CAGR for an investment?</dt>
+    <dd>For Indian equity over the long term, 12–15% CAGR is considered healthy. Anything consistently above inflation (about 6%) grows your real wealth.</dd>
+    <dt>How is CAGR different from absolute return?</dt>
+    <dd>Absolute return is the total gain over the whole period. CAGR converts that into a per-year compounded rate, so investments over different time spans can be compared fairly.</dd>
+    <dt>Can CAGR be negative?</dt>
+    <dd>Yes — if the final value is less than the initial value, the CAGR is negative, meaning the investment shrank each year on average.</dd>
+    <dt>Does CAGR show risk or volatility?</dt>
+    <dd>No. CAGR only shows the smoothed growth rate. Two investments can have the same CAGR but very different year-to-year swings (risk).</dd>
+  </dl>
+
+  <h2>More free calculators</h2>
+  <div class="mt">
+    <a href="/tools/sip-calculator/">SIP Calculator</a>
+    <a href="/tools/fd-calculator/">FD Calculator</a>
+    <a href="/tools/income-tax-calculator/">Income Tax Calculator</a>
+    <a href="/tools/">All Tools →</a>
+  </div>
+</div>
+
+<p class="disc">⚠️ Estimate only, for education. Past growth does not guarantee future returns. Not investment advice — consult a SEBI-registered advisor before investing.</p>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"What is a good CAGR for an investment?","acceptedAnswer":{"@type":"Answer","text":"For Indian equity over the long term, 12 to 15 percent CAGR is considered healthy. Anything consistently above inflation (about 6 percent) grows your real wealth."}},
+{"@type":"Question","name":"How is CAGR different from absolute return?","acceptedAnswer":{"@type":"Answer","text":"Absolute return is the total gain over the whole period. CAGR converts that into a per-year compounded rate, so investments over different time spans can be compared fairly."}},
+{"@type":"Question","name":"Can CAGR be negative?","acceptedAnswer":{"@type":"Answer","text":"Yes. If the final value is less than the initial value, the CAGR is negative, meaning the investment shrank each year on average."}},
+{"@type":"Question","name":"Does CAGR show risk or volatility?","acceptedAnswer":{"@type":"Answer","text":"No. CAGR only shows the smoothed growth rate. Two investments can have the same CAGR but very different year to year swings."}}
+]}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[
+{"@type":"ListItem","position":1,"name":"Home","item":"https://ai360trading.in/"},
+{"@type":"ListItem","position":2,"name":"Tools","item":"https://ai360trading.in/tools/"},
+{"@type":"ListItem","position":3,"name":"CAGR Calculator","item":"https://ai360trading.in/tools/cagr-calculator/"}
+]}
+</script>
+
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id);};
+  function inr(n){return '₹'+Math.round(n).toLocaleString('en-IN');}
+  function calc(){
+    var init=parseFloat($("init").value)||0;
+    var fin=parseFloat($("fin").value)||0;
+    var yrs=parseFloat($("yrs").value)||0;
+    var cagr=0, abs=0, x=0;
+    if(init>0 && yrs>0){
+      cagr=(Math.pow(fin/init,1/yrs)-1)*100;
+      abs=(fin-init)/init*100;
+      x=fin/init;
+    }
+    $("r-cagr").textContent=(isFinite(cagr)?cagr.toFixed(2):'0')+'%';
+    $("r-abs").textContent=(isFinite(abs)?abs.toFixed(2):'0')+'%';
+    $("r-gain").textContent=inr(fin-init);
+    $("r-x").textContent=(isFinite(x)?x.toFixed(2):'0')+'×';
+    $("r-yr").textContent=(yrs||0)+' yr';
+  }
+  ["init","fin","yrs"].forEach(function(id){$(id).addEventListener("input",calc);$(id).addEventListener("change",calc);});
+  calc();
+})();
+</script>
+{% endraw %}

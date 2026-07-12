@@ -1,0 +1,132 @@
+---
+layout: default
+title: "Loan Eligibility Calculator — How Much Loan Can I Get? (Free) | AI360Trading"
+description: "Free loan eligibility calculator. Instantly find the maximum home, personal or car loan you can get based on your monthly income, existing EMIs, interest rate and tenure. Fast & private."
+permalink: /tools/loan-eligibility-calculator/
+canonical: https://ai360trading.in/tools/loan-eligibility-calculator/
+meta-og:title: "Free Loan Eligibility Calculator"
+meta-og:description: "Find out the maximum loan amount you qualify for, instantly. Free, fast and private."
+meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
+---
+
+{% raw %}
+<style>
+ .ch{text-align:center;margin-bottom:18px;padding:24px 18px;background:linear-gradient(135deg,#eef4ff,#f0f7ff);border-radius:14px}
+ .ch h1{margin:0 0 6px;font-size:25px;font-weight:900;color:#1e293b}.ch p{margin:0;color:#475569;font-size:14px}
+ .cw{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin:18px 0}
+ .cc{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:24px;box-shadow:0 4px 14px rgba(0,0,0,.05)}
+ .cf{margin:16px 0}.cf label{display:block;font-weight:700;font-size:13px;color:#334155;margin-bottom:6px}
+ .cf input,.cf select{width:100%;padding:11px 13px;border:1px solid #cbd5e0;border-radius:9px;font-size:15px}
+ .rb{font-size:32px;font-weight:900;color:#0062ff;margin:4px 0 2px}.rs{font-size:13px;color:#64748b;margin-bottom:14px}
+ .rr{display:flex;justify-content:space-between;padding:9px 0;border-top:1px solid #eef2f7;font-size:14px;color:#334155}.rr b{color:#0f172a}
+ .cb{margin:26px 0;font-size:15px;line-height:1.7;color:#334155}.cb h2{font-size:20px;font-weight:800;color:#0f172a;margin:24px 0 10px}
+ .faq dt{font-weight:800;color:#0f172a;margin-top:14px}.faq dd{margin:4px 0 0;color:#475569}
+ .cta{margin:24px 0;padding:18px;background:#f0f7ff;border:1px solid #bfdbfe;border-radius:12px;text-align:center}
+ .cta a{display:inline-block;margin:5px;background:#0088cc;color:#fff!important;text-decoration:none;padding:10px 22px;border-radius:50px;font-weight:800;font-size:14px}.cta a.alt{background:#0062ff}
+ .mt{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}.mt a{background:#f1f5f9;color:#0062ff!important;text-decoration:none;padding:8px 16px;border-radius:50px;font-weight:700;font-size:13px;border:1px solid #e2e8f0}
+ .disc{font-size:12px;color:#94a3b8;text-align:center;margin-top:16px;line-height:1.6}
+ @media(max-width:760px){.cw{grid-template-columns:1fr}}
+</style>
+
+<div class="ch"><h1>🏦 Loan Eligibility Calculator</h1><p>See the maximum loan you can get — based on your income &amp; EMIs.</p></div>
+
+<div class="cw">
+  <div class="cc">
+    <div class="cf"><label>Net Monthly Income (₹)</label><input type="number" id="inc" value="60000" min="0"></div>
+    <div class="cf"><label>Existing Monthly EMIs / obligations (₹)</label><input type="number" id="emi" value="0" min="0"></div>
+    <div class="cf"><label>Interest Rate (% per year)</label><input type="number" id="rate" value="9" step="0.1" min="0"></div>
+    <div class="cf"><label>Loan Tenure (years)</label><input type="number" id="yrs" value="20" min="1" max="30"></div>
+    <div class="cf"><label>FOIR — % of income allowed for EMI</label>
+      <select id="foir"><option value="0.4">40% (conservative)</option><option value="0.5" selected>50% (typical)</option><option value="0.6">60% (aggressive)</option></select></div>
+  </div>
+  <div class="cc">
+    <div class="rs">Maximum Loan You May Qualify For</div>
+    <div class="rb" id="r-loan">₹0</div>
+    <div class="rr">Max EMI you can afford <b id="r-emi">₹0</b></div>
+    <div class="rr">Monthly income considered <b id="r-inc">₹0</b></div>
+    <div class="rr">Less existing EMIs <b id="r-obl">₹0</b></div>
+    <div class="rr">Interest / tenure <b id="r-rt">—</b></div>
+    <div class="rr">Total interest over term <b id="r-int">₹0</b></div>
+  </div>
+</div>
+
+<div class="cta">
+  <p style="margin:0 0 12px;font-size:14px;color:#1e3a5f">📈 Planning a big purchase? Get free daily market &amp; money insights on Telegram.</p>
+  <a href="https://t.me/ai360trading" target="_blank" rel="noopener">📣 Join Free Telegram</a>
+  <a class="alt" href="https://zerodha.com/open-account?c=YS3694" target="_blank" rel="nofollow noopener">Open a Free Investment Account →</a>
+</div>
+
+<div class="cb">
+  <h2>How loan eligibility is calculated</h2>
+  <p>Lenders cap your total EMIs at a share of your income — the <b>FOIR</b> (Fixed Obligation to Income Ratio), usually 40–60%. Your <b>maximum affordable EMI</b> = (income × FOIR) − existing EMIs. That EMI is then converted into a loan amount using the interest rate and tenure:</p>
+  <p style="text-align:center;font-weight:700;color:#0f172a">Loan = EMI × [ (1+r)<sup>n</sup> − 1 ] ÷ [ r × (1+r)<sup>n</sup> ]</p>
+  <p>where <b>r</b> = monthly interest rate (annual ÷ 12 ÷ 100) and <b>n</b> = tenure in months. A longer tenure or lower rate increases the eligible amount; existing EMIs reduce it.</p>
+
+  <h2>Frequently Asked Questions</h2>
+  <dl class="faq">
+    <dt>How much home loan can I get on a ₹60,000 salary?</dt>
+    <dd>At 50% FOIR, ₹30,000/month is available for EMI. At 9% for 20 years that supports roughly a ₹33 lakh loan — use the calculator above for your exact figures.</dd>
+    <dt>What is FOIR?</dt>
+    <dd>Fixed Obligation to Income Ratio — the maximum share of your monthly income a lender lets go toward all EMIs combined, typically 40–60%.</dd>
+    <dt>Does a longer tenure increase eligibility?</dt>
+    <dd>Yes. A longer tenure lowers the EMI per rupee borrowed, so the same affordable EMI supports a larger loan — but you pay more total interest.</dd>
+    <dt>Is this the final amount the bank will sanction?</dt>
+    <dd>No — it is an estimate. Banks also check your credit score, employment, property value and their own policy. Always confirm with the lender.</dd>
+  </dl>
+
+  <h2>More free calculators</h2>
+  <div class="mt">
+    <a href="/tools/emi-calculator/">EMI Calculator</a>
+    <a href="/tools/income-tax-calculator/">Income Tax Calculator</a>
+    <a href="/tools/cagr-calculator/">CAGR Calculator</a>
+    <a href="/tools/">All Tools →</a>
+  </div>
+</div>
+
+<p class="disc">⚠️ Estimate only. Actual loan sanction depends on your credit score, lender policy, income proof and property value. Not financial advice — verify with your bank or a qualified advisor.</p>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"How much home loan can I get on a 60,000 salary?","acceptedAnswer":{"@type":"Answer","text":"At 50% FOIR, 30,000 per month is available for EMI. At 9% for 20 years that supports roughly a 33 lakh loan. Use the calculator for your exact figures."}},
+{"@type":"Question","name":"What is FOIR?","acceptedAnswer":{"@type":"Answer","text":"Fixed Obligation to Income Ratio — the maximum share of your monthly income a lender lets go toward all EMIs combined, typically 40 to 60 percent."}},
+{"@type":"Question","name":"Does a longer tenure increase eligibility?","acceptedAnswer":{"@type":"Answer","text":"Yes. A longer tenure lowers the EMI per rupee borrowed, so the same affordable EMI supports a larger loan, but you pay more total interest."}},
+{"@type":"Question","name":"Is this the final amount the bank will sanction?","acceptedAnswer":{"@type":"Answer","text":"No, it is an estimate. Banks also check your credit score, employment, property value and their own policy. Always confirm with the lender."}}
+]}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[
+{"@type":"ListItem","position":1,"name":"Home","item":"https://ai360trading.in/"},
+{"@type":"ListItem","position":2,"name":"Tools","item":"https://ai360trading.in/tools/"},
+{"@type":"ListItem","position":3,"name":"Loan Eligibility Calculator","item":"https://ai360trading.in/tools/loan-eligibility-calculator/"}
+]}
+</script>
+
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id);};
+  function inr(n){return '₹'+Math.round(n).toLocaleString('en-IN');}
+  function calc(){
+    var inc=parseFloat($("inc").value)||0;
+    var obl=parseFloat($("emi").value)||0;
+    var rate=parseFloat($("rate").value)||0;
+    var yrs=parseFloat($("yrs").value)||0;
+    var foir=parseFloat($("foir").value)||0.5;
+    var maxEmi=Math.max(0, inc*foir - obl);
+    var n=yrs*12, r=rate/12/100;
+    var loan=0;
+    if(maxEmi>0 && n>0){
+      loan = r>0 ? maxEmi*(Math.pow(1+r,n)-1)/(r*Math.pow(1+r,n)) : maxEmi*n;
+    }
+    var totalPay=maxEmi*n, interest=Math.max(0,totalPay-loan);
+    $("r-loan").textContent=inr(loan);
+    $("r-emi").textContent=inr(maxEmi);
+    $("r-inc").textContent=inr(inc);
+    $("r-obl").textContent='− '+inr(obl);
+    $("r-rt").textContent=(rate||0)+'% · '+(yrs||0)+' yr';
+    $("r-int").textContent=inr(interest);
+  }
+  ["inc","emi","rate","yrs","foir"].forEach(function(id){$(id).addEventListener("input",calc);$(id).addEventListener("change",calc);});
+  calc();
+})();
+</script>
+{% endraw %}
