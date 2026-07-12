@@ -1,0 +1,142 @@
+---
+layout: default
+title: "Take-Home Salary Calculator — CTC to In-Hand (Free) | AI360Trading"
+description: "Free take-home salary calculator for India. Convert your annual CTC into monthly in-hand salary after PF, professional tax and income tax (New Regime FY 2025-26). Fast & private."
+permalink: /tools/take-home-salary-calculator/
+canonical: https://ai360trading.in/tools/take-home-salary-calculator/
+meta-og:title: "Free Take-Home Salary Calculator — CTC to In-Hand"
+meta-og:description: "See your monthly in-hand salary from CTC after PF, professional tax and income tax. Free, fast and private."
+meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
+---
+
+{% raw %}
+<style>
+ .ch{text-align:center;margin-bottom:18px;padding:24px 18px;background:linear-gradient(135deg,#eef4ff,#f0f7ff);border-radius:14px}
+ .ch h1{margin:0 0 6px;font-size:25px;font-weight:900;color:#1e293b}.ch p{margin:0;color:#475569;font-size:14px}
+ .fy{display:inline-block;margin-top:10px;background:#dbeafe;color:#0062ff;font-weight:800;font-size:12px;padding:6px 14px;border-radius:50px}
+ .cw{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin:18px 0}
+ .cc{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:24px;box-shadow:0 4px 14px rgba(0,0,0,.05)}
+ .cf{margin:16px 0}.cf label{display:block;font-weight:700;font-size:13px;color:#334155;margin-bottom:6px}
+ .cf input{width:100%;padding:11px 13px;border:1px solid #cbd5e0;border-radius:9px;font-size:15px}
+ .chk{display:flex;align-items:center;gap:8px;font-size:14px;color:#334155;margin-top:10px}.chk input{width:auto}
+ .rb{font-size:32px;font-weight:900;color:#0062ff;margin:4px 0 2px}.rs{font-size:13px;color:#64748b;margin-bottom:14px}
+ .rr{display:flex;justify-content:space-between;padding:9px 0;border-top:1px solid #eef2f7;font-size:14px;color:#334155}.rr b{color:#0f172a}
+ .rr.neg b{color:#dc2626}
+ .cb{margin:26px 0;font-size:15px;line-height:1.7;color:#334155}.cb h2{font-size:20px;font-weight:800;color:#0f172a;margin:24px 0 10px}
+ .faq dt{font-weight:800;color:#0f172a;margin-top:14px}.faq dd{margin:4px 0 0;color:#475569}
+ .cta{margin:24px 0;padding:18px;background:#f0f7ff;border:1px solid #bfdbfe;border-radius:12px;text-align:center}
+ .cta a{display:inline-block;margin:5px;background:#0088cc;color:#fff!important;text-decoration:none;padding:10px 22px;border-radius:50px;font-weight:800;font-size:14px}.cta a.alt{background:#0062ff}
+ .mt{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}.mt a{background:#f1f5f9;color:#0062ff!important;text-decoration:none;padding:8px 16px;border-radius:50px;font-weight:700;font-size:13px;border:1px solid #e2e8f0}
+ .disc{font-size:12px;color:#94a3b8;text-align:center;margin-top:16px;line-height:1.6}
+ @media(max-width:760px){.cw{grid-template-columns:1fr}}
+</style>
+
+<div class="ch"><h1>💼 Take-Home Salary Calculator</h1><p>Turn your CTC into monthly in-hand salary — after PF, PT &amp; income tax.</p>
+<div class="fy">New Regime · FY 2025-26 (AY 2026-27)</div></div>
+
+<div class="cw">
+  <div class="cc">
+    <div class="cf"><label>Annual CTC (₹)</label><input type="number" id="ctc" value="1200000" min="0"></div>
+    <div class="cf"><label>Basic pay (% of CTC)</label><input type="number" id="basic" value="50" min="20" max="80"></div>
+    <label class="chk"><input type="checkbox" id="grat" checked> CTC includes gratuity (4.81% of basic)</label>
+    <label class="chk"><input type="checkbox" id="cap"> Cap PF at ₹15,000 basic (₹1,800/mo)</label>
+  </div>
+  <div class="cc">
+    <div class="rs">Monthly In-Hand Salary (approx.)</div>
+    <div class="rb" id="r-month">₹0</div>
+    <div class="rr">Annual in-hand <b id="r-year">₹0</b></div>
+    <div class="rr">Cash gross (CTC − employer PF/gratuity) <b id="r-gross">₹0</b></div>
+    <div class="rr neg">Employee PF (yr) <b id="r-epf">₹0</b></div>
+    <div class="rr neg">Professional tax (yr) <b id="r-pt">₹0</b></div>
+    <div class="rr neg">Income tax + cess (yr) <b id="r-tax">₹0</b></div>
+  </div>
+</div>
+
+<div class="cta">
+  <p style="margin:0 0 12px;font-size:14px;color:#1e3a5f">📈 Turn your salary into wealth — get free daily market insights on Telegram.</p>
+  <a href="https://t.me/ai360trading" target="_blank" rel="noopener">📣 Join Free Telegram</a>
+  <a class="alt" href="https://zerodha.com/open-account?c=YS3694" target="_blank" rel="nofollow noopener">Open a Free Investment Account →</a>
+</div>
+
+<div class="cb">
+  <h2>How your in-hand salary is worked out</h2>
+  <p>Your <b>CTC</b> is the total company cost — it includes parts you never receive in your bank account. To get monthly in-hand we remove them step by step:</p>
+  <ul>
+    <li><b>Employer PF</b> (12% of basic) and <b>gratuity</b> are part of CTC but not paid to you monthly.</li>
+    <li>From the remaining cash gross we deduct your <b>employee PF</b> (12% of basic), <b>professional tax</b> (≈₹2,400/year) and <b>income tax</b> under the New Regime (with the ₹75,000 standard deduction, Section 87A rebate up to ₹12L taxable, and 4% cess).</li>
+  </ul>
+  <p>Default assumption: basic = 50% of CTC (you can change it). Tick "Cap PF" if your employer limits PF to the ₹15,000 statutory basic (₹1,800/month).</p>
+
+  <h2>Frequently Asked Questions</h2>
+  <dl class="faq">
+    <dt>What is the in-hand salary for ₹12 LPA CTC?</dt>
+    <dd>Roughly ₹85,000–₹88,000 per month, since income tax is nil up to ₹12L taxable under the New Regime. The exact figure depends on your basic %, PF and whether gratuity is part of your CTC — use the calculator above.</dd>
+    <dt>Why is in-hand much less than CTC?</dt>
+    <dd>CTC includes employer PF, gratuity and sometimes variable bonus that never reach your monthly bank credit. Employee PF, professional tax and income tax are then deducted from the rest.</dd>
+    <dt>Which tax regime does this use?</dt>
+    <dd>The New Tax Regime (default) for FY 2025-26, including the ₹75,000 standard deduction and Section 87A rebate. The old regime allows more deductions and is calculated separately.</dd>
+    <dt>Is this my exact salary slip amount?</dt>
+    <dd>No — it is a close estimate. Actual take-home varies with your company's exact salary structure, HRA, allowances, insurance and other deductions. Check your offer letter or payslip.</dd>
+  </dl>
+
+  <h2>More free calculators</h2>
+  <div class="mt">
+    <a href="/tools/income-tax-calculator/">Income Tax Calculator</a>
+    <a href="/tools/loan-eligibility-calculator/">Loan Eligibility</a>
+    <a href="/tools/sip-calculator/">SIP Calculator</a>
+    <a href="/tools/">All Tools →</a>
+  </div>
+</div>
+
+<p class="disc">⚠️ Estimate only, based on common assumptions (basic 50% of CTC, 12% PF, New Regime FY 2025-26). Actual in-hand depends on your exact salary structure. Not tax or financial advice — verify with your employer or a professional.</p>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"What is the in-hand salary for 12 LPA CTC?","acceptedAnswer":{"@type":"Answer","text":"Roughly 85,000 to 88,000 per month, since income tax is nil up to 12 lakh taxable under the New Regime. The exact figure depends on your basic percent, PF and whether gratuity is part of your CTC."}},
+{"@type":"Question","name":"Why is in-hand much less than CTC?","acceptedAnswer":{"@type":"Answer","text":"CTC includes employer PF, gratuity and sometimes variable bonus that never reach your monthly bank credit. Employee PF, professional tax and income tax are then deducted from the rest."}},
+{"@type":"Question","name":"Which tax regime does this use?","acceptedAnswer":{"@type":"Answer","text":"The New Tax Regime (default) for FY 2025-26, including the 75,000 standard deduction and Section 87A rebate. The old regime is calculated separately."}},
+{"@type":"Question","name":"Is this my exact salary slip amount?","acceptedAnswer":{"@type":"Answer","text":"No, it is a close estimate. Actual take-home varies with your company salary structure, HRA, allowances, insurance and other deductions."}}
+]}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[
+{"@type":"ListItem","position":1,"name":"Home","item":"https://ai360trading.in/"},
+{"@type":"ListItem","position":2,"name":"Tools","item":"https://ai360trading.in/tools/"},
+{"@type":"ListItem","position":3,"name":"Take-Home Salary Calculator","item":"https://ai360trading.in/tools/take-home-salary-calculator/"}
+]}
+</script>
+
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id);};
+  var SLABS=[[400000,0],[800000,0.05],[1200000,0.10],[1600000,0.15],[2000000,0.20],[2400000,0.25],[Infinity,0.30]];
+  var STD_DED=75000, REBATE_LIMIT=1200000, CESS=0.04, PF_CAP_BASIC=180000; // 15000*12
+  function inr(n){return '₹'+Math.round(n).toLocaleString('en-IN');}
+  function slabTax(ti){var t=0,lo=0;for(var i=0;i<SLABS.length;i++){var cap=SLABS[i][0],r=SLABS[i][1];if(ti>lo){t+=(Math.min(ti,cap)-lo)*r;lo=cap;}else break;}return t;}
+  function newRegimeTax(ti){var pre=slabTax(ti);var reb=(ti<=REBATE_LIMIT)?pre:0;var a=pre-reb;return a+a*CESS;}
+  function calc(){
+    var ctc=parseFloat($("ctc").value)||0;
+    var bpct=(parseFloat($("basic").value)||50)/100;
+    var inclGrat=$("grat").checked, capPF=$("cap").checked;
+    var basic=ctc*bpct;
+    var pfBase=capPF?Math.min(basic,PF_CAP_BASIC):basic;
+    var employerPF=0.12*pfBase;
+    var employeePF=0.12*pfBase;
+    var gratuity=inclGrat?0.0481*basic:0;
+    var gross=Math.max(0, ctc-employerPF-gratuity);   // annual cash gross
+    var pt=2400;
+    var taxable=Math.max(0, gross-STD_DED);
+    var tax=newRegimeTax(taxable);
+    var annual=Math.max(0, gross-employeePF-pt-tax);
+    $("r-month").textContent=inr(annual/12);
+    $("r-year").textContent=inr(annual);
+    $("r-gross").textContent=inr(gross);
+    $("r-epf").textContent='− '+inr(employeePF);
+    $("r-pt").textContent='− '+inr(pt);
+    $("r-tax").textContent='− '+inr(tax);
+  }
+  ["ctc","basic","grat","cap"].forEach(function(id){$(id).addEventListener("input",calc);$(id).addEventListener("change",calc);});
+  calc();
+})();
+</script>
+{% endraw %}
