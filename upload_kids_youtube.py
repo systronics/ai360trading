@@ -137,19 +137,28 @@ def get_short_path(meta: dict) -> str:
 
 def build_title(ep_info: dict) -> str:
     """
-    v2.5: SEO-optimised, LANGUAGE-AWARE title (was hardcoded "Hindi" on the
-    English video too). Structure:
-      EN \u2192 {Story} | Heroo's Story | HerooQuest | English Moral Story for Kids 2026
-      HI \u2192 {Story} | Heroo Ki Kahani | HerooQuest | Hindi Moral Story 2026
-    Story name first = algorithm catches specific search intent.
+    v2.6 (2026-07-13): match the title format of the channels that dominate the
+    Hindi kids niche \u2014 DRAMATIC Devanagari title FIRST (YouTube titles support
+    Devanagari fine; the old version stripped all Hindi so the Hindi audience
+    never saw a Hindi title), then the English title if it fits, then the two
+    highest-volume genre search phrases:
+      HI \u2192 {\u0939\u093F\u0902\u0926\u0940 title} | {English title} | Hindi Kahaniya | Moral Stories
+      EN \u2192 {Story} | Heroo's Story | English Moral Story for Kids {YEAR}
+    Length-aware: the English middle segment is dropped before the SEO tail is.
+    Fail-open: no Hindi title \u2192 v2.5 format.
     """
     ep_title = ep_info["ep_title"]
-    # Clean Hindi chars for YouTube title (use English version)
     safe = re.sub(r'[\u0900-\u097F]+', '', ep_title).strip()
     if not safe:
         safe = ep_info.get("topic_en", "Heroo Story")[:25]
     if (ep_info.get("lang") or "hi").lower() == "en":
         return f"{safe} | Heroo's Story | HerooQuest | English Moral Story for Kids {YEAR}"[:100]
+
+    hi_title = (ep_info.get("ep_title_hi") or "").strip()
+    if hi_title:
+        tail = " | Hindi Kahaniya | Moral Stories"
+        mid  = f" | {safe}" if safe and (len(hi_title) + len(safe) + len(tail) + 3) <= 100 else ""
+        return (hi_title + mid + tail)[:100]
     return f"{safe} | Heroo Ki Kahani | HerooQuest | Hindi Moral Story {YEAR}"[:100]
 
 

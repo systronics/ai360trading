@@ -18,6 +18,19 @@ v3.0 (2026-06-08) — VARIETY + INTEREST + BRIGHTNESS (owner feedback):
        (brightness 0.05→0, sat 1.30→1.06) so video matches the thumbnail. Still
        bright/cheerful — anti-scary grade intact.
 
+v3.0b (2026-07-13, same day) — THUMBNAIL + TITLE like the winning channels:
+    6. thumbnail_hook is now HINGLISH in English letters ('JADUI GAAY?!') —
+       was English ('HE DID IT!') for a Hindi audience; two-tone title text
+       (line 1 yellow, line 2 white).
+    7. NEW thumbnail_question ('Lalchi padosi ka kya hua?') replaces the moral
+       on the thumbnail strip — the moral SPOILED the ending; a question earns
+       the click. Falls back to moral.
+    8. Tofu fixes: 💡 prefix + brand ★ removed (DejaVu/Arial have no glyph —
+       rendered as hollow boxes on every past thumbnail).
+    9. AI titles must now be DRAMATIC (conflict/twist), not descriptive;
+       upload_kids_youtube v2.6 leads the YouTube title with the Devanagari
+       Hindi title + 'Hindi Kahaniya | Moral Stories' search phrases.
+
 v3.0 (2026-07-13) — REAL STORIES + VARIETY (owner: "boring, repeated, same lines"):
     1. STORY SEED GROUNDING: kids_content_calendar v2.0 now supplies 128 real
        classic stories, each with a `story_seed` plot outline. The script
@@ -423,9 +436,10 @@ MAKE IT FEEL ALIVE (most important):
 
 Output ONLY valid JSON, no markdown:
 {{
-  "title_hi": "Hindi title max 10 words",
-  "title_en": "English title max 10 words",
-  "thumbnail_hook": "2-4 word ULTRA-punchy ENGLISH curiosity hook for the thumbnail — emotion or a question, NOT the full title (e.g. 'HE DID IT!', 'THE SECRET CAVE', 'WHO WINS?', 'TOO LATE?')",
+  "title_hi": "DRAMATIC Hindi title (Devanagari), 5-9 words, naming the story's conflict or twist so a child MUST click — like 'जादुई गाय और लालची पड़ोसी का अंत' — never a flat description",
+  "title_en": "DRAMATIC English title, 5-9 words, same conflict/curiosity energy — like 'The Magical Cow and the Greedy Neighbour' — never a flat description",
+  "thumbnail_hook": "2-4 word ULTRA-punchy HINGLISH hook (Hindi words in ENGLISH letters) for the thumbnail — e.g. 'JADUI GAAY?!', 'LALACH KI SAZA!', 'KAUN JEETEGA?', 'SONE KA RAAZ!' — emotion or question, NOT the full title",
+  "thumbnail_question": "ONE short Hinglish curiosity question (max 6 words, English letters) that teases the story WITHOUT revealing the ending — e.g. 'Lalchi padosi ka kya hua?', 'Kya Heroo bacha payega?'",
   "scenes": [
     {{
       "id": 1,
@@ -452,7 +466,9 @@ Rules:
 - The topic's REAL characters speak the most; Heroo reacts/asks/helps in every scene;
   Arya joins often; Narrator rarely. Aim for 3-5 distinct speaking characters per episode.
 - BOTH "hi" and "en" are required for EVERY dialogue line, each a full natural sentence.
-- "thumbnail_hook" must be a 2-4 word punchy English curiosity hook (for the thumbnail).
+- "thumbnail_hook" must be a 2-4 word punchy HINGLISH hook in ENGLISH letters
+  (never Devanagari — the thumbnail font can't draw it); "thumbnail_question"
+  likewise Hinglish in English letters, and it must NOT spoil the ending.
 - Give the scene with the biggest moment a strong "emotion" (e.g. "shocked",
   "amazed", "scared", "excited") — the thumbnail is built from the most emotional scene.
 """
@@ -1086,7 +1102,8 @@ def _pick_thumb_scene(scenes: list) -> int:
 
 def make_thumbnail_multitext(
     title_hi: str, title_en: str, moral_en: str,
-    episode_num: int, scene_img_path: Path, hook: str = ""
+    episode_num: int, scene_img_path: Path, hook: str = "",
+    question: str = ""
 ) -> Path:
     """
     Multi-text thumbnail that drives CTR.
@@ -1171,7 +1188,8 @@ def make_thumbnail_multitext(
 
     # HerooQuest brand (top left)
     draw.rounded_rectangle([(15,15),(260,65)], radius=14, fill=(220,30,30))
-    draw.text((137,40), "HerooQuest ★", font=f_brand, fill=(255,255,255), anchor="mm")
+    # v3.0: "★" dropped — DejaVu/Arial Bold have no star glyph → hollow box
+    draw.text((137,40), "HerooQuest", font=f_brand, fill=(255,255,255), anchor="mm")
 
     # Episode badge (top right area)
     ep_txt = f"Ep {episode_num}"
@@ -1186,25 +1204,32 @@ def make_thumbnail_multitext(
 
     # Punchy hook → fewer words, BIGGER text (max 2 lines).
     title_lines = textwrap.wrap(safe_title, width=11)[:2]
+    # v3.0: two-tone like the big kids channels — line 1 huge yellow, line 2
+    # white — pops harder than a single-colour block.
     ty = 120
-    for line in title_lines:
+    for i, line in enumerate(title_lines):
         # Thick drop shadow for readability on any background
         for dx,dy in [(-4,4),(4,-4),(-4,-4),(4,4),(-4,0),(4,0),(0,4),(0,-4)]:
             draw.text((55+dx,ty+dy), line, font=f_title, fill=(0,0,0,235), anchor="la")
-        draw.text((55,ty), line, font=f_title, fill=(255,200,0), anchor="la")
+        draw.text((55,ty), line, font=f_title,
+                  fill=(255,200,0) if i == 0 else (255,255,255), anchor="la")
         ty += 128
 
     # (Topic-name subtitle removed — it cluttered the frame and shrank the hook.)
 
-    # Moral line — curiosity gap
-    safe_moral = re.sub(r'[\u0900-\u097F]+','',moral_en).strip()[:50]
-    if safe_moral:
-        # Dark strip background for moral text
+    # v3.0: CURIOSITY QUESTION strip (Hinglish, from the AI) instead of the old
+    # moral line - the moral SPOILED the ending right on the thumbnail
+    # ('Patience wins over greed' tells the whole story); a question makes kids
+    # click to find out. Falls back to the moral if no question. The lightbulb
+    # emoji prefix was removed: DejaVu has no emoji glyphs - it rendered as a
+    # hollow box on the CI runner.
+    tease = re.sub(r'[\u0900-\u097F]+', '', (question or moral_en or '')).strip()[:50]
+    if tease:
         strip_y = min(ty+10, H-100)
         draw.rectangle([(40,strip_y),(int(W*0.62),strip_y+58)], fill=(0,0,0,180))
-        draw.rectangle([(40,strip_y),(46,strip_y+58)], fill=(255,200,0))
-        draw.text((60,strip_y+29), f"💡 {safe_moral}", font=f_moral,
-                  fill=(255,255,255), anchor="lm")
+        draw.rectangle([(40,strip_y),(46,strip_y+58)], fill=(255,60,60))
+        draw.text((60,strip_y+29), tease, font=f_moral,
+                  fill=(255,255,255), anchor='lm')
 
     thumb_path = OUTPUT_DIR / f"kids_thumb_{TODAY}.png"
     base.save(str(thumb_path), quality=95)
@@ -1290,11 +1315,13 @@ def main():
         audio_paths.append(audio_p)
         narrations.append(narr)
 
-    # v3.0: thumbnail from the MOST EMOTIONAL scene + a short punchy hook.
+    # v3.0: thumbnail from the MOST EMOTIONAL scene + Hinglish hook + a
+    # curiosity question (never the spoiler moral).
     thumb_hook = (script.get("thumbnail_hook") or "").strip()
+    thumb_q    = (script.get("thumbnail_question") or "").strip()
     thumb_idx  = _pick_thumb_scene(scenes)
     thumb_img  = img_paths[thumb_idx] if (img_paths and thumb_idx < len(img_paths)) else (img_paths[0] if img_paths else None)
-    print(f"[THUMB] base = scene {thumb_idx+1} (most emotional) | hook = {thumb_hook or '(title)'}")
+    print(f"[THUMB] base = scene {thumb_idx+1} (most emotional) | hook = {thumb_hook or '(title)'} | q = {thumb_q or '(moral)'}")
     thumb_path = make_thumbnail_multitext(
         title_hi   = title_hi,
         title_en   = title_en,
@@ -1302,6 +1329,7 @@ def main():
         episode_num= 1,
         scene_img_path = thumb_img,
         hook       = thumb_hook,
+        question   = thumb_q,
     )
 
     # v2.3: Cinematic video with transitions

@@ -77,7 +77,7 @@ One broken file = zero income that day. Treat every edit as critical.
 |---|---|
 | `upload_youtube.py` | v2.3 |
 | `upload_facebook.py` | v2.6 |
-| `upload_kids_youtube.py` | v2.5 |
+| `upload_kids_youtube.py` | v2.6 (2026-07-13 — Devanagari-first SEO titles: {hi} | {en} | Hindi Kahaniya | Moral Stories) |
 
 ---
 
