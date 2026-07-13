@@ -356,6 +356,7 @@ meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
 
   window.loadPicks = function () {
     if (failedOnce) return;
+    if (!window.fetch) { failOpen(); return; } // ancient browser → old iframe
     fetch(FEED_CSV + '&t=' + Date.now())
       .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
       .then(function (text) { render(parseCSV(text)); })
