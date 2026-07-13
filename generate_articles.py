@@ -6,7 +6,7 @@ import random
 import json
 import time
 import xml.etree.ElementTree as ET
-from datetime import datetime
+from datetime import datetime, timedelta
 # ai_client handles Groq → Gemini → Claude → OpenAI fallback automatically
 from ai_client import ai
 
@@ -1206,6 +1206,37 @@ def get_recent_titles(pillar_id, days=14):
         return []
 
 
+def get_all_recent_titles(days=10):
+    """All post titles (EVERY pillar) from the last `days` days.
+
+    Feeds the trending-phrase cooldown: phrases like "share market today"
+    trend in India almost every day, so the same phrase kept re-entering
+    titles. Cross-pillar on purpose — the repetition looked templated across
+    the whole site, not just within one pillar. Fail-open: any error → [].
+    """
+    try:
+        cutoff = (now - timedelta(days=days)).strftime("%Y-%m-%d")
+        titles = []
+        # Post filenames start with YYYY-MM-DD, so reverse sort = newest first
+        for fname in sorted(os.listdir(POSTS_DIR), reverse=True):
+            if not fname.endswith('.md'):
+                continue
+            if fname[:10] < cutoff:
+                break
+            fpath = os.path.join(POSTS_DIR, fname)
+            try:
+                with open(fpath, 'r', encoding='utf-8') as f:
+                    for line in f:
+                        if line.startswith('title:'):
+                            titles.append(line.replace('title:', '').strip().strip('"'))
+                            break
+            except:
+                pass
+        return titles
+    except:
+        return []
+
+
 def generate_schema(title, description, pillar, url_slug):
     schema = {
         "@context": "https://schema.org",
@@ -1250,9 +1281,26 @@ def generate_schema(title, description, pillar, url_slug):
 
 # ─── AI Title Generator ───────────────────────────────────────────────────────
 def generate_ai_title(pillar, prices, trends, fear_greed, recent_titles, article_index):
+    # ── TRENDING-PHRASE COOLDOWN (2026-07-13) ────────────────────────────────
+    # "share market today" etc. trends in India nearly EVERY day, and rule 10
+    # below asks the AI to weave a trending phrase into the title — so the same
+    # phrase re-entered titles daily (e.g. "…Share Market Today Trends…"),
+    # recreating exactly the templated look Google's helpful-content system
+    # demotes. The recent-titles rule only blocks exact titles, not repeated
+    # phrases. Fix: any multi-word trending phrase already present in ANY title
+    # from the last 10 days (all pillars) is hidden from the prompt AND hard-
+    # banned; a generated title that still contains one falls through to the
+    # style-example fallback. Single words (nifty, gold…) are never banned —
+    # too aggressive. Fail-open: no recent titles → nothing banned.
+    recent_all_blob = " ".join(t.lower() for t in get_all_recent_titles(days=10))
+    banned_phrases  = [t for t in trends if ' ' in t.strip() and t.lower() in recent_all_blob]
+    fresh_trends    = [t for t in trends if t not in banned_phrases]
+    if banned_phrases:
+        print(f"    [TITLE-COOLDOWN] banned recently-used trending phrases: {', '.join(banned_phrases)}")
+
     if CONTENT_MODE in ("holiday", "weekend"):
         market_context   = f"Today is {day_name}, {date_display}. Markets are closed — this is an educational article."
-        trending_context = f"Trending searches today: {', '.join(trends[:6])}"
+        trending_context = f"Trending searches today: {', '.join(fresh_trends[:6]) or 'none today'}"
     else:
         nifty  = prices.get("NIFTY 50",  {}).get("display", "N/A")
         sp500  = prices.get("S&P 500",   {}).get("display", "N/A")
@@ -1264,7 +1312,7 @@ def generate_ai_title(pillar, prices, trends, fear_greed, recent_titles, article
             f"NIFTY: {nifty} | S&P 500: {sp500} | Bitcoin: {btc} | "
             f"Gold: {gold} | NASDAQ: {nasdaq} | Fear & Greed: {fear_greed}"
         )
-        trending_context = f"Trending searches right now: {', '.join(trends[:6])}"
+        trending_context = f"Trending searches right now: {', '.join(fresh_trends[:6]) or 'none today'}"
 
     recent_titles_text = ""
     if recent_titles:
@@ -1274,6 +1322,14 @@ def generate_ai_title(pillar, prices, trends, fear_greed, recent_titles, article
         )
 
     style_examples = "\n".join(f"- {t}" for t in pillar['title_style_examples'][:6])
+
+    banned_phrases_text = ""
+    if banned_phrases:
+        banned_phrases_text = (
+            "\n11. BANNED PHRASES — each of these already appeared in a title within the"
+            "\n    last 10 days. The title must NOT contain any of them (in any casing):\n"
+            + "\n".join(f"    - {p}" for p in banned_phrases)
+        )
 
     title_prompt = f"""You are writing a title for a financial article on AI360Trading (ai360trading.in).
 
@@ -1302,7 +1358,7 @@ HARD RULES for the title (Google SEO audit 2026-05-28):
    "Amid", "Awaits", "Holds Near"  ← these are overused in this site's titles.
 10. If one of the trending searches above fits the topic naturally, weave that
     exact phrase into the title — it matches what people are searching RIGHT NOW
-    and lifts click-through. Never force it if it doesn't fit.
+    and lifts click-through. Never force it if it doesn't fit.{banned_phrases_text}
 
 GOOD TITLE EXAMPLES (curiosity + clarity, no template):
 - "Why FII Money Left India Today — And Where It Went"
@@ -1330,6 +1386,11 @@ Respond with ONLY the title — nothing else. No quotes. No explanation."""
         )
         # FIX: Clean encoding issues (SandP → S&P etc.)
         ai_title = clean_ai_title(raw_title.strip().strip('"').strip("'"))
+        # PHRASE COOLDOWN enforcement — a violation routes to the style-example
+        # fallback below, which already rotates away from recent titles.
+        _reused = next((p for p in banned_phrases if p.lower() in ai_title.lower()), None)
+        if _reused:
+            raise ValueError(f"title reused cooled-down trending phrase: '{_reused}'")
         if 5 <= len(ai_title.split()) <= 20:
             print(f"    [TITLE-AI] {ai_title}")
             return ai_title
