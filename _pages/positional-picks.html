@@ -108,14 +108,39 @@ meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
     -webkit-overflow-scrolling: touch;
     touch-action: pan-x;
   }
-  iframe {
-    width: 100%;
-    max-width: 760px;   /* table is now 5 teaser cols — keep it compact + centered */
-    min-width: 680px;   /* was 1100px (13-col era) — caused a needless wide scroll */
-    height: 640px;      /* was 860px — fits ~30 picks snugly, no big white gap */
-    border: none;
-    display: block;
-    margin: 0 auto;
+  /* ── Native picks table (2026-07-13) ───────────────────────────────────
+     Replaces the Google Sheets iframe: loads the same published CSV feed
+     client-side and renders a fast, mobile-first table. The old iframe is
+     kept ONLY as an automatic fail-open fallback if the fetch ever fails. */
+  .native-table { width: 100%; border-collapse: collapse; font-size: 14px; background: #fff; }
+  .native-table th {
+    background: #14532d; color: #dcfce7; text-align: left; padding: 11px 14px;
+    font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap;
+  }
+  .native-table td { padding: 10px 14px; border-bottom: 1px solid #f0fdf4; color: #1e293b; white-space: nowrap; }
+  .native-table tbody tr:nth-child(even) { background: #f8fdf9; }
+  .native-table tbody tr:hover { background: #ecfdf5; }
+  .nt-symbol { font-weight: 800; color: #0f172a; }
+  .nt-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 800; }
+  .nt-green { background: #d1fae5; color: #065f46; }
+  .nt-amber { background: #fef3c7; color: #92400e; }
+  .nt-red   { background: #fee2e2; color: #991b1b; }
+  .nt-blue  { background: #dbeafe; color: #1e40af; }
+  .nt-gray  { background: #f1f5f9; color: #475569; }
+  .nt-status { padding: 22px 16px; text-align: center; font-size: 14px; color: #64748b; line-height: 1.7; }
+  .nt-meta {
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;
+    padding: 9px 14px; background: #f8fdf9; border-top: 1px solid #d1fae5;
+    font-size: 12px; color: #64748b;
+  }
+  .nt-refresh { background: none; border: 1px solid #bbf7d0; border-radius: 6px; padding: 3px 10px; font-size: 12px; color: #166534; cursor: pointer; font-weight: 700; }
+  .nt-refresh:hover { border-color: #16a34a; color: #16a34a; }
+  iframe.nt-fallback { width: 100%; min-width: 620px; height: 640px; border: none; display: block; margin: 0 auto; max-width: 760px; }
+  @media (max-width: 768px) {
+    .native-table { font-size: 12.5px; }
+    .native-table th { font-size: 10.5px; padding: 9px 8px; }
+    .native-table td { padding: 8px; }
+    .nt-badge { font-size: 11px; padding: 2px 8px; }
   }
   .teaser-notice {
     margin: 0 0 22px 0;
@@ -210,8 +235,6 @@ meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
   .broker-btn  { display: inline-block; margin-top: 5px; background: #16a34a; color: white !important; padding: 7px 14px; border-radius: 6px; font-size: 12px; font-weight: 800; text-align: center; }
   .dashboard-disclaimer { margin-top: 28px; padding: 15px 20px; background: #fff5f5; border: 1px solid #fed7d7; border-radius: 8px; font-size: 13px; color: #744210; line-height: 1.7; }
   @media (max-width: 768px) {
-    .scroll-hint { display: block; }
-    iframe { height: 600px; min-width: 620px; }
     .dashboard-features { grid-template-columns: 1fr; }
     .broker-grid { grid-template-columns: 1fr; }
     .upgrade-grid { grid-template-columns: 1fr; }
@@ -241,17 +264,107 @@ meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
   </p>
 </div>
 
-<p class="scroll-hint">↔️ <strong>Swipe left/right</strong> to view all columns</p>
-
 <div class="terminal-wrapper">
-  <div class="terminal-scroll-container">
-    <iframe
-      src="https://docs.google.com/spreadsheets/d/e/2PACX-1vQyI_2dA66bYzzsxZNW9yqSAkmi8_TxLA7PK_x6vtI9uqSbUNz-M5FXrYIt4rsP5B7kl6Mrfi5AUpsp/pubhtml?gid=775492772&single=true&widget=false&headers=false&chrome=false"
-      title="AI360Trading Positional Investment Picks"
-      loading="lazy"
-    ></iframe>
+  <div class="terminal-scroll-container" id="posScroll">
+    <table class="native-table" id="posTable" aria-label="Weekly positional investment picks">
+      <thead></thead>
+      <tbody></tbody>
+    </table>
+    <div class="nt-status" id="posStatus">⏳ Loading this week's picks…</div>
+  </div>
+  <div class="nt-meta">
+    <span id="posUpdated">Fetching latest data…</span>
+    <button class="nt-refresh" type="button" onclick="loadPicks()">↻ Refresh</button>
   </div>
 </div>
+
+<script>
+(function () {
+  var FEED_CSV     = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQyI_2dA66bYzzsxZNW9yqSAkmi8_TxLA7PK_x6vtI9uqSbUNz-M5FXrYIt4rsP5B7kl6Mrfi5AUpsp/pub?gid=775492772&single=true&output=csv';
+  var FEED_PUBHTML = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQyI_2dA66bYzzsxZNW9yqSAkmi8_TxLA7PK_x6vtI9uqSbUNz-M5FXrYIt4rsP5B7kl6Mrfi5AUpsp/pubhtml?gid=775492772&single=true&widget=false&headers=false&chrome=false';
+  var failedOnce = false;
+
+  // Proper CSV parser — fields may be quoted and contain commas (e.g. "₹2,069")
+  function parseCSV(text) {
+    var rows = [], row = [], cur = '', q = false, i, c;
+    for (i = 0; i < text.length; i++) {
+      c = text[i];
+      if (q) {
+        if (c === '"') { if (text[i + 1] === '"') { cur += '"'; i++; } else { q = false; } }
+        else { cur += c; }
+      }
+      else if (c === '"') { q = true; }
+      else if (c === ',') { row.push(cur); cur = ''; }
+      else if (c === '\n') { row.push(cur.replace(/\r$/, '')); rows.push(row); row = []; cur = ''; }
+      else { cur += c; }
+    }
+    if (cur !== '' || row.length) { row.push(cur.replace(/\r$/, '')); rows.push(row); }
+    return rows.filter(function (r) { return r.some(function (x) { return x.trim() !== ''; }); });
+  }
+
+  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+  // Badge colours matched to the Signal Guide legend below. Order matters:
+  // WAITING (amber) must be tested before WAIT (blue).
+  function badgeClass(v) {
+    if (v.indexOf('STRONG BUY') > -1 || v.indexOf('TRADED') > -1) return 'nt-green';
+    if (v.indexOf('WAITING') > -1 || v.indexOf('ACCUMULATE') > -1) return 'nt-amber';
+    if (v.indexOf('BOOK') > -1) return 'nt-red';
+    if (v.indexOf('HOLD') > -1) return 'nt-gray';
+    if (v.indexOf('WAIT') > -1) return 'nt-blue';
+    return '';
+  }
+
+  function istNow() {
+    try { return new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' }); }
+    catch (e) { return new Date().toLocaleTimeString(); }
+  }
+
+  function render(rows) {
+    var table = document.getElementById('posTable');
+    var status = document.getElementById('posStatus');
+    var head = rows.length ? rows[0] : [];
+    table.tHead.innerHTML = '<tr>' + head.map(function (h) { return '<th>' + esc(h) + '</th>'; }).join('') + '</tr>';
+    var body = rows.slice(1);
+    table.tBodies[0].innerHTML = body.map(function (r) {
+      return '<tr>' + r.map(function (cell, ci) {
+        var v = esc(cell);
+        if (ci === 0) return '<td class="nt-symbol">' + v + '</td>';
+        var b = badgeClass(cell);
+        return '<td>' + (b ? '<span class="nt-badge ' + b + '">' + v + '</span>' : v) + '</td>';
+      }).join('') + '</tr>';
+    }).join('');
+    if (body.length === 0) {
+      status.innerHTML = '⏳ <strong>This week\'s list is being refreshed.</strong><br>New picks are published every Sunday at 9:00 AM IST — check back shortly.';
+      status.style.display = 'block';
+    } else {
+      status.style.display = 'none';
+    }
+    document.getElementById('posUpdated').textContent =
+      '🕒 Refreshed every Sunday 9:00 AM IST · showing ' + body.length + ' pick' + (body.length === 1 ? '' : 's') + ' · loaded ' + istNow() + ' IST';
+  }
+
+  // Fail-open: if the CSV fetch ever fails, fall back to the old Sheets iframe
+  // so the page is never worse than the previous version.
+  function failOpen() {
+    if (failedOnce) return;
+    failedOnce = true;
+    document.getElementById('posScroll').innerHTML =
+      '<iframe class="nt-fallback" src="' + FEED_PUBHTML + '" title="AI360Trading Positional Investment Picks" loading="lazy"></iframe>';
+    document.getElementById('posUpdated').textContent = 'Live feed (embedded view)';
+  }
+
+  window.loadPicks = function () {
+    if (failedOnce) return;
+    fetch(FEED_CSV + '&t=' + Date.now())
+      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+      .then(function (text) { render(parseCSV(text)); })
+      .catch(failOpen);
+  };
+
+  loadPicks();
+})();
+</script>
 
 <div class="signal-legend">
   <h4>📖 Signal Guide — What Each Label Means</h4>
@@ -335,7 +448,7 @@ meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
       <span class="broker-desc">Fast execution, clean UI. Great for investors who want speed and simplicity in one app.</span>
       <span class="broker-btn">Open Free Account →</span>
     </a>
-    <a href="https://groww.in" class="broker-card" target="_blank" rel="nofollow">
+    <a href="https://app.groww.in/v3cO/gdbyojxy" class="broker-card" target="_blank" rel="nofollow">
       <span class="broker-name">🌱 Groww</span>
       <span class="broker-desc">Easiest platform for beginners. Stocks, mutual funds and SIP — all in one place.</span>
       <span class="broker-btn">Open Free Account →</span>
