@@ -67,7 +67,8 @@ One broken file = zero income that day. Treat every edit as critical.
 | `generate_reel.py` | v2.4 |
 | `generate_reel_morning.py` | v2.5 |
 | `generate_shorts.py` | v3.8 |
-| `generate_articles.py` | current (no version tag) |
+| `generate_articles.py` | current (no version tag; 2026-07-13 phrase-cooldown + perf block) |
+| `performance_stats.py` | v1.0 (2026-07-13 — History ledger → article performance block, fail-open) |
 | `generate_kids_video.py` | v2.9 |
 
 ### Upload & Distribution

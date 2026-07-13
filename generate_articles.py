@@ -1756,6 +1756,21 @@ End with:
         if not os.path.exists(POSTS_DIR):
             os.makedirs(POSTS_DIR)
 
+        # Real signal-performance block (2026-07-13) — ORIGINAL DATA no
+        # aggregator site has: our own closed-trade ledger, wins AND losses,
+        # placed right before the conversion CTA (proof → ask). Market-mode
+        # only so weekend/holiday articles stay 100% evergreen. Fail-open:
+        # missing creds / sheet error / import error → no block, article
+        # unchanged (the workflow already passes GCP_SERVICE_ACCOUNT_JSON).
+        perf_block = ""
+        if CONTENT_MODE == "market":
+            try:
+                import performance_stats as _perf
+                perf_block = _perf.article_perf_html(date_display)
+            except Exception as e:
+                print(f"  [perf] block skipped ({e}) — article still written")
+                perf_block = ""
+
         # Conversion CTA footer (free Telegram → membership + broker referrals).
         cta_footer = ""
         try:
@@ -1774,7 +1789,7 @@ End with:
         )
 
         with open(file_path, "w", encoding="utf-8") as f:
-            f.write(header + schema_block + hero_block + media_content + cta_footer + ai_disc_footer)
+            f.write(header + schema_block + hero_block + media_content + perf_block + cta_footer + ai_disc_footer)
 
         article_url = f"{SITE_URL}/{pillar['permalink_base']}/{chosen_slug}/"
         print(f"  ✅ /{pillar['permalink_base']}/{chosen_slug}/")
