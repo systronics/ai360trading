@@ -18,6 +18,22 @@ v3.0 (2026-06-08) — VARIETY + INTEREST + BRIGHTNESS (owner feedback):
        (brightness 0.05→0, sat 1.30→1.06) so video matches the thumbnail. Still
        bright/cheerful — anti-scary grade intact.
 
+v3.0 (2026-07-13) — REAL STORIES + VARIETY (owner: "boring, repeated, same lines"):
+    1. STORY SEED GROUNDING: kids_content_calendar v2.0 now supplies 128 real
+       classic stories, each with a `story_seed` plot outline. The script
+       prompt makes the AI retell THAT story faithfully and completely —
+       no more thin invented plots that all feel the same.
+    2. COLD OPEN: scene 1 must start inside the story at a dramatic/funny
+       moment. Openers like "namaste dosto / aaj hum" are banned (retention).
+    3. COMPLETENESS: max_tokens 6000→8000 + weak-script retry (fewer than 7
+       scenes or a thin final scene → one regeneration with a fresh recipe)
+       so stories stop ending abruptly.
+    4. OUTRO VARIETY: the single hardcoded like/share/subscribe line (same
+       words every video) is now a 6-variant pool rotated by day.
+    5. NARRATOR VARIETY: narrator delivery (rate/pitch) rotates through 3
+       presets by day — Hindi has only 2 neural voices, so freshness must
+       come from delivery.
+
 v2.9 (2026-06-05) — DIALOGUE + MULTI-VOICE (engagement / retention):
     Two upgrades so the story feels like a real cartoon, not a single-narrator
     audiobook (drives watch-time = the #1 YouTube reach signal):
@@ -174,6 +190,18 @@ SPEAKER_VOICES = {
     },
 }
 
+# v3.0: rotate the Narrator's delivery daily so consecutive videos don't share
+# the exact same narration feel (Hindi has only 2 neural voices — variety must
+# come from delivery). Deterministic per day; both languages get the preset.
+_NARRATOR_PRESETS = [
+    {"rate": "-6%", "pitch": "+0Hz"},   # calm classic storyteller
+    {"rate": "+2%", "pitch": "+6Hz"},   # bright & lively
+    {"rate": "-3%", "pitch": "-8Hz"},   # deep & dramatic
+]
+_np = _NARRATOR_PRESETS[date.today().toordinal() % len(_NARRATOR_PRESETS)]
+for _tbl in SPEAKER_VOICES.values():
+    _tbl["Narrator"] = {**_tbl["Narrator"], "rate": _np["rate"], "pitch": _np["pitch"]}
+
 # Story characters (Akbar, Birbal, Rama, Einstein, the astronauts...) are not in
 # SPEAKER_VOICES. Instead of giving them all one flat "default" voice, assign each
 # a distinct, CONSISTENT voice from a small pool (hashed by name) so a multi-
@@ -212,14 +240,51 @@ def _speaker_style(speaker: str, lang: str) -> dict:
 
 # v2.7: warm, kid-friendly spoken outro (like/share/subscribe) added to the last
 # scene's narration so it's voiced in the same soft kids voice + caption follows.
-KIDS_CTA = {
-    "hi": (" Dosto, agar aapko Heroo ki yeh kahani achhi lagi toh, "
-           "please LIKE karo, apne doston ke saath SHARE karo, aur humara "
-           "channel SUBSCRIBE karna mat bhoolna! Milte hain agli kahani mein!"),
-    "en": (" Friends, if you loved Heroo's story, please give it a big LIKE, "
-           "SHARE it with your friends, and don't forget to SUBSCRIBE to our "
-           "channel! See you in the next story!"),
+# v3.0: was ONE hardcoded line — every video ended with identical words (owner:
+# "same lines on all videos"). Now a pool rotated by day (deterministic, so the
+# full video + short rendered the same day match).
+KIDS_CTA_POOL = {
+    "hi": [
+        (" Dosto, agar aapko Heroo ki yeh kahani achhi lagi toh, please LIKE karo, "
+         "apne doston ke saath SHARE karo, aur channel SUBSCRIBE karna mat bhoolna! "
+         "Milte hain agli kahani mein!"),
+        (" Toh dosto, kahani mein maza aaya? Neeche LIKE dabao, apne best friend ko "
+         "SHARE karo, aur nayi kahaniyon ke liye SUBSCRIBE zaroor karna. Kal phir "
+         "milenge ek nayi kahani ke saath!"),
+        (" Bolo dosto, aaj ki kahani se aapne kya seekha? Comment mein zaroor batana! "
+         "LIKE aur SUBSCRIBE karna mat bhoolna — Heroo kal phir aayega ek aur "
+         "zabardast kahani lekar!"),
+        (" Agar aap chahte ho ki Heroo aur kahaniyan laaye, toh jaldi se LIKE karo "
+         "aur SUBSCRIBE dabao! Apni family ke saath SHARE karna mat bhoolna. "
+         "Milte hain agli kahani mein, tab tak muskurate raho!"),
+        (" Kahani achhi lagi ho toh ek pyara sa LIKE toh banta hai dosto! SUBSCRIBE "
+         "karke bell dabao taaki koi kahani miss na ho. Kal ki kahani aur bhi "
+         "mazedaar hai — zaroor aana!"),
+        (" Shabash dosto! Aaj ki seekh yaad rakhna. LIKE, SHARE aur SUBSCRIBE karke "
+         "Heroo ka hausla badhao — agli kahani mein phir mulaqat hogi!"),
+    ],
+    "en": [
+        (" Friends, if you loved Heroo's story, please give it a big LIKE, SHARE it "
+         "with your friends, and don't forget to SUBSCRIBE! See you in the next story!"),
+        (" So friends, did you enjoy the story? Hit LIKE, SHARE it with your best "
+         "friend, and SUBSCRIBE for a brand-new story tomorrow!"),
+        (" Tell me friends, what did you learn today? Write it in the comments! "
+         "And don't forget to LIKE and SUBSCRIBE — Heroo returns tomorrow with "
+         "another amazing story!"),
+        (" If you want Heroo to bring more stories, quickly press LIKE and "
+         "SUBSCRIBE! Share it with your family too. See you in the next story — "
+         "keep smiling!"),
+        (" If you liked the story, a big LIKE would make Heroo's day! SUBSCRIBE and "
+         "press the bell so you never miss a story. Tomorrow's story is even more "
+         "fun — do come!"),
+        (" Well done friends! Remember today's lesson. LIKE, SHARE and SUBSCRIBE to "
+         "cheer for Heroo — we meet again in the next story!"),
+    ],
 }
+
+def _kids_cta(lang: str) -> str:
+    pool = KIDS_CTA_POOL.get(lang, KIDS_CTA_POOL["hi"])
+    return pool[date.today().toordinal() % len(pool)]
 
 # ── HEROO + ARYA descriptions ─────────────────────────────────────────────────
 HEROO = (
@@ -292,6 +357,21 @@ def generate_script(topic: dict) -> dict:
         "warm and emotional", "curious and full of wonder",
     ])
 
+    # v3.0: the calendar now supplies the REAL story outline — the AI's job is
+    # to retell a beloved classic faithfully, not invent a thin plot. Fail-open
+    # for topics without a seed.
+    story_seed_block = ""
+    if topic.get("story_seed"):
+        story_seed_block = f"""
+THE REAL STORY (a beloved classic — retell THIS story, faithfully and COMPLETELY):
+{topic['story_seed']}
+- Keep its actual events, characters, twist and ending exactly. Expand it with
+  rich dialogue, feelings and detail — but do NOT replace the plot with an
+  invented one and do NOT stop before its real ending.
+- The "Story shape" in the recipe below only flavours HOW it is told (pacing,
+  humour, suspense) — the events above always win.
+"""
+
     prompt = f"""
 You are a master children's cartoon writer (think Bluey, Gattu Battu, ChuChu TV).
 Create a bilingual (Hindi + English) animated EPISODE.
@@ -300,12 +380,20 @@ Topic (Hindi): {topic['hindi_title']}
 Topic (English): {topic['english_title']}
 Category: {topic['category']}
 Audience: children 4-12 years.
-
+{story_seed_block}
 THIS EPISODE'S UNIQUE RECIPE (follow it so this story is NOTHING like the last one):
 - Way in: {portal}
 - Story shape: {shape}
 - Overall tone: {tone}
 - Viewer moment: at least twice, {game}
+
+COLD OPEN (scene 1 — the first 3 seconds decide if a child stays):
+- Scene 1 must start INSIDE the story at its most dramatic, funny or mysterious
+  moment — a shout, a gasp, a question, a problem ALREADY happening.
+- The very FIRST spoken line must plant a question in the child's mind
+  (e.g. "Rukooo! Woh gaay sone ke sikke de rahi hai?!").
+- NEVER open with "hello", "namaste dosto", "aaj hum", "welcome", or the
+  Narrator introducing the topic. Jump straight in; explain later.
 
 WHO SPEAKS — make the TOPIC'S OWN CHARACTERS the heart of the story:
 - The REAL figures from this topic MUST appear and SPEAK, using their real names
@@ -370,7 +458,8 @@ Rules:
 """
     # max_tokens raised so all 8 bilingual scenes (6-8 lines each) fit without
     # truncation — a cut-off last scene was making the story feel "half".
-    return ai.generate_json(prompt, content_mode=CONTENT_MODE, lang="hi", max_tokens=6000)
+    # v3.0: 6000→8000 (richer dialogue + the story-seed block need headroom).
+    return ai.generate_json(prompt, content_mode=CONTENT_MODE, lang="hi", max_tokens=8000)
 
 
 # ── IMAGE GENERATION — 5 LAYER FALLBACK CHAIN ────────────────────────────────
@@ -1130,8 +1219,29 @@ def main():
     print(f"[TOPIC] {topic['hindi_title']} / {topic['english_title']}")
 
     # Generate script
-    print("[SCRIPT] Generating story (10 scenes)...")
+    print("[SCRIPT] Generating story (8 scenes, seed-grounded)...")
     script = generate_script(topic)
+
+    # v3.0: COMPLETENESS GUARD — a script with too few scenes or a thin final
+    # scene reads as "story cut in half" (owner complaint). Retry ONCE with a
+    # fresh random recipe; keep whichever attempt is stronger. Fail-open.
+    def _script_strength(s):
+        try:
+            sc = s.get("scenes") or []
+            return (len(sc), len((sc[-1].get("dialogue") or [])) if sc else 0)
+        except Exception:
+            return (0, 0)
+
+    def _is_weak(s):
+        n_scenes, last_lines = _script_strength(s)
+        return n_scenes < 7 or last_lines < 3   # too short OR ending too thin
+
+    if _is_weak(script):
+        print(f"[SCRIPT] weak/incomplete script {_script_strength(script)} — retrying once with a fresh recipe")
+        retry = generate_script(topic)
+        if _script_strength(retry) > _script_strength(script):
+            script = retry
+            print(f"[SCRIPT] retry kept {_script_strength(script)}")
 
     if not script or not script.get("scenes"):
         print("[ERR] Script generation failed"); return
@@ -1157,7 +1267,7 @@ def main():
         lines = _scene_dialogue_lines(scene, LANG)
         # v2.7: the soft spoken like/share/subscribe CTA on the LAST scene
         if is_last:
-            lines.append(("Narrator", KIDS_CTA.get(LANG, KIDS_CTA["hi"])))
+            lines.append(("Narrator", _kids_cta(LANG)))
         if not lines:
             lines = [("Heroo", "...")]
         # combined text drives the auto-translate .srt caption for the scene

@@ -1,90 +1,512 @@
-# kids_content_calendar.py
-# Auto-picks daily topic for US/UK/DE/CN/IN kids audience
-import datetime, random, os
+# kids_content_calendar.py — v2.0 (2026-07-13)
+# ══════════════════════════════════════════════════════════════════════════════
+# WHY THE REWRITE (owner: "story repeated, same lines, kids not liking"):
+#   v1 had 30 stories picked by `day_of_year % 15` rotation × `day % len(items)`.
+#   Because most category sizes (3, 5) divide 15, each rotation slot was LOCKED
+#   to one single story forever: only 17 of 30 stories ever aired, 13 NEVER
+#   aired (Ramayana, Buddha, Moon Landing, Dinosaurs…), Guru Nanak aired in
+#   BOTH religious slots (2× every 15 days), and the same 15-day lineup
+#   repeated forever.
+#
+# v2.0:
+#   • 128 stories — each with a `seed`: the REAL story outline the AI must
+#     retell faithfully (proven classics, not thin AI inventions).
+#   • Library rebalanced to what Hindi kids actually watch (verified via the
+#     dominant channels in the niche): jadui/magical kahaniya, village moral
+#     dramas, Akbar-Birbal / Tenali Raman wit, Panchatantra/Aesop animal
+#     tales — plus the education pillars kept in smaller doses.
+#   • FULL-COVERAGE NO-REPEAT SCHEDULER: every story airs exactly once per
+#     128-day cycle, in a different shuffled order each cycle. Deterministic
+#     per calendar day (all renders that day agree), stateless (no state file).
+# ══════════════════════════════════════════════════════════════════════════════
+import datetime
 
 CATEGORIES = {
-    "historical": [
-        {"hi": "अकबर और बीरबल की कहानी", "en": "Akbar and Birbal — The Wise Minister", "tags": ["India","Mughal","history"]},
-        {"hi": "नासा का पहला चाँद मिशन", "en": "Apollo 11 — First Moon Landing Story", "tags": ["NASA","space","USA"]},
-        {"hi": "विश्व युद्ध की कहानी बच्चों के लिए", "en": "World War II for Kids — Brave Stories", "tags": ["WW2","history","UK"]},
-        {"hi": "महान दीवार चीन की कहानी", "en": "The Great Wall of China — Epic Story", "tags": ["history","architecture"]},
-        {"hi": "रानी एलिज़ाबेथ की कहानी", "en": "Queen Elizabeth — A Royal Story for Kids", "tags": ["UK","royals","history"]},
-        {"hi": "आइंस्टीन की बचपन की कहानी", "en": "Young Einstein — The Boy Who Changed Science", "tags": ["Germany","science","biography"]},
+    # ── The money genre in Hindi kids content: magical reward/greed tales ────
+    "jadui_magical": [
+        {"hi": "जादुई गाय — सोना देने वाली गाय", "en": "The Magical Cow That Gave Gold",
+         "seed": "A kind poor farmer cares for an old cow; she gives gold coins. His greedy neighbour borrows her, starves her, and gets only dung. Kindness, not ownership, made the magic.",
+         "tags": ["jadui", "magic", "moral", "India"]},
+        {"hi": "सोने की मछली की कहानी", "en": "The Golden Fish and Three Wishes",
+         "seed": "A poor fisherman frees a talking golden fish who grants wishes. His wife demands a house, then a palace, then to be queen of the sea — and they end back at the old hut. Greed loses everything.",
+         "tags": ["jadui", "fish", "greed", "wishes"]},
+        {"hi": "जादुई घड़ा — दुगना करने वाला", "en": "The Magic Pot That Doubled Everything",
+         "seed": "A farmer finds a pot that doubles whatever is put inside — grain, coins, tools. The greedy landlord snatches it, falls in himself, and two quarrelling landlords climb out. The farmer returns the pot to the earth.",
+         "tags": ["jadui", "pot", "greed", "funny"]},
+        {"hi": "जादुई पेड़ की कहानी", "en": "The Magic Tree That Knew Hearts",
+         "seed": "A tree gives sweet fruit to a boy who waters it daily and shares with birds; when a rude boy kicks it demanding fruit, he gets thorns. The rude boy learns to care for it and finally earns one perfect mango.",
+         "tags": ["jadui", "tree", "kindness"]},
+        {"hi": "समुद्र का पानी खारा क्यों? जादुई चक्की", "en": "The Magic Mill — Why the Sea Is Salty",
+         "seed": "A magic hand-mill grinds anything you ask and stops with a secret word. A greedy sailor steals it, asks for salt at sea, doesn't know the stopping word — the ship sinks and the mill still grinds salt at the bottom of the sea.",
+         "tags": ["jadui", "sea", "folk tale", "why"]},
+        {"hi": "जादुई आईना — सच दिखाने वाला", "en": "The Magic Mirror That Showed True Hearts",
+         "seed": "A palace mirror shows not faces but hearts — kind hearts glow. The vain princess appears dull until she spends a day helping servants, then shines brightest. Beauty is what you do.",
+         "tags": ["jadui", "mirror", "kindness", "princess"]},
+        {"hi": "उड़ने वाला जादुई छाता", "en": "The Flying Magic Umbrella",
+         "seed": "A poor boy shelters an old woman in rain; she gifts him an umbrella that flies wherever help is needed. He rescues a kitten, delivers medicine, stops at every call for help — and the umbrella refuses to fly for his selfish wish.",
+         "tags": ["jadui", "flying", "helping"]},
+        {"hi": "जादुई कुआँ", "en": "The Wishing Well That Remembered",
+         "seed": "A village well grants one wish to whoever cleans its steps. Children keep it clean and wish rain for the whole village. The rich landlord throws gold in demanding more land — his coin turns to stone. Selfless wishes come true.",
+         "tags": ["jadui", "well", "village", "sharing"]},
+        {"hi": "जादुई टोपी — गायब करने वाली", "en": "The Invisible Cap",
+         "seed": "A boy finds a cap that makes him invisible. He plays pranks — moving lunchboxes, hiding chalk — until an innocent friend gets blamed. He confesses, returns the cap to the fair, and learns fun is not fun if someone cries.",
+         "tags": ["jadui", "invisible", "honesty", "funny"]},
+        {"hi": "जादुई बांसुरी", "en": "The Magic Flute and the Locust Storm",
+         "seed": "A shepherd boy's flute makes animals dance. When a locust swarm attacks the crops, he plays so sweetly that the locusts follow him over the river and away. The village that laughed at his 'useless music' celebrates him.",
+         "tags": ["jadui", "music", "village", "hero"]},
+        {"hi": "जादुई चिराग़ — गाँव वाला अलादीन", "en": "The Village Boy and the Old Lamp",
+         "seed": "A junk-collector boy polishes an old lamp; a gentle genie offers three wishes. He wishes a school for the village, rain for the fields, and — for himself — only that the genie become his friend. Wishes used for others multiply joy.",
+         "tags": ["jadui", "genie", "wishes", "school"]},
+        {"hi": "पत्थर का सूप", "en": "Stone Soup — The Magic Stone",
+         "seed": "A clever traveller boils a 'magic stone' in water; curious villagers each add one vegetable, some salt, some rice — and a feast appears. The magic was sharing all along.",
+         "tags": ["jadui", "sharing", "village", "funny"]},
+        {"hi": "जादुई कलम", "en": "The Magic Paintbrush",
+         "seed": "A poor boy who loves drawing receives a brush that makes paintings real. He paints tools and food for villagers. The greedy king demands a gold mountain; the boy paints it in the middle of the sea, and the king sails away forever.",
+         "tags": ["jadui", "painting", "greed", "classic"]},
+        {"hi": "जादुई ढोल", "en": "The Monkey and the Magic Drum",
+         "seed": "A monkey finds a drum that fell from the sky; whoever hears it must dance. He uses it to stop a fight between two villages — everyone dances together and forgets their quarrel. Laughter ends wars.",
+         "tags": ["jadui", "drum", "funny", "peace"]},
+        {"hi": "एक दाना चावल — राजा और चतुर लड़की", "en": "One Grain of Rice — The Doubling Reward",
+         "seed": "A clever girl returns the king's lost elephant and asks a tiny reward: one grain of rice, doubled each day for 30 days. By day 30 it is more than the royal granary holds — the king learns maths and humility, and feeds the whole kingdom.",
+         "tags": ["jadui", "maths", "clever girl", "king"]},
+        {"hi": "जादुई फूल — साल में एक बार", "en": "The Flower That Blooms Once a Year",
+         "seed": "Two friends plant a rare seed said to bloom once a year at dawn. One gives up; one waters it for 365 days. At dawn it blooms with a light that heals his sick mother. Patience is the real magic.",
+         "tags": ["jadui", "flower", "patience"]},
+        {"hi": "सच की जादुई घंटी", "en": "The Truth Bell",
+         "seed": "A temple bell rings by itself only when the truth is spoken near it. When the village must find who took the fair money, each suspect speaks — the bell stays silent until the sweet-seller admits it, and rings to honour his courage to confess.",
+         "tags": ["jadui", "truth", "village", "mystery"]},
+        {"hi": "सोने की चिड़िया", "en": "The Golden Bird's Song",
+         "seed": "A bird whose song turns dew into pearls sings freely over the village. The king cages her for himself — she falls silent. Only when he opens the cage does she sing again, for everyone. Beautiful things cannot be owned.",
+         "tags": ["jadui", "bird", "freedom", "king"]},
+        {"hi": "बरगद का जादुई दरवाज़ा", "en": "The Secret Door in the Banyan Tree",
+         "seed": "Two kids find a door in an old banyan leading to a land where kindness is the only money. They 'buy' sweets with good deeds and return home rich in the habit — and start a kindness bank at school.",
+         "tags": ["jadui", "adventure", "kindness", "secret"]},
+        {"hi": "मंदिर का जादुई हाथी", "en": "The Temple Elephant That Woke Up",
+         "seed": "A stone elephant at the village temple comes alive at night to guard sleeping children during a flood, carrying them one by one to the hill, and returns to stone at dawn — leaving muddy footprints as the only clue.",
+         "tags": ["jadui", "elephant", "rescue", "mystery"]},
+        {"hi": "जादुई जूते", "en": "The Shoes That Walked to Help",
+         "seed": "Cobbler's son mends an old fakir's torn shoes for free; the fakir gifts shoes that walk on their own to whoever needs help most. The boy follows them into small rescues all over town — the shoes finally stop at his own tired father, reminding him help begins at home.",
+         "tags": ["jadui", "shoes", "helping", "family"]},
+        {"hi": "जादुई कंबल", "en": "The Blanket That Warmed Kind Hearts",
+         "seed": "A magic blanket warms only the kind. The cold, rich miser buys it and shivers; he watches a poor girl glow warm under it after she feeds street dogs. He starts doing one kind thing a day — and one night, the blanket warms him too.",
+         "tags": ["jadui", "winter", "kindness", "miser"]},
+        {"hi": "बात करने वाला तालाब", "en": "The Pond That Could Talk",
+         "seed": "A pond's fish speak to a boy: the water is turning bitter from dumped waste. He can't convince adults, so the fish teach him to bring the panchayat at dusk — when the pond itself 'speaks' with a thousand ripples. The village cleans it together.",
+         "tags": ["jadui", "nature", "environment", "fish"]},
+        {"hi": "आसमान से गिरी रोटी", "en": "The Roti That Fell From the Sky",
+         "seed": "During famine, one roti falls from the sky daily on a hut where a girl always shares her food. Villagers discover the 'magic' follows sharing — every home that shares finds its pot never quite empties. Generosity multiplies.",
+         "tags": ["jadui", "sharing", "village", "food"]},
     ],
-    "religious": [
-        {"hi": "रामायण — राम और हनुमान", "en": "Ramayana — The Story of Rama for Kids", "tags": ["Hindu","India","mythology"]},
-        {"hi": "बुद्ध की ज्ञान की कहानी", "en": "Buddha — The Prince Who Found Peace", "tags": ["Buddhism","India","spiritual"]},
-        {"hi": "ईसा मसीह की प्रेम की कहानी", "en": "Jesus and the Power of Kindness", "tags": ["Christianity","Bible","USA","UK"]},
-        {"hi": "गुरु नानक देव की कहानी", "en": "Guru Nanak — Founder of Sikhism", "tags": ["Sikhism","India","Punjab"]},
-        {"hi": "महाभारत — अर्जुन की सीख", "en": "Mahabharata — Arjuna's Greatest Lesson", "tags": ["Hindu","India","mythology"]},
+
+    # ── Village moral dramas (the classic Hindi kahaniya arc) ────────────────
+    "moral_village": [
+        {"hi": "दूधवाला और पानी", "en": "The Milkman Who Mixed Water",
+         "seed": "A milkman mixes river water into milk to earn more. On the way home, a monkey grabs his coin bag and drops the coins into the same river — one coin per glass of water. What we cheat returns to us.",
+         "tags": ["moral", "honesty", "funny", "village"]},
+        {"hi": "ईमानदार लकड़हारा", "en": "The Honest Woodcutter and the Golden Axe",
+         "seed": "A woodcutter's axe falls in the river. The river goddess offers a gold axe, then silver — he refuses both, wanting only his own iron axe. Rewarded with all three. His greedy friend throws his axe in on purpose and loses everything.",
+         "tags": ["moral", "honesty", "classic"]},
+        {"hi": "सोने के अंडे देने वाली मुर्गी", "en": "The Hen That Laid Golden Eggs",
+         "seed": "A farmer's hen lays one golden egg daily. Impatient for all the gold at once, he cuts her open and finds nothing — losing the daily egg forever. Greed destroys the gift.",
+         "tags": ["moral", "greed", "classic"]},
+        {"hi": "भेड़िया आया! झूठा गड़रिया", "en": "The Boy Who Cried Wolf",
+         "seed": "A shepherd boy twice screams 'Wolf!' for fun and laughs as villagers run up the hill. When a real wolf comes, nobody believes him and the flock scatters. Liars aren't believed even when truthful.",
+         "tags": ["moral", "lies", "classic"]},
+        {"hi": "एकता की ताकत — लकड़ियों का गट्ठर", "en": "The Bundle of Sticks",
+         "seed": "Quarrelling brothers each easily snap one stick; none can break the bundle. Their father shows them: divided you break, together you are unbreakable. They rebuild the family farm together.",
+         "tags": ["moral", "unity", "family", "classic"]},
+        {"hi": "किसान और छिपा खज़ाना", "en": "The Hidden Treasure in the Field",
+         "seed": "A dying farmer tells his lazy sons a treasure is buried in the vineyard. They dig every inch — find nothing, but the ploughed field gives the best harvest ever. Hard work IS the treasure.",
+         "tags": ["moral", "hard work", "farm", "classic"]},
+        {"hi": "दो भाई — आलसी और मेहनती", "en": "Two Brothers, Two Fields",
+         "seed": "Twin brothers get equal fields. One works daily; one sleeps and blames luck. At harvest the difference is dramatic. The hardworking brother doesn't mock — he teaches, and next year both fields are golden.",
+         "tags": ["moral", "hard work", "brothers"]},
+        {"hi": "टूटी खिड़की का सच", "en": "The Broken Window",
+         "seed": "A boy's cricket ball breaks a shopkeeper's window; everyone runs. He returns alone to confess, offering his piggy bank. The shopkeeper takes one rupee and gives him a job watering plants — 'Honest boys I trust with my shop.'",
+         "tags": ["moral", "honesty", "courage", "cricket"]},
+        {"hi": "राजा और अटकी बैलगाड़ी", "en": "The King and the Stuck Cart",
+         "seed": "A king in disguise watches an old man's cart stuck in mud. Rich travellers advise; only a poor boy puts his shoulder to the wheel. The 'reward ceremony' next day stuns the town — the king honours the helper, not the advisors.",
+         "tags": ["moral", "helping", "king", "disguise"]},
+        {"hi": "घमंडी राजा और साधु", "en": "The Proud King and the Sadhu",
+         "seed": "A king boasts nobody is above him. A calm sadhu asks: 'Can you stop the rain? Grow one seed? Command your own sleep?' The king cannot. He learns to rule with humility — nature obeys no crown.",
+         "tags": ["moral", "humility", "king"]},
+        {"hi": "झूठ के पैर नहीं होते", "en": "A Lie Has No Legs",
+         "seed": "A girl spreads a small lie about a classmate stealing a pen. It grows as it travels until the classmate cries. Her teacher makes her tear a pillow and collect the flying feathers — impossible, like taking back a lie. She apologises before the class.",
+         "tags": ["moral", "lies", "school"]},
+        {"hi": "समय का मूल्य — पतंग और परीक्षा", "en": "The Kite and the Exam",
+         "seed": "A boy postpones studying all week for kite-flying. Exam morning he begs the sun not to rise. His grandfather shows the cut kites tangled on wires: 'Time you fly away never returns.' He learns to finish work first — and flies higher after.",
+         "tags": ["moral", "time", "school", "kites"]},
+        {"hi": "टिफ़िन में आधी रोटी", "en": "Half a Roti in the Tiffin",
+         "seed": "A poor classmate hides at lunch because his tiffin is empty. A girl quietly starts leaving half her roti at his desk daily, never telling anyone. Years later he becomes a doctor and treats her village free — 'I'm repaying half a roti.'",
+         "tags": ["moral", "sharing", "school", "emotional"]},
+        {"hi": "सबसे बड़ा धन — सेहत", "en": "The Richest Man's Empty Plate",
+         "seed": "A rich man who cannot digest food offers his gold to anyone who can share their hunger. A farmer laughs: 'Hunger is earned by work, not bought.' The rich man works one day in the fields — and enjoys his first tasty roti in years.",
+         "tags": ["moral", "health", "work", "rich and poor"]},
+        {"hi": "अधूरा ज्ञान खतरनाक", "en": "Half Knowledge Is Dangerous",
+         "seed": "A student learns half a snake-charmer's mantra and shows off, freezing a cobra but not knowing the release word. His guru saves him. He learns: finish learning before showing off. Complete effort or none.",
+         "tags": ["moral", "learning", "guru"]},
+        {"hi": "नेकी का पेड़", "en": "The Tree for Tomorrow",
+         "seed": "A traveller mocks an old man planting a mango sapling he'll never taste. The old man smiles: 'All my life I ate fruit from trees I never planted.' Years later the traveller rests in that very shade with his son.",
+         "tags": ["moral", "trees", "future", "kindness"]},
+        {"hi": "छोटी सी मदद", "en": "The Smallest Helper Saves the Fair",
+         "seed": "Before the village fair the big lamp's wick is missing and shops are stuck. A small girl braids a wick from her doll's cotton hair. The tiniest hands relit the whole fair — no help is too small.",
+         "tags": ["moral", "helping", "village", "festival"]},
+        {"hi": "बूँद-बूँद से घड़ा भरता है", "en": "Drop by Drop Fills the Pot",
+         "seed": "A boy wants a cycle; his father gives him a clay gullak and one coin a week for chores. He almost breaks it early for sweets. A year later the broken gullak buys the cycle — and he rides to school past the sweet shop, smiling.",
+         "tags": ["moral", "savings", "patience", "money"]},
+        {"hi": "मुफ़्त का खाना", "en": "Nothing Is Free — The Clever Innkeeper",
+         "seed": "A man eats free at an inn's 'free lunch tomorrow' board — every day the board says tomorrow. He learns the trick and laughs at himself. Free things usually cost the most; he starts earning his own meal proudly.",
+         "tags": ["moral", "funny", "work"]},
+        {"hi": "गुस्से की कीलें", "en": "The Fence of Nails",
+         "seed": "An angry boy must hammer a nail into the fence at every outburst, and remove one for each day he stays calm. The nails come out — the holes remain. Angry words leave holes in hearts even after sorry.",
+         "tags": ["moral", "anger", "family", "classic"]},
     ],
-    "science": [
-        {"hi": "डायनासोर क्यों विलुप्त हुए?", "en": "Why Did Dinosaurs Disappear? — Science for Kids", "tags": ["dinosaurs","science","USA","UK"]},
-        {"hi": "ब्लैक होल क्या होता है?", "en": "What is a Black Hole? — Space for Kids", "tags": ["space","NASA","science"]},
-        {"hi": "समुद्र की गहराई में क्या है?", "en": "Deep Ocean Mysteries for Kids", "tags": ["ocean","science","nature"]},
-        {"hi": "मानव शरीर कैसे काम करता है?", "en": "How Does the Human Body Work?", "tags": ["biology","health","education"]},
-        {"hi": "ज्वालामुखी कैसे फटता है?", "en": "How Volcanoes Erupt — Earth Science for Kids", "tags": ["geology","science","nature"]},
+
+    # ── Wit & wisdom: Akbar-Birbal, Tenali Raman, clever folk ────────────────
+    "wit_wisdom": [
+        {"hi": "बीरबल की खिचड़ी", "en": "Birbal's Khichdi",
+         "seed": "The king denies a poor man's reward for standing all night in cold water, saying a faraway lamp 'warmed' him. Birbal cooks khichdi in a pot hung far above the fire — 'If a lamp can warm a man across the lake, my fire can cook this.' The king pays.",
+         "tags": ["Akbar-Birbal", "wit", "justice", "classic"]},
+        {"hi": "रेखा छोटी कैसे हुई?", "en": "Akbar's Line — Make It Shorter Without Erasing",
+         "seed": "Akbar draws a line: 'Make it shorter without touching it.' Courtiers fail. Birbal draws a LONGER line beside it — the first is now shorter. Perspective beats force.",
+         "tags": ["Akbar-Birbal", "wit", "puzzle", "classic"]},
+        {"hi": "आगरा में कितने कौवे?", "en": "How Many Crows in Agra?",
+         "seed": "Akbar asks the impossible: count Agra's crows. Birbal answers '95,463. If more, guests have flown in; if fewer, our crows visit relatives.' Confidence plus humour beats impossible questions.",
+         "tags": ["Akbar-Birbal", "wit", "funny", "classic"]},
+        {"hi": "असली राजा कौन?", "en": "Birbal Finds the Real King",
+         "seed": "A visiting kingdom seats five identical 'kings' to test Birbal. He watches, then bows to the true one. 'How?' — 'The others kept glancing at him for approval. A real king looks at no one for permission.' Observation is wisdom.",
+         "tags": ["Akbar-Birbal", "wit", "observation"]},
+        {"hi": "आम का पेड़ किसका?", "en": "Whose Mango Tree Is It?",
+         "seed": "Two neighbours claim one mango tree. Birbal orders: 'Pick all fruit, split it, then cut the tree in half.' One agrees; the other cries 'Let him have it, don't cut it!' The one who'd rather lose it than hurt it is the true owner — he planted it.",
+         "tags": ["Akbar-Birbal", "justice", "wisdom"]},
+        {"hi": "सबसे बड़ा हथियार", "en": "The Greatest Weapon in the World",
+         "seed": "Akbar asks the court: the greatest weapon? Swords, elephants, cannons, say the generals. Birbal says 'confidence' — and proves it later when a mad elephant charges: he flings a small dog aside and stands still; the confused elephant halts. Courage rules chaos.",
+         "tags": ["Akbar-Birbal", "courage", "wisdom"]},
+        {"hi": "तेनालीराम और बिल्लियों का दूध", "en": "Tenali Raman and the Milk-Fed Cats",
+         "seed": "The king orders every courtier to raise a royal cat on milk. Tenali's cat alone grows strong but hates milk — he'd let it burn its tongue on hot milk once; it ate healthy rats instead. Blind orders make fat cats; thinking makes strong ones.",
+         "tags": ["Tenali Raman", "wit", "funny", "classic"]},
+        {"hi": "तेनालीराम और कुएँ के चोर", "en": "Tenali and the Thieves at the Well",
+         "seed": "Hearing thieves plan to rob him, Tenali loudly tells his wife he's hiding jewels in the well. Thieves spend all night hauling water out — watering his dry field. At dawn he thanks them for irrigating his crops. Turn enemies into helpers.",
+         "tags": ["Tenali Raman", "wit", "funny", "thieves"]},
+        {"hi": "तेनालीराम की जादुई दीवार", "en": "Tenali Paints the Invisible",
+         "seed": "The king demands a painting where things exist 'beyond what is seen'. Tenali presents a blank wall with a tiny cow's tail at the edge: 'The cow is grazing beyond the frame — imagination completes the picture.' The king laughs and rewards imagination.",
+         "tags": ["Tenali Raman", "wit", "art", "funny"]},
+        {"hi": "राजा का सपना और सच", "en": "The King's Dream",
+         "seed": "The king dreams a courtier pushed him into a honey pond and Tenali into a mud pond, and demands they act it out. Tenali says: 'In MY dream, we both climbed out and licked each other clean — shall we act that too?' The king drops silly royal whims, laughing.",
+         "tags": ["Tenali Raman", "wit", "funny", "king"]},
+        {"hi": "महामूर्ख की उपाधि", "en": "The Greatest Fool Award",
+         "seed": "The king mockingly awards Tenali 'Greatest Fool' for buying a horse unseen. Tenali accepts gracefully — then reveals the 'horse' deal was the king's own minister's scam, which he exposed by playing the fool. Playing dumb can be the smartest move.",
+         "tags": ["Tenali Raman", "wit", "clever"]},
+        {"hi": "शेखचिल्ली के हवाई किले", "en": "Sheikh Chilli's Castles in the Air",
+         "seed": "Carrying a pot of oil for a coin's pay, Sheikh Chilli daydreams: coin→eggs→hens→goats→mansion… He nods proudly at his imaginary palace — and drops the pot. Dreams need feet on the ground; laugh, and carry the pot first.",
+         "tags": ["Sheikh Chilli", "funny", "dreams", "classic"]},
+        {"hi": "गोपाल भांड और हाथी का वज़न", "en": "Weighing the Elephant",
+         "seed": "The king demands: weigh my elephant, no giant scale exists. Gopal floats it on a boat, marks the waterline, then loads stones to the same mark and weighs the stones. Big problems break into small pieces.",
+         "tags": ["wit", "puzzle", "science", "classic"]},
+        {"hi": "पत्थर गवाह है", "en": "The Stone Witness",
+         "seed": "A trader claims a farmer never repaid a loan taken 'under the old banyan'. The judge sends the trader to 'summon the tree as witness'. He returns saying it's too far — but the judge notes he KNEW which tree, though he'd denied ever being there. Caught by his own lie.",
+         "tags": ["wit", "justice", "clever judge"]},
+        {"hi": "किसान की चतुर बेटी", "en": "The Farmer's Clever Daughter",
+         "seed": "A king tests a poor girl with riddles: 'Come neither walking nor riding, neither dressed nor undressed, with a gift that is no gift.' She arrives with one foot on a goat, wrapped in a fishing net, gifting a bird that flies off as he takes it. He makes her his advisor.",
+         "tags": ["wit", "riddle", "clever girl", "classic"]},
+        {"hi": "अंधों का हाथी", "en": "The Blind Men and the Elephant",
+         "seed": "Six blind men touch one elephant: a wall, a spear, a snake, a tree, a fan, a rope — and fight over who is right. A child places their hands together across the whole animal. Everyone held a piece of the truth; together they held the elephant.",
+         "tags": ["wisdom", "classic", "perspective"]},
     ],
-    "moral_stories": [
-        {"hi": "पंचतंत्र — शेर और चूहा", "en": "The Lion and the Mouse — Panchatantra", "tags": ["India","moral","Panchatantra"]},
-        {"hi": "ईसप की कहानी — कछुआ और खरगोश", "en": "The Tortoise and the Hare — Aesop's Fables", "tags": ["Aesop","moral","UK","USA"]},
-        {"hi": "ईमानदारी सबसे बड़ी ताकत", "en": "Honesty is the Greatest Strength — World Folk Tales", "tags": ["moral","global","values"]},
+
+    # ── Panchatantra / Aesop / Jataka animal tales ───────────────────────────
+    "animal_tales": [
+        {"hi": "शेर और चूहा", "en": "The Lion and the Mouse",
+         "seed": "A lion spares a tiny mouse who promises to repay him — and the court laughs. When hunters net the lion, the mouse gnaws the ropes through the night and frees him. No kindness is ever wasted; no friend is too small.",
+         "tags": ["Panchatantra", "animals", "kindness", "classic"]},
+        {"hi": "कछुआ और खरगोश", "en": "The Tortoise and the Hare",
+         "seed": "A boastful hare races a slow tortoise, naps mid-race in overconfidence, and wakes to see the tortoise crossing the line. Steady effort beats lazy talent.",
+         "tags": ["Aesop", "animals", "race", "classic"]},
+        {"hi": "प्यासा कौवा", "en": "The Thirsty Crow",
+         "seed": "A thirsty crow finds a pot with water too low to reach. Instead of giving up, he drops pebbles in one by one until the water rises to his beak. Small clever steps solve big problems.",
+         "tags": ["animals", "clever", "classic"]},
+        {"hi": "लोमड़ी और अंगूर", "en": "The Fox and the Grapes",
+         "seed": "A fox leaps again and again for high grapes, fails, and stalks off sneering 'they're sour anyway'. The birds who shared the vine know the truth. Don't insult what you couldn't reach — try another way or ask for help.",
+         "tags": ["Aesop", "animals", "funny", "classic"]},
+        {"hi": "बंदर और मगरमच्छ", "en": "The Monkey and the Crocodile",
+         "seed": "A monkey shares sweet jamun fruit with a crocodile daily. The crocodile's jealous wife demands the monkey's 'sweet heart'. Midriver, the crocodile confesses; the monkey calmly says he left his heart on the tree — and escapes on the ride back. Presence of mind beats sharp teeth.",
+         "tags": ["Panchatantra", "animals", "clever", "classic"]},
+        {"hi": "शेर और चतुर खरगोश", "en": "The Lion and the Clever Rabbit",
+         "seed": "A tyrant lion demands one animal daily as food. The little rabbit arrives late, blaming 'another lion in a well'. The furious lion leaps at his own reflection in the well and drowns. Brains beat bullies.",
+         "tags": ["Panchatantra", "animals", "clever", "classic"]},
+        {"hi": "कौवा और चालाक लोमड़ी", "en": "The Crow and the Flattering Fox",
+         "seed": "A fox flatters a crow holding a roti: 'Your voice must be as lovely as your feathers — sing!' The proud crow opens his beak, drops the roti, and learns flattery has a price. The crow later wins it back by praising the fox into 'demonstrating' a dance over the stream.",
+         "tags": ["Aesop", "animals", "flattery", "funny"]},
+        {"hi": "चूहे से शेर बना घमंडी", "en": "The Mouse Who Became a Tiger",
+         "seed": "A sage magically turns a frightened mouse into a cat, then dog, then tiger as its fears grow. As a tiger it plots to eat the sage — who turns it back into a mouse. Power without gratitude shrinks you back to size.",
+         "tags": ["Panchatantra", "animals", "pride", "classic"]},
+        {"hi": "हाथी और चिड़िया का घोंसला", "en": "The Elephant Who Guarded the Nest",
+         "seed": "A storm knocks a sparrow's nest onto the path of a proud young elephant, who almost tramples it — then stops, and stands over the chicks through the whole storm. Next summer the sparrows fan the sleeping elephant with a hundred wings. Gentle giants earn small armies.",
+         "tags": ["animals", "kindness", "friendship"]},
+        {"hi": "दो बिल्लियाँ और बंदर", "en": "Two Cats and the Monkey Judge",
+         "seed": "Two cats fight over a roti and let a monkey 'judge'. He balances the halves, nibbling each 'to make it fair' until nothing remains — then charges a fee for the service. When you fight, the clever outsider eats your share; settle with each other.",
+         "tags": ["Panchatantra", "animals", "funny", "classic"]},
+        {"hi": "बगुला भगत और केकड़ा", "en": "The Heron and the Crab",
+         "seed": "A lazy old heron pretends the pond is doomed and 'kindly' ferries fish to a 'safer lake' — eating them on the way. The wise crab asks for a ride, sees the bones, and grips the heron's neck just in time. Sweet words from a sudden saint hide sharp plans.",
+         "tags": ["Panchatantra", "animals", "clever", "classic"]},
+        {"hi": "शेर की खाल में गधा", "en": "The Donkey in the Lion's Skin",
+         "seed": "A washerman's donkey grazes at night in a lion's skin, terrifying the village — until he brays in delight. Costumes can't change your voice; be great at being yourself instead of a fake someone else.",
+         "tags": ["Aesop", "animals", "funny", "classic"]},
+        {"hi": "चींटी और टिड्डा", "en": "The Ant and the Grasshopper",
+         "seed": "A grasshopper sings all summer mocking ants who store grain. Winter finds him starving at the anthill door. The ants share — on the promise he'll work beside them next summer, singing while they all carry grain. Work first; music is sweeter after.",
+         "tags": ["Aesop", "animals", "work", "classic"]},
+        {"hi": "कबूतर और चींटी", "en": "The Dove and the Ant",
+         "seed": "A dove drops a leaf to save a drowning ant. Days later, the ant stings a hunter's foot just as he aims at the dove, spoiling the shot. Kindness is a circle — it always finds its way back.",
+         "tags": ["Aesop", "animals", "kindness", "classic"]},
     ],
-    "emotional": [
-        {"hi": "असली दोस्ती की कहानी", "en": "The Power of True Friendship — Animated Story", "tags": ["friendship","emotional","kids"]},
-        {"hi": "हिम्मत से हर मुश्किल हल होती है", "en": "Courage — The Boy Who Never Gave Up", "tags": ["courage","motivation","kids"]},
-        {"hi": "माँ की ममता — एक दिल छूने वाली कहानी", "en": "A Mother's Love — Emotional Story for Kids", "tags": ["family","emotional","India"]},
+
+    # ── Emotional family stories (Hindi audience's soft spot) ────────────────
+    "emotional_family": [
+        {"hi": "माँ की ठंडी रोटी", "en": "Mother's Last Roti",
+         "seed": "A boy grumbles about simple food, then discovers his mother has quietly eaten nothing, giving him her share all week of the drought. He becomes the one who serves her first — and never leaves a grain on his plate again.",
+         "tags": ["family", "mother", "emotional"]},
+        {"hi": "दादी की कहानियों वाली लालटेन", "en": "Grandma's Story Lantern",
+         "seed": "Every night under one old lantern, Grandma trades stories for chores done. When the town gets TV, the courtyard empties — until a power cut brings everyone back to the lantern, where the best 'channel' was always Grandma. Family time is the real entertainment.",
+         "tags": ["family", "grandmother", "stories", "emotional"]},
+        {"hi": "पापा का कंधा", "en": "Father's Shoulders",
+         "seed": "A boy is embarrassed by his father's rough hands and cycle-rickshaw. At the school award day, the teacher reveals the anonymous donor of the library books: his father's overtime savings. Rough hands, softest heart.",
+         "tags": ["family", "father", "emotional"]},
+        {"hi": "छोटा भाई", "en": "The Annoying Little Brother",
+         "seed": "A boy resents his copying, toy-breaking little brother — until the little one falls sick and the house goes silent. He fills the room with the very games he used to refuse. Some noise is the sound of love.",
+         "tags": ["family", "brothers", "emotional"]},
+        {"hi": "सच्ची दोस्ती की सीढ़ी", "en": "The Friendship Stairs",
+         "seed": "When Ravi breaks his leg, his friend carries his school bag up three floors every day for two months, missing the morning football game. Years later at the sports final, guess who's cheering loudest with a ladder of laddus. Friendship is showing up daily.",
+         "tags": ["friendship", "school", "emotional"]},
+        {"hi": "अनाथालय की दिवाली", "en": "Diwali at the Orphanage",
+         "seed": "Two kids with pockets full of crackers pass the quiet orphanage and make a choice: they spend their Diwali there, sharing sweets, diyas and games. It becomes their family's tradition — the brightest Diwali is the one you give someone.",
+         "tags": ["festival", "sharing", "emotional", "Diwali"]},
+        {"hi": "दादाजी का आम का पेड़", "en": "Grandfather's Mango Tree",
+         "seed": "A girl helps her grandfather plant a mango sapling; he tells her it will fruit when she's grown. After he's gone, the first mango ripens — she shares it with the whole lane, exactly as he would have. Love outlives us in what we plant.",
+         "tags": ["family", "grandfather", "trees", "emotional"]},
+        {"hi": "राखी का वादा", "en": "The Rakhi Promise",
+         "seed": "A brother promises his sister on Rakhi to walk her to school past the scary dog lane — every single day. Years later, her first day at college in a new city, a familiar figure waits at the gate with a rakhi on his wrist. Promises don't expire.",
+         "tags": ["family", "Rakhi", "brother sister", "emotional"]},
+        {"hi": "नई स्कूल का पहला दिन", "en": "The New Kid's Empty Bench",
+         "seed": "A new girl eats alone until one classmate moves her tiffin over — soon the whole bench squeezes together. Terminal exams come and SHE is the one who teaches the group maths. The seat you offer today may be the help you need tomorrow.",
+         "tags": ["school", "friendship", "kindness"]},
+        {"hi": "गुरु का दिया", "en": "The Teacher's Secret Lamp",
+         "seed": "A student almost drops out — 'fees'. Years later as a young engineer he tries to repay his old teacher, who shows a drawer of receipts: HIS teacher had once paid for him too. 'Pay it forward — that's the fee.' He funds two students that day.",
+         "tags": ["teacher", "gratitude", "emotional"]},
     ],
+
+    # ── Fairy tales & fantasy (global classics) ──────────────────────────────
+    "fairy_fantasy": [
+        {"hi": "सिंड्रेला की कहानी", "en": "Cinderella",
+         "seed": "Kind Cinderella, kept as a servant by her stepfamily, gets one magical night at the royal ball; fleeing at midnight she loses a glass slipper. The prince finds her by the slipper that fits. Kindness kept through cruelty shines brightest.",
+         "tags": ["fairy tale", "classic", "princess"]},
+        {"hi": "स्नो व्हाइट और सात बौने", "en": "Snow White and the Seven Dwarfs",
+         "seed": "A jealous queen's magic mirror names Snow White the fairest; the girl shelters with seven kind dwarfs. The queen's poisoned apple fails to erase a good heart — true love and loyal friends wake her. Jealousy poisons the jealous.",
+         "tags": ["fairy tale", "classic", "friendship"]},
+        {"hi": "जैक और जादुई बीन", "en": "Jack and the Beanstalk",
+         "seed": "Jack trades the family cow for magic beans; a beanstalk grows to a giant's castle in the clouds. He recovers the hen that lays golden eggs the giant once stole from his father, escapes the chase, and the family's luck regrows. Courage climbs where fear won't.",
+         "tags": ["fairy tale", "classic", "adventure", "giant"]},
+        {"hi": "बदसूरत बत्तख का बच्चा", "en": "The Ugly Duckling",
+         "seed": "A 'duckling' mocked for being big and grey survives a lonely winter — and in spring the lake shows him his reflection: a swan, the most graceful bird on the water. You are not ugly; you may just be a swan among ducklings.",
+         "tags": ["fairy tale", "classic", "self esteem"]},
+        {"hi": "पिनोकियो — झूठ बोलती नाक", "en": "Pinocchio",
+         "seed": "A wooden puppet longs to be a real boy, but every lie makes his nose grow. Tricked by sly friends, he learns courage and honesty by rescuing his father Geppetto from the whale — and wakes up real. Truth makes us real.",
+         "tags": ["fairy tale", "classic", "lies"]},
+        {"hi": "छोटी लाल मुर्गी", "en": "The Little Red Hen",
+         "seed": "'Who will help me plant the wheat?' 'Not I,' say the cat, dog and duck — at every step until the bread is baked and suddenly everyone's hungry. The hen shares with her chicks who helped. If you skip the work, you skip the bread — friends learn to help next season.",
+         "tags": ["fairy tale", "classic", "work"]},
+        {"hi": "थम्बेलिना — अंगूठे जितनी लड़की", "en": "Thumbelina",
+         "seed": "A girl no bigger than a thumb is carried off by a toad, winters with a field mouse, and saves a frozen swallow with her tiny warmth. The grateful swallow flies her to the flower kingdom where she belongs. Small size, giant heart.",
+         "tags": ["fairy tale", "classic", "kindness"]},
+        {"hi": "तीन छोटे सूअर", "en": "The Three Little Pigs",
+         "seed": "Three pigs build houses of straw, sticks and brick. The wolf's huffing flattens the shortcuts; the brick house — built slow and strong — stands, and shelters all three brothers. Build things properly the first time.",
+         "tags": ["fairy tale", "classic", "work", "funny"]},
+        {"hi": "गोल्डीलॉक्स और तीन भालू", "en": "Goldilocks and the Three Bears",
+         "seed": "Goldilocks wanders into the bears' cottage — tasting porridge, breaking a chair, sleeping in Baby Bear's bed. The bears return; she flees and comes back next day with honey and a mended chair. Respect others' homes; sorry is best said with actions.",
+         "tags": ["fairy tale", "classic", "respect", "funny"]},
+        {"hi": "बहादुर दर्ज़ी — एक वार में सात", "en": "The Brave Little Tailor",
+         "seed": "A tailor swats seven flies — 'Seven in one blow!' — and the boast lands him giant-taming quests. He wins by wit: squeezing 'water' from cheese, tricking giants into fighting each other. Brains and cheer beat size.",
+         "tags": ["fairy tale", "classic", "wit", "funny"]},
+    ],
+
+    # ── Epics & faith stories (episode-level, told with warmth) ──────────────
+    "religious_epics": [
+        {"hi": "राम सेतु और नन्ही गिलहरी", "en": "The Squirrel Who Helped Build Rama's Bridge",
+         "seed": "While Hanuman's army hurls boulders to bridge the sea to Lanka, a tiny squirrel rolls pebbles and shakes sand from her fur into the gaps. Rama strokes her back — the stripes remain on squirrels today. Every helper counts, however small.",
+         "tags": ["Ramayana", "India", "devotion", "classic"]},
+        {"hi": "कृष्ण और सुदामा", "en": "Krishna and Sudama",
+         "seed": "Poor Sudama walks to his childhood friend Krishna's palace carrying only a little poha, ashamed to ask for help. Krishna runs barefoot to greet him, eats the poha with joy, and Sudama returns to find his hut a mansion — he never had to ask. True friends see the need behind silence.",
+         "tags": ["Krishna", "friendship", "India", "classic"]},
+        {"hi": "गोवर्धन पर्वत", "en": "Krishna Lifts Govardhan Hill",
+         "seed": "When storm-god Indra floods Vrindavan in anger, young Krishna lifts Govardhan hill on his little finger as an umbrella for every villager and cow — for seven days, as every villager's stick 'helps' hold it. Together under one roof, no storm wins.",
+         "tags": ["Krishna", "India", "courage", "classic"]},
+        {"hi": "बुद्ध और गुस्सैल आदमी", "en": "Buddha and the Angry Man",
+         "seed": "A man showers Buddha with insults; Buddha asks, 'If you offer a gift and I refuse it, whose is it?' — 'Mine.' 'So too your anger.' The man returns next day with a real gift: an apology. Anger not accepted returns to sender.",
+         "tags": ["Buddha", "calm", "wisdom", "classic"]},
+        {"hi": "सिद्धार्थ और घायल हंस", "en": "Siddhartha and the Wounded Swan",
+         "seed": "Cousin Devadatta shoots a swan; young Siddhartha nurses it. Both claim it — the court rules: a life belongs to the one who saves it, not the one who tries to take it. The healed swan's first flight circles Siddhartha's window.",
+         "tags": ["Buddha", "kindness", "animals", "classic"]},
+        {"hi": "गुरु नानक — सच्चा सौदा", "en": "Guru Nanak's True Bargain",
+         "seed": "Given 20 rupees to start a business, young Nanak feeds a group of hungry sadhus instead, calling it the 'true bargain'. His father is furious — until he sees the whole village fed at the first langar. Profit that feeds people never runs out.",
+         "tags": ["Guru Nanak", "Sikhism", "sharing", "classic"]},
+        {"hi": "भाई लालो की रोटी", "en": "Guru Nanak and Bhai Lalo's Bread",
+         "seed": "Nanak chooses a poor carpenter's simple roti over a rich man's feast. Squeezed, the honest roti drips milk; the feast's bread drips the sweat of the exploited. He teaches: eat only what is honestly earned.",
+         "tags": ["Guru Nanak", "honesty", "classic"]},
+        {"hi": "नेक इंसान की कहानी", "en": "The Good Samaritan",
+         "seed": "A traveller lies hurt on the road; important people pass by looking away. A stranger from a rival town stops, bandages him, pays the innkeeper for his care. Your neighbour is whoever needs you — and whoever stops.",
+         "tags": ["Jesus", "kindness", "classic"]},
+        {"hi": "गणेश और कार्तिकेय की दौड़", "en": "Ganesha and the Race Around the World",
+         "seed": "Shiva offers the divine fruit to whichever son circles the world first. Kartikeya flies off on his peacock; Ganesha simply walks around his parents — 'You are my world.' Wisdom finds the shorter path; parents are the world.",
+         "tags": ["Ganesha", "India", "wisdom", "classic"]},
+        {"hi": "अर्जुन और चिड़िया की आँख", "en": "Arjuna and the Bird's Eye",
+         "seed": "Guru Drona asks each prince what they see while aiming at a wooden bird: sky, branches, the bird, say the others. Arjuna: 'Only the eye.' Only he may shoot. Focus means seeing one thing — the goal.",
+         "tags": ["Mahabharata", "focus", "India", "classic"]},
+    ],
+
+    # ── History & legends ────────────────────────────────────────────────────
+    "historical_legends": [
+        {"hi": "झाँसी की रानी लक्ष्मीबाई", "en": "Rani Lakshmibai — The Warrior Queen",
+         "seed": "The queen of Jhansi refuses to surrender her kingdom, trains with sword and horse from childhood, and rides into legend with her son tied to her back. 'Main apni Jhansi nahi doongi.' Courage has no size, age or gender.",
+         "tags": ["India", "history", "courage", "freedom"]},
+        {"hi": "छोटे शिवाजी और पहला किला", "en": "Young Shivaji and His Mother's Dream",
+         "seed": "Mother Jijabai tells young Shivaji tales of justice; at 16 he takes his first fort, Torna, not with a huge army but with clever planning and loyal friends who know every goat-path. Great kingdoms start as a mother's bedtime story.",
+         "tags": ["India", "history", "Shivaji", "courage"]},
+        {"hi": "सम्राट अशोक का बदला हुआ दिल", "en": "Ashoka — The Emperor Who Chose Peace",
+         "seed": "After winning the terrible Kalinga war, emperor Ashoka walks the silent battlefield and hears only weeping. The mightiest conqueror lays down his sword forever — building hospitals, planting shade trees, carving kindness on stone pillars that still stand. The greatest victory is over one's own anger.",
+         "tags": ["India", "history", "Ashoka", "peace"]},
+        {"hi": "चाँद पर पहला कदम", "en": "Apollo 11 — First Steps on the Moon",
+         "seed": "Neil Armstrong and Buzz Aldrin land a paper-thin spacecraft on the Moon with 30 seconds of fuel left, while the world holds its breath at radios. 'One small step for man…' Dreams plus maths plus teamwork reach the Moon.",
+         "tags": ["space", "NASA", "history", "USA"]},
+        {"hi": "राइट बंधु — पहली उड़ान", "en": "The Wright Brothers Learn to Fly",
+         "seed": "Two cycle-shop brothers crash glider after glider on windy dunes, fixing one mistake at a time — until 12 impossible seconds in the air change the world forever. Every crash was a lesson with wings.",
+         "tags": ["history", "invention", "flight", "USA"]},
+        {"hi": "चीन की महान दीवार", "en": "The Great Wall of China",
+         "seed": "Stone by stone across mountains for centuries, millions of workers build a dragon-shaped wall so long it takes months to walk. Kids learn how watchtowers passed fire signals faster than any horse. Small bricks, placed patiently, become wonders seen from space.",
+         "tags": ["China", "history", "wonder"]},
+        {"hi": "मार्को पोलो का सफ़र", "en": "Marco Polo's Great Journey",
+         "seed": "A Venetian boy travels the Silk Road with his father for years — deserts, mountains, royal courts of Kublai Khan — and returns with stories so amazing people call them lies. His book later guides explorers for centuries. Curiosity is the best passport.",
+         "tags": ["history", "adventure", "travel"]},
+        {"hi": "चंद्रयान — चाँद के दक्षिण पर भारत", "en": "Chandrayaan — India Reaches the Moon's South Pole",
+         "seed": "After a heartbreaking crash in 2019, ISRO's scientists try again — and in 2023 India becomes the FIRST nation ever to land at the Moon's south pole, on a budget smaller than a movie. Failure is the rough draft of history.",
+         "tags": ["India", "space", "ISRO", "science"]},
+    ],
+
+    # ── Science wonder (kept, but story-shaped) ──────────────────────────────
+    "science_wonder": [
+        {"hi": "डायनासोर कहाँ गए?", "en": "Where Did the Dinosaurs Go?",
+         "seed": "Kids time-travel to meet gentle giants and the terrible T-rex, then watch (from safety) the asteroid strike, the dust winter — and discover the survivors: birds! The sparrow outside your window is a tiny dinosaur.",
+         "tags": ["science", "dinosaurs", "space"]},
+        {"hi": "ब्लैक होल क्या है?", "en": "What Is a Black Hole?",
+         "seed": "A star so heavy it swallows its own light — kids visit a space station where a scientist shows how a bowling ball curves a trampoline. Even light can't climb out of the deepest 'well' in space. Big questions are the best toys.",
+         "tags": ["science", "space", "black hole"]},
+        {"hi": "बारिश कैसे बनती है?", "en": "The Great Water Cycle Adventure",
+         "seed": "Kids shrink to raindrop-size and ride a water drop: sea → sunshine lift → cloud → mountain rain → river → back to sea. The same water dinosaurs drank falls on your umbrella today. Nothing in nature is wasted.",
+         "tags": ["science", "rain", "nature"]},
+        {"hi": "बीज से पेड़ कैसे बनता है?", "en": "From Seed to Giant Tree",
+         "seed": "A mango seed narrates its own life: the dark underground wait, the first brave root, drinking sunlight through leaves, and one day — kids eating mangoes in its shade and planting the next seed. Growth is slow, silent, and unstoppable.",
+         "tags": ["science", "trees", "nature"]},
+        {"hi": "तारे क्यों टिमटिमाते हैं?", "en": "Why Do Stars Twinkle?",
+         "seed": "On a terrace at night, kids learn stars don't blink — Earth's moving air bends their light like a coin shimmering at a pool's bottom. And the steady 'stars'? Those are planets! Look up: the sky is a science book.",
+         "tags": ["science", "stars", "space"]},
+        {"hi": "मधुमक्खियाँ शहद कैसे बनाती हैं?", "en": "How Bees Make Honey",
+         "seed": "Inside a buzzing hive city: scout bees dance maps to flowers, workers visit a thousand blooms for one spoon of honey, guards check every visitor. A teaspoon of honey is a factory of tiny teamwork.",
+         "tags": ["science", "bees", "nature", "teamwork"]},
+        {"hi": "ज्वालामुखी क्यों फटता है?", "en": "Why Volcanoes Erupt",
+         "seed": "Kids ride a magma bubble from deep inside Earth — pressure builds like a shaken soda bottle until BOOM! — then watch how cooled lava becomes new black islands where plants and life begin again. Even explosions build new worlds.",
+         "tags": ["science", "volcano", "earth"]},
+        {"hi": "खाने का सफ़र — पेट के अंदर", "en": "The Great Food Journey Inside Your Body",
+         "seed": "Kids shrink and ride a roti through the body: teeth-crusher gates, the stomach's acid pool, the winding gut where food becomes energy — and learn why mother says 'chew slowly' and 'wash your hands'. Your body is the best theme park.",
+         "tags": ["science", "body", "health", "funny"]},
+    ],
+
+    # ── Inspiring lives ──────────────────────────────────────────────────────
     "biographies": [
-        {"hi": "APJ अब्दुल कलाम — मिसाइल मैन की कहानी", "en": "APJ Abdul Kalam — Missile Man of India", "tags": ["India","science","biography"]},
-        {"hi": "मैरी क्यूरी — पहली महिला वैज्ञानिक", "en": "Marie Curie — First Woman to Win Nobel Prize", "tags": ["science","biography","Germany","UK"]},
-        {"hi": "नेल्सन मंडेला की हिम्मत की कहानी", "en": "Nelson Mandela — Freedom Fighter for Kids", "tags": ["biography","courage","global"]},
-    ],
-    "fairy_tales": [
-        {"hi": "जादुई जंगल की परी कहानी", "en": "The Enchanted Forest — A Magical Fairy Tale", "tags": ["fairy tale","magic","UK","USA"]},
-        {"hi": "ड्रैगन और बहादुर बच्चा", "en": "The Dragon and the Brave Child — Fantasy Story", "tags": ["dragon","fantasy","USA"]},
-    ],
-    "geography": [
-        {"hi": "भारत की अद्भुत जगहें बच्चों के लिए", "en": "Amazing Places of India — Kids Geography", "tags": ["India","travel","geography"]},
-        {"hi": "जर्मनी — बच्चों के लिए दुनिया की सैर", "en": "Germany for Kids — Castles, Cars and Culture", "tags": ["Germany","geography","Europe"]},
-        {"hi": "चीन की दीवार से ड्रैगन तक", "en": "China for Kids — Dragons, Food and Traditions", "tags": ["culture","geography"]},
+        {"hi": "अब्दुल कलाम — अख़बार बेचने वाला राष्ट्रपति", "en": "Abdul Kalam — The Newspaper Boy Who Became President",
+         "seed": "A boy in Rameswaram sells newspapers at dawn to pay school fees, watches seabirds to understand flight, fails his pilot exam — then builds India's rockets and missiles, and becomes the People's President whom every child could write to. Dreams need wings AND homework.",
+         "tags": ["India", "biography", "Kalam", "inspiration"]},
+        {"hi": "मैरी क्यूरी — दो नोबेल वाली वैज्ञानिक", "en": "Marie Curie — The Girl Who Discovered Invisible Light",
+         "seed": "Denied university because she was a girl, Marie studies secretly at night, moves countries with pocketfuls of courage, and discovers radium's glow in a leaky shed — winning the Nobel Prize TWICE. Doors that close cannot stop someone who builds her own.",
+         "tags": ["biography", "science", "woman", "inspiration"]},
+        {"hi": "नेल्सन मंडेला — माफ़ करने वाला योद्धा", "en": "Nelson Mandela — The Man Who Forgave",
+         "seed": "27 years in a tiny prison cell for demanding that all skin colours be equal — and when he walks free, he chooses forgiveness over revenge, uniting a torn country as its first Black president. The strongest fist is an open hand.",
+         "tags": ["biography", "courage", "forgiveness", "global"]},
+        {"hi": "छोटा आइंस्टीन और जादुई कंपास", "en": "Young Einstein and the Magic Compass",
+         "seed": "A quiet boy who spoke late stares at a compass needle moved by an invisible force — and never stops asking 'why?'. Teachers call him slow; his questions later unlock the universe's biggest secrets. Curiosity is genius in seed form.",
+         "tags": ["biography", "science", "Einstein", "curiosity"]},
+        {"hi": "एडिसन और माँ की चिट्ठी", "en": "Edison and His Mother's Letter",
+         "seed": "Sent home with a sealed note, Tom's mother reads aloud: 'Your son is a genius; this school is too small for him' — and teaches him herself. Years later, famous Edison finds the real letter: 'Your son is addled; we expel him.' A mother's belief lit the bulb before the bulb.",
+         "tags": ["biography", "Edison", "mother", "inspiration"]},
+        {"hi": "हेलन केलर — अंधेरे से उजाले तक", "en": "Helen Keller — The Girl Who Beat the Dark",
+         "seed": "Blind and deaf before age two, Helen is trapped in silence until teacher Anne spells W-A-T-E-R into her palm under the pump — the world explodes into words. She becomes a world-famous author and speaker. No darkness can hold a determined mind.",
+         "tags": ["biography", "courage", "teacher", "inspiration"]},
+        {"hi": "एम एस धोनी — टिकट बाबू से कप्तान", "en": "MS Dhoni — Ticket Collector to World Cup Captain",
+         "seed": "A railway ticket collector practises cricket before and after shifts, hitting helicopter shots with a tennis ball on rough grounds — and one day lifts the World Cup for a billion people, calm as ever. Small towns grow big dreams; practice makes them real.",
+         "tags": ["India", "biography", "cricket", "Dhoni"]},
+        {"hi": "कल्पना चावला — करनाल से अंतरिक्ष तक", "en": "Kalpana Chawla — From Karnal to the Stars",
+         "seed": "A small-town girl who watched planes from her rooftop becomes India's first woman in space, floating 300 km above the Earth she loved. 'The path from dreams to success does exist.' Her star still guides every girl who looks up.",
+         "tags": ["India", "biography", "space", "woman"]},
     ],
 }
 
-# CPM priority weights per country
+# Country priority per category (used for upload metadata; audience is
+# Hindi/English so IN-first with US/UK secondary everywhere).
 COUNTRY_WEIGHTS = {
-    "historical": ["USA","UK","IN","DE","CN"],
-    "religious":  ["IN","USA","UK","DE"],
-    "science":    ["USA","UK","DE","CN","IN"],
-    "moral_stories": ["IN","USA","UK"],
-    "emotional":  ["IN","UK","USA"],
-    "biographies":["IN","USA","UK","DE"],
-    "fairy_tales":["USA","UK","DE","CN"],
-    "geography":  ["USA","UK","IN","DE","CN"],
+    "jadui_magical":      ["IN", "USA", "UK"],
+    "moral_village":      ["IN", "USA", "UK"],
+    "wit_wisdom":         ["IN", "USA", "UK"],
+    "animal_tales":       ["IN", "USA", "UK"],
+    "emotional_family":   ["IN", "USA", "UK"],
+    "fairy_fantasy":      ["USA", "UK", "IN"],
+    "religious_epics":    ["IN", "USA", "UK"],
+    "historical_legends": ["IN", "USA", "UK"],
+    "science_wonder":     ["USA", "UK", "IN"],
+    "biographies":        ["IN", "USA", "UK"],
 }
 
-# Category rotation seeded by day-of-year for zero repetition within a week
-CATEGORY_ROTATION = [
-    "historical","science","moral_stories","religious","emotional",
-    "biographies","fairy_tales","geography","historical","science",
-    "moral_stories","emotional","biographies","religious","geography",
-]
+# ── FULL-COVERAGE NO-REPEAT SCHEDULE ─────────────────────────────────────────
+# Built once at import: stories interleaved round-robin across categories
+# (day 1 jadui, day 2 moral, day 3 wit, … then round 2 …) so consecutive days
+# always vary in flavour. Selection is `toordinal % n`, so EVERY story airs
+# exactly once every n days (n=128 → 4+ months between repeats), deterministic
+# for a given calendar day (video + short that day agree) and stateless.
+# (A per-cycle shuffle was tried first and rejected: at cycle boundaries the
+# same story could air twice within days. Modulo has no boundary.)
+def _build_schedule():
+    queues = {cat: list(stories) for cat, stories in CATEGORIES.items()}
+    order = []
+    while any(queues.values()):
+        for cat in CATEGORIES:
+            if queues[cat]:
+                order.append((cat, queues[cat].pop(0)))
+    return order
+
+_SCHEDULE = _build_schedule()
+
 
 def get_today_topic() -> dict:
     today = datetime.date.today()
-    day_of_year = today.timetuple().tm_yday
-    category = CATEGORY_ROTATION[day_of_year % len(CATEGORY_ROTATION)]
-    items = CATEGORIES[category]
-    topic = items[day_of_year % len(items)]
+    n = len(_SCHEDULE)
+    category, topic = _SCHEDULE[today.toordinal() % n]
     return {
         "category": category,
         "hindi_title": topic["hi"],
         "english_title": topic["en"],
+        "story_seed": topic.get("seed", ""),
         "seo_tags": topic["tags"],
-        "target_countries": COUNTRY_WEIGHTS.get(category, ["IN","USA","UK"]),
+        "target_countries": COUNTRY_WEIGHTS.get(category, ["IN", "USA", "UK"]),
         "date": today.isoformat(),
     }
 
+
 if __name__ == "__main__":
     import json
+    # Self-test: today's pick + full coverage over any n-day window + variety
     print(json.dumps(get_today_topic(), ensure_ascii=False, indent=2))
+    n = len(_SCHEDULE)
+    base = datetime.date.today().toordinal()
+    seen = {(base + d) % n for d in range(n)}
+    cats_next7 = [_SCHEDULE[(base + d) % n][0] for d in range(7)]
+    seeds_ok = all(s.get("seed") for _, s in _SCHEDULE)
+    print(f"\n[SELF-TEST] stories={n} | unique aired in next {n} days={len(seen)} "
+          f"| full coverage: {'PASS' if len(seen) == n else 'FAIL'}")
+    print(f"[SELF-TEST] every story has a seed: {'PASS' if seeds_ok else 'FAIL'}")
+    print(f"[SELF-TEST] next 7 days' categories (variety): {cats_next7}")

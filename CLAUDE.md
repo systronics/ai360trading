@@ -69,7 +69,8 @@ One broken file = zero income that day. Treat every edit as critical.
 | `generate_shorts.py` | v3.8 |
 | `generate_articles.py` | current (no version tag; 2026-07-13 phrase-cooldown + perf block) |
 | `performance_stats.py` | v1.0 (2026-07-13 — History ledger → article performance block, fail-open) |
-| `generate_kids_video.py` | v2.9 |
+| `generate_kids_video.py` | v3.0 (2026-07-13 — story-seed grounding + cold open + completeness retry + CTA/narrator variety) |
+| `kids_content_calendar.py` | v2.0 (2026-07-13 — 128 seeded classic stories + no-repeat 128-day scheduler) |
 
 ### Upload & Distribution
 | File | Version |
