@@ -1,5 +1,9 @@
 """
-upload_kids_youtube.py v2.5 — HerooQuest YouTube Upload
+upload_kids_youtube.py v2.6 — HerooQuest YouTube Upload
+  v2.6 (2026-07-13): build_title() leads with the DEVANAGARI Hindi title +
+    "Hindi Kahaniya | Moral Stories" SEO tail, length-aware ≤100 chars (old
+    code stripped ALL Devanagari from titles for a Hindi audience). EN video
+    format + no-hi fallback unchanged. Full changelog in build_title docstring.
   v2.5 (2026-06-05): build_title() is now LANGUAGE-AWARE — the English video no
     longer gets the "Hindi Moral Story" suffix (was hardcoded). EN → "Heroo's
     Story | … | English Moral Story for Kids"; HI unchanged.

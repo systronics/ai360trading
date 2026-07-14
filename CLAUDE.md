@@ -31,17 +31,20 @@ One broken file = zero income that day. Treat every edit as critical.
 ---
 
 ## CURRENT FILE VERSIONS
-*(Read from actual files — 2026-06-07)*
+*(Read from actual files — 2026-07-14 full audit)*
 
 ### Trading Engine
 | File | Version |
 |---|---|
 | `trading_bot.py` | v15.18 |
+| `entry_quality.py` | v1.0 (reversal veto + target room + composite ranking) |
 | `option_intelligence.py` | v1.0 (Batch 3) |
 | `institutional_edges.py` | v1.0 (Batch 4) |
 | `fetch_earnings.py` | v1.0 (Batch 3, daily 18:30 IST) |
 | `fetch_bhavcopy.py` | v1.0 (Batch 4, Mon-Fri 20:00 IST) |
-| `fetch_smallmidcap.py` | v1.3 (Mon-Fri 20:30 IST — REAL 5d volume + observable tab + SmallMidLive actionable board w/ entry/SL/target) |
+| `fetch_smallmidcap.py` | v1.4 (Mon-Fri 20:30 IST — REAL 5d volume + SmallMidLive board + target floor ≥5% w/ honest R:R) |
+| `fetch_rs.py` | v1.0 (yfinance RS repair feed — keeps Nifty200 RS col alive; GOOGLEFINANCE #N/A killed all scores once) |
+| `fetch_fii_dii.py` | v1.0 (real FII/DII flow → BotMemory MKT_* keys) |
 | `appscript.gs` | v15.18 (LIVE in editor; deploy via `.\deploy_appscript.ps1` — clasp-based, no manual paste) |
 
 ### Long-Term Signals
@@ -58,15 +61,16 @@ One broken file = zero income that day. Treat every edit as critical.
 | `human_touch.py` | v2.2 |
 | `token_refresh.py` | v2.2 |
 | `content_calendar.py` | v2.4 |
+| `money_funnel.py` | current (single source of truth for broker links in CONTENT — Zerodha/Dhan/Groww/CoinDCX) |
 | `indian_holidays.py` | current (no version tag) |
 
 ### Content Generators
 | File | Version |
 |---|---|
-| `generate_education.py` | v1.2 |
+| `generate_education.py` | v1.3 (weekly dup-guard: skips if Week N already on channel) |
 | `generate_reel.py` | v2.4 |
 | `generate_reel_morning.py` | v2.5 |
-| `generate_shorts.py` | v3.8 |
+| `generate_shorts.py` | v3.10 (hook field + weekend 10-theme rotation) |
 | `generate_articles.py` | current (no version tag; 2026-07-13 phrase-cooldown + perf block) |
 | `performance_stats.py` | v1.0 (2026-07-13 — History ledger → article performance block, fail-open) |
 | `generate_kids_video.py` | v3.0 (2026-07-13 — story-seed grounding + cold open + completeness retry + CTA/narrator variety) |
