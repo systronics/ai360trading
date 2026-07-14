@@ -1,6 +1,18 @@
 """
 generate_shorts.py — AI360Trading
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v3.11 (2026-07-14): RETENTION PACK — completion-rate is the Shorts algorithm's
+  #1 signal and our avg watch time was stuck at ~0:17 on ~45s videos.
+  1. SCRIPTS CUT to ~20-25s (55-70 words, was 80-100): a short people FINISH
+     beats a long one they abandon.
+  2. PAYOFF-AT-END structure: the hook opens a question; the prompt now forces
+     the answer/most-valuable line to be the FINAL sentence (hold to the end).
+  3. MOTION on the frame: slow Ken Burns zoom (1.0→1.08 over the video) on the
+     previously 100% static info-card — screen now visibly moves the whole time.
+     Fully fail-open → any error renders the old static frame.
+  4. Spoken CTA tightened to ~2s (long like/share/subscribe tail was where
+     viewers swiped out; the description/pinned comment still carry the funnel).
+
 v3.10 (2026-06-08): Weekend shorts used ONE hardcoded prompt → near-identical
   "patience/discipline" videos every weekend. Added _WEEKEND_THEMES rotation
   (by ISO week); short2 and short3 now teach different weekly themes for variety.
@@ -85,7 +97,7 @@ import requests
 import yfinance as yf
 from PIL import Image, ImageDraw, ImageFont
 import edge_tts
-from moviepy.editor import ImageClip, AudioFileClip
+from moviepy.editor import ImageClip, AudioFileClip, CompositeVideoClip
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
@@ -546,7 +558,7 @@ def generate_short2_script(market: dict, part1_url: str) -> dict:
 
     cta = f"Full analysis: {part1_url}" if part1_url else "Subscribe for daily signals!"
 
-    prompt = f"""Create a 45-second HINGLISH trading short script for Indian retail traders.
+    prompt = f"""Create a 20-25 second HINGLISH trading short script for Indian retail traders.
 HINGLISH = Hindi + English mixed, written in Roman/Latin script (NOT Devanagari) —
 the natural way Indian traders talk: Hindi sentence flow with English trading terms
 (support, resistance, breakout, target, stop-loss, trend). This keeps the core
@@ -565,7 +577,7 @@ Return ONLY valid JSON:
   "sl":      "Stop loss or action",
   "horizon": "Timeframe",
   "insight": "One powerful insight sentence (English, max 15 words)",
-  "script":  "45-second Hinglish spoken script 80-100 words. MUST open with a punchy 1-line hook (a number, result or bold question) in the first 2 seconds, then deliver the value.",
+  "script":  "20-25 second Hinglish spoken script, 55-70 words MAX. STRUCTURE (completion-rate rules): (1) open with a punchy 1-line QUESTION or bold claim that creates suspense in the first 2 seconds; (2) 2-3 short value sentences; (3) THE ANSWER/PAYOFF to the opening question MUST be the FINAL sentence — the single most valuable line comes LAST so viewers hold to the end. ONE idea only, never three.",
   "hashtags": "exactly 5 sharp tags, mix broad + niche e.g. #Nifty50 #ShareMarket #Intraday #StockMarketIndia #ai360trading"
 }}"""
 
@@ -602,7 +614,7 @@ def generate_short3_script(market: dict) -> dict:
     else:
         mkt_context = f"Nifty:{nifty_val} | BTC:{btc_val} | Gold:{gold_val} | S&P500:{sp5_val} | USD/INR:{inr_val}"
 
-    prompt = f"""Create a 45-second ENGLISH global market pulse script for Indian traders.
+    prompt = f"""Create a 20-25 second ENGLISH global market pulse script for Indian traders.
 Market data: {mkt_context}
 
 LANGUAGE RULE: English ONLY. Do NOT use Hindi words or Devanagari script — this
@@ -614,7 +626,7 @@ Return ONLY valid JSON:
   "title": "Global Market Pulse — short title",
   "sentiment": "bullish or bearish or neutral",
   "insight": "One key market insight sentence (English, max 15 words)",
-  "script": "45-second ENGLISH-ONLY script 80-100 words (no Hindi words). MUST open with a punchy 1-line hook (a number or bold question) in the first 2 seconds, then global context. Plain text only — no markdown or asterisks.",
+  "script": "20-25 second ENGLISH-ONLY script, 55-70 words MAX (no Hindi words). STRUCTURE (completion-rate rules): (1) open with a punchy 1-line QUESTION or bold claim in the first 2 seconds; (2) 2-3 short value sentences; (3) THE ANSWER/PAYOFF to the opening question MUST be the FINAL sentence so viewers hold to the end. ONE idea only. Plain text only — no markdown or asterisks.",
   "hashtags": "#GlobalMarkets #Bitcoin #Gold #SP500 #ai360trading"
 }}"""
 
@@ -660,11 +672,13 @@ async def gen_tts_async(text: str, voice: str, path: str):
 def gen_tts(text: str, voice: str, path: str):
     asyncio.run(gen_tts_async(text, voice, path))
 
-# Spoken like/share/subscribe call-to-action appended to every voiced script so
-# every short/reel audibly asks for engagement (shares + subs lift the algorithm).
+# Spoken subscribe call-to-action appended to every voiced script.
+# v3.11: tightened to ~2s — on a 25s short a 4-5s like/share/subscribe tail was
+# where viewers swiped out (killing completion rate, the algorithm's #1 signal).
+# The description + pinned comment still carry the full funnel.
 _CTA_AUDIO = {
-    "hi": " Video pasand aaye toh like, share aur subscribe zaroor karein.",
-    "en": " If this helped you, like, share and subscribe for daily market updates.",
+    "hi": " Roz ka setup chahiye? Subscribe karein.",
+    "en": " Daily setups — subscribe.",
 }
 def _with_cta(script: str, lang: str = "hi") -> str:
     s   = (script or "").strip()
@@ -697,6 +711,23 @@ def render_short(frame_path: Path, audio_path: str, out_path: str, spoken_text: 
     audio_clip = AudioFileClip(audio_path)
     duration   = audio_clip.duration + 0.5
     video      = ImageClip(str(frame_path)).set_duration(duration)
+
+    # v3.11 MOTION (retention): slow Ken Burns zoom 1.0→1.08 across the video so
+    # the previously 100% static info-card visibly moves the whole time — motion
+    # is what stops the swipe reflex after the hook. Centered composite keeps the
+    # frame edge-to-edge while it grows. FULLY FAIL-OPEN → static frame on error.
+    try:
+        # moviepy 1.0.3 resize still calls Image.ANTIALIAS (removed in Pillow 10+)
+        from PIL import Image as _PILImage
+        if not hasattr(_PILImage, "ANTIALIAS"):
+            _PILImage.ANTIALIAS = _PILImage.LANCZOS
+        _d = max(duration, 0.1)
+        zoomed = video.resize(lambda t: 1.0 + 0.08 * (t / _d)).set_position(("center", "center"))
+        video  = CompositeVideoClip([zoomed], size=(SW, SH)).set_duration(duration)
+        print("  ✅ Ken Burns motion applied")
+    except Exception as e:
+        print(f"  ⚠️ motion skipped (fail-open, static frame): {e}")
+        video = ImageClip(str(frame_path)).set_duration(duration)
 
     # Build an .srt subtitle track (for YouTube auto-translate). Cues are
     # offset by the hook length so they stay in sync with the shifted audio.
