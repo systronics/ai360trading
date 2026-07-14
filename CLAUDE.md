@@ -70,7 +70,7 @@ One broken file = zero income that day. Treat every edit as critical.
 | `generate_education.py` | v1.3 (weekly dup-guard: skips if Week N already on channel) |
 | `generate_reel.py` | v2.4 |
 | `generate_reel_morning.py` | v2.5 |
-| `generate_shorts.py` | v3.10 (hook field + weekend 10-theme rotation) |
+| `generate_shorts.py` | v3.11 (2026-07-14 retention pack: 20-25s payoff-at-end scripts + Ken Burns motion + 2s CTA) |
 | `generate_articles.py` | current (no version tag; 2026-07-13 phrase-cooldown + perf block) |
 | `performance_stats.py` | v1.0 (2026-07-13 — History ledger → article performance block, fail-open) |
 | `generate_kids_video.py` | v3.0 (2026-07-13 — story-seed grounding + cold open + completeness retry + CTA/narrator variety) |
