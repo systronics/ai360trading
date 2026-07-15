@@ -1,6 +1,23 @@
 """
-AI360 TRADING BOT — v15.18
+AI360 TRADING BOT — v15.19
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v15.19 CHANGES vs v15.18 — DEAD SAFETY-FILTER DATA FEEDS REVIVED (2026-07-15)
+  Live-log analysis found TWO protective entry filters silently dead for every
+  tick (both fail-open by design, so they always said "entry allowed"):
+  1. NIFTY DIRECTION VETO — Nifty200!D2 (NIFTY50 %Change) has NO formula (cell
+     is empty; only stock rows got the changepct formula), and the yfinance
+     fast_info fallback returns nothing on GitHub runners WITHOUT raising — so
+     nifty_pct was 0.00 every tick and the red-day veto (NIFTY_MIN_PCT_BULLISH
+     -0.30) could NEVER fire. Fixed twice: D2 got a real GOOGLEFINANCE changepct
+     formula (sheet-side), and get_nifty_pct_change() gained a .history()-based
+     fallback — the same yfinance call get_rsi() uses, proven working on CI.
+  2. INDIA VIX FILTER — get_india_vix() used the same silently-empty fast_info,
+     so VIX was 0.0 every tick ("VIX unavailable — entry allowed") and the
+     panic-day gate (VIX_MAX 22) could never fire. Same .history() fallback.
+  No entry math, SL, trailing, ranking or alert behaviour touched. Both feeds
+  stay fail-open (any error → 0.0 → entry allowed), exactly as before — they
+  just actually carry data now.
+
 v15.18 CHANGES vs v15.17 — HISTORY ENTRY-DATE FIX (2026-07-13)
   Bug found in full-system audit: _exit_trade wrote today_str (the EXIT date)
   into BOTH the "Entry Date" AND "Exit Date" columns of the History sheet, so
@@ -711,6 +728,21 @@ def get_nifty_pct_change(nifty_sheet) -> float:
             return pct
     except Exception as e:
         print(f"[NIFTY] yfinance: {e}")
+    # v15.19: fast_info returns nothing on GitHub runners without raising —
+    # fall back to .history(), the same call get_rsi() uses (proven on CI).
+    # Intraday the last daily candle's Close tracks the live price, so
+    # last-vs-previous close = today's % change.
+    try:
+        import yfinance as yf
+        df = yf.Ticker("^NSEI").history(period="5d", interval="1d")
+        if len(df) >= 2:
+            prev = float(df["Close"].iloc[-2]); curr = float(df["Close"].iloc[-1])
+            if prev > 0 and curr > 0:
+                pct = round(((curr - prev) / prev) * 100, 2)
+                print(f"[NIFTY] {pct:+.2f}% from yfinance history")
+                return pct
+    except Exception as e:
+        print(f"[NIFTY] yfinance history: {e}")
     return 0.0
 
 
@@ -735,6 +767,14 @@ def get_india_vix() -> float:
         if val > 0:
             print(f"[VIX] India VIX = {val:.2f}")
             return round(val, 2)
+        # v15.19: fast_info returns nothing on GitHub runners without raising —
+        # fall back to .history() (same proven call as get_rsi / nifty pct).
+        df = t.history(period="5d", interval="1d")
+        if not df.empty:
+            val = float(df["Close"].iloc[-1])
+            if val > 0:
+                print(f"[VIX] India VIX = {val:.2f} (history)")
+                return round(val, 2)
         return 0.0
     except ImportError:
         print("[VIX] yfinance not installed"); return 0.0
@@ -1991,7 +2031,7 @@ def send_good_morning(log_sheet, mem, is_bullish, nifty_cmp, nifty_dma, nifty_pc
         f"{window}\n"
         f"RSI filter: < {RSI_MAX_BULLISH if is_bullish else RSI_MAX_BEARISH} | Re-entry: {REENTRY_COOLDOWN_DAYS}d cooldown after target\n\n"
         f"{'Watching: ' + ', '.join(waiting_stocks[:5]) if waiting_stocks else 'No WAITING stocks'}\n\n"
-        f"<i>v15.18 — entry-quality: reversal veto + resistance-room veto + loss cooldown + best-of ranking</i>"
+        f"<i>v15.19 — entry-quality: reversal veto + resistance-room veto + loss cooldown + best-of ranking</i>"
     )
     watchlist_line = f"📋 Watchlist: {waiting} stock(s) identified today" if waiting else "📋 No setups in watchlist yet — scan runs at market open"
     msg_basic = (

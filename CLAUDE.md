@@ -36,7 +36,7 @@ One broken file = zero income that day. Treat every edit as critical.
 ### Trading Engine
 | File | Version |
 |---|---|
-| `trading_bot.py` | v15.18 |
+| `trading_bot.py` | v15.19 (2026-07-15: Nifty %change + VIX feeds revived — were silently dead, filters never fired) |
 | `entry_quality.py` | v1.0 (reversal veto + target room + composite ranking) |
 | `option_intelligence.py` | v1.0 (Batch 3) |
 | `institutional_edges.py` | v1.0 (Batch 4) |
