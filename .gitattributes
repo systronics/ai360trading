@@ -1,0 +1,7 @@
+
+# Windows batch/PowerShell files MUST have CRLF line endings — cmd.exe
+# mis-parses LF-only .bat files (smartsync.bat was silently broken by this
+# until 2026-07-15: every echo/git line failed with "'ho' is not recognized").
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
