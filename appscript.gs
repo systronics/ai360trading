@@ -1,6 +1,18 @@
 /**
- * AI360 TRADING — APPSCRIPT v15.18
+ * AI360 TRADING — APPSCRIPT v15.19
  * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ * v15.19 CHANGES (2026-07-15) — RS LEADERSHIP PRE-SCREEN AT QUEUE TIME
+ *   Owner-approved funnel fix: the Python bot hard-vetoes any non-cash entry
+ *   with sheet RS < 5, but the scanner queued candidates WITHOUT checking RS
+ *   (old GATE 3 fired only for breakout stage AND only when rs > 0 — negative
+ *   RS slipped through because the guard treated it as "missing", though on
+ *   the ±% RS scale negative IS real data). Result: WAITING slots filled with
+ *   names the bot could never buy (0 entries for ~2.5 weeks, July 2026) and
+ *   the Telegram candidate lists misled manual followers. GATE 3 now applies
+ *   the same RS ≥ LATE_ENTRY_MIN_RS(5) screen to ALL bullish candidates;
+ *   blank/unparseable RS stays fail-open; bearish path (own RS≥15 block) and
+ *   cash intraday (news-driven, RS-exempt in the bot too) are unchanged.
+ *
  * v15.18 CHANGES (2026-06-05) — BIGGER+SAFER TARGETS + OPTION LOSS CAP
  *   Owner directive: "minimum stop-loss, maximum target above 5%, no big loss
  *   on option buying." (1) Reachability-aware +5% target FLOOR on multi-day
@@ -759,7 +771,7 @@ function _sendOptionsAlertPremium(sym, cmp, optSignal, stage, sl, target, rr, bm
     `❌ Do NOT average down on options\n` +
     `❌ Do NOT hold past expiry week\n` +
     `${tradeNote}\n\n` +
-    `<i>Educational only. Not SEBI advice. v15.18</i>`;
+    `<i>Educational only. Not SEBI advice. v15.19</i>`;
 
   _sendTelegramPremium(msg);
   _bmSet(ss, bm, flagKey, "1", sym, "FLAG");
@@ -1004,7 +1016,7 @@ function sendDailySummary() {
     `📊 <b>MARKET SUMMARY</b>\n━━━━━━━━━━━━━━━━━━━━\n` +
     `🔹 <b>Active Trades:</b> ${traded}/${CONFIG.MAX_TRADES}\n` +
     `🔸 <b>Waiting Slots:</b> ${waiting}\n` +
-    `✅ <i>System: Online v15.18</i>`
+    `✅ <i>System: Online v15.19</i>`
   );
 }
 
@@ -1364,8 +1376,20 @@ function _runScanner(startRow, endRow) {
       if (!validSignals.includes(signal) || useScore < CONFIG.MIN_PRIORITY) continue;
     }
 
-    // GATE 3: Late Entry Block
-    if (isBreakoutStage && rs > 0 && rs < CONFIG.LATE_ENTRY_MIN_RS) continue;
+    // GATE 3 (v15.19): RS LEADERSHIP PRE-SCREEN — parity with the Python bot.
+    // The bot hard-vetoes ANY non-cash entry with sheet RS < 5 (Filter 7), so
+    // queuing weaker names only fills WAITING slots the bot can never buy
+    // (July 2026: 0 entries for ~2.5 weeks — every queued candidate died at
+    // the bot's RS or RSI gate; the board misled manual followers too).
+    // The old gate only fired for breakout stage AND required rs > 0, so a
+    // NEGATIVE RS (e.g. ABB −7 on 2026-07-15) slipped straight through — on
+    // this ±% scale negative RS is real data (laggard), not "missing".
+    // Blank/unparseable RS stays fail-open (queued as before). Applies to
+    // bullish regime only (bearish path has its own stricter RS≥15 block);
+    // cash intraday never reaches here (bot exempts it from RS as well).
+    const rsRaw = (r[20] === null || r[20] === undefined) ? "" : r[20].toString().trim();
+    const rsIsNum = rsRaw !== "" && !isNaN(parseFloat(rsRaw));
+    if (marketBullish && rsIsNum && rs < CONFIG.LATE_ENTRY_MIN_RS) continue;
 
     // GATE 4: Price Validity
     if (cmp <= 0 || atr <= 0) continue;
@@ -1963,7 +1987,7 @@ function sendWeeklySummary() {
   if (best)              msg += `🏆 Best:  <b>${best[0]}</b> ₹${Math.round(parseFloat(best[16])  || 0)}\n`;
   if (worst && worst !== best) msg += `💀 Worst: <b>${worst[0]}</b> ₹${Math.round(parseFloat(worst[16]) || 0)}\n`;
   msg += `\n📌 Open: ${openTrades.length}/${CONFIG.MAX_TRADES}\n`;
-  msg += `<i>AI360 Trading v15.18 — Base + Breakout + Momentum + Options (Last-Tue expiry)</i>`;
+  msg += `<i>AI360 Trading v15.19 — Base + Breakout + Momentum + Options (Last-Tue expiry)</i>`;
   _sendTelegramAdvanceAndPremium(msg);
 
   // Basic channel — weekly social proof to build trust and drive upgrades

@@ -30,12 +30,19 @@ VOL_MULTIPLE_MIN       = 1.5    # today's volume / 20D-avg must be ≥ this
 VOL_BYPASS_PCT_CHANGE  = 3.0    # if stock up this much, bypass volume check (price = volume proof,
                                 # and the sheet's Volume_vs_Avg_% is end-of-day stale intraday —
                                 # matches AppScript scanner's _checkMomentumBreakout logic).
-# RS scale clarification — verified 2026-05-27 against appscript.gs CONFIG:
-#   The Nifty200 'RS' column is a 0-100 SCORE, not a simple stock_pct - nifty_pct percent.
-#   AppScript uses thresholds: LATE_ENTRY_MIN_RS=5, MOMENTUM_BREAKOUT_MIN_RS=10, BEARISH_MIN_RS=15.
-#   So the meaningful "stock is leading" floor is RS ≥ 5 (matches AppScript LATE_ENTRY_MIN_RS).
-#   When prev-close math fallback is used (sheet RS missing), the value IS a simple % difference;
-#   the same threshold is reused as a leniency choice — a true 5% intraday leader is rare.
+# RS scale clarification — CORRECTED 2026-07-15 (the 2026-05-27 note claiming a
+# "0-100 SCORE" was wrong / became wrong when fetch_rs.py took over the column):
+#   The Nifty200 'RS' column is a ±% DIFFERENTIAL written daily by fetch_rs.py:
+#   (stock 35-calendar-day % return) − (NIFTYBEES 35-day % return). Live range
+#   observed ≈ −29..+39; ~50 of 205 stocks ≥ +5 on a normal day. So RS_MIN_PCT=5.0
+#   means "outperformed the index by ≥5% over 35 days" — a top-quartile leadership
+#   demand. VALIDATED 2026-07-15 against all 13 closed trades: every target-hit
+#   winner passed (+8..+42) and 2 of the 5 losers were correctly below it.
+#   AppScript thresholds on the same column: LATE_ENTRY_MIN_RS=5 (queue pre-screen
+#   since v15.19), MOMENTUM_BREAKOUT_MIN_RS=10, bearish block RS≥15.
+#   When prev-close math fallback is used (sheet RS missing), the value is a simple
+#   INTRADAY stock−Nifty % difference; the same 5.0 floor applies (a true 5%
+#   intraday leader is rare — deliberately strict leniency choice).
 FII_NET_SELL_BLOCK_CR  = -2000  # block new longs if FII cash net < this (₹ Cr)
 FII_NET_BUY_BLOCK_CR   = 2000   # block new shorts if FII cash net > this (₹ Cr)
 PCR_BULLISH_MAX        = 1.4    # PCR > this = bearish bias, soft-warn

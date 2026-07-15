@@ -1,6 +1,24 @@
 """
-AI360 TRADING BOT — v15.19
+AI360 TRADING BOT — v15.20
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v15.20 CHANGES vs v15.19 — CALIBRATED RSI HOT-LEADER EXCEPTION (2026-07-15)
+  Owner-approved after a data study of all 13 closed trades (entry-day RSI /
+  volume / close-strength reconstructed via yfinance):
+  • NOT ONE loser entered overbought — losers' entry RSI was 37-62, so the
+    RSI>65 hard veto (v15.10) never prevented a single actual loss.
+  • 3 of the 6 target-hit winners entered at RSI 65-82 (BSE 73.3, IDEA 82.3,
+    ADANIPORTS 65.4), and NYKAA — which the owner traded MANUALLY for a real
+    profit on 2026-07-15 — was refused by the bot at RSI 72.7. The veto was
+    blocking exactly the explosive-momentum winner profile.
+  • The RS≥5 leadership gate was ALSO validated by the same study (all 6
+    target winners pass, 2 of 5 losers correctly blocked) — it is UNTOUCHED.
+  Change: in a BULLISH regime, RSI 65..RSI_HOT_MAX(75) no longer hard-blocks
+  IF the stock is up on the day (cp > yesterday's close from `_LP_` memory —
+  buying strength, not a fading bounce). Fail-CLOSED when day-change data is
+  missing; RSI > 75 remains a hard block (climax chase); bearish regime
+  unchanged (58 hard cap). One condition relaxed, with guards — no other
+  filter, SL, target, trailing or alert logic touched.
+
 v15.19 CHANGES vs v15.18 — DEAD SAFETY-FILTER DATA FEEDS REVIVED (2026-07-15)
   Live-log analysis found TWO protective entry filters silently dead for every
   tick (both fail-open by design, so they always said "entry allowed"):
@@ -404,6 +422,7 @@ MIN_HOLD_POS           = 3
 TSL_GAP_LOCK_FRAC      = 0.5
 
 RSI_MAX_BULLISH        = 65
+RSI_HOT_MAX            = 75   # v15.20: RSI 65-75 allowed in bullish regime IF stock is up today (calibrated 2026-07-15 — see check_rsi_entry)
 RSI_MAX_BEARISH        = 58
 NIFTY_MIN_PCT_BULLISH  = -0.30
 NIFTY_MIN_PCT_BEARISH  = 0.00
@@ -693,11 +712,23 @@ def get_rsi(symbol: str, period: int = 14) -> float:
         print(f"[RSI] {symbol}: {e}"); return -1
 
 
-def check_rsi_entry(symbol: str, is_bullish: bool) -> tuple:
+def check_rsi_entry(symbol: str, is_bullish: bool, day_pct=None) -> tuple:
     rsi       = get_rsi(symbol)
     if rsi < 0: return True, rsi, "RSI unavailable — entry allowed"
     threshold = RSI_MAX_BULLISH if is_bullish else RSI_MAX_BEARISH
     if rsi > threshold:
+        # v15.20 CALIBRATED EXCEPTION (2026-07-15 study of all 13 closed trades):
+        # NO historical loser entered overbought (losers' entry RSI was 37-62 —
+        # this veto never prevented a single actual loss), while 3 of the 6
+        # target-hit winners entered at RSI 65-82 (BSE 73.3, IDEA 82.3,
+        # ADANIPORTS 65.4) and NYKAA (owner's profitable manual trade,
+        # 2026-07-15) was refused at 72.7. Momentum leaders ARE hot at breakout.
+        # So: in a BULLISH regime, RSI up to RSI_HOT_MAX is allowed IF the stock
+        # is UP on the day (buying strength, not a fading bounce). Fail-CLOSED:
+        # if day change is unknown the old veto stands. RSI > RSI_HOT_MAX stays
+        # a hard block (climax chase — IDEA-at-82 style luck is not a strategy).
+        if is_bullish and rsi <= RSI_HOT_MAX and day_pct is not None and day_pct > 0:
+            return True, rsi, f"RSI {rsi} hot but ≤ {RSI_HOT_MAX} + stock up {day_pct:+.1f}% today — momentum leader ✅"
         return False, rsi, f"RSI {rsi} > {threshold} — overbought, skip"
     zone = "oversold" if rsi < 35 else ("healthy" if rsi < 55 else "extended")
     return True, rsi, f"RSI {rsi} — {zone} ✅"
@@ -878,7 +909,13 @@ def check_all_entry_filters(sym, mem, key, is_bullish, now, nifty_pct, today_ent
         return False, reasons, -1
 
     # Filter 6: RSI (API call — only if 1-5 passed)
-    allowed, rsi_val, msg = check_rsi_entry(sym, is_bullish)
+    # v15.20: pass today's % change (cp vs yesterday's close from `_LP_` memory,
+    # the same source Filters 7/8 use) so the hot-but-leading exception can
+    # verify the stock is actually up today. Missing data → None → fail-closed
+    # inside check_rsi_entry (old hard veto stands).
+    _pc = get_last_price(mem, key)
+    day_pct = ((cp - _pc) / _pc) * 100 if (_pc > 0 and cp > 0) else None
+    allowed, rsi_val, msg = check_rsi_entry(sym, is_bullish, day_pct)
     reasons.append(f"[RSI] {msg}")
     if not allowed:
         return False, reasons, rsi_val
@@ -2029,9 +2066,9 @@ def send_good_morning(log_sheet, mem, is_bullish, nifty_cmp, nifty_dma, nifty_pc
         f"Nifty: ₹{nifty_cmp:.0f} | 20DMA: ₹{nifty_dma:.0f} | {nifty_pct:+.2f}%\n\n"
         f"📊 Active: {traded}/{MAX_TRADES} | Watching: {waiting}\n"
         f"{window}\n"
-        f"RSI filter: < {RSI_MAX_BULLISH if is_bullish else RSI_MAX_BEARISH} | Re-entry: {REENTRY_COOLDOWN_DAYS}d cooldown after target\n\n"
+        f"RSI filter: < {RSI_MAX_BULLISH if is_bullish else RSI_MAX_BEARISH}{f' (leaders up on the day allowed to {RSI_HOT_MAX:.0f})' if is_bullish else ''} | Re-entry: {REENTRY_COOLDOWN_DAYS}d cooldown after target\n\n"
         f"{'Watching: ' + ', '.join(waiting_stocks[:5]) if waiting_stocks else 'No WAITING stocks'}\n\n"
-        f"<i>v15.19 — entry-quality: reversal veto + resistance-room veto + loss cooldown + best-of ranking</i>"
+        f"<i>v15.20 — entry-quality: reversal veto + resistance-room veto + loss cooldown + best-of ranking</i>"
     )
     watchlist_line = f"📋 Watchlist: {waiting} stock(s) identified today" if waiting else "📋 No setups in watchlist yet — scan runs at market open"
     msg_basic = (
