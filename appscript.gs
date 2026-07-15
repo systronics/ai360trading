@@ -1,6 +1,23 @@
 /**
- * AI360 TRADING — APPSCRIPT v15.19
+ * AI360 TRADING — APPSCRIPT v15.20
  * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ * v15.20 CHANGES (2026-07-15) — OPTION-ALERT SAFETY PACK (owner-approved)
+ *   1. EARNINGS BLOCK on the night-scan premium option alert — mirrors the
+ *      Python entry-time check (EARNINGS_{SYM}_{date} BotMemory keys from
+ *      fetch_earnings.py, window yesterday..+3d). IV crush protection for
+ *      the alert paying subscribers actually act on. Fail-open.
+ *   2. STRIKE FIX — _roundToStrike Math.ceil→Math.round (the old "ATM" was
+ *      always one step OTM), and breakout signals no longer pick an OTM
+ *      strike ~1 ATR away (theta trap; contradicted the ITM entry-time
+ *      block). Night alert now always suggests true ATM; the final ITM pick
+ *      comes with the entry alert.
+ *   3. HONEST VIX — fetch failure returned a fake 14.0 that rendered as
+ *      "✅ VIX 14.0 — good to buy"; now returns 0 → displays show "n/a" via
+ *      _vixStr() and the option gate warns "verify India VIX before buying".
+ *   (4. Python side, same session: option_intelligence v1.1 — bearish regime
+ *      now SKIPs options entirely; the old PE path recommended a PUT on a
+ *      stock the system had just bought long. Buy-side only per owner.)
+ *
  * v15.19 CHANGES (2026-07-15) — RS LEADERSHIP PRE-SCREEN AT QUEUE TIME
  *   Owner-approved funnel fix: the Python bot hard-vetoes any non-cash entry
  *   with sheet RS < 5, but the scanner queued candidates WITHOUT checking RS
@@ -616,9 +633,14 @@ function _getIndiaVix(inputData) {
       if (vix > 5 && vix < 100) { Logger.log(`[VIX] Live: ${vix.toFixed(1)}`); return parseFloat(vix); }
     }
   } catch(e) { Logger.log("[VIX] Fetch failed: " + e); }
-  Logger.log("[VIX] Using fallback 14.0");
-  return 14.0;
+  // v15.20: was `return 14.0` — the fake fallback made alerts print
+  // "✅ VIX 14.0 — good to buy" as if it were live data. 0 = honest "unknown";
+  // display sites use _vixStr() and the options gate fails open with a warning.
+  Logger.log("[VIX] Unavailable — returning 0 (displays show n/a)");
+  return 0;
 }
+
+function _vixStr(v) { return v > 0 ? v.toFixed(1) : "n/a"; }
 
 function _getRecommendedExpiry(minDays) {
   // v15.14: walks forward month-by-month from today, generating last-Tuesday
@@ -640,7 +662,10 @@ function _getRecommendedExpiry(minDays) {
   return { date: fb, daysLeft: Math.floor((fb - now) / MS_DAY) };
 }
 
-function _roundToStrike(price, interval) { return Math.ceil(price / interval) * interval; }
+// v15.20: was Math.ceil — always rounded UP, so the "ATM" strike was really
+// 1 step OUT-of-the-money (NYKAA CMP 322 → "ATM" 330 = 2.4% OTM, the riskier
+// theta-heavy pick). Math.round = the genuinely nearest strike.
+function _roundToStrike(price, interval) { return Math.round(price / interval) * interval; }
 
 function _getStrikeInterval(cmp) {
   if (cmp < 250)  return 5;
@@ -678,7 +703,11 @@ function _generateOptionsSignal(sym, cmp, atr, stage, pctChange, vix, isBaseEntr
 
   const vixLimit = isBaseEntry ? OPTIONS_CONFIG.VIX_MAX_BUY_BASE : OPTIONS_CONFIG.VIX_MAX_BUY;
   let vixLabel = "";
-  if (vix > OPTIONS_CONFIG.VIX_AVOID) {
+  if (vix <= 0) {
+    // v15.20: VIX fetch failed — fail-open but say so honestly instead of
+    // pretending a fake 14.0 is "good to buy".
+    vixLabel = "⚠️ VIX unavailable — verify India VIX < 18 before buying";
+  } else if (vix > OPTIONS_CONFIG.VIX_AVOID) {
     result.signal  = "❌ VIX HIGH";
     result.message = `VIX ${vix.toFixed(1)} > ${OPTIONS_CONFIG.VIX_AVOID} — skip`;
     return result;
@@ -708,14 +737,13 @@ function _generateOptionsSignal(sym, cmp, atr, stage, pctChange, vix, isBaseEntr
 
   const interval  = _getStrikeInterval(cmp);
   const atmStrike = _roundToStrike(cmp, interval);
-  const otmStrike = _roundToStrike(cmp + atr, interval);
 
-  let useStrike;
-  if (isBaseEntry) {
-    useStrike = atmStrike;
-  } else {
-    useStrike = (atmStrike - cmp) <= (atr * 0.5) ? otmStrike : atmStrike;
-  }
+  // v15.20: ALWAYS suggest ATM (was: breakouts often got an OTM strike ~1 ATR
+  // away — the theta-bleed retail trap, and it contradicted the entry-time
+  // smart block which recommends ITM). Owner rule = "option no big loss":
+  // ATM here at night, and the entry alert's option_intelligence block gives
+  // the final ITM pick (~0.7Δ) when the trade actually triggers.
+  const useStrike = atmStrike;
 
   const expiryMonth = expiryStr.substring(3, 6);
   const strikeStr   = `${useStrike} CE ${expiryMonth}`;
@@ -735,6 +763,24 @@ function _sendOptionsAlertPremium(sym, cmp, optSignal, stage, sl, target, rr, bm
 
   if (_bmExists(bm, flagKey)) return;
   if (optSignal.signal !== "📊 BUY CE" && optSignal.signal !== "📦 BASE CE") return;
+
+  // v15.20: EARNINGS WINDOW BLOCK — the Python entry-time block already skips
+  // options within 3 days of results (IV crush eats the premium even when the
+  // stock moves right), but THIS night-scan premium alert — the one paying
+  // subscribers act on — had no earnings check at all. fetch_earnings.py
+  // writes EARNINGS_{SYM}_{yyyy-MM-dd} keys into BotMemory daily; mirror the
+  // Python check (yesterday .. +3 days). Fail-open: no keys → alert goes out.
+  try {
+    const symClean = sym.replace("NSE:", "").trim().toUpperCase();
+    const MS_DAY = 1000 * 60 * 60 * 24;
+    for (let o = -1; o <= 3; o++) {
+      const ds = Utilities.formatDate(new Date(Date.now() + o * MS_DAY), CONFIG.IST_ZONE, "yyyy-MM-dd");
+      if (_bmExists(bm, `EARNINGS_${symClean}_${ds}`)) {
+        Logger.log(`[OPTIONS] ${sym}: earnings on ${ds} — premium option alert SKIPPED (IV-crush risk)`);
+        return;
+      }
+    }
+  } catch(e) { Logger.log("[OPTIONS] earnings check error (fail-open): " + e); }
 
   const isBase    = optSignal.signal === "📦 BASE CE";
   const typeLabel = isBase ? "📦 BASE OPTIONS SIGNAL" : "📊 OPTIONS SIGNAL";
@@ -771,7 +817,7 @@ function _sendOptionsAlertPremium(sym, cmp, optSignal, stage, sl, target, rr, bm
     `❌ Do NOT average down on options\n` +
     `❌ Do NOT hold past expiry week\n` +
     `${tradeNote}\n\n` +
-    `<i>Educational only. Not SEBI advice. v15.19</i>`;
+    `<i>Educational only. Not SEBI advice. v15.20</i>`;
 
   _sendTelegramPremium(msg);
   _bmSet(ss, bm, flagKey, "1", sym, "FLAG");
@@ -1016,7 +1062,7 @@ function sendDailySummary() {
     `📊 <b>MARKET SUMMARY</b>\n━━━━━━━━━━━━━━━━━━━━\n` +
     `🔹 <b>Active Trades:</b> ${traded}/${CONFIG.MAX_TRADES}\n` +
     `🔸 <b>Waiting Slots:</b> ${waiting}\n` +
-    `✅ <i>System: Online v15.19</i>`
+    `✅ <i>System: Online v15.20</i>`
   );
 }
 
@@ -1235,7 +1281,7 @@ function _runScanner(startRow, endRow) {
 
   // v15.6 FIX 5: Detect sector momentum — only if BULLISH (saves time in bearish)
   const momentumSectors = marketBullish ? _detectMomentumSectors(inputData) : new Set();
-  Logger.log(`[v15.6] VIX=${indiaVix.toFixed(1)} | MomentumSectors: ${[...momentumSectors].join(', ') || 'none'}`);
+  Logger.log(`[v15.6] VIX=${_vixStr(indiaVix)} | MomentumSectors: ${[...momentumSectors].join(', ') || 'none'}`);
 
   let batchCands = [];
   let cashCands  = [];   // Cash Intraday candidates — separate from swing/positional
@@ -1669,7 +1715,7 @@ function _runScanner(startRow, endRow) {
         `⚠️ <b>MARKET REGIME: BEARISH</b>\n` +
         `Nifty ₹${niftyCmp.toFixed(0)} below 20DMA ₹${nifty20d.toFixed(0)}\n` +
         `v15.17 HARD BLOCK: Max ${maxWaitingSlots} slots | Score≥${CONFIG.BEARISH_HARD_MIN_SCORE} only\n` +
-        `VIX: ${indiaVix.toFixed(1)}\n`;
+        `VIX: ${_vixStr(indiaVix)}\n`;
       if (momentumSectors.size > 0) regimeMsg += `🚀 Momentum sectors: ${[...momentumSectors].join(', ')}\n`;
       if (topSector) regimeMsg += `🔄 Strongest: ${topSector} (AF: ${topAf.toFixed(1)})\n`;
       if (finalWaiting.length > 0) {
@@ -1683,7 +1729,7 @@ function _runScanner(startRow, endRow) {
     } else {
       regimeMsg =
         `🟢 <b>SCANNER DONE — ${today}</b>\n` +
-        `Nifty ₹${niftyCmp.toFixed(0)} | 20DMA ₹${nifty20d.toFixed(0)} | VIX: ${indiaVix.toFixed(1)}\n`;
+        `Nifty ₹${niftyCmp.toFixed(0)} | 20DMA ₹${nifty20d.toFixed(0)} | VIX: ${_vixStr(indiaVix)}\n`;
       if (momentumSectors.size > 0) regimeMsg += `🚀 Sector momentum: ${[...momentumSectors].join(', ')}\n`;
       if (topSector) regimeMsg += `🔄 Strongest: ${topSector} (AF: ${topAf.toFixed(1)})\n`;
       if (finalWaiting.length > 0) {
@@ -1709,7 +1755,7 @@ function _runScanner(startRow, endRow) {
     if (!marketBullish) {
       basicMsg =
         `⚠️ <b>Market Alert — ${today}</b>\n` +
-        `Market: 🔴 BEARISH | Nifty: ₹${niftyCmp.toFixed(0)} | VIX: ${indiaVix.toFixed(1)}\n\n` +
+        `Market: 🔴 BEARISH | Nifty: ₹${niftyCmp.toFixed(0)} | VIX: ${_vixStr(indiaVix)}\n\n` +
         (finalWaiting.length > 0
           ? `🔍 <b>${finalWaiting.length} stock(s) passed our strict bearish filter today</b>\n` +
             `🔒 Entry details shared with Advance/Premium members only\n\n`
@@ -1718,7 +1764,7 @@ function _runScanner(startRow, endRow) {
     } else {
       basicMsg =
         `🟢 <b>Market Update — ${today}</b>\n` +
-        `Market: BULLISH | Nifty: ₹${niftyCmp.toFixed(0)} | VIX: ${indiaVix.toFixed(1)}\n` +
+        `Market: BULLISH | Nifty: ₹${niftyCmp.toFixed(0)} | VIX: ${_vixStr(indiaVix)}\n` +
         (momentumSectors.size > 0 ? `🚀 Strong sectors: ${[...momentumSectors].join(", ")}\n` : "") +
         `\n` +
         (finalWaiting.length > 0
@@ -1987,7 +2033,7 @@ function sendWeeklySummary() {
   if (best)              msg += `🏆 Best:  <b>${best[0]}</b> ₹${Math.round(parseFloat(best[16])  || 0)}\n`;
   if (worst && worst !== best) msg += `💀 Worst: <b>${worst[0]}</b> ₹${Math.round(parseFloat(worst[16]) || 0)}\n`;
   msg += `\n📌 Open: ${openTrades.length}/${CONFIG.MAX_TRADES}\n`;
-  msg += `<i>AI360 Trading v15.19 — Base + Breakout + Momentum + Options (Last-Tue expiry)</i>`;
+  msg += `<i>AI360 Trading v15.20 — Base + Breakout + Momentum + Options (Last-Tue expiry)</i>`;
   _sendTelegramAdvanceAndPremium(msg);
 
   // Basic channel — weekly social proof to build trust and drive upgrades

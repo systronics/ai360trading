@@ -38,14 +38,14 @@ One broken file = zero income that day. Treat every edit as critical.
 |---|---|
 | `trading_bot.py` | v15.20 (2026-07-15: v15.19 Nifty%/VIX feeds revived + v15.20 calibrated RSI hot-leader exception — RSI 65-75 OK in bullish IF stock up on day) |
 | `entry_quality.py` | v1.0 (reversal veto + target room + composite ranking) |
-| `option_intelligence.py` | v1.0 (Batch 3) |
+| `option_intelligence.py` | v1.1 (2026-07-15: bearish → SKIP; old PE path contradicted buy-side-only longs) |
 | `institutional_edges.py` | v1.0 (Batch 4) |
 | `fetch_earnings.py` | v1.0 (Batch 3, daily 18:30 IST) |
 | `fetch_bhavcopy.py` | v1.0 (Batch 4, Mon-Fri 20:00 IST) |
 | `fetch_smallmidcap.py` | v1.4 (Mon-Fri 20:30 IST — REAL 5d volume + SmallMidLive board + target floor ≥5% w/ honest R:R) |
 | `fetch_rs.py` | v1.0 (yfinance RS repair feed — keeps Nifty200 RS col alive; GOOGLEFINANCE #N/A killed all scores once) |
 | `fetch_fii_dii.py` | v1.0 (real FII/DII flow → BotMemory MKT_* keys) |
-| `appscript.gs` | v15.19 (LIVE in editor, clasp-deployed 2026-07-15: RS≥5 pre-screen at queue time for all bullish candidates; deploy via `.\deploy_appscript.ps1`) |
+| `appscript.gs` | v15.20 (LIVE in editor, clasp-deployed 2026-07-15: RS≥5 queue pre-screen + option-alert safety pack — earnings block, true-ATM strikes, honest VIX; deploy via `.\deploy_appscript.ps1`) |
 
 ### Long-Term Signals
 | File | Version |

@@ -1,13 +1,19 @@
 """
-AI360 OPTION INTELLIGENCE — v1.0
+AI360 OPTION INTELLIGENCE — v1.1
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v1.1 (2026-07-15): PE PATH REMOVED — the system is buy-side only (owner
+  decision 2026-06-05, memory project_buyside_only). Bearish-regime entries
+  are still LONGS (strong stocks in a weak tape), so the old v1.0 behaviour —
+  recommending a PUT on a stock the bot had just bought long — was a
+  contradiction sent to premium subscribers. Bearish regime now returns SKIP.
+
 Pure-Python option strike + risk module for Indian equity options.
 Used by trading_bot.py to upgrade the scanner's option signal with:
   • ITM strike recommendation (~0.7 delta — moves 70% with stock, low theta)
   • IV-regime gate (via 20-day historical volatility from yfinance — IV proxy)
   • Earnings-window block (reads NSE earnings cache in BotMemory)
   • Stock-anchored exit (exit option when underlying −1.5%, NOT option −40%)
-  • PE side for bearish regime (was: skip everything in bearish — left money on table)
+  • Bearish regime → SKIP (buy-side only; v1.1)
 
 Design constraints (per feedback_free_forever_self_repair memory):
   1. ₹0/month forever. Only free sources (yfinance + NSE official + BotMemory).
@@ -197,8 +203,15 @@ def recommend_option(symbol: str, cp: float, atr: float, stage: str,
     """
     reasons = []
 
-    # 1. Direction: bullish ⇒ CE, bearish ⇒ PE. (was: bearish always skip)
-    direction = "CE" if is_bullish else "PE"
+    # 1. v1.1: BUY-SIDE ONLY — bearish regime gets no option recommendation.
+    #    Bearish-regime entries are still LONGS, so the old PE suggestion was
+    #    a put against our own long position. SKIP is the only honest answer.
+    if not is_bullish:
+        reasons.append("[REGIME] Bearish regime — options skipped (buy-side only system)")
+        return {"action": "SKIP", "strike": None, "strike_label": "",
+                "delta_est": 0, "hv": 0.0, "reasons": reasons,
+                "sl_pct": 0, "tgt_pct": 0}
+    direction = "CE"
 
     # 2. IV / HV regime check
     iv_ok, hv, iv_msg = check_iv_regime(symbol)
