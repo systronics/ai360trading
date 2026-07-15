@@ -48,4 +48,5 @@ echo ============================================
 echo    SYNC COMPLETE — PC and GitHub identical
 echo    Open Claude Code and type: claude
 echo ============================================
-pause
+REM "smartsync.bat auto" = no pause (for Claude/scripts); double-click still pauses
+if /i not "%1"=="auto" pause
