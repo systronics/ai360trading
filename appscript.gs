@@ -1,6 +1,25 @@
 /**
- * AI360 TRADING — APPSCRIPT v15.20
+ * AI360 TRADING — APPSCRIPT v15.21
  * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ * v15.21 CHANGES (2026-07-16) — HONEST PREMARKET REGIME MESSAGE + LIVE VERSION STAMPS
+ *   Owner-approved after the 07-16 Telegram review: the 00:03 night-scan
+ *   message declared "MARKET REGIME: BEARISH — No new entries today. Cash is
+ *   a position." off a 4-point gap below the 20DMA (previous-close data);
+ *   the market gapped up and the 09:28 open scan sent 6 candidates —
+ *   contradictory for subscribers. Changes (message text only, ZERO gate /
+ *   slot / scoring logic touched):
+ *   1. Regime alerts sent outside 09:15-15:30 IST carry "(yesterday's close
+ *      — live regime decided at 9:15)".
+ *   2. When |Nifty − 20DMA| < REGIME_BORDERLINE_PCT (0.30%), both bearish
+ *      and bullish messages add a ⚖️ BORDERLINE line ("a small gap at open
+ *      can flip this"), and the overnight bearish no-candidates line becomes
+ *      "No candidates queued tonight. Regime is re-checked at the open…"
+ *      instead of the falsely-final "No new entries today".
+ *   3. CONFIG.VERSION single source for ALL subscriber-facing version
+ *      stamps (regime header, premium option footer, System Online footer,
+ *      scan footer, test messages) — they were hardcoded and stale at
+ *      v15.17/v15.20 in five different places.
+ *
  * v15.20 CHANGES (2026-07-15) — OPTION-ALERT SAFETY PACK (owner-approved)
  *   1. EARNINGS BLOCK on the night-scan premium option alert — mirrors the
  *      Python entry-time check (EARNINGS_{SYM}_{date} BotMemory keys from
@@ -340,6 +359,7 @@ const OPTIONS_CONFIG = {
 
 // ── CONFIG ────────────────────────────────────────────────────────────────────
 const CONFIG = {
+  VERSION       : "v15.21",  // single source for ALL subscriber-facing version stamps (was hardcoded per-message and went stale at v15.17)
   get TELEGRAM_BOT_TOKEN() { return PropertiesService.getScriptProperties().getProperty('TELEGRAM_BOT_TOKEN') || ""; },
   get CHAT_ID_BASIC()      { return PropertiesService.getScriptProperties().getProperty('CHAT_ID_BASIC')      || ""; },
   get CHAT_ID_ADVANCE()    { return PropertiesService.getScriptProperties().getProperty('CHAT_ID_ADVANCE')    || ""; },
@@ -394,6 +414,10 @@ const CONFIG = {
   // v15.6: Stricter bearish thresholds
   BEARISH_HARD_MIN_SCORE  : 40,   // Hard bearish: only score >= 40 allowed
   BEARISH_MAX_WAITING     : 3,    // Max 3 waiting slots in bearish (was 10)
+  REGIME_BORDERLINE_PCT   : 0.30, // v15.21: |Nifty−20DMA| below this % = BORDERLINE — an ordinary
+                                  // overnight gap can flip the regime at open (07-15: 4 pts below
+                                  // → "BEARISH, no entries today" at 00:03, green + 6 candidates
+                                  // by 09:28). Messages say so instead of a false-certain verdict.
   BEARISH_MIN_RS          : 15,   // Stock must have RS >= 15 in bearish market
 
   LATE_ENTRY_MIN_RS      : 5,
@@ -817,7 +841,7 @@ function _sendOptionsAlertPremium(sym, cmp, optSignal, stage, sl, target, rr, bm
     `❌ Do NOT average down on options\n` +
     `❌ Do NOT hold past expiry week\n` +
     `${tradeNote}\n\n` +
-    `<i>Educational only. Not SEBI advice. v15.20</i>`;
+    `<i>Educational only. Not SEBI advice. ${CONFIG.VERSION}</i>`;
 
   _sendTelegramPremium(msg);
   _bmSet(ss, bm, flagKey, "1", sym, "FLAG");
@@ -1062,7 +1086,7 @@ function sendDailySummary() {
     `📊 <b>MARKET SUMMARY</b>\n━━━━━━━━━━━━━━━━━━━━\n` +
     `🔹 <b>Active Trades:</b> ${traded}/${CONFIG.MAX_TRADES}\n` +
     `🔸 <b>Waiting Slots:</b> ${waiting}\n` +
-    `✅ <i>System: Online v15.20</i>`
+    `✅ <i>System: Online ${CONFIG.VERSION}</i>`
   );
 }
 
@@ -1709,13 +1733,25 @@ function _runScanner(startRow, endRow) {
     const cashCount     = finalWaiting.filter(r => r[4] && r[4].toString().includes("Cash Intraday")).length;
     const breakoutCount = finalWaiting.length - baseCount - momentumCount - cashCount;
 
+    // v15.21 HONEST PREMARKET MESSAGING — outside live session (09:15-15:30 IST)
+    // the Nifty quote is the PREVIOUS CLOSE, so the regime verdict is provisional;
+    // and when Nifty sits within REGIME_BORDERLINE_PCT of the 20DMA, an ordinary
+    // overnight gap can flip it (2026-07-15/16: "BEARISH −4 pts, no entries" at
+    // 00:03 → green with 6 candidates by 09:28). Say so instead of false certainty.
+    const _hhmmNow    = parseInt(Utilities.formatDate(new Date(), CONFIG.IST_ZONE, "HHmm"), 10);
+    const isLiveHours = (_hhmmNow >= 915 && _hhmmNow <= 1530);
+    const distPct     = (nifty20d > 0) ? ((niftyCmp - nifty20d) / nifty20d) * 100 : 0;
+    const borderline  = (nifty20d > 0) && (Math.abs(distPct) < CONFIG.REGIME_BORDERLINE_PCT);
+    const staleNote   = isLiveHours ? "" : ` <i>(yesterday's close — live regime decided at 9:15)</i>`;
+
     let regimeMsg;
     if (!marketBullish) {
       regimeMsg =
-        `⚠️ <b>MARKET REGIME: BEARISH</b>\n` +
-        `Nifty ₹${niftyCmp.toFixed(0)} below 20DMA ₹${nifty20d.toFixed(0)}\n` +
-        `v15.17 HARD BLOCK: Max ${maxWaitingSlots} slots | Score≥${CONFIG.BEARISH_HARD_MIN_SCORE} only\n` +
+        `⚠️ <b>MARKET REGIME: BEARISH</b>${borderline ? " ⚖️ <b>BORDERLINE</b>" : ""}\n` +
+        `Nifty ₹${niftyCmp.toFixed(0)} vs 20DMA ₹${nifty20d.toFixed(0)} (${distPct.toFixed(2)}%)${staleNote}\n` +
+        `${CONFIG.VERSION} HARD BLOCK: Max ${maxWaitingSlots} slots | Score≥${CONFIG.BEARISH_HARD_MIN_SCORE} only\n` +
         `VIX: ${_vixStr(indiaVix)}\n`;
+      if (borderline) regimeMsg += `⚖️ Nifty is only ${Math.abs(niftyCmp - nifty20d).toFixed(0)} pts from the 20DMA — a small gap ${isLiveHours ? "can flip the regime" : "at open can flip this to BULLISH"}.\n`;
       if (momentumSectors.size > 0) regimeMsg += `🚀 Momentum sectors: ${[...momentumSectors].join(', ')}\n`;
       if (topSector) regimeMsg += `🔄 Strongest: ${topSector} (AF: ${topAf.toFixed(1)})\n`;
       if (finalWaiting.length > 0) {
@@ -1723,13 +1759,16 @@ function _runScanner(startRow, endRow) {
         finalWaiting.slice(0, 3).forEach(r => {
           regimeMsg += `• <b>${r[1]}</b> [${r[4]}] — ${r[6]}\n  SL ₹${r[7]} → T ₹${r[8]} | RR ${r[9]}\n`;
         });
+      } else if (!isLiveHours) {
+        regimeMsg += `\n🛑 No candidates queued tonight. Regime is re-checked at the open — if it turns green, the scan runs again and entry alerts follow.`;
       } else {
         regimeMsg += `\n🛑 No new entries today. Cash is a position.`;
       }
     } else {
       regimeMsg =
-        `🟢 <b>SCANNER DONE — ${today}</b>\n` +
-        `Nifty ₹${niftyCmp.toFixed(0)} | 20DMA ₹${nifty20d.toFixed(0)} | VIX: ${_vixStr(indiaVix)}\n`;
+        `🟢 <b>SCANNER DONE — ${today}</b>${borderline ? " ⚖️" : ""}\n` +
+        `Nifty ₹${niftyCmp.toFixed(0)} | 20DMA ₹${nifty20d.toFixed(0)} | VIX: ${_vixStr(indiaVix)}${staleNote}\n`;
+      if (borderline) regimeMsg += `⚖️ Bullish by only ${Math.abs(niftyCmp - nifty20d).toFixed(0)} pts — regime is borderline${isLiveHours ? "" : " and may flip at open"}.\n`;
       if (momentumSectors.size > 0) regimeMsg += `🚀 Sector momentum: ${[...momentumSectors].join(', ')}\n`;
       if (topSector) regimeMsg += `🔄 Strongest: ${topSector} (AF: ${topAf.toFixed(1)})\n`;
       if (finalWaiting.length > 0) {
@@ -2033,7 +2072,7 @@ function sendWeeklySummary() {
   if (best)              msg += `🏆 Best:  <b>${best[0]}</b> ₹${Math.round(parseFloat(best[16])  || 0)}\n`;
   if (worst && worst !== best) msg += `💀 Worst: <b>${worst[0]}</b> ₹${Math.round(parseFloat(worst[16]) || 0)}\n`;
   msg += `\n📌 Open: ${openTrades.length}/${CONFIG.MAX_TRADES}\n`;
-  msg += `<i>AI360 Trading v15.20 — Base + Breakout + Momentum + Options (Last-Tue expiry)</i>`;
+  msg += `<i>AI360 Trading ${CONFIG.VERSION} — Base + Breakout + Momentum + Options (Last-Tue expiry)</i>`;
   _sendTelegramAdvanceAndPremium(msg);
 
   // Basic channel — weekly social proof to build trust and drive upgrades
@@ -2116,9 +2155,9 @@ function setupTriggers() {
 function testTelegram() {
   const now     = new Date();
   const timeStr = Utilities.formatDate(now, CONFIG.IST_ZONE, "dd-MMM HH:mm");
-  _sendTelegramToChat(CONFIG.CHAT_ID_BASIC,   `✅ <b>TEST — ${timeStr}</b>\nChannel: Basic 🆓\nv15.17 ✅`);
-  _sendTelegramToChat(CONFIG.CHAT_ID_ADVANCE, `✅ <b>TEST — ${timeStr}</b>\nChannel: Advance 📊\nv15.17 ✅`);
-  _sendTelegramToChat(CONFIG.CHAT_ID_PREMIUM, `✅ <b>TEST — ${timeStr}</b>\nChannel: Premium 💎\nv15.17 + Last-Tuesday expiry + Bearish Block + Momentum + ATH Options Fix ✅`);
+  _sendTelegramToChat(CONFIG.CHAT_ID_BASIC,   `✅ <b>TEST — ${timeStr}</b>\nChannel: Basic 🆓\n${CONFIG.VERSION} ✅`);
+  _sendTelegramToChat(CONFIG.CHAT_ID_ADVANCE, `✅ <b>TEST — ${timeStr}</b>\nChannel: Advance 📊\n${CONFIG.VERSION} ✅`);
+  _sendTelegramToChat(CONFIG.CHAT_ID_PREMIUM, `✅ <b>TEST — ${timeStr}</b>\nChannel: Premium 💎\n${CONFIG.VERSION} + Last-Tuesday expiry + Bearish Block + Momentum + ATH Options Fix ✅`);
 }
 
 function testOptionsSignal() {
@@ -2130,11 +2169,11 @@ function testOptionsSignal() {
   const testBreakout = _generateOptionsSignal("NSE:ADANIPORTS", 1691, 33.5, "⚡ BREAKOUT ALERT", -4.32, vix, false, 1823.9);
   const testATH      = _generateOptionsSignal("NSE:MCX",        3353,  80,  "⚡ BREAKOUT ALERT",  0.50, vix, false, 3500);
   const msg =
-    `📊 <b>OPTIONS TEST — v15.17</b>\n━━━━━━━━━━━━━━━━━━━━\n` +
+    `📊 <b>OPTIONS TEST — ${CONFIG.VERSION}</b>\n━━━━━━━━━━━━━━━━━━━━\n` +
     `VIX: ${vix.toFixed(1)} | Expiry: ${expiryStr} (${expiry.daysLeft}d)\n\n` +
     `BREAKOUT (ADANIPORTS): ${testBreakout.signal} | ${testBreakout.strike}\n` +
     `ATH TEST (MCX near ATH): ${testATH.signal} | ${testATH.message}\n` +
-    `✅ v15.17 ATH block working`;
+    `✅ ATH block working`;
   _sendTelegramPremium(msg);
   SpreadsheetApp.getUi().alert("Options test sent to Premium channel.");
 }
@@ -2154,18 +2193,18 @@ function testBaseEntry() {
   const testMom3 = _checkMomentumBreakout(5.48, 200, 22,    5554, 4960, "Sideways"); // PERSISTENT
 
   const msg =
-    `📦 <b>BASE + MOMENTUM TEST — v15.17</b>\n━━━━━━━━━━━━━━━━━━━━\n` +
+    `📦 <b>BASE + MOMENTUM TEST — ${CONFIG.VERSION}</b>\n━━━━━━━━━━━━━━━━━━━━\n` +
     `VIX: ${vix.toFixed(1)}\n\n` +
     `BASE TESTS:\n` +
     `Test 1 (all pass): ${test1.qualifies ? "✅" : "❌"} ${test1.reason}\n` +
     `Test 2 (FII fail): ${test2.qualifies ? "✅" : "❌"} ${test2.reason}\n` +
     `Test 3 (VCP fail): ${test3.qualifies ? "✅" : "❌"} ${test3.reason}\n` +
     `Test 4 (Days fail): ${test4.qualifies ? "✅" : "❌"} ${test4.reason}\n\n` +
-    `MOMENTUM BREAKOUT TESTS (v15.17):\n` +
+    `MOMENTUM BREAKOUT TESTS:\n` +
     `COFORGE +5.15%: ${testMom1.isMomentum ? "✅ ALLOWED" : "❌ BLOCKED"} — ${testMom1.reason}\n` +
     `TECHM +4.85% (low RS): ${testMom2.isMomentum ? "✅ ALLOWED" : "❌ BLOCKED"} — ${testMom2.reason}\n` +
     `PERSISTENT +5.48%: ${testMom3.isMomentum ? "✅ ALLOWED" : "❌ BLOCKED"} — ${testMom3.reason}\n\n` +
-    `✅ v15.17 Last-Tue expiry + Momentum gate working`;
+    `✅ Last-Tue expiry + Momentum gate working`;
   _sendTelegramPremium(msg);
   SpreadsheetApp.getUi().alert("Tests sent to Premium channel.");
 }
