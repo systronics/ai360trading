@@ -1,0 +1,149 @@
+{
+ "NIFTY 50": {
+  "price": 24072.75,
+  "change": -5.75,
+  "pct": -0.02,
+  "display": "24,072.75 \u25bc 0.02%",
+  "date": "2026-07-16"
+ },
+ "SENSEX": {
+  "price": 77186.87,
+  "change": 1.44,
+  "pct": 0.0,
+  "display": "77,186.87 \u25b2 0.0%",
+  "date": "2026-07-16"
+ },
+ "Bank Nifty": {
+  "price": 57582.25,
+  "change": -175.6,
+  "pct": -0.3,
+  "display": "57,582.25 \u25bc 0.3%",
+  "date": "2026-07-16"
+ },
+ "India VIX": {
+  "price": 12.88,
+  "change": -0.39,
+  "pct": -2.94,
+  "display": "12.88 \u25bc 2.94%",
+  "date": "2026-07-16"
+ },
+ "S&P 500": {
+  "price": 7549.16,
+  "change": 5.57,
+  "pct": 0.07,
+  "display": "7,549.16 \u25b2 0.07%",
+  "date": "2026-07-16"
+ },
+ "NASDAQ": {
+  "price": 26030.48,
+  "change": -76.53,
+  "pct": -0.29,
+  "display": "26,030.48 \u25bc 0.29%",
+  "date": "2026-07-16"
+ },
+ "Dow Jones": {
+  "price": 52638.3,
+  "change": 130.03,
+  "pct": 0.25,
+  "display": "52,638.3 \u25b2 0.25%",
+  "date": "2026-07-16"
+ },
+ "US 10Y Yield": {
+  "price": 4.58,
+  "change": 0.04,
+  "pct": 0.88,
+  "display": "4.58 \u25b2 0.88%",
+  "date": "2026-07-16"
+ },
+ "FTSE 100": {
+  "price": 10572.24,
+  "change": 42.84,
+  "pct": 0.41,
+  "display": "10,572.24 \u25b2 0.41%",
+  "date": "2026-07-16"
+ },
+ "Nikkei 225": {
+  "price": 66835.54,
+  "change": -1915.97,
+  "pct": -2.79,
+  "display": "66,835.54 \u25bc 2.79%",
+  "date": "2026-07-16"
+ },
+ "DAX": {
+  "price": 24915.49,
+  "change": -231.54,
+  "pct": -0.92,
+  "display": "24,915.49 \u25bc 0.92%",
+  "date": "2026-07-16"
+ },
+ "IBOVESPA": {
+  "price": 174712.9,
+  "change": -1928.1,
+  "pct": -1.09,
+  "display": "174,712.9 \u25bc 1.09%",
+  "date": "2026-07-16"
+ },
+ "Gold": {
+  "price": 3994.4,
+  "change": -49.6,
+  "pct": -1.23,
+  "display": "3,994.4 \u25bc 1.23%",
+  "date": "2026-07-16"
+ },
+ "Silver": {
+  "price": 56.34,
+  "change": -0.77,
+  "pct": -1.35,
+  "display": "56.34 \u25bc 1.35%",
+  "date": "2026-07-16"
+ },
+ "Crude Oil WTI": {
+  "price": 78.78,
+  "change": -0.82,
+  "pct": -1.03,
+  "display": "78.78 \u25bc 1.03%",
+  "date": "2026-07-16"
+ },
+ "Bitcoin": {
+  "price": 64430.32,
+  "change": -282.06,
+  "pct": -0.44,
+  "display": "64,430.32 \u25bc 0.44%",
+  "date": "2026-07-16"
+ },
+ "Ethereum": {
+  "price": 1876.22,
+  "change": -40.72,
+  "pct": -2.12,
+  "display": "1,876.22 \u25bc 2.12%",
+  "date": "2026-07-16"
+ },
+ "USD/INR": {
+  "price": 96.33,
+  "change": -0.1,
+  "pct": -0.1,
+  "display": "96.33 \u25bc 0.1%",
+  "date": "2026-07-16"
+ },
+ "USD/BRL": {
+  "price": 5.1,
+  "change": 0.01,
+  "pct": 0.2,
+  "display": "5.1 \u25b2 0.2%",
+  "date": "2026-07-16"
+ },
+ "DXY (Dollar)": {
+  "price": 100.8,
+  "change": 0.3,
+  "pct": 0.3,
+  "display": "100.8 \u25b2 0.3%",
+  "date": "2026-07-16"
+ },
+ "EUR/USD": {
+  "price": 1.14,
+  "change": 0.0,
+  "pct": 0.0,
+  "display": "1.14 \u25b2 0.0%",
+  "date": "2026-07-16"
+ }
+}

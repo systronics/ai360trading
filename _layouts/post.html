@@ -38,7 +38,8 @@ layout: default
         {% if page.sp500_level and page.sp500_level != "N/A" %}<span class="live-data-item"><strong>S&amp;P 500</strong> {{ page.sp500_level }}</span>{% endif %}
         {% if page.bitcoin_level and page.bitcoin_level != "N/A" %}<span class="live-data-item"><strong>Bitcoin</strong> {{ page.bitcoin_level }}</span>{% endif %}
         {% if page.gold_level and page.gold_level != "N/A" %}<span class="live-data-item"><strong>Gold</strong> {{ page.gold_level }}</span>{% endif %}
-        {% if page.fear_greed and page.fear_greed != "" %}<span class="live-data-item"><strong>Fear &amp; Greed</strong> {{ page.fear_greed }}</span>{% endif %}
+        {% comment %} 2026-07-16: also hide legacy "N/A — Holiday/Weekend" / "N/A — Evergreen content day" values baked into older posts {% endcomment %}
+        {% if page.fear_greed and page.fear_greed != "" %}{% unless page.fear_greed contains "N/A" %}<span class="live-data-item"><strong>Fear &amp; Greed</strong> {{ page.fear_greed }}</span>{% endunless %}{% endif %}
       </div>
       {% endif %}
     </header>

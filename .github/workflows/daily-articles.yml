@@ -70,7 +70,9 @@ jobs:
         run: |
           git config --local user.email "admin@ai360trading.in"
           git config --local user.name "AI360-Automation"
-          git add _posts/
+          # 2026-07-16: also commit the carry-forward price cache so a Yahoo
+          # rate-limited run can reuse the previous run's real levels.
+          git add _posts/ _data/prices_cache.json
           git diff --cached --quiet || git commit -m "📊 Daily Reports: $(date +'%Y-%m-%d %H:%M') IST"
           git push origin master
 

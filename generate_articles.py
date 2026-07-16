@@ -283,6 +283,9 @@ day_of_year  = now.timetuple().tm_yday
 _slug_suffix = now.strftime("%H%M")
 
 POSTS_DIR = os.path.join(os.getcwd(), '_posts')
+# 2026-07-16: carry-forward price cache (committed by daily-articles.yml) —
+# keeps the posts' live-data strip honest when Yahoo rate-limits the runner.
+PRICES_CACHE_FILE = os.path.join(os.getcwd(), '_data', 'prices_cache.json')
 
 MAX_POSTS = 500
 
@@ -1030,6 +1033,38 @@ def get_live_prices():
             }
         except:
             prices[name] = {"price": 0, "change": 0, "pct": 0, "display": "N/A"}
+
+    # 2026-07-16: CARRY-FORWARD CACHE — Yahoo rate-limits the CI runner some
+    # days (07-12: every symbol came back N/A and the posts' live-data strip
+    # went blank). Successful fetches are saved to _data/prices_cache.json
+    # (committed by daily-articles.yml so it survives between runs); a failed
+    # fetch falls back to the cached level honestly labeled "(Jul 14 close)"
+    # instead of N/A. Article BODY text is unaffected — weekend/holiday prose
+    # stays strictly evergreen (SEO Phase 2 rule). Fail-open: any cache error
+    # → previous N/A behavior.
+    try:
+        cache = {}
+        if os.path.exists(PRICES_CACHE_FILE):
+            with open(PRICES_CACHE_FILE, "r", encoding="utf-8") as f:
+                cache = json.load(f)
+        for name, p in prices.items():
+            if p["display"] != "N/A":
+                cache[name] = {"price": p["price"], "change": p["change"],
+                               "pct": p["pct"], "display": p["display"], "date": date_str}
+            elif name in cache and cache[name].get("display", "N/A") != "N/A":
+                c = cache[name]
+                try:
+                    label = f" ({datetime.strptime(c.get('date', ''), '%Y-%m-%d').strftime('%b %d')} close)"
+                except Exception:
+                    label = " (prev close)"
+                base_display = c["display"].split(" (")[0]  # never stack labels on re-carry
+                prices[name] = {"price": c.get("price", 0), "change": c.get("change", 0),
+                                "pct": c.get("pct", 0), "display": base_display + label}
+        os.makedirs(os.path.dirname(PRICES_CACHE_FILE), exist_ok=True)
+        with open(PRICES_CACHE_FILE, "w", encoding="utf-8") as f:
+            json.dump(cache, f, indent=1)
+    except Exception as e:
+        print(f"  [PRICES-CACHE] carry-forward skipped ({e})")
     return prices
 
 
@@ -1112,14 +1147,18 @@ def get_live_news(queries):
 
 
 def get_fear_greed():
-    if CONTENT_MODE in ("holiday", "weekend"):
-        return "N/A — Holiday/Weekend"
+    # 2026-07-16: always fetch the REAL value (the index updates on weekends
+    # too) — the evergreen prompt-side override happens in generate_all_articles
+    # so weekend article PROSE stays timeless, but the page's live-data strip
+    # gets an honest number instead of rendering "N/A — Evergreen content day".
+    # Fetch failure now returns "" (renders nothing) instead of a FABRICATED
+    # "50 — Neutral" — same honesty rule as the appscript fake-VIX fix.
     try:
         r = requests.get("https://api.alternative.me/fng/?limit=1", timeout=6)
         d = r.json()['data'][0]
         return f"{d['value']} — {d['value_classification']}"
     except:
-        return "50 — Neutral"
+        return ""
 
 
 def cleanup_old_posts():
@@ -1149,7 +1188,25 @@ def cleanup_old_posts():
         print(f"  Cleanup warning: {e}")
 
 
+def _title_word_set(title):
+    """Normalized content words of a title, for near-duplicate detection."""
+    stop = {
+        'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
+        'of', 'with', 'is', 'are', 'was', 'were', 'its', 'this', 'that',
+        'what', 'why', 'how', 'when', 'where', 'from', 'by', 'as', 'your',
+        'you', 'today', 'now', 'amid', 'through', 'into', 'via',
+    }
+    words = re.sub(r"[^a-z0-9 ]", " ", title.lower()).split()
+    return {w for w in words if w not in stop and len(w) > 2}
+
+
 def get_recent_posts(pillar_id, limit=5):
+    # 2026-07-16: near-duplicate titles are skipped (overlap coefficient ≥ 0.6
+    # on content words — shared words ÷ shorter title's words; Jaccard misses
+    # variants when title lengths differ) so internal links don't chain to
+    # posts that are keyword variants of each other ("Share Market Today
+    # Trends" → "Share Market India Today Trends"). Scans 40 files deep so
+    # dropping duplicates still leaves enough distinct links.
     try:
         files = sorted(
             [f for f in os.listdir(POSTS_DIR) if f.endswith('.md')],
@@ -1174,7 +1231,16 @@ def get_recent_posts(pillar_id, limit=5):
                         if title and url_slug_match:
                             break
                     if title and url_slug_match:
-                        recent.append({"title": title, "slug": url_slug_match})
+                        toks = _title_word_set(title)
+                        is_dup = False
+                        for prev in recent:
+                            ptoks = _title_word_set(prev["title"])
+                            smaller = min(len(toks), len(ptoks))
+                            if smaller and len(toks & ptoks) / smaller >= 0.6:
+                                is_dup = True
+                                break
+                        if not is_dup:
+                            recent.append({"title": title, "slug": url_slug_match})
                 except:
                     pass
             if len(recent) >= limit:
@@ -1414,7 +1480,13 @@ Respond with ONLY the title — nothing else. No quotes. No explanation."""
 
 
 # ─── Article Generator ────────────────────────────────────────────────────────
-def generate_article(pillar, prices, trends, fear_greed, persona, article_index, total_articles=2):
+def generate_article(pillar, prices, trends, fear_greed, persona, article_index, total_articles=2,
+                     fear_greed_display=None):
+    # fear_greed feeds the PROMPT (evergreen-overridden on weekends/holidays);
+    # fear_greed_display is the real fetched value for the page's front-matter
+    # live-data strip. Falls back to fear_greed if not supplied.
+    if fear_greed_display is None:
+        fear_greed_display = fear_greed
     print(f"\n  [{article_index}/{total_articles}] Generating: {pillar['name']} [{CONTENT_MODE} mode]...")
 
     news = get_live_news(pillar['news_queries'])
@@ -1567,7 +1639,7 @@ TOPIC: {pillar['name']}
 LIVE DATA:
 {price_lines}
 
-Fear and Greed: {fear_greed}
+Fear and Greed: {fear_greed or "unavailable"}
 
 NEWS TODAY (use as context only — write YOUR OWN analysis):
 {news}
@@ -1586,21 +1658,26 @@ TRENDING SEARCHES: {', '.join(trends[:8])}
 1. VARY SENTENCE LENGTH aggressively. Mix short punchy lines (3-6 words) with
    longer flowing sentences. Two short. One long. Like real human writing.
 2. EXPRESS GENUINE OPINIONS with reasoning. Say "I think", "I disagree with",
-   "Honestly", "In my view", "I'd argue", "Most analysts get this wrong" — use
-   first person where appropriate. Take a stand. Real humans have positions.
+   "In my view", "I'd argue", "Most analysts get this wrong" — use first
+   person where appropriate. Take a stand. Real humans have positions.
+   BUT opinion phrases must be followed by a SPECIFIC reasoned position —
+   never "Honestly, I think markets are interesting" filler.
 3. SHOW UNCERTAINTY where real. "I'm not sure", "this could go either way",
    "but I might be wrong". Real analysts hedge — fake AI prose never does.
 4. USE NATURAL LANGUAGE — no jargon overload. Explain like a friend, not a textbook.
-5. ADD ONE REAL HISTORICAL PARALLEL with exact month/year. e.g. "Same setup
-   as March 2020" or "Reminds me of January 2008". Specific dates beat generic.
+5. ADD ONE REAL HISTORICAL PARALLEL with exact month/year — but ONLY famous,
+   verifiable events ("the March 2020 crash", "the January 2008 selloff").
+   Do NOT attach invented percentages or price levels to historical events.
 6. ADD ONE PERSONAL ANECDOTE or specific example. e.g. "A friend asked me last
-   week..." or "I made this exact mistake in 2019..." or "When I started trading..."
+   week..." or "I made this exact mistake in 2019..." — anecdotes carry a
+   lesson, never an invented profit/loss figure.
 7. ADD ONE CONTROVERSIAL TAKE or unconventional view. Real humans disagree with
    consensus. Disagree with one popular view and explain why.
 8. USE OCCASIONAL CONTRACTIONS: "don't", "it's", "you'll", "I've" — formal AI
    prose never contracts. Real humans do.
-9. ASK 1-2 RHETORICAL QUESTIONS in body. "But here's the thing — does it really
-   work that way?" Engages the reader as if having a conversation.
+9. ASK 1-2 RHETORICAL QUESTIONS in body — specific ones a reader would
+   actually ask ("Does SIP timing matter if I invest for 15 years?"), never
+   generic teaser questions.
 10. NUMBERS must connect to decisions. "Rs.5000/month → Rs.1.2 cr in 25 years"
     not "compound interest is powerful".
 11. BANNED WORDS: "In conclusion", "Furthermore", "Moreover", "This underscores",
@@ -1608,10 +1685,21 @@ TRENDING SEARCHES: {', '.join(trends[:8])}
     "Deep dive", "Shed light", "It's worth noting", "It is important to note",
     "In summary", "To put it simply", "It goes without saying", "Cutting-edge",
     "Foster", "Leverage" (as verb), "Streamline", "Bandwidth" (as effort), "Synergize"
+    BANNED FILLER PHRASES (formulaic AI transitions — never use):
+    "But here's the thing", "Here's the kicker", "Here's the catch", "Let's dive in",
+    "Let's break it down", "So, what exactly is", "Buckle up", "Spoiler alert",
+    "At the end of the day", "The truth is", "Let's be real", "Make no mistake"
 12. NEVER use headers: "Core Analysis", "Country Analysis", "Brand View"
 13. NEVER write "As we discussed in our previous article" more than ONCE.
     Use natural references like "I covered this in a piece earlier this week —"
     or just link the phrase inline without announcing the link.
+14. NUMBER HONESTY (CRITICAL): every specific number, price, return or
+    statistic must come from the LIVE DATA block above or be a famous,
+    independently verifiable fact. NEVER invent "if you had invested Rs.1000
+    in 2010 you'd have X" style claims — you do not know X. Forward
+    projections are allowed ONLY with the assumption stated ("assuming 12%
+    annual returns"). If you are not certain a number is real, make the
+    point WITHOUT the number.
 
 === ARTICLE STRUCTURE ===
 Use EXACTLY these section names:
@@ -1704,7 +1792,7 @@ End with:
             f"keywords: \"{', '.join(pillar['primary_keywords'])}, {', '.join(pillar.get('us_keywords', [])[:2])}, {', '.join(pillar.get('uk_keywords', [])[:2])}, {', '.join(pillar.get('india_keywords', [])[:2])}, DAX Germany 2026, global markets\"\n"
             f"categories: [{pillar['category']}]\n"
             f"tags: [{pillar['tag']}]\n"
-            f"fear_greed: \"{safe_fm(fear_greed)}\"\n"
+            f"fear_greed: \"{safe_fm(fear_greed_display)}\"\n"
             f"trending: \"{', '.join(trends[:5])}\"\n"
             f"day_of_year: {day_of_year}\n"
             f"nifty_level: \"{safe_fm(nifty_level)}\"\n"
@@ -1856,10 +1944,15 @@ def generate_all_articles():
     # Filter trends to drop anything containing live numeric levels in
     # holiday/weekend mode so the title prompt and body prompt get clean,
     # evergreen context.
+    # 2026-07-16: keep the REAL fetched value for the page's live-data strip;
+    # the evergreen override below applies to the PROMPT only.
+    fear_greed_display = fear_greed
+
     if CONTENT_MODE in ("holiday", "weekend"):
         _level_pat = re.compile(r"\b(\d{2,3}[,.]?\d{0,3}|\d+%|\d+\.\d+%)\b")
         trends = [t for t in trends if not _level_pat.search(t)][:15]
         # Replace fear_greed with neutral string so it stops leaking numbers
+        # into the evergreen prompt (page front matter still gets the real one).
         fear_greed = "N/A — Evergreen content day"
 
     results        = []
@@ -1884,7 +1977,8 @@ def generate_all_articles():
         _pidx           = (day_of_year + i * 31) % len(persona_indices)
         persona         = PERSONAS[persona_indices[_pidx]]
 
-        success, url = generate_article(pillar, prices, trends, fear_greed, persona, i + 1, len(active_pillars))
+        success, url = generate_article(pillar, prices, trends, fear_greed, persona, i + 1, len(active_pillars),
+                                        fear_greed_display=fear_greed_display)
         results.append({
             "pillar": pillar['name'],
             "status": "success" if success else "failed",

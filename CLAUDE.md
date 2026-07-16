@@ -71,7 +71,7 @@ One broken file = zero income that day. Treat every edit as critical.
 | `generate_reel.py` | v2.4 |
 | `generate_reel_morning.py` | v2.5 |
 | `generate_shorts.py` | v3.11 (2026-07-14 retention pack: 20-25s payoff-at-end scripts + Ken Burns motion + 2s CTA) |
-| `generate_articles.py` | current (no version tag; 2026-07-13 phrase-cooldown + perf block) |
+| `generate_articles.py` | current (2026-07-16 credibility pack: price carry-forward cache `_data/prices_cache.json` + honest Fear&Greed + filler-phrase ban + number-honesty rule 14 + internal-link dedup; 2026-07-13 phrase-cooldown + perf block) |
 | `performance_stats.py` | v1.0 (2026-07-13 — History ledger → article performance block, fail-open) |
 | `generate_kids_video.py` | v3.0 (2026-07-13 — story-seed grounding + cold open + completeness retry + CTA/narrator variety) |
 | `kids_content_calendar.py` | v2.0 (2026-07-13 — 128 seeded classic stories + no-repeat 128-day scheduler) |
