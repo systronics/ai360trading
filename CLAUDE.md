@@ -36,10 +36,10 @@ One broken file = zero income that day. Treat every edit as critical.
 ### Trading Engine
 | File | Version |
 |---|---|
-| `trading_bot.py` | v15.20 (2026-07-15: v15.19 Nifty%/VIX feeds revived + v15.20 calibrated RSI hot-leader exception — RSI 65-75 OK in bullish IF stock up on day) |
+| `trading_bot.py` | v15.21 (2026-07-16: time-fair volume gate — Filter 8 gates on volume PACE via IST clock; v15.20 calibrated RSI hot-leader exception; v15.19 Nifty%/VIX feeds revived) |
 | `entry_quality.py` | v1.0 (reversal veto + target room + composite ranking) |
 | `option_intelligence.py` | v1.1 (2026-07-15: bearish → SKIP; old PE path contradicted buy-side-only longs) |
-| `institutional_edges.py` | v1.0 (Batch 4) |
+| `institutional_edges.py` | v1.1 (2026-07-16: volume gate time-adjusted — partial-day reading ÷ expected session fraction, 1.5× bar unchanged) |
 | `fetch_earnings.py` | v1.0 (Batch 3, daily 18:30 IST) |
 | `fetch_bhavcopy.py` | v1.0 (Batch 4, Mon-Fri 20:00 IST) |
 | `fetch_smallmidcap.py` | v1.4 (Mon-Fri 20:30 IST — REAL 5d volume + SmallMidLive board + target floor ≥5% w/ honest R:R) |

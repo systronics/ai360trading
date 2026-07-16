@@ -1,6 +1,24 @@
 """
-AI360 TRADING BOT — v15.20
+AI360 TRADING BOT — v15.21
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v15.21 CHANGES vs v15.20 — TIME-FAIR VOLUME GATE (2026-07-16, owner-approved)
+  First market day after v15.20 had ZERO entries again: all 4 queued
+  candidates (GMRAIRPORT 99, CHOLAFIN 84, LAURUSLABS 59, TORNTPHARM) were
+  blocked every tick by the [VOL] 1.5× gate, then time-blocked after 14:30.
+  Root cause: Volume_vs_Avg_% divides today's CUMULATIVE partial-day volume
+  by a FULL-DAY ~3-month average, so intraday readings run ~2× low
+  (CHOLAFIN read 0.17× at noon vs 0.45× actual EOD; GMRAIRPORT 0.40× at
+  10:54 vs 0.94× EOD). Demanding a raw 1.5× before the 14:30 cutoff is
+  near-impossible on normal days → structural entry starvation.
+  Change: the [VOL] call now passes the IST clock; institutional_edges v1.1
+  divides the raw reading by the expected session-volume fraction (NSE
+  U-shape curve + 15-min quote-delay allowance) and gates on 1.5× PACE.
+  The 1.5× threshold itself is UNCHANGED; no adjustment before 09:45,
+  after close, or if data/clock is missing (falls back to raw = old
+  behaviour). The ≥3% price bypass and 0.0 fail-open are untouched, and
+  the raw (unadjusted) relvol is still what reversal-risk/climax ranking
+  sees. One measurement made time-fair — nothing else touched.
+
 v15.20 CHANGES vs v15.19 — CALIBRATED RSI HOT-LEADER EXCEPTION (2026-07-15)
   Owner-approved after a data study of all 13 closed trades (entry-day RSI /
   volume / close-strength reconstructed via yfinance):
@@ -949,7 +967,9 @@ def check_all_entry_filters(sym, mem, key, is_bullish, now, nifty_pct, today_ent
             rel_vol = _read_nifty200_relvol(nifty_sheet, sym) if nifty_sheet is not None else 0.0
             prev_close = get_last_price(mem, key)
             pct_change = ((cp - prev_close) / prev_close) * 100 if (prev_close > 0 and cp > 0) else 0
-            ok, msg = inst_edges.check_volume_confirmation(sym, rel_vol, pct_change=pct_change)
+            # v15.21: pass IST clock so the gate can pro-rate the partial-day
+            # volume reading against the expected fraction of the session.
+            ok, msg = inst_edges.check_volume_confirmation(sym, rel_vol, pct_change=pct_change, now=now)
             reasons.append(f"[VOL] {msg}")
             if not ok:
                 return False, reasons, rsi_val
@@ -2068,7 +2088,7 @@ def send_good_morning(log_sheet, mem, is_bullish, nifty_cmp, nifty_dma, nifty_pc
         f"{window}\n"
         f"RSI filter: < {RSI_MAX_BULLISH if is_bullish else RSI_MAX_BEARISH}{f' (leaders up on the day allowed to {RSI_HOT_MAX:.0f})' if is_bullish else ''} | Re-entry: {REENTRY_COOLDOWN_DAYS}d cooldown after target\n\n"
         f"{'Watching: ' + ', '.join(waiting_stocks[:5]) if waiting_stocks else 'No WAITING stocks'}\n\n"
-        f"<i>v15.20 — entry-quality: reversal veto + resistance-room veto + loss cooldown + best-of ranking</i>"
+        f"<i>v15.21 — entry-quality: reversal veto + resistance-room veto + loss cooldown + best-of ranking + time-fair volume gate</i>"
     )
     watchlist_line = f"📋 Watchlist: {waiting} stock(s) identified today" if waiting else "📋 No setups in watchlist yet — scan runs at market open"
     msg_basic = (

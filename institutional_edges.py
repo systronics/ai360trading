@@ -1,6 +1,19 @@
 """
-AI360 INSTITUTIONAL EDGES — v1.0
+AI360 INSTITUTIONAL EDGES — v1.1
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v1.1 (2026-07-16) — TIME-ADJUSTED VOLUME GATE
+  The Volume_vs_Avg_% column compares today's CUMULATIVE (partial-day)
+  volume against a FULL-DAY ~3-month average, so intraday readings run
+  ~2× low (2026-07-16 evidence: CHOLAFIN read 0.17× at noon, finished
+  0.45×; GMRAIRPORT read 0.40× at 10:54, finished 0.94×). Requiring a
+  raw 1.5× before the 14:30 entry cutoff was near-impossible on normal
+  days — a key cause of the 0-entries-since-06-30 starvation.
+  check_volume_confirmation() now accepts `now` (IST) and divides the
+  raw reading by the fraction of a normal NSE day's volume expected by
+  that time (U-shape curve, 15-min quote-delay allowance). The 1.5× bar
+  itself is UNCHANGED — we only measure pace fairly. Fail-safe: no
+  adjustment before 09:45 (noisy open), after close, or if `now` absent.
+
 Five "smart money" filters that consistently-profitable traders + FIIs use
 to confirm a setup. Each is a stand-alone check; trading_bot.py composes
 them in check_all_entry_filters() to gate WAITING → TRADED promotion.
@@ -43,6 +56,16 @@ VOL_BYPASS_PCT_CHANGE  = 3.0    # if stock up this much, bypass volume check (pr
 #   When prev-close math fallback is used (sheet RS missing), the value is a simple
 #   INTRADAY stock−Nifty % difference; the same 5.0 floor applies (a true 5%
 #   intraday leader is rare — deliberately strict leniency choice).
+# — v1.1 time-adjusted volume gate knobs —
+VOL_SESSION_OPEN_MIN   = 9 * 60 + 15    # NSE open 09:15 IST, in minutes-of-day
+VOL_SESSION_LEN_MIN    = 375            # 09:15 → 15:30
+VOL_QUOTE_DELAY_MIN    = 15             # GOOGLEFINANCE volume is ~15-20 min delayed
+VOL_PRORATE_START_MIN  = 30             # first 30 min after open: no adjustment (noisy data)
+VOL_MIN_EXPECTED_FRAC  = 0.15           # divisor floor → adjustment capped at ~6.7×
+# Cumulative fraction of a normal NSE day's volume traded by minute-of-session
+# (U-shape: heavy open, quiet midday, heavy close). Piecewise-linear anchors.
+VOL_SESSION_CURVE      = [(0, 0.04), (60, 0.30), (180, 0.55), (300, 0.75), (375, 1.00)]
+
 FII_NET_SELL_BLOCK_CR  = -2000  # block new longs if FII cash net < this (₹ Cr)
 FII_NET_BUY_BLOCK_CR   = 2000   # block new shorts if FII cash net > this (₹ Cr)
 PCR_BULLISH_MAX        = 1.4    # PCR > this = bearish bias, soft-warn
@@ -80,13 +103,48 @@ def check_relative_strength(sym: str, cp: float, prev_close: float, nifty_pct: f
 # Index varies between sheets — caller passes the parsed value to keep this
 # module sheet-agnostic. trading_bot.py owns the column-index detail.
 
+def expected_volume_fraction(now) -> float:
+    """
+    Fraction of a normal NSE day's total volume expected to have traded by
+    `now` (IST datetime). Returns 1.0 (= "use the raw reading, no boost")
+    whenever adjustment would be unsafe: `now` missing/broken, before
+    09:45 IST (opening data too noisy), or session over.
+    """
+    try:
+        mins = now.hour * 60 + now.minute - VOL_SESSION_OPEN_MIN
+    except Exception:
+        return 1.0
+    if mins < VOL_PRORATE_START_MIN:
+        return 1.0
+    # The sheet's volume snapshot lags real time — measure pace as of the
+    # (delayed) data timestamp, not the wall clock.
+    mins = mins - VOL_QUOTE_DELAY_MIN
+    if mins >= VOL_SESSION_LEN_MIN:
+        return 1.0
+    frac = 1.0
+    for (m0, f0), (m1, f1) in zip(VOL_SESSION_CURVE, VOL_SESSION_CURVE[1:]):
+        if mins <= m1:
+            frac = f0 + (f1 - f0) * (mins - m0) / (m1 - m0)
+            break
+    return max(VOL_MIN_EXPECTED_FRAC, min(1.0, frac))
+
+
 def check_volume_confirmation(sym: str, rel_vol: float,
                               min_mult: float = VOL_MULTIPLE_MIN,
                               pct_change: float = 0.0,
-                              bypass_pct: float = VOL_BYPASS_PCT_CHANGE) -> tuple:
+                              bypass_pct: float = VOL_BYPASS_PCT_CHANGE,
+                              now=None) -> tuple:
     """
-    rel_vol = today's volume / 20-day average volume.  Entry requires ≥ 1.5×.
-    Fail-open if rel_vol is 0 (data unavailable).
+    rel_vol = today's volume / avg daily volume (full-day basis).
+    Entry requires ≥ 1.5× PACE. Fail-open if rel_vol is 0 (data unavailable).
+
+    v1.1 TIME ADJUSTMENT — rel_vol comes from a column that divides today's
+    cumulative (partial-day) volume by a full-day average, so it reads low
+    all session. When `now` (IST) is given, the reading is divided by
+    expected_volume_fraction(now): a stock that has already traded 0.60× of
+    its full-day average by noon (when ~0.49× is normal) is running at
+    ~1.2× pace. The 1.5× threshold is unchanged — only the measurement is
+    made time-fair.
 
     STALE-DATA BYPASS — AppScript scanner notes the Volume_vs_Avg_% column is
     "end-of-day stale" because the underlying formula refreshes after market
@@ -97,10 +155,13 @@ def check_volume_confirmation(sym: str, rel_vol: float,
         return True, f"Volume gate bypassed: stock +{pct_change:.1f}% confirms volume regardless of stale col ✅"
     if rel_vol <= 0:
         return True, "Volume data unavailable — entry allowed"
-    if rel_vol < min_mult:
-        return False, f"Volume {rel_vol:.2f}× < {min_mult}× — no institutional footprint"
-    label = "huge" if rel_vol >= 3.0 else ("strong" if rel_vol >= 2.0 else "above avg")
-    return True, f"Volume {rel_vol:.2f}× — {label} ✅"
+    frac = expected_volume_fraction(now) if now is not None else 1.0
+    pace = rel_vol / frac
+    note = f" (raw {rel_vol:.2f}× ÷ {frac:.0%} of day)" if frac < 1.0 else ""
+    if pace < min_mult:
+        return False, f"Volume pace {pace:.2f}×{note} < {min_mult}× — no institutional footprint"
+    label = "huge" if pace >= 3.0 else ("strong" if pace >= 2.0 else "above avg")
+    return True, f"Volume pace {pace:.2f}×{note} — {label} ✅"
 
 
 # ════════════════════════════════════════════════════════════════════════════
