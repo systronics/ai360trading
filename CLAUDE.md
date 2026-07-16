@@ -45,7 +45,7 @@ One broken file = zero income that day. Treat every edit as critical.
 | `fetch_smallmidcap.py` | v1.4 (Mon-Fri 20:30 IST — REAL 5d volume + SmallMidLive board + target floor ≥5% w/ honest R:R) |
 | `fetch_rs.py` | v1.0 (yfinance RS repair feed — keeps Nifty200 RS col alive; GOOGLEFINANCE #N/A killed all scores once) |
 | `fetch_fii_dii.py` | v1.0 (real FII/DII flow → BotMemory MKT_* keys) |
-| `appscript.gs` | v15.21 (LIVE in editor, clasp-deployed 2026-07-16: honest premarket regime message — stale-data note + ⚖️ borderline warning when \|Nifty−20DMA\|<0.30% + CONFIG.VERSION single-source stamps; v15.20 option-alert safety pack; deploy via `.\deploy_appscript.ps1`) |
+| `appscript.gs` | v15.22 (LIVE in editor, clasp-deployed 2026-07-16 21:59 IST: SL noise floor MIN_SL_ATR_MULT 0.75 + confirm-at-open guard on night option alerts; v15.21 honest premarket regime message + CONFIG.VERSION stamps; v15.20 option-alert safety pack; deploy via `.\deploy_appscript.ps1`) |
 
 ### Long-Term Signals
 | File | Version |
@@ -123,6 +123,44 @@ One broken file = zero income that day. Treat every edit as critical.
 
 ---
 
+## 🔒 NEVER CHANGE — OWNER-VALIDATED DECISIONS
+*(Each line exists because of real money, real data, or an explicit owner decision. Do NOT "improve" these. If a change seems needed, present evidence and get owner approval FIRST. Full history in `.internal-ops.md` + memory.)*
+
+### Trading — hard rules
+| Rule | Why (evidence) |
+|---|---|
+| `BROKER_MODE = "PAPER"` — never connect Dhan API / place real orders | Phase 4 only, owner must explicitly start it |
+| **Buy-side only** — never build/propose shorting or PE buying | Owner DECLINED sell-side 2026-06-05; bearish regime → options SKIP (option_intelligence v1.1) |
+| **RS ≥ 5 gate** (bot Filter 7 + appscript GATE 3) — never lower | Data-validated 2026-07-15: ALL 6 target winners pass, 2/5 losers correctly blocked |
+| **RSI hot-leader exception exactly as calibrated** — bullish + RSI 65–75 + stock up on day = allowed; >75 hard block; fail-CLOSED without day data | 13-trade study 2026-07-15: no loser ever entered overbought; NYKAA-class winners were being refused. Don't revert to hard-65, don't raise above 75 |
+| **VOL gate = 1.5× PACE** (time-fair since v15.21/v1.1) — the 1.5× bar stays | Bar is deliberate (institutional footprint); only the measurement was made time-fair. Reversal-risk/ranking uses RAW relvol on purpose |
+| **MIN_SL_ATR_MULT = 0.75** — DMA-anchored SLs must leave ≥0.75×ATR room | BHARATFORG 07-16: DMA snap gave a 1.07% stop on a 2-4 week trade + fake RR 9.6 |
+| **Owner's risk rule:** tight SL, target ≥5% *reachability-aware* (ATR%≥1.3 only), trail, option loss hard-capped 20%, option exit stock-anchored | v15.18 design; do NOT blindly hard-floor targets at 5% for low-vol names |
+| Empty AlertLog on a red/quiet day is CORRECT behavior, not a bug | NIFTY_MIN_PCT_BULLISH −0.30 + honest gates; 07-16 verified: 0 entries was right |
+| **Fail-open for data feeds, fail-closed only where calibrated** | free-forever_self_repair: a dead feed must never kill the bot; the RSI exception is deliberately fail-CLOSED |
+
+### Money & platform
+| Rule | Why |
+|---|---|
+| **₹0/month forever** — no paid services without explicit owner approval | 6-family-member livelihood; free tiers only |
+| **`human_touch.py` on ALL content** — never bypass | Content authenticity pipeline |
+| **AI use is DISCLOSED, never evaded** — never build AI-detection evasion | FB flag 2026-06-07 was informational; disclosure + quality is the compliant path |
+| **`ai_client.py` for every AI call** (Groq → Gemini → Claude → OpenAI → Templates) | Never call AI APIs directly |
+| **`money_funnel.py`** = single source of broker/referral links in content | |
+| Repo stays PUBLIC (GitHub Actions unlimited); `.internal-ops.md`/`SESSION.md`/`CHANGELOG.md` stay PC-LOCAL (gitignored) | Owner decision 2026-05-30 |
+
+### Operational invariants
+| Rule | Why |
+|---|---|
+| **Owner trades MANUALLY with real money off the Telegram alerts** | Alert quality = family income. Test + verify BEFORE every deploy; subscriber-facing wording must be honest (no fake VIX, no false-certain regime verdicts, no stale version stamps) |
+| **AppScript deploys via `.\deploy_appscript.ps1` (clasp)** — never manual paste; bump `CONFIG.VERSION` every release | It is the single source for all message version stamps |
+| `.bat`/`.cmd`/`.ps1` files stay **CRLF** (`.gitattributes` enforces) | smartsync.bat was silently broken for months by LF endings |
+| NSE holidays only from the **official NSE list** — never guess/hardcode from memory | 2026-05-27 full outage from a wrong hardcoded list |
+| Never ask the owner for chart screenshots for calibration — use yfinance | Owner directive 2026-07-15; charts only when HE offers them |
+| T2 cell (AlertLog col T row 2) = automation master switch | YES = enabled |
+
+---
+
 ## END OF EVERY SESSION
 
 Before ending, update SESSION.md with:
@@ -130,6 +168,13 @@ Before ending, update SESSION.md with:
 - Current version of every file changed
 - Any new pending tasks discovered
 - Any new known issues
+
+Also update, every time without exception:
+- `.internal-ops.md` — dated entry: what changed, WHY, what was verified, what was deliberately NOT changed
+- `CHANGELOG.md` — same change in subscriber/owner language
+- The CURRENT FILE VERSIONS table in this file (CLAUDE.md)
+- The 🔒 NEVER CHANGE section in this file — add any new owner-validated decision made this session
+- Memory (`MEMORY.md` + topic file) — so the next session starts already knowing
 
 Then run:
 ```

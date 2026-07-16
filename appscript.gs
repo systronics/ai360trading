@@ -1,6 +1,24 @@
 /**
- * AI360 TRADING — APPSCRIPT v15.21
+ * AI360 TRADING — APPSCRIPT v15.22
  * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ * v15.22 CHANGES (2026-07-16, same night) — SL NOISE FLOOR + CONFIRM-AT-OPEN
+ *   Owner-approved "fix where need" after the BHARATFORG premium option alert
+ *   review. Two risk-quality fixes:
+ *   1. SL NOISE FLOOR (MIN_SL_ATR_MULT = 0.75) — the DMA-anchored stop could
+ *      snap to within noise of entry when price sat ON its DMA (BHARATFORG:
+ *      20DMA 1.5 pts below CMP → SL ₹2071.34 on CMP ₹2093.80 = 1.07% stop on
+ *      a "2-4 week" trade, RR inflated to 9.6). A DMA anchor may now TIGHTEN
+ *      the ATR stop only while leaving ≥ 0.75×ATR of room; otherwise the raw
+ *      ATR stop (1.5×/2.5×ATR) is kept. Applies to base (20DMA×0.99) and both
+ *      positional paths (50DMA/20DMA — these had NO buffer at all: price 0.1%
+ *      above the DMA meant a 0.1% stop). Owner's tight-SL rule respected —
+ *      stops only widen when the old one was inside noise; RR is now honest.
+ *   2. CONFIRM-AT-OPEN GUARD on premium option alerts sent outside market
+ *      hours (night scan = last close's data; 07-15 BHARATFORG/DELHIVERY were
+ *      queued at night and opened in downtrends): the RULES block adds "Buy
+ *      ONLY if the stock trades above ₹{last close} after 9:30 / skip if red
+ *      / skip if morning regime message says BEARISH".
+ *
  * v15.21 CHANGES (2026-07-16) — HONEST PREMARKET REGIME MESSAGE + LIVE VERSION STAMPS
  *   Owner-approved after the 07-16 Telegram review: the 00:03 night-scan
  *   message declared "MARKET REGIME: BEARISH — No new entries today. Cash is
@@ -359,7 +377,7 @@ const OPTIONS_CONFIG = {
 
 // ── CONFIG ────────────────────────────────────────────────────────────────────
 const CONFIG = {
-  VERSION       : "v15.21",  // single source for ALL subscriber-facing version stamps (was hardcoded per-message and went stale at v15.17)
+  VERSION       : "v15.22",  // single source for ALL subscriber-facing version stamps (was hardcoded per-message and went stale at v15.17)
   get TELEGRAM_BOT_TOKEN() { return PropertiesService.getScriptProperties().getProperty('TELEGRAM_BOT_TOKEN') || ""; },
   get CHAT_ID_BASIC()      { return PropertiesService.getScriptProperties().getProperty('CHAT_ID_BASIC')      || ""; },
   get CHAT_ID_ADVANCE()    { return PropertiesService.getScriptProperties().getProperty('CHAT_ID_ADVANCE')    || ""; },
@@ -384,6 +402,12 @@ const CONFIG = {
   CAPITAL_STD   :  7000,
   MAX_DEPLOYED  : 104000,
 
+  // v15.22: a DMA-anchored SL may TIGHTEN the ATR stop only while leaving at
+  // least this many ATRs of room. Price sitting ON its 20DMA gave BHARATFORG
+  // (07-16 premium option alert) an SL 1.07% from entry on a "2-4 week" trade —
+  // pure noise distance — and inflated RR to a fake-looking 9.6. Multi-day
+  // stops tighter than 0.75×ATR are coin flips, not risk management.
+  MIN_SL_ATR_MULT     : 0.75,
   ATR_SL_INTRADAY     : 1.5,
   ATR_SL_SWING        : 2.0,
   ATR_SL_BASE         : 1.5,
@@ -821,6 +845,19 @@ function _sendOptionsAlertPremium(sym, cmp, optSignal, stage, sl, target, rr, bm
     ? "\n📌 <b>BASE TRADE NOTE:</b> Patient trade — 2-4 weeks. Exit option after 12 trading days if target not hit."
     : "";
 
+  // v15.22: CONFIRM-AT-OPEN GUARD — night-scan alerts are built from the last
+  // close's data; by the next open the setup can be dead (07-15: BHARATFORG +
+  // DELHIVERY queued at night, both in clear 15m downtrends next morning).
+  // When this alert goes out outside market hours, tell the subscriber exactly
+  // how to validate it live instead of trusting yesterday's snapshot.
+  const _hhmmOpt   = parseInt(Utilities.formatDate(new Date(), CONFIG.IST_ZONE, "HHmm"), 10);
+  const isLiveOpt  = (_hhmmOpt >= 915 && _hhmmOpt <= 1530);
+  const confirmRule = isLiveOpt ? "" :
+    `\n━━ ⚠️ CONFIRM AT OPEN (night scan — last close's data) ━━\n` +
+    `✅ Buy ONLY if the stock trades ABOVE ₹${cmp.toFixed(2)} after 9:30\n` +
+    `❌ Skip if it opens red or below last close — the setup is stale\n` +
+    `❌ Skip if the morning regime message says BEARISH`;
+
   const msg =
     `${typeLabel} — <b>PREMIUM</b>\n` +
     `━━━━━━━━━━━━━━━━━━━━\n` +
@@ -840,7 +877,7 @@ function _sendOptionsAlertPremium(sym, cmp, optSignal, stage, sl, target, rr, bm
     `${entryRule}\n${holdRule}\n` +
     `❌ Do NOT average down on options\n` +
     `❌ Do NOT hold past expiry week\n` +
-    `${tradeNote}\n\n` +
+    `${confirmRule}${tradeNote}\n\n` +
     `<i>Educational only. Not SEBI advice. ${CONFIG.VERSION}</i>`;
 
   _sendTelegramPremium(msg);
@@ -1521,21 +1558,27 @@ function _runScanner(startRow, endRow) {
     const isTopRanked  = (rank >= 1 && rank <= CONFIG.RANK_CONV_BONUS_MAX);
     const swingTgtMult = isTopRanked ? CONFIG.ATR_TGT_SWING_LEADER : CONFIG.ATR_TGT_SWING;
 
+    // v15.22: helper — DMA anchor may tighten the ATR stop ONLY if it still
+    // leaves ≥ MIN_SL_ATR_MULT×ATR of room to entry. When price sits right on
+    // its DMA the old Math.max() snapped the SL to within noise of entry
+    // (BHARATFORG 07-16: 20DMA 1.5 pts under CMP → SL 1.07% away, fake RR 9.6).
+    const _dmaAnchoredSl = (rawSl, dmaRaw, anchorLevel) => {
+      const anchorOk = dmaRaw > 0 && dmaRaw < cmp && (cmp - anchorLevel) >= atr * CONFIG.MIN_SL_ATR_MULT;
+      return parseFloat((anchorOk ? Math.max(rawSl, anchorLevel) : rawSl).toFixed(2));
+    };
+
     if (isBaseEntry) {
-      const rawSl = cmp - atr * CONFIG.ATR_SL_BASE;
-      sl     = (dma20 > 0 && dma20 < cmp) ? parseFloat(Math.max(rawSl, dma20 * 0.99).toFixed(2)) : parseFloat(rawSl.toFixed(2));
+      sl     = _dmaAnchoredSl(cmp - atr * CONFIG.ATR_SL_BASE, dma20, dma20 * 0.99);
       target = parseFloat((cmp + atr * CONFIG.ATR_TGT_BASE).toFixed(2));
     } else if (isMomentumEntry) {
       // Momentum entries: tighter SL (intraday style), swing target
       sl     = parseFloat((cmp - atr * 1.5).toFixed(2));
       target = parseFloat((cmp + atr * 3.0).toFixed(2));
     } else if (ttype === "📈 Positional" && niftyTradeType.includes("Value")) {
-      const rawSl = cmp - atr * CONFIG.ATR_SL_POSITIONAL;
-      sl     = (dma50 > 0 && dma50 < cmp) ? parseFloat(Math.max(rawSl, dma50).toFixed(2)) : parseFloat(rawSl.toFixed(2));
+      sl     = _dmaAnchoredSl(cmp - atr * CONFIG.ATR_SL_POSITIONAL, dma50, dma50);
       target = parseFloat((cmp + atr * CONFIG.ATR_TGT_POSITIONAL).toFixed(2));
     } else if (ttype === "📈 Positional") {
-      const rawSl = cmp - atr * CONFIG.ATR_SL_POSITIONAL;
-      sl     = (dma20 > 0 && dma20 < cmp) ? parseFloat(Math.max(rawSl, dma20).toFixed(2)) : parseFloat(rawSl.toFixed(2));
+      sl     = _dmaAnchoredSl(cmp - atr * CONFIG.ATR_SL_POSITIONAL, dma20, dma20);
       target = parseFloat((cmp + atr * CONFIG.ATR_TGT_POSITIONAL).toFixed(2));
     } else if (ttype === "⚡ Intraday" || ttype === "📊 Options Alert") {
       sl     = parseFloat((cmp - atr * CONFIG.ATR_SL_INTRADAY).toFixed(2));
