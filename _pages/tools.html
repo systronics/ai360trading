@@ -151,6 +151,7 @@ meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
       <div class="tool-card" data-tool="split"><span class="ico">✂️</span><h3>Split / Extract</h3><p>Pull out chosen pages</p></div>
       <div class="tool-card" data-tool="rotate"><span class="ico">🔄</span><h3>Rotate PDF</h3><p>Turn pages 90° / 180° / 270°</p></div>
       <div class="tool-card" data-tool="delpages"><span class="ico">🗑️</span><h3>Delete Pages</h3><p>Remove unwanted pages</p></div>
+      <div class="tool-card" data-tool="addreplace"><span class="ico">📥</span><h3>Add / Replace Page</h3><p>Insert or swap a page in many PDFs</p></div>
       <div class="tool-card" data-tool="pagenum"><span class="ico">🔢</span><h3>Page Numbers</h3><p>Add page numbers to a PDF</p></div>
       <div class="tool-card" data-tool="headerfooter"><span class="ico">📑</span><h3>Header &amp; Footer</h3><p>Add top / bottom text</p></div>
       <div class="tool-card" data-tool="watermark"><span class="ico">💧</span><h3>Watermark</h3><p>Stamp text across pages</p></div>
@@ -302,12 +303,18 @@ meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
     img2pdf:  { title:"Image → PDF", accept:"image/jpeg,image/png", multiple:true,  hint:"Select one or more JPG / PNG images", btn:"Create PDF" },
     pdf2img:  { title:"PDF → Image", accept:"application/pdf",      multiple:false, hint:"Select a PDF file", btn:"Convert to images" },
     merge:    { title:"Merge PDF",   accept:"application/pdf",      multiple:true,  hint:"Select 2 or more PDF files (in the order you want)", btn:"Merge PDFs" },
-    split:    { title:"Split / Extract Pages", accept:"application/pdf", multiple:false, hint:"Select a PDF file", btn:"Extract pages",
-                opts:"<div class='opt-row'><label>Pages:</label><input type='text' id='opt-range' placeholder='e.g. 1-3,5'><span class='hint'>Leave blank for all pages</span></div>" },
+    split:    { title:"Split / Extract Pages", accept:"application/pdf", multiple:true, hint:"Select one or more PDF files", btn:"Extract pages",
+                opts:"<div class='opt-row'><label>Pages:</label><input type='text' id='opt-range' placeholder='e.g. 1-3,5'><span class='hint'>Applied to every selected file. Leave blank for all pages</span></div>" },
     rotate:   { title:"Rotate PDF",  accept:"application/pdf",      multiple:false, hint:"Select a PDF file", btn:"Rotate PDF",
                 opts:"<div class='opt-row'><label>Turn by:</label><select id='opt-angle'><option value='90'>90° right</option><option value='180'>180°</option><option value='270'>90° left</option></select></div>" },
-    delpages: { title:"Delete Pages", accept:"application/pdf",     multiple:false, hint:"Select a PDF file", btn:"Delete pages",
-                opts:"<div class='opt-row'><label>Remove pages:</label><input type='text' id='opt-range' placeholder='e.g. 2,4-6'></div>" },
+    delpages: { title:"Delete Pages", accept:"application/pdf",     multiple:true, hint:"Select one or more PDF files", btn:"Delete pages",
+                opts:"<div class='opt-row'><label>Remove pages:</label><input type='text' id='opt-range' placeholder='e.g. 2,4-6'><span class='hint'>Applied to every selected file</span></div>" },
+    addreplace:{ title:"Add / Replace Page", accept:"application/pdf", multiple:true, hint:"Select the PDF file(s) you want to change", btn:"Apply to all files",
+                opts:"<div class='opt-row'><label>Action:</label><select id='opt-mode'><option value='replace'>Replace page N</option><option value='before'>Insert before page N</option><option value='after'>Insert after page N</option><option value='end'>Add at the end</option></select>"
+                   + "<label>N:</label><input type='number' id='opt-n' min='1' value='1' style='width:70px'></div>"
+                   + "<div class='opt-row'><label>Page from:</label><input type='file' id='opt-src' accept='application/pdf'>"
+                   + "<label>Its page #:</label><input type='number' id='opt-srcpage' min='1' value='1' style='width:70px'></div>"
+                   + "<div class='opt-row'><span class='hint'>Pick the PDF that contains the page you want to add, and which of its pages to use. It will be applied to every selected file.</span></div>" },
     pagenum:  { title:"Add Page Numbers", accept:"application/pdf", multiple:false, hint:"Select a PDF file", btn:"Add page numbers",
                 opts:"<div class='opt-row'><label>Position:</label><select id='opt-pos'><option value='bc'>Bottom center</option><option value='br'>Bottom right</option><option value='bl'>Bottom left</option></select>"
                    + "<label>Format:</label><select id='opt-fmt'><option value='n'>1, 2, 3…</option><option value='nofN'>Page 1 of N</option></select></div>" },
@@ -411,6 +418,35 @@ meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
     });
   });
 
+  /* ---------- Batch runner (2026-07-16) ----------
+     Runs a per-file PDF job across EVERY selected file (split/delete/add-
+     replace used to silently process only the first file). One bad file no
+     longer kills the batch — it is reported and the rest still finish.
+     ignoreEncryption lets permission-locked PDFs (bank statements etc.)
+     load; PDFs needing an open-password still fail with a clear message. */
+  function batchPdf(job){
+    var ok = 0, failed = [];
+    var chain = Promise.resolve();
+    files.forEach(function(f, i){
+      chain = chain.then(function(){
+        setBar((i / files.length) * 100);
+        return readAsArrayBuffer(f)
+          .then(function(buf){ return PDFLib.PDFDocument.load(buf, { ignoreEncryption: true }); })
+          .then(function(doc){ return job(doc, f); })
+          .then(function(){ ok++; });
+      }).catch(function(err){
+        failed.push(f.name + " (" + (err && err.message ? err.message : "failed") + ")");
+      });
+    });
+    return chain.then(function(){
+      setBar(100);
+      if (!ok) throw new Error("No file could be processed — " + failed.join("; "));
+      var msg = "✅ " + ok + " file(s) done.";
+      if (failed.length) msg += " ⚠️ Skipped " + failed.length + ": " + failed.join("; ");
+      setStatus(msg, failed.length ? "info" : "ok");
+    });
+  }
+
   /* ---------- File-tool handlers ---------- */
   var HANDLERS = {
     img2pdf: function(){
@@ -481,7 +517,7 @@ meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
         var chain = Promise.resolve();
         files.forEach(function(f){
           chain = chain.then(function(){ return readAsArrayBuffer(f); }).then(function(buf){
-            return PDFLib.PDFDocument.load(buf).then(function(src){
+            return PDFLib.PDFDocument.load(buf, { ignoreEncryption: true }).then(function(src){
               return out.copyPages(src, src.getPageIndices()).then(function(pages){
                 pages.forEach(function(pg){ out.addPage(pg); });
               });
@@ -497,30 +533,31 @@ meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
 
     split: function(){
       setStatus("Extracting…", "info");
-      return loadLib("pdflib").then(function(){ return readAsArrayBuffer(files[0]); })
-        .then(function(buf){ return PDFLib.PDFDocument.load(buf); })
-        .then(function(src){
+      var rangeStr;
+      return loadLib("pdflib").then(function(){
+        rangeStr = (($("opt-range") && $("opt-range").value) || "").trim();
+        return batchPdf(function(src, f){
           var total = src.getPageCount();
-          var rangeStr = ($("opt-range") && $("opt-range").value || "").trim();
           var idx = rangeStr ? parseRange(rangeStr, total) : src.getPageIndices();
-          if (!idx.length) throw new Error("No valid pages in that range (file has " + total + " pages).");
+          if (!idx.length) throw new Error("no valid pages in “" + rangeStr + "” — file has " + total + " page(s)");
           return PDFLib.PDFDocument.create().then(function(out){
             return out.copyPages(src, idx).then(function(pages){
               pages.forEach(function(pg){ out.addPage(pg); });
               return out.save();
             });
           }).then(function(bytes){
-            addResultLink(new Blob([bytes], {type:"application/pdf"}), baseName(files[0].name) + "-extract.pdf", "⬇ Download PDF");
-            setStatus("✅ Extracted " + idx.length + " page(s).", "ok");
+            addResultLink(new Blob([bytes], {type:"application/pdf"}), baseName(f.name) + "-extract.pdf",
+                          "⬇ " + f.name + " → " + idx.length + " page(s)");
           });
         });
+      });
     },
 
     rotate: function(){
       setStatus("Rotating…", "info");
       var angle = parseInt(($("opt-angle") && $("opt-angle").value) || "90", 10);
       return loadLib("pdflib").then(function(){ return readAsArrayBuffer(files[0]); })
-        .then(function(buf){ return PDFLib.PDFDocument.load(buf); })
+        .then(function(buf){ return PDFLib.PDFDocument.load(buf, { ignoreEncryption: true }); })
         .then(function(doc){
           doc.getPages().forEach(function(pg){
             var cur = pg.getRotation().angle || 0;
@@ -534,20 +571,61 @@ meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
     },
 
     delpages: function(){
+      var rangeStr = (($("opt-range") && $("opt-range").value) || "").trim();
+      if (!rangeStr){ setStatus("Type which pages to delete, e.g. 2,4-6.", "err"); return; }
       setStatus("Removing pages…", "info");
-      return loadLib("pdflib").then(function(){ return readAsArrayBuffer(files[0]); })
-        .then(function(buf){ return PDFLib.PDFDocument.load(buf); })
-        .then(function(doc){
+      return loadLib("pdflib").then(function(){
+        return batchPdf(function(doc, f){
           var total = doc.getPageCount();
-          var rm = parseRange(($("opt-range") && $("opt-range").value) || "", total);
-          if (!rm.length) throw new Error("Type which pages to delete, e.g. 2,4-6.");
-          if (rm.length >= total) throw new Error("That would delete every page.");
+          var rm = parseRange(rangeStr, total);
+          if (!rm.length) throw new Error("no valid pages in “" + rangeStr + "” — file has " + total + " page(s)");
+          if (rm.length >= total) throw new Error("that would delete every page");
           rm.sort(function(a,b){ return b-a; }).forEach(function(i){ doc.removePage(i); });
-          return doc.save();
-        }).then(function(bytes){
-          addResultLink(new Blob([bytes], {type:"application/pdf"}), baseName(files[0].name) + "-edited.pdf", "⬇ Download PDF");
-          setStatus("✅ Pages removed.", "ok");
+          return doc.save().then(function(bytes){
+            addResultLink(new Blob([bytes], {type:"application/pdf"}), baseName(f.name) + "-edited.pdf",
+                          "⬇ " + f.name + " → " + rm.length + " page(s) removed");
+          });
         });
+      });
+    },
+
+    addreplace: function(){
+      var srcInput = $("opt-src");
+      if (!srcInput || !srcInput.files || !srcInput.files.length){
+        setStatus("Choose the PDF that contains the page you want to add (the “Page from” box).", "err"); return;
+      }
+      setStatus("Working…", "info");
+      var mode, n, srcPageNo, srcDoc;
+      return loadLib("pdflib").then(function(){
+        mode      = ($("opt-mode") && $("opt-mode").value) || "replace";
+        n         = parseInt(($("opt-n") && $("opt-n").value) || "1", 10);
+        srcPageNo = parseInt(($("opt-srcpage") && $("opt-srcpage").value) || "1", 10);
+        if (!(n >= 1)) throw new Error("Page number N must be 1 or more.");
+        if (!(srcPageNo >= 1)) throw new Error("Source page number must be 1 or more.");
+        return readAsArrayBuffer(srcInput.files[0]);
+      }).then(function(buf){
+        return PDFLib.PDFDocument.load(buf, { ignoreEncryption: true });
+      }).then(function(doc){
+        srcDoc = doc;
+        if (srcPageNo > srcDoc.getPageCount())
+          throw new Error("The source PDF has only " + srcDoc.getPageCount() + " page(s) — page " + srcPageNo + " does not exist.");
+        return batchPdf(function(target, f){
+          var count = target.getPageCount();
+          if (mode === "replace" && n > count)
+            throw new Error("has only " + count + " page(s) — cannot replace page " + n);
+          return target.copyPages(srcDoc, [srcPageNo - 1]).then(function(pages){
+            var pg = pages[0];
+            if (mode === "end")         target.addPage(pg);
+            else if (mode === "before") target.insertPage(Math.min(n - 1, count), pg);
+            else if (mode === "after")  target.insertPage(Math.min(n, count), pg);
+            else { target.removePage(n - 1); target.insertPage(n - 1, pg); }
+            return target.save();
+          }).then(function(bytes){
+            addResultLink(new Blob([bytes], {type:"application/pdf"}), baseName(f.name) + "-updated.pdf",
+                          "⬇ " + f.name + " → updated");
+          });
+        });
+      });
     },
 
     pagenum: function(){
@@ -555,7 +633,7 @@ meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
       var pos = ($("opt-pos") && $("opt-pos").value) || "bc";
       var fmt = ($("opt-fmt") && $("opt-fmt").value) || "n";
       return loadLib("pdflib").then(function(){ return readAsArrayBuffer(files[0]); })
-        .then(function(buf){ return PDFLib.PDFDocument.load(buf); })
+        .then(function(buf){ return PDFLib.PDFDocument.load(buf, { ignoreEncryption: true }); })
         .then(function(doc){
           return doc.embedFont(PDFLib.StandardFonts.Helvetica).then(function(font){
             var pages = doc.getPages(), total = pages.length;
@@ -580,7 +658,7 @@ meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
       if (!head && !foot){ setStatus("Type a header or a footer (or both).", "err"); return; }
       setStatus("Adding header / footer…", "info");
       return loadLib("pdflib").then(function(){ return readAsArrayBuffer(files[0]); })
-        .then(function(buf){ return PDFLib.PDFDocument.load(buf); })
+        .then(function(buf){ return PDFLib.PDFDocument.load(buf, { ignoreEncryption: true }); })
         .then(function(doc){
           return doc.embedFont(PDFLib.StandardFonts.Helvetica).then(function(font){
             var size = 10, col = PDFLib.rgb(0.2,0.2,0.2);
@@ -601,7 +679,7 @@ meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
       var text = ($("opt-wm") && $("opt-wm").value || "").trim() || "CONFIDENTIAL";
       setStatus("Adding watermark…", "info");
       return loadLib("pdflib").then(function(){ return readAsArrayBuffer(files[0]); })
-        .then(function(buf){ return PDFLib.PDFDocument.load(buf); })
+        .then(function(buf){ return PDFLib.PDFDocument.load(buf, { ignoreEncryption: true }); })
         .then(function(doc){
           return doc.embedFont(PDFLib.StandardFonts.HelveticaBold).then(function(font){
             doc.getPages().forEach(function(pg){
