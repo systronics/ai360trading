@@ -1,4 +1,4 @@
-name: Nifty200 RS Repair Feed
+name: Nifty200 RS + ATR Feed
 
 # v1.0 (2026-06-02):
 #   The Nifty200 `RS` column is a GOOGLEFINANCE() historical formula. Google has
@@ -10,24 +10,39 @@ name: Nifty200 RS Repair Feed
 #   disabled.  fetch_rs.py computes a REAL RS via yfinance and writes the column,
 #   reviving the dependent formulas.  ₹0 (public-repo Actions + free yfinance).
 #
-# Schedule: pre-market sets RS for the trading day; a midday run keeps it fresh.
-# Writing a per-cell number into column U is atomic and does not disturb the
-# trading bot's reads.
+# v2.0 (2026-07-17):
+#   1. ALSO writes a REAL ATR(14) into the "ATR (14)" column — the sheet formula
+#      there was returning a single day's high−low (INDEX(range,2,2) = one cell),
+#      which fed every alert's SL/target in appscript AND the bot's trailing
+#      SL / resistance veto / option signals. Fixing the data fixes all of them.
+#   2. CONCURRENCY FIX — the real reason RS froze on 2026-07-13: this workflow
+#      shared concurrency group `trading-bot` with the all-day session loop.
+#      GitHub keeps only ONE queued run per group, so every fetch_rs run queued
+#      behind the session loop and was then kicked by the next session run
+#      ("Canceling since a higher priority waiting request for trading-bot
+#      exists") — it never executed. Sharing the group was never needed: the
+#      sheet writes are atomic per API call and cannot corrupt a concurrent bot
+#      read. Now uses its own `fetch-rs` group (a newer run supersedes an older).
+#
+# Schedule: pre-market sets RS+ATR for the trading day; a midday run keeps them
+# fresh (fetch_rs.py excludes today's partial candle from ATR while the market
+# is open).
 
 on:
   schedule:
-    - cron: "15 3 * * 1-5"   # 08:45 IST — pre-market (RS ready before the session loop trades)
+    - cron: "15 3 * * 1-5"   # 08:45 IST — pre-market (RS+ATR ready before the session loop trades)
     - cron: "0 7 * * 1-5"    # 12:30 IST — intraday refresh
   workflow_dispatch:
 
 jobs:
   fetch-rs:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-    # Must not run while the trading bot is mid-tick reading the sheet.
+    timeout-minutes: 20
+    # v2.0: own group — MUST NOT share `trading-bot` (see header). cancel-in-progress
+    # lets a fresher scheduled run supersede a stuck older one.
     concurrency:
-      group: trading-bot
-      cancel-in-progress: false
+      group: fetch-rs
+      cancel-in-progress: true
 
     steps:
       - name: Checkout
@@ -44,7 +59,7 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run RS repair feed (writes the RS column)
+      - name: Run RS + ATR feed (writes RS and ATR (14) columns)
         env:
           GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
         run: python fetch_rs.py --write
@@ -70,7 +85,8 @@ jobs:
               f"Workflow failed: <b>{os.environ.get('WF_NAME','?')}</b>\n"
               f"Run log: {os.environ.get('RUN_URL','')}\n\n"
               "<i>This is a system message, not a trade signal. "
-              "RS will retry next run; entry signals fail-open meanwhile.</i>"
+              "RS/ATR will retry next run; values stay at last good reading "
+              "(fail-open) meanwhile.</i>"
           )
           try:
               req = Request(
