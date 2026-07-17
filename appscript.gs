@@ -1,6 +1,16 @@
 /**
- * AI360 TRADING — APPSCRIPT v15.24
+ * AI360 TRADING — APPSCRIPT v15.25
  * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ * v15.25 CHANGES (2026-07-17, late evening) — STRIKE GRID UNIFIED (known-items pack)
+ *   _getStrikeInterval now shares ONE table with Python option_intelligence
+ *   v1.3 strike_step (and the bot's CE fallback): <100→1, <250→5, <500→10,
+ *   <1000→20, <2000→50, ≥2000→100. The engines previously used different
+ *   grids (e.g. 250-500: Python 5 vs here 10), so the night ATM alert and
+ *   the entry-time ITM pick could sit on different strike ladders for the
+ *   same stock. Sub-₹100 band added so low-price stocks aren't rounded onto
+ *   a 5-step grid. Also same-evening bullish-footer version stamp (was only
+ *   on the bearish header + option/test footers).
+ *
  * v15.24 CHANGES (2026-07-17, evening) — FULL-AUDIT BUG PACK (owner: "fix all")
  *   1. CASHWATCHLIST ROW CRASH FIXED — _readCashWatchlist built a 20-element
  *      row (trailing notes string) but the AlertLog grid write is 19 columns
@@ -422,7 +432,7 @@ const OPTIONS_CONFIG = {
 
 // ── CONFIG ────────────────────────────────────────────────────────────────────
 const CONFIG = {
-  VERSION       : "v15.24",  // single source for ALL subscriber-facing version stamps (was hardcoded per-message and went stale at v15.17)
+  VERSION       : "v15.25",  // single source for ALL subscriber-facing version stamps (was hardcoded per-message and went stale at v15.17)
   get TELEGRAM_BOT_TOKEN() { return PropertiesService.getScriptProperties().getProperty('TELEGRAM_BOT_TOKEN') || ""; },
   get CHAT_ID_BASIC()      { return PropertiesService.getScriptProperties().getProperty('CHAT_ID_BASIC')      || ""; },
   get CHAT_ID_ADVANCE()    { return PropertiesService.getScriptProperties().getProperty('CHAT_ID_ADVANCE')    || ""; },
@@ -794,7 +804,11 @@ function _getRecommendedExpiry(minDays) {
 // theta-heavy pick). Math.round = the genuinely nearest strike.
 function _roundToStrike(price, interval) { return Math.round(price / interval) * interval; }
 
+// v15.25: shared table with Python option_intelligence.strike_step (the two
+// engines used different grids — night vs entry alerts could disagree).
+// Sub-₹100 band added so low-price stocks aren't rounded onto a 5-step grid.
 function _getStrikeInterval(cmp) {
+  if (cmp < 100)  return 1;
   if (cmp < 250)  return 5;
   if (cmp < 500)  return 10;
   if (cmp < 1000) return 20;

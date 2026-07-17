@@ -1,6 +1,16 @@
 """
-AI360 EARNINGS CACHE — v1.1
+AI360 EARNINGS CACHE — v1.2
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v1.2 (2026-07-17): BSE NAMES MAPPED TO REAL NSE SYMBOLS — the BSE fallback
+  stored the FIRST TOKEN of the BSE long name ("TATA MOTORS LTD" → key
+  EARNINGS_TATA_… which matches nothing), so its coverage was mostly dead
+  keys. Now the official NSE equity list (EQUITY_L.csv, free) is downloaded
+  and BSE long names are matched by normalised company name → real SYMBOL;
+  unmatched names whose first token IS a listed NSE symbol keep the old
+  behaviour; everything else is dropped (garbage keys just bloated BotMemory).
+  Fail-open: if the equity list can't download, old first-token behaviour is
+  kept unchanged. (NSE source-1 already returns real symbols — unaffected.)
+
 v1.1 (2026-07-17): BotMemory rewrite made ATOMIC — was clear()+update() (two
   calls); a crash between them would have wiped the bot's entire runtime state
   (_RUNTIME_MEM, TSL keys, holidays). Now one padded update() overwrites in
@@ -112,6 +122,52 @@ def _normalise_date(s: str) -> str:
 
 
 # ════════════════════════════════════════════════════════════════════════════
+# NSE NAME → SYMBOL MAP — v1.2 (for the BSE fallback, which returns long names)
+# ════════════════════════════════════════════════════════════════════════════
+
+NSE_EQUITY_LIST_URL = "https://nsearchives.nseindia.com/content/equities/EQUITY_L.csv"
+
+
+def _norm_name(s: str) -> str:
+    """Normalise a company name for matching: uppercase, alphanumerics+spaces
+    only, trailing LIMITED/LTD stripped. 'Tata Motors Ltd.' == 'TATA MOTORS'."""
+    s = "".join(ch if ch.isalnum() or ch == " " else " " for ch in str(s).upper())
+    parts = [p for p in s.split() if p]
+    while parts and parts[-1] in ("LIMITED", "LTD"):
+        parts.pop()
+    return " ".join(parts)
+
+
+def _load_nse_symbol_map():
+    """Official NSE equity list → ({normalised name: SYMBOL}, {SYMBOL,...}).
+    Fail-open: any error returns ({}, set()) and the BSE path keeps its old
+    first-token behaviour unchanged."""
+    try:
+        import csv, io
+        s = requests.Session()
+        s.headers.update(DEFAULT_HEADERS)
+        r = s.get(NSE_EQUITY_LIST_URL, timeout=30)
+        if r.status_code != 200:
+            print(f"[NSE map] HTTP {r.status_code} — first-token fallback stays")
+            return {}, set()
+        reader = csv.DictReader(io.StringIO(r.content.decode("utf-8-sig", errors="replace")))
+        reader.fieldnames = [f.strip() for f in (reader.fieldnames or [])]
+        name_map, symbols = {}, set()
+        for row in reader:
+            sym = (row.get("SYMBOL") or "").strip().upper()
+            name = _norm_name(row.get("NAME OF COMPANY") or "")
+            if sym:
+                symbols.add(sym)
+                if name:
+                    name_map[name] = sym
+        print(f"[NSE map] {len(name_map)} company names / {len(symbols)} symbols loaded")
+        return name_map, symbols
+    except Exception as e:
+        print(f"[NSE map] unavailable ({e}) — first-token fallback stays")
+        return {}, set()
+
+
+# ════════════════════════════════════════════════════════════════════════════
 # SOURCE 2 — BSE results announcements (fallback)
 # ════════════════════════════════════════════════════════════════════════════
 
@@ -132,17 +188,36 @@ def fetch_bse_earnings() -> list:
             return []
         data = r.json()
         rows = data.get("Table", []) if isinstance(data, dict) else []
-        out  = []
+        # v1.2: map BSE long names to REAL NSE symbols via the official equity
+        # list. Old first-token behaviour ("TATA MOTORS LTD" → "TATA") produced
+        # keys that matched nothing in the earnings gates.
+        name_map, symbol_set = _load_nse_symbol_map()
+        out = []
+        mapped_n = token_n = dropped_n = 0
         for item in rows:
-            sym = (item.get("SLONGNAME") or item.get("scrip_cd") or "").strip().upper()
+            raw = (item.get("SLONGNAME") or item.get("scrip_cd") or "").strip().upper()
             dt_str = (item.get("NEWS_DT") or item.get("DT_TM") or "").strip()
             iso = _normalise_date(dt_str)
-            if sym and iso:
-                # BSE often returns long names — caller may need stricter mapping;
-                # for now we store the first token (best-effort).
-                first_token = sym.split()[0]
-                out.append((first_token, iso))
-        print(f"[BSE earnings] fetched {len(out)} announcements")
+            if not raw or not iso:
+                continue
+            norm = _norm_name(raw)
+            mapped = name_map.get(norm, "")
+            if mapped:
+                out.append((mapped, iso)); mapped_n += 1
+                continue
+            first_token = norm.split()[0] if norm.split() else ""
+            if not first_token:
+                dropped_n += 1
+            elif not symbol_set:
+                # equity list unavailable → fail-open, old behaviour verbatim
+                out.append((first_token, iso)); token_n += 1
+            elif first_token in symbol_set:
+                # single-word names ("RELIANCE", "INFOSYS") — token IS the symbol
+                out.append((first_token, iso)); token_n += 1
+            else:
+                dropped_n += 1   # unmappable — a garbage key helps nobody
+        print(f"[BSE earnings] fetched {len(out)} announcements "
+              f"(name-mapped {mapped_n}, token {token_n}, dropped {dropped_n})")
         return out
     except Exception as e:
         print(f"[BSE earnings] fetch error: {e}")

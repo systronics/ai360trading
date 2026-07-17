@@ -1,6 +1,17 @@
 """
-AI360 OPTION INTELLIGENCE — v1.2
+AI360 OPTION INTELLIGENCE — v1.3
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v1.3 (2026-07-17, same evening): (1) STRIKE TABLE UNIFIED with appscript
+  _getStrikeInterval — the engines used different grids (250-500: 5 vs 10
+  etc.), so night vs entry alerts could sit on different strike ladders;
+  shared table = the coarser one (coarse multiples always exist when NSE's
+  finer real spacing divides them — never name a non-tradeable strike) plus
+  a 1-step band under ₹100. (2) est_option_leverage() — display-only
+  premium-aware leverage for exit P/L notes (delta·S/premium with a
+  Brenner-Subrahmanyam 0.4·σ·√T time-value estimate), replacing the flat
+  10× guess when strike/expiry/HV are available; clamped 5-20×, None →
+  caller keeps the flat convention. Fail-open everywhere.
+
 v1.2 (2026-07-17): EARNINGS BLOCK REWIRED TO BOTMEMORY ROWS — the block
   searched the `_RUNTIME_MEM` string for EARNINGS_* keys, but fetch_earnings.py
   writes them as separate BotMemory ROWS, so it was permanently fail-open (a CE
@@ -47,16 +58,24 @@ _HV_CACHE = {}
 
 def strike_step(price: float) -> int:
     """
-    NSE option strike interval is price-dependent. Pure math — no API.
-    Bands match exchange spec; if NSE changes intervals this function is
-    the single update point.
+    NSE option strike interval by price band. Pure math — no API.
+
+    v1.3 (2026-07-17): UNIFIED with appscript's _getStrikeInterval — the two
+    engines used different tables (e.g. 250-500: Python 5 vs appscript 10),
+    so the night alert and the entry alert could name strikes on different
+    grids for the same stock. The shared table is the COARSER of the two:
+    NSE's real per-contract spacing varies, and a coarser multiple is always
+    an EXISTING strike whenever the true (finer) spacing divides it — an
+    alert must never name a strike that doesn't trade (owner-verified against
+    real chains: NYKAA 322→320 ✓, BHARATFORG 2093→2100 ✓). Sub-₹100 keeps a
+    1-step so low-price ITM picks stay near the money (appscript gained the
+    same band in v15.25). If NSE changes intervals, update BOTH tables.
     """
     if price < 100:    return 1
-    if price < 250:    return 2
-    if price < 500:    return 5
-    if price < 1000:   return 10
-    if price < 2000:   return 20
-    if price < 5000:   return 50
+    if price < 250:    return 5
+    if price < 500:    return 10
+    if price < 1000:   return 20
+    if price < 2000:   return 50
     return 100
 
 
@@ -141,6 +160,38 @@ def get_historical_volatility(symbol: str, days: int = 20) -> float:
         print(f"[HV] {symbol}: {e}")
         _HV_CACHE[cache_key] = 0.0
         return 0.0
+
+
+def est_option_leverage(spot: float, strike: float, days_to_expiry, hv_pct,
+                        delta: float = 0.7):
+    """
+    v1.3 — DISPLAY-ONLY leverage estimate for exit P/L notes:
+        option % move ≈ stock % move × leverage,  leverage = Δ · S / premium.
+    Premium is estimated (no live chain on a ₹0 stack):
+        ATM time value ≈ 0.4 · σ · √T · S   (Brenner–Subrahmanyam approximation)
+        premium ≈ intrinsic + 0.7 × ATM time value   (system picks are ITM,
+                  where time value is below the ATM peak)
+    Clamped to [5, 20]× (a paper display figure must stay sane even on odd
+    inputs). Returns None on any bad/missing input — caller falls back to the
+    flat OPTION_LEVERAGE_EST convention. Pure math, fail-open, no network
+    (HV is passed in; use get_historical_volatility upstream).
+    """
+    try:
+        import math
+        spot = float(spot); strike = float(strike)
+        if spot <= 0 or strike <= 0 or hv_pct is None or float(hv_pct) <= 0:
+            return None
+        t = max(1.0, float(days_to_expiry)) / 365.0
+        sigma = float(hv_pct) / 100.0
+        tv_atm = 0.4 * sigma * math.sqrt(t) * spot
+        intrinsic = max(0.0, spot - strike)     # CE (buy-side-only system)
+        premium = intrinsic + 0.7 * tv_atm
+        if premium <= 0:
+            return None
+        lev = delta * spot / premium
+        return round(max(5.0, min(20.0, lev)), 1)
+    except Exception:
+        return None
 
 
 def check_iv_regime(symbol: str) -> tuple:

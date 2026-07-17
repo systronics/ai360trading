@@ -1,6 +1,22 @@
 """
-AI360 TRADING BOT — v15.23
+AI360 TRADING BOT — v15.24
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v15.24 CHANGES vs v15.23 — KNOWN-ITEMS PACK (2026-07-17 late evening, owner: "fix the 3 known items also")
+  1. STRIKE GRID UNIFIED — the CE fallback path had a THIRD divergent strike
+     table (5/10/20/50). Now identical to option_intelligence v1.3 strike_step
+     AND appscript v15.25 _getStrikeInterval: <100→1, <250→5, <500→10,
+     <1000→20, <2000→50, ≥2000→100 (the coarser grid — a coarse multiple is
+     always a real strike when NSE's finer spacing divides it).
+  2. PREMIUM-AWARE OPTION P/L — the exit note's flat 10× leverage guess is
+     replaced by option_intelligence.est_option_leverage (Δ·S/premium at
+     entry, Brenner–Subrahmanyam time value, clamp 5-20×) whenever the
+     sheet's Strike (col V) + Expiry (col W) parse and HV is available;
+     any missing piece → flat 10× exactly as before. Display only — numeric
+     ledger columns keep the stock P/L, label shows the multiplier used.
+  (3. Same session: fetch_earnings v1.2 maps BSE long names → real NSE
+     symbols via the official EQUITY_L.csv — the first-token keys mostly
+     matched nothing, so BSE-sourced earnings coverage was largely dead.)
+
 v15.23 CHANGES vs v15.22 — FULL-AUDIT BUG PACK (2026-07-17 evening, owner: "fix all")
   1. RSI HOT-LEADER EXCEPTION REVIVED — day_pct came ONLY from `_LP_` memory,
      which is written at entry promotion / while monitoring a TRADED row and
@@ -469,7 +485,7 @@ except Exception as _e:
     _EQ_AVAILABLE = False
 
 IST       = pytz.timezone('Asia/Kolkata')
-VERSION   = "v15.23"   # v15.23: single source for the run banner + test messages (were stale at v15.16)
+VERSION   = "v15.24"   # single source for the run banner + test messages (were stale at v15.16 before v15.23)
 TG_TOKEN  = os.environ.get('TELEGRAM_BOT_TOKEN')
 
 CHAT_BASIC   = os.environ.get('CHAT_ID_BASIC')
@@ -1683,7 +1699,9 @@ def ce_candidate_flag(cp, atr, stage, is_bullish, rank=99,
         )
     atr_pct = (atr/cp)*100
     if atr_pct < 1.5: return ""
-    gap = 5 if cp<200 else (10 if cp<500 else (20 if cp<1000 else 50))
+    # v15.24: same strike grid as option_intelligence.strike_step / appscript
+    # _getStrikeInterval (was a THIRD divergent table).
+    gap = 1 if cp<100 else (5 if cp<250 else (10 if cp<500 else (20 if cp<1000 else (50 if cp<2000 else 100))))
     atm = round(cp/gap)*gap; otm = atm+gap
     strike = f"{int(otm)} CE" if "BREAKOUT CONFIRMED" in stage else f"{int(atm)} CE"
     tgt_p = 50 if atr_pct>=2.5 else 65; sl_p = 35 if atr_pct>=2.5 else 40
@@ -1999,6 +2017,9 @@ def step_b_monitor_trades(log_sheet, hist_sheet, nifty_sheet, mem, now, is_bulli
         strat   = str(row[C_STRATEGY]).strip()
         ent_time= str(row[C_ENTRY_TIME]).strip()
         qty     = to_f(row[C_QTY])
+        # v15.24: strike/expiry from cols V/W for the premium-aware exit note
+        opt_stk = str(row[C_OPT_STRIKE]).strip()
+        opt_exp = str(row[C_OPT_EXPIRY]).strip()
 
         if not price_sanity(sym, cp, ent): continue
         key    = sym_key(sym)
@@ -2016,7 +2037,8 @@ def step_b_monitor_trades(log_sheet, hist_sheet, nifty_sheet, mem, now, is_bulli
         if pnl_pct < -HARD_LOSS_PCT and cur_tsl < ent:
             mem = _exit_trade(log_sheet, hist_sheet, i, sym, ent, cp, tgt, sl, cur_tsl,
                               atr, ttype, strat, stage, ent_time, now, "❌ HARD STOP LOSS",
-                              today_str, mem, key, is_target_hit=False, qty=qty)
+                              today_str, mem, key, is_target_hit=False, qty=qty,
+                              opt_strike=opt_stk, opt_expiry=opt_exp)
             mem = _clear_mem_keys(mem, key); continue
 
         # TSL — pass actual entry time so hold check works correctly.
@@ -2043,14 +2065,16 @@ def step_b_monitor_trades(log_sheet, hist_sheet, nifty_sheet, mem, now, is_bulli
         if cp <= cur_tsl:
             mem = _exit_trade(log_sheet, hist_sheet, i, sym, ent, cp, tgt, sl, cur_tsl,
                               atr, ttype, strat, stage, ent_time, now, "🔔 TRAILING SL HIT",
-                              today_str, mem, key, is_target_hit=False, qty=qty)
+                              today_str, mem, key, is_target_hit=False, qty=qty,
+                              opt_strike=opt_stk, opt_expiry=opt_exp)
             mem = _clear_mem_keys(mem, key); continue
 
         # Target hit — SET RE-ENTRY COOLDOWN
         if tgt > 0 and cp >= tgt:
             mem = _exit_trade(log_sheet, hist_sheet, i, sym, ent, cp, tgt, sl, new_tsl,
                               atr, ttype, strat, stage, ent_time, now, "🎯 TARGET HIT",
-                              today_str, mem, key, is_target_hit=True, qty=qty)
+                              today_str, mem, key, is_target_hit=True, qty=qty,
+                              opt_strike=opt_stk, opt_expiry=opt_exp)
             mem = _clear_mem_keys(mem, key); continue
 
         # v15.10 Batch 2 — PARTIAL BOOK ALERT @ PARTIAL_BOOK_TRIGGER_PCT.
@@ -2073,7 +2097,8 @@ def step_b_monitor_trades(log_sheet, hist_sheet, nifty_sheet, mem, now, is_bulli
                 mem = _exit_trade(log_sheet, hist_sheet, i, sym, ent, cp, tgt, sl, cur_tsl,
                                   atr, ttype, strat, stage, ent_time, now,
                                   f"⏰ TIME STOP ({hd}d, +{pnl_pct:.1f}%)",
-                                  today_str, mem, key, is_target_hit=False, qty=qty)
+                                  today_str, mem, key, is_target_hit=False, qty=qty,
+                                  opt_strike=opt_stk, opt_expiry=opt_exp)
                 mem = _clear_mem_keys(mem, key); continue
 
     return mem
@@ -2109,7 +2134,7 @@ def _send_tsl_update(sym, cp, ent, new_tsl, pnl_pct, pnl_rs, reason):
 
 def _exit_trade(log_sheet, hist_sheet, row_idx, sym, ent, exit_p, tgt, sl, tsl_at_exit,
                 atr, ttype, strat, stage, ent_time, now, reason, today_str, mem, key,
-                is_target_hit=False, qty=0):
+                is_target_hit=False, qty=0, opt_strike="", opt_expiry=""):
     """
     Exit trade, write to History, send Telegram.
     v15.0: If is_target_hit=True, set re-entry cooldown in memory.
@@ -2129,10 +2154,31 @@ def _exit_trade(log_sheet, hist_sheet, row_idx, sym, ent, exit_p, tgt, sl, tsl_a
 
     # v15.16: for option trades, estimate the option-premium P/L (stock P/L
     # understates it). Display only — numeric ledger columns keep the stock P/L.
+    # v15.24: when the sheet's Strike (col V "2100 CE Aug") + Expiry (col W
+    # "25-Aug-2026") parse and HV is available, use a premium-aware leverage
+    # (Δ·S/premium at ENTRY, option_intelligence.est_option_leverage) instead
+    # of the flat 10× guess; any missing piece → flat 10× exactly as before.
     opt_note = ""
     if is_option_trade(ttype):
-        opt_pct  = est_option_pnl_pct(pnl_pct)
-        opt_note = f"Option ≈ {opt_pct:+.0f}% (est., ITM ~0.7Δ; stock {pnl_pct:+.2f}%)"
+        eff_lev = OPTION_LEVERAGE_EST
+        if _OPT_INTEL_AVAILABLE:
+            try:
+                _stk = to_f(str(opt_strike).split()[0]) if str(opt_strike).strip() else 0.0
+                _exp = str(opt_expiry).strip()
+                _days = 0
+                if _exp:
+                    _exp_d = datetime.strptime(_exp[:11], "%d-%b-%Y").date()
+                    try:    _ent_d = datetime.strptime(str(ent_time)[:10], "%Y-%m-%d").date()
+                    except Exception: _ent_d = now.date()
+                    _days = (_exp_d - _ent_d).days
+                _hv = opt_intel.get_historical_volatility(sym)
+                _lev = opt_intel.est_option_leverage(ent, _stk, _days, _hv) if (_stk > 0 and _days > 0 and _hv > 0) else None
+                if _lev:
+                    eff_lev = _lev
+            except Exception as _le:
+                print(f"[OPT-LEV] {sym}: {_le} — flat {OPTION_LEVERAGE_EST:.0f}x estimate")
+        opt_pct  = round(pnl_pct * eff_lev, 0)
+        opt_note = f"Option ≈ {opt_pct:+.0f}% (est. ~{eff_lev:.0f}×, ITM ~0.7Δ; stock {pnl_pct:+.2f}%)"
 
     try:
         log_sheet.update(f"K{row_idx}", [[f"EXITED ({reason})"]])
