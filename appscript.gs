@@ -1,6 +1,24 @@
 /**
- * AI360 TRADING — APPSCRIPT v15.22
+ * AI360 TRADING — APPSCRIPT v15.23
  * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ * v15.23 CHANGES (2026-07-17, pre-market) — REAL F&O ELIGIBILITY + HONEST SECTOR LINES
+ *   Companion to the same-morning sheet repairs (fetch_rs v2.0: col AC now a
+ *   REAL ATR(14); col B normalized to 18 NSE macro sectors; new col AJ
+ *   "Options" = N50/YES/"" from NSE's official F&O file; 17 missing Nifty200
+ *   members added; col AK N200 = YES/EX membership).
+ *   1. OPTION SIGNALS GATED ON LIVE F&O ELIGIBILITY — _generateOptionsSignal
+ *      now takes optTag (col AJ). "" = stock has NO derivatives (SEBI's 2025
+ *      purge removed IRCTC/MRF/ATGL/TATACOMM/...) → SKIP. The hardcoded
+ *      F_AND_O_LIQUID_STOCKS list had gone stale (still contained IRCTC,
+ *      TATAMOTORS pre-demerger, ZOMATO pre-rename) and is now only the
+ *      fallback when the column is absent. Premium option alerts also show a
+ *      chain-liquidity line: Nifty50 = deep & liquid / midcap = check spread.
+ *   2. HONEST "Strongest:" SECTOR LINE — sector AF average now includes
+ *      NEGATIVE AF stocks (was winners-only survivorship bias: one hot stock
+ *      in a solo-label sector could top the line) and requires ≥3 scored
+ *      stocks in the sector (meaningful now that col B holds macro sectors —
+ *      before, 62 of 100 labels contained a single stock).
+ *
  * v15.22 CHANGES (2026-07-16, same night) — SL NOISE FLOOR + CONFIRM-AT-OPEN
  *   Owner-approved "fix where need" after the BHARATFORG premium option alert
  *   review. Two risk-quality fixes:
@@ -377,7 +395,7 @@ const OPTIONS_CONFIG = {
 
 // ── CONFIG ────────────────────────────────────────────────────────────────────
 const CONFIG = {
-  VERSION       : "v15.22",  // single source for ALL subscriber-facing version stamps (was hardcoded per-message and went stale at v15.17)
+  VERSION       : "v15.23",  // single source for ALL subscriber-facing version stamps (was hardcoded per-message and went stale at v15.17)
   get TELEGRAM_BOT_TOKEN() { return PropertiesService.getScriptProperties().getProperty('TELEGRAM_BOT_TOKEN') || ""; },
   get CHAT_ID_BASIC()      { return PropertiesService.getScriptProperties().getProperty('CHAT_ID_BASIC')      || ""; },
   get CHAT_ID_ADVANCE()    { return PropertiesService.getScriptProperties().getProperty('CHAT_ID_ADVANCE')    || ""; },
@@ -730,10 +748,21 @@ function _getStrikeInterval(cmp) {
  *
  * New ATH parameter: high52 and cmp passed to check proximity.
  */
-function _generateOptionsSignal(sym, cmp, atr, stage, pctChange, vix, isBaseEntry, high52) {
-  const result = { signal: "⏸ SKIP", strike: "", expiryStr: "", thetaRisk: "", message: "", isBase: isBaseEntry || false };
+function _generateOptionsSignal(sym, cmp, atr, stage, pctChange, vix, isBaseEntry, high52, optTag) {
+  const result = { signal: "⏸ SKIP", strike: "", expiryStr: "", thetaRisk: "", message: "", liqNote: "", isBase: isBaseEntry || false };
 
-  if (!F_AND_O_LIQUID_STOCKS.has(sym)) { result.message = "Not in F&O liquid list"; return result; }
+  // v15.23: F&O eligibility from the live sheet ("Options" col AJ, maintained
+  // from NSE's official F&O file). "" = the stock HAS NO derivatives — SEBI's
+  // 2025 eligibility purge removed IRCTC/MRF/ATGL/TATACOMM/... The legacy
+  // hardcoded list below had gone stale (still contained IRCTC, TATAMOTORS
+  // pre-demerger, ZOMATO pre-rename) and is now only the fallback when the
+  // column is absent.
+  if (optTag !== null && optTag !== undefined) {
+    if (!optTag) { result.message = "No derivatives on this stock (NSE F&O list)"; return result; }
+    result.liqNote = (optTag === "N50")
+      ? "🟦 Nifty50 chain — deep & liquid"
+      : "⚠️ Midcap chain — check bid-ask spread before buying";
+  } else if (!F_AND_O_LIQUID_STOCKS.has(sym)) { result.message = "Not in F&O liquid list"; return result; }
 
   // v15.6 FIX 3: Block options if NEAR ATH
   if (high52 > 0 && cmp > 0) {
@@ -868,7 +897,8 @@ function _sendOptionsAlertPremium(sym, cmp, optSignal, stage, sl, target, rr, bm
     `🎰 <b>Buy:</b> ${optSignal.strike}\n` +
     `📅 <b>Expiry:</b> ${optSignal.expiryStr}\n` +
     `⏳ <b>Theta Risk:</b> ${optSignal.thetaRisk}\n` +
-    `📊 <b>VIX Status:</b> ${optSignal.message}\n\n` +
+    `📊 <b>VIX Status:</b> ${optSignal.message}\n` +
+    (optSignal.liqNote ? `💧 <b>Chain:</b> ${optSignal.liqNote}\n` : "") + `\n` +
     `━━ UNDERLYING TRADE ━━\n` +
     `🛑 <b>SL:</b> ₹${sl}\n` +
     `🎯 <b>Target:</b> ₹${target}\n` +
@@ -1386,12 +1416,18 @@ function _runScanner(startRow, endRow) {
     const rank       = parseFloat(r[34]) || 0;
     const vcp        = parseFloat(r[27]) || 1.0;
     const daysLow    = parseFloat(r[29]) || 0;
+    // v15.23: Options-eligibility tag (col AJ, fed from NSE's official F&O
+    // file): "N50" / "YES" / "" (no derivatives). null = column absent →
+    // _generateOptionsSignal falls back to the legacy hardcoded list.
+    const optTag     = (r[35] === undefined || r[35] === null) ? null : r[35].toString().trim();
 
     const signal   = _inferSignal(rawSignal, stage, fiiBuyZone, smaStr);
     const priority = _inferPriority(rawPriority, rawMasterScore, rawSignalScore);
     const useScore = priority;
 
-    if (af > 0) { sectorAfSum[sector] = (sectorAfSum[sector] || 0) + af; sectorAfCount[sector] = (sectorAfCount[sector] || 0) + 1; }
+    // v15.23: include NEGATIVE AF too — averaging only winners made a sector
+    // with 1 hot stock + 9 bleeding ones look "strongest" (survivorship bias).
+    if (af !== 0) { sectorAfSum[sector] = (sectorAfSum[sector] || 0) + af; sectorAfCount[sector] = (sectorAfCount[sector] || 0) + 1; }
 
     const isBreakoutStage = stage.includes("BREAKOUT CONFIRMED") || stage.includes("BREAKOUT ALERT");
 
@@ -1616,7 +1652,8 @@ function _runScanner(startRow, endRow) {
     const stageTag   = _buildStageTag(signal, ttype, stage, smaStr, fiiBuyZone, isBaseEntry, isMomentumEntry);
 
     // v15.6: Pass high52 to options signal for ATH check
-    const optSignal  = _generateOptionsSignal(sym, cmp, atr, stage, pctChange, indiaVix, isBaseEntry, high52);
+    // v15.23: pass optTag — live F&O eligibility replaces the stale hardcoded list
+    const optSignal  = _generateOptionsSignal(sym, cmp, atr, stage, pctChange, indiaVix, isBaseEntry, high52, optTag);
 
     batchCands.push({
       priority: finalScore, rawPriority: useScore,
@@ -1768,6 +1805,10 @@ function _runScanner(startRow, endRow) {
   if (!_bmExists(bm, regimeFlag)) {
     let topSector = "", topAf = 0;
     for (const sec in sectorAfSum) {
+      // v15.23: a "strongest sector" claim needs breadth — require ≥3 scored
+      // stocks (works now that col B holds NSE macro sectors, not 100
+      // fragmented labels where 62 sectors had a single stock).
+      if ((sectorAfCount[sec] || 0) < 3) continue;
       const avgAf = sectorAfSum[sec] / (sectorAfCount[sec] || 1);
       if (avgAf > topAf) { topAf = avgAf; topSector = sec; }
     }

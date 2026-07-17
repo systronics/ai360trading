@@ -1,6 +1,16 @@
 """
-AI360 TRADING BOT — v15.21
+AI360 TRADING BOT — v15.22
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v15.22 CHANGES vs v15.21 — REAL F&O ELIGIBILITY FOR OPTION SUGGESTIONS (2026-07-17, owner-approved)
+  • New Nifty200 col AJ "Options" (fed from NSE's official F&O file): "N50" /
+    "YES" / "" (no derivatives — SEBI's 2025 purge removed IRCTC/MRF/ATGL/
+    TATACOMM/...). ce_candidate_flag now HARD-SKIPS the CE block when the tag
+    says the stock has no derivatives (an impossible trade was being suggested),
+    and annotates chain liquidity (Nifty50 = deep; midcap = check spread).
+    Tag unreadable → fail-open (old behavior), never blocks on a data hiccup.
+  • Same-day companion fix: col AC is now a REAL ATR(14) via fetch_rs v2.0
+    (the old sheet formula returned a single day's high−low).
+
 v15.21 CHANGES vs v15.20 — TIME-FAIR VOLUME GATE (2026-07-16, owner-approved)
   First market day after v15.20 had ZERO entries again: all 4 queued
   candidates (GMRAIRPORT 99, CHOLAFIN 84, LAURUSLABS 59, TORNTPHARM) were
@@ -1287,6 +1297,25 @@ def _read_atr_from_nifty200(nifty_sheet, sym):
     return 0.0
 
 
+def _read_opt_tag_from_nifty200(nifty_sheet, sym):
+    """v15.22: Options-eligibility tag from Nifty200 col AJ (idx 35) —
+    "N50" (Nifty50, deep option chain) / "YES" (F&O-listed) / "" (NO derivatives:
+    SEBI's 2025 eligibility purge removed IRCTC/MRF/ATGL/TATACOMM/...).
+    Column is fed from NSE's official F&O file. Returns None when the column/
+    symbol can't be read → caller fails OPEN (old behavior), never blocks on
+    a data hiccup."""
+    try:
+        clean = sym.replace("NSE:","").strip()
+        for row in nifty_sheet.get_all_values()[1:]:
+            if str(row[0] if row else "").replace("NSE:","").strip() == clean:
+                if len(row) > 35:
+                    return str(row[35]).strip()
+                return None
+    except Exception as e:
+        print(f"[OPT-TAG] {e}")
+    return None
+
+
 # v15.12 Batch 4: per-tick cache of Nifty200 column index lookups.
 # Header text → column index. Resolved once per process, then served from cache.
 _NIFTY200_COL_CACHE = {}
@@ -1459,7 +1488,7 @@ def get_market_regime(nifty_sheet):
 
 def ce_candidate_flag(cp, atr, stage, is_bullish, rank=99,
                       opt_signal="", opt_strike="", opt_expiry="", opt_theta="",
-                      sym="", mem="", now=None):
+                      sym="", mem="", now=None, opt_tag=None):
     """
     v15.11 Batch 3 — now produces a smart option recommendation via
     option_intelligence module: ITM strike pick, HV-based IV filter,
@@ -1473,6 +1502,17 @@ def ce_candidate_flag(cp, atr, stage, is_bullish, rank=99,
     """
     if rank > 5:                  return ""
     if cp <= 0 or atr <= 0:       return ""
+    # v15.22: hard gate on the Nifty200 "Options" tag (col AJ, from NSE's
+    # official F&O list). "" = the stock HAS NO derivatives (SEBI 2025 purge) —
+    # suggesting a CE for it would be an impossible trade. None = tag unknown
+    # (column unreadable) → fail-open, keep old behavior.
+    if opt_tag is not None and str(opt_tag).strip() == "":
+        return ""
+    _liq_note = ""
+    if opt_tag is not None:
+        _liq_note = ("\n   💧 Chain: 🟦 Nifty50 — deep & liquid"
+                     if str(opt_tag).strip() == "N50"
+                     else "\n   💧 Chain: ⚠️ midcap — check bid-ask spread first")
 
     # Smart path — preferred when option_intelligence loaded successfully.
     if _OPT_INTEL_AVAILABLE and sym and now is not None:
@@ -1481,11 +1521,12 @@ def ce_candidate_flag(cp, atr, stage, is_bullish, rank=99,
                 symbol=sym, cp=cp, atr=atr, stage=stage,
                 is_bullish=is_bullish, mem=mem or "", now=now,
             )
-            return opt_intel.format_option_alert(
+            _txt = opt_intel.format_option_alert(
                 symbol=sym, cp=cp, rec=rec,
                 scanner_strike=opt_strike, scanner_expiry=opt_expiry,
                 scanner_theta=opt_theta,
             )
+            return (_txt + _liq_note) if _txt else _txt
         except Exception as e:
             print(f"[OPT] smart recommend failed for {sym}: {e} — falling back to v15.10 path")
 
@@ -1503,6 +1544,7 @@ def ce_candidate_flag(cp, atr, stage, is_bullish, rank=99,
             f"   ⚡ Entry: 9:30-9:45 AM after stock triggers\n"
             f"   🛑 Exit: stock −1.5% (≈ option −10% to −15%)\n"
             f"   ⚠️ Check live premium on Zerodha"
+            f"{_liq_note}"
         )
     atr_pct = (atr/cp)*100
     if atr_pct < 1.5: return ""
@@ -1514,6 +1556,7 @@ def ce_candidate_flag(cp, atr, stage, is_bullish, rank=99,
         f"\n\n📊 <b>CE CANDIDATE</b> (ATR {atr_pct:.1f}%)\n"
         f"   Strike: {strike} | Target: +{tgt_p}% | SL: stock −1.5%\n"
         f"   ⚠️ VIX check before buying"
+        f"{_liq_note}"
     )
 
 
@@ -1547,14 +1590,15 @@ def build_entry_advance(sym, cp, stage, sl, tgt, rr, ttype, atr, rank, capital, 
 
 def build_entry_premium(sym, cp, stage, sl, tgt, rr, ttype, atr, rank, capital, is_bullish,
                         rsi_val=-1, nifty_pct=0, opt_signal="", opt_strike="", opt_expiry="", opt_theta="",
-                        mem="", now=None):
+                        mem="", now=None, opt_tag=None):
     base = build_entry_advance(sym, cp, stage, sl, tgt, rr, ttype, atr, rank, capital, is_bullish,
                                 rsi_val, nifty_pct, opt_signal, opt_strike, opt_expiry, opt_theta)
     # v15.11: pass sym/mem/now to enable smart option recommendation via
     # option_intelligence (HV regime + earnings + ITM strike + PE side).
+    # v15.22: opt_tag gates the CE block on real F&O eligibility (Nifty200 col AJ).
     return base + ce_candidate_flag(cp, atr, stage, is_bullish, rank,
                                     opt_signal, opt_strike, opt_expiry, opt_theta,
-                                    sym=sym, mem=mem, now=now)
+                                    sym=sym, mem=mem, now=now, opt_tag=opt_tag)
 
 def build_entry_basic(sym, cp, stage, pct_chg):
     name = sym.replace("NSE:", "")
@@ -1756,7 +1800,8 @@ def step_a_enter_trades(log_sheet, nifty_sheet, bm_sheet, mem, now, is_bullish, 
         msg_premium = build_entry_premium(sym, cp, stage, sl, tgt, rr_str, ttype, atr,
                                           rank, capital, is_bullish, rsi_val, nifty_pct,
                                           opt_signal, opt_strike, opt_expiry, opt_theta,
-                                          mem=mem, now=now)
+                                          mem=mem, now=now,
+                                          opt_tag=_read_opt_tag_from_nifty200(nifty_sheet, sym))
         msg_basic   = build_entry_basic(sym, cp, stage, to_f(row[C_PNL]))
         # Append the educational/not-SEBI disclaimer to every member alert.
         send_basic(msg_basic + ALERT_DISCLAIMER)
@@ -2088,7 +2133,7 @@ def send_good_morning(log_sheet, mem, is_bullish, nifty_cmp, nifty_dma, nifty_pc
         f"{window}\n"
         f"RSI filter: < {RSI_MAX_BULLISH if is_bullish else RSI_MAX_BEARISH}{f' (leaders up on the day allowed to {RSI_HOT_MAX:.0f})' if is_bullish else ''} | Re-entry: {REENTRY_COOLDOWN_DAYS}d cooldown after target\n\n"
         f"{'Watching: ' + ', '.join(waiting_stocks[:5]) if waiting_stocks else 'No WAITING stocks'}\n\n"
-        f"<i>v15.21 — entry-quality: reversal veto + resistance-room veto + loss cooldown + best-of ranking + time-fair volume gate</i>"
+        f"<i>v15.22 — entry-quality: reversal veto + resistance-room veto + loss cooldown + best-of ranking + time-fair volume gate + real F&O option eligibility</i>"
     )
     watchlist_line = f"📋 Watchlist: {waiting} stock(s) identified today" if waiting else "📋 No setups in watchlist yet — scan runs at market open"
     msg_basic = (

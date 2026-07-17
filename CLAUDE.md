@@ -36,7 +36,7 @@ One broken file = zero income that day. Treat every edit as critical.
 ### Trading Engine
 | File | Version |
 |---|---|
-| `trading_bot.py` | v15.21 (2026-07-16: time-fair volume gate — Filter 8 gates on volume PACE via IST clock; v15.20 calibrated RSI hot-leader exception; v15.19 Nifty%/VIX feeds revived) |
+| `trading_bot.py` | v15.22 (2026-07-17: CE option block gated on real F&O eligibility via Nifty200 col AJ + chain-liquidity note; v15.21 time-fair volume gate; v15.20 calibrated RSI hot-leader exception) |
 | `entry_quality.py` | v1.0 (reversal veto + target room + composite ranking) |
 | `option_intelligence.py` | v1.1 (2026-07-15: bearish → SKIP; old PE path contradicted buy-side-only longs) |
 | `institutional_edges.py` | v1.1 (2026-07-16: volume gate time-adjusted — partial-day reading ÷ expected session fraction, 1.5× bar unchanged) |
@@ -45,7 +45,8 @@ One broken file = zero income that day. Treat every edit as critical.
 | `fetch_smallmidcap.py` | v1.4 (Mon-Fri 20:30 IST — REAL 5d volume + SmallMidLive board + target floor ≥5% w/ honest R:R) |
 | `fetch_rs.py` | v2.0 (2026-07-17: + TRUE ATR(14) feed into Nifty200 col AC — old formula was ONE day's high−low feeding all SL/targets; + NIFTYBEES→^NSEI benchmark freshness fallback; workflow moved to own `fetch-rs` concurrency group after `trading-bot` group froze RS 07-13→07-17) |
 | `fetch_fii_dii.py` | v1.0 (real FII/DII flow → BotMemory MKT_* keys) |
-| `appscript.gs` | v15.22 (LIVE in editor, clasp-deployed 2026-07-16 21:59 IST: SL noise floor MIN_SL_ATR_MULT 0.75 + confirm-at-open guard on night option alerts; v15.21 honest premarket regime message + CONFIG.VERSION stamps; v15.20 option-alert safety pack; deploy via `.\deploy_appscript.ps1`) |
+| `fetch_index_meta.py` | v1.0 (2026-07-17: weekly Saturday — refreshes Nifty200 col AJ Options N50/YES/"" + col AK N200 YES/EX from NSE official lists; Telegram notice on drift; fail-open, never adds rows) |
+| `appscript.gs` | v15.23 (LIVE, clasp-deployed 2026-07-17 07:56 IST: option signals gated on live F&O eligibility col AJ (stale hardcoded list = fallback only) + chain-liquidity line in premium option alerts + honest "Strongest:" sector line (negatives included, ≥3 stocks); v15.22 SL noise floor + confirm-at-open; deploy via `.\deploy_appscript.ps1`) |
 
 ### Long-Term Signals
 | File | Version |
@@ -140,6 +141,8 @@ One broken file = zero income that day. Treat every edit as critical.
 | **Fail-open for data feeds, fail-closed only where calibrated** | free-forever_self_repair: a dead feed must never kill the bot; the RSI exception is deliberately fail-CLOSED |
 | **Nifty200 "ATR (14)" col = Python-fed true ATR (fetch_rs v2.0)** — never restore a GOOGLEFINANCE formula there | Audit 2026-07-17: old formula returned ONE day's high−low (ABB +60% off, IEX −26%) and fed every SL/target + option signal in both engines |
 | **fetch_rs.yml keeps its OWN concurrency group** — never share `trading-bot` group | Sharing it froze RS 07-13→07-17 (queued runs kicked daily by the session loop); sheet writes are atomic, sharing was never needed |
+| **Option signals gate on Nifty200 col AJ "Options"** (N50/YES/"" from NSE's official F&O file, fetch_index_meta weekly) — never gate on hardcoded stock lists | 2026-07-17: hardcoded F&O list still contained IRCTC (derivatives removed by SEBI purge), TATAMOTORS (demerged), ZOMATO (renamed) — impossible/dead option alerts |
+| **Nifty200 col B = 18 NSE macro sectors; col AK N200 = YES/EX membership** — never revert to fine-grained custom labels | 62 of the old 100 labels held ONE stock → auto "rank 1 leader" bonuses, dead momentum-sector detection, biased "Strongest:" line |
 
 ### Money & platform
 | Rule | Why |

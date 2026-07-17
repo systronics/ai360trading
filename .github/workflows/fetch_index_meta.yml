@@ -1,0 +1,87 @@
+name: Nifty200 Membership + F&O Tags (weekly)
+
+# v1.0 (2026-07-17):
+#   Keeps the Nifty200 sheet's membership metadata in lockstep with NSE's
+#   official lists so it can never silently drift again (2026-07-17 audit
+#   found 17 index members missing + 26 exited stocks still marked current,
+#   and option signals firing for stocks whose derivatives SEBI removed):
+#     • col AJ "Options": N50 / YES / "" (no derivatives) — gates all option
+#       suggestions in appscript v15.23 + trading_bot v15.22
+#     • col AK "N200":    YES / EX (index membership)
+#   Drift (tag changes or new members needing rows) → Telegram system notice.
+#   Fail-open: if any official CSV can't be downloaded (NSE sometimes blocks
+#   CI runners), NOTHING is written — last-good tags stay, the failure step
+#   notifies, and the next Saturday retries. Row-adding stays manual (needs
+#   formula replication in C–AI).
+#
+# Schedule: Saturday 10:00 IST (04:30 UTC) — markets closed, zero interference.
+
+on:
+  schedule:
+    - cron: "30 4 * * 6"   # Saturday 10:00 IST
+  workflow_dispatch:
+
+jobs:
+  fetch-index-meta:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    concurrency:
+      group: fetch-index-meta
+      cancel-in-progress: true
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Refresh membership + F&O tags (writes cols AJ/AK)
+        env:
+          GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
+          TELEGRAM_BOT_TOKEN:       ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID_BASIC:            ${{ secrets.CHAT_ID_BASIC }}
+        run: python fetch_index_meta.py --write
+
+      - name: Notify Telegram on failure
+        if: failure()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID_BASIC:      ${{ secrets.CHAT_ID_BASIC }}
+          WF_NAME:            "${{ github.workflow }}"
+          RUN_URL:            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        continue-on-error: true
+        run: |
+          python - <<'PYEOF'
+          import os, json
+          from urllib.request import Request, urlopen
+          token = os.environ.get('TELEGRAM_BOT_TOKEN','')
+          chat  = os.environ.get('CHAT_ID_BASIC','')
+          if not token or not chat:
+              print('[NOTIFY] Telegram creds missing — skip'); raise SystemExit(0)
+          msg = (
+              "⚠️ <b>System Notice — AI360Trading</b>\n\n"
+              f"Workflow failed: <b>{os.environ.get('WF_NAME','?')}</b>\n"
+              f"Run log: {os.environ.get('RUN_URL','')}\n\n"
+              "<i>This is a system message, not a trade signal. Membership/F&O "
+              "tags keep their last good values (fail-open); retries next Saturday.</i>"
+          )
+          try:
+              req = Request(
+                  f"https://api.telegram.org/bot{token}/sendMessage",
+                  data=json.dumps({'chat_id':chat,'text':msg,'parse_mode':'HTML'}).encode(),
+                  headers={'Content-Type':'application/json'},
+              )
+              urlopen(req, timeout=10).read()
+              print('[NOTIFY] Failure alert sent')
+          except Exception as e:
+              print(f'[NOTIFY] Send failed: {e}')
+          PYEOF
