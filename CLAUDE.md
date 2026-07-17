@@ -43,7 +43,7 @@ One broken file = zero income that day. Treat every edit as critical.
 | `fetch_earnings.py` | v1.0 (Batch 3, daily 18:30 IST) |
 | `fetch_bhavcopy.py` | v1.0 (Batch 4, Mon-Fri 20:00 IST) |
 | `fetch_smallmidcap.py` | v1.4 (Mon-Fri 20:30 IST — REAL 5d volume + SmallMidLive board + target floor ≥5% w/ honest R:R) |
-| `fetch_rs.py` | v1.0 (yfinance RS repair feed — keeps Nifty200 RS col alive; GOOGLEFINANCE #N/A killed all scores once) |
+| `fetch_rs.py` | v2.0 (2026-07-17: + TRUE ATR(14) feed into Nifty200 col AC — old formula was ONE day's high−low feeding all SL/targets; + NIFTYBEES→^NSEI benchmark freshness fallback; workflow moved to own `fetch-rs` concurrency group after `trading-bot` group froze RS 07-13→07-17) |
 | `fetch_fii_dii.py` | v1.0 (real FII/DII flow → BotMemory MKT_* keys) |
 | `appscript.gs` | v15.22 (LIVE in editor, clasp-deployed 2026-07-16 21:59 IST: SL noise floor MIN_SL_ATR_MULT 0.75 + confirm-at-open guard on night option alerts; v15.21 honest premarket regime message + CONFIG.VERSION stamps; v15.20 option-alert safety pack; deploy via `.\deploy_appscript.ps1`) |
 
@@ -138,6 +138,8 @@ One broken file = zero income that day. Treat every edit as critical.
 | **Owner's risk rule:** tight SL, target ≥5% *reachability-aware* (ATR%≥1.3 only), trail, option loss hard-capped 20%, option exit stock-anchored | v15.18 design; do NOT blindly hard-floor targets at 5% for low-vol names |
 | Empty AlertLog on a red/quiet day is CORRECT behavior, not a bug | NIFTY_MIN_PCT_BULLISH −0.30 + honest gates; 07-16 verified: 0 entries was right |
 | **Fail-open for data feeds, fail-closed only where calibrated** | free-forever_self_repair: a dead feed must never kill the bot; the RSI exception is deliberately fail-CLOSED |
+| **Nifty200 "ATR (14)" col = Python-fed true ATR (fetch_rs v2.0)** — never restore a GOOGLEFINANCE formula there | Audit 2026-07-17: old formula returned ONE day's high−low (ABB +60% off, IEX −26%) and fed every SL/target + option signal in both engines |
+| **fetch_rs.yml keeps its OWN concurrency group** — never share `trading-bot` group | Sharing it froze RS 07-13→07-17 (queued runs kicked daily by the session loop); sheet writes are atomic, sharing was never needed |
 
 ### Money & platform
 | Rule | Why |
