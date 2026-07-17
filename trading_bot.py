@@ -1,6 +1,25 @@
 """
-AI360 TRADING BOT — v15.24
+AI360 TRADING BOT — v15.25
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v15.25 CHANGES vs v15.24 — OPTION LEDGER FOLLOWS THE ALERT'S OWN RULES (2026-07-17, owner: "fix the last remaining ledger item")
+  The paper ledger monitored OPTION-type trades under generic STOCK rules
+  (5-day time stop, −5% stock hard loss) while the premium alert tells
+  subscribers OPTION rules — the EICHERMOT option trade was closed by a
+  time stop the alert never mentioned (ledger-vs-alert honesty gap, open
+  since 2026-07-15). Option-type rows in step_b now exit per the alert:
+    • 🛑 20% ESTIMATED-LOSS HARD CAP (🔒 owner risk rule) — est option P/L
+      (premium-aware leverage, v15.24) ≤ −20% exits BEFORE the wider stock
+      SL can bleed further (flat-10× fallback ⇒ cap at stock −2%).
+    • ⏰ EXPIRY WEEK EXIT — "Do NOT hold past expiry week": exit when ≤5
+      calendar days to the col-W expiry.
+    • ⏰ BASE 12-TRADING-DAY RULE — the alert's own BASE TRADE NOTE: exit
+      after 12 trading days if target not hit.
+  Stock-anchored SL/TSL/target checks unchanged (the alert states those
+  too); generic time stop now SKIPPED for option trades — unless the expiry
+  cell doesn't parse, in which case it stays as the fail-open backstop so a
+  bad cell can never mean "hold forever". Leverage logic unified in
+  _row_option_leverage (step_b cap + exit note use the same number).
+
 v15.24 CHANGES vs v15.23 — KNOWN-ITEMS PACK (2026-07-17 late evening, owner: "fix the 3 known items also")
   1. STRIKE GRID UNIFIED — the CE fallback path had a THIRD divergent strike
      table (5/10/20/50). Now identical to option_intelligence v1.3 strike_step
@@ -485,7 +504,7 @@ except Exception as _e:
     _EQ_AVAILABLE = False
 
 IST       = pytz.timezone('Asia/Kolkata')
-VERSION   = "v15.24"   # single source for the run banner + test messages (were stale at v15.16 before v15.23)
+VERSION   = "v15.25"   # single source for the run banner + test messages (were stale at v15.16 before v15.23)
 TG_TOKEN  = os.environ.get('TELEGRAM_BOT_TOKEN')
 
 CHAT_BASIC   = os.environ.get('CHAT_ID_BASIC')
@@ -538,7 +557,17 @@ VIX_CALM                 = 15.0  # purely informational — for entry message
 # ≈ option −15%, stock +5% ≈ option +50% — the same convention used across the
 # option module). Used ONLY to ESTIMATE displayed option P/L; no real premium
 # is tracked (paper, stock-anchored). Always shown labelled "(est.)".
+# v15.24: replaced by option_intelligence.est_option_leverage whenever
+# strike/expiry/HV are available; this flat value is the fallback.
 OPTION_LEVERAGE_EST      = 10.0
+
+# v15.25 — OPTION-TRADE LEDGER RULES (paper ledger now follows the ALERT's own
+# stated rules instead of generic stock rules — the EICHERMOT case closed on a
+# stock time-stop the alert never mentioned; 🔒 owner risk rule: "option loss
+# hard-capped 20%, option exit stock-anchored"):
+OPTION_LOSS_CAP_PCT      = 20.0  # exit when ESTIMATED option loss reaches 20%
+OPTION_EXPIRY_EXIT_DAYS  = 5     # "Do NOT hold past expiry week" — exit ≤5 calendar days to expiry
+OPTION_BASE_MAX_TDAYS    = 12    # base-option alert rule: exit after 12 TRADING days if target not hit
 
 CAPITAL_HIGH = 13000
 CAPITAL_MED  = 10000
@@ -1277,6 +1306,61 @@ def est_option_pnl_pct(stock_pnl_pct):
     ITM ~0.7Δ option ≈ OPTION_LEVERAGE_EST× the stock %. Returns a rounded %.
     """
     return round(stock_pnl_pct * OPTION_LEVERAGE_EST, 0)
+
+
+def _parse_expiry(s):
+    """v15.25: AlertLog col W expiry ("25-Aug-2026") → date, or None."""
+    try:
+        return datetime.strptime(str(s).strip()[:11], "%d-%b-%Y").date()
+    except Exception:
+        return None
+
+
+def _row_option_leverage(sym, ent, ent_time, opt_strike, opt_expiry, now):
+    """v15.24/25: premium-aware leverage for an option row (Δ·S/premium via
+    option_intelligence.est_option_leverage; strike from col V "2100 CE Aug",
+    expiry from col W, HV cached). ANY missing piece → flat OPTION_LEVERAGE_EST
+    exactly as the old convention. Fail-open, never raises."""
+    if _OPT_INTEL_AVAILABLE:
+        try:
+            _stk = to_f(str(opt_strike).split()[0]) if str(opt_strike).strip() else 0.0
+            _exp_d = _parse_expiry(opt_expiry)
+            _days = 0
+            if _exp_d:
+                try:    _ent_d = datetime.strptime(str(ent_time)[:10], "%Y-%m-%d").date()
+                except Exception: _ent_d = now.date()
+                _days = (_exp_d - _ent_d).days
+            _hv = opt_intel.get_historical_volatility(sym)
+            _lev = opt_intel.est_option_leverage(ent, _stk, _days, _hv) if (_stk > 0 and _days > 0 and _hv > 0) else None
+            if _lev:
+                return _lev
+        except Exception as _le:
+            print(f"[OPT-LEV] {sym}: {_le} — flat {OPTION_LEVERAGE_EST:.0f}x estimate")
+    return OPTION_LEVERAGE_EST
+
+
+def _option_ledger_exit(pnl_pct, eff_lev, stage, opt_expiry, ent_time, now):
+    """v15.25: exit decision for OPTION-type paper trades per the ALERT's OWN
+    rules (ledger honesty — the ledger must experience what a subscriber
+    following the alert would):
+      1. 🛑 est option loss ≥ OPTION_LOSS_CAP_PCT (owner 🔒 20% hard cap)
+      2. ⏰ never hold past expiry week (≤ OPTION_EXPIRY_EXIT_DAYS to expiry)
+      3. ⏰ base options: exit after OPTION_BASE_MAX_TDAYS trading days
+         if target not hit (the alert's own BASE TRADE NOTE)
+    Returns an exit-reason string or "" (no exit). Stock SL/TSL/target checks
+    stay in step_b unchanged — those are stock-anchored per the alert too."""
+    opt_est = pnl_pct * eff_lev
+    if opt_est <= -OPTION_LOSS_CAP_PCT:
+        return f"🛑 OPTION LOSS CAP (est {opt_est:+.0f}% ≤ −{OPTION_LOSS_CAP_PCT:.0f}%)"
+    exp_d = _parse_expiry(opt_expiry)
+    if exp_d is not None:
+        dleft = (exp_d - now.date()).days
+        if dleft <= OPTION_EXPIRY_EXIT_DAYS:
+            return f"⏰ EXPIRY WEEK EXIT ({dleft}d to expiry)"
+    if "BASE" in str(stage).upper():
+        if calc_trading_hold_days(ent_time, now) >= OPTION_BASE_MAX_TDAYS:
+            return f"⏰ OPTION TIME EXIT (base {OPTION_BASE_MAX_TDAYS} trading days, target not hit)"
+    return ""
 
 
 def calc_new_tsl(cp, ent, init_sl, atr, ttype, mem, key, now, ent_time=""):
@@ -2041,6 +2125,22 @@ def step_b_monitor_trades(log_sheet, hist_sheet, nifty_sheet, mem, now, is_bulli
                               opt_strike=opt_stk, opt_expiry=opt_exp)
             mem = _clear_mem_keys(mem, key); continue
 
+        # v15.25 — OPTION-type trades exit per the ALERT's own rules (ledger
+        # honesty; the EICHERMOT option trade was closed by the generic stock
+        # time-stop the alert never mentioned): 20% est-loss hard cap (🔒 owner
+        # rule — fires before the wider stock SL), expiry-week exit, base
+        # 12-trading-day rule. Stock SL/TSL/target checks below stay unchanged
+        # (stock-anchored, exactly what the alert tells subscribers).
+        if is_option_trade(ttype):
+            _lev = _row_option_leverage(sym, ent, ent_time, opt_stk, opt_exp, now)
+            _oreason = _option_ledger_exit(pnl_pct, _lev, stage, opt_exp, ent_time, now)
+            if _oreason:
+                mem = _exit_trade(log_sheet, hist_sheet, i, sym, ent, cp, tgt, sl, cur_tsl,
+                                  atr, ttype, strat, stage, ent_time, now, _oreason,
+                                  today_str, mem, key, is_target_hit=False, qty=qty,
+                                  opt_strike=opt_stk, opt_expiry=opt_exp)
+                mem = _clear_mem_keys(mem, key); continue
+
         # TSL — pass actual entry time so hold check works correctly.
         # v15.7: track effective TSL (max of cur and new). calc_new_tsl caps the
         # returned new_tsl at cp*0.99, which on gap-down can be LESS than cur_tsl.
@@ -2089,7 +2189,11 @@ def step_b_monitor_trades(log_sheet, hist_sheet, nifty_sheet, mem, now, is_bulli
         # trade has not delivered TIME_STOP_MIN_GAIN_PCT, exit and free the slot.
         # Runs AFTER target/TSL checks above so winners are never cut early.
         # Cash intraday trades skip time stop (they have their own 3 PM force exit).
-        if not is_cash_trade(ttype):
+        # v15.25: OPTION trades skip it too — their time rules are the alert's
+        # own (expiry-week + base 12-day, handled above). Exception: if the
+        # expiry cell doesn't parse, the generic time stop stays as the
+        # fail-open backstop so a bad cell can't mean "hold forever".
+        if not is_cash_trade(ttype) and not (is_option_trade(ttype) and _parse_expiry(opt_exp) is not None):
             # v15.23: TRADING days (spec since v15.10) — calendar counting cut
             # winners ~2 days early across weekends (Wed entry = "5 days" by Mon).
             hd = calc_trading_hold_days(ent_time, now)
@@ -2160,23 +2264,8 @@ def _exit_trade(log_sheet, hist_sheet, row_idx, sym, ent, exit_p, tgt, sl, tsl_a
     # of the flat 10× guess; any missing piece → flat 10× exactly as before.
     opt_note = ""
     if is_option_trade(ttype):
-        eff_lev = OPTION_LEVERAGE_EST
-        if _OPT_INTEL_AVAILABLE:
-            try:
-                _stk = to_f(str(opt_strike).split()[0]) if str(opt_strike).strip() else 0.0
-                _exp = str(opt_expiry).strip()
-                _days = 0
-                if _exp:
-                    _exp_d = datetime.strptime(_exp[:11], "%d-%b-%Y").date()
-                    try:    _ent_d = datetime.strptime(str(ent_time)[:10], "%Y-%m-%d").date()
-                    except Exception: _ent_d = now.date()
-                    _days = (_exp_d - _ent_d).days
-                _hv = opt_intel.get_historical_volatility(sym)
-                _lev = opt_intel.est_option_leverage(ent, _stk, _days, _hv) if (_stk > 0 and _days > 0 and _hv > 0) else None
-                if _lev:
-                    eff_lev = _lev
-            except Exception as _le:
-                print(f"[OPT-LEV] {sym}: {_le} — flat {OPTION_LEVERAGE_EST:.0f}x estimate")
+        # v15.25: shared helper (same leverage the step_b 20%-cap check uses)
+        eff_lev  = _row_option_leverage(sym, ent, ent_time, opt_strike, opt_expiry, now)
         opt_pct  = round(pnl_pct * eff_lev, 0)
         opt_note = f"Option ≈ {opt_pct:+.0f}% (est. ~{eff_lev:.0f}×, ITM ~0.7Δ; stock {pnl_pct:+.2f}%)"
 
