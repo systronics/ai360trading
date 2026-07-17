@@ -1955,7 +1955,11 @@ function _runScanner(startRow, endRow) {
       } else {
         regimeMsg += `\n📭 No candidates passed today.`;
       }
-      regimeMsg += `\n<i>Entry alerts sent when market opens.</i>`;
+      // v15.24: bullish scanner-done message now carries the version stamp too
+      // (bearish header + option/test footers already did — CONFIG.VERSION
+      // single-source doctrine; the bullish night message was the only
+      // subscriber-facing regime message without one).
+      regimeMsg += `\n<i>Entry alerts sent when market opens. ${CONFIG.VERSION}</i>`;
     }
     _sendTelegramAdvanceAndPremium(regimeMsg);
 
