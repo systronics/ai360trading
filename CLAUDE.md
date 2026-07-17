@@ -36,17 +36,17 @@ One broken file = zero income that day. Treat every edit as critical.
 ### Trading Engine
 | File | Version |
 |---|---|
-| `trading_bot.py` | v15.22 (2026-07-17: CE option block gated on real F&O eligibility via Nifty200 col AJ + chain-liquidity note; v15.21 time-fair volume gate; v15.20 calibrated RSI hot-leader exception) |
+| `trading_bot.py` | v15.23 (2026-07-17 evening bug pack: RSI hot-leader day_pct now reads live "%Change" (was dead for fresh candidates) + gap-guard/vol-bypass revived + cash no longer eats swing budget + strict diff-form relvol + trading-day time stop + cached sheet reads/single-pass ranking + verified NIFTY row + earnings bm_data plumb + protected mem truncation) |
 | `entry_quality.py` | v1.0 (reversal veto + target room + composite ranking) |
-| `option_intelligence.py` | v1.1 (2026-07-15: bearish → SKIP; old PE path contradicted buy-side-only longs) |
+| `option_intelligence.py` | v1.2 (2026-07-17: earnings block reads BotMemory ROWS via bm_data — mem-string path never matched; v1.1 bearish → SKIP) |
 | `institutional_edges.py` | v1.1 (2026-07-16: volume gate time-adjusted — partial-day reading ÷ expected session fraction, 1.5× bar unchanged) |
-| `fetch_earnings.py` | v1.0 (Batch 3, daily 18:30 IST) |
+| `fetch_earnings.py` | v1.1 (2026-07-17: BotMemory rewrite atomic — was clear+update, crash = total state loss; Batch 3, daily 18:30 IST) |
 | `fetch_bhavcopy.py` | v1.0 (Batch 4, Mon-Fri 20:00 IST) |
 | `fetch_smallmidcap.py` | v1.4 (Mon-Fri 20:30 IST — REAL 5d volume + SmallMidLive board + target floor ≥5% w/ honest R:R) |
 | `fetch_rs.py` | v2.0 (2026-07-17: + TRUE ATR(14) feed into Nifty200 col AC — old formula was ONE day's high−low feeding all SL/targets; + NIFTYBEES→^NSEI benchmark freshness fallback; workflow moved to own `fetch-rs` concurrency group after `trading-bot` group froze RS 07-13→07-17) |
 | `fetch_fii_dii.py` | v1.0 (real FII/DII flow → BotMemory MKT_* keys) |
 | `fetch_index_meta.py` | v1.0 (2026-07-17: weekly Saturday — refreshes Nifty200 col AJ Options N50/YES/"" + col AK N200 YES/EX from NSE official lists; Telegram notice on drift; fail-open, never adds rows) |
-| `appscript.gs` | v15.23 (LIVE, clasp-deployed 2026-07-17 07:56 IST: option signals gated on live F&O eligibility col AJ (stale hardcoded list = fallback only) + chain-liquidity line in premium option alerts + honest "Strongest:" sector line (negatives included, ≥3 stocks); v15.22 SL noise floor + confirm-at-open; deploy via `.\deploy_appscript.ps1`) |
+| `appscript.gs` | v15.24 (LIVE, clasp-deployed 2026-07-17 21:17 IST: CashWatchlist 20-col row crash fixed (scanner-killing setValues mismatch) + MOM-Swing scan GATE-3 RS parity/sector cap/slot limit + time-fair volume PACE on GATE 7/MOM/CASH (EOD behavior identical, bars unchanged); v15.23 option F&O gating via col AJ + honest sector line; deploy via `.\deploy_appscript.ps1`) |
 
 ### Long-Term Signals
 | File | Version |
@@ -135,6 +135,9 @@ One broken file = zero income that day. Treat every edit as critical.
 | **RS ≥ 5 gate** (bot Filter 7 + appscript GATE 3) — never lower | Data-validated 2026-07-15: ALL 6 target winners pass, 2/5 losers correctly blocked |
 | **RSI hot-leader exception exactly as calibrated** — bullish + RSI 65–75 + stock up on day = allowed; >75 hard block; fail-CLOSED without day data | 13-trade study 2026-07-15: no loser ever entered overbought; NYKAA-class winners were being refused. Don't revert to hard-65, don't raise above 75 |
 | **VOL gate = 1.5× PACE** (time-fair since v15.21/v1.1) — the 1.5× bar stays | Bar is deliberate (institutional footprint); only the measurement was made time-fair. Reversal-risk/ranking uses RAW relvol on purpose |
+| **AppScript volume gates = time-fair PACE with EOD-identical bars** (v15.24: GATE 7 2.2×, BASE 1.4×, MOM/CASH 3.0×) — never revert to raw intraday readings, never change the bars without data | Volume_vs_Avg % is diff-form (+50 = 1.5×, owner screenshot v15.13); raw partial-day readings vs full-day averages structurally starved every intraday gate (the same bug fixed Python-side 07-16). Blank volume cells stay BLOCKED (volHasData) |
+| **`_ENTRY_` memory keys = swing entries ONLY** (v15.23) — cash writes only `_CASH_` | The 3/day swing budget counter counts `_ENTRY_`; cash writing it too meant cash trades ate swing slots (v15.9 BUG-E's filter never worked) |
+| **Earnings gate reads BotMemory ROWS via bm_data** (option_intelligence v1.2) — never revert to scanning the `_RUNTIME_MEM` string | fetch_earnings.py writes EARNINGS_* as sheet rows; the string scan matched nothing → CE suggestions possible the day before results |
 | **MIN_SL_ATR_MULT = 0.75** — DMA-anchored SLs must leave ≥0.75×ATR room | BHARATFORG 07-16: DMA snap gave a 1.07% stop on a 2-4 week trade + fake RR 9.6 |
 | **Owner's risk rule:** tight SL, target ≥5% *reachability-aware* (ATR%≥1.3 only), trail, option loss hard-capped 20%, option exit stock-anchored | v15.18 design; do NOT blindly hard-floor targets at 5% for low-vol names |
 | Empty AlertLog on a red/quiet day is CORRECT behavior, not a bug | NIFTY_MIN_PCT_BULLISH −0.30 + honest gates; 07-16 verified: 0 entries was right |

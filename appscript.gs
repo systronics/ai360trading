@@ -1,6 +1,33 @@
 /**
- * AI360 TRADING — APPSCRIPT v15.23
+ * AI360 TRADING — APPSCRIPT v15.24
  * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ * v15.24 CHANGES (2026-07-17, evening) — FULL-AUDIT BUG PACK (owner: "fix all")
+ *   1. CASHWATCHLIST ROW CRASH FIXED — _readCashWatchlist built a 20-element
+ *      row (trailing notes string) but the AlertLog grid write is 19 columns
+ *      (TOTAL_COLS); setValues() throws on the mismatch, aborting the ENTIRE
+ *      scanner run (no AlertLog write, no formulas, no regime alert) on every
+ *      5-min trigger while any watchlist stock qualified (+4% before 10:30).
+ *      Latent since v15.8 — armed the first morning a curated stock gapped.
+ *      Row now matches the Nifty200 cash-candidate shape exactly (19 cols,
+ *      "⏳ WAITING", full timestamp, "1:x.x" RR).
+ *   2. MOM-SWING SCAN GATE-3 PARITY — the separate momentum scan queued names
+ *      with NO RS check, no sector cap, and pushed past the regime slot limit;
+ *      the Python bot then vetoed them at RS<5 → dead WAITING slots + a
+ *      misleading Telegram board (the exact v15.19 funnel disease, still open
+ *      on this path). Now: RS ≥ LATE_ENTRY_MIN_RS (blank RS fail-open, same
+ *      as GATE 3), 2-per-sector cap, and maxWaitingSlots respected.
+ *   3. TIME-FAIR VOLUME PACE (mirror of Python institutional_edges v1.1) —
+ *      Volume_vs_Avg % divides partial-day volume by a full-day average, so
+ *      every intraday reading runs ~2× low; GATE 7 (post-10:30) and the MOM
+ *      scan (≤11:30) were structurally starved — the same bug fixed on the
+ *      Python side on 07-16 but never here. Gates now compare time-fair PACE
+ *      (reading ÷ expected session fraction, NSE U-shape, 15-min quote delay)
+ *      against the SAME numeric bars expressed as multiples: GATE 7 120→2.2×,
+ *      BASE 40→1.4×, MOM/CASH 200→3.0×. Night/EOD scans (fraction = 1.0)
+ *      behave EXACTLY as before — only intraday measurement is made fair.
+ *      Also corrected the misleading "2x average" comments: the column is
+ *      diff-form (+50 = 1.5×, owner-verified v15.13), so 200 was always 3×.
+ *
  * v15.23 CHANGES (2026-07-17, pre-market) — REAL F&O ELIGIBILITY + HONEST SECTOR LINES
  *   Companion to the same-morning sheet repairs (fetch_rs v2.0: col AC now a
  *   REAL ATR(14); col B normalized to 18 NSE macro sectors; new col AJ
@@ -395,7 +422,7 @@ const OPTIONS_CONFIG = {
 
 // ── CONFIG ────────────────────────────────────────────────────────────────────
 const CONFIG = {
-  VERSION       : "v15.23",  // single source for ALL subscriber-facing version stamps (was hardcoded per-message and went stale at v15.17)
+  VERSION       : "v15.24",  // single source for ALL subscriber-facing version stamps (was hardcoded per-message and went stale at v15.17)
   get TELEGRAM_BOT_TOKEN() { return PropertiesService.getScriptProperties().getProperty('TELEGRAM_BOT_TOKEN') || ""; },
   get CHAT_ID_BASIC()      { return PropertiesService.getScriptProperties().getProperty('CHAT_ID_BASIC')      || ""; },
   get CHAT_ID_ADVANCE()    { return PropertiesService.getScriptProperties().getProperty('CHAT_ID_ADVANCE')    || ""; },
@@ -499,7 +526,7 @@ const CONFIG = {
   // ── Cash Intraday — high-volume gap stocks, same-day exit ──────────────────
   // These are small-mid cap stocks with news/volume catalyst giving 10-15% intraday
   CASH_MIN_PCT_CHANGE  : 4.0,   // 4%+ move today = cash candidate
-  CASH_MIN_VOLUME_RATIO: 200,   // 2x average volume (confirmed buying)
+  CASH_MIN_VOLUME_RATIO: 200,   // diff-form: +200% above avg = 3.0× volume PACE (v15.24 — the old "2x" note misread this diff-form column)
   CASH_MAX_CMP         : 500,   // small-mid cap only (higher % potential)
   CASH_MIN_CMP         : 50,    // avoid penny stocks
   CASH_SL_PCT          : 0.03,  // tight -3% SL (must be quick trade)
@@ -707,6 +734,40 @@ function _getIndiaVix(inputData) {
 }
 
 function _vixStr(v) { return v > 0 ? v.toFixed(1) : "n/a"; }
+
+// ══════════════════════════════════════════════════════════════════════════════
+// v15.24 — TIME-FAIR VOLUME PACE (mirror of Python institutional_edges v1.1)
+// The Volume_vs_Avg % column divides today's CUMULATIVE partial-day volume by
+// a FULL-DAY average, so intraday readings run ~2× low (07-16 evidence:
+// CHOLAFIN 0.17× at noon vs 0.45× EOD). These helpers convert the diff-form
+// value (+50 = 1.5×, owner-verified v15.13) to a MULTIPLE and divide by the
+// fraction of a normal NSE day's volume expected by now (U-shape curve,
+// 15-min GOOGLEFINANCE delay). No adjustment before 09:45, outside session
+// hours, or on bad input — night/EOD scans behave exactly as before.
+// ══════════════════════════════════════════════════════════════════════════════
+const VOL_SESSION_CURVE = [[0, 0.04], [60, 0.30], [180, 0.55], [300, 0.75], [375, 1.00]];
+
+function _expectedVolFraction(timeStr) {
+  try {
+    const hm = (timeStr || "").split(":");
+    let mins = parseInt(hm[0], 10) * 60 + parseInt(hm[1], 10) - (9 * 60 + 15);
+    if (isNaN(mins) || mins < 30) return 1.0;   // before 09:45 (noisy open) or bad input
+    mins -= 15;                                  // quote-delay allowance
+    if (mins >= 375) return 1.0;                 // session over → reading is full-day
+    let frac = 1.0;
+    for (let k = 1; k < VOL_SESSION_CURVE.length; k++) {
+      const m0 = VOL_SESSION_CURVE[k - 1][0], f0 = VOL_SESSION_CURVE[k - 1][1];
+      const m1 = VOL_SESSION_CURVE[k][0],     f1 = VOL_SESSION_CURVE[k][1];
+      if (mins <= m1) { frac = f0 + (f1 - f0) * (mins - m0) / (m1 - m0); break; }
+    }
+    return Math.max(0.15, Math.min(1.0, frac));  // divisor floor caps the boost at ~6.7×
+  } catch (e) { return 1.0; }
+}
+
+// Diff-form column value (+50 = 1.5×, −67 = 0.33×) → time-fair pace multiple.
+function _volPaceMult(volVsAvg, timeStr) {
+  return Math.max(0, 1 + (parseFloat(volVsAvg) || 0) / 100) / _expectedVolFraction(timeStr);
+}
 
 function _getRecommendedExpiry(minDays) {
   // v15.14: walks forward month-by-month from today, generating last-Tuesday
@@ -1003,20 +1064,19 @@ function _readCashWatchlist(ss, bm, timeStr, alreadyTraded) {
       const cashQty = Math.max(1, Math.floor(CONFIG.CAPITAL_STD / cmp));
       const key     = sym.replace(/[:\s]/g, '_');
 
+      // v15.24 CRASH FIX: this row had 20 elements (a trailing notes string)
+      // against the 19-column (TOTAL_COLS) AlertLog grid — setValues() throws
+      // on the mismatch and the ENTIRE scanner run aborted every 5 minutes
+      // while a watchlist stock qualified. Row now matches the Nifty200
+      // cash-candidate shape exactly: 19 cols, full timestamp, "⏳ WAITING".
       candidates.push({
         sym, sector, priority: 30,  // slightly higher priority than Nifty200 cash
         row: [
-          Utilities.formatDate(new Date(), CONFIG.IST_ZONE, "HH:mm"),
+          Utilities.formatDate(new Date(), CONFIG.IST_ZONE, "yyyy-MM-dd HH:mm:ss"),
           sym, "", 30, "🔥 Cash Intraday", "CASH",
           `🔥 WATCHLIST CASH | +${pctChange.toFixed(1)}% | ${name}`,
-          cashSl.toFixed(2), cashTgt.toFixed(2),
-          cashRr.toFixed(2),
-          "WAITING",
-          "", "", 1,
-          cashSl.toFixed(2),
-          "", "", cashQty * (cmp - cashSl),
-          cashQty,
-          `CashWatchlist | SL: ₹${cashSl} | Tgt: ₹${cashTgt}`,
+          cashSl, cashTgt, "1:" + cashRr.toFixed(1), "⏳ WAITING",
+          "", "", "", "", "", "", "", cashQty,
         ],
         key,
       });
@@ -1410,6 +1470,10 @@ function _runScanner(startRow, endRow) {
     const distDMA    = parseFloat(r[12]) || 0;
     const pivotRes   = parseFloat(r[26]) || 0;
     const volVsAvg   = parseFloat(r[14]) || 0;
+    // v15.24: blank volume cell must stay BLOCKED by volume gates (old
+    // behaviour) — the pace math alone could pass a no-data stock early in
+    // the session when the expected-fraction divisor is small.
+    const volHasData = !isNaN(parseFloat(r[14]));
     const retestPct  = parseFloat(r[23]) || -99;
     const af         = parseFloat(r[31]) || 0;
     const rs         = parseFloat(r[20]) || 0;
@@ -1442,11 +1506,16 @@ function _runScanner(startRow, endRow) {
     // (PSU results, defence orders, sector news) and can move 10-15% even in bearish
     // Nifty. Risk is contained by tight 3% SL + 3PM force-exit; the 4% pctChange
     // threshold already requires strong conviction.
+    // v15.24: volume condition is time-fair pace (diff-form 200 = 3.0× — the
+    // old "2x average" comment was wrong for this diff-form column). Cash
+    // detection runs ≤10:30 where the raw partial-day reading is at its most
+    // understated, so this was the most starved gate of all.
     if (timeStr <= CONFIG.CASH_ENTRY_WINDOW &&
         cmp >= CONFIG.CASH_MIN_CMP &&
         cmp <= CONFIG.CASH_MAX_CMP &&
         pctChange >= CONFIG.CASH_MIN_PCT_CHANGE &&
-        volVsAvg  >= CONFIG.CASH_MIN_VOLUME_RATIO &&
+        volHasData &&
+        _volPaceMult(volVsAvg, timeStr) >= 1 + CONFIG.CASH_MIN_VOLUME_RATIO / 100 &&
         cashCands.length < CONFIG.CASH_MAX_SLOTS) {
 
       const cashAthGap = high52 > 0 ? ((high52 - cmp) / high52) * 100 : 100;
@@ -1563,15 +1632,20 @@ function _runScanner(startRow, endRow) {
     }
 
     // GATE 7: Volume Filter (momentum entries bypass if price confirms)
+    // v15.24: gate on time-fair PACE. Same numeric bars expressed as multiples
+    // (diff-form 120 = 2.2×, BASE_STAGE_MIN_VOL 40 = 1.4×) — identical
+    // behaviour on night/EOD scans (fraction = 1), fair intraday instead of
+    // comparing partial-day volume against a full-day average.
     if (!isMorning && marketBullish && !volumeBypass) {
       const isBaseStage    = stage.includes("Correction Base") || stage.includes("Building Momentum");
       const isBasePrepared = (signal === "💎 BASE PREPARED");
+      const volPace        = _volPaceMult(volVsAvg, timeStr);
       if (isBreakoutStage) {
         // exempt
       } else if (isBaseEntry || isBaseStage || isBasePrepared) {
-        if (volVsAvg < CONFIG.BASE_STAGE_MIN_VOL) continue;
+        if (!volHasData || volPace < 1 + CONFIG.BASE_STAGE_MIN_VOL / 100) continue;
       } else {
-        if (volVsAvg < 120) continue;
+        if (!volHasData || volPace < 2.2) continue;
       }
     }
 
@@ -1713,7 +1787,11 @@ function _runScanner(startRow, endRow) {
     }
   }
 
-  // MOMENTUM SCAN — unchanged from v15.5
+  // MOMENTUM SCAN — v15.24: GATE-3 parity (RS ≥ LATE_ENTRY_MIN_RS, blank RS
+  // fail-open), time-fair volume pace (diff-form 200 = 3.0×), 2-per-sector
+  // cap and regime slot limit. This path used to queue RS-negative names the
+  // Python bot could never buy (dead WAITING slots, misleading board) and
+  // could push past the bearish max-3 limit.
   const momCands = [];
   if (marketBullish && timeStr <= CONFIG.MOM_WINDOW_END) {
     for (let i = 2; i < totalRows; i++) {
@@ -1723,13 +1801,17 @@ function _runScanner(startRow, endRow) {
       if (finalWaiting.find(row => row[1] === sym)) continue;
       const pctChange = parseFloat(r[3])  || 0;
       const volVsAvg  = parseFloat(r[14]) || 0;
+      const volOk     = !isNaN(parseFloat(r[14]));
       const cmp       = parseFloat(r[2])  || 0;
       const atr       = parseFloat(r[28]) || 0;
       const smaStr    = (r[7]  || "").toString().trim();
       const fiiSignal = (r[32] || "").toString().trim();
       const sector    = (r[1]  || "UNKNOWN").toString().trim();
+      const rs        = parseFloat(r[20]) || 0;
+      const rsIsNum   = !isNaN(parseFloat(r[20]));
       if (pctChange < CONFIG.MOM_MIN_CHANGE_PCT) continue;
-      if (volVsAvg  < CONFIG.MOM_MIN_VOLUME_PCT) continue;
+      if (!volOk || _volPaceMult(volVsAvg, timeStr) < 1 + CONFIG.MOM_MIN_VOLUME_PCT / 100) continue;
+      if (rsIsNum && rs < CONFIG.LATE_ENTRY_MIN_RS) continue;   // v15.24: GATE-3 parity
       if (fiiSignal === "FII SELLING")            continue;
       if (cmp <= 0 || atr <= 0)                  continue;
       if (cmp > CONFIG.MAX_CMP)                  continue;
@@ -1749,6 +1831,12 @@ function _runScanner(startRow, endRow) {
       if (momCands.length >= CONFIG.MAX_MOM_SLOTS) break;
     }
     for (const c of momCands) {
+      // v15.24: respect the regime slot limit + 2-per-sector cap (was pushed
+      // unconditionally after the allocator had already filled the board).
+      if (finalWaiting.length >= maxWaitingSlots) break;
+      const mSec = c.sector || "UNKNOWN";
+      if ((waitingSectorCount[mSec] || 0) >= 2) continue;
+      waitingSectorCount[mSec] = (waitingSectorCount[mSec] || 0) + 1;
       const key = c.sym.replace(/[:\s]/g, '_');
       _bmSet(ss, bm, `${key}_CAP`,  CONFIG.CAPITAL_STD.toString(), c.sym, "TRADE");
       _bmSet(ss, bm, `${key}_MODE`, "MOM",                         c.sym, "TRADE");

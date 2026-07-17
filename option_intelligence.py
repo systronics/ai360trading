@@ -1,6 +1,14 @@
 """
-AI360 OPTION INTELLIGENCE — v1.1
+AI360 OPTION INTELLIGENCE — v1.2
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v1.2 (2026-07-17): EARNINGS BLOCK REWIRED TO BOTMEMORY ROWS — the block
+  searched the `_RUNTIME_MEM` string for EARNINGS_* keys, but fetch_earnings.py
+  writes them as separate BotMemory ROWS, so it was permanently fail-open (a CE
+  could be recommended right before results — the IV-crush case this module was
+  built to prevent). check_earnings_window/recommend_option now accept bm_data
+  (the BotMemory key→value dict trading_bot already loads) and check it first;
+  the legacy mem-string scan is kept as a harmless fallback. Fail-open intact.
+
 v1.1 (2026-07-15): PE PATH REMOVED — the system is buy-side only (owner
   decision 2026-06-05, memory project_buyside_only). Bearish-regime entries
   are still LONGS (strong stocks in a weak tape), so the old v1.0 behaviour —
@@ -160,27 +168,44 @@ def check_iv_regime(symbol: str) -> tuple:
 # EARNINGS BLOCK — reads BotMemory cache populated by fetch_earnings.py
 # ════════════════════════════════════════════════════════════════════════════
 
-def check_earnings_window(symbol: str, mem: str, now: datetime, days: int = 3) -> tuple:
+def check_earnings_window(symbol: str, mem: str, now: datetime, days: int = 3,
+                          bm_data: dict = None) -> tuple:
     """
     Returns (allowed, reason). Blocks if earnings announcement falls within
-    `days` trading days of now (default 3).
-    Memory key format: EARNINGS_{SYMBOL_NO_NSE}_{YYYY-MM-DD} = "FY2026Q4" or similar.
-    Fail-open: no matching keys → allowed (assumes no earnings nearby).
+    `days` days of now (window: yesterday .. +days, matching the AppScript
+    v15.20 night-alert check).
+
+    v1.2: fetch_earnings.py writes EARNINGS_{SYM}_{YYYY-MM-DD} as BotMemory
+    ROWS — pass that sheet's key→value dict as `bm_data` (trading_bot already
+    loads it as get_bm_data()). The old `mem`-string scan NEVER matched
+    (the runtime string does not contain these keys) and is kept only as a
+    fallback in case keys are ever mirrored there.
+    Fail-open: no matching keys anywhere → allowed (assumes no earnings nearby).
     """
-    if not mem:
-        return True, "Earnings cache empty — entry allowed"
     sym_clean = symbol.replace("NSE:", "").strip().upper()
     horizon   = [(now + timedelta(days=i)).strftime("%Y-%m-%d") for i in range(-1, days + 1)]
     prefix    = f"EARNINGS_{sym_clean}_"
-    for piece in mem.split(","):
-        piece = piece.strip()
-        if not piece.startswith(prefix):
-            continue
-        # Extract date portion: "EARNINGS_TCS_2026-05-30=Q4FY26"
-        head = piece.split("=", 1)[0]
-        date_part = head[len(prefix):]
-        if date_part in horizon:
-            return False, f"Earnings on {date_part} (within {days}d) — skip CE/PE"
+
+    # Primary source (v1.2): BotMemory rows dict.
+    if bm_data:
+        for d in horizon:
+            if f"{prefix}{d}" in bm_data:
+                return False, f"Earnings on {d} (within {days}d) — skip CE/PE"
+
+    # Legacy fallback: runtime-mem string scan.
+    if mem:
+        for piece in mem.split(","):
+            piece = piece.strip()
+            if not piece.startswith(prefix):
+                continue
+            # Extract date portion: "EARNINGS_TCS_2026-05-30=Q4FY26"
+            head = piece.split("=", 1)[0]
+            date_part = head[len(prefix):]
+            if date_part in horizon:
+                return False, f"Earnings on {date_part} (within {days}d) — skip CE/PE"
+
+    if not bm_data and not mem:
+        return True, "Earnings cache empty — entry allowed"
     return True, f"No earnings within {days}d — entry allowed ✅"
 
 
@@ -189,7 +214,8 @@ def check_earnings_window(symbol: str, mem: str, now: datetime, days: int = 3) -
 # ════════════════════════════════════════════════════════════════════════════
 
 def recommend_option(symbol: str, cp: float, atr: float, stage: str,
-                     is_bullish: bool, mem: str, now: datetime) -> dict:
+                     is_bullish: bool, mem: str, now: datetime,
+                     bm_data: dict = None) -> dict:
     """
     Single entry point for trading_bot.py. Returns a dict with:
       action     : 'BUY_CE' | 'BUY_PE' | 'SKIP'
@@ -221,8 +247,8 @@ def recommend_option(symbol: str, cp: float, atr: float, stage: str,
                 "delta_est": 0, "hv": hv, "reasons": reasons,
                 "sl_pct": 0, "tgt_pct": 0}
 
-    # 3. Earnings window
-    earn_ok, earn_msg = check_earnings_window(symbol, mem, now)
+    # 3. Earnings window — v1.2: bm_data (BotMemory rows) is the real source
+    earn_ok, earn_msg = check_earnings_window(symbol, mem, now, bm_data=bm_data)
     reasons.append(f"[EARN] {earn_msg}")
     if not earn_ok:
         return {"action": "SKIP", "strike": None, "strike_label": "",

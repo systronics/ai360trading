@@ -1,6 +1,50 @@
 """
-AI360 TRADING BOT — v15.22
+AI360 TRADING BOT — v15.23
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v15.23 CHANGES vs v15.22 — FULL-AUDIT BUG PACK (2026-07-17 evening, owner: "fix all")
+  1. RSI HOT-LEADER EXCEPTION REVIVED — day_pct came ONLY from `_LP_` memory,
+     which is written at entry promotion / while monitoring a TRADED row and
+     cleared on exit — a fresh WAITING candidate NEVER had it, so day_pct was
+     always None → fail-closed → the calibrated v15.20 exception (RSI 65-75
+     leaders up on the day) never actually fired. day_pct now falls back to the
+     live Nifty200 "%Change" column (the same value the scanner reads as r[3]).
+     Same root fix revives: the 6% result-day gap guard at entry (prev_close=0
+     meant it was skipped for every fresh entry) and the ≥3% price bypass on
+     the volume gate. `_LP_` still preferred when present (exact prev close).
+  2. v15.9 BUG-E ACTUALLY FIXED — cash entries also wrote `{date}_ENTRY_{key}`
+     and the counter's `not startswith(date_CASH_)` filter could never exclude
+     an `_ENTRY_` part, so cash trades STILL consumed the 3/day swing budget on
+     the next tick. `_ENTRY_` is now written for swing entries only.
+  3. RELVOL HEURISTIC HOLE CLOSED — Volume_vs_Avg % is diff-form (+50 = 1.5×),
+     but raw values in (0,5] were returned AS multiples (+3% above avg read as
+     "3.0× huge") and values in (−5,0] fell through to fail-open. Now ALL
+     numeric values convert 1+raw/100; only a blank/unparseable cell fails open.
+  4. TIME STOP ON TRADING DAYS — was calendar days (a Wed entry hit "5 days" by
+     Mon = 3 sessions; winners cut ~2 days early over weekends). New
+     calc_trading_hold_days (weekends + NSE holidays excluded) used for the
+     time stop; min-hold and ledger "days held" deliberately stay calendar
+     (no change to live trailing behaviour). trading_days_since (RECD cooldown)
+     now also skips holidays.
+  5. SHEETS-QUOTA FIX — _read_atr_from_nifty200/_read_opt_tag_from_nifty200 now
+     use the per-tick _nifty200_rows cache (each call was a full-sheet fetch),
+     and the best-of ranking computes each candidate's score ONCE (was up to 3×
+     per row: sort key + filter + log line → 15+ full-sheet reads in seconds →
+     silent 429 fallback that disabled best-first ranking on busy mornings).
+  6. NIFTY ROW VERIFIED — get_market_regime/get_nifty_pct_change assumed row 2
+     is the index row; now verified by symbol ("NIFTY"), with a fallback scan,
+     so a future row shift can't silently make the regime "some stock vs its
+     own 20DMA".
+  7. EARNINGS BLOCK REWIRED — option_intelligence looked for EARNINGS_* keys in
+     the _RUNTIME_MEM string, but fetch_earnings.py writes them as BotMemory
+     ROWS → the entry-time option earnings block was permanently fail-open.
+     bm_data (the BotMemory dict) is now passed through ce_candidate_flag →
+     recommend_option → check_earnings_window.
+  8. clean_mem truncation now drops oldest DATED flags first and protects
+     active-trade state keys (TSL/MAX/LP/ATR/RECD) — the old "keep last 100
+     parts" could drop a live trade's trailing stop.
+  9. Version stamps unified via VERSION constant (banner + test messages were
+     stale at v15.16).
+
 v15.22 CHANGES vs v15.21 — REAL F&O ELIGIBILITY FOR OPTION SUGGESTIONS (2026-07-17, owner-approved)
   • New Nifty200 col AJ "Options" (fed from NSE's official F&O file): "N50" /
     "YES" / "" (no derivatives — SEBI's 2025 purge removed IRCTC/MRF/ATGL/
@@ -425,6 +469,7 @@ except Exception as _e:
     _EQ_AVAILABLE = False
 
 IST       = pytz.timezone('Asia/Kolkata')
+VERSION   = "v15.23"   # v15.23: single source for the run banner + test messages (were stale at v15.16)
 TG_TOKEN  = os.environ.get('TELEGRAM_BOT_TOKEN')
 
 CHAT_BASIC   = os.environ.get('CHAT_ID_BASIC')
@@ -625,22 +670,43 @@ def price_sanity(sym,cp,ent):
     return True
 
 def trading_days_since(date_str, now):
+    # v15.23: NSE holidays no longer count as trading days (RECD cooldown was
+    # expiring early around holiday weeks).
     if not date_str: return 999
     try:
         start=datetime.strptime(date_str,'%Y-%m-%d').date(); end=now.date(); count=0; cur=start
         while cur<=end:
-            if cur.weekday()<5: count+=1
+            if cur.weekday()<5 and not is_holiday(cur.strftime("%Y-%m-%d")): count+=1
             cur+=timedelta(days=1)
         return max(0,count-1)
     except: return 999
+
+def calc_trading_hold_days(entry_str, now):
+    """v15.23: TRADING days held (weekends + NSE holidays excluded) — used by
+    the TIME STOP, whose spec (v15.10) says trading days. Calendar-day
+    calc_hold_days stays for min-hold and the ledger (unchanged behaviour)."""
+    try:
+        ent = datetime.strptime(str(entry_str)[:10], '%Y-%m-%d').date()
+        end = now.date(); count = 0; cur = ent
+        while cur <= end:
+            if cur.weekday() < 5 and not is_holiday(cur.strftime("%Y-%m-%d")): count += 1
+            cur += timedelta(days=1)
+        return max(0, count - 1)   # entry day itself is day 0
+    except: return 0
 
 def clean_mem(mem):
     cutoff=(datetime.now(IST)-timedelta(days=14)).strftime("%Y-%m-%d")
     kept=[p for p in mem.split(",") if p.strip() and not (len(p)>=10 and p[4]=="-" and p[7]=="-" and p[:10]<cutoff)]
     result=",".join(kept)
     if len(result)>20000:
+        # v15.23: drop oldest DATED daily flags first; symbol-state keys
+        # (TSL/MAX/LP/ATR/RECD/MODE — an active trade's trailing stop lives
+        # here) are protected. Old code kept an arbitrary "last 100 parts",
+        # which could silently drop a live trade's TSL.
         parts=[p for p in result.split(",") if p.strip()]
-        result=",".join(parts[-100:])
+        dated=[p for p in parts if len(p)>=10 and p[4]=="-" and p[7]=="-"]
+        state=[p for p in parts if not (len(p)>=10 and p[4]=="-" and p[7]=="-")]
+        result=",".join(state + dated[-50:])
     print(f"[MEM] Y1: {len(result):,} chars")
     return result
 
@@ -766,9 +832,28 @@ def check_rsi_entry(symbol: str, is_bullish: bool, day_pct=None) -> tuple:
 # NIFTY DIRECTION CHECK
 # ══════════════════════════════════════════════════════════════════════════════
 
-def get_nifty_pct_change(nifty_sheet) -> float:
+def _nifty_index_row(nifty_sheet):
+    """v15.23: return the NIFTY index row's values, VERIFIED by symbol.
+    Row 2 is the fast path (current layout); if a future row shift moves it,
+    scan for the first row whose symbol contains NIFTY instead of silently
+    using a random stock's data for the market regime. None = not found."""
     try:
         row = nifty_sheet.row_values(2)
+        if row and "NIFTY" in str(row[0]).upper():
+            return row
+        for r in _nifty200_rows(nifty_sheet)[1:]:
+            if r and "NIFTY" in str(r[0]).upper():
+                print(f"[NIFTY-ROW] index row found at symbol {r[0]!r} (not row 2 — layout shifted)")
+                return r
+        print("[NIFTY-ROW] WARNING: no NIFTY index row found in Nifty200 sheet")
+    except Exception as e:
+        print(f"[NIFTY-ROW] {e}")
+    return None
+
+
+def get_nifty_pct_change(nifty_sheet) -> float:
+    try:
+        row = _nifty_index_row(nifty_sheet)
         if row and len(row) > 3:
             pct = to_f(row[3])
             if pct != 0:
@@ -937,12 +1022,19 @@ def check_all_entry_filters(sym, mem, key, is_bullish, now, nifty_pct, today_ent
         return False, reasons, -1
 
     # Filter 6: RSI (API call — only if 1-5 passed)
-    # v15.20: pass today's % change (cp vs yesterday's close from `_LP_` memory,
-    # the same source Filters 7/8 use) so the hot-but-leading exception can
-    # verify the stock is actually up today. Missing data → None → fail-closed
-    # inside check_rsi_entry (old hard veto stands).
+    # v15.20: pass today's % change so the hot-but-leading exception can verify
+    # the stock is actually up today. Missing data → None → fail-closed inside
+    # check_rsi_entry (old hard veto stands).
+    # v15.23 BUG FIX: `_LP_` memory only exists for symbols that were already
+    # TRADED (set at promotion + in step_b, cleared on exit) — a fresh WAITING
+    # candidate NEVER had it, so day_pct was always None and the calibrated
+    # v15.20 exception never fired. Fall back to the live Nifty200 "%Change"
+    # column (same value the AppScript scanner uses). `_LP_` stays preferred
+    # when present (exact previous close beats a delayed quote).
     _pc = get_last_price(mem, key)
     day_pct = ((cp - _pc) / _pc) * 100 if (_pc > 0 and cp > 0) else None
+    if day_pct is None:
+        day_pct = _read_nifty200_day_pct(nifty_sheet, sym)
     allowed, rsi_val, msg = check_rsi_entry(sym, is_bullish, day_pct)
     reasons.append(f"[RSI] {msg}")
     if not allowed:
@@ -975,8 +1067,10 @@ def check_all_entry_filters(sym, mem, key, is_bullish, now, nifty_pct, today_ent
         # 8. Volume confirmation — relative volume from Nifty200 sheet
         try:
             rel_vol = _read_nifty200_relvol(nifty_sheet, sym) if nifty_sheet is not None else 0.0
-            prev_close = get_last_price(mem, key)
-            pct_change = ((cp - prev_close) / prev_close) * 100 if (prev_close > 0 and cp > 0) else 0
+            # v15.23: use the day_pct already resolved above (LP → sheet
+            # "%Change" fallback) so the ≥3% price bypass works for fresh
+            # candidates too — it was dead because prev_close was always 0.
+            pct_change = day_pct if day_pct is not None else 0
             # v15.21: pass IST clock so the gate can pro-rate the partial-day
             # volume reading against the expected fraction of the session.
             ok, msg = inst_edges.check_volume_confirmation(sym, rel_vol, pct_change=pct_change, now=now)
@@ -1284,9 +1378,12 @@ def get_rank_bm(bm_data, sym):
     return 99
 
 def _read_atr_from_nifty200(nifty_sheet, sym):
+    # v15.23: reads the per-tick _nifty200_rows cache — each call used to be a
+    # fresh full-sheet fetch (the ranking loop burst 15+ reads in seconds →
+    # silent 429s that disabled best-first ordering on busy mornings).
     try:
         clean = sym.replace("NSE:","").strip()
-        for row in nifty_sheet.get_all_values()[1:]:
+        for row in _nifty200_rows(nifty_sheet)[1:]:
             if len(row) > 28 and str(row[0]).replace("NSE:","").strip() == clean:
                 atr = to_f(row[28])
                 if atr > 0:
@@ -1303,16 +1400,43 @@ def _read_opt_tag_from_nifty200(nifty_sheet, sym):
     SEBI's 2025 eligibility purge removed IRCTC/MRF/ATGL/TATACOMM/...).
     Column is fed from NSE's official F&O file. Returns None when the column/
     symbol can't be read → caller fails OPEN (old behavior), never blocks on
-    a data hiccup."""
+    a data hiccup. v15.23: served from the per-tick sheet cache."""
     try:
         clean = sym.replace("NSE:","").strip()
-        for row in nifty_sheet.get_all_values()[1:]:
+        for row in _nifty200_rows(nifty_sheet)[1:]:
             if str(row[0] if row else "").replace("NSE:","").strip() == clean:
                 if len(row) > 35:
                     return str(row[35]).strip()
                 return None
     except Exception as e:
         print(f"[OPT-TAG] {e}")
+    return None
+
+
+def _read_nifty200_day_pct(nifty_sheet, sym):
+    """v15.23: the stock's LIVE day %change from Nifty200 col "%Change" (the
+    same value the AppScript scanner reads as r[3]). Returns None when the
+    column/row/cell is missing or unparseable so callers keep their existing
+    fail-closed (RSI exception) / fail-open (gap guard skipped) behaviour —
+    a genuinely flat 0.00% day IS returned as 0.0."""
+    if nifty_sheet is None:
+        return None
+    col = _find_nifty200_col(nifty_sheet, exact_names=["%Change"], substring_keywords=None)
+    if col < 0:
+        return None
+    try:
+        clean = sym.replace("NSE:", "").strip()
+        for row in _nifty200_rows(nifty_sheet)[1:]:
+            if len(row) > col and str(row[0]).replace("NSE:", "").strip() == clean:
+                raw = str(row[col]).strip()
+                if not raw:
+                    return None
+                try:
+                    return float(raw.replace(",", "").replace("%", ""))
+                except ValueError:
+                    return None
+    except Exception as e:
+        print(f"[DAY%] {sym}: {e}")
     return None
 
 
@@ -1398,14 +1522,21 @@ def _read_nifty200_relvol(nifty_sheet, sym) -> float:
         clean = sym.replace("NSE:", "").strip()
         for row in _nifty200_rows(nifty_sheet)[1:]:
             if len(row) > col and str(row[0]).replace("NSE:", "").strip() == clean:
-                raw = to_f(row[col])
-                # Convert percentage form (e.g. +50 means 1.5×) → multiple.
-                # If the value already looks like a multiple (e.g. 1.5 to 5.0),
-                # treat as-is. Heuristic: |raw| > 5 → percentage form.
-                if abs(raw) > 5:
-                    return max(0.0, 1.0 + raw / 100.0)
-                if raw > 0:
-                    return raw
+                # v15.23: the column is ALWAYS diff-form (+50 = 1.5×, −67 =
+                # 0.33× — owner-verified v15.13). The old |raw|>5 heuristic
+                # returned values in (0,5] AS multiples (+3% above avg volume
+                # read as "3.0× huge" and sailed through the 1.5× gate) and
+                # values in (−5,0] fell through to fail-open. Now every
+                # numeric value converts 1+raw/100; ONLY a blank/unparseable
+                # cell fails open with 0.0.
+                raw_s = str(row[col]).strip()
+                if not raw_s:
+                    return 0.0            # blank cell → data unavailable → fail-open
+                try:
+                    raw = float(raw_s.replace(",", "").replace("%", ""))
+                except ValueError:
+                    return 0.0            # unparseable → fail-open
+                return max(0.0, 1.0 + raw / 100.0)
     except Exception as e:
         print(f"[RELVOL] {sym}: {e}")
     return 0.0
@@ -1471,7 +1602,7 @@ def _reversal_inputs(nifty_sheet, sym):
 
 def get_market_regime(nifty_sheet):
     try:
-        row  = nifty_sheet.row_values(2)
+        row  = _nifty_index_row(nifty_sheet)   # v15.23: verified NIFTY row, not blind row 2
         if row and len(row) > 4:
             cmp  = to_f(row[2]); pct = to_f(row[3]); dma = to_f(row[4])
             bull = cmp >= dma if cmp > 0 and dma > 0 else True
@@ -1488,7 +1619,7 @@ def get_market_regime(nifty_sheet):
 
 def ce_candidate_flag(cp, atr, stage, is_bullish, rank=99,
                       opt_signal="", opt_strike="", opt_expiry="", opt_theta="",
-                      sym="", mem="", now=None, opt_tag=None):
+                      sym="", mem="", now=None, opt_tag=None, bm_data=None):
     """
     v15.11 Batch 3 — now produces a smart option recommendation via
     option_intelligence module: ITM strike pick, HV-based IV filter,
@@ -1515,11 +1646,15 @@ def ce_candidate_flag(cp, atr, stage, is_bullish, rank=99,
                      else "\n   💧 Chain: ⚠️ midcap — check bid-ask spread first")
 
     # Smart path — preferred when option_intelligence loaded successfully.
+    # v15.23: bm_data passed through — fetch_earnings.py writes EARNINGS_* as
+    # BotMemory ROWS, not into the _RUNTIME_MEM string, so the earnings block
+    # was permanently fail-open when it only searched `mem`.
     if _OPT_INTEL_AVAILABLE and sym and now is not None:
         try:
             rec = opt_intel.recommend_option(
                 symbol=sym, cp=cp, atr=atr, stage=stage,
                 is_bullish=is_bullish, mem=mem or "", now=now,
+                bm_data=bm_data,
             )
             _txt = opt_intel.format_option_alert(
                 symbol=sym, cp=cp, rec=rec,
@@ -1590,15 +1725,17 @@ def build_entry_advance(sym, cp, stage, sl, tgt, rr, ttype, atr, rank, capital, 
 
 def build_entry_premium(sym, cp, stage, sl, tgt, rr, ttype, atr, rank, capital, is_bullish,
                         rsi_val=-1, nifty_pct=0, opt_signal="", opt_strike="", opt_expiry="", opt_theta="",
-                        mem="", now=None, opt_tag=None):
+                        mem="", now=None, opt_tag=None, bm_data=None):
     base = build_entry_advance(sym, cp, stage, sl, tgt, rr, ttype, atr, rank, capital, is_bullish,
                                 rsi_val, nifty_pct, opt_signal, opt_strike, opt_expiry, opt_theta)
     # v15.11: pass sym/mem/now to enable smart option recommendation via
     # option_intelligence (HV regime + earnings + ITM strike + PE side).
     # v15.22: opt_tag gates the CE block on real F&O eligibility (Nifty200 col AJ).
+    # v15.23: bm_data carries the EARNINGS_* BotMemory rows to the earnings block.
     return base + ce_candidate_flag(cp, atr, stage, is_bullish, rank,
                                     opt_signal, opt_strike, opt_expiry, opt_theta,
-                                    sym=sym, mem=mem, now=now, opt_tag=opt_tag)
+                                    sym=sym, mem=mem, now=now, opt_tag=opt_tag,
+                                    bm_data=bm_data)
 
 def build_entry_basic(sym, cp, stage, pct_chg):
     name = sym.replace("NSE:", "")
@@ -1660,11 +1797,17 @@ def step_a_enter_trades(log_sheet, nifty_sheet, bm_sheet, mem, now, is_bullish, 
                                         rel_vol=_relv, is_bullish=is_bullish)
                 _room = eq.target_room(_cp, _ri["resistance"], _atr)
                 return eq.composite_score(priority=_pri, rr=_rr, rev_risk=_rev, room=_room)
-            scored = sorted(indexed, key=_cand_score, reverse=True)
-            top = [it for it in scored if _cand_score(it) > 0]
+            # v15.23: compute each candidate's score exactly ONCE. It was
+            # evaluated up to 3× per row (sort key + filter + log line), and
+            # with the old uncached ATR read that meant 15+ full-sheet fetches
+            # in seconds → silent 429s → ranking quietly fell back to sheet
+            # order on exactly the busy mornings it exists for.
+            _scores = {it[0]: _cand_score(it) for it in indexed}
+            scored = sorted(indexed, key=lambda it: _scores[it[0]], reverse=True)
+            top = [it for it in scored if _scores[it[0]] > 0]
             if top:
                 print(f"[RANK] best-first: " + ", ".join(
-                    f"{str(pad(r)[C_SYMBOL]).strip()}={_cand_score((i,r)):.0f}" for i, r in top[:5]))
+                    f"{str(pad(r)[C_SYMBOL]).strip()}={_scores[i]:.0f}" for i, r in top[:5]))
             indexed = scored
         except Exception as e:
             print(f"[RANK] ordering errored: {e} — using sheet order")
@@ -1761,12 +1904,21 @@ def step_a_enter_trades(log_sheet, nifty_sheet, bm_sheet, mem, now, is_bullish, 
             continue
 
         # Result/event day gap check
+        # v15.23 BUG FIX: prev_close (`_LP_`) never exists for a fresh WAITING
+        # candidate, so this guard was silently skipped for every first entry —
+        # a stock gapping >6% on results COULD be bought. Fall back to the live
+        # Nifty200 "%Change" column when memory has no previous close.
         prev_close = get_last_price(mem, key)
+        gap_pct = None
         if prev_close > 0:
             gap_pct = abs((cp - prev_close) / prev_close) * 100
-            if gap_pct > 6.0:
-                print(f"[STEP A] {sym}: gap {gap_pct:.1f}% > 6% — skip")
-                continue
+        else:
+            _sheet_dp = _read_nifty200_day_pct(nifty_sheet, sym)
+            if _sheet_dp is not None:
+                gap_pct = abs(_sheet_dp)
+        if gap_pct is not None and gap_pct > 6.0:
+            print(f"[STEP A] {sym}: gap {gap_pct:.1f}% > 6% — skip")
+            continue
 
         capital = CASH_CAPITAL if cash else get_capital_bm(bm_data, sym)
         rank    = get_rank_bm(bm_data, sym)
@@ -1790,7 +1942,11 @@ def step_a_enter_trades(log_sheet, nifty_sheet, bm_sheet, mem, now, is_bullish, 
             print(f"[CASH ENTRY] {sym} @ ₹{cp:.2f} | SL ₹{sl:.2f} | Tgt ₹{tgt:.2f}")
         else:
             today_entries += 1
-        mem = _mem_set(mem, f"{today_s}_ENTRY_{key}", "1")
+            # v15.23 BUG FIX (real BUG-E): `_ENTRY_` is now written for SWING
+            # entries ONLY. Cash used to write it too, and the counter's
+            # `not startswith(date_CASH_)` filter could never exclude an
+            # `_ENTRY_` part — so cash trades still ate the 3/day swing budget.
+            mem = _mem_set(mem, f"{today_s}_ENTRY_{key}", "1")
 
         print(f"[ENTRY] {sym} @ ₹{cp:.2f} | RSI:{rsi_val} | Nifty:{nifty_pct:+.2f}% | #{today_entries}")
 
@@ -1801,7 +1957,8 @@ def step_a_enter_trades(log_sheet, nifty_sheet, bm_sheet, mem, now, is_bullish, 
                                           rank, capital, is_bullish, rsi_val, nifty_pct,
                                           opt_signal, opt_strike, opt_expiry, opt_theta,
                                           mem=mem, now=now,
-                                          opt_tag=_read_opt_tag_from_nifty200(nifty_sheet, sym))
+                                          opt_tag=_read_opt_tag_from_nifty200(nifty_sheet, sym),
+                                          bm_data=bm_data)
         msg_basic   = build_entry_basic(sym, cp, stage, to_f(row[C_PNL]))
         # Append the educational/not-SEBI disclaimer to every member alert.
         send_basic(msg_basic + ALERT_DISCLAIMER)
@@ -1909,7 +2066,9 @@ def step_b_monitor_trades(log_sheet, hist_sheet, nifty_sheet, mem, now, is_bulli
         # Runs AFTER target/TSL checks above so winners are never cut early.
         # Cash intraday trades skip time stop (they have their own 3 PM force exit).
         if not is_cash_trade(ttype):
-            hd = calc_hold_days(ent_time, now)
+            # v15.23: TRADING days (spec since v15.10) — calendar counting cut
+            # winners ~2 days early across weekends (Wed entry = "5 days" by Mon).
+            hd = calc_trading_hold_days(ent_time, now)
             if hd >= TIME_STOP_DAYS and pnl_pct < TIME_STOP_MIN_GAIN_PCT:
                 mem = _exit_trade(log_sheet, hist_sheet, i, sym, ent, cp, tgt, sl, cur_tsl,
                                   atr, ttype, strat, stage, ent_time, now,
@@ -2133,7 +2292,7 @@ def send_good_morning(log_sheet, mem, is_bullish, nifty_cmp, nifty_dma, nifty_pc
         f"{window}\n"
         f"RSI filter: < {RSI_MAX_BULLISH if is_bullish else RSI_MAX_BEARISH}{f' (leaders up on the day allowed to {RSI_HOT_MAX:.0f})' if is_bullish else ''} | Re-entry: {REENTRY_COOLDOWN_DAYS}d cooldown after target\n\n"
         f"{'Watching: ' + ', '.join(waiting_stocks[:5]) if waiting_stocks else 'No WAITING stocks'}\n\n"
-        f"<i>v15.22 — entry-quality: reversal veto + resistance-room veto + loss cooldown + best-of ranking + time-fair volume gate + real F&O option eligibility</i>"
+        f"<i>{VERSION} — entry-quality: reversal veto + resistance-room veto + loss cooldown + best-of ranking + time-fair volume gate + real F&O option eligibility</i>"
     )
     watchlist_line = f"📋 Watchlist: {waiting} stock(s) identified today" if waiting else "📋 No setups in watchlist yet — scan runs at market open"
     msg_basic = (
@@ -2478,7 +2637,7 @@ def auto_maintain_sheets(bm_sheet, hist_sheet, mem, now):
 def send_test_messages():
     now = datetime.now(IST)
     msg = (
-        f"✅ <b>TEST MESSAGE — AI360 Trading Bot v15.16</b>\n"
+        f"✅ <b>TEST MESSAGE — AI360 Trading Bot {VERSION}</b>\n"
         f"━━━━━━━━━━━━━━━━━━━━\n"
         f"Time: {now.strftime('%d %b %Y %H:%M')} IST\n"
         f"Token: {'✅ OK' if TG_TOKEN else '❌ MISSING'}\n\n"
@@ -2592,7 +2751,7 @@ def main():
     dow      = now.weekday()
 
     print(f"\n{'='*55}")
-    print(f"AI360 Trading Bot v15.16 — {now.strftime('%d %b %Y %H:%M')} IST")
+    print(f"AI360 Trading Bot {VERSION} — {now.strftime('%d %b %Y %H:%M')} IST")
     print(f"{'='*55}")
 
     if is_holiday(today_s): print(f"[SKIP] Holiday: {today_s}"); return
@@ -2645,12 +2804,12 @@ def main():
     mem = clean_mem(mem)
 
     # Count today's SWING entries only (cash intraday tracked separately via _CASH_
-    # keys with its own CASH_MAX_DAILY limit). v15.9 BUG-E: previously this counted
-    # both swing and cash → cash trades silently consumed the 3/day swing budget.
+    # keys with its own CASH_MAX_DAILY limit). v15.23: the v15.9 BUG-E filter here
+    # was ineffective (an `_ENTRY_` part can never start with `_CASH_`); the real
+    # fix is in step_a — cash entries no longer write `_ENTRY_` keys at all.
     today_entries = sum(
         1 for p in mem.split(",")
         if p.strip().startswith(today_s + "_ENTRY_")
-        and not p.strip().startswith(today_s + "_CASH_")
     )
 
     if "08:44" <= time_str <= "08:52":

@@ -1,6 +1,11 @@
 """
-AI360 EARNINGS CACHE — v1.0
+AI360 EARNINGS CACHE — v1.1
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v1.1 (2026-07-17): BotMemory rewrite made ATOMIC — was clear()+update() (two
+  calls); a crash between them would have wiped the bot's entire runtime state
+  (_RUNTIME_MEM, TSL keys, holidays). Now one padded update() overwrites in
+  place with no blank window.
+
 Fetches upcoming Indian-equity earnings (Results) announcements and writes
 them to the BotMemory sheet so option_intelligence.check_earnings_window()
 can block CE/PE entries within ±3 trading days of a result.
@@ -207,9 +212,20 @@ def write_earnings_to_botmemory(events: list):
 
     final_rows = keep_rows + new_rows
     if purged > 0 or new_rows:
-        bm.clear()
+        # v1.1 SAFETY FIX (2026-07-17): was bm.clear() + bm.update() — TWO calls.
+        # BotMemory holds the bot's ENTIRE runtime state (_RUNTIME_MEM with all
+        # trailing stops, capital keys, holidays); a crash/timeout between the
+        # two calls would have lost all of it, and the AppScript trigger (which
+        # runs round-the-clock on weekdays) could read a blank sheet in the gap.
+        # Now: pad every row to a uniform width, pad the row COUNT up to the
+        # old sheet size with blank rows (so shrinkage blanks the tail), and
+        # overwrite everything in ONE atomic update call — no blank window.
+        width = max([len(r) for r in final_rows + existing] + [5])
+        final_rows = [list(r) + [""] * (width - len(r)) for r in final_rows]
+        while len(final_rows) < len(existing):
+            final_rows.append([""] * width)
         bm.update("A1", final_rows)
-        print(f"[BM] purged {purged} stale, added {len(new_rows)} new — sheet now {len(final_rows)-1} rows")
+        print(f"[BM] purged {purged} stale, added {len(new_rows)} new — sheet now {len(keep_rows)+len(new_rows)-1} data rows (atomic single write)")
     else:
         print("[BM] no changes")
 
