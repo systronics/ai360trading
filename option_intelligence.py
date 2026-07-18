@@ -1,6 +1,14 @@
 """
-AI360 OPTION INTELLIGENCE — v1.3
+AI360 OPTION INTELLIGENCE — v1.4
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v1.4 (2026-07-18, owner rule): OPTION = INTRADAY / MAX 1-2 DAY HOLD in the
+  alert wording — the stock's multi-week move is traded in CASH/MTF, never
+  via a long option hold (theta). format_option_alert now states the hold
+  rule, the current-expiry rationale, and the 2-day exit alongside the
+  premium-target exit. Companion: appscript v15.26 expiry picker (current
+  month; ≤5d rollover → next month; never month+2), trading_bot v15.26
+  OPTION_MAX_TDAYS=2 ledger rule.
+
 v1.3 (2026-07-17, same evening): (1) STRIKE TABLE UNIFIED with appscript
   _getStrikeInterval — the engines used different grids (250-500: 5 vs 10
   etc.), so night vs entry alerts could sit on different strike ladders;
@@ -360,15 +368,19 @@ def format_option_alert(symbol: str, cp: float, rec: dict, scanner_strike: str =
             f"\n   <i>Scanner suggested: {scanner_strike} (kept in sheet for record).</i>"
         )
 
+    # v1.4 (owner rule 2026-07-18): options are INTRADAY / max 1-2 day holds —
+    # the stock's multi-week move is traded in CASH/MTF, never via a long
+    # option hold (theta eats the premium while the stock consolidates).
     return (
-        f"\n\n{arrow} <b>SMART {side.upper()} SIGNAL</b>\n"
+        f"\n\n{arrow} <b>SMART {side.upper()} SIGNAL</b> (sirf INTRADAY / 1-2 din)\n"
         f"   🎯 Buy: <b>{rec['strike']} {side_sm}</b>  ({rec['strike_label']}, Δ≈{rec['delta_est']})\n"
-        f"   📅 Expiry: {scanner_expiry or 'current monthly'}"
+        f"   📅 Expiry: {scanner_expiry or 'current monthly'} (current — yahi volume hai)"
         f"{scanner_note}\n"
         f"   📊 HV-20: {rec['hv']:.0f}%  |  Theta: {scanner_theta or 'see sheet'}\n"
         f"   ⚡ Entry: 9:30-9:45 AM after stock triggers\n"
+        f"   ⏱ Hold: intraday ya max 1-2 din — usse zyada NAHI (lamba trade = CASH/MTF)\n"
         f"   🛑 SL: stock −{rec['sl_pct']}% (premium ≈ −{int(rec['sl_pct']*rec['delta_est']*10)}%)\n"
-        f"   🎯 Target: option premium +{rec['tgt_pct']:.0f}% (≈ stock +5%)\n"
+        f"   🎯 Target: option premium +{rec['tgt_pct']:.0f}% (≈ stock +5%) ya 2 din pure — jo pehle ho\n"
         + "\n".join(f"   {r}" for r in rec["reasons"])
         + "\n   <i>ITM strike = lower theta + better delta. Buy below your premium budget only.</i>"
     )

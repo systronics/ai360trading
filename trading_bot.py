@@ -1,6 +1,23 @@
 """
-AI360 TRADING BOT — v15.25
+AI360 TRADING BOT — v15.26
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v15.26 CHANGES vs v15.25 — OPTIONS = INTRADAY/1-2 DAY ONLY + EASY-LANGUAGE ALERTS (2026-07-18, owner rule)
+  Owner's trading structure (stated 2026-07-18): options are bought for
+  INTRADAY or max 1-2 day momentum only — never held for the stock's 2-4
+  week move (that is traded in CASH/MTF; theta eats a long option hold).
+  1. OPTION_MAX_TDAYS=2 replaces OPTION_BASE_MAX_TDAYS=12 — ALL option-type
+     ledger rows now exit after 2 trading days if target not hit (the alert
+     says "intraday ya max 1-2 din"; ledger follows the alert, v15.25
+     doctrine). 20% est-loss cap + expiry-week backstop unchanged.
+  2. Entry alerts (advance+premium) carry _trade_style_lines(): how to take
+     the trade (CASH/MTF for swing, CASH for intraday cash, accumulate for
+     positional), "Entry valid jab tak price SL ke upar hai", and which
+     TradingView chart to cross-check (DAILY swing / 15m cash / WEEKLY pos).
+  3. Option blocks (smart + fallback) state the 1-2 day hold rule and that
+     the CURRENT expiry is used (liquidity). Companion: appscript v15.26
+     picks current expiry (rollover ≤5d → next month, never month+2 — the
+     old 40-day minimum put a 17-Jul signal on the dead Sep chain).
+
 v15.25 CHANGES vs v15.24 — OPTION LEDGER FOLLOWS THE ALERT'S OWN RULES (2026-07-17, owner: "fix the last remaining ledger item")
   The paper ledger monitored OPTION-type trades under generic STOCK rules
   (5-day time stop, −5% stock hard loss) while the premium alert tells
@@ -504,7 +521,7 @@ except Exception as _e:
     _EQ_AVAILABLE = False
 
 IST       = pytz.timezone('Asia/Kolkata')
-VERSION   = "v15.25"   # single source for the run banner + test messages (were stale at v15.16 before v15.23)
+VERSION   = "v15.26"   # single source for the run banner + test messages (were stale at v15.16 before v15.23)
 TG_TOKEN  = os.environ.get('TELEGRAM_BOT_TOKEN')
 
 CHAT_BASIC   = os.environ.get('CHAT_ID_BASIC')
@@ -566,8 +583,12 @@ OPTION_LEVERAGE_EST      = 10.0
 # stock time-stop the alert never mentioned; 🔒 owner risk rule: "option loss
 # hard-capped 20%, option exit stock-anchored"):
 OPTION_LOSS_CAP_PCT      = 20.0  # exit when ESTIMATED option loss reaches 20%
-OPTION_EXPIRY_EXIT_DAYS  = 5     # "Do NOT hold past expiry week" — exit ≤5 calendar days to expiry
-OPTION_BASE_MAX_TDAYS    = 12    # base-option alert rule: exit after 12 TRADING days if target not hit
+OPTION_EXPIRY_EXIT_DAYS  = 5     # backstop: never hold into expiry week (≤5 calendar days to expiry)
+# v15.26 (owner rule 2026-07-18): options are INTRADAY / max 1-2 day holds —
+# the alert now says so, and the ledger follows the alert (v15.25 doctrine).
+# Replaces OPTION_BASE_MAX_TDAYS=12 (which mirrored the OLD multi-week option
+# hold wording). Applies to ALL option-type rows, not just BASE stage.
+OPTION_MAX_TDAYS         = 2     # exit after 2 TRADING days if target not hit
 
 CAPITAL_HIGH = 13000
 CAPITAL_MED  = 10000
@@ -1345,8 +1366,8 @@ def _option_ledger_exit(pnl_pct, eff_lev, stage, opt_expiry, ent_time, now):
     following the alert would):
       1. 🛑 est option loss ≥ OPTION_LOSS_CAP_PCT (owner 🔒 20% hard cap)
       2. ⏰ never hold past expiry week (≤ OPTION_EXPIRY_EXIT_DAYS to expiry)
-      3. ⏰ base options: exit after OPTION_BASE_MAX_TDAYS trading days
-         if target not hit (the alert's own BASE TRADE NOTE)
+      3. ⏰ v15.26: ALL options exit after OPTION_MAX_TDAYS trading days —
+         the alert now says "intraday ya max 1-2 din" (owner rule 2026-07-18)
     Returns an exit-reason string or "" (no exit). Stock SL/TSL/target checks
     stay in step_b unchanged — those are stock-anchored per the alert too."""
     opt_est = pnl_pct * eff_lev
@@ -1357,9 +1378,8 @@ def _option_ledger_exit(pnl_pct, eff_lev, stage, opt_expiry, ent_time, now):
         dleft = (exp_d - now.date()).days
         if dleft <= OPTION_EXPIRY_EXIT_DAYS:
             return f"⏰ EXPIRY WEEK EXIT ({dleft}d to expiry)"
-    if "BASE" in str(stage).upper():
-        if calc_trading_hold_days(ent_time, now) >= OPTION_BASE_MAX_TDAYS:
-            return f"⏰ OPTION TIME EXIT (base {OPTION_BASE_MAX_TDAYS} trading days, target not hit)"
+    if calc_trading_hold_days(ent_time, now) >= OPTION_MAX_TDAYS:
+        return f"⏰ OPTION TIME EXIT ({OPTION_MAX_TDAYS} trading days — alert rule: intraday/1-2 din max)"
     return ""
 
 
@@ -1772,12 +1792,13 @@ def ce_candidate_flag(cp, atr, stage, is_bullish, rank=99,
     if opt_signal in ("📊 BUY CE", "📦 BASE CE") and opt_strike:
         label = "BASE OPTIONS" if "BASE" in opt_signal else "OPTIONS"
         return (
-            f"\n\n📊 <b>{label} SIGNAL</b>\n"
+            f"\n\n📊 <b>{label} SIGNAL</b> (sirf INTRADAY / 1-2 din)\n"
             f"   🎰 Buy: <b>{opt_strike}</b>\n"
-            f"   📅 Expiry: {opt_expiry}\n"
+            f"   📅 Expiry: {opt_expiry} (current — yahi volume hai)\n"
             f"   ⏳ Theta: {opt_theta}\n"
             f"   ⚡ Entry: 9:30-9:45 AM after stock triggers\n"
-            f"   🛑 Exit: stock −1.5% (≈ option −10% to −15%)\n"
+            f"   ⏱ Hold: intraday ya max 1-2 din — usse zyada NAHI\n"
+            f"   🛑 Exit: stock −1.5% (≈ option −10% to −15%) ya 2 din pure\n"
             f"   ⚠️ Check live premium on Zerodha"
             f"{_liq_note}"
         )
@@ -1810,6 +1831,22 @@ ALERT_DISCLAIMER = (
     "Not investment advice. Do your own research and manage your own risk.</i>"
 )
 
+def _trade_style_lines(ttype):
+    """v15.26 (owner rule 2026-07-18): every entry alert states in easy language
+    HOW the trade is taken (cash/MTF vs intraday) and WHICH TradingView chart
+    to cross-check, plus that the entry stays valid while price holds above SL."""
+    t = str(ttype)
+    if is_cash_trade(t):
+        how = "💼 Kaise: CASH me kharide — intraday/short trade hai"
+        tv  = "📺 TradingView: 15m chart par check kare"
+    elif "Positional" in t:
+        how = "💼 Kaise: CASH me kharide ya accumulate kare (hafte-mahine ka trade)"
+        tv  = "📺 TradingView: WEEKLY chart par check kare"
+    else:  # swing
+        how = "💼 Kaise: CASH ya MTF me kharide (2-4 hafte ka trade) — option me lamba hold NAHI"
+        tv  = "📺 TradingView: DAILY chart par check kare"
+    return f"{how}\n✅ Entry valid jab tak price SL ke upar hai\n{tv}"
+
 def build_entry_advance(sym, cp, stage, sl, tgt, rr, ttype, atr, rank, capital, is_bullish,
                         rsi_val=-1, nifty_pct=0, opt_signal="", opt_strike="", opt_expiry="", opt_theta=""):
     rsi_str   = f"RSI: {rsi_val}" if rsi_val > 0 else ""
@@ -1822,7 +1859,8 @@ def build_entry_advance(sym, cp, stage, sl, tgt, rr, ttype, atr, rank, capital, 
         f"Qty: {qty} shares @ ₹{capital:,}\n"
         f"SL: ₹{sl:.2f} (Risk: ₹{int((cp-sl)*qty)})\n"
         f"Target: ₹{tgt:.2f} (Reward: ₹{int((tgt-cp)*qty)})\n"
-        f"RR: {rr} | Priority: {rank}\n{filters}"
+        f"RR: {rr} | Priority: {rank}\n{filters}\n"
+        f"{_trade_style_lines(ttype)}"
     )
 
 def build_entry_premium(sym, cp, stage, sl, tgt, rr, ttype, atr, rank, capital, is_bullish,
@@ -2128,9 +2166,10 @@ def step_b_monitor_trades(log_sheet, hist_sheet, nifty_sheet, mem, now, is_bulli
         # v15.25 — OPTION-type trades exit per the ALERT's own rules (ledger
         # honesty; the EICHERMOT option trade was closed by the generic stock
         # time-stop the alert never mentioned): 20% est-loss hard cap (🔒 owner
-        # rule — fires before the wider stock SL), expiry-week exit, base
-        # 12-trading-day rule. Stock SL/TSL/target checks below stay unchanged
-        # (stock-anchored, exactly what the alert tells subscribers).
+        # rule — fires before the wider stock SL), expiry-week exit, and
+        # v15.26 the 2-TRADING-DAY exit (alert now says options are intraday/
+        # max 1-2 din — owner rule 2026-07-18). Stock SL/TSL/target checks
+        # below stay unchanged (stock-anchored, exactly what the alert says).
         if is_option_trade(ttype):
             _lev = _row_option_leverage(sym, ent, ent_time, opt_stk, opt_exp, now)
             _oreason = _option_ledger_exit(pnl_pct, _lev, stage, opt_exp, ent_time, now)

@@ -1,5 +1,10 @@
 """
-AI360 SMALL/MID CAP MOMENTUM SCANNER — v1.4
+AI360 SMALL/MID CAP MOMENTUM SCANNER — v1.5
+
+v1.5 (2026-07-18) — EASY-LANGUAGE DIGEST (owner rule):
+  • "Kaise trade kare" section in simple Hinglish: CASH only (no option/MTF
+    on small/mid caps), entry-valid-above-SL line, TradingView DAILY chart
+    check line. Numbers/filters/board unchanged — wording only.
 
 v1.4 (2026-07-12) — TARGET FLOOR + HONEST R:R (audit follow-up):
   • Owner rule "target ≥5%". A tight SL could make the 1:2 target land under
@@ -626,11 +631,14 @@ def send_digest(picks: list, bhav_date: str):
             f"   <i>Score: {p['score']}</i>"
         )
     lines.append("")
-    lines.append("📌 <b>How to act (manual / paper):</b>")
-    lines.append("   • Enter next session ONLY if price holds above the entry level")
-    lines.append("   • Hard SL as shown; book at 1:2, then trail momentum for more")
-    lines.append("   • Position size small (1-2% of capital) — small-caps swing wider")
-    lines.append("   • Full board in the <b>SmallMidLive</b> sheet tab")
+    lines.append("📌 <b>Kaise trade kare (manual / paper):</b>")
+    lines.append("   • Sirf CASH me kharide — small/mid cap me option ya MTF NAHI")
+    lines.append("   • Agle din tabhi enter kare jab price entry level ke UPAR ho")
+    lines.append("   • Entry valid jab tak price SL ke upar hai")
+    lines.append("   • Hard SL follow kare; 1:2 par kuch profit book, baaki trail")
+    lines.append("   • Position chhota rakhe (capital ka 1-2%) — small-caps zyada hilte hain")
+    lines.append("   📺 TradingView: DAILY chart par check kare")
+    lines.append("   • Full board: <b>SmallMidLive</b> sheet tab")
     lines.append("")
     lines.append("⚠️ <i>Educational signals. Paper trading only — Phase 4 auto-trade not enabled.</i>")
     msg = "\n".join(lines)

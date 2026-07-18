@@ -1,6 +1,23 @@
 /**
- * AI360 TRADING — APPSCRIPT v15.25
+ * AI360 TRADING — APPSCRIPT v15.26
  * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ * v15.26 CHANGES (2026-07-18) — OPTIONS = INTRADAY/1-2 DAY + CURRENT EXPIRY + EASY LANGUAGE (owner rule)
+ *   Owner's structure: options are INTRADAY / max 1-2 day momentum trades;
+ *   the stock's 2-4 week move is taken in CASH/MTF (theta kills long option
+ *   holds). Liquidity lives in the CURRENT expiry — retail option buyers
+ *   trade it; next month only in the rollover zone.
+ *   1. _getRecommendedExpiry: picks CURRENT monthly expiry; ≤ROLLOVER_DAYS(5)
+ *      left → NEXT month; month+2 unreachable. Kills MIN_DAYS_BASE_ENTRY:40,
+ *      which pushed the 17-Jul MOTILALOFS signal past 25-Aug (39d) by ONE
+ *      day onto the dead Sep chain (no volume, ~20% bid-ask spread).
+ *   2. ❌ THETA HIGH rejection removed; theta labels re-scaled for 1-2 day
+ *      holds (≥15d LOW / ≥8d MED / <8d sirf-intraday warning).
+ *   3. Premium option alert rewritten in easy Hinglish: hold = intraday/1-2
+ *      din, stock trade = CASH/MTF, entry-valid-above-SL line, TradingView
+ *      chart line (DAILY for stock, 15m for option timing).
+ *   4. Night-scan candidates list now ends with a "Kaise trade kare" legend
+ *      (BASE/BREAKOUT = cash/MTF 2-4 hafte; option = 1-2 din; DAILY chart).
+ *
  * v15.25 CHANGES (2026-07-17, late evening) — STRIKE GRID UNIFIED (known-items pack)
  *   _getStrikeInterval now shares ONE table with Python option_intelligence
  *   v1.3 strike_step (and the bot's CE fallback): <100→1, <250→5, <500→10,
@@ -425,14 +442,17 @@ const OPTIONS_CONFIG = {
   VIX_MAX_BUY        : 18.0,
   VIX_MAX_BUY_BASE   : 16.0,
   VIX_AVOID          : 22.0,
-  MIN_DAYS_EXPIRY    : 20,
-  MIN_DAYS_BASE_ENTRY: 40,
-  IDEAL_DAYS_MIN     : 25,
+  // v15.26 OWNER RULE (2026-07-18): options are INTRADAY / max 1-2 day holds.
+  // Liquidity lives in the CURRENT expiry — that is what option buyers trade.
+  // ≤ ROLLOVER_DAYS days to current expiry → suggest NEXT month instead.
+  // NEVER month+2: the old MIN_DAYS_BASE_ENTRY:40 walk pushed a 17-Jul signal
+  // past 25-Aug (39d) by ONE day onto the dead Sep chain (no volume, wide spread).
+  ROLLOVER_DAYS      : 5,
 };
 
 // ── CONFIG ────────────────────────────────────────────────────────────────────
 const CONFIG = {
-  VERSION       : "v15.25",  // single source for ALL subscriber-facing version stamps (was hardcoded per-message and went stale at v15.17)
+  VERSION       : "v15.26",  // single source for ALL subscriber-facing version stamps (was hardcoded per-message and went stale at v15.17)
   get TELEGRAM_BOT_TOKEN() { return PropertiesService.getScriptProperties().getProperty('TELEGRAM_BOT_TOKEN') || ""; },
   get CHAT_ID_BASIC()      { return PropertiesService.getScriptProperties().getProperty('CHAT_ID_BASIC')      || ""; },
   get CHAT_ID_ADVANCE()    { return PropertiesService.getScriptProperties().getProperty('CHAT_ID_ADVANCE')    || ""; },
@@ -779,20 +799,23 @@ function _volPaceMult(volVsAvg, timeStr) {
   return Math.max(0, 1 + (parseFloat(volVsAvg) || 0) / 100) / _expectedVolFraction(timeStr);
 }
 
-function _getRecommendedExpiry(minDays) {
-  // v15.14: walks forward month-by-month from today, generating last-Tuesday
-  // expiries on the fly. No more hardcoded year-locked list to maintain.
-  minDays = minDays || OPTIONS_CONFIG.MIN_DAYS_EXPIRY;
+function _getRecommendedExpiry(rolloverDays) {
+  // v15.26 (owner rule 2026-07-18): options = intraday / 1-2 day holds only,
+  // so pick the CURRENT monthly expiry (that's where volume + momentum live).
+  // Only inside the rollover zone (≤ rolloverDays to expiry) move to the NEXT
+  // month. The loop's first month with daysLeft > rolloverDays is always the
+  // current or next month — month+2 (dead chain) is unreachable by design.
+  // v15.14 base: last-Tuesday expiries generated on the fly, no hardcoded list.
+  rolloverDays = rolloverDays || OPTIONS_CONFIG.ROLLOVER_DAYS;
   const now    = new Date();
   const MS_DAY = 1000 * 60 * 60 * 24;
-  // Scan current + next 7 months — covers any reasonable minDays request.
   for (let i = 0; i < 8; i++) {
     const total  = now.getMonth() + i;
     const year   = now.getFullYear() + Math.floor(total / 12);
     const month  = total % 12;
     const expiry = _lastTuesdayOfMonth(year, month);
     const daysLeft = Math.floor((expiry - now) / MS_DAY);
-    if (daysLeft >= minDays) return { date: expiry, daysLeft: daysLeft };
+    if (daysLeft > rolloverDays) return { date: expiry, daysLeft: daysLeft };
   }
   // Fallback — should not reach; defensive only.
   const fb = _lastTuesdayOfMonth(now.getFullYear() + 1, now.getMonth());
@@ -869,23 +892,19 @@ function _generateOptionsSignal(sym, cmp, atr, stage, pctChange, vix, isBaseEntr
     vixLabel = `✅ VIX ${vix.toFixed(1)} — good to buy`;
   }
 
-  const minDays    = isBaseEntry ? OPTIONS_CONFIG.MIN_DAYS_BASE_ENTRY : OPTIONS_CONFIG.MIN_DAYS_EXPIRY;
-  const expiryInfo = _getRecommendedExpiry(minDays);
+  // v15.26 owner rule: options are intraday / 1-2 day holds → CURRENT expiry
+  // (best volume + tightest spread); next month only inside the rollover zone.
+  // The old ❌ THETA HIGH rejection is gone — for a 1-2 day hold the current
+  // expiry with 6+ days left is the RIGHT instrument, not a theta trap.
+  const expiryInfo = _getRecommendedExpiry(OPTIONS_CONFIG.ROLLOVER_DAYS);
   const expiryStr  = Utilities.formatDate(expiryInfo.date, CONFIG.IST_ZONE, "dd-MMM-yyyy");
   const daysLeft   = expiryInfo.daysLeft;
 
+  // Theta labels re-scaled for a 1-2 DAY hold (not the old multi-week hold):
   let thetaRisk;
-  if      (daysLeft >= 40) thetaRisk = `🟢 LOW (${daysLeft}d)`;
-  else if (daysLeft >= 25) thetaRisk = `🟡 MED (${daysLeft}d)`;
-  else                     thetaRisk = `🔴 HIGH (${daysLeft}d — avoid)`;
-
-  if (daysLeft < minDays) {
-    result.signal    = "❌ THETA HIGH";
-    result.expiryStr = expiryStr;
-    result.thetaRisk = thetaRisk;
-    result.message   = `Only ${daysLeft} days — need ${minDays}+`;
-    return result;
-  }
+  if      (daysLeft >= 15) thetaRisk = `🟢 LOW (${daysLeft}d left)`;
+  else if (daysLeft >= 8)  thetaRisk = `🟡 MED (${daysLeft}d left — max 1-2 din hold)`;
+  else                     thetaRisk = `🔴 HIGH (${daysLeft}d left — sirf INTRADAY, overnight nahi)`;
 
   const interval  = _getStrikeInterval(cmp);
   const atmStrike = _roundToStrike(cmp, interval);
@@ -936,17 +955,21 @@ function _sendOptionsAlertPremium(sym, cmp, optSignal, stage, sl, target, rr, bm
 
   const isBase    = optSignal.signal === "📦 BASE CE";
   const typeLabel = isBase ? "📦 BASE OPTIONS SIGNAL" : "📊 OPTIONS SIGNAL";
+  // v15.26 OWNER RULE (2026-07-18): option = INTRADAY ya max 1-2 din ka trade.
+  // Stock ka 2-4 hafte wala trade CASH/MTF me hota hai, option me NAHI —
+  // option me time decay (theta) roz premium khata hai.
   const entryRule = isBase
-    ? "✅ Buy anytime during 9:30 AM – 12:00 PM\n✅ Stock must be above 20DMA when buying"
-    : "✅ Buy between 9:30-9:45 AM only";
-  // v15.18: stock-anchored exit (was a loose "option −40%"). An ITM ~0.7Δ option
-  // moves ~70% of the stock, so stock −1.5% ≈ option −15%. Exit on the STOCK
-  // breaking SL keeps option losses small (cap 20%) instead of bleeding to −40%.
-  const holdRule  = isBase
-    ? "✅ Hold up to 15 trading days\n✅ Exit when STOCK hits Target\n🛑 Exit when STOCK breaks SL (≈ option −15-20%)\n⚠️ Hard cap: never let the option lose more than 20%"
-    : "✅ Exit when STOCK hits Target price\n🛑 Exit when STOCK breaks SL (≈ option −15-20%)\n⚠️ Hard cap: never let the option lose more than 20%";
+    ? "✅ Kab kharide: 9:30 AM – 12:00 PM ke beech\n✅ Stock 20DMA ke upar hona chahiye"
+    : "✅ Kab kharide: sirf 9:30-9:45 AM";
+  // v15.18: stock-anchored exit (ITM ~0.7Δ option moves ~70% of the stock, so
+  // stock −1.5% ≈ option −15%; exiting on the STOCK's SL caps option loss ~20%).
+  const holdRule  =
+    "⏱ <b>Option HOLD: intraday ya max 1-2 din</b> — usse zyada nahi\n" +
+    "✅ Exit: STOCK Target hit kare, ya 2 din pure ho jaayen (jo pehle ho)\n" +
+    "🛑 Exit: STOCK apna SL tode (option me ≈ −15-20%)\n" +
+    "⚠️ Hard cap: option me 20% se zyada loss KABHI nahi";
   const tradeNote = isBase
-    ? "\n📌 <b>BASE TRADE NOTE:</b> Patient trade — 2-4 weeks. Exit option after 12 trading days if target not hit."
+    ? "\n📌 <b>STOCK TRADE (2-4 hafte):</b> CASH me kharide ya MTF — option me lamba hold NAHI. Option sirf 1-2 din ke momentum ke liye hai."
     : "";
 
   // v15.22: CONFIRM-AT-OPEN GUARD — night-scan alerts are built from the last
@@ -957,10 +980,10 @@ function _sendOptionsAlertPremium(sym, cmp, optSignal, stage, sl, target, rr, bm
   const _hhmmOpt   = parseInt(Utilities.formatDate(new Date(), CONFIG.IST_ZONE, "HHmm"), 10);
   const isLiveOpt  = (_hhmmOpt >= 915 && _hhmmOpt <= 1530);
   const confirmRule = isLiveOpt ? "" :
-    `\n━━ ⚠️ CONFIRM AT OPEN (night scan — last close's data) ━━\n` +
-    `✅ Buy ONLY if the stock trades ABOVE ₹${cmp.toFixed(2)} after 9:30\n` +
-    `❌ Skip if it opens red or below last close — the setup is stale\n` +
-    `❌ Skip if the morning regime message says BEARISH`;
+    `\n━━ ⚠️ SUBAH CONFIRM KARE (night scan — kal ke close ka data) ━━\n` +
+    `✅ Tabhi kharide jab stock 9:30 ke baad ₹${cmp.toFixed(2)} ke UPAR trade kare\n` +
+    `❌ Red khule ya kal ke close se neeche ho → skip (setup stale hai)\n` +
+    `❌ Subah ka regime message BEARISH bole → skip`;
 
   const msg =
     `${typeLabel} — <b>PREMIUM</b>\n` +
@@ -968,20 +991,21 @@ function _sendOptionsAlertPremium(sym, cmp, optSignal, stage, sl, target, rr, bm
     `🎯 <b>Stock:</b> ${sym.replace("NSE:","")}\n` +
     `💰 <b>CMP:</b> ₹${cmp.toFixed(2)}\n` +
     `📋 <b>Stage:</b> ${stage}\n\n` +
-    `━━ OPTIONS DETAILS ━━\n` +
+    `━━ OPTION (sirf INTRADAY / 1-2 din) ━━\n` +
     `🎰 <b>Buy:</b> ${optSignal.strike}\n` +
-    `📅 <b>Expiry:</b> ${optSignal.expiryStr}\n` +
+    `📅 <b>Expiry:</b> ${optSignal.expiryStr} (current — yahi volume hai)\n` +
     `⏳ <b>Theta Risk:</b> ${optSignal.thetaRisk}\n` +
     `📊 <b>VIX Status:</b> ${optSignal.message}\n` +
     (optSignal.liqNote ? `💧 <b>Chain:</b> ${optSignal.liqNote}\n` : "") + `\n` +
-    `━━ UNDERLYING TRADE ━━\n` +
+    `━━ STOCK TRADE (CASH/MTF) ━━\n` +
     `🛑 <b>SL:</b> ₹${sl}\n` +
     `🎯 <b>Target:</b> ₹${target}\n` +
-    `📈 <b>RR:</b> ${rr}\n\n` +
+    `📈 <b>RR:</b> ${rr}\n` +
+    `✅ Entry valid jab tak STOCK price SL ke upar hai\n\n` +
+    `📺 <b>TradingView check:</b> stock ke liye DAILY chart, option ki timing ke liye 15m\n\n` +
     `━━ RULES ━━\n` +
     `${entryRule}\n${holdRule}\n` +
-    `❌ Do NOT average down on options\n` +
-    `❌ Do NOT hold past expiry week\n` +
+    `❌ Option me average down kabhi nahi\n` +
     `${confirmRule}${tradeNote}\n\n` +
     `<i>Educational only. Not SEBI advice. ${CONFIG.VERSION}</i>`;
 
@@ -1969,6 +1993,17 @@ function _runScanner(startRow, endRow) {
       } else {
         regimeMsg += `\n📭 No candidates passed today.`;
       }
+      // v15.26: easy-language trade legend (owner rule 2026-07-18) — every
+      // night-scan list now tells the subscriber HOW each type is traded and
+      // which TradingView chart to check.
+      if (finalWaiting.length > 0) {
+        regimeMsg +=
+          `\n📖 <b>Kaise trade kare:</b>\n` +
+          `• BASE/BREAKOUT = 2-4 hafte ka stock trade → CASH ya MTF me kharide\n` +
+          `• Option sirf INTRADAY / max 1-2 din ke liye (current expiry)\n` +
+          `• Entry valid jab tak price SL ke upar hai — agle din bhi le sakte ho\n` +
+          `📺 TradingView: DAILY chart dekhe (Cash/MOM alert ho to 15m)\n`;
+      }
       // v15.24: bullish scanner-done message now carries the version stamp too
       // (bearish header + option/test footers already did — CONFIG.VERSION
       // single-source doctrine; the bullish night message was the only
@@ -2354,7 +2389,7 @@ function testOptionsSignal() {
   const ss        = SpreadsheetApp.getActiveSpreadsheet();
   const inputData = ss.getSheetByName(CONFIG.SHEET_NAME).getDataRange().getValues();
   const vix       = _getIndiaVix(inputData);
-  const expiry    = _getRecommendedExpiry(OPTIONS_CONFIG.MIN_DAYS_EXPIRY);
+  const expiry    = _getRecommendedExpiry(OPTIONS_CONFIG.ROLLOVER_DAYS);
   const expiryStr = Utilities.formatDate(expiry.date, CONFIG.IST_ZONE, "dd-MMM-yyyy");
   const testBreakout = _generateOptionsSignal("NSE:ADANIPORTS", 1691, 33.5, "⚡ BREAKOUT ALERT", -4.32, vix, false, 1823.9);
   const testATH      = _generateOptionsSignal("NSE:MCX",        3353,  80,  "⚡ BREAKOUT ALERT",  0.50, vix, false, 3500);
