@@ -16,10 +16,9 @@ encoding: "utf-8"
 google_site_verification: "2yLD14QlM9ElbyiFZO_pUf-hTO09aCQEinK5LqD8Bpk"
 social_image: "/public/image/header.webp"
 
-# Ad network switch — keep FALSE until you sign up for an AdSense alternative
-# (Adsterra / Media.net / Ezoic). When true, the {% include adslot.html %} slots
-# become visible. See _includes/adslot.html for where to paste your ad code.
-ads_active: false
+# Ad network switch — Adsterra codes wired in _includes/adslot.html (2026-07-19).
+# Set false to instantly hide every ad on the site (one commit).
+ads_active: true
 
 # Author Information
 author:
