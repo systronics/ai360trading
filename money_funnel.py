@@ -1,6 +1,12 @@
 """
 money_funnel.py — single source of truth for every income CTA + link.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v1.1 (2026-07-19):
+  ADD — TOOL_PAGES + tool_plug(): every caption/description now plugs ONE free
+    calculator page (rotates daily). Traffic loop: video viewer → website tool
+    → ad impressions + demat/membership funnel. Wired into funnel_block() and
+    comment_text() so all generators pick it up with zero changes.
+
 v1.0 (2026-05-31). Goal = QUICK monthly income on ₹0 investment.
 
 The real money path is NOT ad views — it is:
@@ -27,6 +33,42 @@ LINKS = {
     "coindcx":  "https://invite.coindcx.com/13383200",
 }
 MEMBERSHIP = "₹699 Advance / ₹1,499 Premium"
+
+# ── Free tools — the traffic loop (video → website → ads/affiliate) ─────────
+# (teaser_hi, teaser_en, url). Teasers use only evergreen, honest math.
+TOOL_PAGES = [
+    ("₹5,000/month ki SIP kitna banegi? Khud dekho",
+     "What a ₹5,000/month SIP grows into — check yourself",
+     "https://ai360trading.in/tools/sip-calculator/"),
+    ("SIP har saal 10% badhao — farak dekho",
+     "Step up your SIP 10% yearly — see the difference",
+     "https://ai360trading.in/tools/step-up-sip-calculator/"),
+    ("Aapki EMI mein kitna interest chhupa hai?",
+     "How much interest hides inside your EMI?",
+     "https://ai360trading.in/tools/emi-calculator/"),
+    ("₹1 lakh 10 saal baad kitne ka rahega?",
+     "What will ₹1 lakh be worth in 10 years?",
+     "https://ai360trading.in/tools/inflation-calculator/"),
+    ("PPF maturity par kitna milega? 10 second mein",
+     "Your PPF maturity amount in 10 seconds",
+     "https://ai360trading.in/tools/ppf-calculator/"),
+    ("Ek baar invest karo — kitna banega? Dekho",
+     "Invest once — see what it becomes",
+     "https://ai360trading.in/tools/lumpsum-calculator/"),
+    ("NPS se pension kitni banegi? Calculate karo",
+     "How big will your NPS pension be? Calculate",
+     "https://ai360trading.in/tools/nps-calculator/"),
+    ("FD vs inflation — sach jaano",
+     "FD vs inflation — know the truth",
+     "https://ai360trading.in/tools/fd-calculator/"),
+]
+
+
+def tool_plug(lang: str = "hi") -> str:
+    """One-line free-calculator plug; rotates daily (traffic → ads/affiliate)."""
+    t = TOOL_PAGES[date.today().timetuple().tm_yday % len(TOOL_PAGES)]
+    teaser = t[0] if lang == "hi" else t[1]
+    return f"🧮 FREE: {teaser} → {t[2]}"
 
 # ── Engagement prompts — drive COMMENTS (biggest free-reach lever) ───────────
 _ENGAGE = {
@@ -80,7 +122,7 @@ def funnel_block(lang: str = "hi", compact: bool = False) -> str:
         demat = ("📈 FREE demat (Zerodha/Dhan/Groww): " + site
                  if lang == "hi" else
                  "📈 Free demat (Zerodha/Dhan/Groww): " + site)
-        return "\n".join([free, prem, demat, engagement_prompt(lang)])
+        return "\n".join([free, prem, demat, tool_plug(lang), engagement_prompt(lang)])
 
     free = (f"🎯 FREE daily trading signals → Telegram: {tg}")
     prem = (f"💎 Premium signals (exact entry / SL / target): "
@@ -89,6 +131,7 @@ def funnel_block(lang: str = "hi", compact: bool = False) -> str:
         free,
         prem,
         broker_lines(lang),
+        tool_plug(lang),
         f"🌐 {site}",
         engagement_prompt(lang),
     ])
@@ -106,6 +149,7 @@ def comment_text(lang: str = "hi") -> str:
         f"📱 Telegram: {L['telegram']}\n"
         f"💎 Premium (entry/SL/target): {MEMBERSHIP} — DM on Telegram\n"
         f"📈 Free demat: Zerodha {L['zerodha']} | Dhan {L['dhan']} | Groww {L['groww']}\n"
+        f"{tool_plug(lang)}\n"
         f"{engagement_prompt(lang)}"
     )
 

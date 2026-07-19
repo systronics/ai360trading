@@ -1,6 +1,13 @@
 """
 human_touch.py — Anti-AI-Penalty Human Touch Engine
 =====================================================
+v2.3 (2026-07-19) — RETENTION HOOK REWRITE:
+  All hook libraries rewritten number-first/question-first (measured problem:
+  viewers leave in 2-5s; old hooks warmed up slowly). Honesty rule: hooks carry
+  NO invented stats — only evergreen math (SIP/72-rule/compounding) or promises
+  the AI fills with real data. List names/sizes unchanged; {holiday}/{week}
+  placeholders preserved.
+
 v2.2 CHANGES (May 2026):
   ADDED: HOOKS_HINDI_EDUCATION, HOOKS_ENGLISH_EDUCATION
          Prevents education videos starting with trading hooks like
@@ -49,40 +56,44 @@ IST = pytz.timezone("Asia/Kolkata")
 # HOOK LIBRARIES
 # ─────────────────────────────────────────────
 
+# v2.3 (2026-07-19) RETENTION REWRITE — first 3 words must punch (measured
+# problem: viewers leave in 2-5s). Number-first / question-first, payoff
+# promised upfront. HONESTY RULE: no invented stats — numbers here are either
+# evergreen math or filled by the AI from real data after the hook.
 HOOKS_HINDI_MARKET = [
-    "Yaar, aaj market ne kuch aisa kiya jo bahut log miss kar gaye —",
-    "Seedha baat — aaj ka sabse important chart pattern yeh hai:",
-    "Maine aaj subah ek cheez notice ki jo aapko bhi dekhni chahiye:",
-    "Ek baat jo har trader ko aaj samajhni chahiye —",
-    "Bahut log pooch rahe the — toh aaj main clear kar deta hoon:",
-    "Sach batayein toh, aaj ka market ek interesting signal de raha hai:",
-    "15 saal ke trading experience mein aisi setup bahut kam dekhi hai —",
-    "Agar aap ye video skip karte hain toh shayad ek opportunity miss kar sakte hain:",
-    "Simple question — kya aapne aaj ke Nifty movement ko dekha?",
-    "Chaliye aaj directly kaam ki baat karte hain:",
-    "Jo log Telegram pe the, unhe pehle pata tha — yeh watch karo:",
-    "Honest review — aaj market ne kya kiya aur kyon:",
-    "Subah se ek cheez mera dhyan kheench rahi thi — share karta hoon:",
-    "Smart traders aaj yeh kar rahe hain. Kya aap?",
-    "Bina time waste kiye — aaj ka key level yeh hai:",
-    "Chart kabhi jhooth nahi bolta — dekho yeh setup:",
-    "Risk sirf woh lete hain jo samjhe nahi — yeh dekhkar samjho:",
-    "Aaj ek trade setup hai jo mujhe personally pasand aaya:",
-    "Market hamesha signal deta hai — sunna aata ho toh:",
-    "Yeh video sirf unke liye hai jo seriously trade karna chahte hain:",
+    "Aaj ka sabse bada number — yeh raha:",
+    "Ek level. Ek plan. 30 second:",
+    "Aaj market ne ek clear signal diya — dekho:",
+    "Ye setup roz nahi banta — aaj bana hai:",
+    "3 second do — aaj ka most important level:",
+    "Aaj ka move samjhe bina kal trade mat karna:",
+    "Chart pe aaj ek cheez chhupi hai — yeh:",
+    "Kal ke liye sirf ek number yaad rakho:",
+    "Aaj kya badla? Ek line mein — yeh:",
+    "Trade plan ready hai — entry, SL, target:",
+    "Nifty ka aaj ka sach — seedha point pe:",
+    "Aaj ka chart ek kahani bata raha hai:",
+    "Paisa plan se banta hai, tip se nahi — plan yeh:",
+    "Aaj ka key level cross hua toh kya hoga?",
+    "Ek pattern aaj phir dikha — matlab yeh:",
+    "Market ka aaj ka message — 20 second mein:",
+    "Aaj ke top mover ke peeche ki wajah:",
+    "Kal subah se pehle yeh ek cheez dekh lo:",
+    "Aaj ka setup — bina bakwas, seedha data:",
+    "Yeh level toota toh scene badal jayega:",
 ]
 
 HOOKS_HINDI_WEEKEND = [
-    "Weekend ho ya weekday — seekhna kabhi band mat karo:",
-    "Aaj market band hai, par aapki growth nahi honi chahiye:",
-    "Jo traders weekends mein bhi padhte hain — woh alag hote hain:",
-    "2 din ka time hai — ek naya concept seekhte hain:",
-    "Ek baat jo market kholne se pehle zaroori hai samajhna:",
-    "Weekend special — yeh ek concept aapki trading badal sakta hai:",
-    "Charts se break lo, par seekhne se nahi:",
-    "Successful traders ka secret? Weekends mein yeh karte hain:",
-    "Aaj kuch aisa share karna chahta hoon jo normally nahi batata:",
-    "Market band hai — perfect time apni mistakes review karne ka:",
+    "72 ka rule — paisa kitne saal mein double? Dekho:",
+    "₹500 se investing shuru hoti hai — kaise? Yeh:",
+    "2 minute ka concept — poori trading badal sakta hai:",
+    "Monday se pehle yeh ek cheez samajh lo:",
+    "Ek galti jo naye trader baar baar karte hain:",
+    "Weekend ka sabse valuable 30 second — yeh:",
+    "Compounding ka asli magic — ek example mein:",
+    "SIP vs FD — farak ek chart mein dekho:",
+    "Market band hai — ab seekhne ka time hai:",
+    "Ek concept jo school mein nahi padhaya — paisa:",
 ]
 
 HOOKS_HINDI_HOLIDAY = [
@@ -95,54 +106,58 @@ HOOKS_HINDI_HOLIDAY = [
 ]
 
 # v2.2 NEW — Education hooks (teacher tone, NOT trading tone)
+# v2.3 — number-first rewrite (evergreen math only, no invented stats)
 HOOKS_HINDI_EDUCATION = [
-    "Aaj ek cheez seekhenge jo har successful investor jaanta hai:",
-    "Stock market mein pehla kadam — yeh video dhyan se dekho:",
-    "Bahut log investing se darte hain kyunki samjha nahi gaya unhe —",
-    "Aaj ka lesson simple hai — lekin bahut powerful hai:",
-    "Ek baar yeh samajh gaye toh market aapko alag nazar aayega:",
-    "Investing ki duniya mein welcome — aaj se shuru karte hain:",
-    "Yeh ek concept hai jo school mein nahi padhaya jaata — par hona chahiye:",
-    "Aaj main ek cheez itni simple tarah se samjhaunga ki aap kabhi nahi bhoolunga:",
-    "Agar aap beginner hain — yeh video aapke liye hi bani hai:",
-    "Seekhne ka sabse accha time abhi hai — chaliye shuru karte hain:",
+    "₹5,000 ki SIP, 20 saal — kitna? Suno:",
+    "₹500 se bhi shuru ho sakte ho — kaise? Yeh:",
+    "72 ka rule — 10 second mein seekho:",
+    "Ek concept — aur paisa samajh aa jayega:",
+    "Compounding: duniya ka aathwan ajooba — example:",
+    "Pehla demat account — 5 minute ka kaam, dekho:",
+    "SIP kya hai? Ek chai ke price se samjho:",
+    "Inflation aapka paisa roz khaata hai — bachao aise:",
+    "Beginner ho? Pehli galti yeh mat karna:",
+    "Aaj ka lesson chhota hai — fayda lifetime ka:",
 ]
 
+# v2.3 RETENTION REWRITE — punch in the first 3 words, payoff promised
+# upfront, no invented stats (real numbers come from the data after the hook).
 HOOKS_ENGLISH = [
-    "Most traders overlook this — and it costs them dearly:",
-    "Let me be direct with you about today's market setup:",
-    "I noticed something this morning that you need to see:",
-    "Quick question — did you catch today's Nifty signal?",
-    "No fluff, no theory — here's what the chart is saying right now:",
-    "The smart money is moving. Here's where:",
-    "This one pattern has shown up 3 times this week:",
-    "I've been trading for years, and setups like this don't come often:",
-    "Before the market opens tomorrow, you need to know this:",
-    "The chart never lies — this is what it's telling us today:",
+    "One number moved everything today — this one:",
+    "One level. One plan. Thirty seconds:",
+    "Today's chart says one clear thing:",
+    "Remember one number for tomorrow — this:",
     "Stop guessing. Here's the actual data:",
-    "What the news won't tell you about today's market:",
-    "One level. One plan. Let's break it down:",
-    "If you're serious about trading, watch this carefully:",
-    "I'll show you exactly what I'm watching today:",
-    "Global markets are sending a clear signal right now:",
-    "This is the kind of setup that changes your trading month:",
-    "Most retail traders will miss this. You won't:",
-    "Simple, clear, actionable — today's best trade setup:",
-    "The only market analysis you need today:",
+    "This setup doesn't form every day — today it did:",
+    "Three seconds — today's most important level:",
+    "Before tomorrow's open, see this one thing:",
+    "Today's move, explained in one line:",
+    "Entry, stop, target — today's full plan:",
+    "What changed today? Exactly this:",
+    "The chart never lies — today it says:",
+    "This level breaks, the picture changes:",
+    "Today's top mover — and the real reason:",
+    "Global markets sent one clear signal today:",
+    "No fluff — straight to today's data:",
+    "A pattern repeated today — here's what it means:",
+    "The market's message today, in twenty seconds:",
+    "Money follows a plan, not tips — today's plan:",
+    "Don't trade tomorrow without seeing this:",
 ]
 
 # v2.2 NEW — Education hooks English
+# v2.3 — number-first rewrite (evergreen math only)
 HOOKS_ENGLISH_EDUCATION = [
-    "Today we learn one thing every successful investor knows:",
-    "This is the concept school never taught you about money:",
-    "If you are new to investing, this video is made for you:",
-    "One lesson today that will change how you see the market:",
-    "Simple, clear, and powerful — let's learn this together:",
+    "₹5,000 a month for 20 years — how much? Listen:",
+    "You can start investing with ₹500 — here's how:",
+    "The Rule of 72 — learn it in ten seconds:",
+    "Compounding: the eighth wonder — one example:",
+    "Your first demat account — a 5-minute job:",
     "Welcome to Week {week} — here is what we cover today:",
-    "This concept sounds complex — but I will make it simple:",
-    "The foundation of all investing — let's build it together:",
-    "Most beginners skip this step — don't make that mistake:",
-    "Today's lesson is short — but you will remember it forever:",
+    "Inflation eats your money daily — stop it like this:",
+    "One concept, and money finally makes sense:",
+    "New to investing? Don't make this first mistake:",
+    "Today's lesson is short — the benefit is lifelong:",
 ]
 
 

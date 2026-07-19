@@ -1,6 +1,11 @@
 """
 generate_shorts.py — AI360Trading
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v3.12 (2026-07-19): hook prompts now STRONGLY PREFER a real number from the
+  data as the hook's first word (never invented) — number-first hooks stop
+  the scroll better than word-first. Captions gain a rotating free-calculator
+  plug automatically via money_funnel v1.1 (no code change here).
+
 v3.11 (2026-07-14): RETENTION PACK — completion-rate is the Shorts algorithm's
   #1 signal and our avg watch time was stuck at ~0:17 on ~45s videos.
   1. SCRIPTS CUT to ~20-25s (55-70 words, was 80-100): a short people FINISH
@@ -568,7 +573,7 @@ Mode: {CONTENT_MODE}
 
 Return ONLY valid JSON:
 {{
-  "hook":    "SCROLL-STOPPING opening line for the in-feed cover frame. MAX 6 words. Hinglish (Roman script). Create a CURIOSITY GAP using a number, a result, a bold question, or a mistake — NEVER a plain label. GOOD: 'Ye stock 18% bhaaga aaj', 'Ye galti 5000 le dubti hai', 'Nifty girega par ye chadhega'. BAD: 'TCS Bullish', 'Trade Setup', 'Market Update'.",
+  "hook":    "SCROLL-STOPPING opening line for the in-feed cover frame. MAX 6 words. Hinglish (Roman script). STRONGLY PREFER a REAL number from the data above (a %, a ₹ amount, or a level) as the FIRST word when possible — never invent a number. Create a CURIOSITY GAP using that number, a result, a bold question, or a mistake — NEVER a plain label. GOOD: '18% bhaaga ye stock aaj', 'Ye galti 5000 le dubti hai', 'Nifty girega par ye chadhega'. BAD: 'TCS Bullish', 'Trade Setup', 'Market Update'.",
   "title": "Short title max 8 words for YouTube",
   "stock": "Stock name or topic (max 3 words, English only)",
   "sentiment": "bullish or bearish or neutral",
@@ -622,7 +627,7 @@ video is voiced by an English (en-IN) speaker. No markdown, no asterisks.
 
 Return ONLY valid JSON:
 {{
-  "hook":    "SCROLL-STOPPING opening line for the in-feed cover frame. MAX 6 words. ENGLISH only. Create a CURIOSITY GAP using a number, a result, or a bold question — NEVER a plain label. GOOD: 'US markets just did this', 'This moved 18% overnight', 'Gold is flashing a warning'. BAD: 'Global Market Pulse', 'Market Update'.",
+  "hook":    "SCROLL-STOPPING opening line for the in-feed cover frame. MAX 6 words. ENGLISH only. STRONGLY PREFER a REAL number from the data above (a % move or a level) as the FIRST word when possible — never invent a number. Create a CURIOSITY GAP using that number, a result, or a bold question — NEVER a plain label. GOOD: '18% overnight — this moved', 'US markets just did this', 'Gold is flashing a warning'. BAD: 'Global Market Pulse', 'Market Update'.",
   "title": "Global Market Pulse — short title",
   "sentiment": "bullish or bearish or neutral",
   "insight": "One key market insight sentence (English, max 15 words)",
