@@ -1,0 +1,146 @@
+---
+layout: default
+title: "Sukanya Samriddhi Yojana (SSY) Calculator 2026 — Maturity & Interest (Free) | AI360Trading"
+description: "Free SSY calculator: find the maturity amount of your Sukanya Samriddhi Yojana account. Enter yearly deposit and interest rate — deposits for 15 years, maturity at 21 years. Instant result."
+permalink: /tools/sukanya-samriddhi-calculator/
+canonical: https://ai360trading.in/tools/sukanya-samriddhi-calculator/
+meta-og:title: "Sukanya Samriddhi (SSY) Calculator — Maturity Amount"
+meta-og:description: "Calculate your daughter's SSY maturity amount instantly. Free and private."
+meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
+---
+
+{% raw %}
+<style>
+  .calc-hero{text-align:center;margin-bottom:22px;padding:24px 18px;background:linear-gradient(135deg,#fdf2f8,#fff0f6);border-radius:14px}
+  .calc-hero h1{margin:0 0 6px;font-size:26px;font-weight:900;color:#1e293b}
+  .calc-hero p{margin:0;color:#475569;font-size:14px}
+  .calc-wrap{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin:22px 0}
+  .calc-card{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:24px;box-shadow:0 4px 14px rgba(0,0,0,.05)}
+  .calc-field{margin:16px 0}
+  .calc-field label{display:block;font-weight:700;font-size:13px;color:#334155;margin-bottom:6px}
+  .calc-field input{width:100%;padding:11px 13px;border:1px solid #cbd5e0;border-radius:9px;font-size:15px}
+  .res-big{font-size:34px;font-weight:900;color:#db2777;margin:4px 0 2px}
+  .res-sub{font-size:13px;color:#64748b;margin-bottom:18px}
+  .res-row{display:flex;justify-content:space-between;padding:10px 0;border-top:1px solid #eef2f7;font-size:14px;color:#334155}
+  .res-row b{color:#0f172a}
+  .bar{display:flex;height:16px;border-radius:50px;overflow:hidden;margin:18px 0 8px}
+  .bar i{display:block;height:100%}
+  .legend{display:flex;gap:18px;font-size:12px;color:#64748b}
+  .legend span{display:flex;align-items:center;gap:6px}
+  .dot{width:11px;height:11px;border-radius:3px;display:inline-block}
+  .calc-body{margin:30px 0;font-size:15px;line-height:1.7;color:#334155}
+  .calc-body h2{font-size:20px;font-weight:800;color:#0f172a;margin:26px 0 10px}
+  .calc-body h3{font-size:16px;font-weight:800;color:#0f172a;margin:18px 0 6px}
+  .faq dt{font-weight:800;color:#0f172a;margin-top:14px}
+  .faq dd{margin:4px 0 0;color:#475569}
+  .calc-cta{margin:26px 0;padding:20px;background:#f0f7ff;border:1px solid #bfdbfe;border-radius:12px;text-align:center}
+  .calc-cta a{display:inline-block;margin:6px;background:#0088cc;color:#fff!important;text-decoration:none;padding:10px 22px;border-radius:50px;font-weight:800;font-size:14px}
+  .calc-cta a.alt{background:#0062ff}
+  .more-tools{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0}
+  .more-tools a{background:#f1f5f9;color:#0062ff!important;text-decoration:none;padding:8px 16px;border-radius:50px;font-weight:700;font-size:13px;border:1px solid #e2e8f0}
+  .disc{font-size:12px;color:#94a3b8;text-align:center;margin-top:18px;line-height:1.6}
+  @media(max-width:760px){.calc-wrap{grid-template-columns:1fr}}
+</style>
+
+<div class="calc-hero">
+  <h1>👧 Sukanya Samriddhi (SSY) Calculator</h1>
+  <p>See how much your daughter's SSY account will be worth at maturity.</p>
+</div>
+
+<div class="calc-wrap">
+  <div class="calc-card">
+    <div class="calc-field"><label>Yearly Deposit (₹) — max 1,50,000</label><input type="number" id="amt" value="50000" min="250" max="150000"></div>
+    <div class="calc-field"><label>Interest Rate (% per year) — current rate is set by the government every quarter</label><input type="number" id="rate" value="8.2" step="0.1" min="0"></div>
+  </div>
+  <div class="calc-card">
+    <div class="res-sub">Estimated maturity amount (after 21 years)</div>
+    <div class="res-big" id="r-fv">₹0</div>
+    <div class="bar"><i id="bp" style="background:#db2777"></i><i id="bg" style="background:#22c55e"></i></div>
+    <div class="legend"><span><i class="dot" style="background:#db2777"></i>Deposited</span><span><i class="dot" style="background:#22c55e"></i>Interest</span></div>
+    <div class="res-row">Total deposited (15 years) <b id="r-inv">₹0</b></div>
+    <div class="res-row">Total interest earned <b id="r-gain">₹0</b></div>
+    <div class="res-row">Maturity value (year 21) <b id="r-tot">₹0</b></div>
+  </div>
+</div>
+
+<div class="calc-cta">
+  <p style="margin:0 0 12px;font-size:14px;color:#1e3a5f">📈 Planning your family's money? Get our free daily investing insights.</p>
+  <a href="https://t.me/ai360trading" target="_blank" rel="noopener">📣 Join Free Telegram</a>
+  <a class="alt" href="/how-to-start-investing-india/">How to Start Investing →</a>
+</div>
+
+<div class="calc-body">
+  <h2>How Sukanya Samriddhi Yojana works</h2>
+  <p><b>Sukanya Samriddhi Yojana</b> is a government-backed small-savings scheme for a girl child. The account can be opened before she turns 10, at a post office or bank. You deposit for the <b>first 15 years</b>; the account keeps earning interest and <b>matures 21 years after opening</b>. Deposits are ₹250 to ₹1.5 lakh per year.</p>
+  <p>This calculator assumes the same deposit at the start of each year for 15 years, compounded yearly at the rate you enter until year 21 — the standard estimation method. The actual rate is declared by the government every quarter, so your final amount will vary as rates change.</p>
+
+  <h3>Why parents love SSY</h3>
+  <p>It is one of the highest-interest government schemes, fully tax-free under Section 80C (EEE — deposit, interest and maturity all tax-exempt), and the sovereign guarantee means zero default risk. The trade-off is the long lock-in.</p>
+
+{% endraw %}
+{% include adslot.html %}
+{% raw %}
+  <h2 style="margin-top:28px">Frequently Asked Questions</h2>
+  <dl class="faq">
+    <dt>Is this SSY calculator free?</dt>
+    <dd>Yes — 100% free, no sign-up, runs entirely in your browser.</dd>
+    <dt>Is the interest rate fixed for 21 years?</dt>
+    <dd>No. The government revises the SSY rate every quarter. This calculator applies one rate for the whole period, so treat the result as an estimate.</dd>
+    <dt>Can I withdraw before 21 years?</dt>
+    <dd>Partial withdrawal (up to 50%) is allowed for the girl's higher education after she turns 18, and the account can be closed on her marriage after 18. Otherwise it runs to maturity.</dd>
+  </dl>
+
+  <h3>More free calculators</h3>
+  <div class="more-tools">
+    <a href="/tools/ppf-calculator/">PPF Calculator</a>
+    <a href="/tools/rd-calculator/">RD Calculator</a>
+    <a href="/tools/fd-calculator/">FD Calculator</a>
+    <a href="/tools/sip-calculator/">SIP Calculator</a>
+    <a href="/tools/">All Tools →</a>
+  </div>
+</div>
+
+<p class="disc">⚠️ This calculator is for educational and estimation purposes only and is not financial advice. AI360Trading is not SEBI registered. The SSY interest rate changes quarterly — confirm the current rate and rules at your post office or bank.</p>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Is this SSY calculator free?","acceptedAnswer":{"@type":"Answer","text":"Yes, it is 100% free, needs no sign-up, and runs entirely in your browser."}},
+{"@type":"Question","name":"Is the interest rate fixed for 21 years?","acceptedAnswer":{"@type":"Answer","text":"No. The government revises the SSY rate every quarter. The calculator applies one rate for the whole period, so the result is an estimate."}},
+{"@type":"Question","name":"Can I withdraw before 21 years?","acceptedAnswer":{"@type":"Answer","text":"Partial withdrawal up to 50 percent is allowed for higher education after the girl turns 18, and the account can be closed on her marriage after 18."}}
+]}
+</script>
+
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id);};
+  function inr(n){return '₹'+Math.round(n).toLocaleString('en-IN');}
+  function calc(){
+    var D=Math.min(150000,parseFloat($("amt").value)||0);
+    var r=(parseFloat($("rate").value)||0)/100;
+    var bal=0, inv=0;
+    for(var y=1;y<=21;y++){
+      var dep=(y<=15)?D:0;
+      inv+=dep;
+      bal=(bal+dep)*(1+r);
+    }
+    var gain=bal-inv;
+    $("r-fv").textContent=inr(bal);
+    $("r-inv").textContent=inr(inv);
+    $("r-gain").textContent=inr(gain);
+    $("r-tot").textContent=inr(bal);
+    var pPct=bal>0?Math.min(100,inv/bal*100):100;
+    $("bp").style.width=pPct+'%'; $("bg").style.width=(100-pPct)+'%';
+  }
+  ["amt","rate"].forEach(function(id){$(id).addEventListener("input",calc);});
+  calc();
+})();
+</script>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[
+{"@type":"ListItem","position":1,"name":"Home","item":"https://ai360trading.in/"},
+{"@type":"ListItem","position":2,"name":"Tools","item":"https://ai360trading.in/tools/"},
+{"@type":"ListItem","position":3,"name":"Sukanya Samriddhi Calculator","item":"https://ai360trading.in/tools/sukanya-samriddhi-calculator/"}
+]}
+</script>
+{% endraw %}

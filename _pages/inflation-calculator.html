@@ -1,0 +1,138 @@
+---
+layout: default
+title: "Inflation Calculator India — Future Cost & Value of Money (Free) | AI360Trading"
+description: "Free inflation calculator: see what today's money will be worth in the future, and how much things will cost. Enter amount, inflation rate and years — instant result."
+permalink: /tools/inflation-calculator/
+canonical: https://ai360trading.in/tools/inflation-calculator/
+meta-og:title: "Inflation Calculator — Future Cost of Money"
+meta-og:description: "See how inflation shrinks your money's value over time. Free, fast and private."
+meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
+---
+
+{% raw %}
+<style>
+  .calc-hero{text-align:center;margin-bottom:22px;padding:24px 18px;background:linear-gradient(135deg,#fef2f2,#fff1f2);border-radius:14px}
+  .calc-hero h1{margin:0 0 6px;font-size:26px;font-weight:900;color:#1e293b}
+  .calc-hero p{margin:0;color:#475569;font-size:14px}
+  .calc-wrap{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin:22px 0}
+  .calc-card{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:24px;box-shadow:0 4px 14px rgba(0,0,0,.05)}
+  .calc-field{margin:16px 0}
+  .calc-field label{display:block;font-weight:700;font-size:13px;color:#334155;margin-bottom:6px}
+  .calc-field input{width:100%;padding:11px 13px;border:1px solid #cbd5e0;border-radius:9px;font-size:15px}
+  .res-big{font-size:34px;font-weight:900;color:#dc2626;margin:4px 0 2px}
+  .res-sub{font-size:13px;color:#64748b;margin-bottom:18px}
+  .res-row{display:flex;justify-content:space-between;padding:10px 0;border-top:1px solid #eef2f7;font-size:14px;color:#334155}
+  .res-row b{color:#0f172a}
+  .calc-body{margin:30px 0;font-size:15px;line-height:1.7;color:#334155}
+  .calc-body h2{font-size:20px;font-weight:800;color:#0f172a;margin:26px 0 10px}
+  .calc-body h3{font-size:16px;font-weight:800;color:#0f172a;margin:18px 0 6px}
+  .faq dt{font-weight:800;color:#0f172a;margin-top:14px}
+  .faq dd{margin:4px 0 0;color:#475569}
+  .calc-cta{margin:26px 0;padding:20px;background:#f0f7ff;border:1px solid #bfdbfe;border-radius:12px;text-align:center}
+  .calc-cta a{display:inline-block;margin:6px;background:#0088cc;color:#fff!important;text-decoration:none;padding:10px 22px;border-radius:50px;font-weight:800;font-size:14px}
+  .calc-cta a.alt{background:#0062ff}
+  .more-tools{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0}
+  .more-tools a{background:#f1f5f9;color:#0062ff!important;text-decoration:none;padding:8px 16px;border-radius:50px;font-weight:700;font-size:13px;border:1px solid #e2e8f0}
+  .disc{font-size:12px;color:#94a3b8;text-align:center;margin-top:18px;line-height:1.6}
+  @media(max-width:760px){.calc-wrap{grid-template-columns:1fr}}
+</style>
+
+<div class="calc-hero">
+  <h1>📉 Inflation Calculator</h1>
+  <p>See what today's money will really be worth — and what things will cost — in the future.</p>
+</div>
+
+<div class="calc-wrap">
+  <div class="calc-card">
+    <div class="calc-field"><label>Amount Today (₹)</label><input type="number" id="amt" value="100000" min="0"></div>
+    <div class="calc-field"><label>Expected Inflation (% per year)</label><input type="number" id="rate" value="6" step="0.1" min="0"></div>
+    <div class="calc-field"><label>Number of Years</label><input type="number" id="years" value="10" min="1"></div>
+  </div>
+  <div class="calc-card">
+    <div class="res-sub">What costs <b id="r-p1">₹1,00,000</b> today will cost</div>
+    <div class="res-big" id="r-fv">₹0</div>
+    <div class="res-sub" id="r-yrtext">after 10 years</div>
+    <div class="res-row">Purchasing power of your amount then <b id="r-power">₹0</b></div>
+    <div class="res-row">Value lost to inflation <b id="r-loss">₹0</b></div>
+    <div class="res-row">Return needed just to break even <b id="r-need">0%/yr</b></div>
+  </div>
+</div>
+
+<div class="calc-cta">
+  <p style="margin:0 0 12px;font-size:14px;color:#1e3a5f">📈 Inflation eats idle money. Investing is how you beat it — start learning free.</p>
+  <a href="https://t.me/ai360trading" target="_blank" rel="noopener">📣 Join Free Telegram</a>
+  <a class="alt" href="/how-to-start-investing-india/">How to Start Investing →</a>
+</div>
+
+<div class="calc-body">
+  <h2>Why inflation matters more than you think</h2>
+  <p>Inflation means prices rise every year — so the same ₹100 buys a little less each year. At 6% inflation, prices roughly <b>double every 12 years</b>. Money sitting idle in a savings account earning 3% is actually LOSING purchasing power every single day.</p>
+  <p style="background:#f8faff;border:1px solid #e2e8f0;border-radius:8px;padding:12px 14px;font-family:monospace;font-size:14px">Future cost = Amount × (1 + inflation)<sup>years</sup></p>
+  <p>The same formula in reverse tells you today's purchasing power of a future amount. This is why every financial plan — retirement, education, house — must be built on <b>inflation-adjusted</b> numbers, not today's prices.</p>
+
+  <h3>The quick "Rule of 72"</h3>
+  <p>Divide 72 by the inflation rate to know how many years prices take to double. At 6% → 72 ÷ 6 = 12 years. The same rule works for investments: at 12% returns, your money doubles every 6 years.</p>
+
+{% endraw %}
+{% include adslot.html %}
+{% raw %}
+  <h2 style="margin-top:28px">Frequently Asked Questions</h2>
+  <dl class="faq">
+    <dt>What inflation rate should I use for India?</dt>
+    <dd>India's consumer inflation has averaged roughly 5–6% over the long term. For planning big future costs like education or healthcare, many planners use 7–10% because those costs rise faster than average inflation.</dd>
+    <dt>Is this calculator free?</dt>
+    <dd>Yes — 100% free, no sign-up, runs entirely in your browser.</dd>
+    <dt>How do I protect my money from inflation?</dt>
+    <dd>Historically, equity investments (index funds, mutual funds) have beaten inflation over long periods, while savings accounts and cash have not. Returns are never guaranteed — but staying entirely in cash guarantees a loss of purchasing power.</dd>
+  </dl>
+
+  <h3>More free calculators</h3>
+  <div class="more-tools">
+    <a href="/tools/sip-calculator/">SIP Calculator</a>
+    <a href="/tools/lumpsum-calculator/">Lumpsum Calculator</a>
+    <a href="/tools/compound-interest-calculator/">Compound Interest</a>
+    <a href="/tools/fd-calculator/">FD Calculator</a>
+    <a href="/tools/">All Tools →</a>
+  </div>
+</div>
+
+<p class="disc">⚠️ This calculator is for educational and estimation purposes only and is not financial advice. AI360Trading is not SEBI registered. Actual inflation varies year to year.</p>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"What inflation rate should I use for India?","acceptedAnswer":{"@type":"Answer","text":"India's consumer inflation has averaged roughly 5 to 6 percent long term. For education or healthcare costs many planners use 7 to 10 percent as those rise faster."}},
+{"@type":"Question","name":"Is this inflation calculator free?","acceptedAnswer":{"@type":"Answer","text":"Yes, it is 100% free, needs no sign-up, and runs entirely in your browser."}},
+{"@type":"Question","name":"How do I protect my money from inflation?","acceptedAnswer":{"@type":"Answer","text":"Historically equity investments like index funds have beaten inflation over long periods, while cash and savings accounts have not. Returns are never guaranteed."}}
+]}
+</script>
+
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id);};
+  function inr(n){return '₹'+Math.round(n).toLocaleString('en-IN');}
+  function calc(){
+    var P=parseFloat($("amt").value)||0;
+    var r=(parseFloat($("rate").value)||0)/100;
+    var n=parseFloat($("years").value)||0;
+    var future=P*Math.pow(1+r,n);
+    var power=P/Math.pow(1+r,n);
+    $("r-p1").textContent=inr(P);
+    $("r-fv").textContent=inr(future);
+    $("r-yrtext").textContent='after '+n+' years (at '+($("rate").value||0)+'% inflation)';
+    $("r-power").textContent=inr(power);
+    $("r-loss").textContent=inr(P-power);
+    $("r-need").textContent=($("rate").value||0)+'%/yr';
+  }
+  ["amt","rate","years"].forEach(function(id){$(id).addEventListener("input",calc);});
+  calc();
+})();
+</script>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[
+{"@type":"ListItem","position":1,"name":"Home","item":"https://ai360trading.in/"},
+{"@type":"ListItem","position":2,"name":"Tools","item":"https://ai360trading.in/tools/"},
+{"@type":"ListItem","position":3,"name":"Inflation Calculator","item":"https://ai360trading.in/tools/inflation-calculator/"}
+]}
+</script>
+{% endraw %}

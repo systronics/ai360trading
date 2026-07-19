@@ -1,0 +1,139 @@
+---
+layout: default
+title: "Gratuity Calculator 2026 — How Much Gratuity Will You Get? (Free) | AI360Trading"
+description: "Free gratuity calculator for India: enter your last drawn salary (basic + DA) and years of service to instantly estimate your gratuity amount under the Payment of Gratuity Act."
+permalink: /tools/gratuity-calculator/
+canonical: https://ai360trading.in/tools/gratuity-calculator/
+meta-og:title: "Gratuity Calculator — Instant Estimate"
+meta-og:description: "Calculate your gratuity amount instantly from salary and years of service. Free and private."
+meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
+---
+
+{% raw %}
+<style>
+  .calc-hero{text-align:center;margin-bottom:22px;padding:24px 18px;background:linear-gradient(135deg,#f0fdf4,#ecfdf5);border-radius:14px}
+  .calc-hero h1{margin:0 0 6px;font-size:26px;font-weight:900;color:#1e293b}
+  .calc-hero p{margin:0;color:#475569;font-size:14px}
+  .calc-wrap{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin:22px 0}
+  .calc-card{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:24px;box-shadow:0 4px 14px rgba(0,0,0,.05)}
+  .calc-field{margin:16px 0}
+  .calc-field label{display:block;font-weight:700;font-size:13px;color:#334155;margin-bottom:6px}
+  .calc-field input{width:100%;padding:11px 13px;border:1px solid #cbd5e0;border-radius:9px;font-size:15px}
+  .res-big{font-size:34px;font-weight:900;color:#0f8a5f;margin:4px 0 2px}
+  .res-sub{font-size:13px;color:#64748b;margin-bottom:18px}
+  .res-row{display:flex;justify-content:space-between;padding:10px 0;border-top:1px solid #eef2f7;font-size:14px;color:#334155}
+  .res-row b{color:#0f172a}
+  .note{background:#fffbeb;border:1px solid #fde68a;border-radius:9px;padding:10px 14px;font-size:13px;color:#92400e;margin-top:14px;display:none}
+  .calc-body{margin:30px 0;font-size:15px;line-height:1.7;color:#334155}
+  .calc-body h2{font-size:20px;font-weight:800;color:#0f172a;margin:26px 0 10px}
+  .calc-body h3{font-size:16px;font-weight:800;color:#0f172a;margin:18px 0 6px}
+  .faq dt{font-weight:800;color:#0f172a;margin-top:14px}
+  .faq dd{margin:4px 0 0;color:#475569}
+  .calc-cta{margin:26px 0;padding:20px;background:#f0f7ff;border:1px solid #bfdbfe;border-radius:12px;text-align:center}
+  .calc-cta a{display:inline-block;margin:6px;background:#0088cc;color:#fff!important;text-decoration:none;padding:10px 22px;border-radius:50px;font-weight:800;font-size:14px}
+  .calc-cta a.alt{background:#0062ff}
+  .more-tools{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0}
+  .more-tools a{background:#f1f5f9;color:#0062ff!important;text-decoration:none;padding:8px 16px;border-radius:50px;font-weight:700;font-size:13px;border:1px solid #e2e8f0}
+  .disc{font-size:12px;color:#94a3b8;text-align:center;margin-top:18px;line-height:1.6}
+  @media(max-width:760px){.calc-wrap{grid-template-columns:1fr}}
+</style>
+
+<div class="calc-hero">
+  <h1>🎁 Gratuity Calculator</h1>
+  <p>Find out how much gratuity you'll receive when you leave your job.</p>
+</div>
+
+<div class="calc-wrap">
+  <div class="calc-card">
+    <div class="calc-field"><label>Last Drawn Monthly Salary — Basic + DA only (₹)</label><input type="number" id="sal" value="40000" min="0"></div>
+    <div class="calc-field"><label>Years of Service</label><input type="number" id="yrs" value="10" step="0.1" min="0"></div>
+  </div>
+  <div class="calc-card">
+    <div class="res-sub">Estimated gratuity amount</div>
+    <div class="res-big" id="r-fv">₹0</div>
+    <div class="res-row">Years counted (rounded per the Act) <b id="r-yrs">0</b></div>
+    <div class="res-row">15 days' salary (salary × 15 ÷ 26) <b id="r-15d">₹0</b></div>
+    <div class="note" id="r-note"></div>
+  </div>
+</div>
+
+<div class="calc-cta">
+  <p style="margin:0 0 12px;font-size:14px;color:#1e3a5f">💡 Getting a gratuity payout? Learn how to invest it wisely.</p>
+  <a href="https://t.me/ai360trading" target="_blank" rel="noopener">📣 Join Free Telegram</a>
+  <a class="alt" href="/tools/lumpsum-calculator/">See How It Can Grow →</a>
+</div>
+
+<div class="calc-body">
+  <h2>How gratuity is calculated</h2>
+  <p>Gratuity is a thank-you payment your employer must give you if you complete <b>5 or more years</b> of continuous service (the 5-year rule is waived in case of death or disability). Under the Payment of Gratuity Act, the formula is:</p>
+  <p style="background:#f8faff;border:1px solid #e2e8f0;border-radius:8px;padding:12px 14px;font-family:monospace;font-size:14px">Gratuity = Last salary (Basic + DA) × 15⁄26 × Years of service</p>
+  <p>15/26 represents 15 days' wages out of 26 working days per month. In the final year, service of <b>more than 6 months counts as a full year</b> — e.g. 10 years 7 months counts as 11 years. Gratuity is tax-free up to the government limit (currently ₹20 lakh for employees covered by the Act).</p>
+
+  <h3>Important notes</h3>
+  <p>Only Basic salary + Dearness Allowance count — not HRA, bonuses or other allowances. Employers can always pay MORE than the formula; this is the legal minimum for covered establishments (10+ employees).</p>
+
+{% endraw %}
+{% include adslot.html %}
+{% raw %}
+  <h2 style="margin-top:28px">Frequently Asked Questions</h2>
+  <dl class="faq">
+    <dt>Do I get gratuity before 5 years of service?</dt>
+    <dd>Generally no — 5 years of continuous service is required. Exceptions: death or disablement, where the 5-year rule does not apply.</dd>
+    <dt>Is gratuity taxable?</dt>
+    <dd>For employees covered under the Act, gratuity is tax-free up to ₹20 lakh (lifetime limit). Any amount above that is taxable as salary.</dd>
+    <dt>Which salary is used — my full CTC?</dt>
+    <dd>No. Only your last drawn Basic + Dearness Allowance is used, not HRA, bonuses or your full CTC.</dd>
+  </dl>
+
+  <h3>More free calculators</h3>
+  <div class="more-tools">
+    <a href="/tools/take-home-salary-calculator/">Take-Home Salary</a>
+    <a href="/tools/hra-calculator/">HRA Exemption</a>
+    <a href="/tools/income-tax-calculator/">Income Tax</a>
+    <a href="/tools/lumpsum-calculator/">Lumpsum Calculator</a>
+    <a href="/tools/">All Tools →</a>
+  </div>
+</div>
+
+<p class="disc">⚠️ This calculator is for educational and estimation purposes only and is not legal or tax advice. Rules differ for employees not covered by the Payment of Gratuity Act — confirm with your HR department.</p>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Do I get gratuity before 5 years of service?","acceptedAnswer":{"@type":"Answer","text":"Generally no. Five years of continuous service is required, except in case of death or disablement where the rule does not apply."}},
+{"@type":"Question","name":"Is gratuity taxable?","acceptedAnswer":{"@type":"Answer","text":"For employees covered under the Act, gratuity is tax-free up to 20 lakh rupees lifetime. Amounts above that are taxable as salary."}},
+{"@type":"Question","name":"Which salary is used for gratuity?","acceptedAnswer":{"@type":"Answer","text":"Only your last drawn Basic salary plus Dearness Allowance is used, not HRA, bonuses or full CTC."}}
+]}
+</script>
+
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id);};
+  function inr(n){return '₹'+Math.round(n).toLocaleString('en-IN');}
+  function calc(){
+    var S=parseFloat($("sal").value)||0;
+    var y=parseFloat($("yrs").value)||0;
+    var effY=Math.floor(y)+(((y%1)>0.5)?1:0);
+    var g=S*15/26*effY;
+    var capped=g>2000000;
+    if(capped) g=2000000;
+    $("r-fv").textContent=inr(g);
+    $("r-yrs").textContent=effY;
+    $("r-15d").textContent=inr(S*15/26);
+    var note=$("r-note");
+    if(y<5){ note.style.display='block'; note.textContent='⚠️ Below 5 years of service, gratuity is normally NOT payable (except death/disablement).'; }
+    else if(capped){ note.style.display='block'; note.textContent='ℹ️ Capped at ₹20,00,000 — the current tax-free limit under the Act. Employers may pay more voluntarily.'; }
+    else { note.style.display='none'; }
+  }
+  ["sal","yrs"].forEach(function(id){$(id).addEventListener("input",calc);});
+  calc();
+})();
+</script>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[
+{"@type":"ListItem","position":1,"name":"Home","item":"https://ai360trading.in/"},
+{"@type":"ListItem","position":2,"name":"Tools","item":"https://ai360trading.in/tools/"},
+{"@type":"ListItem","position":3,"name":"Gratuity Calculator","item":"https://ai360trading.in/tools/gratuity-calculator/"}
+]}
+</script>
+{% endraw %}

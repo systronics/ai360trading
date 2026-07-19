@@ -1,0 +1,154 @@
+---
+layout: default
+title: "NPS Calculator 2026 — Pension & Retirement Corpus (Free) | AI360Trading"
+description: "Free NPS calculator: estimate your National Pension System corpus at 60, lumpsum withdrawal, annuity amount and monthly pension. Enter monthly contribution and age — instant result."
+permalink: /tools/nps-calculator/
+canonical: https://ai360trading.in/tools/nps-calculator/
+meta-og:title: "NPS Calculator — Corpus & Monthly Pension"
+meta-og:description: "Estimate your NPS retirement corpus and monthly pension. Free, fast and private."
+meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
+---
+
+{% raw %}
+<style>
+  .calc-hero{text-align:center;margin-bottom:22px;padding:24px 18px;background:linear-gradient(135deg,#eef4ff,#f0f7ff);border-radius:14px}
+  .calc-hero h1{margin:0 0 6px;font-size:26px;font-weight:900;color:#1e293b}
+  .calc-hero p{margin:0;color:#475569;font-size:14px}
+  .calc-wrap{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin:22px 0}
+  .calc-card{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:24px;box-shadow:0 4px 14px rgba(0,0,0,.05)}
+  .calc-field{margin:16px 0}
+  .calc-field label{display:block;font-weight:700;font-size:13px;color:#334155;margin-bottom:6px}
+  .calc-field input{width:100%;padding:11px 13px;border:1px solid #cbd5e0;border-radius:9px;font-size:15px}
+  .res-big{font-size:34px;font-weight:900;color:#0062ff;margin:4px 0 2px}
+  .res-sub{font-size:13px;color:#64748b;margin-bottom:18px}
+  .res-row{display:flex;justify-content:space-between;padding:10px 0;border-top:1px solid #eef2f7;font-size:14px;color:#334155}
+  .res-row b{color:#0f172a}
+  .bar{display:flex;height:16px;border-radius:50px;overflow:hidden;margin:18px 0 8px}
+  .bar i{display:block;height:100%}
+  .legend{display:flex;gap:18px;font-size:12px;color:#64748b}
+  .legend span{display:flex;align-items:center;gap:6px}
+  .dot{width:11px;height:11px;border-radius:3px;display:inline-block}
+  .calc-body{margin:30px 0;font-size:15px;line-height:1.7;color:#334155}
+  .calc-body h2{font-size:20px;font-weight:800;color:#0f172a;margin:26px 0 10px}
+  .calc-body h3{font-size:16px;font-weight:800;color:#0f172a;margin:18px 0 6px}
+  .faq dt{font-weight:800;color:#0f172a;margin-top:14px}
+  .faq dd{margin:4px 0 0;color:#475569}
+  .calc-cta{margin:26px 0;padding:20px;background:#f0f7ff;border:1px solid #bfdbfe;border-radius:12px;text-align:center}
+  .calc-cta a{display:inline-block;margin:6px;background:#0088cc;color:#fff!important;text-decoration:none;padding:10px 22px;border-radius:50px;font-weight:800;font-size:14px}
+  .calc-cta a.alt{background:#0062ff}
+  .more-tools{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0}
+  .more-tools a{background:#f1f5f9;color:#0062ff!important;text-decoration:none;padding:8px 16px;border-radius:50px;font-weight:700;font-size:13px;border:1px solid #e2e8f0}
+  .disc{font-size:12px;color:#94a3b8;text-align:center;margin-top:18px;line-height:1.6}
+  @media(max-width:760px){.calc-wrap{grid-template-columns:1fr}}
+</style>
+
+<div class="calc-hero">
+  <h1>🏦 NPS Calculator</h1>
+  <p>Estimate your National Pension System corpus at 60, lumpsum, annuity and monthly pension.</p>
+</div>
+
+<div class="calc-wrap">
+  <div class="calc-card">
+    <div class="calc-field"><label>Monthly Contribution (₹)</label><input type="number" id="amt" value="5000" min="0"></div>
+    <div class="calc-field"><label>Your Current Age (years)</label><input type="number" id="age" value="30" min="18" max="59"></div>
+    <div class="calc-field"><label>Expected Return (% per year)</label><input type="number" id="rate" value="10" step="0.1" min="0"></div>
+    <div class="calc-field"><label>Corpus used to buy annuity/pension (%) — minimum 40</label><input type="number" id="annpct" value="40" min="40" max="100"></div>
+    <div class="calc-field"><label>Expected Annuity Rate (% per year)</label><input type="number" id="annrate" value="6" step="0.1" min="0"></div>
+  </div>
+  <div class="calc-card">
+    <div class="res-sub">Estimated corpus at age 60</div>
+    <div class="res-big" id="r-fv">₹0</div>
+    <div class="bar"><i id="bp" style="background:#0062ff"></i><i id="bg" style="background:#22c55e"></i></div>
+    <div class="legend"><span><i class="dot" style="background:#0062ff"></i>Invested</span><span><i class="dot" style="background:#22c55e"></i>Growth</span></div>
+    <div class="res-row">Total you invest <b id="r-inv">₹0</b></div>
+    <div class="res-row">Lumpsum you can withdraw <b id="r-lump">₹0</b></div>
+    <div class="res-row">Amount used for annuity <b id="r-ann">₹0</b></div>
+    <div class="res-row">Estimated monthly pension <b id="r-pen">₹0</b></div>
+  </div>
+</div>
+
+<div class="calc-cta">
+  <p style="margin:0 0 12px;font-size:14px;color:#1e3a5f">📈 Planning retirement? Get our free daily market &amp; investing insights.</p>
+  <a href="https://t.me/ai360trading" target="_blank" rel="noopener">📣 Join Free Telegram</a>
+  <a class="alt" href="/best-demat-account-india/">Open a Free Investment Account →</a>
+</div>
+
+<div class="calc-body">
+  <h2>How the NPS works</h2>
+  <p>The <b>National Pension System (NPS)</b> is a government-regulated retirement scheme. You contribute regularly during your working years; the money is invested in a mix of equity and debt and compounds until age 60. At retirement, you can withdraw up to <b>60% of the corpus as a tax-free lumpsum</b>, and at least <b>40% must be used to buy an annuity</b> — a product that pays you a monthly pension for life.</p>
+  <p>This calculator estimates the corpus from your monthly contributions, splits it into lumpsum and annuity by your chosen percentage, and estimates the monthly pension as: annuity amount × annuity rate ÷ 12.</p>
+
+  <h3>Why NPS is popular</h3>
+  <p>Very low fund-management charges, extra tax deduction of ₹50,000 under Section 80CCD(1B) over and above 80C, and disciplined long-term compounding. The trade-off is the lock-in till 60 and the mandatory annuity portion.</p>
+
+{% endraw %}
+{% include adslot.html %}
+{% raw %}
+  <h2 style="margin-top:28px">Frequently Asked Questions</h2>
+  <dl class="faq">
+    <dt>Is this NPS calculator free?</dt>
+    <dd>Yes — 100% free, no sign-up, and it runs entirely in your browser. Nothing is uploaded.</dd>
+    <dt>What return should I assume for NPS?</dt>
+    <dd>NPS returns depend on your equity/debt mix and are not guaranteed. Long-term returns of aggressive NPS portfolios have historically been roughly 9–12% a year, conservative ones lower. Use a realistic figure.</dd>
+    <dt>Is the monthly pension guaranteed?</dt>
+    <dd>The pension depends on the annuity rate offered by the insurer when you retire — the figure here is only an estimate. Annuity rates in recent years have been roughly 5.5–7%.</dd>
+  </dl>
+
+  <h3>More free calculators</h3>
+  <div class="more-tools">
+    <a href="/tools/sip-calculator/">SIP Calculator</a>
+    <a href="/tools/ppf-calculator/">PPF Calculator</a>
+    <a href="/tools/step-up-sip-calculator/">Step-up SIP</a>
+    <a href="/best-demat-account-india/">Best Demat Account</a>
+    <a href="/tools/">All Tools →</a>
+  </div>
+</div>
+
+<p class="disc">⚠️ This calculator is for educational and estimation purposes only and is not financial advice. AI360Trading is not SEBI registered. NPS returns and annuity rates are not guaranteed — actuals will differ.</p>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Is this NPS calculator free?","acceptedAnswer":{"@type":"Answer","text":"Yes, it is 100% free, needs no sign-up, and runs entirely in your browser."}},
+{"@type":"Question","name":"What return should I assume for NPS?","acceptedAnswer":{"@type":"Answer","text":"NPS returns depend on your equity and debt mix and are not guaranteed. Aggressive portfolios have historically returned roughly 9 to 12 percent a year over the long term."}},
+{"@type":"Question","name":"Is the monthly pension guaranteed?","acceptedAnswer":{"@type":"Answer","text":"No. The pension depends on the annuity rate offered when you retire. The figure shown is only an estimate based on the rate you enter."}}
+]}
+</script>
+
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id);};
+  function inr(n){return '₹'+Math.round(n).toLocaleString('en-IN');}
+  function calc(){
+    var C=parseFloat($("amt").value)||0;
+    var age=parseFloat($("age").value)||30;
+    var r=parseFloat($("rate").value)||0;
+    var s=Math.min(100,Math.max(40,parseFloat($("annpct").value)||40));
+    var ar=parseFloat($("annrate").value)||0;
+    var m=Math.max(0,Math.round((60-age)*12));
+    var i=r/1200;
+    var corpus=(i>0)?C*(Math.pow(1+i,m)-1)/i:C*m;
+    var inv=C*m;
+    var annuity=corpus*s/100;
+    var lump=corpus-annuity;
+    var pension=annuity*ar/100/12;
+    $("r-fv").textContent=inr(corpus);
+    $("r-inv").textContent=inr(inv);
+    $("r-lump").textContent=inr(lump);
+    $("r-ann").textContent=inr(annuity);
+    $("r-pen").textContent=inr(pension);
+    var pPct=corpus>0?Math.min(100,inv/corpus*100):100;
+    $("bp").style.width=pPct+'%'; $("bg").style.width=(100-pPct)+'%';
+  }
+  ["amt","age","rate","annpct","annrate"].forEach(function(id){$(id).addEventListener("input",calc);});
+  calc();
+})();
+</script>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[
+{"@type":"ListItem","position":1,"name":"Home","item":"https://ai360trading.in/"},
+{"@type":"ListItem","position":2,"name":"Tools","item":"https://ai360trading.in/tools/"},
+{"@type":"ListItem","position":3,"name":"NPS Calculator","item":"https://ai360trading.in/tools/nps-calculator/"}
+]}
+</script>
+{% endraw %}

@@ -1,0 +1,158 @@
+---
+layout: default
+title: "Step-Up SIP Calculator — Grow Your SIP 10% Every Year (Free) | AI360Trading"
+description: "Free step-up SIP calculator: see how increasing your SIP every year multiplies your final corpus vs a normal SIP. Enter monthly amount, annual increase, return and years."
+permalink: /tools/step-up-sip-calculator/
+canonical: https://ai360trading.in/tools/step-up-sip-calculator/
+meta-og:title: "Step-Up SIP Calculator — Annual Increase Magic"
+meta-og:description: "See how a 10% yearly SIP increase multiplies your corpus. Free, fast and private."
+meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
+---
+
+{% raw %}
+<style>
+  .calc-hero{text-align:center;margin-bottom:22px;padding:24px 18px;background:linear-gradient(135deg,#eef4ff,#f0f7ff);border-radius:14px}
+  .calc-hero h1{margin:0 0 6px;font-size:26px;font-weight:900;color:#1e293b}
+  .calc-hero p{margin:0;color:#475569;font-size:14px}
+  .calc-wrap{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin:22px 0}
+  .calc-card{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:24px;box-shadow:0 4px 14px rgba(0,0,0,.05)}
+  .calc-field{margin:16px 0}
+  .calc-field label{display:block;font-weight:700;font-size:13px;color:#334155;margin-bottom:6px}
+  .calc-field input{width:100%;padding:11px 13px;border:1px solid #cbd5e0;border-radius:9px;font-size:15px}
+  .res-big{font-size:34px;font-weight:900;color:#0062ff;margin:4px 0 2px}
+  .res-sub{font-size:13px;color:#64748b;margin-bottom:18px}
+  .res-row{display:flex;justify-content:space-between;padding:10px 0;border-top:1px solid #eef2f7;font-size:14px;color:#334155}
+  .res-row b{color:#0f172a}
+  .res-row.hl b{color:#0f8a5f}
+  .bar{display:flex;height:16px;border-radius:50px;overflow:hidden;margin:18px 0 8px}
+  .bar i{display:block;height:100%}
+  .legend{display:flex;gap:18px;font-size:12px;color:#64748b}
+  .legend span{display:flex;align-items:center;gap:6px}
+  .dot{width:11px;height:11px;border-radius:3px;display:inline-block}
+  .calc-body{margin:30px 0;font-size:15px;line-height:1.7;color:#334155}
+  .calc-body h2{font-size:20px;font-weight:800;color:#0f172a;margin:26px 0 10px}
+  .calc-body h3{font-size:16px;font-weight:800;color:#0f172a;margin:18px 0 6px}
+  .faq dt{font-weight:800;color:#0f172a;margin-top:14px}
+  .faq dd{margin:4px 0 0;color:#475569}
+  .calc-cta{margin:26px 0;padding:20px;background:#f0f7ff;border:1px solid #bfdbfe;border-radius:12px;text-align:center}
+  .calc-cta a{display:inline-block;margin:6px;background:#0088cc;color:#fff!important;text-decoration:none;padding:10px 22px;border-radius:50px;font-weight:800;font-size:14px}
+  .calc-cta a.alt{background:#0062ff}
+  .more-tools{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0}
+  .more-tools a{background:#f1f5f9;color:#0062ff!important;text-decoration:none;padding:8px 16px;border-radius:50px;font-weight:700;font-size:13px;border:1px solid #e2e8f0}
+  .disc{font-size:12px;color:#94a3b8;text-align:center;margin-top:18px;line-height:1.6}
+  @media(max-width:760px){.calc-wrap{grid-template-columns:1fr}}
+</style>
+
+<div class="calc-hero">
+  <h1>🚀 Step-Up SIP Calculator</h1>
+  <p>See how increasing your SIP a little every year multiplies your final corpus.</p>
+</div>
+
+<div class="calc-wrap">
+  <div class="calc-card">
+    <div class="calc-field"><label>Starting Monthly SIP (₹)</label><input type="number" id="amt" value="5000" min="0"></div>
+    <div class="calc-field"><label>Annual Step-Up (%) — increase every year</label><input type="number" id="step" value="10" step="1" min="0"></div>
+    <div class="calc-field"><label>Expected Return (% per year)</label><input type="number" id="rate" value="12" step="0.1" min="0"></div>
+    <div class="calc-field"><label>Time Period (years)</label><input type="number" id="years" value="15" min="1"></div>
+  </div>
+  <div class="calc-card">
+    <div class="res-sub">Corpus with step-up SIP</div>
+    <div class="res-big" id="r-fv">₹0</div>
+    <div class="bar"><i id="bp" style="background:#0062ff"></i><i id="bg" style="background:#22c55e"></i></div>
+    <div class="legend"><span><i class="dot" style="background:#0062ff"></i>Invested</span><span><i class="dot" style="background:#22c55e"></i>Gains</span></div>
+    <div class="res-row">Total invested <b id="r-inv">₹0</b></div>
+    <div class="res-row">Estimated gains <b id="r-gain">₹0</b></div>
+    <div class="res-row">Normal SIP corpus (no step-up) <b id="r-plain">₹0</b></div>
+    <div class="res-row hl">Extra wealth from stepping up <b id="r-extra">₹0</b></div>
+  </div>
+</div>
+
+<div class="calc-cta">
+  <p style="margin:0 0 12px;font-size:14px;color:#1e3a5f">📈 Ready to start or step up your SIP? Open a free account in minutes.</p>
+  <a href="https://t.me/ai360trading" target="_blank" rel="noopener">📣 Join Free Telegram</a>
+  <a class="alt" href="/best-demat-account-india/">Open a Free Investment Account →</a>
+</div>
+
+<div class="calc-body">
+  <h2>What is a step-up SIP?</h2>
+  <p>A <b>step-up SIP</b> (also called top-up SIP) increases your monthly investment by a fixed percentage every year — usually matching your salary increment. Start at ₹5,000/month and step up 10% yearly: year 2 becomes ₹5,500, year 3 ₹6,050, and so on.</p>
+  <p>The effect is dramatic because the LARGER contributions come in your later years and every increase compounds. A 10% annual step-up can add 40–60% more wealth over 15–20 years compared with a flat SIP — from money you'd barely miss, since your income grows too.</p>
+
+  <h3>How this calculator works</h3>
+  <p>It simulates every month: your money grows at the monthly rate, your contribution is added, and once every 12 months the contribution increases by your step-up percentage. It then compares against the same SIP without any step-up.</p>
+
+{% endraw %}
+{% include adslot.html %}
+{% raw %}
+  <h2 style="margin-top:28px">Frequently Asked Questions</h2>
+  <dl class="faq">
+    <dt>Is a step-up SIP better than a normal SIP?</dt>
+    <dd>If your income grows every year, almost always yes — you invest more when you can afford more, and the final corpus is far larger. The comparison line above shows exactly how much extra.</dd>
+    <dt>Can I set up automatic step-up with my fund house?</dt>
+    <dd>Yes — most mutual fund platforms and AMCs offer a "top-up SIP" option where the increase happens automatically every year. You can also do it manually.</dd>
+    <dt>Is this calculator free?</dt>
+    <dd>Yes — 100% free, no sign-up, runs entirely in your browser.</dd>
+  </dl>
+
+  <h3>More free calculators</h3>
+  <div class="more-tools">
+    <a href="/tools/sip-calculator/">SIP Calculator</a>
+    <a href="/tools/lumpsum-calculator/">Lumpsum Calculator</a>
+    <a href="/tools/nps-calculator/">NPS Calculator</a>
+    <a href="/tools/inflation-calculator/">Inflation Calculator</a>
+    <a href="/tools/">All Tools →</a>
+  </div>
+</div>
+
+<p class="disc">⚠️ This calculator is for educational and estimation purposes only and is not investment advice. AI360Trading is not SEBI registered. Market returns are not guaranteed.</p>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Is a step-up SIP better than a normal SIP?","acceptedAnswer":{"@type":"Answer","text":"If your income grows every year, almost always yes. You invest more when you can afford more and the final corpus is far larger."}},
+{"@type":"Question","name":"Can I set up automatic step-up with my fund house?","acceptedAnswer":{"@type":"Answer","text":"Yes. Most mutual fund platforms and AMCs offer a top-up SIP option where the increase happens automatically every year."}},
+{"@type":"Question","name":"Is this step-up SIP calculator free?","acceptedAnswer":{"@type":"Answer","text":"Yes, it is 100% free, needs no sign-up, and runs entirely in your browser."}}
+]}
+</script>
+
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id);};
+  function inr(n){return '₹'+Math.round(n).toLocaleString('en-IN');}
+  function sim(C,su,i,months){
+    var bal=0,inv=0,c=C;
+    for(var m=1;m<=months;m++){
+      bal=bal*(1+i)+c;
+      inv+=c;
+      if(m%12===0) c=c*(1+su/100);
+    }
+    return {bal:bal,inv:inv};
+  }
+  function calc(){
+    var C=parseFloat($("amt").value)||0;
+    var su=parseFloat($("step").value)||0;
+    var r=parseFloat($("rate").value)||0;
+    var n=parseFloat($("years").value)||0;
+    var i=r/1200, months=Math.round(n*12);
+    var s=sim(C,su,i,months);
+    var p=sim(C,0,i,months);
+    $("r-fv").textContent=inr(s.bal);
+    $("r-inv").textContent=inr(s.inv);
+    $("r-gain").textContent=inr(s.bal-s.inv);
+    $("r-plain").textContent=inr(p.bal);
+    $("r-extra").textContent='+'+inr(s.bal-p.bal);
+    var pPct=s.bal>0?Math.min(100,s.inv/s.bal*100):100;
+    $("bp").style.width=pPct+'%'; $("bg").style.width=(100-pPct)+'%';
+  }
+  ["amt","step","rate","years"].forEach(function(id){$(id).addEventListener("input",calc);});
+  calc();
+})();
+</script>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[
+{"@type":"ListItem","position":1,"name":"Home","item":"https://ai360trading.in/"},
+{"@type":"ListItem","position":2,"name":"Tools","item":"https://ai360trading.in/tools/"},
+{"@type":"ListItem","position":3,"name":"Step-Up SIP Calculator","item":"https://ai360trading.in/tools/step-up-sip-calculator/"}
+]}
+</script>
+{% endraw %}

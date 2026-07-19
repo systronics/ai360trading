@@ -1,0 +1,153 @@
+---
+layout: default
+title: "HRA Exemption Calculator 2026 — How Much HRA Is Tax-Free? (Free) | AI360Trading"
+description: "Free HRA calculator for India: enter basic salary, HRA received and rent paid to instantly see your tax-exempt HRA and taxable HRA under the old tax regime rules."
+permalink: /tools/hra-calculator/
+canonical: https://ai360trading.in/tools/hra-calculator/
+meta-og:title: "HRA Exemption Calculator — Tax-Free HRA"
+meta-og:description: "See how much of your HRA is tax-free in seconds. Free and private."
+meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
+---
+
+{% raw %}
+<style>
+  .calc-hero{text-align:center;margin-bottom:22px;padding:24px 18px;background:linear-gradient(135deg,#fff7ed,#fffbeb);border-radius:14px}
+  .calc-hero h1{margin:0 0 6px;font-size:26px;font-weight:900;color:#1e293b}
+  .calc-hero p{margin:0;color:#475569;font-size:14px}
+  .calc-wrap{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin:22px 0}
+  .calc-card{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:24px;box-shadow:0 4px 14px rgba(0,0,0,.05)}
+  .calc-field{margin:16px 0}
+  .calc-field label{display:block;font-weight:700;font-size:13px;color:#334155;margin-bottom:6px}
+  .calc-field input,.calc-field select{width:100%;padding:11px 13px;border:1px solid #cbd5e0;border-radius:9px;font-size:15px;background:#fff}
+  .res-big{font-size:34px;font-weight:900;color:#b45309;margin:4px 0 2px}
+  .res-sub{font-size:13px;color:#64748b;margin-bottom:18px}
+  .res-row{display:flex;justify-content:space-between;padding:10px 0;border-top:1px solid #eef2f7;font-size:14px;color:#334155}
+  .res-row b{color:#0f172a}
+  .calc-body{margin:30px 0;font-size:15px;line-height:1.7;color:#334155}
+  .calc-body h2{font-size:20px;font-weight:800;color:#0f172a;margin:26px 0 10px}
+  .calc-body h3{font-size:16px;font-weight:800;color:#0f172a;margin:18px 0 6px}
+  .faq dt{font-weight:800;color:#0f172a;margin-top:14px}
+  .faq dd{margin:4px 0 0;color:#475569}
+  .calc-cta{margin:26px 0;padding:20px;background:#f0f7ff;border:1px solid #bfdbfe;border-radius:12px;text-align:center}
+  .calc-cta a{display:inline-block;margin:6px;background:#0088cc;color:#fff!important;text-decoration:none;padding:10px 22px;border-radius:50px;font-weight:800;font-size:14px}
+  .calc-cta a.alt{background:#0062ff}
+  .more-tools{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0}
+  .more-tools a{background:#f1f5f9;color:#0062ff!important;text-decoration:none;padding:8px 16px;border-radius:50px;font-weight:700;font-size:13px;border:1px solid #e2e8f0}
+  .disc{font-size:12px;color:#94a3b8;text-align:center;margin-top:18px;line-height:1.6}
+  @media(max-width:760px){.calc-wrap{grid-template-columns:1fr}}
+</style>
+
+<div class="calc-hero">
+  <h1>🏠 HRA Exemption Calculator</h1>
+  <p>See how much of your House Rent Allowance is tax-free — instantly.</p>
+</div>
+
+<div class="calc-wrap">
+  <div class="calc-card">
+    <div class="calc-field"><label>Basic Salary + DA (₹ per month)</label><input type="number" id="basic" value="40000" min="0"></div>
+    <div class="calc-field"><label>HRA Received (₹ per month)</label><input type="number" id="hra" value="16000" min="0"></div>
+    <div class="calc-field"><label>Rent Paid (₹ per month)</label><input type="number" id="rent" value="15000" min="0"></div>
+    <div class="calc-field"><label>City Type</label>
+      <select id="city">
+        <option value="0.5">Metro — Delhi, Mumbai, Kolkata, Chennai (50%)</option>
+        <option value="0.4">Non-Metro — all other cities (40%)</option>
+      </select>
+    </div>
+  </div>
+  <div class="calc-card">
+    <div class="res-sub">Tax-exempt HRA (per year)</div>
+    <div class="res-big" id="r-fv">₹0</div>
+    <div class="res-sub" id="r-month" style="margin-top:2px"></div>
+    <div class="res-row">Rule 1 — Actual HRA received <b id="r-a">₹0</b></div>
+    <div class="res-row">Rule 2 — Rent paid − 10% of salary <b id="r-b">₹0</b></div>
+    <div class="res-row">Rule 3 — 50%/40% of salary <b id="r-c">₹0</b></div>
+    <div class="res-row">Exempt = LOWEST of the three <b id="r-ex">₹0</b></div>
+    <div class="res-row">Taxable HRA (per year) <b id="r-tax">₹0</b></div>
+  </div>
+</div>
+
+<div class="calc-cta">
+  <p style="margin:0 0 12px;font-size:14px;color:#1e3a5f">💰 Save more tax, invest the difference — learn how, free.</p>
+  <a href="https://t.me/ai360trading" target="_blank" rel="noopener">📣 Join Free Telegram</a>
+  <a class="alt" href="/tools/income-tax-calculator/">Income Tax Calculator →</a>
+</div>
+
+<div class="calc-body">
+  <h2>How HRA exemption works</h2>
+  <p>If you live in rented accommodation and receive <b>House Rent Allowance</b> as part of your salary, a portion of it can be tax-free — but only under the <b>old tax regime</b>. The exempt amount is the LOWEST of these three:</p>
+  <ol>
+    <li>Actual HRA received from your employer</li>
+    <li>Rent paid minus 10% of salary (Basic + DA)</li>
+    <li>50% of salary in a metro (Delhi, Mumbai, Kolkata, Chennai) or 40% elsewhere</li>
+  </ol>
+  <p>Whatever HRA remains above the exempt portion is added to your taxable income.</p>
+
+  <h3>Documents you need</h3>
+  <p>Rent receipts (and the landlord's PAN if yearly rent exceeds ₹1 lakh). If you pay rent to your parents, it's legal — but they must actually receive the money and show it in their income.</p>
+
+{% endraw %}
+{% include adslot.html %}
+{% raw %}
+  <h2 style="margin-top:28px">Frequently Asked Questions</h2>
+  <dl class="faq">
+    <dt>Can I claim HRA in the new tax regime?</dt>
+    <dd>No. HRA exemption is available only under the old tax regime. In the new regime, HRA is fully taxable.</dd>
+    <dt>Can I claim HRA if I live in my own house?</dt>
+    <dd>No — HRA exemption requires actually paying rent for the home you live in.</dd>
+    <dt>Can I pay rent to my parents and claim HRA?</dt>
+    <dd>Yes, if the arrangement is genuine: pay by bank transfer, keep rent receipts, and your parents must declare the rent as income.</dd>
+  </dl>
+
+  <h3>More free calculators</h3>
+  <div class="more-tools">
+    <a href="/tools/income-tax-calculator/">Income Tax</a>
+    <a href="/tools/take-home-salary-calculator/">Take-Home Salary</a>
+    <a href="/tools/gratuity-calculator/">Gratuity</a>
+    <a href="/tools/emi-calculator/">EMI Calculator</a>
+    <a href="/tools/">All Tools →</a>
+  </div>
+</div>
+
+<p class="disc">⚠️ This calculator is for educational and estimation purposes only and is not tax advice. Tax rules change — confirm with a chartered accountant or the official Income Tax portal before filing.</p>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Can I claim HRA in the new tax regime?","acceptedAnswer":{"@type":"Answer","text":"No. HRA exemption is available only under the old tax regime. In the new regime HRA is fully taxable."}},
+{"@type":"Question","name":"Can I claim HRA if I live in my own house?","acceptedAnswer":{"@type":"Answer","text":"No. HRA exemption requires actually paying rent for the home you live in."}},
+{"@type":"Question","name":"Can I pay rent to my parents and claim HRA?","acceptedAnswer":{"@type":"Answer","text":"Yes, if genuine: pay by bank transfer, keep rent receipts, and your parents must declare the rent as their income."}}
+]}
+</script>
+
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id);};
+  function inr(n){return '₹'+Math.round(n).toLocaleString('en-IN');}
+  function calc(){
+    var basic=parseFloat($("basic").value)||0;
+    var hra=parseFloat($("hra").value)||0;
+    var rent=parseFloat($("rent").value)||0;
+    var pct=parseFloat($("city").value)||0.5;
+    var a=hra, b=Math.max(0,rent-0.10*basic), c=pct*basic;
+    var ex=Math.min(a,b,c);
+    var taxable=Math.max(0,hra-ex);
+    $("r-fv").textContent=inr(ex*12);
+    $("r-month").textContent='('+inr(ex)+' per month exempt)';
+    $("r-a").textContent=inr(a*12);
+    $("r-b").textContent=inr(b*12);
+    $("r-c").textContent=inr(c*12);
+    $("r-ex").textContent=inr(ex*12);
+    $("r-tax").textContent=inr(taxable*12);
+  }
+  ["basic","hra","rent","city"].forEach(function(id){$(id).addEventListener("input",calc);$(id).addEventListener("change",calc);});
+  calc();
+})();
+</script>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[
+{"@type":"ListItem","position":1,"name":"Home","item":"https://ai360trading.in/"},
+{"@type":"ListItem","position":2,"name":"Tools","item":"https://ai360trading.in/tools/"},
+{"@type":"ListItem","position":3,"name":"HRA Calculator","item":"https://ai360trading.in/tools/hra-calculator/"}
+]}
+</script>
+{% endraw %}
