@@ -59,10 +59,10 @@ One broken file = zero income that day. Treat every edit as critical.
 | File | Version |
 |---|---|
 | `ai_client.py` | v2.5 |
-| `human_touch.py` | v2.2 |
+| `human_touch.py` | v2.3 (2026-07-19: all hook libraries rewritten number-first for retention; no invented stats; {holiday}/{week} placeholders preserved) |
 | `token_refresh.py` | v2.2 |
 | `content_calendar.py` | v2.4 |
-| `money_funnel.py` | current (single source of truth for broker links in CONTENT — Zerodha/Dhan/Groww/CoinDCX) |
+| `money_funnel.py` | v1.1 (2026-07-19: TOOL_PAGES + tool_plug() daily calculator rotation in funnel_block/comment_text — video→website traffic loop; single source of truth for broker links in CONTENT — Zerodha/Dhan/Groww/CoinDCX) |
 | `indian_holidays.py` | current (no version tag) |
 
 ### Content Generators
@@ -71,7 +71,7 @@ One broken file = zero income that day. Treat every edit as critical.
 | `generate_education.py` | v1.3 (weekly dup-guard: skips if Week N already on channel) |
 | `generate_reel.py` | v2.4 |
 | `generate_reel_morning.py` | v2.5 |
-| `generate_shorts.py` | v3.11 (2026-07-14 retention pack: 20-25s payoff-at-end scripts + Ken Burns motion + 2s CTA) |
+| `generate_shorts.py` | v3.12 (2026-07-19: hook prompts prefer a REAL data number as first word; v3.11 retention pack: 20-25s payoff-at-end scripts + Ken Burns motion + 2s CTA) |
 | `generate_articles.py` | current (2026-07-16 credibility pack: price carry-forward cache `_data/prices_cache.json` + honest Fear&Greed + filler-phrase ban + number-honesty rule 14 + internal-link dedup; 2026-07-13 phrase-cooldown + perf block) |
 | `performance_stats.py` | v1.0 (2026-07-13 — History ledger → article performance block, fail-open) |
 | _(HerooQuest kids pipeline removed 2026-07-19 — generate_kids_video.py, kids_content_calendar.py, upload_kids_youtube.py, kids-daily.yml all deleted; channel retired as it cannot earn — see SESSION.md)_ |

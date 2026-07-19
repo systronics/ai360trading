@@ -574,7 +574,7 @@ Mode: {CONTENT_MODE}
 Return ONLY valid JSON:
 {{
   "hook":    "SCROLL-STOPPING opening line for the in-feed cover frame. MAX 6 words. Hinglish (Roman script). STRONGLY PREFER a REAL number from the data above (a %, a ₹ amount, or a level) as the FIRST word when possible — never invent a number. Create a CURIOSITY GAP using that number, a result, a bold question, or a mistake — NEVER a plain label. GOOD: '18% bhaaga ye stock aaj', 'Ye galti 5000 le dubti hai', 'Nifty girega par ye chadhega'. BAD: 'TCS Bullish', 'Trade Setup', 'Market Update'.",
-  "title": "Short title max 8 words for YouTube",
+  "title": "UNIQUE YouTube title for TODAY, max 8 words — MUST contain one real number from the data (a level, ₹ or % move). NEVER a generic repeatable label like 'Trade Setup' or 'Market Update'.",
   "stock": "Stock name or topic (max 3 words, English only)",
   "sentiment": "bullish or bearish or neutral",
   "entry":   "Entry price or topic point",
@@ -628,7 +628,7 @@ video is voiced by an English (en-IN) speaker. No markdown, no asterisks.
 Return ONLY valid JSON:
 {{
   "hook":    "SCROLL-STOPPING opening line for the in-feed cover frame. MAX 6 words. ENGLISH only. STRONGLY PREFER a REAL number from the data above (a % move or a level) as the FIRST word when possible — never invent a number. Create a CURIOSITY GAP using that number, a result, or a bold question — NEVER a plain label. GOOD: '18% overnight — this moved', 'US markets just did this', 'Gold is flashing a warning'. BAD: 'Global Market Pulse', 'Market Update'.",
-  "title": "Global Market Pulse — short title",
+  "title": "UNIQUE YouTube title for TODAY, max 8 words, ENGLISH — MUST contain one real number from the data (an index level or % move). NEVER a generic repeatable label like 'Global Market Pulse' or 'Market Update'.",
   "sentiment": "bullish or bearish or neutral",
   "insight": "One key market insight sentence (English, max 15 words)",
   "script": "20-25 second ENGLISH-ONLY script, 55-70 words MAX (no Hindi words). STRUCTURE (completion-rate rules): (1) open with a punchy 1-line QUESTION or bold claim in the first 2 seconds; (2) 2-3 short value sentences; (3) THE ANSWER/PAYOFF to the opening question MUST be the FINAL sentence so viewers hold to the end. ONE idea only. Plain text only — no markdown or asterisks.",
@@ -1125,22 +1125,47 @@ def upload_to_instagram(video_path: str, caption: str, short_label: str = "") ->
 # BUILD TITLES + DESCRIPTIONS + CAPTIONS
 # ══════════════════════════════════════════════════════════════════════════════
 
+def _uniq_title(script_data: dict, fallback: str) -> str:
+    """v3.12 GROWTH FIX: the upload title was a HARDCODED template — literally
+    identical every day ("Global Market Pulse Today — Nifty, Gold & Bitcoin
+    #Shorts" x30). Viewers read it as a repeat and YouTube reads it as
+    duplicate content. Prefer the AI's title (it carries today's real numbers
+    → unique daily); otherwise stamp the date into the template so two days
+    NEVER share an identical title. Fail-open: any problem → dated fallback."""
+    try:
+        t = (script_data.get("title") or "").strip()
+        low = t.lower()
+        generic = ("market pulse" in low or "short title" in low
+                   or "market update" in low or len(t) < 12)
+        if not generic:
+            return (t if "#shorts" in low else f"{t} #Shorts")[:100]
+    except Exception:
+        pass
+    try:
+        d = datetime.now(IST).strftime("%d %b")
+    except Exception:
+        d = ""
+    if d and fallback.endswith(" #Shorts"):
+        return fallback[:-len(" #Shorts")] + f" · {d} #Shorts"
+    return fallback
+
 def build_title_short2(script_data: dict) -> str:
     # Front-load the keyword/curiosity (YouTube shows ~first 40 chars); brand/date
     # moved to the description so the title earns the click.
     if CONTENT_MODE == "holiday":
         label = HOLIDAY_NAME if HOLIDAY_NAME else "Market Holiday"
-        return f"📚 {label} Special — Stock Market Lesson #Shorts"
+        return _uniq_title(script_data, f"📚 {label} Special — Stock Market Lesson #Shorts")
     elif CONTENT_MODE == "weekend":
-        return f"📚 Weekend Trading Lesson — Stock Market for Beginners #Shorts"
+        return _uniq_title(script_data, f"📚 Weekend Trading Lesson — Stock Market for Beginners #Shorts")
     stock = script_data.get("stock", "Nifty")
     sent  = script_data.get("sentiment", "bullish").capitalize()
+    # stock+sentiment already varies daily — keep it (SEO keyword pattern intact)
     return f"{stock} {sent} Setup Today 📈 Nifty Stock to Watch #Shorts"
 
 def build_title_short3(script_data: dict) -> str:
     if CONTENT_MODE in ("holiday", "weekend"):
-        return f"🌍 Weekend Market Wisdom — Global Investing Tips #Shorts"
-    return f"🌍 Global Market Pulse Today — Nifty, Gold & Bitcoin #Shorts"
+        return _uniq_title(script_data, f"🌍 Weekend Market Wisdom — Global Investing Tips #Shorts")
+    return _uniq_title(script_data, f"🌍 Global Market Pulse Today — Nifty, Gold & Bitcoin #Shorts")
 
 def build_desc(script_data: dict, short_num: int, part1_url: str) -> str:
     tags    = seo.get_video_tags(mode=CONTENT_MODE, is_short=True)
