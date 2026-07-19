@@ -163,8 +163,25 @@ meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
     <div class="tools-grid">
       <div class="tool-card" data-tool="word2pdf"><span class="ico">📝</span><h3>Word → PDF</h3><p>.docx document to PDF</p></div>
       <div class="tool-card" data-tool="excel2pdf"><span class="ico">📊</span><h3>Excel → PDF</h3><p>.xlsx / .csv sheet to PDF</p></div>
-      <div class="tool-card" data-tool="pdf2word"><span class="ico">📰</span><h3>PDF → Word</h3><p>Extract text into a .doc file</p></div>
+      <div class="tool-card" data-tool="pdf2word"><span class="ico">📰</span><h3>PDF → Word</h3><p>Keeps headings, bold &amp; layout — editable .doc</p></div>
       <div class="tool-card" data-tool="ocr"><span class="ico">🔍</span><h3>OCR (Scan → Text)</h3><p>Read text from scans / photos</p></div>
+    </div>
+  </div>
+
+  <div class="tools-section">
+    <h2 class="cat">🔓 Unlock &amp; Repair</h2>
+    <div class="tools-grid">
+      <div class="tool-card" data-tool="unlockpdf"><span class="ico">🔓</span><h3>Unlock PDF</h3><p>Remove a known password from a PDF</p></div>
+      <div class="tool-card" data-tool="unlockoffice"><span class="ico">🔐</span><h3>Unlock Word / Excel</h3><p>Remove sheet / edit protection</p></div>
+      <div class="tool-card" data-tool="repair"><span class="ico">🩹</span><h3>Repair File</h3><p>Recover a damaged PDF / Excel / Word</p></div>
+    </div>
+  </div>
+
+  <div class="tools-section">
+    <h2 class="cat">🖼️ Image Editing</h2>
+    <div class="tools-grid">
+      <div class="tool-card" data-tool="imgresize"><span class="ico">📏</span><h3>Image Resizer</h3><p>Resize by pixel, %, cm or inch</p></div>
+      <div class="tool-card" data-tool="imgenhance"><span class="ico">✨</span><h3>Image Enhancer</h3><p>Brighten, sharpen &amp; upscale photos</p></div>
     </div>
   </div>
 
@@ -231,7 +248,9 @@ meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
     mammoth:  "https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js",
     xlsx:     "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js",
     html2pdf: "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js",
-    jszip:    "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"
+    jszip:    "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js",
+    qpdfjs:   "https://cdn.jsdelivr.net/npm/@jspawn/qpdf-wasm@0.0.2/qpdf.js",
+    qpdfwasm: "https://cdn.jsdelivr.net/npm/@jspawn/qpdf-wasm@0.0.2/qpdf.wasm"
   };
   var PDFJS_WORKER = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
   var loaded = {};
@@ -328,7 +347,26 @@ meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
     word2pdf: { title:"Word → PDF",  accept:".docx",                multiple:false, hint:"Select a .docx Word file", btn:"Convert to PDF" },
     excel2pdf:{ title:"Excel → PDF", accept:".xlsx,.xls,.csv",      multiple:false, hint:"Select a .xlsx / .xls / .csv file", btn:"Convert to PDF" },
     pdf2word: { title:"PDF → Word",  accept:"application/pdf",      multiple:false, hint:"Select a text-based PDF file", btn:"Convert to Word" },
-    ocr:      { title:"OCR — Scan to Text", accept:"image/*,application/pdf", multiple:false, hint:"Select a scanned PDF or photo", btn:"Read text (OCR)" }
+    ocr:      { title:"OCR — Scan to Text", accept:"image/*,application/pdf", multiple:false, hint:"Select a scanned PDF or photo", btn:"Read text (OCR)" },
+    unlockpdf:{ title:"Unlock PDF", accept:"application/pdf", multiple:true, hint:"Select the password-protected PDF file(s)", btn:"Remove password",
+                opts:"<div class='opt-row'><label>Password:</label><input type='password' id='opt-pw' placeholder='The password that opens the PDF'><span class='hint'>Leave blank if the PDF only restricts editing/printing (no open password)</span></div>" },
+    unlockoffice:{ title:"Unlock Word / Excel", accept:".docx,.xlsx", multiple:true, hint:"Select protected .docx / .xlsx file(s)", btn:"Remove protection" },
+    repair:   { title:"Repair File", accept:".pdf,.xlsx,.xls,.csv,.docx", multiple:true, hint:"Select the damaged PDF / Excel / Word file(s)", btn:"Repair" },
+    imgresize:{ title:"Image Resizer", accept:"image/jpeg,image/png,image/webp", multiple:true, hint:"Select one or more images", btn:"Resize",
+                opts:"<div class='opt-row'><label>Resize by:</label><select id='opt-unit'><option value='px'>Pixels</option><option value='percent'>Percent %</option><option value='cm'>Centimeters</option><option value='inch'>Inches</option></select>"
+                   + "<label>Keep aspect ratio</label><input type='checkbox' id='opt-aspect' checked></div>"
+                   + "<div class='opt-row'><label>Width:</label><input type='number' id='opt-w' min='0' step='any' style='width:100px' placeholder='auto'>"
+                   + "<label>Height:</label><input type='number' id='opt-h' min='0' step='any' style='width:100px' placeholder='auto'>"
+                   + "<span class='hint' id='opt-unit-hint'>in pixels</span></div>"
+                   + "<div class='opt-row' id='opt-dpi-row' style='display:none'><label>DPI:</label><input type='number' id='opt-dpi' min='1' value='96' style='width:90px'><span class='hint'>dots per inch (96 = screen, 300 = print)</span></div>"
+                   + "<div class='opt-row'><label>Save as:</label><select id='opt-fmt2'><option value='auto'>Same as original</option><option value='image/jpeg'>JPG</option><option value='image/png'>PNG</option></select>"
+                   + "<label>JPG quality:</label><input type='range' id='opt-q' min='40' max='100' value='90' style='width:120px'><span class='hint' id='opt-q-val'>90%</span></div>" },
+    imgenhance:{ title:"Image Enhancer", accept:"image/jpeg,image/png,image/webp", multiple:true, hint:"Select one or more photos", btn:"Enhance",
+                opts:"<div class='opt-row'><label>Auto-levels (auto contrast)</label><input type='checkbox' id='opt-auto' checked><label>Sharpen</label><input type='checkbox' id='opt-sharp' checked></div>"
+                   + "<div class='opt-row'><label>Brightness:</label><input type='range' id='opt-bri' min='50' max='150' value='105' style='width:130px'><span class='hint' id='opt-bri-val'>105%</span>"
+                   + "<label>Contrast:</label><input type='range' id='opt-con' min='50' max='150' value='108' style='width:130px'><span class='hint' id='opt-con-val'>108%</span></div>"
+                   + "<div class='opt-row'><label>Saturation:</label><input type='range' id='opt-sat' min='50' max='150' value='110' style='width:130px'><span class='hint' id='opt-sat-val'>110%</span>"
+                   + "<label>Upscale 2×</label><input type='checkbox' id='opt-up'></div>" }
   };
 
   var current = null;     // current tool key
@@ -364,6 +402,7 @@ meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
       $("file-input").accept = t.accept;
       $("file-input").multiple = !!t.multiple;
       $("opt-area").innerHTML = t.opts || "";
+      wireOpts(key);
       $("go-btn").textContent = t.btn;
       $("go-btn").disabled = true;
       $("file-list").innerHTML = "";
@@ -371,6 +410,27 @@ meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
     }
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
+  // Live wiring for option controls that need it (slider labels, unit hints)
+  function wireOpts(key){
+    if (key === "imgresize"){
+      var unit = $("opt-unit"), hint = $("opt-unit-hint"), dpiRow = $("opt-dpi-row");
+      var labels = { px:"in pixels", percent:"as a percentage of the original", cm:"in centimeters", inch:"in inches" };
+      var sync = function(){
+        if (hint) hint.textContent = labels[unit.value] || "";
+        if (dpiRow) dpiRow.style.display = (unit.value === "cm" || unit.value === "inch") ? "" : "none";
+      };
+      if (unit){ unit.addEventListener("change", sync); sync(); }
+      var q = $("opt-q"), qv = $("opt-q-val");
+      if (q && qv){ q.addEventListener("input", function(){ qv.textContent = q.value + "%"; }); }
+    }
+    if (key === "imgenhance"){
+      [["opt-bri","opt-bri-val"],["opt-con","opt-con-val"],["opt-sat","opt-sat-val"]].forEach(function(pair){
+        var s = $(pair[0]), v = $(pair[1]);
+        if (s && v) s.addEventListener("input", function(){ v.textContent = s.value + "%"; });
+      });
+    }
+  }
+
   function closeTool(){
     $("workbench").className = "";
     $("app-area").innerHTML = "";
@@ -447,6 +507,91 @@ meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
       if (failed.length) msg += " ⚠️ Skipped " + failed.length + ": " + failed.join("; ");
       setStatus(msg, failed.length ? "info" : "ok");
     });
+  }
+
+  /* ---------- qpdf-wasm runner (true PDF unlock / repair, all in-browser) ----------
+     qpdf is a real PDF library compiled to WebAssembly. Each call spins a fresh
+     in-memory FS, writes the input, runs the CLI args, and reads the output. The
+     wasm binary is fetched once from the CDN (browser caches it). Non-zero exits
+     with NO output = real failure (surfaced); warnings that still produce output
+     (qpdf recovery mode) are treated as success. */
+  function runQpdf(args, inputs, outputName){
+    return loadLib("qpdfjs").then(function(){
+      var factory = window.Module;
+      if (typeof factory !== "function") throw new Error("PDF engine could not start. Check your connection and retry.");
+      var stderr = [];
+      return factory({
+        locateFile: function(){ return SRC.qpdfwasm; },
+        noInitialRun: true,
+        print: function(){},
+        printErr: function(t){ stderr.push(t); }
+      }).then(function(mod){
+        inputs.forEach(function(f){ mod.FS.writeFile(f.name, f.bytes); });
+        var code = 0;
+        try { code = mod.callMain(args); }
+        catch(e){ code = (e && e.status !== undefined) ? e.status : 1; }
+        var out = null;
+        try { out = mod.FS.readFile(outputName); } catch(e){}
+        return { code: code, out: out, stderr: stderr.join(" ") };
+      });
+    });
+  }
+
+  /* ---------- Image helpers (resize / enhance, canvas-only) ---------- */
+  function loadImage(file){
+    return new Promise(function(res, rej){
+      var url = URL.createObjectURL(file);
+      var img = new Image();
+      img.onload = function(){ URL.revokeObjectURL(url); res(img); };
+      img.onerror = function(){ URL.revokeObjectURL(url); rej(new Error("Could not open " + file.name + " — is it a valid image?")); };
+      img.src = url;
+    });
+  }
+  function canvasToBlob(canvas, type, quality){
+    return new Promise(function(res){ canvas.toBlob(function(b){ res(b); }, type, quality); });
+  }
+  // Last-resort PDF recovery: render whatever pdf.js can read into a fresh image PDF
+  function pdfRenderRecover(buf){
+    return loadLib("pdfjs").then(function(){ return loadLib("pdflib"); }).then(function(){
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER;
+      return window.pdfjsLib.getDocument({ data: buf }).promise;
+    }).then(function(pdf){
+      return PDFLib.PDFDocument.create().then(function(out){
+        var chain = Promise.resolve(), done = 0;
+        for (var p = 1; p <= pdf.numPages; p++){
+          (function(n){
+            chain = chain.then(function(){ return pdf.getPage(n); }).then(function(page){
+              var vp = page.getViewport({ scale: 2 });
+              var canvas = document.createElement("canvas");
+              canvas.width = vp.width; canvas.height = vp.height;
+              return page.render({ canvasContext: canvas.getContext("2d"), viewport: vp }).promise.then(function(){
+                return canvasToBlob(canvas, "image/jpeg", 0.9);
+              }).then(function(blob){ return blob.arrayBuffer(); }).then(function(ab){
+                return out.embedJpg(ab).then(function(img){
+                  var pg = out.addPage([img.width, img.height]);
+                  pg.drawImage(img, { x:0, y:0, width:img.width, height:img.height });
+                  done++;
+                });
+              });
+            });
+          })(p);
+        }
+        return chain.then(function(){
+          if (!done) throw new Error("file is too damaged to recover in the browser");
+          return out.save();
+        });
+      });
+    });
+  }
+  function addImageResult(blob, name, label, previewUrl){
+    var box = document.createElement("div"); box.className = "thumb";
+    box.innerHTML = "<img src='" + (previewUrl || URL.createObjectURL(blob)) + "'>";
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob); a.download = name; a.textContent = label;
+    box.appendChild(a);
+    var grid = $("results").querySelector(".thumb-grid");
+    if (!grid){ grid = document.createElement("div"); grid.className = "thumb-grid"; $("results").appendChild(grid); }
+    grid.appendChild(box);
   }
 
   /* ---------- File-tool handlers ---------- */
@@ -789,61 +934,123 @@ meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
         });
     },
 
+    /* PDF → Word that keeps formatting. pdf.js gives each text item its position,
+       font size and (via commonObjs after getOperatorList) whether its font is
+       bold/italic. We rebuild lines from baselines, group same-style runs, size
+       headings relative to the body's median size, detect centre/right alignment,
+       and emit Word-compatible HTML with inline styles. Falls back cleanly to a
+       scanned-PDF message when there is no selectable text. */
     pdf2word: function(){
-      setStatus("Extracting text…", "info");
+      setStatus("Reading PDF layout…", "info");
+      var esc = function(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); };
       return loadLib("pdfjs").then(function(){
         window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER;
         return readAsArrayBuffer(files[0]);
       }).then(function(buf){
         return window.pdfjsLib.getDocument({ data: buf }).promise;
       }).then(function(pdf){
-        var body = "";
+        var allSizes = [], pageBlocks = [];
         var chain = Promise.resolve();
         for (var p = 1; p <= pdf.numPages; p++){
           (function(n){
+            var pageRef;
             chain = chain.then(function(){ return pdf.getPage(n); }).then(function(page){
-              return page.getTextContent();
+              pageRef = page;
+              return page.getOperatorList();               // resolve fonts so commonObjs works
+            }).then(function(){
+              return pageRef.getTextContent();
             }).then(function(tc){
-              var esc = function(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); };
-              // Reconstruct lines from text-item positions. Each item is compared to the
-              // current line's baseline (not the previous item) with a small vertical
-              // tolerance, so super/subscripts (e.g. 10th, 26th) stay on the same line.
-              var lines = [], cur = [], baseY = null, lineH = 12, gaps = [];
+              var vw = pageRef.getViewport({ scale: 1 }).width;
+              var styleOf = {};
+              function fontStyle(fn){
+                if (styleOf[fn]) return styleOf[fn];
+                var b = false, it = false;
+                try {
+                  var f = pageRef.commonObjs.get(fn);
+                  var nm = (f && f.name) || "";
+                  b  = !!(f && f.bold)   || /bold|black|heavy|semibold/i.test(nm);
+                  it = !!(f && f.italic) || /italic|oblique/i.test(nm);
+                } catch(e){}
+                return (styleOf[fn] = { bold:b, italic:it });
+              }
+              var lines = [], cur = [], baseY = null, lineH = 12;
               tc.items.forEach(function(it){
                 if (typeof it.str !== "string") return;
-                var y = it.transform[5];
-                var h = it.height || Math.abs(it.transform[3]) || 12;
-                if (baseY === null){ baseY = y; lineH = h; cur.push(it.str); return; }
-                if (Math.abs(y - baseY) <= Math.max(4, lineH * 0.6)){
-                  cur.push(it.str);
-                  if (h > lineH) lineH = h;
-                } else {
-                  gaps.push(Math.abs(y - baseY));
-                  lines.push({ y: baseY, text: cur.join(" ").replace(/\s+/g," ").trim() });
-                  cur = [it.str]; baseY = y; lineH = h;
-                }
+                var y = it.transform[5], h = it.height || Math.abs(it.transform[3]) || 12;
+                var st = fontStyle(it.fontName);
+                var rec = { str: it.str, x: it.transform[4], w: it.width || 0, h: h, bold: st.bold, italic: st.italic };
+                if (baseY === null){ baseY = y; lineH = h; cur.push(rec); return; }
+                if (Math.abs(y - baseY) <= Math.max(4, lineH * 0.6)){ cur.push(rec); if (h > lineH) lineH = h; }
+                else { lines.push({ y: baseY, items: cur }); cur = [rec]; baseY = y; lineH = h; }
               });
-              if (cur.length) lines.push({ y: baseY, text: cur.join(" ").replace(/\s+/g," ").trim() });
-              gaps.sort(function(a,b){ return a - b; });
-              var med = gaps.length ? gaps[Math.floor(gaps.length/2)] : 14;
-              var prevY = null;
+              if (cur.length) lines.push({ y: baseY, items: cur });
               lines.forEach(function(ln){
-                if (!ln.text){ prevY = ln.y; return; }
-                if (/^\d+\s*\|\s*\d+(\s|$)/.test(ln.text)){ prevY = ln.y; return; } // strip "1 | 2 …" page header/footer
-                if (prevY !== null && (prevY - ln.y) > med * 1.7) body += "<p style='margin:0'>&nbsp;</p>";
-                body += "<p style='margin:0'>" + esc(ln.text) + "</p>";
-                prevY = ln.y;
+                ln.items.sort(function(a,b){ return a.x - b.x; });
+                var size = 0; ln.items.forEach(function(i){ if (i.h > size) size = i.h; });
+                ln.size = size || 12;
+                if (ln.items.length) allSizes.push(ln.size);
               });
-              if (n < pdf.numPages) body += "<p style='margin:0;page-break-after:always'>&nbsp;</p>";
-              setBar((n / pdf.numPages) * 100);
+              pageBlocks.push({ lines: lines, vw: vw });
+              setBar((n / pdf.numPages) * 60);
             });
           })(p);
         }
         return chain.then(function(){
+          allSizes.sort(function(a,b){ return a-b; });
+          var bodySize = allSizes.length ? allSizes[Math.floor(allSizes.length/2)] : 12;
+          var body = "";
+          pageBlocks.forEach(function(pb, pi){
+            var vw = pb.vw, prevY = null, gaps = [];
+            pb.lines.forEach(function(ln, i){ if (i>0) gaps.push(pb.lines[i-1].y - ln.y); });
+            gaps = gaps.filter(function(g){ return g > 0; }).sort(function(a,b){ return a-b; });
+            var medGap = gaps.length ? gaps[Math.floor(gaps.length/2)] : bodySize * 1.4;
+            pb.lines.forEach(function(ln){
+              var items = ln.items;
+              var raw = items.map(function(i){ return i.str; }).join("").replace(/\s+/g," ").trim();
+              if (!raw){ prevY = ln.y; return; }
+              if (/^\d+\s*\|\s*\d+(\s|$)/.test(raw)){ prevY = ln.y; return; } // page header/footer noise
+              // styled runs; separator space between runs rendered OUTSIDE the tags
+              var runs = [];
+              for (var k = 0; k < items.length; k++){
+                var it = items[k], sp = "";
+                if (k > 0){
+                  var prev = items[k-1];
+                  var gap = it.x - (prev.x + prev.w);
+                  var styleChanged = prev.bold !== it.bold || prev.italic !== it.italic;
+                  var hasWs = /\s$/.test(prev.str) || /^\s/.test(it.str);
+                  if (!hasWs && (gap > ln.size * 0.2 || (styleChanged && gap > -ln.size * 0.1))) sp = " ";
+                }
+                var last = runs[runs.length - 1];
+                if (last && last.bold === it.bold && last.italic === it.italic){ last.text += sp + it.str; }
+                else { runs.push({ bold: it.bold, italic: it.italic, sep: (last ? sp : ""), text: it.str }); }
+              }
+              var html = runs.map(function(r){
+                var m = /^(\s*)([\s\S]*?)(\s*)$/.exec(r.text);
+                var t = esc(m[2]);
+                if (m[2] && r.bold) t = "<b>" + t + "</b>";
+                if (m[2] && r.italic) t = "<i>" + t + "</i>";
+                return r.sep + m[1] + t + m[3];
+              }).join("").replace(/\s+/g," ").trim();
+              if (!html){ prevY = ln.y; return; }
+              var tag = "p";
+              if (ln.size >= bodySize * 1.7) tag = "h1";
+              else if (ln.size >= bodySize * 1.25) tag = "h2";
+              var first = items[0], lastIt = items[items.length-1];
+              var leftM = first.x, rightM = vw - (lastIt.x + lastIt.w), align = "left";
+              if (leftM > vw*0.12 && rightM > vw*0.12 && Math.abs(leftM - rightM) < vw*0.12) align = "center";
+              else if (leftM > vw*0.30 && rightM < vw*0.10) align = "right";
+              if (prevY !== null && (prevY - ln.y) > medGap * 1.7) body += "<p style='margin:0'>&nbsp;</p>";
+              var style = "margin:0;font-size:" + Math.round(ln.size) + "pt" + (align !== "left" ? ";text-align:" + align : "");
+              body += "<" + tag + " style='" + style + "'>" + html + "</" + tag + ">";
+              prevY = ln.y;
+            });
+            if (pi < pageBlocks.length - 1) body += "<p style='margin:0;page-break-after:always'>&nbsp;</p>";
+          });
+          setBar(100);
           if (!body.replace(/<[^>]+>/g,"").trim())
             throw new Error("No selectable text found — this looks like a scanned PDF. Use the OCR tool instead.");
           addResultLink(makeDoc(body), baseName(files[0].name)+".doc", "⬇ Download Word (.doc)");
-          setStatus("✅ Text extracted into a Word file.", "ok");
+          setStatus("✅ Converted to Word — headings, bold/italic and layout kept. Open in Word and fine-tune if needed.", "ok");
         });
       });
     },
@@ -894,6 +1101,307 @@ meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
           addResultLink(makeDoc(bodyHtml), baseName(files[0].name)+".doc", "⬇ Download Word (.doc)");
           setStatus("✅ OCR complete. Edit the text above if needed, then download.", "ok");
         });
+      }
+    },
+
+    unlockpdf: function(){
+      var pw = ($("opt-pw") && $("opt-pw").value) || "";
+      setStatus("Loading PDF engine (first run downloads ~1.3 MB)…", "info");
+      var ok = 0, failed = [];
+      return loadLib("pdflib").then(function(){
+        var chain = Promise.resolve();
+        files.forEach(function(f, i){
+          chain = chain.then(function(){
+            setBar((i / files.length) * 100);
+            setStatus("Removing password from " + f.name + "…", "info");
+            return readAsArrayBuffer(f).then(function(buf){
+              var bytes = new Uint8Array(buf);
+              return runQpdf(["--password=" + pw, "--decrypt", "in.pdf", "out.pdf"],
+                             [{ name:"in.pdf", bytes:bytes }], "out.pdf");
+            }).then(function(r){
+              if (!r.out){
+                if (/invalid password/i.test(r.stderr))
+                  throw new Error("wrong password — enter the exact password that opens this PDF");
+                throw new Error(r.stderr ? r.stderr.split("\n")[0] : "could not unlock");
+              }
+              // qpdf --decrypt on a non-encrypted file also succeeds; verify it now opens
+              return PDFLib.PDFDocument.load(r.out.buffer.slice(r.out.byteOffset, r.out.byteOffset + r.out.byteLength))
+                .then(function(){
+                  addResultLink(new Blob([r.out], {type:"application/pdf"}), baseName(f.name) + "-unlocked.pdf",
+                                "⬇ " + f.name + " → unlocked");
+                  ok++;
+                });
+            }).catch(function(err){ failed.push(f.name + " (" + (err.message || "failed") + ")"); });
+          });
+        });
+        return chain;
+      }).then(function(){
+        setBar(100);
+        if (!ok) throw new Error("Could not unlock — " + failed.join("; "));
+        var msg = "✅ " + ok + " PDF(s) unlocked.";
+        if (failed.length) msg += " ⚠️ Skipped " + failed.length + ": " + failed.join("; ");
+        setStatus(msg, failed.length ? "info" : "ok");
+      });
+    },
+
+    unlockoffice: function(){
+      setStatus("Removing protection…", "info");
+      var ok = 0, failed = [];
+      return loadLib("jszip").then(function(){
+        var chain = Promise.resolve();
+        files.forEach(function(f, i){
+          chain = chain.then(function(){
+            setBar((i / files.length) * 100);
+            return readAsArrayBuffer(f).then(function(buf){
+              var head = new Uint8Array(buf, 0, 4);
+              // Office Open XML files (.docx/.xlsx) are ZIPs → start with "PK". A file
+              // starting with the OLE/CFB magic (D0 CF 11 E0) is open-password ENCRYPTED
+              // — that can't be removed without the password and heavy crypto.
+              if (!(head[0] === 0x50 && head[1] === 0x4B)){
+                if (head[0] === 0xD0 && head[1] === 0xCF)
+                  throw new Error("this file is password-encrypted to OPEN — that can only be removed inside Word/Excel with the password");
+                throw new Error("not a .docx/.xlsx file");
+              }
+              return JSZip.loadAsync(buf);
+            }).then(function(zip){
+              var names = Object.keys(zip.files), removed = 0;
+              var subchain = Promise.resolve();
+              names.forEach(function(name){
+                if (!/\.xml$/i.test(name)) return;
+                subchain = subchain.then(function(){
+                  return zip.file(name).async("string").then(function(xml){
+                    var before = xml;
+                    xml = xml
+                      .replace(/<sheetProtection\b[^>]*\/>/g, "")
+                      .replace(/<sheetProtection\b[^>]*>[\s\S]*?<\/sheetProtection>/g, "")
+                      .replace(/<workbookProtection\b[^>]*\/>/g, "")
+                      .replace(/<workbookProtection\b[^>]*>[\s\S]*?<\/workbookProtection>/g, "")
+                      .replace(/<w:documentProtection\b[^>]*\/>/g, "")
+                      .replace(/<w:writeProtection\b[^>]*\/>/g, "");
+                    if (xml !== before){ removed++; zip.file(name, xml); }
+                  });
+                });
+              });
+              return subchain.then(function(){
+                if (!removed) throw new Error("no sheet/edit protection found in this file");
+                var isXlsx = /\.xlsx$/i.test(f.name);
+                var mime = isXlsx
+                  ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                  : "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+                return zip.generateAsync({ type:"blob", mimeType:mime }).then(function(blob){
+                  var ext = isXlsx ? ".xlsx" : ".docx";
+                  addResultLink(blob, baseName(f.name) + "-unlocked" + ext,
+                                "⬇ " + f.name + " → protection removed");
+                  ok++;
+                });
+              });
+            }).catch(function(err){ failed.push(f.name + " (" + (err.message || "failed") + ")"); });
+          });
+        });
+        return chain;
+      }).then(function(){
+        setBar(100);
+        if (!ok) throw new Error(failed.join("; "));
+        var msg = "✅ " + ok + " file(s) unlocked.";
+        if (failed.length) msg += " ⚠️ Skipped " + failed.length + ": " + failed.join("; ");
+        setStatus(msg, failed.length ? "info" : "ok");
+      });
+    },
+
+    repair: function(){
+      setStatus("Repairing…", "info");
+      var ok = 0, failed = [];
+      var chain = Promise.resolve();
+      files.forEach(function(f, i){
+        chain = chain.then(function(){
+          setBar((i / files.length) * 100);
+          setStatus("Repairing " + f.name + "…", "info");
+          var isPdf = /\.pdf$/i.test(f.name);
+          var isXls = /\.(xlsx|xls|csv)$/i.test(f.name);
+          var isDoc = /\.docx$/i.test(f.name);
+          return readAsArrayBuffer(f).then(function(buf){
+            if (isPdf){
+              // 1) pdf-lib load+resave rebuilds a clean cross-reference table and keeps
+              //    the text (fixes the common "bad xref / won't open" corruption).
+              // 2) If pdf-lib can't parse it, fall back to pdf.js (more tolerant): render
+              //    every page it can read and rebuild a fresh image-based PDF — the file
+              //    opens again, though text is no longer selectable.
+              return loadLib("pdflib").then(function(){
+                return PDFLib.PDFDocument.load(buf, { ignoreEncryption: true });
+              }).then(function(doc){
+                return doc.save().then(function(bytes){
+                  return PDFLib.PDFDocument.load(bytes).then(function(){ // sanity-check it now opens
+                    addResultLink(new Blob([bytes], {type:"application/pdf"}), baseName(f.name) + "-repaired.pdf",
+                                  "⬇ " + f.name + " → repaired (text kept)"); ok++;
+                  });
+                });
+              }).catch(function(){
+                setStatus("Deep-recovering " + f.name + " (rebuilding from page images)…", "info");
+                return pdfRenderRecover(buf).then(function(bytes){
+                  addResultLink(new Blob([bytes], {type:"application/pdf"}), baseName(f.name) + "-recovered.pdf",
+                                "⬇ " + f.name + " → recovered (as images)"); ok++;
+                });
+              });
+            }
+            if (isXls){
+              return loadLib("xlsx").then(function(){
+                var wb = window.XLSX.read(buf, { type:"array" });
+                var out = window.XLSX.write(wb, { bookType:"xlsx", type:"array" });
+                addResultLink(new Blob([out], {type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}),
+                              baseName(f.name) + "-repaired.xlsx", "⬇ " + f.name + " → repaired"); ok++;
+              });
+            }
+            if (isDoc){
+              return loadLib("mammoth").then(function(){
+                return window.mammoth.convertToHtml({ arrayBuffer: buf });
+              }).then(function(res){
+                addResultLink(makeDoc(res.value || "<p>(no recoverable content)</p>"),
+                              baseName(f.name) + "-repaired.doc", "⬇ " + f.name + " → recovered (.doc)"); ok++;
+              });
+            }
+            throw new Error("unsupported file type");
+          }).catch(function(err){ failed.push(f.name + " (" + (err.message || "failed") + ")"); });
+        });
+      });
+      return chain.then(function(){
+        setBar(100);
+        if (!ok) throw new Error("Could not repair — " + failed.join("; "));
+        var msg = "✅ " + ok + " file(s) repaired.";
+        if (failed.length) msg += " ⚠️ Skipped " + failed.length + ": " + failed.join("; ");
+        setStatus(msg + " Always open the result and check it.", failed.length ? "info" : "ok");
+      });
+    },
+
+    imgresize: function(){
+      var unit = ($("opt-unit") && $("opt-unit").value) || "px";
+      var wIn  = parseFloat($("opt-w") && $("opt-w").value);
+      var hIn  = parseFloat($("opt-h") && $("opt-h").value);
+      var keep = $("opt-aspect") && $("opt-aspect").checked;
+      var dpi  = parseFloat($("opt-dpi") && $("opt-dpi").value) || 96;
+      var fmt  = ($("opt-fmt2") && $("opt-fmt2").value) || "auto";
+      var q    = (parseInt($("opt-q") && $("opt-q").value, 10) || 90) / 100;
+      if ((isNaN(wIn) || wIn <= 0) && (isNaN(hIn) || hIn <= 0)){
+        setStatus("Enter a width and/or a height.", "err"); return;
+      }
+      setStatus("Resizing…", "info");
+      var toPx = function(v){
+        if (isNaN(v) || v <= 0) return 0;
+        if (unit === "cm")   return v / 2.54 * dpi;
+        if (unit === "inch") return v * dpi;
+        return v; // px (percent handled per-image)
+      };
+      var chain = Promise.resolve(), ok = 0;
+      files.forEach(function(f){
+        chain = chain.then(function(){ return loadImage(f); }).then(function(img){
+          var ow = img.naturalWidth, oh = img.naturalHeight, tw, th;
+          if (unit === "percent"){
+            var scale = (wIn || hIn) / 100;
+            tw = Math.round(ow * scale); th = Math.round(oh * scale);
+          } else {
+            tw = toPx(wIn); th = toPx(hIn);
+            if (keep){
+              if (tw && !th) th = tw * oh / ow;
+              else if (th && !tw) tw = th * ow / oh;
+              else if (tw && th){ var r = Math.min(tw/ow, th/oh); tw = ow*r; th = oh*r; }
+            } else {
+              if (!tw) tw = ow; if (!th) th = oh;
+            }
+            tw = Math.round(tw); th = Math.round(th);
+          }
+          if (tw < 1 || th < 1){ throw new Error("resize target too small"); }
+          var canvas = document.createElement("canvas");
+          canvas.width = tw; canvas.height = th;
+          var ctx = canvas.getContext("2d");
+          ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
+          ctx.drawImage(img, 0, 0, tw, th);
+          var isPng = /\.png$/i.test(f.name) || /png/i.test(f.type);
+          var outType = fmt === "auto" ? (isPng ? "image/png" : "image/jpeg") : fmt;
+          var ext = outType === "image/png" ? ".png" : ".jpg";
+          return canvasToBlob(canvas, outType, outType === "image/jpeg" ? q : undefined).then(function(blob){
+            addImageResult(blob, baseName(f.name) + "-" + tw + "x" + th + ext,
+                           "⬇ " + tw + "×" + th + " (" + Math.round(blob.size/1024) + " KB)");
+            ok++;
+          });
+        });
+      });
+      return chain.then(function(){ setStatus("✅ " + ok + " image(s) resized. Click each to save.", "ok"); });
+    },
+
+    imgenhance: function(){
+      var doAuto  = $("opt-auto") && $("opt-auto").checked;
+      var doSharp = $("opt-sharp") && $("opt-sharp").checked;
+      var doUp    = $("opt-up") && $("opt-up").checked;
+      var bri = (parseInt($("opt-bri") && $("opt-bri").value,10) || 100) / 100;
+      var con = (parseInt($("opt-con") && $("opt-con").value,10) || 100) / 100;
+      var sat = (parseInt($("opt-sat") && $("opt-sat").value,10) || 100) / 100;
+      setStatus("Enhancing…", "info");
+      var chain = Promise.resolve(), ok = 0;
+      files.forEach(function(f){
+        chain = chain.then(function(){ return loadImage(f); }).then(function(img){
+          var ow = img.naturalWidth, oh = img.naturalHeight;
+          var scale = doUp ? 2 : 1;
+          var w = ow * scale, h = oh * scale;
+          var canvas = document.createElement("canvas");
+          canvas.width = w; canvas.height = h;
+          var ctx = canvas.getContext("2d");
+          ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
+          // brightness/contrast/saturation via canvas filter (supported in all modern browsers)
+          ctx.filter = "brightness(" + bri + ") contrast(" + con + ") saturate(" + sat + ")";
+          ctx.drawImage(img, 0, 0, w, h);
+          ctx.filter = "none";
+          var imgData = ctx.getImageData(0, 0, w, h);
+          if (doAuto) autoLevels(imgData.data);
+          if (doSharp) imgData = unsharp(imgData, w, h);
+          ctx.putImageData(imgData, 0, 0);
+          var isPng = /\.png$/i.test(f.name) || /png/i.test(f.type);
+          var outType = isPng ? "image/png" : "image/jpeg";
+          var ext = isPng ? ".png" : ".jpg";
+          return canvasToBlob(canvas, outType, isPng ? undefined : 0.92).then(function(blob){
+            addImageResult(blob, baseName(f.name) + "-enhanced" + ext,
+                           "⬇ enhanced " + w + "×" + h + " (" + Math.round(blob.size/1024) + " KB)");
+            ok++;
+          });
+        });
+      });
+      return chain.then(function(){ setStatus("✅ " + ok + " image(s) enhanced. Click each to save.", "ok"); });
+
+      // Per-channel histogram stretch (2%–98% percentile) for automatic contrast
+      function autoLevels(d){
+        for (var c = 0; c < 3; c++){
+          var hist = new Uint32Array(256), total = 0, i;
+          for (i = c; i < d.length; i += 4){ hist[d[i]]++; total++; }
+          var lo = 0, hi = 255, acc = 0, loCut = total * 0.02, hiCut = total * 0.98;
+          for (i = 0; i < 256; i++){ acc += hist[i]; if (acc >= loCut){ lo = i; break; } }
+          acc = 0; for (i = 0; i < 256; i++){ acc += hist[i]; if (acc >= hiCut){ hi = i; break; } }
+          if (hi <= lo) continue;
+          var sc = 255 / (hi - lo);
+          for (i = c; i < d.length; i += 4){
+            var v = (d[i] - lo) * sc; d[i] = v < 0 ? 0 : v > 255 ? 255 : v;
+          }
+        }
+      }
+      // 3×3 unsharp mask (sharpen)
+      function unsharp(imgData, w, h){
+        var src = imgData.data, out = new Uint8ClampedArray(src.length);
+        var k = [0,-1,0,-1,5,-1,0,-1,0];
+        for (var y = 0; y < h; y++){
+          for (var x = 0; x < w; x++){
+            var oi = (y * w + x) * 4;
+            for (var c = 0; c < 3; c++){
+              var sum = 0, ki = 0;
+              for (var dy = -1; dy <= 1; dy++){
+                for (var dx = -1; dx <= 1; dx++){
+                  var yy = Math.min(h-1, Math.max(0, y+dy));
+                  var xx = Math.min(w-1, Math.max(0, x+dx));
+                  sum += src[(yy*w+xx)*4 + c] * k[ki++];
+                }
+              }
+              out[oi+c] = sum;
+            }
+            out[oi+3] = src[oi+3];
+          }
+        }
+        return new ImageData(out, w, h);
       }
     }
   };
