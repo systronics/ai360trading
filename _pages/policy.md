@@ -34,6 +34,9 @@ permalink: /policy/
       <li><strong>Do Not Track:</strong> We respect browser Do Not Track signals where applicable.</li>
     </ul>
 
+    <h3>Affiliate & Referral Disclosure</h3>
+    <p>Some links on this website (for example, links to open a demat or trading account, or to broker/exchange platforms) are <strong>affiliate or referral links</strong>. If you sign up or make a purchase through them, AI360Trading may earn a small commission <strong>at no additional cost to you</strong>. We only recommend products and services we believe are genuinely useful, and a referral relationship never changes our honest assessment. This is educational information, not investment advice.</p>
+
     <h3>Data Retention</h3>
     <p>We do not store personal data on our servers. Email correspondence is retained for up to 12 months. Any data collected by third-party services is subject to their respective privacy policies.</p>
 

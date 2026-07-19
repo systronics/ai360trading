@@ -158,6 +158,12 @@ GROWTH_PLAYBOOK.md
 tradingview/
 *.pine
 
+# PAID digital products — the sellable files stay PC-local so they are NOT
+# free on the public site/repo. Open products/*.html locally → Print → Save as
+# PDF → upload to Gumroad. Only the sales PAGE (_pages/stock-market-starter-kit.html)
+# is public; the product file itself is not.
+products/
+
 # ============================================================
 # EXPLICITLY TRACKED — DO NOT IGNORE
 # ============================================================

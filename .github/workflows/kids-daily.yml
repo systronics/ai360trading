@@ -23,10 +23,17 @@ on:
         options:
           - hi
           - en
-  schedule:
-    # Audience-aligned, staggered so the channel never gets two uploads at once.
-    - cron: '30 10 * * *'  # 16:00 IST → live ~16:40 IST = India kids' after-school/evening peak (Hindi)
-    - cron: '0 19 * * *'   # 19:00 UTC = 15:00 US-ET / 12:00 US-PT / 20:00 UK → US/UK after-school peak (English)
+  # ── PAUSED 2026-07-19 (owner decision) ─────────────────────────────────────
+  # HerooQuest is mothballed as an income project: it is flagged made-for-kids
+  # (comments disabled → money funnel can't be posted, lowest ad RPM, no
+  # memberships) and its audience can't open demat/buy membership, so it cannot
+  # feed the income model. Effort redirected to the website money engine.
+  # The daily auto-run is OFF; the workflow stays runnable MANUALLY (Actions →
+  # this workflow → "Run workflow") if it's ever wanted as a hobby. To fully
+  # resume, un-comment the two cron lines below.
+  # schedule:
+  #   - cron: '30 10 * * *'  # 16:00 IST (Hindi)
+  #   - cron: '0 19 * * *'   # 19:00 UTC (English)
 
 jobs:
 

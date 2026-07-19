@@ -1,0 +1,24 @@
+{%- comment -%}
+  AD SLOT — ready for an AdSense ALTERNATIVE (Adsterra / Media.net / Ezoic).
+  It stays COMPLETELY INVISIBLE until ads are switched on, so the live site
+  looks clean today (no empty grey boxes).
+
+  ONE-TIME ACTIVATION (after you sign up with an ad network):
+    1. In _config.yml set:   ads_active: true
+    2. Paste your network's ad code between the two marked lines below.
+    3. Commit + push. Every ad slot on the site goes live.
+
+  Place a slot on any page (outside a raw block) with a Liquid include of
+  "adslot.html". An optional label can be passed, e.g. label="Advertisement".
+  See _pages/best-demat-account-india.html for a working example.
+{%- endcomment -%}
+{%- if site.ads_active -%}
+<div class="ad-slot" style="margin:22px auto;max-width:728px;text-align:center;">
+  <div style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#b6bfc9;margin-bottom:4px;">{{ include.label | default: "Sponsored" }}</div>
+  <div style="min-height:90px;display:flex;align-items:center;justify-content:center;">
+    <!-- ===================== PASTE AD NETWORK CODE BELOW ===================== -->
+
+    <!-- ===================== PASTE AD NETWORK CODE ABOVE ===================== -->
+  </div>
+</div>
+{%- endif -%}

@@ -16,6 +16,11 @@ encoding: "utf-8"
 google_site_verification: "2yLD14QlM9ElbyiFZO_pUf-hTO09aCQEinK5LqD8Bpk"
 social_image: "/public/image/header.webp"
 
+# Ad network switch — keep FALSE until you sign up for an AdSense alternative
+# (Adsterra / Media.net / Ezoic). When true, the {% include adslot.html %} slots
+# become visible. See _includes/adslot.html for where to paste your ad code.
+ads_active: false
+
 # Author Information
 author:
   name: "Amit Kumar"
