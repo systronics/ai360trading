@@ -148,7 +148,7 @@ meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
       <div class="tool-card" data-tool="img2pdf"><span class="ico">🖼️</span><h3>Image → PDF</h3><p>JPG / PNG photos into one PDF</p></div>
       <div class="tool-card" data-tool="pdf2img"><span class="ico">📄</span><h3>PDF → Image</h3><p>Save each PDF page as PNG</p></div>
       <div class="tool-card" data-tool="merge"><span class="ico">🔗</span><h3>Merge PDF</h3><p>Combine many PDFs into one</p></div>
-      <div class="tool-card" data-tool="split"><span class="ico">✂️</span><h3>Split / Extract</h3><p>Pull out chosen pages</p></div>
+      <div class="tool-card" data-tool="split"><span class="ico">✂️</span><h3>Split / Extract</h3><p>Each page as its own PDF — download singly or as ZIP</p></div>
       <div class="tool-card" data-tool="rotate"><span class="ico">🔄</span><h3>Rotate PDF</h3><p>Turn pages 90° / 180° / 270°</p></div>
       <div class="tool-card" data-tool="delpages"><span class="ico">🗑️</span><h3>Delete Pages</h3><p>Remove unwanted pages</p></div>
       <div class="tool-card" data-tool="addreplace"><span class="ico">📥</span><h3>Add / Replace Page</h3><p>Insert or swap a page in many PDFs</p></div>
@@ -230,7 +230,8 @@ meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
     tesseract:"https://cdn.jsdelivr.net/npm/tesseract.js@5.1.0/dist/tesseract.min.js",
     mammoth:  "https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js",
     xlsx:     "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js",
-    html2pdf: "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"
+    html2pdf: "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js",
+    jszip:    "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"
   };
   var PDFJS_WORKER = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
   var loaded = {};
@@ -304,7 +305,8 @@ meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
     pdf2img:  { title:"PDF → Image", accept:"application/pdf",      multiple:false, hint:"Select a PDF file", btn:"Convert to images" },
     merge:    { title:"Merge PDF",   accept:"application/pdf",      multiple:true,  hint:"Select 2 or more PDF files (in the order you want)", btn:"Merge PDFs" },
     split:    { title:"Split / Extract Pages", accept:"application/pdf", multiple:true, hint:"Select one or more PDF files", btn:"Extract pages",
-                opts:"<div class='opt-row'><label>Pages:</label><input type='text' id='opt-range' placeholder='e.g. 1-3,5'><span class='hint'>Applied to every selected file. Leave blank for all pages</span></div>" },
+                opts:"<div class='opt-row'><label>Pages:</label><input type='text' id='opt-range' placeholder='e.g. 1-3,5'><span class='hint'>Applied to every selected file. Leave blank for all pages</span></div>"
+                   + "<div class='opt-row'><label>Output:</label><select id='opt-split-mode'><option value='separate'>One PDF per page (+ ZIP of all)</option><option value='single'>All selected pages in ONE PDF</option></select></div>" },
     rotate:   { title:"Rotate PDF",  accept:"application/pdf",      multiple:false, hint:"Select a PDF file", btn:"Rotate PDF",
                 opts:"<div class='opt-row'><label>Turn by:</label><select id='opt-angle'><option value='90'>90° right</option><option value='180'>180°</option><option value='270'>90° left</option></select></div>" },
     delpages: { title:"Delete Pages", accept:"application/pdf",     multiple:true, hint:"Select one or more PDF files", btn:"Delete pages",
@@ -533,22 +535,64 @@ meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
 
     split: function(){
       setStatus("Extracting…", "info");
-      var rangeStr;
+      var rangeStr, mode, zipEntries = [];
       return loadLib("pdflib").then(function(){
         rangeStr = (($("opt-range") && $("opt-range").value) || "").trim();
+        mode = (($("opt-split-mode") && $("opt-split-mode").value) || "separate");
         return batchPdf(function(src, f){
           var total = src.getPageCount();
           var idx = rangeStr ? parseRange(rangeStr, total) : src.getPageIndices();
           if (!idx.length) throw new Error("no valid pages in “" + rangeStr + "” — file has " + total + " page(s)");
-          return PDFLib.PDFDocument.create().then(function(out){
-            return out.copyPages(src, idx).then(function(pages){
-              pages.forEach(function(pg){ out.addPage(pg); });
-              return out.save();
+
+          if (mode === "single"){
+            // Old behavior: all selected pages of this file into one PDF
+            return PDFLib.PDFDocument.create().then(function(out){
+              return out.copyPages(src, idx).then(function(pages){
+                pages.forEach(function(pg){ out.addPage(pg); });
+                return out.save();
+              });
+            }).then(function(bytes){
+              addResultLink(new Blob([bytes], {type:"application/pdf"}), baseName(f.name) + "-extract.pdf",
+                            "⬇ " + f.name + " → " + idx.length + " page(s)");
             });
-          }).then(function(bytes){
-            addResultLink(new Blob([bytes], {type:"application/pdf"}), baseName(f.name) + "-extract.pdf",
-                          "⬇ " + f.name + " → " + idx.length + " page(s)");
+          }
+
+          // Default: one PDF per page, each downloadable + collected for the ZIP
+          var chain = Promise.resolve();
+          idx.forEach(function(pageIdx){
+            chain = chain.then(function(){
+              return PDFLib.PDFDocument.create().then(function(out){
+                return out.copyPages(src, [pageIdx]).then(function(pages){
+                  out.addPage(pages[0]);
+                  return out.save();
+                });
+              }).then(function(bytes){
+                var name = baseName(f.name) + "-page-" + (pageIdx + 1) + ".pdf";
+                addResultLink(new Blob([bytes], {type:"application/pdf"}), name,
+                              "⬇ " + f.name + " → page " + (pageIdx + 1));
+                zipEntries.push({ name: name, bytes: bytes });
+              });
+            });
           });
+          return chain;
+        });
+      }).then(function(){
+        // Offer everything in one ZIP when we produced 2+ separate page PDFs
+        if (mode !== "separate" || zipEntries.length < 2) return;
+        return loadLib("jszip").then(function(){
+          var zip = new JSZip();
+          zipEntries.forEach(function(e){ zip.file(e.name, e.bytes); });
+          return zip.generateAsync({ type: "blob" });
+        }).then(function(blob){
+          var a = document.createElement("a");
+          var url = URL.createObjectURL(blob);
+          a.href = url; a.download = "extracted-pages.zip"; a.className = "dl";
+          a.style.fontWeight = "800";
+          a.textContent = "📦 Download ALL " + zipEntries.length + " pages as ZIP";
+          $("results").insertBefore(a, $("results").firstChild);
+        }).catch(function(){
+          // ZIP is a convenience — individual page links above still work
+          setStatus("✅ Pages ready below. (ZIP could not be built — download pages one by one.)", "info");
         });
       });
     },
