@@ -1,0 +1,141 @@
+---
+layout: default
+title: "PPF Calculator 2026 — Public Provident Fund Maturity &amp; Interest (Free) | AI360Trading"
+description: "Free PPF calculator: find your Public Provident Fund maturity amount, total interest and invested amount. Enter yearly deposit, interest rate and tenure — instant, private result."
+permalink: /tools/ppf-calculator/
+canonical: https://ai360trading.in/tools/ppf-calculator/
+meta-og:title: "PPF Calculator — Maturity &amp; Interest"
+meta-og:description: "Calculate your PPF maturity amount and total interest instantly. Free and private."
+meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
+---
+
+{% raw %}
+<style>
+  .calc-hero{text-align:center;margin-bottom:22px;padding:24px 18px;background:linear-gradient(135deg,#eef4ff,#f0f7ff);border-radius:14px}
+  .calc-hero h1{margin:0 0 6px;font-size:26px;font-weight:900;color:#1e293b}
+  .calc-hero p{margin:0;color:#475569;font-size:14px}
+  .calc-wrap{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin:22px 0}
+  .calc-card{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:24px;box-shadow:0 4px 14px rgba(0,0,0,.05)}
+  .calc-field{margin:16px 0}
+  .calc-field label{display:block;font-weight:700;font-size:13px;color:#334155;margin-bottom:6px}
+  .calc-field input{width:100%;padding:11px 13px;border:1px solid #cbd5e0;border-radius:9px;font-size:15px}
+  .res-big{font-size:34px;font-weight:900;color:#0062ff;margin:4px 0 2px}
+  .res-sub{font-size:13px;color:#64748b;margin-bottom:18px}
+  .res-row{display:flex;justify-content:space-between;padding:10px 0;border-top:1px solid #eef2f7;font-size:14px;color:#334155}
+  .res-row b{color:#0f172a}
+  .bar{display:flex;height:16px;border-radius:50px;overflow:hidden;margin:18px 0 8px}
+  .bar i{display:block;height:100%}
+  .legend{display:flex;gap:18px;font-size:12px;color:#64748b}
+  .legend span{display:flex;align-items:center;gap:6px}
+  .dot{width:11px;height:11px;border-radius:3px;display:inline-block}
+  .calc-body{margin:30px 0;font-size:15px;line-height:1.7;color:#334155}
+  .calc-body h2{font-size:20px;font-weight:800;color:#0f172a;margin:26px 0 10px}
+  .calc-body h3{font-size:16px;font-weight:800;color:#0f172a;margin:18px 0 6px}
+  .faq dt{font-weight:800;color:#0f172a;margin-top:14px}
+  .faq dd{margin:4px 0 0;color:#475569}
+  .calc-cta{margin:26px 0;padding:20px;background:#f0f7ff;border:1px solid #bfdbfe;border-radius:12px;text-align:center}
+  .calc-cta a{display:inline-block;margin:6px;background:#0088cc;color:#fff!important;text-decoration:none;padding:10px 22px;border-radius:50px;font-weight:800;font-size:14px}
+  .calc-cta a.alt{background:#0062ff}
+  .more-tools{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0}
+  .more-tools a{background:#f1f5f9;color:#0062ff!important;text-decoration:none;padding:8px 16px;border-radius:50px;font-weight:700;font-size:13px;border:1px solid #e2e8f0}
+  .disc{font-size:12px;color:#94a3b8;text-align:center;margin-top:18px;line-height:1.6}
+  @media(max-width:760px){.calc-wrap{grid-template-columns:1fr}}
+</style>
+
+<div class="calc-hero">
+  <h1>🏛️ PPF Calculator</h1>
+  <p>Estimate your Public Provident Fund maturity amount and total interest.</p>
+</div>
+
+<div class="calc-wrap">
+  <div class="calc-card">
+    <div class="calc-field"><label>Yearly Investment (₹)</label><input type="number" id="amt" value="150000" min="500" max="150000"></div>
+    <div class="calc-field"><label>Interest Rate (% per year)</label><input type="number" id="rate" value="7.1" step="0.1" min="0"></div>
+    <div class="calc-field"><label>Time Period (years)</label><input type="number" id="years" value="15" min="15" max="50"></div>
+  </div>
+  <div class="calc-card">
+    <div class="res-sub">Maturity value</div>
+    <div class="res-big" id="r-mat">₹0</div>
+    <div class="bar"><i id="bp" style="background:#0062ff"></i><i id="bi" style="background:#22c55e"></i></div>
+    <div class="legend"><span><i class="dot" style="background:#0062ff"></i>Invested</span><span><i class="dot" style="background:#22c55e"></i>Interest</span></div>
+    <div class="res-row">Total invested <b id="r-inv">₹0</b></div>
+    <div class="res-row">Total interest earned <b id="r-int">₹0</b></div>
+    <div class="res-row">Maturity amount <b id="r-tot">₹0</b></div>
+  </div>
+</div>
+
+<div class="calc-cta">
+  <p style="margin:0 0 12px;font-size:14px;color:#1e3a5f">📈 Want your money to grow faster than PPF? Learn about mutual funds &amp; stocks — free on Telegram.</p>
+  <a href="https://t.me/ai360trading" target="_blank" rel="noopener">📣 Join Free Telegram</a>
+  <a class="alt" href="/how-to-start-investing-india/">How to Start Investing →</a>
+</div>
+
+<div class="calc-body">
+  <h2>What is PPF?</h2>
+  <p>The <b>Public Provident Fund (PPF)</b> is a government-backed, long-term savings scheme in India with a 15-year lock-in. It is popular because the interest is tax-free, your money is completely safe, and deposits qualify for tax deduction under Section 80C.</p>
+  <p>You can invest between ₹500 and ₹1.5 lakh per financial year. Interest is compounded yearly, and the rate is set by the government each quarter (currently around 7.1%).</p>
+
+  <h3>Why people use PPF</h3>
+  <p>It's one of the safest ways to build a tax-free corpus for long-term goals like retirement or a child's education. The trade-off is lower returns than equity and a long lock-in — so many people use PPF for the "safe" part of their savings and mutual funds for growth.</p>
+
+  <h2 style="margin-top:28px">Frequently Asked Questions</h2>
+  <dl class="faq">
+    <dt>What is the current PPF interest rate?</dt>
+    <dd>The government revises it every quarter. It has recently been around 7.1% per year. Always check the latest rate at your bank or post office — this calculator lets you enter any rate.</dd>
+    <dt>Is PPF interest tax-free?</dt>
+    <dd>Yes. PPF falls under the EEE (Exempt-Exempt-Exempt) category — your deposit, the interest, and the maturity amount are all tax-free, and deposits qualify under Section 80C.</dd>
+    <dt>Can I withdraw before 15 years?</dt>
+    <dd>PPF has a 15-year lock-in. Partial withdrawals are allowed from the 7th year, and loans against it are available earlier, subject to rules.</dd>
+  </dl>
+
+  <h3>More free calculators</h3>
+  <div class="more-tools">
+    <a href="/tools/fd-calculator/">FD Calculator</a>
+    <a href="/tools/rd-calculator/">RD Calculator</a>
+    <a href="/tools/sip-calculator/">SIP Calculator</a>
+    <a href="/tools/">All Tools →</a>
+  </div>
+</div>
+
+<p class="disc">⚠️ This calculator is for educational and estimation purposes only. PPF rates are set by the government and change quarterly; confirm the current rate before relying on the result. Not financial advice.</p>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"What is the current PPF interest rate?","acceptedAnswer":{"@type":"Answer","text":"The government revises it every quarter. It has recently been around 7.1 percent per year. Always check the latest rate at your bank or post office."}},
+{"@type":"Question","name":"Is PPF interest tax-free?","acceptedAnswer":{"@type":"Answer","text":"Yes. PPF is in the Exempt-Exempt-Exempt category. Your deposit, the interest and the maturity amount are all tax-free, and deposits qualify under Section 80C."}},
+{"@type":"Question","name":"Can I withdraw PPF before 15 years?","acceptedAnswer":{"@type":"Answer","text":"PPF has a 15-year lock-in. Partial withdrawals are allowed from the 7th year, and loans against it are available earlier, subject to rules."}}
+]}
+</script>
+
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id);};
+  function inr(n){return '₹'+Math.round(n).toLocaleString('en-IN');}
+  function calc(){
+    var A=parseFloat($("amt").value)||0;
+    var i=(parseFloat($("rate").value)||0)/100;
+    var n=parseFloat($("years").value)||0;
+    // yearly deposit at start of each year, compounded annually (annuity-due)
+    var mat=i===0 ? A*n : A*((Math.pow(1+i,n)-1)/i)*(1+i);
+    var invested=A*n;
+    var interest=mat-invested;
+    $("r-mat").textContent=inr(mat);
+    $("r-inv").textContent=inr(invested);
+    $("r-int").textContent=inr(interest);
+    $("r-tot").textContent=inr(mat);
+    var pPct=mat>0?(invested/mat*100):100;
+    $("bp").style.width=pPct+'%'; $("bi").style.width=(100-pPct)+'%';
+  }
+  ["amt","rate","years"].forEach(function(id){$(id).addEventListener("input",calc);});
+  calc();
+})();
+</script>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[
+{"@type":"ListItem","position":1,"name":"Home","item":"https://ai360trading.in/"},
+{"@type":"ListItem","position":2,"name":"Tools","item":"https://ai360trading.in/tools/"},
+{"@type":"ListItem","position":3,"name":"PPF Calculator","item":"https://ai360trading.in/tools/ppf-calculator/"}
+]}
+</script>
+{% endraw %}

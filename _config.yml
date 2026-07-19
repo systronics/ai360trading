@@ -60,20 +60,17 @@ include:
 #   REMOVED: generate_analysis.py (deleted from repo)
 #   REMOVED: generate_community_post.py (deleted from repo)
 #   REMOVED: upload_instagram.py (actually deleted 2026-06-03 — orphaned, IG auto never wired)
-#   ADDED: kids_content_calendar.py (new file, must be excluded)
+# 2026-07-19: kids channel (HerooQuest) removed entirely — kids py files deleted.
 exclude:
   - generate_articles.py
   - generate_education.py
   - generate_reel.py
   - generate_reel_morning.py
   - generate_shorts.py
-  - generate_kids_video.py
   - generate_english_short.py
   - content_calendar.py
-  - kids_content_calendar.py
   - trending_keywords.py
   - upload_youtube.py
-  - upload_kids_youtube.py
   - upload_facebook.py
   - trading_bot.py
   - ai_client.py

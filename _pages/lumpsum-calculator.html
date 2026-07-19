@@ -1,0 +1,141 @@
+---
+layout: default
+title: "Lumpsum Calculator — Mutual Fund One-Time Investment Returns (Free) | AI360Trading"
+description: "Free lumpsum calculator: see how a one-time mutual fund or stock investment grows over time with compounding. Enter amount, expected return and years — instant result."
+permalink: /tools/lumpsum-calculator/
+canonical: https://ai360trading.in/tools/lumpsum-calculator/
+meta-og:title: "Lumpsum Calculator — One-Time Investment Growth"
+meta-og:description: "See how a one-time investment grows with compounding. Free, fast and private."
+meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
+---
+
+{% raw %}
+<style>
+  .calc-hero{text-align:center;margin-bottom:22px;padding:24px 18px;background:linear-gradient(135deg,#eef4ff,#f0f7ff);border-radius:14px}
+  .calc-hero h1{margin:0 0 6px;font-size:26px;font-weight:900;color:#1e293b}
+  .calc-hero p{margin:0;color:#475569;font-size:14px}
+  .calc-wrap{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin:22px 0}
+  .calc-card{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:24px;box-shadow:0 4px 14px rgba(0,0,0,.05)}
+  .calc-field{margin:16px 0}
+  .calc-field label{display:block;font-weight:700;font-size:13px;color:#334155;margin-bottom:6px}
+  .calc-field input{width:100%;padding:11px 13px;border:1px solid #cbd5e0;border-radius:9px;font-size:15px}
+  .res-big{font-size:34px;font-weight:900;color:#0062ff;margin:4px 0 2px}
+  .res-sub{font-size:13px;color:#64748b;margin-bottom:18px}
+  .res-row{display:flex;justify-content:space-between;padding:10px 0;border-top:1px solid #eef2f7;font-size:14px;color:#334155}
+  .res-row b{color:#0f172a}
+  .bar{display:flex;height:16px;border-radius:50px;overflow:hidden;margin:18px 0 8px}
+  .bar i{display:block;height:100%}
+  .legend{display:flex;gap:18px;font-size:12px;color:#64748b}
+  .legend span{display:flex;align-items:center;gap:6px}
+  .dot{width:11px;height:11px;border-radius:3px;display:inline-block}
+  .calc-body{margin:30px 0;font-size:15px;line-height:1.7;color:#334155}
+  .calc-body h2{font-size:20px;font-weight:800;color:#0f172a;margin:26px 0 10px}
+  .calc-body h3{font-size:16px;font-weight:800;color:#0f172a;margin:18px 0 6px}
+  .faq dt{font-weight:800;color:#0f172a;margin-top:14px}
+  .faq dd{margin:4px 0 0;color:#475569}
+  .calc-cta{margin:26px 0;padding:20px;background:#f0f7ff;border:1px solid #bfdbfe;border-radius:12px;text-align:center}
+  .calc-cta a{display:inline-block;margin:6px;background:#0088cc;color:#fff!important;text-decoration:none;padding:10px 22px;border-radius:50px;font-weight:800;font-size:14px}
+  .calc-cta a.alt{background:#0062ff}
+  .more-tools{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0}
+  .more-tools a{background:#f1f5f9;color:#0062ff!important;text-decoration:none;padding:8px 16px;border-radius:50px;font-weight:700;font-size:13px;border:1px solid #e2e8f0}
+  .disc{font-size:12px;color:#94a3b8;text-align:center;margin-top:18px;line-height:1.6}
+  @media(max-width:760px){.calc-wrap{grid-template-columns:1fr}}
+</style>
+
+<div class="calc-hero">
+  <h1>💰 Lumpsum Calculator</h1>
+  <p>See how a one-time investment grows over the years with compounding.</p>
+</div>
+
+<div class="calc-wrap">
+  <div class="calc-card">
+    <div class="calc-field"><label>One-Time Investment (₹)</label><input type="number" id="amt" value="100000" min="0"></div>
+    <div class="calc-field"><label>Expected Return (% per year)</label><input type="number" id="rate" value="12" step="0.1" min="0"></div>
+    <div class="calc-field"><label>Time Period (years)</label><input type="number" id="years" value="10" min="1"></div>
+  </div>
+  <div class="calc-card">
+    <div class="res-sub">Estimated future value</div>
+    <div class="res-big" id="r-fv">₹0</div>
+    <div class="bar"><i id="bp" style="background:#0062ff"></i><i id="bg" style="background:#22c55e"></i></div>
+    <div class="legend"><span><i class="dot" style="background:#0062ff"></i>Invested</span><span><i class="dot" style="background:#22c55e"></i>Gains</span></div>
+    <div class="res-row">Amount invested <b id="r-inv">₹0</b></div>
+    <div class="res-row">Estimated gains <b id="r-gain">₹0</b></div>
+    <div class="res-row">Total value <b id="r-tot">₹0</b></div>
+  </div>
+</div>
+
+<div class="calc-cta">
+  <p style="margin:0 0 12px;font-size:14px;color:#1e3a5f">📈 Ready to invest? Open a free account and get our daily market insights on Telegram.</p>
+  <a href="https://t.me/ai360trading" target="_blank" rel="noopener">📣 Join Free Telegram</a>
+  <a class="alt" href="/best-demat-account-india/">Open a Free Investment Account →</a>
+</div>
+
+<div class="calc-body">
+  <h2>What is a lumpsum investment?</h2>
+  <p>A lumpsum is a single, one-time investment — for example, putting a bonus or savings into a mutual fund or stocks all at once, instead of monthly like a SIP. Over time it grows through <b>compounding</b>, where your returns also start earning returns.</p>
+  <p style="background:#f8faff;border:1px solid #e2e8f0;border-radius:8px;padding:12px 14px;font-family:monospace;font-size:14px">Future Value = P × (1 + r)<sup>n</sup></p>
+  <p>Where <b>P</b> = amount invested, <b>r</b> = yearly return rate, and <b>n</b> = number of years. Small differences in rate or years make a big difference over long periods — that's the power of compounding.</p>
+
+  <h3>Lumpsum vs SIP — which is better?</h3>
+  <p>Neither is always better. A lumpsum works well when you have a large amount ready and markets are reasonable. A <a href="/tools/sip-calculator/">SIP</a> spreads your investment across months, lowering the risk of investing everything at a bad time. Many investors do both.</p>
+
+  <h2 style="margin-top:28px">Frequently Asked Questions</h2>
+  <dl class="faq">
+    <dt>Is this lumpsum calculator free?</dt>
+    <dd>Yes — it's 100% free, needs no sign-up, and runs entirely in your browser.</dd>
+    <dt>What return rate should I use?</dt>
+    <dd>It depends on where you invest. Equity mutual funds have historically returned roughly 10–14% a year over the long term, but returns are never guaranteed. Use a realistic figure and remember past performance doesn't promise future results.</dd>
+    <dt>Does it account for inflation or tax?</dt>
+    <dd>No — it shows the raw growth. Your real (after-inflation) and after-tax value will be lower. Treat the result as an estimate.</dd>
+  </dl>
+
+  <h3>More free calculators</h3>
+  <div class="more-tools">
+    <a href="/tools/sip-calculator/">SIP Calculator</a>
+    <a href="/tools/compound-interest-calculator/">Compound Interest</a>
+    <a href="/tools/ppf-calculator/">PPF Calculator</a>
+    <a href="/best-demat-account-india/">Best Demat Account</a>
+    <a href="/tools/">All Tools →</a>
+  </div>
+</div>
+
+<p class="disc">⚠️ This calculator is for educational and estimation purposes only and is not investment advice. AI360Trading is not SEBI registered. Market returns are not guaranteed.</p>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Is this lumpsum calculator free?","acceptedAnswer":{"@type":"Answer","text":"Yes, it is 100% free, needs no sign-up, and runs entirely in your browser."}},
+{"@type":"Question","name":"What return rate should I use?","acceptedAnswer":{"@type":"Answer","text":"It depends on where you invest. Equity mutual funds have historically returned roughly 10 to 14 percent a year over the long term, but returns are never guaranteed."}},
+{"@type":"Question","name":"Does it account for inflation or tax?","acceptedAnswer":{"@type":"Answer","text":"No, it shows raw growth. Your real after-inflation and after-tax value will be lower. Treat the result as an estimate."}}
+]}
+</script>
+
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id);};
+  function inr(n){return '₹'+Math.round(n).toLocaleString('en-IN');}
+  function calc(){
+    var P=parseFloat($("amt").value)||0;
+    var r=parseFloat($("rate").value)||0;
+    var n=parseFloat($("years").value)||0;
+    var fv=P*Math.pow(1+r/100,n);
+    var gain=fv-P;
+    $("r-fv").textContent=inr(fv);
+    $("r-inv").textContent=inr(P);
+    $("r-gain").textContent=inr(gain);
+    $("r-tot").textContent=inr(fv);
+    var pPct=fv>0?(P/fv*100):100;
+    $("bp").style.width=pPct+'%'; $("bg").style.width=(100-pPct)+'%';
+  }
+  ["amt","rate","years"].forEach(function(id){$(id).addEventListener("input",calc);});
+  calc();
+})();
+</script>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[
+{"@type":"ListItem","position":1,"name":"Home","item":"https://ai360trading.in/"},
+{"@type":"ListItem","position":2,"name":"Tools","item":"https://ai360trading.in/tools/"},
+{"@type":"ListItem","position":3,"name":"Lumpsum Calculator","item":"https://ai360trading.in/tools/lumpsum-calculator/"}
+]}
+</script>
+{% endraw %}

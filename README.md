@@ -1,6 +1,6 @@
-# AI360Trading — Global Market Intelligence + HerooQuest Kids
+# AI360Trading — Global Market Intelligence
 
-> Daily AI-powered market intelligence for India, US, UK, UAE and Brazil — plus **HerooQuest**, daily animated kids stories with Heroo & Arya.
+> Daily AI-powered market intelligence for India, US, UK, UAE and Brazil.
 
 🌐 **Live Site:** [https://ai360trading.in](https://ai360trading.in)
 
@@ -20,7 +20,7 @@ Every signal shared in Telegram is for **educational purposes only**, and you de
 
 - **📈 Market signals & analysis** — daily AI-driven market intelligence for Indian and global markets.
 - **📝 Educational content** — daily articles, videos, shorts and reels across stock market, crypto, personal finance and AI trading.
-- **👶 HerooQuest Kids** — daily animated stories with a fun moral, made for children.
+- **🛠️ Free tools & calculators** — PDF/image utilities plus finance calculators and honest guides.
 
 Everything is produced by an automated, AI-assisted content system.
 
@@ -66,12 +66,10 @@ All signals come with entry, stop-loss, target, risk-reward and suggested positi
 | 🌐 Website | [ai360trading.in](https://ai360trading.in) |
 | 📣 Telegram | [@ai360trading](https://telegram.me/ai360trading) |
 | 🐦 Twitter / X | [@ai360trading](https://x.com/ai360trading) |
-| ▶️ YouTube Trading | [@ai360trading](https://www.youtube.com/@ai360trading) |
-| ▶️ YouTube Kids | [@HerooQuest](https://www.youtube.com/@HerooQuest) |
+| ▶️ YouTube | [@ai360trading](https://www.youtube.com/@ai360trading) |
 | 📸 Instagram | [@ai360trading](https://www.instagram.com/ai360trading) |
 | 👥 Facebook Group | [ai360trading](https://www.facebook.com/groups/ai360trading) |
-| 📘 Facebook Trading | [ai360trading.official](https://www.facebook.com/ai360trading.official) |
-| 📘 Facebook Kids | [herooquest](https://www.facebook.com/herooquest) |
+| 📘 Facebook | [ai360trading.official](https://www.facebook.com/ai360trading.official) |
 
 ---
 

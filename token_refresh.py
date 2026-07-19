@@ -13,8 +13,7 @@ v2.1 FIX (May 2026):
   Reason: TELEGRAM_CHAT_ID secret does not exist in GitHub
           CHAT_ID_BASIC is the correct secret name
 
-Also: META_ACCESS_TOKEN_KIDS refresh added (was missing)
-      Kids token now auto-refreshed same day as main token
+2026-07-19: HerooQuest Kids Meta-token refresh removed (kids channel retired).
 
 Runs 1st + 15th of every month via GitHub Actions.
 Exchanges current META token for new 60-day token.
@@ -39,7 +38,6 @@ IST = pytz.timezone("Asia/Kolkata")
 # ─── CONFIG ───────────────────────────────────────────────────────────────────
 
 META_TOKEN         = os.environ.get("META_ACCESS_TOKEN", "")
-META_TOKEN_KIDS    = os.environ.get("META_ACCESS_TOKEN_KIDS", "")
 META_APP_ID        = os.environ.get("META_APP_ID", "")
 META_APP_SECRET    = os.environ.get("META_APP_SECRET", "")
 GH_TOKEN           = os.environ.get("GH_TOKEN", "")
@@ -204,20 +202,7 @@ def main():
     else:
         logger.warning("META_ACCESS_TOKEN not set — skipping main token")
 
-    # ── Refresh HerooQuest Kids token ─────────────────────────────────────────
-    if META_TOKEN_KIDS:
-        try:
-            new_kids_token = refresh_meta_token(META_TOKEN_KIDS, META_APP_ID, META_APP_SECRET)
-            kids_ok        = update_github_secret(GH_REPO, GH_TOKEN, "META_ACCESS_TOKEN_KIDS", new_kids_token)
-            if kids_ok:
-                results.append(("META_ACCESS_TOKEN_KIDS", True, "HerooQuest Kids token refreshed ✅"))
-            else:
-                results.append(("META_ACCESS_TOKEN_KIDS", False, "Kids token refresh — GitHub update failed"))
-        except Exception as e:
-            logger.error(f"Kids token refresh error: {e}")
-            results.append(("META_ACCESS_TOKEN_KIDS", False, str(e)))
-    else:
-        logger.info("META_ACCESS_TOKEN_KIDS not set — skipping kids token")
+    # (HerooQuest Kids Meta-token refresh removed 2026-07-19 — kids channel retired.)
 
     # ── Summary ───────────────────────────────────────────────────────────────
     all_ok  = all(r[1] for r in results)

@@ -74,15 +74,13 @@ One broken file = zero income that day. Treat every edit as critical.
 | `generate_shorts.py` | v3.11 (2026-07-14 retention pack: 20-25s payoff-at-end scripts + Ken Burns motion + 2s CTA) |
 | `generate_articles.py` | current (2026-07-16 credibility pack: price carry-forward cache `_data/prices_cache.json` + honest Fear&Greed + filler-phrase ban + number-honesty rule 14 + internal-link dedup; 2026-07-13 phrase-cooldown + perf block) |
 | `performance_stats.py` | v1.0 (2026-07-13 — History ledger → article performance block, fail-open) |
-| `generate_kids_video.py` | v3.0 (2026-07-13 — story-seed grounding + cold open + completeness retry + CTA/narrator variety) |
-| `kids_content_calendar.py` | v2.0 (2026-07-13 — 128 seeded classic stories + no-repeat 128-day scheduler) |
+| _(HerooQuest kids pipeline removed 2026-07-19 — generate_kids_video.py, kids_content_calendar.py, upload_kids_youtube.py, kids-daily.yml all deleted; channel retired as it cannot earn — see SESSION.md)_ |
 
 ### Upload & Distribution
 | File | Version |
 |---|---|
 | `upload_youtube.py` | v2.3 |
-| `upload_facebook.py` | v2.6 |
-| `upload_kids_youtube.py` | v2.6 (2026-07-13 — Devanagari-first SEO titles: {hi} | {en} | Hindi Kahaniya | Moral Stories) |
+| `upload_facebook.py` | v2.7 (2026-07-19 — kids branch removed; ZENO/morning/education/market paths unchanged) |
 
 ---
 

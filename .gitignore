@@ -174,7 +174,6 @@ products/
 !indian_holidays.py
 !token_refresh.py
 !content_calendar.py
-!kids_content_calendar.py
 !requirements.txt
 
 # ── Trading bot ────────────────────────────────────────────
@@ -190,13 +189,9 @@ products/
 !refresh_cashwatchlist.py
 !fetch_holidays.py
 
-# ── Kids content generators ────────────────────────────────
-!generate_kids_video.py
-
 # ── Upload scripts ─────────────────────────────────────────
 !upload_youtube.py
 !upload_facebook.py
-!upload_kids_youtube.py
 
 # ── Website ────────────────────────────────────────────────
 !_posts/

@@ -1,6 +1,10 @@
 """
 upload_facebook.py — AI360Trading
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v2.7 (2026-07-19):
+  REMOVED — HerooQuest Kids page upload branch (kids channel retired).
+    ZENO/morning/education/market paths unchanged.
+
 v2.6 (May 2026):
   ADD — Facebook Group posting after Page upload succeeds
     Uses FACEBOOK_GROUP_ID secret (already in GitHub Secrets)
@@ -52,14 +56,13 @@ except Exception:
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--meta-prefix", default="",
-                        help="Meta prefix: '' = ZENO, 'morning' = morning reel, 'kids' = kids")
+                        help="Meta prefix: '' = ZENO, 'morning' = morning reel, 'education' = education")
     return parser.parse_args()
 
 # ─── CONFIG ───────────────────────────────────────────────────────────────────
 
 META_ACCESS_TOKEN             = os.environ.get("META_ACCESS_TOKEN", "")
 FACEBOOK_PAGE_ID              = os.environ.get("FACEBOOK_PAGE_ID", "")
-FACEBOOK_KIDS_PAGE_ID         = os.environ.get("FACEBOOK_KIDS_PAGE_ID", "")
 FACEBOOK_GROUP_ID             = os.environ.get("FACEBOOK_GROUP_ID", "")
 INSTAGRAM_BUSINESS_ACCOUNT_ID = os.environ.get("INSTAGRAM_BUSINESS_ACCOUNT_ID", "17841400933677509")
 CONTENT_MODE                  = os.environ.get("CONTENT_MODE", "market").lower()
@@ -446,9 +449,6 @@ def resolve_meta_and_video(prefix: str):
     if prefix == "morning":
         meta_patterns  = [f"morning_reel_meta_{today}.json", "morning_reel_meta_*.json"]
         video_patterns = [f"morning_reel_{today}.mp4", "morning_reel_*.mp4"]
-    elif prefix == "kids":
-        meta_patterns  = [f"kids_meta_{today}_hi.json", f"kids_meta_{today}.json", "kids_meta_*.json"]
-        video_patterns = [f"kids_full_{today}_hi.mp4", f"kids_full_{today}.mp4", "kids_full_*.mp4"]
     elif prefix == "education":
         meta_patterns  = [f"education_meta_{today}_bi.json", "education_meta_*.json"]
         video_patterns = ["education_video_bi.mp4", "education_video_*.mp4"]
@@ -473,18 +473,6 @@ def resolve_meta_and_video(prefix: str):
 
 def build_caption(meta: dict, prefix: str) -> str:
     today_str = datetime.now().strftime("%d %B %Y")
-
-    if prefix == "kids":
-        ep_title = meta.get("ep_title", meta.get("title_en", "HerooQuest Story"))
-        moral    = meta.get("moral", "Every story has a lesson")
-        return (
-            f"🎭 HerooQuest — Nayi Kahani!\n"
-            f"📖 {ep_title}\n"
-            f"💡 Aaj ki seekh: {moral}\n\n"
-            f"Apne bachon ke saath dekho! ❤️\n"
-            f"🤖 AI tools se banayi gayi animated kahani · Family-friendly\n"
-            f"#HerooQuest #KidsStories #AnimatedStories #HindiKahani"
-        )
 
     if prefix == "education":
         edu_title = meta.get("title", "Stock Market Lesson")
@@ -581,25 +569,6 @@ def main():
             meta = json.loads(meta_path.read_text(encoding="utf-8"))
             print(f"📂 Meta file: {meta_path.name}")
         except: pass
-
-    # ── Kids Page ─────────────────────────────────────────────────────────────
-    if prefix == "kids":
-        kids_token   = os.environ.get("META_ACCESS_TOKEN", META_ACCESS_TOKEN)
-        kids_page_id = FACEBOOK_KIDS_PAGE_ID
-
-        if not kids_page_id:
-            print("⚠️ FACEBOOK_KIDS_PAGE_ID not set — skipping kids upload")
-            return
-
-        page_token = get_page_token(kids_page_id, kids_token)
-
-        if video_path and video_path.exists():
-            caption = build_caption(meta, "kids")
-            upload_reel_to_page(kids_page_id, "HerooQuest Kids Page",
-                                video_path, caption, page_token)
-        else:
-            print("⚠️ Kids video not found — skipping Facebook Kids upload")
-        return
 
     # ── Education (landscape long-form → /videos, NOT Reels) ──────────────────
     if prefix == "education":

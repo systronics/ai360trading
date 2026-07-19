@@ -25,13 +25,10 @@ EASY STEPS
 
 3. Run for the MAIN channel:
      python reauth_youtube.py --which main
-   …or for the KIDS (HerooQuest) channel:
-     python reauth_youtube.py --which kids
 
 4. Paste your current token JSON when asked (one line), press Enter.
 
 5. A browser window opens → pick the RIGHT Google account → click "Allow".
-   (For kids, pick the HerooQuest channel's Google account.)
 
 6. The script prints a NEW token JSON and also saves it to
      output/new_token_<which>.json
@@ -39,7 +36,6 @@ EASY STEPS
 
 7. In GitHub → Settings → Secrets → Actions → update the secret:
      main  → YOUTUBE_CREDENTIALS
-     kids  → YOUTUBE_CREDENTIALS_KIDS
    Click the secret, "Update", paste the new JSON, Save. Done.
 
 That's it — the next daily run will upload the exact .srt automatically.
@@ -75,7 +71,6 @@ SCOPES = [
 
 SECRET_NAME = {
     "main": "YOUTUBE_CREDENTIALS",
-    "kids": "YOUTUBE_CREDENTIALS_KIDS",
 }
 
 
@@ -103,7 +98,7 @@ def load_current_token(args) -> dict:
 
 def main():
     ap = argparse.ArgumentParser(description="Re-auth a YouTube token with force-ssl")
-    ap.add_argument("--which", choices=["main", "kids"], required=True,
+    ap.add_argument("--which", choices=["main"], default="main",
                     help="which channel/token to re-auth")
     ap.add_argument("--in", dest="infile", default="",
                     help="path to your current token JSON (optional; else paste)")

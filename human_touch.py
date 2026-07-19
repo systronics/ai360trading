@@ -457,18 +457,10 @@ class SEO:
         "IBOVESPA", "NRIInvesting", "IndianDiaspora",
     ]
 
-    KIDS_TAGS = [
-        "HerooQuest", "KidsStories", "AnimatedStories", "ChildrenEducation",
-        "MoralStories", "HindiKahani", "KidsCartoon", "BedtimeStories",
-        "PixarStyle", "FamilyFriendly",
-    ]
-
     def get_video_tags(self, mode: str = "market", is_short: bool = False,
                         channel: str = "main", lang: str = "hi") -> list:
         """Returns appropriate tag list for given content type."""
-        if channel == "kids":
-            return self.KIDS_TAGS + ["KidsAnimation", "ChildrenStories"]
-
+        # (kids channel removed 2026-07-19; `channel` kept for call-site compatibility)
         tags = self.BASE_TAGS.copy()
 
         if mode == "education":

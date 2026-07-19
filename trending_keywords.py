@@ -12,7 +12,7 @@ Design rules (₹0-forever, never-break):
   - FAIL-OPEN: any network error is swallowed; if everything fails we keep the
     PREVIOUS _data/trending.json untouched, so generators always have data.
   - No third-party packages (pytrends etc. are fragile) — only urllib stdlib.
-  - Output: _data/trending.json  ->  {"generated": ..., "finance": [...], "kids": [...]}
+  - Output: _data/trending.json  ->  {"generated": ..., "finance": [...]}
 
 Usage:
   python trending_keywords.py          # refresh the cache
@@ -35,10 +35,6 @@ SEEDS = {
     "finance": [
         "nifty", "share market", "stock market", "bank nifty", "ipo",
         "gold rate", "bitcoin", "mutual fund", "sensex", "intraday",
-    ],
-    "kids": [
-        "moral story", "kids story", "bedtime story", "panchatantra",
-        "short story for kids",
     ],
 }
 
