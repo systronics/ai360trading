@@ -1,5 +1,5 @@
 """
-AI360 SYSTEM WATCHDOG — v1.1
+AI360 SYSTEM WATCHDOG — v1.2
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Once-daily health check that makes the system observable WITHOUT a developer.
 
@@ -18,6 +18,14 @@ CHECKS (each independent, all fail-safe — one check failing never blocks other
      auto_heal uses to re-run failed jobs. If it expires silently, FB/IG
      content dies (~60 days later) and self-healing stops. Early warning lets
      the family regenerate it in time. Absent expiry header = no-expiry PAT = OK.
+  7. v1.2 (2026-07-20): PAYMENT-INTEGRITY CHECK — fetches the live public
+     membership/shop/starter-kit pages and confirms the UPI ID + WhatsApp
+     number match the pinned known-good values. Repo is public and the
+     payment flow is "copy this UPI ID and pay" (no gateway yet) — the worst
+     case is a compromised GitHub account silently swapping in an attacker's
+     UPI ID, which nothing else would ever detect (real money keeps flowing
+     to the wrong account until a subscriber complains). This closes that
+     detection gap without needing a payment-gateway migration first.
 
 OUTPUT:
   • Problems found  → 🔴 alert to Basic channel, plain language + fix step.
@@ -32,7 +40,7 @@ partially failed. gspread is the only third-party import and is guarded.
 SCHEDULE: daily 08:05 IST (02:35 UTC) — before market, after overnight content.
 """
 
-import os, json, time
+import os, json, re, time
 from datetime import datetime, timedelta, timezone
 from urllib.request import Request, urlopen
 
@@ -47,6 +55,16 @@ GH_REPO      = os.environ.get("GITHUB_REPOSITORY", "systronics/ai360trading")
 # Freshness thresholds (hours / days)
 NSE_STALE_DAYS = 4      # FII/DII/bhavcopy data older than this = feed problem
 PAT_WARN_DAYS  = 21     # warn this many days before the GH_TOKEN PAT expires
+
+# Pinned known-good payment identifiers (money_funnel.py has broker links, but
+# the UPI ID + WhatsApp number are hand-set per page — see CHECK 7).
+EXPECTED_UPI = "9634759528@upi"
+EXPECTED_WA  = "919634759528"
+PAYMENT_PAGES = [
+    "https://ai360trading.in/membership/",
+    "https://ai360trading.in/shop/",
+    "https://ai360trading.in/stock-market-starter-kit/",
+]
 
 
 # ── Telegram (stdlib — works even if pip failed) ───────────────────────────
@@ -253,12 +271,59 @@ def check_pat_expiry(problems):
             print(f"[CHK] PAT-expiry check error (non-fatal): {e}")
 
 
+# ── CHECK 7: payment-page integrity (UPI ID / WhatsApp number swap) ───────
+_UPI_RE = re.compile(r"\b[a-zA-Z0-9.\-_]{2,}@[a-zA-Z]{2,}\b")
+_WA_RE  = re.compile(r"\b91\d{10}\b")
+
+def check_payment_integrity(problems):
+    """Fetches the live public payment pages and flags ANY UPI-shaped or
+    WhatsApp-shaped string that isn't the pinned known-good value — the
+    fastest possible detection of a UPI-swap attack (repo compromise → one
+    line edited → every payment silently redirected). Fail-open per page:
+    a page that fails to fetch is skipped, never treated as a mismatch."""
+    for url in PAYMENT_PAGES:
+        try:
+            req = Request(url, headers={"User-Agent": "ai360-watchdog"})
+            html = urlopen(req, timeout=20).read().decode("utf-8", "ignore")
+        except Exception as e:
+            print(f"[CHK] payment-integrity fetch skipped ({url}): {e}")
+            continue
+
+        upi_hits = set(_UPI_RE.findall(html)) - {EXPECTED_UPI}
+        # ignore obvious non-UPI matches (image/version strings etc. with an
+        # '@' from CSS/JS minification) — only flag handles ending in a known
+        # UPI-suffix family, keeps this check from crying wolf on noise.
+        upi_hits = {h for h in upi_hits if h.lower().endswith((
+            "@upi", "@ybl", "@okhdfcbank", "@okaxis", "@oksbi", "@okicici",
+            "@paytm", "@apl", "@ibl", "@axl"))}
+        wa_hits = set(_WA_RE.findall(html)) - {EXPECTED_WA}
+
+        if EXPECTED_UPI not in html:
+            problems.append(("Payment page missing expected UPI ID",
+                             f"{url} no longer shows the known UPI ID ({EXPECTED_UPI}). "
+                             f"Payments on this page may be broken. FIX: open the page and "
+                             f"check the payment section; compare against git history."))
+        if upi_hits:
+            problems.append(("⚠️ POSSIBLE UPI-SWAP — unexpected UPI ID found",
+                             f"{url} shows a UPI ID that does NOT match the expected "
+                             f"{EXPECTED_UPI}: {', '.join(sorted(upi_hits))}. "
+                             f"If you did not change this yourself, your GitHub account or "
+                             f"repo may be compromised — STOP sharing this page and check "
+                             f"recent commits immediately."))
+        if wa_hits:
+            problems.append(("⚠️ Unexpected WhatsApp number found on a payment page",
+                             f"{url} shows a phone number that does NOT match the expected "
+                             f"+{EXPECTED_WA}: {', '.join('+' + h for h in sorted(wa_hits))}. "
+                             f"If you did not change this yourself, check recent commits immediately."))
+
+
 def main():
     now = datetime.now(IST)
     print(f"[WATCHDOG] start {now:%Y-%m-%d %H:%M} IST")
     problems = []
 
-    for chk in (check_sheet_and_freshness, check_github_failures, check_telegram, check_pat_expiry):
+    for chk in (check_sheet_and_freshness, check_github_failures, check_telegram,
+                check_pat_expiry, check_payment_integrity):
         try:
             chk(problems)
         except Exception as e:
