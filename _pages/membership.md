@@ -50,9 +50,15 @@ description: "AI360Trading Membership — Live Telegram signals, TradingView ind
 .ledger-stats{display:flex;flex-wrap:wrap;gap:10px 24px;margin-bottom:14px;}
 .ledger-stat b{display:block;font-family:'Syne',sans-serif;font-size:1.15rem;color:#fff;}
 .ledger-stat span{font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;}
-.ledger-table{width:100%;border-collapse:collapse;font-size:0.76rem;}
-.ledger-table th{text-align:left;padding:6px 10px;color:var(--muted);font-weight:700;border-bottom:1px solid var(--border);font-size:0.68rem;text-transform:uppercase;}
-.ledger-table td{padding:6px 10px;border-bottom:1px solid rgba(255,255,255,0.04);}
+.ledger-table-wrap{overflow-x:auto;}
+/* Explicit + nested under .ledger-card so these beat the site's global
+   table/td/th rules (gpstyle.css, poole.css) — those bare-element and
+   nth-child selectors were winning on specificity and washing out the
+   text color, this was the 2026-07-21 low-contrast bug. */
+.ledger-card table.ledger-table{width:100%;border-collapse:collapse;font-size:0.76rem;background:transparent;border:none;margin:0;}
+.ledger-card table.ledger-table th{text-align:left;padding:6px 10px;color:var(--muted);font-weight:700;border:none;border-bottom:1px solid var(--border);font-size:0.68rem;text-transform:uppercase;background:transparent;}
+.ledger-card table.ledger-table td{padding:6px 10px;border:none;border-bottom:1px solid rgba(255,255,255,0.06);background:transparent;color:var(--text);}
+.ledger-card table.ledger-table tbody tr:nth-child(odd) td{background:transparent;}
 .ledger-win{color:var(--green);font-weight:700;}
 .ledger-loss{color:var(--red);font-weight:700;}
 .ledger-foot{font-size:0.68rem;color:var(--muted);margin-top:12px;line-height:1.6;}
@@ -196,6 +202,7 @@ description: "AI360Trading Membership — Live Telegram signals, TradingView ind
       <div class="ledger-stat"><b class="ledger-win">+{{ perf.avg_win_pct }}%</b><span>Avg winner</span></div>
       <div class="ledger-stat"><b class="ledger-loss">{{ perf.avg_loss_pct }}%</b><span>Avg loser</span></div>
     </div>
+    <div class="ledger-table-wrap">
     <table class="ledger-table">
       <thead><tr><th>Latest trades</th><th>Closed</th><th>Result</th></tr></thead>
       <tbody>
@@ -208,6 +215,7 @@ description: "AI360Trading Membership — Live Telegram signals, TradingView ind
         {% endfor %}
       </tbody>
     </table>
+    </div>
     <div class="ledger-foot">Published for transparency — losses included. Paper trading (no real money). See live setups on the <a href="/swing-dashboard/">signal dashboard</a>. Educational only — not SEBI-registered advice.</div>
   </div>
 </section>
