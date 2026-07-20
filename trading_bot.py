@@ -1,6 +1,22 @@
 """
-AI360 TRADING BOT — v15.26
+AI360 TRADING BOT — v15.27
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v15.27 CHANGES vs v15.26 — FULL-SYSTEM AUDIT FIXES (2026-07-20, owner: "analyse full system, find loop or gap")
+  1. Removed dead ACCUM_{date}_{key} memory write in the accumulation-watch
+     scan — nothing ever read it, and clean_mem()'s date-detection didn't
+     recognize its shape (starts "ACCUM_", not a date), so it was silently
+     permanent instead of pruned after 14 days. Pure deletion, zero callers.
+  2. _read_atr_from_nifty200 / _read_opt_tag_from_nifty200 now use the
+     existing header-name lookup (_find_nifty200_col) instead of hardcoded
+     row[28]/row[35] — a future inserted Nifty200 column would otherwise
+     silently corrupt ATR-based SL/target math and option gating with no
+     error. Same fix mirrored in appscript.gs v15.27 (header-position guard,
+     fails safe to 0/null on mismatch instead of trusting a shifted column).
+  3. Doc-only: stale "12-day" comment near the option ledger time-stop skip
+     now correctly says OPTION_MAX_TDAYS=2 (was superseded by v15.26 but the
+     comment wasn't updated); BUY_PE removed from the option-action docstring
+     (PE path has been dead/buy-side-only since 2026-06-05).
+
 v15.26 CHANGES vs v15.25 — OPTIONS = INTRADAY/1-2 DAY ONLY + EASY-LANGUAGE ALERTS (2026-07-18, owner rule)
   Owner's trading structure (stated 2026-07-18): options are bought for
   INTRADAY or max 1-2 day momentum only — never held for the stock's 2-4
@@ -521,7 +537,7 @@ except Exception as _e:
     _EQ_AVAILABLE = False
 
 IST       = pytz.timezone('Asia/Kolkata')
-VERSION   = "v15.26"   # single source for the run banner + test messages (were stale at v15.16 before v15.23)
+VERSION   = "v15.27"   # single source for the run banner + test messages (were stale at v15.16 before v15.23)
 TG_TOKEN  = os.environ.get('TELEGRAM_BOT_TOKEN')
 
 CHAT_BASIC   = os.environ.get('CHAT_ID_BASIC')
@@ -1501,11 +1517,16 @@ def _read_atr_from_nifty200(nifty_sheet, sym):
     # v15.23: reads the per-tick _nifty200_rows cache — each call used to be a
     # fresh full-sheet fetch (the ranking loop burst 15+ reads in seconds →
     # silent 429s that disabled best-first ordering on busy mornings).
+    # v15.27: header-name lookup (was hardcoded row[28]) — a future inserted
+    # column would otherwise silently corrupt every SL/target/option decision.
     try:
+        c_atr = _find_nifty200_col(nifty_sheet, ["ATR (14)"], subs=["atr14", "atr"])
+        if c_atr < 0:
+            return 0.0
         clean = sym.replace("NSE:","").strip()
         for row in _nifty200_rows(nifty_sheet)[1:]:
-            if len(row) > 28 and str(row[0]).replace("NSE:","").strip() == clean:
-                atr = to_f(row[28])
+            if len(row) > c_atr and str(row[0]).replace("NSE:","").strip() == clean:
+                atr = to_f(row[c_atr])
                 if atr > 0:
                     print(f"[ATR] {sym}: {atr}")
                     return atr
@@ -1515,18 +1536,22 @@ def _read_atr_from_nifty200(nifty_sheet, sym):
 
 
 def _read_opt_tag_from_nifty200(nifty_sheet, sym):
-    """v15.22: Options-eligibility tag from Nifty200 col AJ (idx 35) —
+    """v15.22: Options-eligibility tag from Nifty200 col "Options" —
     "N50" (Nifty50, deep option chain) / "YES" (F&O-listed) / "" (NO derivatives:
     SEBI's 2025 eligibility purge removed IRCTC/MRF/ATGL/TATACOMM/...).
     Column is fed from NSE's official F&O file. Returns None when the column/
     symbol can't be read → caller fails OPEN (old behavior), never blocks on
-    a data hiccup. v15.23: served from the per-tick sheet cache."""
+    a data hiccup. v15.23: served from the per-tick sheet cache.
+    v15.27: header-name lookup (was hardcoded row[35])."""
     try:
+        c_opt = _find_nifty200_col(nifty_sheet, ["Options"], subs=["optionseligibility"])
+        if c_opt < 0:
+            return None
         clean = sym.replace("NSE:","").strip()
         for row in _nifty200_rows(nifty_sheet)[1:]:
             if str(row[0] if row else "").replace("NSE:","").strip() == clean:
-                if len(row) > 35:
-                    return str(row[35]).strip()
+                if len(row) > c_opt:
+                    return str(row[c_opt]).strip()
                 return None
     except Exception as e:
         print(f"[OPT-TAG] {e}")
@@ -2229,7 +2254,7 @@ def step_b_monitor_trades(log_sheet, hist_sheet, nifty_sheet, mem, now, is_bulli
         # Runs AFTER target/TSL checks above so winners are never cut early.
         # Cash intraday trades skip time stop (they have their own 3 PM force exit).
         # v15.25: OPTION trades skip it too — their time rules are the alert's
-        # own (expiry-week + base 12-day, handled above). Exception: if the
+        # own (expiry-week + v15.26 OPTION_MAX_TDAYS=2, handled above). Exception: if the
         # expiry cell doesn't parse, the generic time stop stays as the
         # fail-open backstop so a bad cell can't mean "hold forever".
         if not is_cash_trade(ttype) and not (is_option_trade(ttype) and _parse_expiry(opt_exp) is not None):
@@ -2891,7 +2916,6 @@ def scan_accumulation_watch(nifty_sheet, bm_sheet, mem, now, is_bullish):
             sl  = round(min(dma * 0.985, cmp - 2 * atr), 2)   # hard stop just below the reclaimed 20-DMA
             tgt = round(cmp + 5 * atr, 2)
             mem = _mem_set(mem, flag, "1")
-            mem = _mem_set(mem, f"ACCUM_{today_s}_{key}", f"{cmp}")   # shadow entry for scoring
             found += 1
             auto = os.environ.get("ACCUM_AUTOTRADE", "").lower() in ("1", "true", "yes")
             print(f"[ACCUM] {sym}: {why} | CMP ₹{cmp:.2f} SL ₹{sl:.2f} Tgt ₹{tgt:.2f} RS {rs:.1f} | autotrade={auto}")

@@ -277,7 +277,7 @@ def recommend_option(symbol: str, cp: float, atr: float, stage: str,
                      bm_data: dict = None) -> dict:
     """
     Single entry point for trading_bot.py. Returns a dict with:
-      action     : 'BUY_CE' | 'BUY_PE' | 'SKIP'
+      action     : 'BUY_CE' | 'SKIP'  (buy-side only — PE path removed 2026-06-05)
       strike     : int (e.g. 3050) | None if SKIP
       strike_label: "ITM-2" / "ITM-1" / "ATM" / "OTM-1"
       delta_est  : 0.20 to 0.80

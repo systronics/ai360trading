@@ -1,6 +1,16 @@
 /**
- * AI360 TRADING — APPSCRIPT v15.26
+ * AI360 TRADING — APPSCRIPT v15.27
  * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ * v15.27 CHANGES (2026-07-20) — COLUMN-DRIFT GUARD (owner: "analyse full system, find loop or gap")
+ *   _runScanner read Nifty200 ATR (col 28) and Options-tag (col 35) by raw
+ *   index only, with no check that those columns still hold what the code
+ *   assumes — a future inserted column would have silently fed wrong ATR
+ *   into every SL/target and a stale Options tag into option gating, with
+ *   no error. Now a one-time header check on each run (ATR col header must
+ *   contain "ATR", Options col header must equal "Options"); on mismatch,
+ *   both reads fail SAFE to 0/null (same as a missing column) instead of
+ *   trusting a shifted column, and a [COLUMN-DRIFT] line is logged.
+ *
  * v15.26 CHANGES (2026-07-18) — OPTIONS = INTRADAY/1-2 DAY + CURRENT EXPIRY + EASY LANGUAGE (owner rule)
  *   Owner's structure: options are INTRADAY / max 1-2 day momentum trades;
  *   the stock's 2-4 week move is taken in CASH/MTF (theta kills long option
@@ -452,7 +462,7 @@ const OPTIONS_CONFIG = {
 
 // ── CONFIG ────────────────────────────────────────────────────────────────────
 const CONFIG = {
-  VERSION       : "v15.26",  // single source for ALL subscriber-facing version stamps (was hardcoded per-message and went stale at v15.17)
+  VERSION       : "v15.27",  // single source for ALL subscriber-facing version stamps (was hardcoded per-message and went stale at v15.17)
   get TELEGRAM_BOT_TOKEN() { return PropertiesService.getScriptProperties().getProperty('TELEGRAM_BOT_TOKEN') || ""; },
   get CHAT_ID_BASIC()      { return PropertiesService.getScriptProperties().getProperty('CHAT_ID_BASIC')      || ""; },
   get CHAT_ID_ADVANCE()    { return PropertiesService.getScriptProperties().getProperty('CHAT_ID_ADVANCE')    || ""; },
@@ -1423,6 +1433,17 @@ function _runScanner(startRow, endRow) {
 
   const bm        = _bmLoad(ss);
   const inputData = inputSheet.getDataRange().getValues();
+  // v15.27: one-time header-position guard for the two hardcoded-index reads
+  // below (ATR col 28, Options col 35) — a future inserted Nifty200 column
+  // would otherwise silently corrupt every SL/target/option decision with
+  // no error, just wrong numbers. Mismatch fails SAFE (ATR=0/optTag=null),
+  // same as a missing column, instead of trusting a shifted column.
+  const _hdr     = inputData[0] || [];
+  const atrColOk = (_hdr[28] || "").toString().toUpperCase().indexOf("ATR") !== -1;
+  const optColOk = (_hdr[35] || "").toString().trim() === "Options";
+  if (!atrColOk || !optColOk) {
+    Logger.log(`[COLUMN-DRIFT] ⚠️ Nifty200 header mismatch — ATR col29="${_hdr[28]}" (ok=${atrColOk}) Options col36="${_hdr[35]}" (ok=${optColOk}). Falling back to safe defaults until columns are realigned.`);
+  }
   const currentLog= logSheet.getRange(2, 1, CONFIG.LOG_ROWS, CONFIG.TOTAL_COLS).getValues();
   const now       = new Date();
   const nowTime   = Utilities.formatDate(now, CONFIG.IST_ZONE, "yyyy-MM-dd HH:mm:ss");
@@ -1501,7 +1522,7 @@ function _runScanner(startRow, endRow) {
     const sector     = (r[1]  || "UNKNOWN").toString().trim();
     const pctChange  = parseFloat(r[3])  || 0;
     const cmp        = parseFloat(r[2])  || 0;
-    const atr        = parseFloat(r[28]) || 0;
+    const atr        = atrColOk ? (parseFloat(r[28]) || 0) : 0;
     const high52     = parseFloat(r[9])  || 0;
     const dma20      = parseFloat(r[4])  || 0;
     const dma50      = parseFloat(r[5])  || 0;
@@ -1521,7 +1542,7 @@ function _runScanner(startRow, endRow) {
     // v15.23: Options-eligibility tag (col AJ, fed from NSE's official F&O
     // file): "N50" / "YES" / "" (no derivatives). null = column absent →
     // _generateOptionsSignal falls back to the legacy hardcoded list.
-    const optTag     = (r[35] === undefined || r[35] === null) ? null : r[35].toString().trim();
+    const optTag     = (!optColOk || r[35] === undefined || r[35] === null) ? null : r[35].toString().trim();
 
     const signal   = _inferSignal(rawSignal, stage, fiiBuyZone, smaStr);
     const priority = _inferPriority(rawPriority, rawMasterScore, rawSignalScore);
@@ -1841,7 +1862,7 @@ function _runScanner(startRow, endRow) {
       const volVsAvg  = parseFloat(r[14]) || 0;
       const volOk     = !isNaN(parseFloat(r[14]));
       const cmp       = parseFloat(r[2])  || 0;
-      const atr       = parseFloat(r[28]) || 0;
+      const atr       = atrColOk ? (parseFloat(r[28]) || 0) : 0;
       const smaStr    = (r[7]  || "").toString().trim();
       const fiiSignal = (r[32] || "").toString().trim();
       const sector    = (r[1]  || "UNKNOWN").toString().trim();

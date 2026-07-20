@@ -1,6 +1,12 @@
 """
 money_funnel.py — single source of truth for every income CTA + link.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v1.2 (2026-07-20):
+  ADD — article_cta_html() now plugs a rotating calculator (same TOOL_PAGES
+    pool as video/comment funnels). It was the only funnel surface skipped by
+    v1.1's tool_plug() rollout — the site's own traffic data shows articles
+    are the highest-traffic surface, so this was the biggest gap to close.
+
 v1.1 (2026-07-19):
   ADD — TOOL_PAGES + tool_plug(): every caption/description now plugs ONE free
     calculator page (rotates daily). Traffic loop: video viewer → website tool
@@ -190,6 +196,8 @@ def article_cta_html() -> str:
     """A styled conversion CTA box appended to the end of each website article.
     Turns blog readers into Telegram subscribers + broker signups (the income)."""
     L = LINKS
+    t = TOOL_PAGES[date.today().timetuple().tm_yday % len(TOOL_PAGES)]
+    tool_teaser, tool_url = t[1], t[2]
     return (
         '\n\n<div style="border:2px solid #0062ff;border-radius:14px;'
         'padding:18px 20px;margin:32px 0;background:#f5f9ff">\n'
@@ -203,6 +211,8 @@ def article_cta_html() -> str:
         f'<a href="{L["dhan"]}">Dhan</a> · '
         f'<a href="{L["groww"]}">Groww</a> · '
         f'<a href="{L["coindcx"]}">CoinDCX (crypto)</a></p>\n'
+        f'<p style="margin:6px 0">🧮 {tool_teaser} — '
+        f'<a href="{tool_url}">try our free calculator</a>.</p>\n'
         '<p style="margin:6px 0;font-size:0.9em;color:#555">💬 Found this useful? '
         'Share it with a trader friend. <i>Educational only — not SEBI registered.</i></p>\n'
         '</div>\n'

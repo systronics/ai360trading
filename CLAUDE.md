@@ -36,9 +36,9 @@ One broken file = zero income that day. Treat every edit as critical.
 ### Trading Engine
 | File | Version |
 |---|---|
-| `trading_bot.py` | v15.26 (2026-07-18: OWNER RULE — options are INTRADAY/1-2 day holds only; OPTION_MAX_TDAYS=2 replaces the base 12-trading-day rule for ALL option ledger rows (20% cap + expiry-week backstop unchanged); entry alerts carry _trade_style_lines — CASH/MTF vs cash vs accumulate + "Entry valid jab tak price SL ke upar" + TradingView chart line (DAILY/15m/WEEKLY); v15.25 option ledger follows the alert's rules; v15.24 unified strike grid + premium-aware option P/L; v15.23 full bug pack) |
+| `trading_bot.py` | v15.27 (2026-07-20: full-system audit — removed dead ACCUM_ memory key that clean_mem never pruned; _read_atr_from_nifty200/_read_opt_tag_from_nifty200 switched from hardcoded row[28]/row[35] to header-name lookup (_find_nifty200_col) so a future inserted column can't silently corrupt SL/target/option math; stale "12-day"/BUY_PE comments fixed; v15.26 OWNER RULE — options are INTRADAY/1-2 day holds only; OPTION_MAX_TDAYS=2 replaces the base 12-trading-day rule for ALL option ledger rows (20% cap + expiry-week backstop unchanged); entry alerts carry _trade_style_lines — CASH/MTF vs cash vs accumulate + "Entry valid jab tak price SL ke upar" + TradingView chart line (DAILY/15m/WEEKLY); v15.25 option ledger follows the alert's rules; v15.24 unified strike grid + premium-aware option P/L; v15.23 full bug pack) |
 | `entry_quality.py` | v1.0 (reversal veto + target room + composite ranking) |
-| `option_intelligence.py` | v1.4 (2026-07-18: option alert wording = intraday/max 1-2 day hold, current-expiry rationale, 2-day exit; v1.3 strike table unified w/ appscript + est_option_leverage; v1.2 earnings via bm_data rows) |
+| `option_intelligence.py` | v1.4 (2026-07-20: doc-only fix — stale 'BUY_PE' removed from action docstring, PE path confirmed dead since buy-side-only 2026-06-05; 2026-07-18: option alert wording = intraday/max 1-2 day hold, current-expiry rationale, 2-day exit; v1.3 strike table unified w/ appscript + est_option_leverage; v1.2 earnings via bm_data rows) |
 | `institutional_edges.py` | v1.1 (2026-07-16: volume gate time-adjusted — partial-day reading ÷ expected session fraction, 1.5× bar unchanged) |
 | `fetch_earnings.py` | v1.2 (2026-07-17: BSE long names → real NSE symbols via official EQUITY_L.csv (first-token keys were mostly dead); unmappable dropped; fail-open to old behavior; v1.1 atomic BotMemory write) |
 | `fetch_bhavcopy.py` | v1.0 (Batch 4, Mon-Fri 20:00 IST) |
@@ -46,7 +46,7 @@ One broken file = zero income that day. Treat every edit as critical.
 | `fetch_rs.py` | v2.0 (2026-07-17: + TRUE ATR(14) feed into Nifty200 col AC — old formula was ONE day's high−low feeding all SL/targets; + NIFTYBEES→^NSEI benchmark freshness fallback; workflow moved to own `fetch-rs` concurrency group after `trading-bot` group froze RS 07-13→07-17) |
 | `fetch_fii_dii.py` | v1.0 (real FII/DII flow → BotMemory MKT_* keys) |
 | `fetch_index_meta.py` | v1.0 (2026-07-17: weekly Saturday — refreshes Nifty200 col AJ Options N50/YES/"" + col AK N200 YES/EX from NSE official lists; Telegram notice on drift; fail-open, never adds rows) |
-| `appscript.gs` | v15.26 (LIVE, clasp-deployed 2026-07-18 08:01 IST: OWNER RULE — option expiry = CURRENT month (≤5d rollover → next month, NEVER month+2; kills MIN_DAYS_BASE_ENTRY:40 that put a Jul signal on the dead Sep chain); option alert = intraday/1-2 din hold in easy Hinglish + entry-valid + TradingView lines; night-scan "Kaise trade kare" legend; v15.25 strike grid unified; deploy via `.\deploy_appscript.ps1`) |
+| `appscript.gs` | v15.27 (LIVE, clasp-deployed 2026-07-20 20:26 IST: full-system audit — one-time header-position guard on the Nifty200 ATR (col 28) + Options-tag (col 35) reads in `_runScanner` (used by both the main scan and momentum scan); on header mismatch both fail SAFE to 0/null instead of trusting a shifted column, logs `[COLUMN-DRIFT]`; v15.26 OWNER RULE — option expiry = CURRENT month (≤5d rollover → next month, NEVER month+2; kills MIN_DAYS_BASE_ENTRY:40 that put a Jul signal on the dead Sep chain); option alert = intraday/1-2 din hold in easy Hinglish + entry-valid + TradingView lines; night-scan "Kaise trade kare" legend; v15.25 strike grid unified; deploy via `.\deploy_appscript.ps1`) |
 
 ### Long-Term Signals
 | File | Version |
@@ -62,7 +62,7 @@ One broken file = zero income that day. Treat every edit as critical.
 | `human_touch.py` | v2.3 (2026-07-19: all hook libraries rewritten number-first for retention; no invented stats; {holiday}/{week} placeholders preserved) |
 | `token_refresh.py` | v2.2 |
 | `content_calendar.py` | v2.4 |
-| `money_funnel.py` | v1.1 (2026-07-19: TOOL_PAGES + tool_plug() daily calculator rotation in funnel_block/comment_text — video→website traffic loop; single source of truth for broker links in CONTENT — Zerodha/Dhan/Groww/CoinDCX) |
+| `money_funnel.py` | v1.2 (2026-07-20: article_cta_html() now plugs a rotating calculator too — was the only funnel surface v1.1's tool_plug() rollout skipped, and articles are the site's highest-traffic surface; v1.1 TOOL_PAGES + tool_plug() daily calculator rotation in funnel_block/comment_text — video→website traffic loop; single source of truth for broker links in CONTENT — Zerodha/Dhan/Groww/CoinDCX) |
 | `indian_holidays.py` | current (no version tag) |
 
 ### Content Generators

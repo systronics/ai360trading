@@ -2,7 +2,10 @@ name: Daily AI Market Intelligence Report
 on:
   workflow_dispatch:
   schedule:
-    - cron: "30 4 * * 1-5"   # 10:00 AM IST Mon-Fri
+    # v2 (2026-07-20): shifted 45 min later than daily-videos.yml's 10:00 IST
+    # Mon-Fri slot — both posted to the same Facebook Page feed at the
+    # identical cron minute, a plausible spam signal to Meta's algorithm.
+    - cron: "15 5 * * 1-5"   # 10:45 AM IST Mon-Fri
     - cron: "0 6 * * 6,0"    # 11:30 AM IST Sat-Sun
 
 jobs:
