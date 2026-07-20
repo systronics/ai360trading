@@ -131,6 +131,7 @@ One broken file = zero income that day. Treat every edit as critical.
 | Rule | Why (evidence) |
 |---|---|
 | `BROKER_MODE = "PAPER"` — never connect Dhan API / place real orders | Phase 4 only, owner must explicitly start it |
+| **Do NOT add DHAN_* secrets (API key/secret/client ID/PIN/TOTP) to GitHub until Phase 4 is actually being built** | 2026-07-20 security review: 5 unused Dhan secrets had sat in GitHub Actions secrets since Jan 2026 with zero code referencing them — live real-brokerage login credentials exposed for 6+ months for no reason. Deleted. Add fresh ones (and rotate PIN/TOTP on Dhan's side first) only when Phase 4 work actually starts |
 | **Buy-side only** — never build/propose shorting or PE buying | Owner DECLINED sell-side 2026-06-05; bearish regime → options SKIP (option_intelligence v1.1) |
 | **RS ≥ 5 gate** (bot Filter 7 + appscript GATE 3) — never lower | Data-validated 2026-07-15: ALL 6 target winners pass, 2/5 losers correctly blocked |
 | **RSI hot-leader exception exactly as calibrated** — bullish + RSI 65–75 + stock up on day = allowed; >75 hard block; fail-CLOSED without day data | 13-trade study 2026-07-15: no loser ever entered overbought; NYKAA-class winners were being refused. Don't revert to hard-65, don't raise above 75 |
