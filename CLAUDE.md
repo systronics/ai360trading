@@ -72,8 +72,9 @@ One broken file = zero income that day. Treat every edit as critical.
 | `generate_reel.py` | v2.4 |
 | `generate_reel_morning.py` | v2.5 |
 | `generate_shorts.py` | v3.12 (2026-07-19: hook prompts prefer a REAL data number as first word; v3.11 retention pack: 20-25s payoff-at-end scripts + Ken Burns motion + 2s CTA) |
-| `generate_articles.py` | current (2026-07-16 credibility pack: price carry-forward cache `_data/prices_cache.json` + honest Fear&Greed + filler-phrase ban + number-honesty rule 14 + internal-link dedup; 2026-07-13 phrase-cooldown + perf block) |
-| `performance_stats.py` | v1.0 (2026-07-13 — History ledger → article performance block, fail-open) |
+| `generate_articles.py` | current (2026-07-20: meta_description/schema_json now run through `clean_ai_title()` too — was only applied to the title, so a raw "SandP 500" LLM artifact could still ship in the meta tag/JSON-LD; also now calls `performance_stats.write_data_json()` alongside the existing article perf block; 2026-07-16 credibility pack: price carry-forward cache `_data/prices_cache.json` + honest Fear&Greed + filler-phrase ban + number-honesty rule 14 + internal-link dedup; 2026-07-13 phrase-cooldown + perf block) |
+| `performance_stats.py` | v1.1 (2026-07-20: `write_data_json()` publishes the same honest ledger stats to `_data/performance.json` — Jekyll `site.data.performance` — so the membership page can show the real, live win-rate/ledger table, not just generated articles; fail-open carry-forward, same doctrine as prices_cache.json; v1.0 2026-07-13 — History ledger → article performance block) |
+| `trending_keywords.py` | v1.1 (2026-07-20: whole-word seed filter in `_collect()` — YouTube autocomplete for seed "ipo" was returning "ipod"-class junk via shared prefix, not word-match; this had already published 2 live articles with "ipod" in the title/slug, both removed) |
 | _(HerooQuest kids pipeline removed 2026-07-19 — generate_kids_video.py, kids_content_calendar.py, upload_kids_youtube.py, kids-daily.yml all deleted; channel retired as it cannot earn — see SESSION.md)_ |
 
 ### Upload & Distribution
