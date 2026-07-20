@@ -1758,6 +1758,11 @@ End with:
             else:
                 cleaned_lines.append(line)
         content = "\n".join(cleaned_lines).lstrip("\n")
+        # FIX (2026-07-20): meta_description skipped the same "SandP 500" /
+        # entity-encoding cleanup already applied to the title (clean_ai_title
+        # below) — it, and schema_json built from it, could ship an uncleaned
+        # LLM artifact straight into the page's meta tag + JSON-LD.
+        meta_description = clean_ai_title(meta_description)
 
         _primary_kw     = pillar['primary_keywords'][0]
         article_excerpt = (
@@ -1855,6 +1860,10 @@ End with:
             try:
                 import performance_stats as _perf
                 perf_block = _perf.article_perf_html(date_display)
+                # v1.1: also refresh _data/performance.json so the membership
+                # page's ledger block (site.data.performance) stays live —
+                # same sheet read, cached per-process, zero extra API calls.
+                _perf.write_data_json(date_display)
             except Exception as e:
                 print(f"  [perf] block skipped ({e}) — article still written")
                 perf_block = ""

@@ -42,6 +42,22 @@ description: "AI360Trading Membership — Live Telegram signals, TradingView ind
 .billing-btn.active{background:var(--gold);color:#000;}
 .billing-save{font-size:0.62rem;background:var(--green);color:#fff;padding:2px 5px;border-radius:100px;margin-left:3px;}
 
+/* ── LEDGER ── */
+.ledger-section{max-width:900px;margin:0 auto 32px;padding:0 16px;}
+.ledger-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px 22px;}
+.ledger-title{font-family:'Syne',sans-serif;font-size:1rem;color:#fff;margin-bottom:4px;}
+.ledger-sub{font-size:0.74rem;color:var(--muted);margin-bottom:14px;line-height:1.5;}
+.ledger-stats{display:flex;flex-wrap:wrap;gap:10px 24px;margin-bottom:14px;}
+.ledger-stat b{display:block;font-family:'Syne',sans-serif;font-size:1.15rem;color:#fff;}
+.ledger-stat span{font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;}
+.ledger-table{width:100%;border-collapse:collapse;font-size:0.76rem;}
+.ledger-table th{text-align:left;padding:6px 10px;color:var(--muted);font-weight:700;border-bottom:1px solid var(--border);font-size:0.68rem;text-transform:uppercase;}
+.ledger-table td{padding:6px 10px;border-bottom:1px solid rgba(255,255,255,0.04);}
+.ledger-win{color:var(--green);font-weight:700;}
+.ledger-loss{color:var(--red);font-weight:700;}
+.ledger-foot{font-size:0.68rem;color:var(--muted);margin-top:12px;line-height:1.6;}
+.ledger-foot a{color:var(--gold);}
+
 /* ── PLANS ── */
 .plans-section{max-width:900px;margin:0 auto;padding:0 16px 48px;}
 .plans-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
@@ -148,6 +164,7 @@ description: "AI360Trading Membership — Live Telegram signals, TradingView ind
 <nav class="mp-nav">
   <a href="/" class="mp-nav-home">← AI360Trading</a>
   <div class="mp-nav-links">
+    <a href="/tools/" class="mp-nav-link">Tools</a>
     <a href="/about/" class="mp-nav-link">About</a>
     <a href="/contact/" class="mp-nav-link">Contact</a>
   </div>
@@ -163,6 +180,38 @@ description: "AI360Trading Membership — Live Telegram signals, TradingView ind
     <button class="billing-btn" onclick="setBilling('annual',this)">Annual <span class="billing-save">Save 33%</span></button>
   </div>
 </section>
+
+{% if site.data.performance %}
+{% assign perf = site.data.performance %}
+<!-- LEDGER (2026-07-20: real, sourced live from the paper-trading History
+     ledger by performance_stats.write_data_json — never hardcoded) -->
+<section class="ledger-section">
+  <div class="ledger-card">
+    <div class="ledger-title">📊 Our Real Signal Performance — Verified Ledger</div>
+    <div class="ledger-sub">Every closed trade from our automated system's live paper-trading ledger — wins <b>and</b> losses, as of {{ perf.as_of }}. Not a marketing number — this is what following every signal exactly would have produced.</div>
+    <div class="ledger-stats">
+      <div class="ledger-stat"><b>{{ perf.total }}</b><span>Closed trades</span></div>
+      <div class="ledger-stat"><b>{{ perf.win_rate }}%</b><span>Win rate</span></div>
+      <div class="ledger-stat"><b>{% if perf.net_pnl_rs >= 0 %}+{% endif %}₹{{ perf.net_pnl_rs }}</b><span>Net P/L</span></div>
+      <div class="ledger-stat"><b class="ledger-win">+{{ perf.avg_win_pct }}%</b><span>Avg winner</span></div>
+      <div class="ledger-stat"><b class="ledger-loss">{{ perf.avg_loss_pct }}%</b><span>Avg loser</span></div>
+    </div>
+    <table class="ledger-table">
+      <thead><tr><th>Latest trades</th><th>Closed</th><th>Result</th></tr></thead>
+      <tbody>
+        {% for t in perf.recent %}
+        <tr>
+          <td><b>{{ t.sym }}</b></td>
+          <td>{{ t.exit_date }}</td>
+          <td class="{% if t.is_win %}ledger-win{% else %}ledger-loss{% endif %}">{% if t.pct >= 0 %}+{% endif %}{{ t.pct }}% {% if t.is_win %}✅{% else %}❌{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <div class="ledger-foot">Published for transparency — losses included. Paper trading (no real money). See live setups on the <a href="/swing-dashboard/">signal dashboard</a>. Educational only — not SEBI-registered advice.</div>
+  </div>
+</section>
+{% endif %}
 
 <!-- PLANS -->
 <section class="plans-section">

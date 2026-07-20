@@ -201,6 +201,13 @@ meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
       <tbody></tbody>
     </table>
     <div class="nt-status" id="swingStatus">⏳ Loading live signals…</div>
+    <noscript>
+      <!-- 2026-07-20: crawlers/no-JS visitors would otherwise see only the
+           "Loading…" placeholder forever, since the table is 100% client-
+           rendered. Reuses the SAME Sheets iframe already used as the JS
+           fetch-failure fallback (FEED_PUBHTML) — real content either way. -->
+      <iframe class="nt-fallback" src="https://docs.google.com/spreadsheets/d/e/2PACX-1vQyI_2dA66bYzzsxZNW9yqSAkmi8_TxLA7PK_x6vtI9uqSbUNz-M5FXrYIt4rsP5B7kl6Mrfi5AUpsp/pubhtml?gid=2115056455&single=true&widget=false&headers=false&chrome=false" title="AI360Trading Swing Signal Dashboard" loading="lazy"></iframe>
+    </noscript>
   </div>
   <div class="nt-meta">
     <span id="swingUpdated">Fetching latest data…</span>

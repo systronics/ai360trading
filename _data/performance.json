@@ -1,0 +1,38 @@
+{
+  "as_of": "20 July 2026",
+  "total": 13,
+  "wins": 8,
+  "losses": 5,
+  "win_rate": 62,
+  "net_pnl_rs": 3033,
+  "avg_win_pct": 5.0,
+  "avg_loss_pct": -3.2,
+  "best": {
+    "sym": "CUMMINSIND",
+    "pct": 10.13
+  },
+  "worst": {
+    "sym": "PNBHOUSING",
+    "pct": -6.86
+  },
+  "recent": [
+    {
+      "sym": "EICHERMOT",
+      "exit_date": "2026-06-30",
+      "pct": -3.87,
+      "is_win": false
+    },
+    {
+      "sym": "LAURUSLABS",
+      "exit_date": "2026-06-23",
+      "pct": 7.53,
+      "is_win": true
+    },
+    {
+      "sym": "ADANIPORTS",
+      "exit_date": "2026-06-22",
+      "pct": 0.35,
+      "is_win": true
+    }
+  ]
+}

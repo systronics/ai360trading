@@ -1,6 +1,11 @@
 """
-AI360 Trending Keywords Engine — v1.0
+AI360 Trending Keywords Engine — v1.1
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v1.1 (2026-07-20): whole-word seed filter in _collect() — YouTube autocomplete
+  for seed "ipo" was returning "ipod"-class consumer-electronics junk (shared
+  PREFIX, not word) that then got published in real article titles
+  ("...ipod revival...", "...through ipod..."). Root cause of the owner's
+  reported keyword-injection trust-killer bug.
 Pulls what people are ACTUALLY searching right now (free, no API key) and caches
 it so content generators can ride trending terms in titles, hashtags and topics.
 
@@ -21,6 +26,7 @@ Usage:
 """
 
 import json
+import re
 import time
 import urllib.parse
 import urllib.request
@@ -68,6 +74,13 @@ def _collect(seeds: list) -> list:
     """Aggregate + rank suggestions across all seeds for one category."""
     counter = Counter()
     for seed in seeds:
+        # v1.1 fix: YouTube autocomplete (ds=yt) isn't finance-scoped, so a
+        # seed like "ipo" can return completely unrelated brand suggestions
+        # ("ipod classic", "ipod nano") that ride the shared PREFIX, not the
+        # WORD. Require the seed to appear as a whole word — this blocks
+        # "ipod" (seed "ipo" isn't a word inside it) while still keeping
+        # legitimate continuations like "ipo listing today"/"ipo gmp".
+        seed_re = re.compile(r"\b" + re.escape(seed.lower()) + r"\b")
         for yt in (False, True):
             for sug in _suggest(seed, youtube=yt):
                 s = sug.strip().lower()
@@ -75,6 +88,8 @@ def _collect(seeds: list) -> list:
                 if len(s) < 4 or s == seed.lower():
                     continue
                 if all(w in _BLOCK for w in s.split()):
+                    continue
+                if not seed_re.search(s):
                     continue
                 counter[s] += 1
             time.sleep(0.3)  # be gentle on the endpoint

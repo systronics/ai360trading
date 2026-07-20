@@ -1,6 +1,10 @@
 # ══════════════════════════════════════════════════════════════════════════════
-# performance_stats.py — v1.0 (2026-07-13)
+# performance_stats.py — v1.1 (2026-07-20)
 # ══════════════════════════════════════════════════════════════════════════════
+# v1.1: write_data_json() dumps the same honest ledger stats to _data/
+#   performance.json (Jekyll auto-loads _data/*.json as site.data.performance)
+#   so static pages — the membership page, not just generated articles — can
+#   show the real, live win-rate/ledger table instead of a hardcoded number.
 # Reads the CLOSED-trade ledger (History tab of Ai360tradingAlgo) and turns it
 # into an "our real signal performance" block for website articles.
 #
@@ -153,6 +157,46 @@ def article_perf_html(as_of_display):
     except Exception as e:
         print(f"[PERF] block build skipped ({e})")
         return ""
+
+
+def write_data_json(as_of_display, path="_data/performance.json"):
+    """
+    Dumps get_performance_summary() to a Jekyll _data JSON file so static
+    pages (membership.md) can render the real ledger via site.data.performance
+    — no Python execution at page-render time. FAIL-OPEN: if the sheet read
+    fails, the OLD file is left untouched (same carry-forward doctrine as
+    _data/prices_cache.json) rather than wiping a working page's numbers.
+    Returns True if it wrote a fresh file, False if left untouched.
+    """
+    try:
+        s = get_performance_summary()
+        if not s:
+            print("[PERF] no stats — leaving existing performance.json untouched")
+            return False
+        out = {
+            "as_of":        as_of_display,
+            "total":        s["total"],
+            "wins":         s["wins"],
+            "losses":       s["losses"],
+            "win_rate":     s["win_rate"],
+            "net_pnl_rs":   s["net_pnl_rs"],
+            "avg_win_pct":  s["avg_win_pct"],
+            "avg_loss_pct": s["avg_loss_pct"],
+            "best":         {"sym": s["best"][0],  "pct": s["best"][1]},
+            "worst":        {"sym": s["worst"][0], "pct": s["worst"][1]},
+            "recent": [
+                {"sym": sym, "exit_date": exit_dt, "pct": pct, "is_win": is_win}
+                for sym, exit_dt, pct, is_win in s["recent"]
+            ],
+        }
+        os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(out, f, ensure_ascii=False, indent=2)
+        print(f"[PERF] wrote {path}")
+        return True
+    except Exception as e:
+        print(f"[PERF] write_data_json skipped ({e}) — leaving existing file untouched")
+        return False
 
 
 if __name__ == "__main__":
