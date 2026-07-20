@@ -1,6 +1,20 @@
 """
-AI360 TRADING BOT — v15.27
+AI360 TRADING BOT — v15.28
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v15.28 CHANGES vs v15.27 — VOLUME-GATE SHADOW TRACKER (2026-07-21, owner: "may be we have any hard gate... build it, safe by design only")
+  The 1.5x volume-confirmation gate is a binary hard gate with no partial
+  credit — never measured against what actually happens to the candidates
+  it rejects. New ShadowLedger tab + 3 functions (log_volume_gate_shadow,
+  score_volume_gate_shadow, shadow_ledger_report): every candidate that
+  passes EVERY other filter (RECD/TIME/DAILY/NIFTY/VIX/RSI/RS) and fails
+  ONLY on volume gets logged as a never-traded phantom entry (same SL/
+  target a real entry would use), then scored later with the same target/
+  SL/TIME_STOP_DAYS rules real trades use. New BOT_MODE=shadow_report
+  sends an on-demand plain-language summary. SAFE BY DESIGN: reads/writes
+  ONLY the ShadowLedger tab, never touches AlertLog/History/BotMemory
+  trade-state, never sends a trade alert, never affects a real position —
+  every function fails open independently of the real entry/exit path.
+
 v15.27 CHANGES vs v15.26 — FULL-SYSTEM AUDIT FIXES (2026-07-20, owner: "analyse full system, find loop or gap")
   1. Removed dead ACCUM_{date}_{key} memory write in the accumulation-watch
      scan — nothing ever read it, and clean_mem()'s date-detection didn't
@@ -537,7 +551,7 @@ except Exception as _e:
     _EQ_AVAILABLE = False
 
 IST       = pytz.timezone('Asia/Kolkata')
-VERSION   = "v15.27"   # single source for the run banner + test messages (were stale at v15.16 before v15.23)
+VERSION   = "v15.28"   # single source for the run banner + test messages (were stale at v15.16 before v15.23)
 TG_TOKEN  = os.environ.get('TELEGRAM_BOT_TOKEN')
 
 CHAT_BASIC   = os.environ.get('CHAT_ID_BASIC')
@@ -2066,6 +2080,10 @@ def step_a_enter_trades(log_sheet, nifty_sheet, bm_sheet, mem, now, is_bullish, 
         for reason in filter_reasons:
             print(f"[FILTER] {sym}: {reason}")
         if not allowed:
+            # v15.28: if this candidate failed ONLY the volume gate (every
+            # other filter already passed), log it as a shadow/phantom entry
+            # — never trades it, just observes whether it would have worked.
+            mem = log_volume_gate_shadow(nifty_sheet, mem, now, sym, filter_reasons, cp, sl, tgt)
             continue
 
         # Result/event day gap check
@@ -2853,6 +2871,169 @@ def send_test_messages():
 
 
 # ══════════════════════════════════════════════════════════════════════════════
+# v15.28 — VOLUME-GATE SHADOW TRACKER (owner: "is the 1.5x volume gate a hard
+# gate that's throwing away good trades, or correctly protecting us?")
+#
+# The volume-confirmation gate is a binary hard gate — a stock at 1.49x pace
+# is rejected exactly as hard as one at 0.5x. Nobody has ever measured what
+# happens to the stocks it rejects. This logs a NEVER-TRADED "phantom" entry
+# every time a candidate passes EVERY other filter (RECD/TIME/DAILY/NIFTY/
+# VIX/RSI/RS) and fails ONLY on volume, using the exact same SL/target a real
+# entry would have used, then scores it later with the same target/SL/
+# TIME_STOP_DAYS rules real trades use. After enough data accumulates, the
+# ShadowLedger tab answers the calibration question with evidence instead of
+# assumption — the same approach that validated the RSI hot-leader exception
+# in the 07-15 audit.
+#
+# SAFE BY DESIGN: reads/writes ONLY the ShadowLedger tab. Never touches
+# AlertLog, History, BotMemory trade-state keys, never sends a Telegram
+# alert, never affects a real position. Every function fails open — any
+# error just skips shadow-tracking for that tick, the real bot is unaffected.
+# ══════════════════════════════════════════════════════════════════════════════
+SHADOW_SHEET_NAME = "ShadowLedger"
+SHADOW_HEADER = ["Symbol", "Signal Date", "Entry (CMP)", "Volume Pace %", "RS",
+                  "Signal", "SL", "Target", "Outcome", "Score P/L %",
+                  "Scored Date", "Trading Days Held"]
+
+
+def _get_shadow_sheet(nifty_sheet):
+    """Lazily gets/creates the ShadowLedger tab. Reuses the already-authorized
+    session via nifty_sheet.spreadsheet — no extra credential/API-quota cost.
+    Fail-open: returns None on any error (missing perms, quota, etc.)."""
+    try:
+        ss = nifty_sheet.spreadsheet
+        try:
+            return ss.worksheet(SHADOW_SHEET_NAME)
+        except gspread.exceptions.WorksheetNotFound:
+            ws = ss.add_worksheet(title=SHADOW_SHEET_NAME, rows=2000, cols=len(SHADOW_HEADER))
+            ws.update("A1", [SHADOW_HEADER])
+            print(f"[SHADOW] created {SHADOW_SHEET_NAME} tab")
+            return ws
+    except Exception as e:
+        print(f"[SHADOW] sheet access failed: {e} — shadow tracking skipped this tick")
+        return None
+
+
+def log_volume_gate_shadow(nifty_sheet, mem, now, sym, filter_reasons, cp, sl, tgt):
+    """
+    Called from step_a right where a real entry would have been rejected. If
+    the LAST filter reason recorded is [VOL] (meaning every filter before it —
+    RECD/TIME/DAILY/NIFTY/VIX/RSI/RS — already passed), this candidate failed
+    on volume alone: log it as a shadow (never-traded) entry, once per stock
+    per day. Uses the SAME sl/tgt the real AlertLog row already computed, so
+    the phantom trade is directly comparable to a real one.
+    """
+    try:
+        if not filter_reasons or not filter_reasons[-1].startswith("[VOL]"):
+            return mem   # rejected for a different (or no) reason — not a volume near-miss
+        today_s = now.strftime("%Y-%m-%d")
+        key = sym_key(sym)
+        flag = f"{today_s}_SHADOWVOL_{key}"
+        if _mem_get(mem, flag):
+            return mem   # already logged this stock today
+        sheet = _get_shadow_sheet(nifty_sheet)
+        if sheet is None or cp <= 0:
+            return mem
+        rel_vol = _read_nifty200_relvol(nifty_sheet, sym)
+        rs_val  = _read_nifty200_rs(nifty_sheet, sym)
+        sheet.append_row(
+            [sym, today_s, cp, rel_vol, rs_val, "NEAR-MISS (VOL only)", sl, tgt,
+             "PENDING", "", "", ""],
+            value_input_option="USER_ENTERED",
+        )
+        mem = _mem_set(mem, flag, "1")
+        print(f"[SHADOW] logged {sym} — passed every filter except volume "
+              f"(pace {rel_vol:+.0f}%, RS {rs_val:+.1f})")
+    except Exception as e:
+        print(f"[SHADOW] log failed for {sym}: {e} — fail open")
+    return mem
+
+
+def score_volume_gate_shadow(nifty_sheet, now):
+    """
+    Once per tick: checks every PENDING ShadowLedger row and marks it WIN
+    (target reached), LOSS (SL hit), or TIMEOUT (TIME_STOP_DAYS trading days
+    passed with neither) — the same rules a real entry is monitored under.
+    Read/writes ONLY the ShadowLedger tab. Fail-open: any error leaves rows
+    PENDING for the next tick to retry, never crashes the caller.
+    """
+    try:
+        sheet = _get_shadow_sheet(nifty_sheet)
+        if sheet is None:
+            return
+        rows = sheet.get_all_values()
+        if len(rows) < 2:
+            return
+        updates = []
+        for i, r in enumerate(rows[1:], start=2):
+            if len(r) < 9 or r[8].strip() != "PENDING":
+                continue
+            sym, sig_date_s = r[0].strip(), r[1].strip()
+            try:
+                entry_cp = float(r[2]); sl = float(r[6]); tgt = float(r[7])
+            except Exception:
+                continue
+            cmp_now = _read_nifty200_field(nifty_sheet, sym, ["CMP"], subs=["cmp", "ltp"])
+            if not cmp_now or cmp_now <= 0:
+                continue
+            hd = calc_trading_hold_days(sig_date_s, now)
+            outcome = None
+            if tgt > 0 and cmp_now >= tgt:
+                outcome = "WIN (target)"
+            elif sl > 0 and cmp_now <= sl:
+                outcome = "LOSS (SL)"
+            elif hd >= TIME_STOP_DAYS:
+                outcome = "TIMEOUT"
+            if outcome:
+                pnl_pct = round((cmp_now - entry_cp) / entry_cp * 100, 2) if entry_cp > 0 else 0.0
+                updates.append((i, sym, outcome, pnl_pct, now.strftime("%Y-%m-%d"), hd))
+        for i, sym, outcome, pnl_pct, scored_at, hd in updates:
+            sheet.update(f"I{i}:L{i}", [[outcome, pnl_pct, scored_at, hd]])
+            print(f"[SHADOW] scored row {i} ({sym}): {outcome} ({pnl_pct:+.2f}%)")
+    except Exception as e:
+        print(f"[SHADOW] scoring pass failed: {e} — fail open, will retry next tick")
+
+
+def shadow_ledger_report(nifty_sheet) -> str:
+    """On-demand plain-language summary of everything scored so far — answers
+    'is the volume gate well-calibrated?' with real numbers. Returns a Telegram-
+    ready string. Fail-open: returns an explanatory string on any error."""
+    try:
+        sheet = _get_shadow_sheet(nifty_sheet)
+        if sheet is None:
+            return "⚠️ Shadow ledger unavailable right now."
+        rows = sheet.get_all_values()[1:]
+        if not rows:
+            return "📊 <b>Volume-Gate Shadow Ledger</b>\nNo candidates logged yet."
+        scored  = [r for r in rows if len(r) > 8 and r[8].strip() not in ("", "PENDING")]
+        pending = len(rows) - len(scored)
+        if not scored:
+            return (f"📊 <b>Volume-Gate Shadow Ledger</b>\n"
+                     f"{len(rows)} near-miss candidate(s) logged so far, "
+                     f"{pending} still pending (needs {TIME_STOP_DAYS} trading days to score).\n"
+                     f"Not enough scored data yet — check back in a few days.")
+        wins   = [r for r in scored if r[8].startswith("WIN")]
+        losses = [r for r in scored if r[8].startswith("LOSS")]
+        others = [r for r in scored if r not in wins and r not in losses]
+        pnls   = [float(r[9]) for r in scored if len(r) > 9 and r[9].strip()]
+        avg_pnl = round(sum(pnls) / len(pnls), 2) if pnls else 0.0
+        win_rate = round(len(wins) / len(scored) * 100) if scored else 0
+        return (
+            f"📊 <b>Volume-Gate Shadow Ledger</b> — would-have-been trades if the "
+            f"1.5x volume gate didn't exist\n"
+            f"━━━━━━━━━━━━━━━━━━━━\n"
+            f"<b>{len(scored)} scored</b> ({pending} still pending) · "
+            f"<b>{win_rate}% would-be win rate</b> · avg P/L {avg_pnl:+.2f}%\n"
+            f"🎯 Target hit: {len(wins)} · 🛑 SL hit: {len(losses)} · ⏰ Timeout: {len(others)}\n\n"
+            f"<i>If the would-be win rate/avg P/L here is meaningfully worse than the "
+            f"real ledger's, the volume gate is protecting you correctly. If it's "
+            f"similar or better, the gate may be too strict.</i>"
+        )
+    except Exception as e:
+        return f"⚠️ Shadow ledger report failed: {e}"
+
+
+# ══════════════════════════════════════════════════════════════════════════════
 # v15.15 — CONFIRMED-ACCUMULATION WATCH (the "corrected sector leader" case)
 # ══════════════════════════════════════════════════════════════════════════════
 ACCUM_MAX_DAILY = 1   # at most one accumulation signal per day (quality > quantity)
@@ -2964,6 +3145,11 @@ def main():
     except Exception as e:
         print(f"[SHEETS] Failed: {e}"); return
 
+    if bot_mode == 'shadow_report':
+        print("[MODE] shadow_report — sending volume-gate shadow ledger summary")
+        send_advance_and_premium(shadow_ledger_report(nifty))
+        return
+
     # v15.3: Check AppScript write lock (_AS_LOCK in BotMemory).
     # AppScript sets this key during morning cleanup (clearWaitingRowsOnly) when
     # it briefly clears AlertLog before rewriting traded rows. Reading during that
@@ -3028,6 +3214,14 @@ def main():
         # function self-gates on is_bullish + ACCUM entry window). Fail-open.
         if (now.hour, now.minute) <= ENTRY_WINDOW_BEARISH_END:
             mem = scan_accumulation_watch(nifty, bm, mem, now, is_bullish)
+
+        # v15.28 — score any PENDING volume-gate shadow entries (target/SL/
+        # timeout check against today's CMP). Cheap (ShadowLedger tab only,
+        # reuses the already-open Nifty200 sheet cache), fail-open.
+        try:
+            score_volume_gate_shadow(nifty, now)
+        except Exception as _shadow_err:
+            print(f"[SHADOW] scoring call errored (fail-open): {_shadow_err}")
 
         if "12:28" <= time_str <= "12:38":
             mem = send_midday_pulse(log, mem, now, is_bullish)
