@@ -64,6 +64,7 @@ One broken file = zero income that day. Treat every edit as critical.
 | `content_calendar.py` | v2.4 |
 | `money_funnel.py` | v1.2 (2026-07-20: article_cta_html() now plugs a rotating calculator too — was the only funnel surface v1.1's tool_plug() rollout skipped, and articles are the site's highest-traffic surface; v1.1 TOOL_PAGES + tool_plug() daily calculator rotation in funnel_block/comment_text — video→website traffic loop; single source of truth for broker links in CONTENT — Zerodha/Dhan/Groww/CoinDCX) |
 | `indian_holidays.py` | current (no version tag) |
+| `health_watchdog.py` | v1.2 (2026-07-20: CHECK 7 — payment-page integrity; fetches the live membership/shop/starter-kit pages daily, alerts if the UPI ID or WhatsApp number ever differs from the pinned known-good value — detects a UPI-swap attack via repo compromise, since payments have no gateway yet; v1.1 GH_TOKEN PAT expiry early-warning) |
 
 ### Content Generators
 | File | Version |
@@ -168,6 +169,7 @@ One broken file = zero income that day. Treat every edit as critical.
 | NSE holidays only from the **official NSE list** — never guess/hardcode from memory | 2026-05-27 full outage from a wrong hardcoded list |
 | Never ask the owner for chart screenshots for calibration — use yfinance | Owner directive 2026-07-15; charts only when HE offers them |
 | T2 cell (AlertLog col T row 2) = automation master switch | YES = enabled |
+| `health_watchdog.py`'s `EXPECTED_UPI`/`EXPECTED_WA` are PINNED values, not read from the live site | If the owner ever legitimately changes his UPI ID or WhatsApp number, update these constants in the SAME commit — otherwise the payment-integrity check (v1.2) will send a false "possible UPI-swap" alarm every day |
 
 ---
 
