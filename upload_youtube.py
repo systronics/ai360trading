@@ -3,7 +3,18 @@ upload_youtube.py — AI360Trading
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Uploads reels to YouTube. Handles two reel types:
   --type morning  → morning_reel_YYYYMMDD.mp4
-  --type reel     → reel_YYYYMMDD.mp4 (ZENO evening reel)
+  --type reel     → reel_YYYYMMDD.mp4 (evening reel)
+
+v2.4 (2026-07-22):
+  FIX — Fallback thumbnail/metadata builder (only fires if the reel script
+    itself didn't produce a thumb_path) still pasted the ZENO cartoon and
+    used "ZENO Ki Baat" branding. Owner retired ZENO for a serious-trader
+    identity; the primary generators (generate_reel.py / _morning.py) were
+    already fixed, but this dead-path fallback was missed and would have
+    silently reverted to the mascot on any upstream failure. Now matches:
+    a live NIFTY stat block (real number, no character) + "Amit Ki Baat".
+    save_meta() in generate_reel.py now also writes nifty_level/nifty_pct
+    into meta.json so this fallback has real data to draw from.
 
 v2.3 (2026-05-31):
   FIX — Stop skipping the custom thumbnail for Shorts.
@@ -162,18 +173,27 @@ def build_fallback_thumbnail(reel_type: str, meta: dict) -> Path:
     draw.rectangle([(0,0),(W,14)],   fill=accent)
     draw.rectangle([(0,H-14),(W,H)], fill=accent)
 
-    # ZENO character — right side
-    zeno_file = {"BULLISH":"zeno_happy.png","BEARISH":"zeno_sad.png"}.get(sentiment,"zeno_thinking.png")
-    for zp in [IMAGE_DIR/zeno_file, IMAGE_DIR/"zeno_thinking.png"]:
-        if zp.exists():
-            try:
-                zeno   = Image.open(str(zp)).convert("RGBA")
-                zeno_h = int(H * 0.65)
-                zeno_w = int(zeno.width*(zeno_h/zeno.height))
-                zeno   = zeno.resize((zeno_w,zeno_h),Image.LANCZOS)
-                img.paste(zeno,(W-zeno_w-10,H-zeno_h-60),zeno)
-            except: pass
-            break
+    # v2.4 (2026-07-22): ZENO cartoon retired here too -- this fallback path
+    # only fires if generate_reel.py/generate_reel_morning.py somehow didn't
+    # produce a thumb_path, so it must never fall back to the old mascot.
+    # A live NIFTY stat block replaces it (same principle as the primary
+    # generators): a real number, not a character.
+    pct = meta.get("nifty_pct", 0.0)
+    if nifty > 0:
+        up      = pct >= 0
+        stat_c  = (0, 210, 100) if up else (220, 70, 70)
+        box_y   = H - 420
+        draw.rounded_rectangle([(60, box_y), (W - 60, box_y + 200)], radius=20,
+                                fill=(255, 255, 255, 22))
+        f_sv = get_font(FONT_BOLD, 84)
+        f_sp = get_font(FONT_BOLD, 44)
+        draw.text((W // 2, box_y + 60), f"NIFTY {nifty:,}", font=f_sv,
+                  fill=(255, 255, 255), anchor="mm")
+        arrow = "UP" if up else "DOWN"
+        draw.rounded_rectangle([(W // 2 - 130, box_y + 120), (W // 2 + 130, box_y + 172)],
+                                radius=12, fill=stat_c)
+        draw.text((W // 2, box_y + 146), f"{arrow} {abs(pct):.2f}%", font=f_sp,
+                  fill=(0, 0, 0) if up else (255, 255, 255), anchor="mm")
 
     draw = ImageDraw.Draw(img, "RGBA")
 
@@ -213,7 +233,7 @@ def build_fallback_thumbnail(reel_type: str, meta: dict) -> Path:
         draw.text((140,48),"☀️ 7:00 AM IST",font=f_badge,fill=(0,0,0),anchor="mm")
 
     else:
-        # ZENO reel: Show topic title + lesson preview
+        # Evening reel: Show topic title + lesson preview
         safe_title = re.sub(r'[\u0900-\u097F]+','',title_txt).strip().upper()
         if not safe_title:
             safe_title = "TRADING WISDOM"
@@ -225,9 +245,9 @@ def build_fallback_thumbnail(reel_type: str, meta: dict) -> Path:
             draw.text((80,ty),line,font=f_main,fill=(255,200,0),anchor="la")
             ty += 138
 
-        # ZENO Ki Baat badge
+        # v2.4: Amit Ki Baat badge (was ZENO KI BAAT)
         draw.rounded_rectangle([(20,20),(340,76)],radius=14,fill=(255,200,0))
-        draw.text((180,48),"ZENO KI BAAT",font=f_badge,fill=(0,0,0),anchor="mm")
+        draw.text((180,48),"AMIT KI BAAT",font=f_badge,fill=(0,0,0),anchor="mm")
 
     # Date (like competitor showing date)
     date_str = datetime.datetime.now().strftime("%d %b %Y")
@@ -271,10 +291,10 @@ def build_fallback_metadata(reel_type: str, today: str):
                  f"🌐 https://ai360trading.in\n📱 https://t.me/ai360trading\n"
                  f"⚠️ Educational only.\n\n#ai360trading #MorningBrief {hashtag_str}")
     else:
-        title = f"🎯 ZENO Ki Baat — Trading Wisdom #{today[-4:]} #Shorts"
-        desc  = (f"🎯 Daily trading wisdom by ZENO\n\n🌍 India, USA, UK, Brazil & UAE\n"
+        title = f"🎯 Amit Ki Baat — Trading Wisdom #{today[-4:]} #Shorts"
+        desc  = (f"🎯 Daily trading insight by Amit\n\n🌍 India, USA, UK, Brazil & UAE\n"
                  f"🌐 https://ai360trading.in\n📱 https://t.me/ai360trading\n"
-                 f"⚠️ Educational only.\n\n#ZenoKiBaat #ai360trading {hashtag_str}")
+                 f"⚠️ Educational only.\n\n#AmitKiBaat #ai360trading {hashtag_str}")
     return title, desc, tags
 
 

@@ -1,6 +1,23 @@
 """
 generate_reel_morning.py — Morning Reel Generator (7:00 AM IST)
 ===============================================================
+v2.6 (2026-07-22) — ZENO RETIRED, REBRANDED TO AMIT:
+  Owner ("Amit"): "zeno character not fit for serious traders... use my
+  name Amit instead... content for serious traders... live and real data."
+  - All zeno_*.png character compositing removed from build_thumbnail(),
+    create_frame() and create_morning_video() (was pasted on every single
+    frame of every video, not just the thumbnail).
+  - Replaced with a live data ticker (Crude/Gold/Bitcoin, real values +
+    color-coded up/down badges) on the thumbnail, and the real NIFTY level
+    now also prints on every in-video frame (previously thumbnail-only).
+    This file already pulled 100% real market data (get_market_intelligence)
+    — it just also drew a cartoon over the top of it. That part is gone.
+  - Badge text: "MORNING BRIEF" -> "AMIT'S MORNING BRIEF" / on-frame footer
+    -> "AMIT'S MORNING BRIEF".
+  - No script/prompt changes needed here (unlike generate_reel.py) — this
+    file was never voiced as a ZENO character in the first place, only the
+    thumbnail/frame art referenced it.
+
 v2.5 (2026-06-02):
   ADD — Edge TTS 503 retry in generate_tts() (4x, 5/15/30s backoff). Keeps the
     fail-soft bool contract; transient wss://speech.platform.bing.com 503 now
@@ -451,8 +468,27 @@ async def generate_tts(lines: list, output_path: str) -> bool:
 # Trader reads specific number → stops scrolling → clicks
 # ══════════════════════════════════════════════════════════════════════════════
 
-def build_thumbnail(topic_display: str, sentiment: str, palette: dict, nifty_level: int = 0):
+# v2.6 (2026-07-22): ZENO retired — replaced by a real live-data ticker strip
+# (Crude/Gold/Bitcoin, each with an up/down badge). Data is already computed
+# upstream in `intel` (get_market_intelligence) — zero new fetches.
+def _ticker_row(draw, y, label, value_text, pct, W, font_label, font_val, font_pct):
+    up    = pct >= 0
+    color = (0, 210, 100) if up else (220, 70, 70)
+    row_h = 108
+    draw.rounded_rectangle([(60, y), (W-60, y+row_h-16)], radius=16, fill=(255, 255, 255, 18))
+    draw.text((100, y + (row_h-16)//2), label, font=font_label, fill=(190, 205, 230), anchor="lm")
+    draw.text((W-300, y + (row_h-16)//2), value_text, font=font_val, fill=(255, 255, 255), anchor="lm")
+    arrow = "up" if up else "down"
+    draw.rounded_rectangle([(W-190, y+18), (W-70, y+row_h-34)], radius=10, fill=color)
+    draw.text((W-130, y + (row_h-16)//2 - 8), f"{arrow} {abs(pct):.1f}%",
+              font=font_pct, fill=(0,0,0) if up else (255,255,255), anchor="mm")
+    return y + row_h
+
+
+def build_thumbnail(topic_display: str, sentiment: str, palette: dict, nifty_level: int = 0,
+                     intel: dict = None):
     import textwrap
+    intel = intel or {}
     W, H   = VIDEO_WIDTH, VIDEO_HEIGHT
     accent = palette["accent"]
     bg     = palette["bg"]
@@ -470,30 +506,24 @@ def build_thumbnail(topic_display: str, sentiment: str, palette: dict, nifty_lev
     draw.rectangle([(0, 0), (W, 14)],   fill=accent)
     draw.rectangle([(0, H-14), (W, H)], fill=accent)
 
-    # ZENO character
-    zeno_path = IMAGE_DIR / ("zeno_sad.png" if sentiment=="BEARISH" else "zeno_happy.png")
-    if not zeno_path.exists(): zeno_path = IMAGE_DIR / "zeno_thinking.png"
-    if zeno_path.exists():
-        try:
-            zeno   = Image.open(str(zeno_path)).convert("RGBA")
-            zeno_h = int(H * 0.65)
-            zeno_w = int(zeno.width * (zeno_h / zeno.height))
-            zeno   = zeno.resize((zeno_w, zeno_h), Image.LANCZOS)
-            img.paste(zeno, (W - zeno_w - 10, H - zeno_h - 60), zeno)
-        except Exception as e:
-            logger.warning(f"Thumbnail ZENO: {e}")
-
+    # v2.6 (2026-07-22): ZENO cartoon retired — owner ("Amit") wants a serious-
+    # trader brand, no kid mascot. Freed frame space now holds a real live-
+    # data ticker (Crude/Gold/Bitcoin) below — see _ticker_row() calls further
+    # down. This is the credibility play: real numbers, not a character.
     draw = ImageDraw.Draw(img, "RGBA")
-    f_big   = get_font(FONT_BOLD_PATHS, 110)
-    f_nifty = get_font(FONT_BOLD_PATHS, 90)
-    f_sent  = get_font(FONT_BOLD_PATHS, 68)
-    f_badge = get_font(FONT_BOLD_PATHS, 44)
-    f_time  = get_font(FONT_BOLD_PATHS, 48)
-    f_wm    = get_font(FONT_REG_PATHS,  34)
+    f_big    = get_font(FONT_BOLD_PATHS, 110)
+    f_nifty  = get_font(FONT_BOLD_PATHS, 90)
+    f_sent   = get_font(FONT_BOLD_PATHS, 68)
+    f_badge  = get_font(FONT_BOLD_PATHS, 40)
+    f_time   = get_font(FONT_BOLD_PATHS, 48)
+    f_wm     = get_font(FONT_REG_PATHS,  34)
+    f_row_lb = get_font(FONT_BOLD_PATHS, 40)
+    f_row_v  = get_font(FONT_BOLD_PATHS, 46)
+    f_row_p  = get_font(FONT_BOLD_PATHS, 36)
 
-    # Morning Brief badge (top)
-    draw.rounded_rectangle([(20, 20), (420, 78)], radius=14, fill=(255, 200, 0))
-    draw.text((220, 49), "☀️ MORNING BRIEF", font=f_badge, fill=(0,0,0), anchor="mm")
+    # Morning Brief badge (top) -- Amit's name replaces the cartoon presenter
+    draw.rounded_rectangle([(20, 20), (480, 78)], radius=14, fill=(255, 200, 0))
+    draw.text((250, 49), "☀️ AMIT'S MORNING BRIEF", font=f_badge, fill=(0,0,0), anchor="mm")
 
     # Topic text (large yellow)
     safe_topic   = re.sub(r'[\u0900-\u097F]+', '', topic_display).strip().upper() or "MORNING BRIEF"
@@ -518,6 +548,22 @@ def build_thumbnail(topic_display: str, sentiment: str, palette: dict, nifty_lev
     draw.rounded_rectangle([(80, ty+10), (80+380, ty+82)], radius=14, fill=accent)
     draw.text((270, ty+46), sent_emoji, font=f_sent,
               fill=(0,0,0) if sentiment=="BULLISH" else (255,255,255), anchor="mm")
+    ty += 120
+
+    # v2.6: LIVE DATA TICKER — replaces the ZENO character. Real numbers only.
+    prices = intel.get("prices", {}) or {}
+    ticker_rows = []
+    if intel.get("crude_level", 0):
+        ticker_rows.append(("CRUDE OIL", f"${intel['crude_level']:.1f}",
+                             (prices.get("crude") or {}).get("pct", 0)))
+    if intel.get("gold_level", 0):
+        ticker_rows.append(("GOLD", f"${intel['gold_level']:.0f}",
+                             (prices.get("gold") or {}).get("pct", 0)))
+    if intel.get("btc_level", 0):
+        ticker_rows.append(("BITCOIN", f"${intel['btc_level']:,}",
+                             (prices.get("btc") or {}).get("pct", 0)))
+    for label, val, pct in ticker_rows[:3]:
+        ty = _ticker_row(draw, ty + 14, label, val, pct, W, f_row_lb, f_row_v, f_row_p)
 
     # Time + watermark
     draw.text((80, H-65), "7:00 AM IST",      font=f_time, fill=accent, anchor="la")
@@ -533,7 +579,11 @@ def build_thumbnail(topic_display: str, sentiment: str, palette: dict, nifty_lev
 # FRAMES + VIDEO (unchanged from v2.2)
 # ══════════════════════════════════════════════════════════════════════════════
 
-def create_frame(line, line_index, total_lines, topic, palette, intel=None, zeno_image=None):
+# v2.6 (2026-07-22): ZENO cartoon dropped from every frame (not just the
+# thumbnail) — owner ("Amit") wants a serious-trader look. Removed the
+# zeno_image param entirely (was pasted bottom-right on every slide); the
+# freed space now lets the line text sit larger and more centered.
+def create_frame(line, line_index, total_lines, topic, palette, intel=None):
     img  = Image.new("RGB", (VIDEO_WIDTH, VIDEO_HEIGHT), color=palette["bg"])
     draw = ImageDraw.Draw(img)
     for y in range(VIDEO_HEIGHT):
@@ -550,46 +600,47 @@ def create_frame(line, line_index, total_lines, topic, palette, intel=None, zeno
     if intel:
         sentiment    = intel.get("sentiment", "NEUTRAL")
         sent_colour  = (0,210,100) if sentiment=="BULLISH" else (220,55,55) if sentiment=="BEARISH" else (255,180,0)
-        sent_emoji   = {"BULLISH":"📈","BEARISH":"📉","NEUTRAL":"⚖️"}.get(sentiment,"⚖️")
-        draw.text((VIDEO_WIDTH-40, 40), f"{sent_emoji} {sentiment}",
+        sent_label   = {"BULLISH":"UP","BEARISH":"DOWN","NEUTRAL":"FLAT"}.get(sentiment,"FLAT")
+        draw.text((VIDEO_WIDTH-40, 40), f"{sent_label} {sentiment}",
                   font=get_font(FONT_BOLD_PATHS,32), fill=sent_colour, anchor="ra")
+        # v2.6: live Nifty level on every frame (not just thumbnail) — a real
+        # number on screen the whole video builds more trust than a mascot.
+        nifty_level = intel.get("nifty_level", 0)
+        if nifty_level > 0:
+            draw.text((VIDEO_WIDTH-40, 80), f"NIFTY {nifty_level:,}",
+                      font=get_font(FONT_BOLD_PATHS,30), fill=(220,230,255), anchor="ra")
 
-    dot_y = 90; dot_sp = 20
+    dot_y = 120; dot_sp = 20
     dot_sx = VIDEO_WIDTH//2 - (total_lines*dot_sp)//2
     for i in range(total_lines):
         col = palette["accent"] if i <= line_index else (80,80,80)
         draw.ellipse([(dot_sx+i*dot_sp-5,dot_y-5),(dot_sx+i*dot_sp+5,dot_y+5)], fill=col)
 
-    if zeno_image:
-        try:
-            zh = int(VIDEO_HEIGHT*0.42); zw = int(zeno_image.width*(zh/zeno_image.height))
-            zr = zeno_image.resize((zw,zh),Image.LANCZOS)
-            img.paste(zr,(VIDEO_WIDTH-zw-10,VIDEO_HEIGHT-zh),zr)
-        except: pass
-
-    tl_font = get_font(FONT_BOLD_PATHS, 38)
+    tl_font = get_font(FONT_BOLD_PATHS, 40)
     draw = ImageDraw.Draw(img)
-    draw.text((VIDEO_WIDTH//2, VIDEO_HEIGHT//3), topic.upper(), font=tl_font, fill=palette["accent"], anchor="mm")
+    draw.text((VIDEO_WIDTH//2, VIDEO_HEIGHT//4), topic.upper(), font=tl_font, fill=palette["accent"], anchor="mm")
 
-    main_font = get_font(FONT_BOLD_PATHS, 62)
+    # v2.6: text now uses the full frame width/height (no more reserving the
+    # bottom-right for a character) — larger, more legible on mobile.
+    main_font = get_font(FONT_BOLD_PATHS, 72)
     words = line.split(); wrapped = []; cur = ""
     for w in words:
         test = (cur+" "+w).strip()
         bbox = draw.textbbox((0,0),test,font=main_font)
-        if bbox[2]-bbox[0] > VIDEO_WIDTH-120:
+        if bbox[2]-bbox[0] > VIDEO_WIDTH-100:
             if cur: wrapped.append(cur)
             cur = w
         else: cur = test
     if cur: wrapped.append(cur)
 
     text_y  = VIDEO_HEIGHT//2
-    tot_h   = len(wrapped)*74
+    tot_h   = len(wrapped)*88
     start_y = text_y - tot_h//2
     for i, wl in enumerate(wrapped[:5]):
-        draw.text((VIDEO_WIDTH//2, start_y+i*74), wl, font=main_font, fill=palette["text"], anchor="mm")
+        draw.text((VIDEO_WIDTH//2, start_y+i*88), wl, font=main_font, fill=palette["text"], anchor="mm")
 
     draw.rectangle([(0,VIDEO_HEIGHT-10),(VIDEO_WIDTH,VIDEO_HEIGHT)], fill=palette["accent"])
-    draw.text((VIDEO_WIDTH//2, VIDEO_HEIGHT-55), "MORNING BRIEF",
+    draw.text((VIDEO_WIDTH//2, VIDEO_HEIGHT-55), "AMIT'S MORNING BRIEF",
               font=get_font(FONT_BOLD_PATHS,30), fill=palette["accent"], anchor="mm")
 
     return np.array(img)
@@ -601,20 +652,13 @@ def create_morning_video(script, audio_path, output_path, intel=None,
     topic     = script.get("topic", "Morning Brief")
     if not lines: logger.error("No lines"); return False
 
-    sentiment = intel.get("sentiment", "NEUTRAL") if intel else "NEUTRAL"
-    zeno_file = "zeno_happy.png" if sentiment=="BULLISH" else "zeno_sad.png" if sentiment=="BEARISH" else "zeno_thinking.png"
-
-    zeno_image = None
-    for zp in [IMAGE_DIR/zeno_file, IMAGE_DIR/"zeno_thinking.png"]:
-        if zp.exists():
-            try: zeno_image = Image.open(str(zp)).convert("RGBA"); break
-            except: pass
-
+    # v2.6: ZENO image loading removed — create_frame() no longer takes a
+    # character image (see its own v2.6 note).
     spl    = DURATION / len(lines)
     fpl    = int(FPS * spl)
     frames = []
     for i, line in enumerate(lines):
-        f = create_frame(line, i, len(lines), topic, TODAY_PALETTE, intel, zeno_image)
+        f = create_frame(line, i, len(lines), topic, TODAY_PALETTE, intel)
         for _ in range(fpl): frames.append(f)
 
     def make_frame(t):
@@ -799,8 +843,8 @@ async def main():
     if not video_ok:
         logger.error("Video failed"); return
 
-    # v2.3: Pass nifty_level to thumbnail builder
-    thumb_path = build_thumbnail(topic_display, sentiment, TODAY_PALETTE, nifty_level=nifty)
+    # v2.6: pass full intel so the thumbnail can show real Crude/Gold/BTC ticker rows
+    thumb_path = build_thumbnail(topic_display, sentiment, TODAY_PALETTE, nifty_level=nifty, intel=intel)
 
     save_meta(script, video_path, thumb_path, intel)
 

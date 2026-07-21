@@ -1,9 +1,30 @@
 """
-generate_reel.py — AI360Trading
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Generates ZENO evening reel (8:30 PM) — 45-60 second Hinglish reel.
+generate_reel.py -- AI360Trading
+======================================================
+Generates the evening reel (8:30 PM) -- 45-60 second Hinglish reel.
 
-VOICE: hi-IN-SwaraNeural (Swara — wise female, ZENO character)
+VOICE: hi-IN-SwaraNeural (Swara -- wise female voice)
+
+v2.5 (2026-07-22) -- ZENO RETIRED, DATA-GROUNDED, REBRANDED TO AMIT:
+  Owner ("Amit"): "zeno character not fit for serious traders... use my
+  name Amit instead... content for serious traders... live and real data."
+  - Persona: prompt no longer casts the narrator as "ZENO, an animated kid
+    character." It now writes in Amit'''s voice -- an experienced trader
+    speaking directly to serious traders, not a mascot teaching children.
+  - Real data: this reel used to be 100% generic "trading wisdom" with zero
+    market data (the topic prompt literally said "no live market data" for
+    weekend/holiday modes and never pulled a real number on market days
+    either). Added fetch_eod_snapshot() (yfinance, fail-open) -- a real
+    NIFTY close + %change is now fetched and required to appear in the
+    script on market days, so the lesson is anchored to something that
+    actually happened today, not detached generic advice.
+  - Visuals: apply_zeno_effect() and all zeno_*.png character compositing
+    removed from both the thumbnail and the in-video frame. Replaced with
+    a bold live-data stat block (NIFTY level + %change, color-coded) -- the
+    same "specific real number stops the scroll" principle already proven
+    in the morning reel, now applied here too. No new character art needed.
+  - Branding: "ZENO Ki Baat" -> "Amit Ki Baat" across titles, descriptions,
+    hashtags, on-screen badge, and log lines.
 
 v2.4 (2026-06-02):
   ADD — Edge TTS 503 retry in generate_tts() (4x, 5/15/30s backoff + non-empty
@@ -92,12 +113,37 @@ def get_font(path, size):
     return ImageFont.load_default()
 
 
+# v2.5: real EOD market snapshot -- fail-open (returns all-zero dict on any
+# error so the reel still generates; the prompt/visuals just skip the
+# data-anchor line when nifty_cmp is 0).
+def fetch_eod_snapshot() -> dict:
+    try:
+        import yfinance as yf
+        t = yf.Ticker("^NSEI")
+        df = t.history(period="5d", interval="1d")
+        if len(df) >= 2:
+            prev = float(df["Close"].iloc[-2])
+            cmp  = float(df["Close"].iloc[-1])
+            if prev > 0 and cmp > 0:
+                pct = round(((cmp - prev) / prev) * 100, 2)
+                return {"nifty_cmp": round(cmp, 0), "nifty_pct": pct}
+    except Exception as e:
+        print(f"[EOD] snapshot fetch failed (fail-open): {e}")
+    return {"nifty_cmp": 0, "nifty_pct": 0.0}
+
+
 # ─── SCRIPT GENERATION ────────────────────────────────────────────────────────
 
 def generate_script():
     from ai_client import ai
 
     today = datetime.now(IST).strftime("%A, %d %B %Y")
+    snap  = fetch_eod_snapshot() if CONTENT_MODE == "market" else {"nifty_cmp": 0, "nifty_pct": 0.0}
+    data_line = (
+        f"REAL DATA (must be referenced naturally in the script): NIFTY closed today at "
+        f"{snap['nifty_cmp']:.0f} ({snap['nifty_pct']:+.2f}%)."
+        if snap["nifty_cmp"] > 0 else ""
+    )
 
     if CONTENT_MODE == "holiday":
         holiday_label = HOLIDAY_NAME if HOLIDAY_NAME else "Indian Market Holiday"
@@ -109,24 +155,31 @@ def generate_script():
         )
     elif CONTENT_MODE == "weekend":
         topic = (
-            "emotional life lesson about patience, discipline or money mindset — no market data. "
+            "emotional life lesson about patience, discipline or money mindset, grounded in a real "
+            "trading example (not a fabricated one). "
             "Motivational and educational for global audience: India, US, UK, Brazil."
         )
     else:
         hook = ht.get_hook(mode=CONTENT_MODE, lang="hi")
         topic = (
-            f"stock market trading wisdom, psychology, or risk management lesson for Indian traders. "
+            f"stock market trading wisdom, psychology, or risk management lesson for serious Indian "
+            f"traders, tied to today's actual market move. "
             f"Start with this hook: '{hook}'"
         )
 
-    prompt = f"""You are ZENO — a wise animated kid character teaching trading wisdom in Hinglish to Indian traders.
+    prompt = f"""You are Amit, an experienced Indian trader and the founder of AI360Trading, speaking directly
+to serious traders in Hinglish -- not a cartoon, not a kid's character. First person, confident,
+grounded in real experience.
 
-Today is {today}. Create a 45-60 second reel script on: {topic}
+Today is {today}. {data_line}
+
+Create a 45-60 second reel script on: {topic}
 
 Rules:
 - Hinglish only (natural Hindi + English mix)
-- Simple enough for a 10-year-old to understand
-- Emotional, relatable, human touch
+- Written for a serious adult trader, not simplified for children
+- If real data is given above, reference the actual number naturally — never invent a number
+- Direct, credible, no exaggerated claims or guaranteed-profit language
 - One clear lesson only
 - End with strong CTA to subscribe
 
@@ -140,13 +193,15 @@ Respond ONLY with valid JSON, no markdown:
   "description": "2-3 sentence English/Hinglish description for YouTube with key insight"
 }}"""
 
-    print("Generating ZENO reel script...")
+    print("Generating reel script (Amit persona)...")
     try:
         data = ai.generate_json(prompt, content_mode=CONTENT_MODE, lang="hi")
         raw  = data.get("audio_script", "")
         if raw:
             data["audio_script"] = ht.humanize(raw, lang="hi")
-        print(f"ZENO script ready — emotion: {data.get('emotion')} | title: {data.get('title')}")
+        data["nifty_cmp"] = snap["nifty_cmp"]
+        data["nifty_pct"] = snap["nifty_pct"]
+        print(f"Script ready — emotion: {data.get('emotion')} | title: {data.get('title')}")
         return data
     except Exception as e:
         print(f"Script error: {e} — using fallback")
@@ -156,48 +211,51 @@ Respond ONLY with valid JSON, no markdown:
             "display_text": "Market nahi aapka dar hai. Patience rakhiye.",
             "emotion": "fear",
             "sentiment": "fearful",
-            "description": "ZENO ki baat: Trading mein patience aur discipline sabse zaroori hai."
+            "description": "Amit ki baat: Trading mein patience aur discipline sabse zaroori hai.",
+            "nifty_cmp": snap["nifty_cmp"],
+            "nifty_pct": snap["nifty_pct"],
         }
 
 
-# ─── ZENO EFFECT ──────────────────────────────────────────────────────────────
+# ─── LIVE DATA STAT BLOCK (v2.5 — replaces ZENO character) ────────────────────
+# Owner ("Amit") does not want a cartoon fronting content for serious traders.
+# A real NIFTY number in the frame is the credibility play a mascot can't be.
 
-def apply_zeno_effect(base_img, emotion="thinking"):
-    zeno_path = IMAGE_DIR / f"zeno_{emotion}.png"
-    if not zeno_path.exists():
-        zeno_path = IMAGE_DIR / "zeno_thinking.png"
-    if not zeno_path.exists():
-        return base_img
-
-    zeno     = Image.open(str(zeno_path)).convert("RGBA")
-    target_w = int(SW * 0.85)
-    w_ratio  = target_w / float(zeno.size[0])
-    target_h = int(float(zeno.size[1]) * float(w_ratio))
-    zeno     = zeno.resize((target_w, target_h), Image.LANCZOS)
-
-    # Shadow
-    shadow_layer = Image.new("RGBA", (SW, SH), (0, 0, 0, 0))
-    zeno_mask    = zeno.split()[3]
-    shadow_pos   = ((SW - zeno.width) // 2 + 15, SH - zeno.height - 180 + 15)
-    shadow_img   = Image.new("RGBA", zeno.size, (0, 0, 0, 110))
-    shadow_layer.paste(shadow_img, shadow_pos, zeno_mask)
-    shadow_layer = shadow_layer.filter(ImageFilter.GaussianBlur(radius=15))
-
-    combined  = Image.alpha_composite(base_img.convert("RGBA"), shadow_layer)
-    zeno_pos  = ((SW - zeno.width) // 2, SH - zeno.height - 200)
-    combined.paste(zeno, zeno_pos, zeno)
-    return combined.convert("RGB")
+def draw_stat_block(img, nifty_cmp, nifty_pct):
+    if not nifty_cmp:
+        return img
+    draw  = ImageDraw.Draw(img, "RGBA")
+    up    = nifty_pct >= 0
+    color = (0, 210, 100) if up else (220, 70, 70)
+    box_y = SH - 560
+    draw.rounded_rectangle([(80, box_y), (SW - 80, box_y + 260)], radius=24,
+                            fill=(255, 255, 255, 22))
+    f_label = get_font(FONT_BOLD, 44)
+    f_val   = get_font(FONT_BOLD, 110)
+    f_pct   = get_font(FONT_BOLD, 56)
+    draw.text((SW // 2, box_y + 60), "NIFTY TODAY", font=f_label,
+              fill=(190, 205, 230), anchor="mm")
+    draw.text((SW // 2, box_y + 155), f"{nifty_cmp:,.0f}", font=f_val,
+              fill=(255, 255, 255), anchor="mm")
+    arrow = "UP" if up else "DOWN"
+    draw.rounded_rectangle([(SW // 2 - 160, box_y + 205), (SW // 2 + 160, box_y + 250)],
+                            radius=14, fill=color)
+    draw.text((SW // 2, box_y + 228), f"{arrow} {abs(nifty_pct):.2f}%", font=f_pct,
+              fill=(0, 0, 0) if up else (255, 255, 255), anchor="mm")
+    return img
 
 
 # ─── v2.1 FIX 2: PROPER THUMBNAIL ────────────────────────────────────────────
 
-def build_thumbnail(title_text, display_text, emotion="thinking"):
+def build_thumbnail(title_text, display_text, emotion="thinking", nifty_cmp=0, nifty_pct=0.0):
     """
     Proper thumbnail that drives CTR.
 
-    Layout:
+    Layout (v2.5 — ZENO retired):
       - Dark gradient background
-      - ZENO 70% frame height — visible on mobile feed
+      - Live NIFTY stat block (real number, color-coded) — replaces the
+        cartoon character; a serious trader stops for a real number, not
+        a mascot
       - Title: 130px bold YELLOW — readable in 2 seconds
       - Display text: 52px white with dark backing
       - Accent bars top and bottom
@@ -216,22 +274,8 @@ def build_thumbnail(title_text, display_text, emotion="thinking"):
     draw.rectangle([(0, 0), (SW, 14)], fill=(255, 200, 0))
     draw.rectangle([(0, SH-14), (SW, SH)], fill=(255, 200, 0))
 
-    # ZENO — 70% height, centered bottom
-    zeno_path = IMAGE_DIR / f"zeno_{emotion}.png"
-    if not zeno_path.exists():
-        zeno_path = IMAGE_DIR / "zeno_thinking.png"
-    if zeno_path.exists():
-        try:
-            zeno     = Image.open(str(zeno_path)).convert("RGBA")
-            zeno_h   = int(SH * 0.70)
-            zeno_w   = int(zeno.width * (zeno_h / zeno.height))
-            zeno     = zeno.resize((zeno_w, zeno_h), Image.LANCZOS)
-            zeno_x   = (SW - zeno_w) // 2
-            zeno_y   = SH - zeno_h - 60
-            img.paste(zeno, (zeno_x, zeno_y), zeno)
-        except Exception as e:
-            print(f"ZENO thumbnail paste: {e}")
-
+    # v2.5: live NIFTY stat block, bottom half — replaces the ZENO character
+    img  = draw_stat_block(img, nifty_cmp, nifty_pct)
     draw = ImageDraw.Draw(img, "RGBA")
 
     # Title — 130px bold yellow — top area
@@ -272,7 +316,7 @@ def build_thumbnail(title_text, display_text, emotion="thinking"):
 
 # ─── REEL FRAME (for video) ───────────────────────────────────────────────────
 
-def build_reel_frame(title_text, display_text, emotion="thinking"):
+def build_reel_frame(title_text, display_text, emotion="thinking", nifty_cmp=0, nifty_pct=0.0):
     img  = Image.new("RGB", (SW, SH))
     draw = ImageDraw.Draw(img, "RGBA")
 
@@ -284,7 +328,7 @@ def build_reel_frame(title_text, display_text, emotion="thinking"):
         draw.line([(0, y), (SW, y)], fill=(r, g, b))
 
     draw.ellipse([100, 100, SW - 100, 600], fill=(60, 140, 255, 30))
-    img       = apply_zeno_effect(img, emotion)
+    img       = draw_stat_block(img, nifty_cmp, nifty_pct)  # v2.5: replaces ZENO
     draw_text = ImageDraw.Draw(img)
 
     font_title  = get_font(FONT_BOLD, 85)
@@ -326,7 +370,7 @@ def build_reel_frame(title_text, display_text, emotion="thinking"):
     draw_text.text((SW//2, SH-160), "📱 t.me/ai360trading",
                    font=font_brand, fill=(140, 180, 240), anchor="mm")
 
-    path = OUT / "zeno_reel_frame.png"
+    path = OUT / "zeno_reel_frame.png"  # internal output filename, unchanged
     img.save(str(path))
     return path
 
@@ -336,18 +380,23 @@ def build_reel_frame(title_text, display_text, emotion="thinking"):
 def build_youtube_title(script_data, today_str):
     title_word = script_data.get("title", "TRADING WISDOM")
     date_tag   = datetime.now(IST).strftime("%d %b %Y")
+    nifty_cmp  = script_data.get("nifty_cmp", 0)
+    nifty_tag  = f"Nifty {nifty_cmp:,.0f} | " if nifty_cmp else ""
     if CONTENT_MODE == "holiday":
         label = HOLIDAY_NAME if HOLIDAY_NAME else "Market Holiday"
-        return f"🎉 {label} — ZENO Ki Baat #{today_str[-4:]} #Shorts"
+        return f"🎉 {label} — Amit Ki Baat #{today_str[-4:]} #Shorts"
     elif CONTENT_MODE == "weekend":
-        return f"📚 Weekend Wisdom — ZENO Ki Baat #{today_str[-4:]} #Shorts"
+        return f"📚 Weekend Wisdom — Amit Ki Baat #{today_str[-4:]} #Shorts"
     else:
-        return f"🎯 ZENO Ki Baat: {title_word.title()} — {date_tag} #Shorts"
+        return f"🎯 {nifty_tag}Amit Ki Baat: {title_word.title()} — {date_tag} #Shorts"
 
 
 def build_youtube_description(script_data, today_str):
-    desc_clean  = script_data.get("description", "Daily trading wisdom by ZENO.")
+    desc_clean  = script_data.get("description", "Daily trading insight by Amit.")
     display     = script_data.get("display_text", "")
+    nifty_cmp   = script_data.get("nifty_cmp", 0)
+    nifty_pct   = script_data.get("nifty_pct", 0.0)
+    nifty_line  = f"📊 Nifty closed today at {nifty_cmp:,.0f} ({nifty_pct:+.2f}%)\n\n" if nifty_cmp else ""
     tags        = seo.get_video_tags(mode=CONTENT_MODE, is_short=True)
     hashtag_str = " ".join([f"#{t}" for t in tags[:15]])
     _fn         = _funnel(lang="hi")
@@ -363,7 +412,7 @@ def build_youtube_description(script_data, today_str):
             f"{funnel}"
             f"⚠️ Educational only. Not financial advice.\n\n"
             f"👍 Like • 🔔 Subscribe • 📤 Share with a friend\n"
-            f"#ZenoKiBaat #ai360trading #HolidayLearning {hashtag_str}"
+            f"#AmitKiBaat #ai360trading #HolidayLearning {hashtag_str}"
         )
     elif CONTENT_MODE == "weekend":
         desc = (
@@ -374,18 +423,19 @@ def build_youtube_description(script_data, today_str):
             f"{funnel}"
             f"⚠️ Educational only. Not financial advice.\n\n"
             f"👍 Like • 🔔 Subscribe • 📤 Share with a friend\n"
-            f"#ZenoKiBaat #WeekendWisdom #ai360trading {hashtag_str}"
+            f"#AmitKiBaat #WeekendWisdom #ai360trading {hashtag_str}"
         )
     else:
         desc = (
-            f"🎯 ZENO Ki Baat — Daily trading wisdom\n\n"
+            f"🎯 Amit Ki Baat — Daily trading insight\n\n"
+            f"{nifty_line}"
             f"💡 {desc_clean}\n\n"
             f'✦ "{display}"\n\n'
             f"🌍 For traders: India, USA, UK, Brazil & UAE\n"
             f"{funnel}"
             f"⚠️ Educational only. Not SEBI registered.\n\n"
             f"👍 Like • 🔔 Subscribe • 📤 Share with a trader friend\n"
-            f"#ZenoKiBaat #StockMarket #ai360trading {hashtag_str}"
+            f"#AmitKiBaat #StockMarket #ai360trading {hashtag_str}"
         )
     return desc
 
@@ -471,7 +521,7 @@ def compose_video(frame_path, audio_path, output_path, spoken_text="", hook_text
                 hook_text, (SW, SH), _cap_fonts, accent=(255, 200, 0),
                 out_path=str(OUT / "zeno_reel_hook.png"))
             final = prepend_hook(video, audio_clip, hook_png, (SW, SH))
-            print("  ✅ Hook intro prepended (ZENO reel)")
+            print("  ✅ Hook intro prepended (evening reel)")
         except Exception as e:
             print(f"  ⚠️ Hook intro skipped (fail-open): {e}")
             final = None
@@ -504,6 +554,9 @@ def save_meta(script_data, today_str, thumb_path=None):
         "emotion":      script_data.get("emotion", "thinking"),
         "content_mode": CONTENT_MODE,
         "music":        "none — TTS voice only",
+        "sentiment":    script_data.get("sentiment", "neutral"),
+        "nifty_level":  script_data.get("nifty_cmp", 0),
+        "nifty_pct":    script_data.get("nifty_pct", 0.0),
     }
     with open(meta_path, "w") as f:
         json.dump(meta, f, indent=2, ensure_ascii=False)
@@ -523,26 +576,28 @@ async def main():
         print(f"Reel already exists for today: {video_path} — skipping")
         return
 
-    print(f"Generating ZENO reel — {today_str} | Mode: {CONTENT_MODE.upper()}")
+    print(f"Generating evening reel (Amit) — {today_str} | Mode: {CONTENT_MODE.upper()}")
 
-    # Step 1: Script
-    script  = generate_script()
-    emotion = script.get("emotion", "thinking")
-    title   = script.get("title", "TRADING WISDOM")
-    display = script.get("display_text", "Patience + Discipline = Success")
+    # Step 1: Script (includes a real NIFTY snapshot — see fetch_eod_snapshot())
+    script     = generate_script()
+    emotion    = script.get("emotion", "thinking")
+    title      = script.get("title", "TRADING WISDOM")
+    display    = script.get("display_text", "Patience + Discipline = Success")
     audio_script = script.get("audio_script", "")
+    nifty_cmp  = script.get("nifty_cmp", 0)
+    nifty_pct  = script.get("nifty_pct", 0.0)
 
-    print(f"Script ready | title: {title} | emotion: {emotion}")
+    print(f"Script ready | title: {title} | emotion: {emotion} | Nifty: {nifty_cmp or 'n/a'}")
 
     # Step 2: TTS audio
     spoken = _with_cta(audio_script)
     await generate_tts(spoken, audio_path)
 
-    # Step 3: Build video frame
-    frame_path = build_reel_frame(title, display, emotion)
+    # Step 3: Build video frame (v2.5 — real NIFTY stat block, no ZENO)
+    frame_path = build_reel_frame(title, display, emotion, nifty_cmp=nifty_cmp, nifty_pct=nifty_pct)
 
-    # Step 4: Build thumbnail (v2.1 FIX — proper CTR thumbnail)
-    thumb_path = build_thumbnail(title, display, emotion)
+    # Step 4: Build thumbnail — proper CTR thumbnail, real data not a mascot
+    thumb_path = build_thumbnail(title, display, emotion, nifty_cmp=nifty_cmp, nifty_pct=nifty_pct)
     print(f"Thumbnail built: {thumb_path}")
 
     # Step 5: Compose video — TTS only, no music (bold-text hook intro, fail-open)
@@ -552,10 +607,11 @@ async def main():
     save_meta(script, today_str, thumb_path)
 
     print("=" * 50)
-    print(f"ZENO REEL DONE")
+    print(f"EVENING REEL DONE")
     print(f"  Video:     {video_path}")
     print(f"  Thumbnail: {thumb_path}")
     print(f"  Emotion:   {emotion}")
+    print(f"  Nifty:     {nifty_cmp or 'n/a'} ({nifty_pct:+.2f}%)" if nifty_cmp else "  Nifty:     n/a")
     print(f"  Music:     none (no copyright risk)")
     print("=" * 50)
 
