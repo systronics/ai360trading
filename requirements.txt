@@ -33,7 +33,7 @@ anthropic==0.105.2
 openai==2.38.0
 
 # VIDEO & AUDIO  (moviepy/imageio/decorator stack is fragile — keep these exact)
-Pillow==12.2.0
+Pillow==12.3.0
 moviepy==1.0.3
 edge-tts==7.2.8
 imageio==2.9.0
