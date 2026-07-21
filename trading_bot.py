@@ -578,6 +578,7 @@ TSL_GAP_LOCK_FRAC      = 0.5
 
 RSI_MAX_BULLISH        = 65
 RSI_HOT_MAX            = 75   # v15.20: RSI 65-75 allowed in bullish regime IF stock is up today (calibrated 2026-07-15 — see check_rsi_entry)
+RSI_HOT_DIP_TOLERANCE  = 0.3  # v15.29: "up today" allows a small negative dip (noise floor)
 RSI_MAX_BEARISH        = 58
 NIFTY_MIN_PCT_BULLISH  = -0.30
 NIFTY_MIN_PCT_BEARISH  = 0.00
@@ -917,8 +918,22 @@ def check_rsi_entry(symbol: str, is_bullish: bool, day_pct=None) -> tuple:
         # is UP on the day (buying strength, not a fading bounce). Fail-CLOSED:
         # if day change is unknown the old veto stands. RSI > RSI_HOT_MAX stays
         # a hard block (climax chase — IDEA-at-82 style luck is not a strategy).
-        if is_bullish and rsi <= RSI_HOT_MAX and day_pct is not None and day_pct > 0:
-            return True, rsi, f"RSI {rsi} hot but ≤ {RSI_HOT_MAX} + stock up {day_pct:+.1f}% today — momentum leader ✅"
+        #
+        # v15.29: day_pct is a single live-tick reading of the Nifty200 sheet's
+        # "%Change" column, re-checked every 5 minutes. A real momentum leader
+        # doesn't move in a straight line — it can read fractionally negative
+        # for one tick while still up on the day overall. The exception used to
+        # require day_pct > 0 EXACTLY, so one noisy dip through zero could kill
+        # it for that whole check even though the stock was genuinely trending.
+        # 3.5-week log audit (2026-07-21): 812 of 1,311 RSI blocks (62%) were
+        # sitting in this exact 65-75 window, and NIFTY regime was bullish on
+        # ~90% of ticks in the same window — day_pct noise, not regime, was the
+        # dominant reason the exception wasn't firing. RSI_HOT_DIP_TOLERANCE
+        # gives it a small noise floor (still requires ~flat-to-up, not a real
+        # red day) instead of raising RSI_HOT_MAX itself, which would reopen
+        # the climax-chase risk the 2026-07-15 study specifically closed.
+        if is_bullish and rsi <= RSI_HOT_MAX and day_pct is not None and day_pct > -RSI_HOT_DIP_TOLERANCE:
+            return True, rsi, f"RSI {rsi} hot but ≤ {RSI_HOT_MAX} + stock {day_pct:+.1f}% today (≥ -{RSI_HOT_DIP_TOLERANCE:.1f}% noise floor) — momentum leader ✅"
         return False, rsi, f"RSI {rsi} > {threshold} — overbought, skip"
     zone = "oversold" if rsi < 35 else ("healthy" if rsi < 55 else "extended")
     return True, rsi, f"RSI {rsi} — {zone} ✅"
