@@ -582,7 +582,11 @@ RSI_HOT_DIP_TOLERANCE  = 0.3  # v15.29: "up today" allows a small negative dip (
 RSI_MAX_BEARISH        = 58
 NIFTY_MIN_PCT_BULLISH  = -0.30
 NIFTY_MIN_PCT_BEARISH  = 0.00
-ENTRY_WINDOW_BULLISH_END = (14, 30)
+ENTRY_WINDOW_BULLISH_END = (15, 5)   # v15.30: was 14:30 — a live 07-21 candidate (M&MFIN) appeared ~15:07 and was
+                                      # time-blocked every tick to close; 29% of all 58-session filter checks were
+                                      # TIME blocks (2nd only to RSI). Extended 35min, still leaves 25min before the
+                                      # 15:30 close for the position to be managed. Bearish window NOT touched — that
+                                      # 11:00 cutoff is tied to the v15.6 "4 losses" bearish hard-block evidence.
 ENTRY_WINDOW_BEARISH_END = (11, 00)
 MONDAY_ENTRY_START       = (10, 00)
 FRIDAY_ENTRY_END         = (14, 00)

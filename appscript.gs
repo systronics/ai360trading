@@ -1,6 +1,48 @@
 /**
- * AI360 TRADING — APPSCRIPT v15.28
+ * AI360 TRADING — APPSCRIPT v15.30
  * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ * v15.30 CHANGES (2026-07-23, post-midnight) — SECTOR DIRECTION SURFACED ON OPTIONS ALERTS (owner: "i think market, sector and stock all are same direction then option entry")
+ *   Market regime (bullish gate) and stock direction (breakout/base stage)
+ *   were already required for every candidate that reaches
+ *   `_generateOptionsSignal` — the missing 3rd leg was sector direction.
+ *   Nifty200 col V "Sector_Trend" (TAILWIND/HEADWIND) existed and was
+ *   computed every scan but read NOWHERE in this file. Now threaded through
+ *   `_generateOptionsSignal` (new `sectorTrend` param) into the premium
+ *   options Telegram alert as an extra line: TAILWIND = "market+sector+stock
+ *   sab same direction", HEADWIND = "stock alag chal raha apne sector se,
+ *   extra caution". Deliberately INFO, not a new hard gate — a HEADWIND
+ *   sector still sends the alert, clearly flagged, so this doesn't shrink
+ *   the candidate pool the way a new gate would; the owner's own 3-way
+ *   alignment check is now visible on the alert instead of undoable.
+ *
+ * v15.29 CHANGES (2026-07-22/23, post-midnight) — AFTERNOON-MOVE BLIND SPOT CLOSED (owner: "fill all, where is gap... most stocks moving up, still i am unable to catch base and after correction")
+ *   The v15.28 diagnostic (below) plus a live 07-21 example (M&MFIN queued
+ *   ~15:07, time-blocked every tick to close) exposed a stacked set of
+ *   time/move-size cutoffs that together made any move developing after
+ *   late-morning nearly unreachable, regardless of how clean the setup was:
+ *     - CASH_ENTRY_WINDOW 10:30→13:30: the 4%+ gap/catalyst intraday path
+ *       (designed for exactly the 10-20% small/mid-cap moves the owner
+ *       described) only ever scanned until 10:30 AM. Still leaves 1.5hr
+ *       before the existing 15:00 CASH_FORCE_EXIT_HOUR.
+ *     - MOM_WINDOW_END 11:30→14:30: the sector-momentum breakout scan had
+ *       the same blind spot; aligned with the bot's new entry cutoff below.
+ *     - RESULT_DAY_SKIP_PCT 6.0→10.0: the main swing scan auto-skipped ANY
+ *       single stock up more than 6% that day as a suspected earnings/
+ *       corp-action spike — UNLESS 3+ other stocks in its sector were also
+ *       up 2%+ (MOMENTUM_SECTOR_MIN_COUNT). An isolated strong mover (not
+ *       part of a sector-wide rally) never got that exemption, so ordinary
+ *       6-10% breakout days — common, not rare — were being thrown out.
+ *       CORP_ACTION_SKIP_PCT(15) hard outer bound left unchanged.
+ *   trading_bot.py's own ENTRY_WINDOW_BULLISH_END moved 14:30→15:05 in the
+ *   same pass (separate file, same root cause) — see that file's changelog.
+ *   Bearish-regime windows/thresholds (ENTRY_WINDOW_BEARISH_END=11:00,
+ *   BEARISH_HARD_MIN_SCORE=40, BEARISH_MIN_RS=15) deliberately NOT touched
+ *   — those are tied to the documented v15.6 "4 losses" bearish hard-block
+ *   evidence and this session found no new evidence to revisit them.
+ *   Syntax-checked (`node --check` on a renamed copy) + boundary-tested
+ *   (trading_bot.py side: 5/5 cases incl. new 15:05/15:06 edge) before
+ *   deploy via `.\deploy_appscript.ps1`.
+ *
  * v15.28 CHANGES (2026-07-22, late night) — CANDIDATE-STARVATION DIAGNOSTIC (owner: "why not any intraday trade yesterday and today, analyse whole system")
  *   Audit of 2026-07-21/22 GitHub Actions logs + live sheet found: (1) TODAY
  *   correctly traded 0 — Nifty -0.79% red, regime BEARISH, and every
@@ -487,7 +529,7 @@ const OPTIONS_CONFIG = {
 
 // ── CONFIG ────────────────────────────────────────────────────────────────────
 const CONFIG = {
-  VERSION       : "v15.28",  // single source for ALL subscriber-facing version stamps (was hardcoded per-message and went stale at v15.17)
+  VERSION       : "v15.30",  // single source for ALL subscriber-facing version stamps (was hardcoded per-message and went stale at v15.17)
   get TELEGRAM_BOT_TOKEN() { return PropertiesService.getScriptProperties().getProperty('TELEGRAM_BOT_TOKEN') || ""; },
   get CHAT_ID_BASIC()      { return PropertiesService.getScriptProperties().getProperty('CHAT_ID_BASIC')      || ""; },
   get CHAT_ID_ADVANCE()    { return PropertiesService.getScriptProperties().getProperty('CHAT_ID_ADVANCE')    || ""; },
@@ -573,12 +615,20 @@ const CONFIG = {
   BASE_MIN_SCORE       : 18,
   BASE_STAGES          : ["Correction Base", "Building Momentum", "Near Breakout"],
 
-  RESULT_DAY_SKIP_PCT : 6.0,
+  RESULT_DAY_SKIP_PCT : 10.0, // v15.30: was 6.0 — treated every ordinary 6%+ breakout day as a suspected
+                               // earnings/corp-action spike unless 3+ other stocks in the same sector also
+                               // moved 2%+ (MOMENTUM_SECTOR_MIN_COUNT) — an isolated strong mover (not a
+                               // sector-wide rally) never got that exemption. 10% still catches genuine
+                               // circuit-style/result-shock moves; CORP_ACTION_SKIP_PCT(15) unchanged as the
+                               // hard outer bound.
   CORP_ACTION_SKIP_PCT: 15.0,
 
   MOM_MIN_CHANGE_PCT: 2.5,
   MOM_MIN_VOLUME_PCT: 200,
-  MOM_WINDOW_END    : "11:30",
+  MOM_WINDOW_END    : "14:30", // v15.30: was 11:30 — momentum breakouts that build through the afternoon were
+                               // never scanned at all; aligned with the bot's new 15:05 bullish entry cutoff
+                               // (trading_bot.py ENTRY_WINDOW_BULLISH_END) so a queued afternoon candidate still
+                               // has time to actually be entered before the window closes.
 
   MORNING_VOL_BYPASS_UNTIL: "10:30",
   INTRADAY_WINDOW_START   : "09:15",
@@ -596,7 +646,10 @@ const CONFIG = {
   CASH_MIN_CMP         : 50,    // avoid penny stocks
   CASH_SL_PCT          : 0.03,  // tight -3% SL (must be quick trade)
   CASH_TARGET_PCT      : 0.12,  // +12% target (10-15% potential)
-  CASH_ENTRY_WINDOW    : "10:30", // scan only until 10:30 AM
+  CASH_ENTRY_WINDOW    : "13:30", // v15.30: was 10:30 — a 4%+ gap/catalyst mover that builds its move after
+                                   // 10:30 (very common — many NSE gainers accelerate after 12 PM) was invisible
+                                   // to this path entirely. 13:30 still leaves 1.5hr before the existing 15:00
+                                   // CASH_FORCE_EXIT_HOUR, plenty for a fast catalyst-driven move.
   CASH_MAX_SLOTS       : 3,     // max 3 cash intraday candidates per day
   CASH_ATH_GAP_MIN_PCT : 5.0,   // stock must have 5%+ gap from ATH (room to run)
 
@@ -881,8 +934,17 @@ function _getStrikeInterval(cmp) {
  *
  * New ATH parameter: high52 and cmp passed to check proximity.
  */
-function _generateOptionsSignal(sym, cmp, atr, stage, pctChange, vix, isBaseEntry, high52, optTag) {
-  const result = { signal: "⏸ SKIP", strike: "", expiryStr: "", thetaRisk: "", message: "", liqNote: "", isBase: isBaseEntry || false };
+function _generateOptionsSignal(sym, cmp, atr, stage, pctChange, vix, isBaseEntry, high52, optTag, sectorTrend) {
+  const result = { signal: "⏸ SKIP", strike: "", expiryStr: "", thetaRisk: "", message: "", liqNote: "", isBase: isBaseEntry || false,
+    // v15.30: market regime + stock breakout direction are already implicit in
+    // every candidate reaching this function (bearish hard-block / standard
+    // bullish filter already ran); this surfaces the missing 3rd leg — sector
+    // direction (Nifty200 col V, TAILWIND/HEADWIND) — as INFO on the alert,
+    // not a new hard gate, so it doesn't shrink an already-scarce candidate
+    // pool. Owner's own stated rule: "market, sector and stock all same
+    // direction then option entry" — this makes that call visible, not
+    // automatic; a HEADWIND sector still fires the alert, clearly flagged.
+    sectorTrend: (sectorTrend || "").toString().trim() };
 
   // v15.23: F&O eligibility from the live sheet ("Options" col AJ, maintained
   // from NSE's official F&O file). "" = the stock HAS NO derivatives — SEBI's
@@ -1031,7 +1093,12 @@ function _sendOptionsAlertPremium(sym, cmp, optSignal, stage, sl, target, rr, bm
     `📅 <b>Expiry:</b> ${optSignal.expiryStr} (current — yahi volume hai)\n` +
     `⏳ <b>Theta Risk:</b> ${optSignal.thetaRisk}\n` +
     `📊 <b>VIX Status:</b> ${optSignal.message}\n` +
-    (optSignal.liqNote ? `💧 <b>Chain:</b> ${optSignal.liqNote}\n` : "") + `\n` +
+    (optSignal.liqNote ? `💧 <b>Chain:</b> ${optSignal.liqNote}\n` : "") +
+    // v15.30: market (regime) + stock (breakout) direction already got this
+    // candidate here — this is the 3rd leg (sector), surfaced not enforced.
+    (optSignal.sectorTrend === "TAILWIND" ? `🧭 <b>Sector:</b> TAILWIND ✅ — market+sector+stock sab same direction\n` :
+     optSignal.sectorTrend === "HEADWIND" ? `🧭 <b>Sector:</b> HEADWIND ⚠️ — stock alag chal raha apne sector se, extra caution\n` : "") +
+    `\n` +
     `━━ STOCK TRADE (CASH/MTF) ━━\n` +
     `🛑 <b>SL:</b> ₹${sl}\n` +
     `🎯 <b>Target:</b> ₹${target}\n` +
@@ -1545,6 +1612,7 @@ function _runScanner(startRow, endRow) {
     const fiiSignal  = (r[32] || "").toString().trim();
     const leaderType = (r[17] || "").toString().trim();
     const sector     = (r[1]  || "UNKNOWN").toString().trim();
+    const sectorTrend= (r[21] || "").toString().trim();  // v15.30: TAILWIND/HEADWIND — was read nowhere before
     const pctChange  = parseFloat(r[3])  || 0;
     const cmp        = parseFloat(r[2])  || 0;
     const atr        = atrColOk ? (parseFloat(r[28]) || 0) : 0;
@@ -1811,7 +1879,7 @@ function _runScanner(startRow, endRow) {
 
     // v15.6: Pass high52 to options signal for ATH check
     // v15.23: pass optTag — live F&O eligibility replaces the stale hardcoded list
-    const optSignal  = _generateOptionsSignal(sym, cmp, atr, stage, pctChange, indiaVix, isBaseEntry, high52, optTag);
+    const optSignal  = _generateOptionsSignal(sym, cmp, atr, stage, pctChange, indiaVix, isBaseEntry, high52, optTag, sectorTrend);
 
     batchCands.push({
       priority: finalScore, rawPriority: useScore,
