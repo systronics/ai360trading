@@ -38,7 +38,6 @@ moviepy==1.0.3
 edge-tts==7.2.8
 imageio==2.9.0
 imageio-ffmpeg==0.6.0
-matplotlib==3.10.9
 decorator==4.4.2
 
 # YOUTUBE UPLOAD
@@ -55,6 +54,4 @@ feedparser==6.0.12
 cryptography==48.0.1
 
 # SYSTEM
-pytrends==4.9.2
-python-dotenv==1.2.2
 certifi==2026.5.20
