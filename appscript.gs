@@ -1,6 +1,31 @@
 /**
- * AI360 TRADING — APPSCRIPT v15.27
+ * AI360 TRADING — APPSCRIPT v15.28
  * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ * v15.28 CHANGES (2026-07-22, late night) — CANDIDATE-STARVATION DIAGNOSTIC (owner: "why not any intraday trade yesterday and today, analyse whole system")
+ *   Audit of 2026-07-21/22 GitHub Actions logs + live sheet found: (1) TODAY
+ *   correctly traded 0 — Nifty -0.79% red, regime BEARISH, and every
+ *   candidate's Priority_Score (best was TITAN=30) sat below
+ *   BEARISH_HARD_MIN_SCORE(40), so _checkBearishEntryAllowed correctly
+ *   rejected all of them before any other gate ran. Working as designed.
+ *   (2) YESTERDAY the regime was BULLISH all day, yet trading_bot.py's
+ *   [FILTER] log shows only TITAN (RSI 77+ hard-blocked most of the
+ *   afternoon, correctly — >75 is the real overbought ceiling) and a brief
+ *   M&MFIN ever reached AlertLog's WAITING queue, while today's Nifty200
+ *   snapshot shows several other STRONG BUY/BREAKOUT CONFIRMED names
+ *   (INDUSINDBK Master 43, NESTLEIND 42, SHRIRAMFIN 35) with healthy RS and
+ *   Priority Score clear of every static gate value checked after the fact.
+ *   Could not pin down the exact rejecting line without a live trace —
+ *   Nifty200 values shift daily and nothing logged the near-misses.
+ *   Added a read-only diagnostic block at the end of the WAITING-candidate
+ *   loop (after `finalWaiting` is finalized): logs the day's top-5
+ *   Master_Score stocks (excluding already-traded) and whether each reached
+ *   the WAITING queue. Touches ZERO gate/trade logic — pure Logger.log, all
+ *   existing `continue` statements and thresholds are byte-for-byte
+ *   unchanged. Purpose: turn the next occurrence of this question into a
+ *   one-line log lookup (Apps Script Editor → Executions) instead of a
+ *   multi-hour forensic reconstruction. No locked/owner-validated gate
+ *   value was touched — see CLAUDE.md 🔒 NEVER CHANGE.
+ *
  * v15.27 CHANGES (2026-07-20) — COLUMN-DRIFT GUARD (owner: "analyse full system, find loop or gap")
  *   _runScanner read Nifty200 ATR (col 28) and Options-tag (col 35) by raw
  *   index only, with no check that those columns still hold what the code
@@ -462,7 +487,7 @@ const OPTIONS_CONFIG = {
 
 // ── CONFIG ────────────────────────────────────────────────────────────────────
 const CONFIG = {
-  VERSION       : "v15.27",  // single source for ALL subscriber-facing version stamps (was hardcoded per-message and went stale at v15.17)
+  VERSION       : "v15.28",  // single source for ALL subscriber-facing version stamps (was hardcoded per-message and went stale at v15.17)
   get TELEGRAM_BOT_TOKEN() { return PropertiesService.getScriptProperties().getProperty('TELEGRAM_BOT_TOKEN') || ""; },
   get CHAT_ID_BASIC()      { return PropertiesService.getScriptProperties().getProperty('CHAT_ID_BASIC')      || ""; },
   get CHAT_ID_ADVANCE()    { return PropertiesService.getScriptProperties().getProperty('CHAT_ID_ADVANCE')    || ""; },
@@ -1845,6 +1870,34 @@ function _runScanner(startRow, endRow) {
       _sendOptionsAlertPremium(c.sym, c.cmp, c.optSignal, c.stage, c.row[7], c.row[8], c.row[9], bm, ss);
     }
   }
+
+  // v15.28 DIAGNOSTIC — read-only, changes no gate/trade decision. Logs
+  // whether today's top-5 Master_Score stocks (excluding already-traded)
+  // reached the WAITING queue, and if not, the cheapest checkable reason
+  // (bearish score<40, RS<gate floor, or "see full [CAND] trace above").
+  // Added after a 2026-07-22 audit found AlertLog holding only 1 candidate
+  // (TITAN) on a bullish day while the Nifty200 sheet showed several other
+  // STRONG BUY / BREAKOUT CONFIRMED names with healthy Master Scores — the
+  // exact gate that excluded them could not be pinned down after the fact
+  // because nothing logged the near-misses. This makes the next occurrence
+  // provable from the Apps Script Executions log instead of guesswork.
+  try {
+    const queuedSyms = new Set(finalWaiting.map(row => row[1]));
+    const topByScore = inputData.slice(1)
+      .filter(r => r[0] && !r[0].toString().includes("NIFTY") && !alreadyTraded.has(r[0].toString().trim()))
+      .map(r => ({
+        sym: r[0].toString().trim(),
+        score: parseFloat(r[33]) || 0,
+        pri: parseFloat(r[25]) || 0,
+        rs: parseFloat(r[20]) || 0,
+        sector: (r[1] || "UNKNOWN").toString().trim(),
+        ttype: (r[24] || "").toString().trim(),
+      }))
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 5);
+    Logger.log(`[DIAG] Top-5 Master_Score (Bullish=${marketBullish}, MaxWaiting=${maxWaitingSlots}): ` +
+      topByScore.map(t => `${t.sym}(score=${t.score},pri=${t.pri},rs=${t.rs},sector=${t.sector},ttype=${t.ttype})=${queuedSyms.has(t.sym) ? "QUEUED" : "NOT-QUEUED"}`).join(" | "));
+  } catch (e) { Logger.log("[DIAG] error (non-fatal): " + e); }
 
   // MOMENTUM SCAN — v15.24: GATE-3 parity (RS ≥ LATE_ENTRY_MIN_RS, blank RS
   // fail-open), time-fair volume pace (diff-form 200 = 3.0×), 2-per-sector
