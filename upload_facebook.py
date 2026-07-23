@@ -1,6 +1,13 @@
 """
 upload_facebook.py — AI360Trading
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v2.8 (2026-07-23):
+  build_caption() now uses human_touch.fb_caption_opener()/fb_hashtags()
+  instead of a fixed f-string per mode — captions were a byte-identical
+  template every post, a real contributor to the Page losing Meta
+  Recommendations eligibility. Functional lines (links/disclosure/
+  disclaimer) unchanged.
+
 v2.7 (2026-07-19):
   REMOVED — HerooQuest Kids page upload branch (kids channel retired).
     ZENO/morning/education/market paths unchanged.

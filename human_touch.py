@@ -1,6 +1,14 @@
 """
 human_touch.py — Anti-AI-Penalty Human Touch Engine
 =====================================================
+v2.4 (2026-07-23) — FACEBOOK CAPTION VARIATION:
+  Added FB_CAPTION_OPENERS / FB_HASHTAG_SETS pools + fb_caption_opener() /
+  fb_hashtags() helpers. Facebook captions (video posts via upload_facebook.py
+  and the daily article-roundup post) used a byte-fixed structural template
+  every post — a real contributor to the Page losing Meta Recommendations
+  eligibility. These rotate the opener line + hashtag set; functional lines
+  (links, AI disclosure, disclaimer) are untouched on purpose.
+
 v2.3 (2026-07-19) — RETENTION HOOK REWRITE:
   All hook libraries rewritten number-first/question-first (measured problem:
   viewers leave in 2-5s; old hooks warmed up slowly). Honesty rule: hooks carry

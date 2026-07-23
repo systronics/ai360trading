@@ -59,7 +59,7 @@ One broken file = zero income that day. Treat every edit as critical.
 | File | Version |
 |---|---|
 | `ai_client.py` | v2.5 |
-| `human_touch.py` | v2.3 (2026-07-19: all hook libraries rewritten number-first for retention; no invented stats; {holiday}/{week} placeholders preserved) |
+| `human_touch.py` | v2.4 (2026-07-23: FB_CAPTION_OPENERS/FB_HASHTAG_SETS + fb_caption_opener()/fb_hashtags() — Facebook captions were a byte-fixed template every post, a real contributor to the Page losing Meta Recommendations eligibility; wired into upload_facebook.py + daily-articles.yml's article-share step; v2.3 2026-07-19: all hook libraries rewritten number-first for retention; no invented stats; {holiday}/{week} placeholders preserved) |
 | `token_refresh.py` | v2.2 |
 | `content_calendar.py` | v2.4 |
 | `money_funnel.py` | v1.2 (2026-07-20: article_cta_html() now plugs a rotating calculator too — was the only funnel surface v1.1's tool_plug() rollout skipped, and articles are the site's highest-traffic surface; v1.1 TOOL_PAGES + tool_plug() daily calculator rotation in funnel_block/comment_text — video→website traffic loop; single source of truth for broker links in CONTENT — Zerodha/Dhan/Groww/CoinDCX) |
@@ -75,6 +75,7 @@ One broken file = zero income that day. Treat every edit as critical.
 | `generate_shorts.py` | v3.12 (2026-07-19: hook prompts prefer a REAL data number as first word; v3.11 retention pack: 20-25s payoff-at-end scripts + Ken Burns motion + 2s CTA) |
 | `generate_articles.py` | current (2026-07-20: meta_description/schema_json now run through `clean_ai_title()` too — was only applied to the title, so a raw "SandP 500" LLM artifact could still ship in the meta tag/JSON-LD; also now calls `performance_stats.write_data_json()` alongside the existing article perf block; 2026-07-16 credibility pack: price carry-forward cache `_data/prices_cache.json` + honest Fear&Greed + filler-phrase ban + number-honesty rule 14 + internal-link dedup; 2026-07-13 phrase-cooldown + perf block) |
 | `performance_stats.py` | v1.1 (2026-07-20: `write_data_json()` publishes the same honest ledger stats to `_data/performance.json` — Jekyll `site.data.performance` — so the membership page can show the real, live win-rate/ledger table, not just generated articles; fail-open carry-forward, same doctrine as prices_cache.json; v1.0 2026-07-13 — History ledger → article performance block) |
+| `publish_swing_board.py` | v1.0 (2026-07-23: NEW — reads `AlertLog` live, writes public-safe columns only (Symbol/Trade Type/Strategy/Breakout Stage/Trade Status/Days in Trade — never SL/Target/Entry/Position Size) to `_data/swing_board.json` for the swing-dashboard page's free teaser table; same fail-open/Jekyll-`_data` doctrine as `performance_stats.py`; replaces the old `SwingPublic` Google Sheets "Publish to web" embed that broke 2026-07-23 with no API to fix; run by new `swing_board.yml` workflow every ~15 min through market hours) |
 | `trending_keywords.py` | v1.1 (2026-07-20: whole-word seed filter in `_collect()` — YouTube autocomplete for seed "ipo" was returning "ipod"-class junk via shared prefix, not word-match; this had already published 2 live articles with "ipod" in the title/slug, both removed) |
 | _(HerooQuest kids pipeline removed 2026-07-19 — generate_kids_video.py, kids_content_calendar.py, upload_kids_youtube.py, kids-daily.yml all deleted; channel retired as it cannot earn — see SESSION.md)_ |
 
@@ -82,7 +83,7 @@ One broken file = zero income that day. Treat every edit as critical.
 | File | Version |
 |---|---|
 | `upload_youtube.py` | v2.4 (2026-07-22: the fallback thumbnail/metadata builder — only fires if the reel script itself failed to produce one — still pasted the ZENO cartoon and "ZENO Ki Baat" branding; owner retired ZENO for a serious-trader identity and this dead-path fallback was the one spot that got missed. Now matches: live NIFTY stat block, "Amit Ki Baat". `generate_reel.py`'s `save_meta()` now also writes `nifty_level`/`nifty_pct` into meta.json so this fallback has real data) |
-| `upload_facebook.py` | v2.7 (2026-07-19 — kids branch removed; ZENO/morning/education/market paths unchanged) |
+| `upload_facebook.py` | v2.8 (2026-07-23: build_caption() uses human_touch.fb_caption_opener()/fb_hashtags() instead of a fixed f-string per mode — see human_touch.py v2.4; v2.7 2026-07-19 — kids branch removed; ZENO/morning/education/market paths unchanged) |
 
 ---
 
