@@ -189,121 +189,27 @@ meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
 </div>
 
 <div style="margin:0 0 18px;padding:14px 18px;background:#f0f7ff;border:1px solid #bfdbfe;border-radius:10px;text-align:center;font-size:14px;color:#1e3a5f;line-height:1.7;">
-  <strong>Free view:</strong> live active setups — symbol, type &amp; status &nbsp;|&nbsp;
-  <strong>Advance / Premium members get:</strong> exact entry, stop-loss, target, R:R &amp; position size in Telegram
+  <strong>Free:</strong> live setups on Telegram — symbol, type &amp; status &nbsp;|&nbsp;
+  <strong>Advance / Premium members get:</strong> exact entry, stop-loss, target, R:R &amp; position size
   &nbsp;🔒 <a href="/membership/" style="color:#0062ff;font-weight:700;">Unlock full signals →</a>
 </div>
 
 <div class="terminal-wrapper">
-  <div class="terminal-scroll-container" id="swingScroll">
-    <table class="native-table" id="swingTable" aria-label="Live swing signal board">
-      <thead></thead>
-      <tbody></tbody>
-    </table>
-    <div class="nt-status" id="swingStatus">⏳ Loading live signals…</div>
-    <noscript>
-      <!-- 2026-07-20: crawlers/no-JS visitors would otherwise see only the
-           "Loading…" placeholder forever, since the table is 100% client-
-           rendered. Reuses the SAME Sheets iframe already used as the JS
-           fetch-failure fallback (FEED_PUBHTML) — real content either way. -->
-      <iframe class="nt-fallback" src="https://docs.google.com/spreadsheets/d/e/2PACX-1vQyI_2dA66bYzzsxZNW9yqSAkmi8_TxLA7PK_x6vtI9uqSbUNz-M5FXrYIt4rsP5B7kl6Mrfi5AUpsp/pubhtml?gid=2115056455&single=true&widget=false&headers=false&chrome=false" title="AI360Trading Swing Signal Dashboard" loading="lazy"></iframe>
-    </noscript>
-  </div>
-  <div class="nt-meta">
-    <span id="swingUpdated">Fetching latest data…</span>
-    <button class="nt-refresh" type="button" onclick="loadSwing()">↻ Refresh</button>
+  <!-- 2026-07-23: the public "SwingPublic" sheet tab this board used to embed
+       was removed in a prior cleanup pass and republishing a NEW tab under
+       the workbook's "Publish to web" link requires a manual step in the
+       Google Sheets UI (File > Share > Publish to web) that cannot be done
+       via the Sheets API — so this is a static, honest placeholder instead
+       of a client-side fetch/iframe that would keep failing until that step
+       happens. Telegram is the real-time feed either way. -->
+  <div class="nt-status" style="padding:36px 20px;">
+    📡 <strong>Live setups are posted straight to Telegram</strong> the moment they trigger.<br>
+    <span style="color:#64748b;font-size:13.5px;">This public board is being rebuilt — check back soon, or tap below for real-time alerts.</span>
+    <div style="margin-top:16px;">
+      <a href="https://t.me/ai360trading" class="btn-tg">📣 Get Live Alerts on Telegram</a>
+    </div>
   </div>
 </div>
-
-<script>
-(function () {
-  var FEED_CSV     = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQyI_2dA66bYzzsxZNW9yqSAkmi8_TxLA7PK_x6vtI9uqSbUNz-M5FXrYIt4rsP5B7kl6Mrfi5AUpsp/pub?gid=2115056455&single=true&output=csv';
-  var FEED_PUBHTML = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQyI_2dA66bYzzsxZNW9yqSAkmi8_TxLA7PK_x6vtI9uqSbUNz-M5FXrYIt4rsP5B7kl6Mrfi5AUpsp/pubhtml?gid=2115056455&single=true&widget=false&headers=false&chrome=false';
-  var failedOnce = false;
-
-  // Proper CSV parser — fields may be quoted and contain commas (e.g. "₹2,069")
-  function parseCSV(text) {
-    var rows = [], row = [], cur = '', q = false, i, c;
-    for (i = 0; i < text.length; i++) {
-      c = text[i];
-      if (q) {
-        if (c === '"') { if (text[i + 1] === '"') { cur += '"'; i++; } else { q = false; } }
-        else { cur += c; }
-      }
-      else if (c === '"') { q = true; }
-      else if (c === ',') { row.push(cur); cur = ''; }
-      else if (c === '\n') { row.push(cur.replace(/\r$/, '')); rows.push(row); row = []; cur = ''; }
-      else { cur += c; }
-    }
-    if (cur !== '' || row.length) { row.push(cur.replace(/\r$/, '')); rows.push(row); }
-    return rows.filter(function (r) { return r.some(function (x) { return x.trim() !== ''; }); });
-  }
-
-  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
-
-  // Badge colours matched to the Signal Key legend below. Order matters:
-  // WAITING (amber) must be tested before WAIT (blue).
-  function badgeClass(v) {
-    if (v.indexOf('STRONG BUY') > -1 || v.indexOf('TRADED') > -1) return 'nt-green';
-    if (v.indexOf('WAITING') > -1 || v.indexOf('ACCUMULATE') > -1) return 'nt-amber';
-    if (v.indexOf('BOOK') > -1) return 'nt-red';
-    if (v.indexOf('HOLD') > -1) return 'nt-gray';
-    if (v.indexOf('WAIT') > -1) return 'nt-blue';
-    return '';
-  }
-
-  function istNow() {
-    try { return new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' }); }
-    catch (e) { return new Date().toLocaleTimeString(); }
-  }
-
-  function render(rows) {
-    var table = document.getElementById('swingTable');
-    var status = document.getElementById('swingStatus');
-    var head = rows.length ? rows[0] : [];
-    table.tHead.innerHTML = '<tr>' + head.map(function (h) { return '<th>' + esc(h) + '</th>'; }).join('') + '</tr>';
-    var body = rows.slice(1);
-    table.tBodies[0].innerHTML = body.map(function (r) {
-      return '<tr>' + r.map(function (cell, ci) {
-        var v = esc(cell);
-        if (ci === 0) return '<td class="nt-symbol">' + v + '</td>';
-        var b = badgeClass(cell);
-        return '<td>' + (b ? '<span class="nt-badge ' + b + '">' + v + '</span>' : v) + '</td>';
-      }).join('') + '</tr>';
-    }).join('');
-    if (body.length === 0) {
-      status.innerHTML = '✅ <strong>No active setups right now.</strong><br>The algo goes to cash when the market regime is weak — that is by design, not a glitch. New signals appear here on the next bullish scan.';
-      status.style.display = 'block';
-    } else {
-      status.style.display = 'none';
-    }
-    document.getElementById('swingUpdated').textContent =
-      '🕒 Live data as of ' + istNow() + ' IST · ' + body.length + ' setup' + (body.length === 1 ? '' : 's') + ' · auto-refreshes every 5 min';
-  }
-
-  // Fail-open: if the CSV fetch ever fails, fall back to the old Sheets iframe
-  // so the page is never worse than the previous version.
-  function failOpen() {
-    if (failedOnce) return;
-    failedOnce = true;
-    document.getElementById('swingScroll').innerHTML =
-      '<iframe class="nt-fallback" src="' + FEED_PUBHTML + '" title="AI360Trading Swing Signal Dashboard" loading="lazy"></iframe>';
-    document.getElementById('swingUpdated').textContent = 'Live feed (embedded view)';
-  }
-
-  window.loadSwing = function () {
-    if (failedOnce) return;
-    if (!window.fetch) { failOpen(); return; } // ancient browser → old iframe
-    fetch(FEED_CSV + '&t=' + Date.now())
-      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
-      .then(function (text) { render(parseCSV(text)); })
-      .catch(failOpen);
-  };
-
-  loadSwing();
-  setInterval(window.loadSwing, 300000);
-})();
-</script>
 
 <div class="dashboard-features">
   <div class="feature-card">
