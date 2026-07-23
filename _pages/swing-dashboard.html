@@ -84,10 +84,9 @@ meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
     -webkit-overflow-scrolling: touch;
     touch-action: pan-x;
   }
-  /* ── Native signal table (2026-07-13) ──────────────────────────────────
-     Replaces the Google Sheets iframe: loads the same published CSV feed
-     client-side and renders a fast, mobile-first table. The old iframe is
-     kept ONLY as an automatic fail-open fallback if the fetch ever fails. */
+  /* ── Native signal table — server-rendered via Jekyll from
+     _data/swing_board.json (publish_swing_board.py), not a client-side
+     fetch. See the terminal-wrapper comment below for why. */
   .native-table { width: 100%; border-collapse: collapse; font-size: 14px; background: #fff; }
   .native-table th {
     background: #0f172a; color: #e2e8f0; text-align: left; padding: 11px 14px;
@@ -111,13 +110,30 @@ meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
   }
   .nt-refresh { background: none; border: 1px solid #cbd5e0; border-radius: 6px; padding: 3px 10px; font-size: 12px; color: #334155; cursor: pointer; font-weight: 700; }
   .nt-refresh:hover { border-color: #0062ff; color: #0062ff; }
-  iframe.nt-fallback { width: 100%; min-width: 680px; height: 700px; border: none; display: block; }
   @media (max-width: 768px) {
     .native-table { font-size: 12.5px; }
     .native-table th { font-size: 10.5px; padding: 9px 8px; }
     .native-table td { padding: 8px; }
     .nt-badge { font-size: 11px; padding: 2px 8px; }
   }
+  /* ── Verified track record strip (2026-07-23) — same site.data.performance
+       source as the membership page's ledger block, restyled for this page's
+       light theme. */
+  .stats-strip {
+    background: #fff; border: 1px solid #e2e8f0; border-radius: 12px;
+    padding: 18px 22px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+  .stats-strip-title { font-size: 15px; font-weight: 900; color: #0f172a; margin-bottom: 2px; }
+  .stats-strip-asof { font-size: 11.5px; font-weight: 600; color: #94a3b8; margin-left: 6px; }
+  .stats-strip-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    gap: 10px; margin-top: 12px;
+  }
+  .stats-item { text-align: center; padding: 8px 4px; }
+  .stats-item b { display: block; font-size: 18px; font-weight: 900; color: #0f172a; }
+  .stats-item span { font-size: 10.5px; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
+  .stats-win b { color: #059669; }
+  .stats-loss b { color: #dc2626; }
   .dashboard-features {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
@@ -189,25 +205,74 @@ meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
 </div>
 
 <div style="margin:0 0 18px;padding:14px 18px;background:#f0f7ff;border:1px solid #bfdbfe;border-radius:10px;text-align:center;font-size:14px;color:#1e3a5f;line-height:1.7;">
-  <strong>Free:</strong> live setups on Telegram — symbol, type &amp; status &nbsp;|&nbsp;
-  <strong>Advance / Premium members get:</strong> exact entry, stop-loss, target, R:R &amp; position size
+  <strong>Free:</strong> live active setups below — symbol, type &amp; status &nbsp;|&nbsp;
+  <strong>Advance / Premium members get:</strong> exact entry, stop-loss, target, R:R &amp; position size in Telegram
   &nbsp;🔒 <a href="/membership/" style="color:#0062ff;font-weight:700;">Unlock full signals →</a>
 </div>
 
+{% if site.data.performance %}
+{% assign perf = site.data.performance %}
+<!-- 2026-07-23: same source as the membership page's ledger block
+     (performance_stats.write_data_json → _data/performance.json), rendered
+     here too since this is the page that actually promises a live board. -->
+<div class="stats-strip">
+  <div class="stats-strip-title">📊 Verified Track Record <span class="stats-strip-asof">as of {{ perf.as_of }}</span></div>
+  <div class="stats-strip-grid">
+    <div class="stats-item"><b>{{ perf.total }}</b><span>Closed trades</span></div>
+    <div class="stats-item"><b>{{ perf.win_rate }}%</b><span>Win rate</span></div>
+    <div class="stats-item"><b>{% if perf.net_pnl_rs >= 0 %}+{% endif %}₹{{ perf.net_pnl_rs }}</b><span>Net P/L</span></div>
+    <div class="stats-item stats-win"><b>+{{ perf.avg_win_pct }}%</b><span>Avg winner</span></div>
+    <div class="stats-item stats-loss"><b>{{ perf.avg_loss_pct }}%</b><span>Avg loser</span></div>
+  </div>
+</div>
+{% endif %}
+
 <div class="terminal-wrapper">
-  <!-- 2026-07-23: the public "SwingPublic" sheet tab this board used to embed
-       was removed in a prior cleanup pass and republishing a NEW tab under
-       the workbook's "Publish to web" link requires a manual step in the
-       Google Sheets UI (File > Share > Publish to web) that cannot be done
-       via the Sheets API — so this is a static, honest placeholder instead
-       of a client-side fetch/iframe that would keep failing until that step
-       happens. Telegram is the real-time feed either way. -->
-  <div class="nt-status" style="padding:36px 20px;">
-    📡 <strong>Live setups are posted straight to Telegram</strong> the moment they trigger.<br>
-    <span style="color:#64748b;font-size:13.5px;">This public board is being rebuilt — check back soon, or tap below for real-time alerts.</span>
-    <div style="margin-top:16px;">
-      <a href="https://t.me/ai360trading" class="btn-tg">📣 Get Live Alerts on Telegram</a>
+  <!-- 2026-07-23: rebuilt on publish_swing_board.py → _data/swing_board.json
+       (a static Jekyll data file refreshed ~every 15 min by swing_board.yml),
+       NOT a client-side Google Sheets fetch — the old SwingPublic "Publish to
+       web" embed broke because republishing a sheet tab needs a manual Sheets-
+       UI step with no API. Public-safe columns only: symbol/type/strategy/
+       stage/status/days — SL/target/entry/position size stay premium-only. -->
+  <div class="terminal-scroll-container">
+    {% assign setups = site.data.swing_board.setups %}
+    {% if setups and setups.size > 0 %}
+    <table class="native-table" aria-label="Live swing signal board">
+      <thead>
+        <tr><th>Symbol</th><th>Type</th><th>Strategy</th><th>Stage</th><th>Status</th><th>Days</th></tr>
+      </thead>
+      <tbody>
+        {% for s in setups %}
+        <tr>
+          <td class="nt-symbol">{{ s.symbol }}</td>
+          <td>{{ s.trade_type }}</td>
+          <td>{{ s.strategy }}</td>
+          <td>{{ s.stage }}</td>
+          <td>
+            {% assign st = s.status %}
+            {% if st contains "STRONG BUY" or st contains "TRADED" %}<span class="nt-badge nt-green">{{ st }}</span>
+            {% elsif st contains "WAITING" or st contains "ACCUMULATE" %}<span class="nt-badge nt-amber">{{ st }}</span>
+            {% elsif st contains "BOOK" %}<span class="nt-badge nt-red">{{ st }}</span>
+            {% elsif st contains "HOLD" %}<span class="nt-badge nt-gray">{{ st }}</span>
+            {% elsif st contains "WAIT" %}<span class="nt-badge nt-blue">{{ st }}</span>
+            {% else %}{{ st }}
+            {% endif %}
+          </td>
+          <td>{{ s.days_in_trade }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="nt-status">
+      ✅ <strong>No active setups right now.</strong><br>
+      The algo goes to cash when the market regime is weak — that is by design, not a glitch. New signals appear here as soon as the next scan queues one.
     </div>
+    {% endif %}
+  </div>
+  <div class="nt-meta">
+    <span>{% if site.data.swing_board %}🕒 Board updated {{ site.data.swing_board.generated_at }}{% else %}⏳ Board refreshing — check back shortly{% endif %} · updates ~every 15 min through market hours</span>
+    <a href="https://t.me/ai360trading" class="nt-refresh" style="text-decoration:none;">📣 Full alerts on Telegram</a>
   </div>
 </div>
 
