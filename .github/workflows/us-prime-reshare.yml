@@ -1,9 +1,17 @@
 name: US Prime-Time Article Reshare
-# Runs at 7:00 PM IST (13:30 UTC) Mon-Fri — perfect for US morning (9:30 AM ET) and UK afternoon
+# 2026-07-23: automatic daily cron REMOVED — this reshared the SAME day's
+# SAME 2 articles that daily-articles.yml already posted to the same Page
+# just hours earlier (10:45 AM IST vs this 7:00 PM IST slot). Not byte-
+# identical (this one links the specific article URLs, the morning post
+# links the homepage), but still same-day duplicate promotion of the same
+# content on the same Page, every weekday — a real match for Meta's
+# Recommendations Guidelines "repeated content without added value" signal,
+# found while diagnosing the Page's "no longer recommended" status (23 Jul
+# 2026). Kept as workflow_dispatch — trigger manually when a specific day's
+# articles are genuinely worth a second, US-timezone-targeted push, not on
+# autopilot every day regardless of whether it adds anything.
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "30 13 * * 1-5"
 
 jobs:
   reshare:
