@@ -592,6 +592,118 @@ def ai_disclosure(lang: str = "en") -> str:
 
 
 # ─────────────────────────────────────────────
+# FACEBOOK CAPTION VARIATION (2026-07-23)
+# ─────────────────────────────────────────────
+# Found while diagnosing why the Facebook Page lost recommendation eligibility:
+# every post used a 100% fixed structural template (same opener line, same
+# hashtag set, only title/description swapped) — a direct match for Meta's
+# documented "mass-produced/templated content" signal under their
+# Recommendations Guidelines. Rotating the opener + hashtag set gives real
+# day-to-day surface variation. The functional lines (links, AI disclosure,
+# disclaimer) stay fixed on purpose — those are compliance/trust text, not
+# what triggered the flag.
+FB_CAPTION_OPENERS = {
+    "market": [
+        "🎯 {title}",
+        "📈 Aaj ka Signal — {title}",
+        "🔔 Fresh Setup — {title}",
+        "⚡ Aaj ka Update — {title}",
+        "📊 {title}",
+    ],
+    "education": [
+        "📚 {title}",
+        "🎓 Aaj Seekho — {title}",
+        "💡 {title}",
+        "📖 Aaj ka Sabak — {title}",
+    ],
+    "weekend": [
+        "📚 Weekend Wisdom",
+        "🧠 Weekend Learning",
+        "☕ Weekend Read",
+        "🎯 Weekend Special",
+    ],
+    "holiday": [
+        "🎉 {title} Special",
+        "🎊 {title}",
+        "🪔 {title} — Aaj Market Band",
+    ],
+    # "articles_*" — the daily articles-roundup post (daily-articles.yml),
+    # a distinct voice from the single-signal/reel captions above.
+    "articles_market": [
+        "📰 Aaj ke Market Articles",
+        "🗞️ Fresh Analysis — Live Now",
+        "📊 Today's Market Reads",
+        "🔍 Aaj ka Market Digest",
+    ],
+    "articles_weekend": [
+        "📚 Weekend Special",
+        "🧠 Weekend Reading List",
+        "☕ Weekend Deep Dive",
+    ],
+    "articles_holiday": [
+        "🎉 {title} — Holiday Reads",
+        "📖 {title} Special",
+    ],
+}
+
+FB_HASHTAG_SETS = {
+    "market": [
+        "#ai360trading #StockMarket #Nifty #Trading",
+        "#StockMarketIndia #Nifty50 #TradingSignals #ai360trading",
+        "#Nifty #BankNifty #StockMarket #ai360trading",
+        "#ai360trading #Investing #ShareMarket #India",
+    ],
+    "education": [
+        "#ai360trading #StockMarket #TradingForBeginners #Investing #ShareMarket",
+        "#StockMarketIndia #LearnTrading #ai360trading #Investing",
+        "#ai360trading #FinanceEducation #StockMarket #India",
+    ],
+    "weekend": [
+        "#ai360trading #WeekendWisdom #Trading",
+        "#WeekendLearning #Trading101 #ai360trading",
+        "#ai360trading #FinanceTips #India",
+    ],
+    "holiday": [
+        "#ai360trading #HolidayLearning #StockMarket",
+        "#ai360trading #MarketHoliday #Investing",
+    ],
+    "articles_market": [
+        "#StockMarket #Nifty #Trading #ai360trading #India",
+        "#ai360trading #MarketNews #StockMarketIndia #Nifty50",
+        "#Trading #StockMarket #ai360trading #FinanceIndia",
+    ],
+    "articles_weekend": [
+        "#WeekendLearning #Trading101 #ai360trading #GlobalInvesting",
+        "#ai360trading #WeekendReads #Investing #FinanceEducation",
+    ],
+    "articles_holiday": [
+        "#HolidayLearning #InvestmentEducation #ai360trading #GlobalInvesting",
+        "#ai360trading #MarketHoliday #GlobalInvesting",
+    ],
+}
+
+
+def fb_caption_opener(mode: str, title: str = "") -> str:
+    """Random (not fixed) opener line for a Facebook caption, filled with the
+    real title/label. Fail-safe: falls back to a plain "🎯 {title}" line."""
+    try:
+        pool = FB_CAPTION_OPENERS.get(mode, FB_CAPTION_OPENERS["market"])
+        return random.choice(pool).format(title=title)
+    except Exception:
+        return f"🎯 {title}".strip()
+
+
+def fb_hashtags(mode: str) -> str:
+    """Random (not fixed) hashtag line for a Facebook caption. Fail-safe:
+    falls back to the original always-used tag set."""
+    try:
+        pool = FB_HASHTAG_SETS.get(mode, FB_HASHTAG_SETS["market"])
+        return random.choice(pool)
+    except Exception:
+        return "#ai360trading #StockMarket #Nifty #Trading"
+
+
+# ─────────────────────────────────────────────
 # SINGLETON INSTANCES
 # ─────────────────────────────────────────────
 

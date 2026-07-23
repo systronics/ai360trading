@@ -42,14 +42,20 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 from datetime import datetime
 
-# AI-content disclosure (Meta policy). Fail-open: if human_touch is unavailable
-# for any reason, fall back to a plain English disclosure string so captions are
-# always compliant.
+# AI-content disclosure (Meta policy) + caption opener/hashtag variation
+# (2026-07-23: fixes captions being a byte-identical template every post,
+# a real contributor to the Page losing Recommendations eligibility).
+# Fail-open: if human_touch is unavailable for any reason, fall back to the
+# original always-used strings so captions are always compliant.
 try:
-    from human_touch import ai_disclosure
+    from human_touch import ai_disclosure, fb_caption_opener, fb_hashtags
 except Exception:
     def ai_disclosure(lang="en"):
         return "🤖 Produced with AI tools · 📊 Real market data & analysis · Educational only"
+    def fb_caption_opener(mode, title=""):
+        return f"🎯 {title}".strip()
+    def fb_hashtags(mode):
+        return "#ai360trading #StockMarket #Nifty #Trading"
 
 # ─── ARGS ─────────────────────────────────────────────────────────────────────
 
@@ -477,14 +483,16 @@ def build_caption(meta: dict, prefix: str) -> str:
     if prefix == "education":
         edu_title = meta.get("title", "Stock Market Lesson")
         edu_desc  = (meta.get("description", "") or "")[:140]
+        opener = fb_caption_opener("education", edu_title)
+        tags   = fb_hashtags("education")
         return (
-            f"📚 {edu_title}\n\n"
+            f"{opener}\n\n"
             f"💡 {edu_desc}\n\n"
             f"🎯 FREE daily signals → t.me/ai360trading\n"
             f"🌐 ai360trading.in\n"
             f"⚠️ Educational only. Not SEBI registered.\n"
             f"{ai_disclosure('en')}\n"
-            f"#ai360trading #StockMarket #TradingForBeginners #Investing #ShareMarket"
+            f"{tags}"
         )
 
     title = meta.get("title", "")
@@ -492,32 +500,38 @@ def build_caption(meta: dict, prefix: str) -> str:
     mode  = CONTENT_MODE
 
     if mode == "holiday":
-        label = HOLIDAY_NAME or "Market Holiday"
+        label  = HOLIDAY_NAME or "Market Holiday"
+        opener = fb_caption_opener("holiday", label)
+        tags   = fb_hashtags("holiday")
         return (
-            f"🎉 {label} Special — {today_str}\n\n"
+            f"{opener} — {today_str}\n\n"
             f"💡 {desc[:120]}\n\n"
             f"🌐 ai360trading.in | 📱 t.me/ai360trading\n"
             f"⚠️ Educational only.\n"
             f"{ai_disclosure('hi')}\n"
-            f"#ai360trading #HolidayLearning #StockMarket"
+            f"{tags}"
         )
     elif mode == "weekend":
+        opener = fb_caption_opener("weekend")
+        tags   = fb_hashtags("weekend")
         return (
-            f"📚 Weekend Wisdom — {today_str}\n\n"
+            f"{opener} — {today_str}\n\n"
             f"💡 {desc[:120]}\n\n"
             f"🌐 ai360trading.in | 📱 t.me/ai360trading\n"
             f"⚠️ Educational only.\n"
             f"{ai_disclosure('hi')}\n"
-            f"#ai360trading #WeekendWisdom #Trading"
+            f"{tags}"
         )
     else:
+        opener = fb_caption_opener("market", title)
+        tags   = fb_hashtags("market")
         return (
-            f"🎯 {title}\n\n"
+            f"{opener}\n\n"
             f"💡 {desc[:120]}\n\n"
             f"🌐 ai360trading.in | 📱 t.me/ai360trading\n"
             f"⚠️ Educational only.\n"
             f"{ai_disclosure('hi')}\n"
-            f"#ai360trading #StockMarket #Nifty #Trading"
+            f"{tags}"
         )
 
 # ─── RSS ARTICLE SHARE ────────────────────────────────────────────────────────

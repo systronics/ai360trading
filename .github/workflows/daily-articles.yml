@@ -91,8 +91,21 @@ jobs:
           HOLIDAY_NAME:      ${{ env.HOLIDAY_NAME }}
         run: |
           python - <<'EOF'
-          import os, requests
+          import os, sys, requests
           from datetime import datetime
+
+          sys.path.insert(0, ".")
+          # 2026-07-23: opener/hashtag variation — this post used a byte-fixed
+          # template every day, a real contributor to the Page losing
+          # Recommendations eligibility (see human_touch.py's FB_CAPTION_*
+          # note). Fail-open: falls back to the original always-used strings.
+          try:
+              from human_touch import fb_caption_opener, fb_hashtags
+          except Exception:
+              def fb_caption_opener(mode, title=""):
+                  return f"📰 {title}".strip()
+              def fb_hashtags(mode):
+                  return "#StockMarket #Nifty #Trading #ai360trading #India"
 
           META_TOKEN   = os.environ.get("META_ACCESS_TOKEN", "")
           PAGE_ID      = os.environ.get("FACEBOOK_PAGE_ID", "")
@@ -107,36 +120,42 @@ jobs:
           # published on a given day. Message now describes the pillar set
           # generically and points readers to the homepage for the live list.
           if mode == "holiday":
-              label = f"🎉 {holiday_name}" if holiday_name else "🎉 Market Holiday"
+              label  = holiday_name or "Market Holiday"
+              opener = fb_caption_opener("articles_holiday", label)
+              tags   = fb_hashtags("articles_holiday")
               msg = (
-                  f"📚 {label} — {today_str}\n\n"
+                  f"{opener} — {today_str}\n\n"
                   f"Aaj market band hai — perfect time to learn! 📖\n\n"
                   f"Today's holiday articles are live on the site —\n"
                   f"motivation, education, long-term thinking, global outlook.\n\n"
                   f"👉 https://ai360trading.in\n\n"
                   f"🌍 For investors from India, US, UK and Brazil!\n"
-                  f"#HolidayLearning #InvestmentEducation #ai360trading #GlobalInvesting"
+                  f"{tags}"
               )
           elif mode == "weekend":
+              opener = fb_caption_opener("articles_weekend")
+              tags   = fb_hashtags("articles_weekend")
               msg = (
-                  f"📚 Weekend Special — {today_str}\n\n"
+                  f"{opener} — {today_str}\n\n"
                   f"Aaj ke fresh educational articles live hain — across all 4 pillars:\n"
                   f"Stock Market • Crypto • Personal Finance • AI Trading.\n"
                   f"Read them at the link below, no signup needed.\n\n"
                   f"👉 https://ai360trading.in\n\n"
                   f"💡 Weekend ka best use karo — seekho, samjho, grow karo!\n"
                   f"🌍 For investors from India, US, UK and Brazil!\n"
-                  f"#WeekendLearning #Trading101 #ai360trading #GlobalInvesting"
+                  f"{tags}"
               )
           else:
+              opener = fb_caption_opener("articles_market")
+              tags   = fb_hashtags("articles_market")
               msg = (
-                  f"📰 Aaj ke Market Articles — {today_str}\n\n"
+                  f"{opener} — {today_str}\n\n"
                   f"Fresh AI-driven analysis live across all 4 pillars:\n"
                   f"Stock Market • Crypto • Personal Finance • AI Trading.\n"
                   f"Full reading list on the homepage.\n\n"
                   f"👉 https://ai360trading.in\n\n"
                   f"🔔 Telegram: t.me/ai360trading\n"
-                  f"#StockMarket #Nifty #Trading #ai360trading #India"
+                  f"{tags}"
               )
 
           def get_page_token(page_id, user_token):
