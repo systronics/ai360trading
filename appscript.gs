@@ -1,6 +1,39 @@
 /**
- * AI360 TRADING — APPSCRIPT v15.30
+ * AI360 TRADING — APPSCRIPT v15.31
  * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ * v15.31 CHANGES (2026-07-24, evening) — SCAN DIAGNOSTIC MADE ACTUALLY READABLE (owner: "check if there were any bullish days missed like 07-21" → "yes go ahead, build it")
+ *   The v15.28 diagnostic (below) was built to answer exactly this question
+ *   but only ever wrote to Logger.log — Apps Script execution logs need a
+ *   one-time GCP project link (Project Settings → "Change project") that was
+ *   never done on this project. Confirmed via `clasp logs` → "GCP project ID
+ *   is not set" — so every [DIAG]/[CAND] line since 07-22 has been
+ *   write-only, and the 07-21 mystery (bullish day, only TITAN+M&MFIN
+ *   reached WAITING while Nifty200 showed several other STRONG BUY names)
+ *   was never actually resolved, just silently recurring since (confirmed:
+ *   07-13/16/17/20 all had a BULLISH regime all day with 0 swing entries,
+ *   same unexplained pattern).
+ *   1. skipReasons Map — every per-stock rejection point in _runScanner's
+ *      main GATE 1→RR-check loop (11 gates + the bearish hard-block + the
+ *      standard-bullish signal/score filter) now records ITS OWN exact
+ *      reason into a Map right next to the EXISTING `continue` — the
+ *      `continue` itself, and every threshold/condition, is byte-for-byte
+ *      unchanged. This reuses the real gate's own already-computed
+ *      variables, so the explanation can never drift out of sync with the
+ *      actual gate logic (no separate re-implementation to keep in sync).
+ *   2. DIAG block upgraded: for each of today's top-5 Master_Score
+ *      candidates, reports QUEUED, or NOT-QUEUED with the precise reason —
+ *      either the specific gate from skipReasons, or (if it passed every
+ *      per-stock gate but still isn't in AlertLog) "lost the WAITING slot
+ *      itself" to the max-slots cap or the final 2-per-sector cap.
+ *   3. NEW: `_writeScanDiag()` persists this to a new "ScanDiag" sheet tab —
+ *      created once, OVERWRITTEN every scan run (not appended), so it can
+ *      run every 5 minutes all day forever with zero sheet growth. Readable
+ *      with normal Sheets access — no Apps Script Editor, no GCP project
+ *      link, no waiting for the next `clasp logs` attempt to fail again.
+ *   Touches ZERO gate/trade logic or thresholds — pure additive bookkeeping
+ *   + one new read-only sheet tab. See CLAUDE.md 🔒 NEVER CHANGE — no locked
+ *   gate value was touched.
+ *
  * v15.30 CHANGES (2026-07-23, post-midnight) — SECTOR DIRECTION SURFACED ON OPTIONS ALERTS (owner: "i think market, sector and stock all are same direction then option entry")
  *   Market regime (bullish gate) and stock direction (breakout/base stage)
  *   were already required for every candidate that reaches
@@ -529,7 +562,7 @@ const OPTIONS_CONFIG = {
 
 // ── CONFIG ────────────────────────────────────────────────────────────────────
 const CONFIG = {
-  VERSION       : "v15.30",  // single source for ALL subscriber-facing version stamps (was hardcoded per-message and went stale at v15.17)
+  VERSION       : "v15.31",  // single source for ALL subscriber-facing version stamps (was hardcoded per-message and went stale at v15.17)
   get TELEGRAM_BOT_TOKEN() { return PropertiesService.getScriptProperties().getProperty('TELEGRAM_BOT_TOKEN') || ""; },
   get CHAT_ID_BASIC()      { return PropertiesService.getScriptProperties().getProperty('CHAT_ID_BASIC')      || ""; },
   get CHAT_ID_ADVANCE()    { return PropertiesService.getScriptProperties().getProperty('CHAT_ID_ADVANCE')    || ""; },
@@ -1596,6 +1629,12 @@ function _runScanner(startRow, endRow) {
   const bearishSignals= ["🎯 RETEST BUY","🟢 STRONG BUY","💎 BASE PREPARED"];
   const sectorAfSum   = {};
   const sectorAfCount = {};
+  // v15.31: records the FIRST gate that rejected each symbol, using the exact
+  // same variables the real gate already computed (no separate re-derivation,
+  // so this can never drift out of sync with the real logic it's explaining).
+  // Read-only bookkeeping — every line below is a Map.set() next to an
+  // EXISTING `continue`, the `continue` itself is untouched.
+  const skipReasons   = new Map();
 
   for (let i = startRow; i < scanEnd; i++) {
     const r   = inputData[i];
@@ -1648,7 +1687,7 @@ function _runScanner(startRow, endRow) {
     const isBreakoutStage = stage.includes("BREAKOUT CONFIRMED") || stage.includes("BREAKOUT ALERT");
 
     // GATE 1: FII Selling
-    if (fiiSignal === "FII SELLING") continue;
+    if (fiiSignal === "FII SELLING") { skipReasons.set(sym, "GATE 1: FII SELLING"); continue; }
 
     // ── CASH INTRADAY DETECTION (v15.7) ──────────────────────────────────────
     // Small-mid cap stocks with 4%+ gap + volume surge = 10-15% intraday potential.
@@ -1725,19 +1764,26 @@ function _runScanner(startRow, endRow) {
       const bearishCheck = _checkBearishEntryAllowed(marketBullish, useScore, leaderType, rs);
       if (!bearishCheck.allowed) {
         // Don't log every skip — too noisy. Just continue.
+        skipReasons.set(sym, bearishCheck.reason);
         continue;
       }
     } else if (!marketBullish) {
       // Momentum entry in bearish market — extra strict
       if (useScore < 20 && rs < 15) {
         Logger.log(`[SKIP] ${sym}: momentum but bearish + score ${useScore} + RS ${rs} too low`);
+        skipReasons.set(sym, `BEARISH MOMENTUM: score ${useScore}<20 and RS ${rs}<15`);
         continue;
       }
     }
 
     // Standard bullish filter for non-momentum, non-base entries
     if (!isMomentumEntry && !isBaseEntry && marketBullish) {
-      if (!validSignals.includes(signal) || useScore < CONFIG.MIN_PRIORITY) continue;
+      if (!validSignals.includes(signal) || useScore < CONFIG.MIN_PRIORITY) {
+        skipReasons.set(sym, !validSignals.includes(signal)
+          ? `SIGNAL FILTER: "${signal}" not in valid signal list`
+          : `SIGNAL FILTER: score ${useScore} < MIN_PRIORITY ${CONFIG.MIN_PRIORITY}`);
+        continue;
+      }
     }
 
     // GATE 3 (v15.19): RS LEADERSHIP PRE-SCREEN — parity with the Python bot.
@@ -1753,34 +1799,34 @@ function _runScanner(startRow, endRow) {
     // cash intraday never reaches here (bot exempts it from RS as well).
     const rsRaw = (r[20] === null || r[20] === undefined) ? "" : r[20].toString().trim();
     const rsIsNum = rsRaw !== "" && !isNaN(parseFloat(rsRaw));
-    if (marketBullish && rsIsNum && rs < CONFIG.LATE_ENTRY_MIN_RS) continue;
+    if (marketBullish && rsIsNum && rs < CONFIG.LATE_ENTRY_MIN_RS) { skipReasons.set(sym, `GATE 3: RS ${rs} < ${CONFIG.LATE_ENTRY_MIN_RS}`); continue; }
 
     // GATE 4: Price Validity
-    if (cmp <= 0 || atr <= 0) continue;
-    if (cmp > CONFIG.MAX_CMP) continue;
+    if (cmp <= 0 || atr <= 0) { skipReasons.set(sym, `GATE 4: invalid price/ATR (cmp=${cmp}, atr=${atr})`); continue; }
+    if (cmp > CONFIG.MAX_CMP) { skipReasons.set(sym, `GATE 4: price ${cmp} > MAX_CMP ${CONFIG.MAX_CMP}`); continue; }
 
     // GATE 4b: Result Day Skip (allow momentum entries through this gate)
     const absChange = Math.abs(pctChange);
     if (!isMomentumEntry) {
-      if (absChange > CONFIG.CORP_ACTION_SKIP_PCT) continue;
-      if (absChange > CONFIG.RESULT_DAY_SKIP_PCT)  continue;
+      if (absChange > CONFIG.CORP_ACTION_SKIP_PCT) { skipReasons.set(sym, `GATE 4b: |change| ${absChange.toFixed(1)}% > CORP_ACTION_SKIP ${CONFIG.CORP_ACTION_SKIP_PCT}%`); continue; }
+      if (absChange > CONFIG.RESULT_DAY_SKIP_PCT)  { skipReasons.set(sym, `GATE 4b: |change| ${absChange.toFixed(1)}% > RESULT_DAY_SKIP ${CONFIG.RESULT_DAY_SKIP_PCT}%`); continue; }
     } else {
       // For momentum: only block extreme moves (circuit filter)
-      if (absChange > CONFIG.CORP_ACTION_SKIP_PCT) continue;
+      if (absChange > CONFIG.CORP_ACTION_SKIP_PCT) { skipReasons.set(sym, `GATE 4b: momentum |change| ${absChange.toFixed(1)}% > CORP_ACTION_SKIP ${CONFIG.CORP_ACTION_SKIP_PCT}%`); continue; }
     }
 
     // GATE 5: Extension Filter (base entries exempt)
     if (!isBaseEntry && !isMomentumEntry) {
       if (isBreakoutStage) {
-        if (retestPct < CONFIG.RETEST_MAX_PULLBACK) continue;
+        if (retestPct < CONFIG.RETEST_MAX_PULLBACK) { skipReasons.set(sym, `GATE 5: retest ${retestPct}% < RETEST_MAX_PULLBACK ${CONFIG.RETEST_MAX_PULLBACK}%`); continue; }
       } else {
-        if (distDMA > CONFIG.MAX_DIST_ABOVE_20DMA) continue;
+        if (distDMA > CONFIG.MAX_DIST_ABOVE_20DMA) { skipReasons.set(sym, `GATE 5: ${distDMA.toFixed(1)}% above 20DMA > MAX_DIST ${CONFIG.MAX_DIST_ABOVE_20DMA}%`); continue; }
       }
     }
 
     // GATE 6: Pivot Resistance (base and momentum exempt)
     if (signal !== "🎯 RETEST BUY" && !isBreakoutStage && !isBaseEntry && !isMomentumEntry) {
-      if (pivotRes > 0 && cmp > 0 && ((pivotRes - cmp) / cmp) < CONFIG.PIVOT_RESISTANCE_BUFFER && pivotRes > cmp) continue;
+      if (pivotRes > 0 && cmp > 0 && ((pivotRes - cmp) / cmp) < CONFIG.PIVOT_RESISTANCE_BUFFER && pivotRes > cmp) { skipReasons.set(sym, `GATE 6: too close to pivot resistance ₹${pivotRes}`); continue; }
     }
 
     // GATE 7: Volume Filter (momentum entries bypass if price confirms)
@@ -1795,23 +1841,23 @@ function _runScanner(startRow, endRow) {
       if (isBreakoutStage) {
         // exempt
       } else if (isBaseEntry || isBaseStage || isBasePrepared) {
-        if (!volHasData || volPace < 1 + CONFIG.BASE_STAGE_MIN_VOL / 100) continue;
+        if (!volHasData || volPace < 1 + CONFIG.BASE_STAGE_MIN_VOL / 100) { skipReasons.set(sym, `GATE 7: base-stage volume pace ${volHasData ? volPace.toFixed(2)+'x' : 'no data'} too low`); continue; }
       } else {
-        if (!volHasData || volPace < 2.2) continue;
+        if (!volHasData || volPace < 2.2) { skipReasons.set(sym, `GATE 7: volume pace ${volHasData ? volPace.toFixed(2)+'x' : 'no data'} < 2.2x`); continue; }
       }
     }
 
     // GATE 8: ATH Buffer (base and momentum exempt)
     if (!isBreakoutStage && !isBaseEntry && !isMomentumEntry) {
-      if (high52 > 0 && ((high52 - cmp) / high52) * 100 < CONFIG.ATH_BUFFER_PCT) continue;
+      if (high52 > 0 && ((high52 - cmp) / high52) * 100 < CONFIG.ATH_BUFFER_PCT) { skipReasons.set(sym, `GATE 8: within ATH buffer (${(((high52 - cmp) / high52) * 100).toFixed(1)}% off 52w high)`); continue; }
     }
 
     // GATE 9: Trade Type
     const niftyTradeType = (r[24] || "").toString().trim();
-    if (niftyTradeType.includes("AVOID") || niftyTradeType.includes("NO TRADE")) continue;
+    if (niftyTradeType.includes("AVOID") || niftyTradeType.includes("NO TRADE")) { skipReasons.set(sym, `GATE 9: Nifty200 Trade_Type = "${niftyTradeType}"`); continue; }
 
     // GATE 10: Sector Concentration
-    if ((sectorCount[sector] || 0) >= 2) continue;
+    if ((sectorCount[sector] || 0) >= 2) { skipReasons.set(sym, `GATE 10: sector "${sector}" already has ${sectorCount[sector]} open trades`); continue; }
 
     const { ttype } = _mapTradeType(niftyTradeType, priority, atr, cmp, volVsAvg, pctChange, smaStr, timeStr);
 
@@ -1867,7 +1913,7 @@ function _runScanner(startRow, endRow) {
     const risk   = cmp - sl;
     const reward = target - cmp;
     const rrNum  = risk > 0 ? (reward / risk) : 0;
-    if (rrNum < CONFIG.MIN_RR) continue;
+    if (rrNum < CONFIG.MIN_RR) { skipReasons.set(sym, `RR CHECK: ${rrNum.toFixed(2)} < MIN_RR ${CONFIG.MIN_RR} (SL ₹${sl}, target ₹${target})`); continue; }
 
     const convBonus  = _convictionBonus(r, marketBullish);
     const finalScore = useScore + convBonus;
@@ -1939,18 +1985,25 @@ function _runScanner(startRow, endRow) {
     }
   }
 
-  // v15.28 DIAGNOSTIC — read-only, changes no gate/trade decision. Logs
-  // whether today's top-5 Master_Score stocks (excluding already-traded)
-  // reached the WAITING queue, and if not, the cheapest checkable reason
-  // (bearish score<40, RS<gate floor, or "see full [CAND] trace above").
-  // Added after a 2026-07-22 audit found AlertLog holding only 1 candidate
-  // (TITAN) on a bullish day while the Nifty200 sheet showed several other
-  // STRONG BUY / BREAKOUT CONFIRMED names with healthy Master Scores — the
-  // exact gate that excluded them could not be pinned down after the fact
-  // because nothing logged the near-misses. This makes the next occurrence
-  // provable from the Apps Script Executions log instead of guesswork.
+  // v15.28 DIAGNOSTIC (upgraded v15.31) — read-only, changes no gate/trade
+  // decision. Logs whether today's top-5 Master_Score stocks (excluding
+  // already-traded) reached the WAITING queue, and if not, the PRECISE
+  // reason — captured live at the exact gate that rejected them (skipReasons
+  // Map, filled inline next to each existing `continue` above), not guessed
+  // after the fact. Added after a 2026-07-22 audit found AlertLog holding
+  // only 1 candidate (TITAN) on a bullish day while Nifty200 showed several
+  // other STRONG BUY / BREAKOUT CONFIRMED names — the exact gate could not be
+  // pinned down because nothing logged the near-misses, and the resulting
+  // Logger.log-only diagnostic was itself never actually readable (Apps
+  // Script execution logs need a one-time GCP project link that was never
+  // done — confirmed via `clasp logs` → "GCP project ID is not set"). v15.31
+  // additionally writes this to a small "ScanDiag" sheet tab (created if
+  // missing, overwritten every run — not appended, so it never grows
+  // unbounded) so the finding is readable by anyone with normal Sheets
+  // access, no Apps Script Editor or GCP setup required.
   try {
-    const queuedSyms = new Set(finalWaiting.map(row => row[1]));
+    const queuedSyms  = new Set(finalWaiting.map(row => row[1]));
+    const batchSyms   = new Set(batchCands.map(c => c.sym));
     const topByScore = inputData.slice(1)
       .filter(r => r[0] && !r[0].toString().includes("NIFTY") && !alreadyTraded.has(r[0].toString().trim()))
       .map(r => ({
@@ -1963,8 +2016,25 @@ function _runScanner(startRow, endRow) {
       }))
       .sort((a, b) => b.score - a.score)
       .slice(0, 5);
+
+    const diagRows = topByScore.map(t => {
+      let status, reason;
+      if (queuedSyms.has(t.sym)) {
+        status = "QUEUED"; reason = "—";
+      } else if (batchSyms.has(t.sym)) {
+        status = "NOT-QUEUED"; reason = "Passed every per-stock gate — lost the WAITING slot itself (max " + maxWaitingSlots + " slots reached, or hit the final 2-per-sector cap during ranked fill)";
+      } else if (skipReasons.has(t.sym)) {
+        status = "NOT-QUEUED"; reason = skipReasons.get(t.sym);
+      } else {
+        status = "NOT-QUEUED"; reason = "No reason captured (unexpected — outside the scanned row range for this batch, or a gate this diagnostic doesn't cover yet)";
+      }
+      return [t.sym, t.score, t.pri, t.rs, t.sector, t.ttype, status, reason];
+    });
+
     Logger.log(`[DIAG] Top-5 Master_Score (Bullish=${marketBullish}, MaxWaiting=${maxWaitingSlots}): ` +
-      topByScore.map(t => `${t.sym}(score=${t.score},pri=${t.pri},rs=${t.rs},sector=${t.sector},ttype=${t.ttype})=${queuedSyms.has(t.sym) ? "QUEUED" : "NOT-QUEUED"}`).join(" | "));
+      diagRows.map(d => `${d[0]}(score=${d[1]},pri=${d[2]},rs=${d[3]},sector=${d[4]},ttype=${d[5]})=${d[6]}${d[6]==="NOT-QUEUED" ? " ["+d[7]+"]" : ""}`).join(" | "));
+
+    _writeScanDiag(ss, nowTime, marketBullish, maxWaitingSlots, diagRows);
   } catch (e) { Logger.log("[DIAG] error (non-fatal): " + e); }
 
   // MOMENTUM SCAN — v15.24: GATE-3 parity (RS ≥ LATE_ENTRY_MIN_RS, blank RS
@@ -2187,6 +2257,47 @@ function _runScanner(startRow, endRow) {
 
   Logger.log(`[DONE] Traded=${finalTraded.length} | Waiting=${finalWaiting.length} (Base=${batchCands.filter(c=>c.isBaseEntry).length}, Momentum=${batchCands.filter(c=>c.isMomentumEntry).length}, Cash=${cashCands.length}) | Bullish=${marketBullish} | v15.7`);
   return true;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SCAN DIAGNOSTIC SHEET — v15.31 (2026-07-24, new)
+// ══════════════════════════════════════════════════════════════════════════════
+// Persists the [DIAG] top-5-candidate finding (built inside _runScanner, just
+// above) to a small "ScanDiag" tab instead of only Logger.log — Apps Script's
+// execution log needs a one-time GCP project link (Project Settings →
+// "Change project") that has never been done on this project, so every prior
+// [DIAG]/[CAND] line was effectively write-only. This tab is readable with
+// normal Sheets access (including the same service-account read path
+// performance_stats.py / publish_swing_board.py already use).
+//
+// Design: OVERWRITES a fixed 6-row block every scan run (1 header + up to 5
+// candidate rows) rather than appending — so it can run every 5 minutes all
+// day, every day, forever, with zero growth and zero cleanup job needed.
+// Read-only with respect to trading state: never touches AlertLog, History,
+// or BotMemory. A write failure here is caught and logged, never thrown —
+// cannot abort the real scan that already completed above it.
+function _writeScanDiag(ss, nowTime, marketBullish, maxWaitingSlots, diagRows) {
+  let sheet = ss.getSheetByName("ScanDiag");
+  if (!sheet) {
+    sheet = ss.insertSheet("ScanDiag");
+    sheet.getRange(1, 1, 1, 9).setValues([[
+      "Last Scan", "Regime", "Max Waiting Slots", "Symbol", "Master Score",
+      "Priority", "RS", "Sector / Trade Type", "Status / Reason"
+    ]]);
+    sheet.setFrozenRows(1);
+  }
+  const regimeStr = marketBullish ? "BULLISH" : "BEARISH";
+  const rows = diagRows.length ? diagRows : [["(no candidates found this scan)", "", "", "", "", "", "", ""]];
+  const grid = rows.map((d, idx) => [
+    idx === 0 ? nowTime : "", idx === 0 ? regimeStr : "", idx === 0 ? maxWaitingSlots : "",
+    d[0] || "", d[1] ?? "", d[2] ?? "", d[3] ?? "",
+    [d[4], d[5]].filter(Boolean).join(" / "),
+    d[6] ? `${d[6]}${d[7] && d[7] !== "—" ? ": " + d[7] : ""}` : ""
+  ]);
+  // Always exactly 5 candidate rows so the overwrite never leaves a stale
+  // row 6 behind from a previous run that had more candidates than this one.
+  while (grid.length < 5) grid.push(["", "", "", "", "", "", "", "", ""]);
+  sheet.getRange(2, 1, 5, 9).setValues(grid.slice(0, 5));
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
