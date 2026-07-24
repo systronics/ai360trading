@@ -83,7 +83,7 @@ One broken file = zero income that day. Treat every edit as critical.
 | File | Version |
 |---|---|
 | `upload_youtube.py` | v2.4 (2026-07-22: the fallback thumbnail/metadata builder — only fires if the reel script itself failed to produce one — still pasted the ZENO cartoon and "ZENO Ki Baat" branding; owner retired ZENO for a serious-trader identity and this dead-path fallback was the one spot that got missed. Now matches: live NIFTY stat block, "Amit Ki Baat". `generate_reel.py`'s `save_meta()` now also writes `nifty_level`/`nifty_pct` into meta.json so this fallback has real data) |
-| `upload_facebook.py` | v2.8 (2026-07-23: build_caption() uses human_touch.fb_caption_opener()/fb_hashtags() instead of a fixed f-string per mode — see human_touch.py v2.4; v2.7 2026-07-19 — kids branch removed; ZENO/morning/education/market paths unchanged) |
+| `upload_facebook.py` | v2.9 (2026-07-24: full-system-audit cleanup — CLI --help text no longer says "ZENO" for the evening-reel prefix; runtime print() version stamp was hardcoded "v2.6" and silently stale through v2.7/v2.8, fixed to read live version; no functional change. v2.8 2026-07-23: build_caption() uses human_touch.fb_caption_opener()/fb_hashtags() instead of a fixed f-string per mode — see human_touch.py v2.4; v2.7 2026-07-19 — kids branch removed; ZENO/morning/education/market paths unchanged) |
 
 ---
 

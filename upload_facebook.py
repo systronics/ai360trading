@@ -1,6 +1,15 @@
 """
 upload_facebook.py — AI360Trading
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v2.9 (2026-07-24):
+  Cosmetic-only, full system audit cleanup:
+  - CLI --help text for --meta-prefix still said "'' = ZENO" after the
+    persona retired 2026-07-22. Now says "'' = evening reel".
+  - Runtime print() version stamp was hardcoded "v2.6" and had been
+    silently stale through v2.7 and v2.8 (confirmed via a live run log
+    from 2026-07-23 still printing v2.6) — fixed to read v2.9.
+  No functional/behavioral change.
+
 v2.8 (2026-07-23):
   build_caption() now uses human_touch.fb_caption_opener()/fb_hashtags()
   instead of a fixed f-string per mode — captions were a byte-identical
@@ -69,7 +78,7 @@ except Exception:
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--meta-prefix", default="",
-                        help="Meta prefix: '' = ZENO, 'morning' = morning reel, 'education' = education")
+                        help="Meta prefix: '' = evening reel, 'morning' = morning reel, 'education' = education")
     return parser.parse_args()
 
 # ─── CONFIG ───────────────────────────────────────────────────────────────────
@@ -576,7 +585,7 @@ def main():
     prefix = args.meta_prefix
 
     print("=" * 60)
-    print(f"  upload_facebook.py v2.6 — MODE: {CONTENT_MODE.upper()} | PREFIX: '{prefix}'")
+    print(f"  upload_facebook.py v2.9 — MODE: {CONTENT_MODE.upper()} | PREFIX: '{prefix}'")
     print("=" * 60)
 
     if not verify_token():
@@ -649,7 +658,7 @@ def main():
     share_articles_from_rss(FACEBOOK_PAGE_ID, page_token)
 
     print("=" * 60)
-    print("  upload_facebook.py v2.6 — DONE")
+    print("  upload_facebook.py v2.9 — DONE")
     print("=" * 60)
 
 if __name__ == "__main__":
