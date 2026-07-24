@@ -64,6 +64,27 @@ description: "AI360Trading Membership — Live Telegram signals, TradingView ind
 .ledger-foot{font-size:0.68rem;color:var(--muted);margin-top:12px;line-height:1.6;}
 .ledger-foot a{color:var(--gold);}
 
+/* ── CASE STUDIES ── */
+.case-section{max-width:900px;margin:0 auto 32px;padding:0 16px;}
+.case-title{font-family:'Syne',sans-serif;font-size:1rem;color:#fff;margin-bottom:4px;}
+.case-sub{font-size:0.74rem;color:var(--muted);margin-bottom:14px;line-height:1.5;}
+.case-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media(max-width:640px){.case-grid{grid-template-columns:1fr;}}
+.case-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px 20px;position:relative;overflow:hidden;}
+.case-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.case-card.win::before{background:var(--green);}
+.case-card.loss::before{background:var(--red);}
+.case-sym{font-family:'Syne',sans-serif;font-size:1.05rem;color:#fff;}
+.case-strategy{font-size:0.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;}
+.case-rows{font-size:0.78rem;color:var(--text);line-height:2;margin-bottom:8px;}
+.case-rows b{color:var(--muted);font-weight:600;}
+.case-result{font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:800;margin:8px 0;}
+.case-card.win .case-result{color:var(--green);}
+.case-card.loss .case-result{color:var(--red);}
+.case-reason{font-size:0.74rem;color:var(--muted);line-height:1.5;margin-bottom:10px;}
+.case-chart-link{font-size:0.72rem;color:var(--gold);text-decoration:none;font-weight:700;}
+.case-chart-link:hover{text-decoration:underline;}
+
 /* ── PLANS ── */
 .plans-section{max-width:900px;margin:0 auto;padding:0 16px 48px;}
 .plans-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
@@ -217,6 +238,49 @@ description: "AI360Trading Membership — Live Telegram signals, TradingView ind
     </table>
     </div>
     <div class="ledger-foot">Published for transparency — losses included. Paper trading (no real money). See live setups on the <a href="/swing-dashboard/">signal dashboard</a>. Educational only — not SEBI-registered advice.</div>
+  </div>
+</section>
+
+<!-- CASE STUDIES (2026-07-24: real closed trades pulled straight from the
+     History ledger — one win, one loss, on purpose. This is the page that
+     asks someone to pay, so it's the page that has to show, not just claim,
+     what a signal actually looked like before and after. -->
+<section class="case-section" id="case-studies">
+  <div class="ledger-card">
+    <div class="case-title">🔍 Two Real Signals — What Actually Happened</div>
+    <div class="case-sub">Not cherry-picked winners only — our best closed trade and our worst, both from the same ledger above. Symbol, entry, stop-loss and exact exit, exactly as the system logged them in real time.</div>
+    <div class="case-grid">
+
+      <div class="case-card win">
+        <div class="case-sym">CUMMINSIND</div>
+        <div class="case-strategy">🎯 Retest Buy · Swing</div>
+        <div class="case-rows">
+          <b>Entry:</b> ₹5,416.50<br>
+          <b>Stop-loss:</b> ₹5,285.00<br>
+          <b>Exit:</b> ₹5,965.00 · 🎯 Target hit<br>
+          <b>Held:</b> 3 trading days
+        </div>
+        <div class="case-result">+10.13%</div>
+        <div class="case-reason">Our single best closed trade to date. Entered on a retest of a prior breakout level with volume confirmation; hit its target within 3 trading days without ever threatening the stop.</div>
+        <a href="https://www.tradingview.com/chart/?symbol=NSE%3ACUMMINSIND" target="_blank" rel="nofollow" class="case-chart-link">View live chart on TradingView →</a>
+      </div>
+
+      <div class="case-card loss">
+        <div class="case-sym">PNBHOUSING</div>
+        <div class="case-strategy">🎯 Retest Buy · Swing</div>
+        <div class="case-rows">
+          <b>Entry:</b> ₹1,088.00<br>
+          <b>Stop-loss:</b> ₹1,051.20<br>
+          <b>Exit:</b> ₹1,013.40 · ❌ Hard stop loss<br>
+          <b>Held:</b> 7 trading days
+        </div>
+        <div class="case-result">−6.86%</div>
+        <div class="case-reason">Our worst closed trade to date. The setup never confirmed — price gapped through the stop-loss level rather than hitting it cleanly, so the actual exit was worse than the stop price. This is a real, disclosed risk of swing trading (gap risk), not hidden from the ledger.</div>
+        <a href="https://www.tradingview.com/chart/?symbol=NSE%3APNBHOUSING" target="_blank" rel="nofollow" class="case-chart-link">View live chart on TradingView →</a>
+      </div>
+
+    </div>
+    <div class="ledger-foot" style="margin-top:14px">Both trades pulled directly from the same closed-trade ledger above — nothing staged, nothing removed. Full ledger updates as trades close. Paper trading (no real money). Educational only — not SEBI-registered advice.</div>
   </div>
 </section>
 {% endif %}

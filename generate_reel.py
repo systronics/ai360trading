@@ -3,7 +3,18 @@ generate_reel.py -- AI360Trading
 ======================================================
 Generates the evening reel (8:30 PM) -- 45-60 second Hinglish reel.
 
-VOICE: hi-IN-SwaraNeural (Swara -- wise female voice)
+VOICE: hi-IN-MadhurNeural (Madhur -- male voice, matches Amit's persona)
+
+v2.6 (2026-07-24) -- VOICE SWAP, LAST ZENO ARTIFACT REMOVED:
+  v2.5 retired the ZENO character from the script/visuals but left the TTS
+  voice on hi-IN-SwaraNeural -- the "wise female" voice ZENO was originally
+  cast with. Since the narration is now explicitly Amit's own voice (an
+  experienced male trader speaking to serious traders, not a mascot), the
+  voice didn't match the persona. Switched to hi-IN-MadhurNeural -- the same
+  male voice already used for Short 2 in generate_shorts.py -- so every
+  Hindi-voiced format now speaks as one consistent person. edge-tts's entire
+  Hindi catalog is only 2 voices (Swara/female, Madhur/male); Madhur is the
+  only male option and the direct swap-in. No script/pacing/visual changes.
 
 v2.5 (2026-07-22) -- ZENO RETIRED, DATA-GROUNDED, REBRANDED TO AMIT:
   Owner ("Amit"): "zeno character not fit for serious traders... use my
@@ -69,7 +80,7 @@ from pathlib import Path
 import pytz
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 import edge_tts
-from moviepy.editor import ImageClip, AudioFileClip
+from moviepy.editor import ImageClip, AudioFileClip, CompositeVideoClip
 
 from human_touch import ht, seo
 
@@ -97,7 +108,7 @@ IMAGE_DIR = Path("public/image")
 SW, SH    = 1080, 1920
 FPS       = 30
 IST       = pytz.timezone("Asia/Kolkata")
-VOICE     = "hi-IN-SwaraNeural"
+VOICE     = "hi-IN-MadhurNeural"
 
 os.makedirs(OUT, exist_ok=True)
 
@@ -486,6 +497,20 @@ def compose_video(frame_path, audio_path, output_path, spoken_text="", hook_text
     duration   = audio_clip.duration + 0.5
 
     video = ImageClip(str(frame_path)).set_duration(duration)
+
+    # v2.6: MOTION (retention) — same fix that raised Shorts completion in
+    # v3.11: a slow Ken Burns zoom 1.0→1.08 across the whole video so the
+    # previously 100% static frame visibly moves. Fully fail-open — any
+    # error leaves the old static ImageClip untouched.
+    try:
+        from PIL import Image as _PILImage
+        if not hasattr(_PILImage, "ANTIALIAS"):
+            _PILImage.ANTIALIAS = _PILImage.LANCZOS
+        zoomed = video.resize(lambda t: 1.0 + 0.08 * (t / max(duration, 0.1))).set_position(("center", "center"))
+        video  = CompositeVideoClip([zoomed], size=(SW, SH)).set_duration(duration)
+        print("  ✅ Ken Burns motion applied")
+    except Exception as e:
+        print(f"  ⚠️ motion skipped (fail-open, static frame): {e}")
 
     # Build an .srt subtitle track (for YouTube auto-translate), offset by the
     # hook so it stays synced with the shifted narration. Fail-open.

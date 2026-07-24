@@ -41,9 +41,19 @@ permalink: /about/
     <p>In today's interconnected financial ecosystem, no market moves in isolation. <strong>AI360Trading</strong> provides a 360-degree view of the world economy — covering NIFTY, S&amp;P 500, FTSE 100, IBOVESPA, and Bitcoin with daily analysis published every trading day.</p>
     <p>Our systems monitor critical macro drivers including <strong>US Treasury yields</strong>, <strong>Dollar Index (DXY)</strong>, <strong>Fear &amp; Greed Index</strong>, and <strong>global institutional flow data</strong>. This top-down approach helps identify high-probability setups before they become obvious to the retail crowd.</p>
 
-    <h2>📊 Our Strategy & Logic</h2>
-    <p>We combine <strong>AI-powered analysis</strong> with institutional-grade volume and price-action logic. By tracking the "Institutional Footprint" — FII/DII flows for India, block trades, sector rotation — we filter out market noise and focus only on verified structural shifts and trend breakouts.</p>
-    <p>Every signal and article update is backed by live market data and quantitative reasoning — not speculation or hype.</p>
+    <h2>📊 Our Strategy & Logic — What The Algorithm Actually Checks</h2>
+    <p>No black box, no "AI magic" hand-wave. Every candidate has to clear a stack of concrete, rule-based filters before a signal is ever generated:</p>
+    <ul style="line-height:1.9;color:#334155;margin:0 0 18px 22px;">
+      <li><strong>Relative Strength gate</strong> — the stock must be genuinely outperforming the Nifty 200, not just rising because the whole market is up.</li>
+      <li><strong>Volume gate, pace-adjusted</strong> — real volume must run meaningfully above its own recent average, measured fairly against how much of the trading day has elapsed, not a raw partial-day number compared to a full-day average.</li>
+      <li><strong>RSI momentum window</strong> — momentum must sit in a controlled zone: strong enough to be a real breakout, not so extreme that it's already overbought and due for a pullback.</li>
+      <li><strong>FII/DII institutional flow</strong> — real net buy/sell data from NSE, checked to align with the trade direction.</li>
+      <li><strong>Sector trend alignment</strong> — the stock's own sector must be trending the same direction as the trade.</li>
+      <li><strong>ATR-anchored stop-loss</strong> — every stop-loss is sized off the stock's own actual volatility (Average True Range), never a random fixed percentage.</li>
+      <li><strong>Reachability-checked target</strong> — a profit target is only set where the stock's volatility can realistically reach it, not a blanket number applied to every stock.</li>
+      <li><strong>Time-stop discipline</strong> — a trade that goes nowhere is closed on a schedule, so capital doesn't sit dead in a stalled position.</li>
+    </ul>
+    <p>This is the same rule stack every day, calm or volatile — the system doesn't get "creative" on a hunch. Every closed trade, win or loss, is published on our <a href="/membership/">verified ledger</a> with two full worked examples — see exactly what a signal looked like from entry to exit.</p>
 
     <h2>🤖 AI & Technology Stack</h2>
     <p>Our platform uses artificial intelligence to process live market data in real time. From sentiment analysis of global news feeds to pattern recognition in price charts, our AI models surface the most relevant market intelligence for traders in all 4 target markets.</p>

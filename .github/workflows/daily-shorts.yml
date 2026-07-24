@@ -1,5 +1,13 @@
 name: "Daily Shorts — AI360Trading (Short 2 + Short 3)"
 
+# v2.3 (2026-07-24):
+#   TIME CHANGE: Mon-Fri shorts moved 11:30 AM → 4:00 PM IST. 11:30 AM sat
+#   in the middle of live market hours — the target audience (active
+#   traders) is watching charts then, not scrolling Instagram/YouTube.
+#   4:00 PM is right after market close (3:30 PM), when traders are
+#   reviewing the day's action while it's still fresh. Sat-Sun unchanged
+#   (no market-hours conflict on non-trading days). Owner-approved.
+#
 # v2.2 (May 2026):
 #   ADDED: Telegram failure notification step
 #
@@ -11,8 +19,8 @@ name: "Daily Shorts — AI360Trading (Short 2 + Short 3)"
 on:
   workflow_dispatch:
   schedule:
-    # Mon-Fri: 11:30 AM IST (06:00 UTC)
-    - cron: "0 6 * * 1-5"
+    # Mon-Fri: 4:00 PM IST (10:30 UTC)
+    - cron: "30 10 * * 1-5"
     # Sat-Sun: 1:30 PM IST (08:00 UTC)
     - cron: "0 8 * * 6,0"
 

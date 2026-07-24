@@ -27,7 +27,10 @@ Generates Short 2 (Trade Setup) + Short 3 (Global Market Pulse).
 VOICE ASSIGNMENTS:
   Short 2: hi-IN-MadhurNeural  — authoritative Hindi male, trade setups
   Short 3: en-IN-NeerjaNeural  — Indian English female, market pulse
-  ZENO reel uses hi-IN-SwaraNeural (in generate_reel.py — separate)
+  Evening + morning reels also use hi-IN-MadhurNeural as of 2026-07-24
+  (generate_reel.py v2.6 / generate_reel_morning.py v2.7 — matches this
+  file's Short 2 voice so every Hindi format speaks as one consistent
+  person; edge-tts's Hindi catalog only has Swara/female and Madhur/male)
 
 UPLOAD TARGETS:
   Short 2 (Hindi):   YouTube ✅ | Facebook AI360Trading Page ✅ | Instagram ✅

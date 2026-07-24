@@ -1,6 +1,15 @@
 """
 generate_reel_morning.py — Morning Reel Generator (7:00 AM IST)
 ===============================================================
+v2.7 (2026-07-24) — VOICE SWAP, LAST ZENO ARTIFACT REMOVED:
+  VOICE_HI was still hi-IN-SwaraNeural (female) — the voice ZENO was cast
+  with — even after v2.6 removed the character's art. Since the evening
+  reel (generate_reel.py v2.6, same date) switched its Hindi voice to
+  hi-IN-MadhurNeural (male) to match Amit's own persona, this file's Hindi
+  segments now use the same voice so "Amit Ki Baat" / "Amit's Morning
+  Brief" sound like one consistent person across both reels and Short 2.
+  VOICE_EN (English segments) is unchanged. No script/frame changes.
+
 v2.6 (2026-07-22) — ZENO RETIRED, REBRANDED TO AMIT:
   Owner ("Amit"): "zeno character not fit for serious traders... use my
   name Amit instead... content for serious traders... live and real data."
@@ -106,7 +115,7 @@ VIDEO_HEIGHT = 1920
 FPS      = 24   # v2.5: 30→24 — invisible for a static-frame slideshow, ~20% faster render
 DURATION = 55
 
-VOICE_HI = "hi-IN-SwaraNeural"
+VOICE_HI = "hi-IN-MadhurNeural"
 VOICE_EN = "en-US-JennyNeural"
 
 PALETTES = [
@@ -666,6 +675,20 @@ def create_morning_video(script, audio_path, output_path, intel=None,
         return frames[idx]
 
     video = mp.VideoClip(make_frame, duration=DURATION)
+
+    # v2.7: MOTION (retention) — same Ken Burns fix already proven in
+    # generate_shorts.py v3.11 / generate_reel.py v2.6: slow zoom 1.0→1.08
+    # across the whole video so the previously 100% static per-line frame
+    # visibly moves. Fully fail-open — any error leaves the static video.
+    try:
+        from PIL import Image as _PILImage
+        if not hasattr(_PILImage, "ANTIALIAS"):
+            _PILImage.ANTIALIAS = _PILImage.LANCZOS
+        zoomed = video.resize(lambda t: 1.0 + 0.08 * (t / DURATION)).set_position(("center", "center"))
+        video  = mp.CompositeVideoClip([zoomed], size=(VIDEO_WIDTH, VIDEO_HEIGHT)).set_duration(DURATION)
+        logger.info("Ken Burns motion applied")
+    except Exception as e:
+        logger.warning(f"motion skipped (fail-open, static frame): {e}")
 
     tts = None
     if os.path.exists(audio_path):
