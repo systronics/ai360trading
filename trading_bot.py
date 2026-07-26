@@ -1,6 +1,34 @@
 """
-AI360 TRADING BOT — v15.28
+AI360 TRADING BOT — v15.30
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v15.30 CHANGES vs v15.29 — CASH ENTRY WINDOW SYNC (2026-07-26, full-system audit)
+  appscript.gs v15.29/v15.30 already extended CONFIG.CASH_ENTRY_WINDOW from
+  10:30 AM to 1:30 PM on the scan side (to catch 4%+ gap/catalyst movers that
+  build their move after 10:30), but this file's promotion-side cutoff,
+  CASH_ENTRY_WINDOW_END, was never updated to match — still (10, 30). Net
+  effect: appscript.gs could legitimately queue an afternoon cash WAITING
+  row, but step_a_enter_trades would refuse to ever promote it to TRADED,
+  silently starving every candidate the v15.29/v15.30 appscript fix was
+  built to catch. Found by cross-checking both engines' time-window
+  constants side by side — the exact "candidate starvation" failure mode
+  this project has hit and fixed multiple times before (v15.9 BUG-E,
+  v15.21 volume pace, v15.28-31 ScanDiag). CASH_ENTRY_WINDOW_END now (13, 30)
+  to match. No other filter/gate logic touched.
+
+v15.29 CHANGES vs v15.28 — RSI DIP TOLERANCE + LATE ENTRY WINDOW (2026-07-21/23)
+  1. RSI hot-leader exception given a small dip-tolerance noise floor —
+     RSI_HOT_DIP_TOLERANCE=0.3; "stock up today" now accepts day_pct > -0.3%
+     instead of requiring > 0 exactly. 58-session log audit: RSI was the #1
+     entry blocker (45% of all filter-checks), 62% of those sat in the 65-75
+     exception window with the regime bullish — killed by single-tick
+     day_pct noise crossing zero, not real weakness. Fail-closed unchanged
+     on missing day data.
+  2. ENTRY_WINDOW_BULLISH_END moved 14:30→15:05 — a live 07-21 candidate
+     (M&MFIN) appeared ~15:07 and was time-blocked every tick to close; TIME
+     was the #2 blocker (29% of all 58-session filter checks) after RSI.
+     Bearish window (11:00) deliberately NOT touched — tied to the v15.6
+     "4 losses" evidence.
+
 v15.28 CHANGES vs v15.27 — VOLUME-GATE SHADOW TRACKER (2026-07-21, owner: "may be we have any hard gate... build it, safe by design only")
   The 1.5x volume-confirmation gate is a binary hard gate with no partial
   credit — never measured against what actually happens to the candidates
@@ -551,7 +579,7 @@ except Exception as _e:
     _EQ_AVAILABLE = False
 
 IST       = pytz.timezone('Asia/Kolkata')
-VERSION   = "v15.29"   # single source for the run banner + test messages (were stale at v15.16 before v15.23; was stuck at v15.28 in this constant through the v15.29 RSI dip-tolerance release — banner text only, no logic was affected)
+VERSION   = "v15.30"   # single source for the run banner + test messages (were stale at v15.16 before v15.23; was stuck at v15.28 in this constant through the v15.29 RSI dip-tolerance release — banner text only, no logic was affected)
 TG_TOKEN  = os.environ.get('TELEGRAM_BOT_TOKEN')
 
 CHAT_BASIC   = os.environ.get('CHAT_ID_BASIC')
@@ -582,7 +610,7 @@ RSI_HOT_DIP_TOLERANCE  = 0.3  # v15.29: "up today" allows a small negative dip (
 RSI_MAX_BEARISH        = 58
 NIFTY_MIN_PCT_BULLISH  = -0.30
 NIFTY_MIN_PCT_BEARISH  = 0.00
-ENTRY_WINDOW_BULLISH_END = (15, 5)   # v15.30: was 14:30 — a live 07-21 candidate (M&MFIN) appeared ~15:07 and was
+ENTRY_WINDOW_BULLISH_END = (15, 5)   # v15.29: was 14:30 — a live 07-21 candidate (M&MFIN) appeared ~15:07 and was
                                       # time-blocked every tick to close; 29% of all 58-session filter checks were
                                       # TIME blocks (2nd only to RSI). Extended 35min, still leaves 25min before the
                                       # 15:30 close for the position to be managed. Bearish window NOT touched — that
@@ -678,7 +706,12 @@ TSL_PARAMS = {
 }
 
 # ── Cash Intraday ─────────────────────────────────────────────────────────────
-CASH_ENTRY_WINDOW_END  = (10, 30)  # cash stocks: entry only 9:15-10:30 AM
+CASH_ENTRY_WINDOW_END  = (13, 30)  # v15.30: was 10:30 — appscript.gs v15.30 already extended its own
+                                    # CONFIG.CASH_ENTRY_WINDOW 10:30→13:30 (scan side, catches 4%+ gap/
+                                    # catalyst movers that build their move after 10:30) but this promotion-
+                                    # side cutoff was never updated to match — afternoon cash WAITING rows
+                                    # were being queued by appscript.gs and then silently starved here,
+                                    # never promoted to TRADED. Found in 2026-07-26 full-system audit.
 CASH_FORCE_EXIT_HOUR   = (15, 0)   # force-exit all cash trades at 3:00 PM
 CASH_MAX_DAILY         = 2         # max 2 cash intraday trades per day
 CASH_CAPITAL           = CAPITAL_STD  # smallest tier — higher risk position
@@ -2060,9 +2093,9 @@ def step_a_enter_trades(log_sheet, nifty_sheet, bm_sheet, mem, now, is_bullish, 
             if today_cash >= CASH_MAX_DAILY:
                 print(f"[STEP A] {sym}: cash daily limit {today_cash}/{CASH_MAX_DAILY} — skip")
                 continue
-            # Cash entry window: 9:15-10:30 AM only
+            # Cash entry window: 9:15 AM - 1:30 PM
             if (now.hour, now.minute) > CASH_ENTRY_WINDOW_END:
-                print(f"[STEP A] {sym}: cash after 10:30 AM — skip")
+                print(f"[STEP A] {sym}: cash after 1:30 PM — skip")
                 continue
 
         # ── v15.0: Run ALL filters including re-entry cooldown ────────────────
