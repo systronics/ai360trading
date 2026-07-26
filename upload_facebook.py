@@ -1,6 +1,13 @@
 """
 upload_facebook.py — AI360Trading
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v2.10 (2026-07-26, full-system audit):
+  The v2.9 "fixed to read v2.9" claim below was itself another hardcoded
+  string literal, not a real fix — this file never had a VERSION constant,
+  so the two runtime print() banners were always one hand-edit away from
+  going stale again (found live: they'd have needed a 3rd manual edit for
+  v2.10). Added an actual VERSION constant; both banners now read it.
+
 v2.9 (2026-07-24):
   Cosmetic-only, full system audit cleanup:
   - CLI --help text for --meta-prefix still said "'' = ZENO" after the
@@ -83,6 +90,7 @@ def parse_args():
 
 # ─── CONFIG ───────────────────────────────────────────────────────────────────
 
+VERSION                       = "v2.10"  # single source for both runtime print() banners below — never hardcode the string again
 META_ACCESS_TOKEN             = os.environ.get("META_ACCESS_TOKEN", "")
 FACEBOOK_PAGE_ID              = os.environ.get("FACEBOOK_PAGE_ID", "")
 FACEBOOK_GROUP_ID             = os.environ.get("FACEBOOK_GROUP_ID", "")
@@ -585,7 +593,7 @@ def main():
     prefix = args.meta_prefix
 
     print("=" * 60)
-    print(f"  upload_facebook.py v2.9 — MODE: {CONTENT_MODE.upper()} | PREFIX: '{prefix}'")
+    print(f"  upload_facebook.py {VERSION} — MODE: {CONTENT_MODE.upper()} | PREFIX: '{prefix}'")
     print("=" * 60)
 
     if not verify_token():
@@ -658,7 +666,7 @@ def main():
     share_articles_from_rss(FACEBOOK_PAGE_ID, page_token)
 
     print("=" * 60)
-    print("  upload_facebook.py v2.9 — DONE")
+    print(f"  upload_facebook.py {VERSION} — DONE")
     print("=" * 60)
 
 if __name__ == "__main__":

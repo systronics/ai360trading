@@ -687,7 +687,7 @@ img_client = ImageVideoClient()
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     print("=" * 60)
-    print("AI360Trading — AI Client v2.4 Test")
+    print("AI360Trading — AI Client v2.5 Test")
     print("=" * 60)
 
     client = AIClient()

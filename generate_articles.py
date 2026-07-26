@@ -1880,10 +1880,17 @@ End with:
         # Subtle and trust-positive: discloses AI assistance while affirming the
         # data and sources are real. Required now that platforms flag undisclosed
         # AI content; disclosing protects the site from demotion.
-        ai_disc_footer = (
-            "\n\n*🤖 Produced with AI tools · 📊 Based on real market data and "
-            "sources · Educational only, not investment advice.*\n"
-        )
+        # Routed through human_touch.ai_disclosure() — the single source of truth
+        # for this text everywhere else in the pipeline (was a separate hardcoded
+        # duplicate string here; found in the 2026-07-26 full-system audit).
+        try:
+            import human_touch as _ht
+            ai_disc_footer = f"\n\n*{_ht.ai_disclosure('en')} · Not investment advice.*\n"
+        except Exception:
+            ai_disc_footer = (
+                "\n\n*🤖 Produced with AI tools · 📊 Based on real market data and "
+                "sources · Educational only, not investment advice.*\n"
+            )
 
         with open(file_path, "w", encoding="utf-8") as f:
             f.write(header + schema_block + hero_block + media_content + perf_block + cta_footer + ai_disc_footer)

@@ -82,7 +82,7 @@ from datetime import datetime
 import pytz
 
 IST        = pytz.timezone("Asia/Kolkata")
-VERSION    = "v1.6"
+VERSION    = "v1.7"
 SHEET_NAME = "Ai360tradingAlgo"
 
 LT_WATCHLIST    = "LTWatchlist"
