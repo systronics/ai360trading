@@ -1,6 +1,24 @@
 """
-fetch_rs.py — Nifty200 RS + ATR + slow-moving-stats repair feed — v2.1
+fetch_rs.py — Nifty200 RS + ATR + slow-moving-stats repair feed — v2.2
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+v2.2 (2026-07-26, sheet/formula audit) — NIFTY50 ROW'S OWN 20_DMA FED:
+  This script deliberately skips the NIFTY50 index row when building RS
+  targets (RS doesn't apply to the index itself) — but that same skip also
+  meant column E (20_DMA) for row 2 was never fed by ANYTHING, ever, leaving
+  it on its original live GOOGLEFINANCE formula. That mattered more than a
+  normal missed cell: trading_bot.py's get_market_regime() reads row 2's
+  CMP/%Change/20DMA DIRECTLY with no yfinance fallback (unlike
+  get_nifty_pct_change() elsewhere in that file, which already falls back to
+  ^NSEI) — so the bull/bear regime gate for the WHOLE bot was still one
+  GOOGLEFINANCE hiccup away from silently going stale, even after the rest of
+  the 2026-07-24 migration below. Fixed: row 2's 20_DMA is now computed from
+  the ^NSEI daily series (already downloaded as one of the BENCHMARKS below —
+  no extra API call), the SAME instrument fetch_live_prices.py v1.1 now feeds
+  row 2's CMP from, so CMP vs 20DMA is an apples-to-apples comparison, not an
+  ETF-vs-spot mismatch. 50_DMA/200_DMA/52-week/etc. deliberately left blank
+  for row 2 as before — get_market_regime() never reads them, so there was
+  nothing actually gating on their absence.
 
 WHY THIS EXISTS (root cause, found 2026-06-02):
   The Nifty200 sheet's `RS` column is a GOOGLEFINANCE() historical formula:
@@ -139,7 +157,7 @@ from datetime import datetime, timedelta
 import pytz
 
 IST          = pytz.timezone("Asia/Kolkata")
-VERSION      = "v2.1"
+VERSION      = "v2.2"
 SHEET_NAME   = "Ai360tradingAlgo"
 NIFTY200     = "Nifty200"
 SYM_HEADER   = "NSE_SYMBOL"
@@ -522,6 +540,31 @@ def main():
                 add("VCP Status", round((hi5 - lo5) / cmp_now, 4))
             else:
                 add("VCP Status", None)
+
+    # 2026-07-26 SYSTEM SYNC: NIFTY50 row's own 20_DMA. This script deliberately
+    # skips the NIFTY50 row from `targets` above (RS doesn't apply to the index
+    # itself), but that also meant column E (20_DMA) for row 2 was never fed by
+    # ANYTHING — left on a live GOOGLEFINANCE formula forever, the one input
+    # trading_bot.py's get_market_regime() reads directly with NO yfinance
+    # fallback for the whole bot's bull/bear regime decision. Fixed: feed row
+    # 2's 20_DMA from the SAME ^NSEI series fetch_live_prices.py v1.1 now feeds
+    # row 2's CMP from (2026-07-26 sheet/formula audit) — CMP and 20DMA compare
+    # apples-to-apples, not an ETF-vs-spot mismatch. Reuses the ^NSEI benchmark
+    # data already downloaded above (BENCHMARKS) — no extra API call.
+    if dma20_c is not None:
+        for i, r in enumerate(rows):
+            if len(r) > sym_c and "NIFTY" in r[sym_c].strip().upper():
+                nifty_row = i + 2
+                nsei_f = frame_for("^NSEI")
+                nsei_drop = False
+                if drop_last_if_today and nsei_f is not None:
+                    fl = nsei_f.dropna(subset=["Close"])
+                    nsei_drop = len(fl) > 0 and fl.index[-1].date() == now_ist.date()
+                nifty_dma20 = _sma(closes_for("^NSEI"), 20, nsei_drop)
+                if nifty_dma20 is not None:
+                    slow_updates["20_DMA"].append((nifty_row, nifty_dma20))
+                    print(f"[20_DMA] NIFTY50 row {nifty_row}: {nifty_dma20} (from ^NSEI)")
+                break
 
     print(f"[RS ] computed {len(rs_updates)} / {len(targets)} symbols "
           f"({rs_missing} unpriced, left unchanged)")

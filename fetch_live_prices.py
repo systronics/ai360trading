@@ -1,6 +1,18 @@
 """
-fetch_live_prices.py — Nifty200 live CMP / %Change / Volume feed — v1.0
+fetch_live_prices.py — Nifty200 live CMP / %Change / Volume feed — v1.1
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+v1.1 (2026-07-26, sheet/formula audit): the NIFTY50 index row (row 2) was
+being SKIPPED entirely — its CMP/%Change never got fed by this script, so it
+silently stayed on its original live GOOGLEFINANCE formula forever, the exact
+single-point-of-failure this whole script exists to remove. This mattered
+more than a normal missed row: trading_bot.py's get_market_regime() reads
+row 2's CMP/%Change/20DMA DIRECTLY, with no yfinance fallback (unlike
+get_nifty_pct_change(), which already falls back to ^NSEI elsewhere in that
+file) — so the bull/bear regime gate for the WHOLE bot was still one
+GOOGLEFINANCE hiccup away from going stale, unnoticed, even after the rest
+of the 2026-07-24 migration. Fixed: the NIFTY50 row is now fed like every
+other row, using the correct index ticker ^NSEI instead of being skipped.
 
 WHY THIS EXISTS (2026-07-24 full-system audit):
   The 2026-07-23 audit found ~25 of Nifty200's 37 columns were still live
@@ -63,7 +75,7 @@ from datetime import datetime
 import pytz
 
 IST         = pytz.timezone("Asia/Kolkata")
-VERSION     = "v1.0"
+VERSION     = "v1.1"
 SHEET_NAME  = "Ai360tradingAlgo"
 NIFTY200    = "Nifty200"
 SYM_HEADER  = "NSE_SYMBOL"
@@ -149,7 +161,19 @@ def main():
         if len(r) <= sym_c:
             continue
         nse = r[sym_c].strip()
-        if not nse or "NIFTY" in nse.upper():
+        if not nse:
+            continue
+        if "NIFTY" in nse.upper():
+            # 2026-07-26 SYSTEM SYNC: the NIFTY50 index row was being skipped
+            # entirely (same "NSE:XXX -> XXX.NS" logic would have produced the
+            # invalid ticker "NIFTY50.NS"), leaving row 2's CMP/%Change on its
+            # original live GOOGLEFINANCE formula forever — the exact single-
+            # point-of-failure this script exists to remove, just for the ONE
+            # row trading_bot.py's get_market_regime() reads directly with NO
+            # yfinance fallback (unlike get_nifty_pct_change(), which already
+            # falls back to ^NSEI). Now fed like every other row, using the
+            # correct index ticker (^NSEI) instead of being skipped.
+            targets.append((i + 2, nse, "^NSEI"))
             continue
         targets.append((i + 2, nse, _yf_symbol(nse)))
 
