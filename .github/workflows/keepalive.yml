@@ -2,7 +2,7 @@ name: KeepAlive
 
 on:
   schedule:
-    - cron: '30 18 * * 0-4'  # 11:59 PM IST Sun-Thu (Before market opens)
+    - cron: '30 18 * * 0-4'  # 12:00 AM IST Mon-Fri (18:30 UTC + 5:30 = 00:00 next day; before market opens)
   workflow_dispatch:
 
 jobs:
