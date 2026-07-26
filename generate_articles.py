@@ -28,6 +28,24 @@ except ImportError:
     _MEDIA_AVAILABLE = False
     print("[WARN] media_helper.py not found — articles will be text-only")
 
+# 2026-07-26 (affiliate-link audit): money_funnel.py is "the single source of
+# truth for every income CTA + link" (its own docstring, and CLAUDE.md's own
+# rule) — but AFFILIATE_LINKS below had its OWN separate, hardcoded Zerodha
+# URL with no referral code, used to prompt the AI to insert INLINE broker
+# mentions in the article body. Confirmed live in every article since April:
+# the bottom-of-article CTA box (via money_funnel.article_cta_html()) always
+# had the correct ?c=YS3694 referral code, but the body's own natural-language
+# Zerodha mention never did — silently losing referral credit on every reader
+# who clicked the in-body link instead of the CTA box. Import it here so the
+# broker/investing India entries below can reuse the SAME link and can never
+# drift apart again.
+try:
+    import money_funnel as _mf
+    _MONEY_FUNNEL_AVAILABLE = True
+except ImportError:
+    _MONEY_FUNNEL_AVAILABLE = False
+    print("[WARN] money_funnel.py not found — affiliate broker links fall back to no-referral defaults")
+
 # ── FIX: Clean LLM title encoding issues ─────────────────────────────────────
 def clean_ai_title(title: str) -> str:
     """Fixes 'SandP 500' → 'S&P 500' and other HTML entity issues from LLM output."""
@@ -53,6 +71,13 @@ HOLIDAY_NAME = os.environ.get("HOLIDAY_NAME", "Indian Market Holiday")
 print(f"[MODE] generate_articles.py running in mode: {CONTENT_MODE.upper()}")
 
 # ─── Affiliate Links ──────────────────────────────────────────────────────────
+# India broker/investing defaults reuse money_funnel.LINKS['zerodha'] (the
+# SAME referral-coded URL the bottom-of-article CTA box uses) instead of a
+# separate bare "https://zerodha.com/open-account/" — see the money_funnel
+# import comment above for why. usa/uk/insurance/loans are genuinely separate
+# affiliate programs (no money_funnel equivalent exists for them), left as-is.
+_ZERODHA_REFERRAL = (_mf.LINKS["zerodha"] if _MONEY_FUNNEL_AVAILABLE
+                     else "https://zerodha.com/open-account/")
 AFFILIATE_LINKS = {
     "insurance": {
         "india": os.environ.get("AFFILIATE_INSURANCE_IN", "https://www.policybazaar.com/"),
@@ -60,7 +85,7 @@ AFFILIATE_LINKS = {
         "uk":    os.environ.get("AFFILIATE_INSURANCE_UK", "https://www.comparethemarket.com/"),
     },
     "broker": {
-        "india": os.environ.get("AFFILIATE_BROKER_IN", "https://zerodha.com/open-account/"),
+        "india": os.environ.get("AFFILIATE_BROKER_IN", _ZERODHA_REFERRAL),
         "usa":   os.environ.get("AFFILIATE_BROKER_US", "https://webull.com/"),
         "uk":    os.environ.get("AFFILIATE_BROKER_UK", "https://www.trading212.com/"),
     },
@@ -70,7 +95,7 @@ AFFILIATE_LINKS = {
         "uk":    os.environ.get("AFFILIATE_LOANS_UK", "https://www.moneysupermarket.com/"),
     },
     "investing": {
-        "india": os.environ.get("AFFILIATE_INVEST_IN", "https://zerodha.com/open-account/"),
+        "india": os.environ.get("AFFILIATE_INVEST_IN", _ZERODHA_REFERRAL),
         "usa":   os.environ.get("AFFILIATE_INVEST_US", "https://webull.com/"),
         "uk":    os.environ.get("AFFILIATE_INVEST_UK", "https://www.trading212.com/"),
     },
