@@ -206,7 +206,7 @@ git push
 
 ## KEY SYSTEM FACTS
 
-- **AI Fallback chain:** Groq → Gemini → Claude → OpenAI → Templates (never call AI APIs directly — always use `ai_client.py`)
+- **AI Fallback chain (actual, in production):** Groq → Gemini → Templates. Claude/OpenAI exist as a coded last-resort in `ai_client.py` (v2.5, ₹0/month hardening) but are gated behind `ALLOW_PAID_AI=true`, which is never set anywhere in this repo (no workflow env, no secret) — so they never actually run, by design, guaranteeing zero AI spend. Never call AI APIs directly — always use `ai_client.py`
 - **Content mode:** auto-detected by `indian_holidays.py` — market / weekend / holiday
 - **Sheet:** `Ai360tradingAlgo` (Google Sheets)
 - **T2 cell = automation on/off** (AlertLog col T row 2 — YES = enabled)
