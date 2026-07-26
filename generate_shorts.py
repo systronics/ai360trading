@@ -143,6 +143,11 @@ os.makedirs(OUT, exist_ok=True)
 
 VOICE_SHORT2 = "hi-IN-MadhurNeural"
 VOICE_SHORT3 = "en-IN-NeerjaNeural"
+# 2026-07-26 (owner: "voice should be young"): no alternate younger Hindi male
+# voice exists in Edge TTS's free tier — same pitch-lift as the reels, applied
+# only to Short 2 (Madhur/Hindi), not Short 3 (Neerja/English, a different
+# voice+persona that wasn't part of this ask).
+VOICE_PITCH = "+15Hz"
 
 BULL_GREEN  = (0, 210, 100)
 BEAR_RED    = (220, 55, 55)
@@ -221,6 +226,16 @@ def _wrap_to_width(draw, text, font, max_w):
     return lines
 
 
+def draw_arrow_icon(draw, cx, cy, size, up, color):
+    """2026-07-26 (owner: "improve thumbnails"): a real triangle graphic reads
+    at thumbnail size better than an emoji/word — same helper as the reels."""
+    if up:
+        pts = [(cx, cy - size), (cx - size, cy + size), (cx + size, cy + size)]
+    else:
+        pts = [(cx, cy + size), (cx - size, cy - size), (cx + size, cy - size)]
+    draw.polygon(pts, fill=color)
+
+
 def build_short_thumbnail(headline: str, subline: str, accent, badge: str, out_name: str) -> Path:
     """Clean bold-text stop-scroll thumbnail. Saved as JPEG (well under YouTube's
     2 MB thumbnail limit). Caller wraps this fail-open."""
@@ -235,6 +250,15 @@ def build_short_thumbnail(headline: str, subline: str, accent, badge: str, out_n
     draw.rounded_rectangle([(40, 50), (470, 132)], radius=18, fill=accent)
     draw.text((255, 91), "AI360TRADING", font=get_font(FONT_BOLD_PATHS, 50),
               fill=(0, 0, 0), anchor="mm")
+
+    # 2026-07-26: bold directional triangle next to the category badge —
+    # direction inferred from the accent color already chosen by the caller
+    # (BULL_GREEN/BEAR_RED); GOLD (neutral/weekend) gets no arrow, nothing to
+    # point. Same "real graphic beats text/emoji" technique as the reels.
+    if accent == BULL_GREEN:
+        draw_arrow_icon(draw, SW//2 - 260, 205, 22, True, BULL_GREEN)
+    elif accent == BEAR_RED:
+        draw_arrow_icon(draw, SW//2 - 260, 205, 22, False, BEAR_RED)
 
     # Category badge
     draw.text((SW//2, 205), badge, font=get_font(FONT_BOLD_PATHS, 46),
@@ -660,13 +684,14 @@ Return ONLY valid JSON:
 async def gen_tts_async(text: str, voice: str, path: str):
     speed    = ht.get_tts_speed()
     rate_str = f"+{int((speed-1)*100)}%" if speed >= 1 else f"{int((speed-1)*100)}%"
+    pitch    = VOICE_PITCH if voice == VOICE_SHORT2 else "+0Hz"
     # Edge TTS (wss://speech.platform.bing.com) intermittently returns 503 /
     # WSServerHandshakeError. Retry with backoff so a transient blip self-heals
     # in-run instead of failing the whole job.
     last_err = None
     for attempt in range(1, 5):  # 4 tries: 5/15/30s backoff
         try:
-            await edge_tts.Communicate(text, voice, rate=rate_str).save(path)
+            await edge_tts.Communicate(text, voice, rate=rate_str, pitch=pitch).save(path)
             if os.path.exists(path) and os.path.getsize(path) > 0:
                 return
             raise RuntimeError("edge_tts produced empty audio file")

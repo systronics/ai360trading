@@ -1,6 +1,20 @@
 """
 human_touch.py — Anti-AI-Penalty Human Touch Engine
 =====================================================
+v2.5 (2026-07-26) — YOUTUBE HASHTAG ROTATION:
+  get_video_tags() returned the SAME tags in the SAME order every call for a
+  given mode — confirmed live (every morning reel had byte-identical hashtag
+  blocks). Same "100% fixed template" risk class as the Facebook caption
+  issue below (v2.4), which is the one place this pattern was already proven
+  to cause a real problem (lost Meta Recommendations eligibility). Fixed:
+  a small CORE_TAGS set (brand + top search terms) stays first for
+  consistent discoverability; everything else is now shuffled from the full
+  relevant pool each call, so composition genuinely varies and the
+  category-specific tags (GLOBAL_TAGS/EDUCATION_TAGS) actually get a chance
+  to appear in a caller's tags[:15] slice instead of always sitting past a
+  fixed-length BASE_TAGS block. No caller code changed — same function
+  signature and return type (list[str]).
+
 v2.4 (2026-07-23) — FACEBOOK CAPTION VARIATION:
   Added FB_CAPTION_OPENERS / FB_HASHTAG_SETS pools + fb_caption_opener() /
   fb_hashtags() helpers. Facebook captions (video posts via upload_facebook.py
@@ -480,18 +494,39 @@ class SEO:
         "IBOVESPA", "NRIInvesting", "IndianDiaspora",
     ]
 
+    # 2026-07-26 (owner: "improve hashtag rotation"): get_video_tags() used to
+    # return the SAME tags, in the SAME order, every single call for a given
+    # mode — confirmed live (every morning reel had byte-identical hashtags).
+    # This is the exact "100% fixed template" pattern that got the Facebook
+    # Page flagged for Meta's mass-produced/templated-content signal (see the
+    # FB_HASHTAG_SETS fix above) — never proven to have hurt YouTube the same
+    # way, but it's the identical shape of risk sitting unaddressed in the one
+    # place that already caused a real problem once. A few CORE tags always
+    # stay first (brand + top search terms) for consistent discoverability;
+    # everything else is shuffled from the full relevant pool each call so
+    # composition genuinely varies day to day / video to video, and the
+    # category-specific tags (GLOBAL_TAGS/EDUCATION_TAGS) actually get a
+    # chance to appear in a caller's tags[:15] slice instead of always
+    # sitting past index 15 behind a fixed-length BASE_TAGS block.
+    CORE_TAGS = ["AI360Trading", "ai360trading", "Nifty50", "StockMarket"]
+
     def get_video_tags(self, mode: str = "market", is_short: bool = False,
                         channel: str = "main", lang: str = "hi") -> list:
-        """Returns appropriate tag list for given content type."""
+        """Returns a tag list for the given content type — CORE_TAGS always
+        first, the rest shuffled from the relevant pool for real variation."""
         # (kids channel removed 2026-07-19; `channel` kept for call-site compatibility)
-        tags = self.BASE_TAGS.copy()
+        pool = [t for t in self.BASE_TAGS if t not in self.CORE_TAGS]
 
         if mode == "education":
-            tags = tags + self.EDUCATION_TAGS + self.GLOBAL_TAGS
+            pool = pool + self.EDUCATION_TAGS + self.GLOBAL_TAGS
         elif mode in ("weekend", "holiday"):
-            tags = tags + self.EDUCATION_TAGS
+            pool = pool + self.EDUCATION_TAGS
         else:
-            tags = tags + self.GLOBAL_TAGS
+            pool = pool + self.GLOBAL_TAGS
+
+        pool = list(dict.fromkeys(pool))  # dedupe preserving first occurrence
+        random.shuffle(pool)
+        tags = self.CORE_TAGS + pool
 
         if is_short:
             tags = tags + ["Shorts", "YouTubeShorts", "TradingShorts"]

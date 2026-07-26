@@ -117,6 +117,10 @@ DURATION = 55
 
 VOICE_HI = "hi-IN-MadhurNeural"
 VOICE_EN = "en-US-JennyNeural"
+# 2026-07-26 (owner: "voice should be young"): no alternate younger Hindi male
+# voice exists in Edge TTS's free tier (Madhur is the only one) — same
+# pitch-lift approach as generate_reel.py, tune after listening.
+VOICE_PITCH = "+15Hz"
 
 PALETTES = [
     {"bg": (15, 20, 40),  "accent": (0, 200, 255),   "text": (255, 255, 255)},
@@ -443,6 +447,7 @@ async def generate_tts(lines: list, output_path: str) -> bool:
     except ImportError:
         logger.error("edge-tts not installed"); return False
     voice    = VOICE_HI if LANG == "hi" else VOICE_EN
+    pitch    = VOICE_PITCH if voice == VOICE_HI else "+0Hz"
     speed    = ht.get_tts_speed()
     rate_str = f"+{int((speed-1)*100)}%" if speed >= 1 else f"{int((speed-1)*100)}%"
     text     = ". ".join(lines)
@@ -458,7 +463,7 @@ async def generate_tts(lines: list, output_path: str) -> bool:
     # in-run; keeps the fail-soft bool contract on total failure.
     for attempt in range(1, 5):  # 4 tries: 5/15/30s backoff
         try:
-            await edge_tts.Communicate(text, voice, rate=rate_str).save(output_path)
+            await edge_tts.Communicate(text, voice, rate=rate_str, pitch=pitch).save(output_path)
             if os.path.exists(output_path) and os.path.getsize(output_path) > 0:
                 break
         except Exception as e:
@@ -477,19 +482,32 @@ async def generate_tts(lines: list, output_path: str) -> bool:
 # Trader reads specific number → stops scrolling → clicks
 # ══════════════════════════════════════════════════════════════════════════════
 
+# 2026-07-26 (owner: "improve thumbnails"): a real triangle graphic reads at
+# thumbnail size and stops a scroll far better than the word "up"/"down"
+# alone — a well-established finance-content CTR technique. Font-independent
+# PIL polygon, same helper shape used in generate_reel.py.
+def draw_arrow_icon(draw, cx, cy, size, up, color):
+    if up:
+        pts = [(cx, cy - size), (cx - size, cy + size), (cx + size, cy + size)]
+    else:
+        pts = [(cx, cy + size), (cx - size, cy - size), (cx + size, cy - size)]
+    draw.polygon(pts, fill=color)
+
+
 # v2.6 (2026-07-22): ZENO retired — replaced by a real live-data ticker strip
 # (Crude/Gold/Bitcoin, each with an up/down badge). Data is already computed
 # upstream in `intel` (get_market_intelligence) — zero new fetches.
 def _ticker_row(draw, y, label, value_text, pct, W, font_label, font_val, font_pct):
     up    = pct >= 0
-    color = (0, 210, 100) if up else (220, 70, 70)
+    # v2.7 (2026-07-26): more saturated bullish/bearish colors for a stronger pop.
+    color = (0, 225, 110) if up else (235, 45, 45)
     row_h = 108
     draw.rounded_rectangle([(60, y), (W-60, y+row_h-16)], radius=16, fill=(255, 255, 255, 18))
     draw.text((100, y + (row_h-16)//2), label, font=font_label, fill=(190, 205, 230), anchor="lm")
     draw.text((W-300, y + (row_h-16)//2), value_text, font=font_val, fill=(255, 255, 255), anchor="lm")
-    arrow = "up" if up else "down"
     draw.rounded_rectangle([(W-190, y+18), (W-70, y+row_h-34)], radius=10, fill=color)
-    draw.text((W-130, y + (row_h-16)//2 - 8), f"{arrow} {abs(pct):.1f}%",
+    draw_arrow_icon(draw, W-165, y + (row_h-16)//2 - 8, 12, up, (0,0,0) if up else (255,255,255))
+    draw.text((W-110, y + (row_h-16)//2 - 8), f"{abs(pct):.1f}%",
               font=font_pct, fill=(0,0,0) if up else (255,255,255), anchor="mm")
     return y + row_h
 
@@ -552,11 +570,17 @@ def build_thumbnail(topic_display: str, sentiment: str, palette: dict, nifty_lev
         draw.text((80, ty), nifty_text, font=f_nifty, fill=(255, 255, 255), anchor="la")
         ty += 110
 
-    # Sentiment badge
-    sent_emoji = {"BULLISH": "📈 BULLISH", "BEARISH": "📉 BEARISH", "NEUTRAL": "⚖️ NEUTRAL"}.get(sentiment, "⚖️ NEUTRAL")
-    draw.rounded_rectangle([(80, ty+10), (80+380, ty+82)], radius=14, fill=accent)
-    draw.text((270, ty+46), sent_emoji, font=f_sent,
-              fill=(0,0,0) if sentiment=="BULLISH" else (255,255,255), anchor="mm")
+    # Sentiment badge — 2026-07-26: added a real triangle graphic (reads at
+    # thumbnail size better than the emoji alone) for BULLISH/BEARISH; NEUTRAL
+    # deliberately gets no arrow (no direction to point).
+    sent_label = {"BULLISH": "BULLISH", "BEARISH": "BEARISH", "NEUTRAL": "⚖️ NEUTRAL"}.get(sentiment, "⚖️ NEUTRAL")
+    badge_fill = (0,0,0) if sentiment=="BULLISH" else (255,255,255)
+    draw.rounded_rectangle([(80, ty+10), (80+420, ty+82)], radius=14, fill=accent)
+    if sentiment in ("BULLISH", "BEARISH"):
+        draw_arrow_icon(draw, 130, ty+46, 22, sentiment == "BULLISH", badge_fill)
+        draw.text((300, ty+46), sent_label, font=f_sent, fill=badge_fill, anchor="mm")
+    else:
+        draw.text((290, ty+46), sent_label, font=f_sent, fill=badge_fill, anchor="mm")
     ty += 120
 
     # v2.6: LIVE DATA TICKER — replaces the ZENO character. Real numbers only.

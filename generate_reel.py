@@ -109,6 +109,14 @@ SW, SH    = 1080, 1920
 FPS       = 30
 IST       = pytz.timezone("Asia/Kolkata")
 VOICE     = "hi-IN-MadhurNeural"
+# 2026-07-26 (owner: "voice should be young"): Edge TTS only ships ONE Hindi
+# male neural voice (Madhur) — Swara is the only other hi-IN option and it's
+# female — so there is no alternate younger-sounding voice to switch to
+# within the ₹0/month free-tier constraint. Owner chose the pitch-lift path:
+# same voice, raised pitch, reads relatively brighter/younger. Tune this
+# value if it sounds off after listening — it's a starting point, not a
+# calibrated constant.
+VOICE_PITCH = "+15Hz"
 
 os.makedirs(OUT, exist_ok=True)
 
@@ -232,12 +240,26 @@ Respond ONLY with valid JSON, no markdown:
 # Owner ("Amit") does not want a cartoon fronting content for serious traders.
 # A real NIFTY number in the frame is the credibility play a mascot can't be.
 
+def draw_arrow_icon(draw, cx, cy, size, up, color):
+    """2026-07-26 (owner: "improve thumbnails"): a real graphical triangle
+    reads at thumbnail size and stops a scroll far better than the word
+    "UP"/"DOWN" alone does — a well-established finance-content CTR technique.
+    Drawn as a PIL polygon (font-independent, always renders identically)."""
+    if up:
+        pts = [(cx, cy - size), (cx - size, cy + size), (cx + size, cy + size)]
+    else:
+        pts = [(cx, cy + size), (cx - size, cy - size), (cx + size, cy - size)]
+    draw.polygon(pts, fill=color)
+
+
 def draw_stat_block(img, nifty_cmp, nifty_pct):
     if not nifty_cmp:
         return img
     draw  = ImageDraw.Draw(img, "RGBA")
     up    = nifty_pct >= 0
-    color = (0, 210, 100) if up else (220, 70, 70)
+    # v2.6 (2026-07-26): more saturated bullish/bearish colors — pulled toward
+    # pure hue for a stronger high-contrast "stop scroll" pop on small thumbs.
+    color = (0, 225, 110) if up else (235, 45, 45)
     box_y = SH - 560
     draw.rounded_rectangle([(80, box_y), (SW - 80, box_y + 260)], radius=24,
                             fill=(255, 255, 255, 22))
@@ -249,9 +271,11 @@ def draw_stat_block(img, nifty_cmp, nifty_pct):
     draw.text((SW // 2, box_y + 155), f"{nifty_cmp:,.0f}", font=f_val,
               fill=(255, 255, 255), anchor="mm")
     arrow = "UP" if up else "DOWN"
-    draw.rounded_rectangle([(SW // 2 - 160, box_y + 205), (SW // 2 + 160, box_y + 250)],
+    draw.rounded_rectangle([(SW // 2 - 190, box_y + 205), (SW // 2 + 190, box_y + 250)],
                             radius=14, fill=color)
-    draw.text((SW // 2, box_y + 228), f"{arrow} {abs(nifty_pct):.2f}%", font=f_pct,
+    draw_arrow_icon(draw, SW // 2 - 145, box_y + 227, 20, up,
+                     (0, 0, 0) if up else (255, 255, 255))
+    draw.text((SW // 2 + 15, box_y + 228), f"{arrow} {abs(nifty_pct):.2f}%", font=f_pct,
               fill=(0, 0, 0) if up else (255, 255, 255), anchor="mm")
     return img
 
@@ -460,7 +484,7 @@ async def generate_tts(text, output_path):
     last_err = None
     for attempt in range(1, 5):  # 4 tries: 5/15/30s backoff
         try:
-            await edge_tts.Communicate(text, VOICE, rate="+5%").save(str(output_path))
+            await edge_tts.Communicate(text, VOICE, rate="+5%", pitch=VOICE_PITCH).save(str(output_path))
             if os.path.exists(str(output_path)) and os.path.getsize(str(output_path)) > 0:
                 return
             raise RuntimeError("edge_tts produced empty audio file")
