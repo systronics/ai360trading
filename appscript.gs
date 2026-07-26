@@ -2111,7 +2111,9 @@ function _runScanner(startRow, endRow) {
 
   // ── Add Cash Intraday candidates to finalWaiting ─────────────────────────
   // Cash slots are SEPARATE from regular waiting slots (don't compete).
-  // Max 3 cash entries, only if time is before 10:30 AM.
+  // Max 3 cash entries, only if time is before CONFIG.CASH_ENTRY_WINDOW
+  // (13:30 as of v15.30 — this comment said "10:30 AM" and went stale when
+  // the window was extended; the code below always read the live constant).
   if (cashCands.length > 0 && timeStr <= CONFIG.CASH_ENTRY_WINDOW) {
     cashCands.sort((a, b) => b.priority - a.priority);
     let cashAllocated = 0;

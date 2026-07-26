@@ -1,6 +1,17 @@
 """
-AI360 TRADING BOT — v15.30
+AI360 TRADING BOT — v15.31
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v15.31 CHANGES vs v15.30 — STALE SUBSCRIBER-FACING WINDOW TIME FIXED (2026-07-26, Telegram text audit)
+  send_midday_pulse()'s Advance/Premium message hardcoded "Entry window ends
+  2:30 PM" for the bullish case — but ENTRY_WINDOW_BULLISH_END moved 14:30→
+  15:05 back in v15.29 (2026-07-23) and this ONE message was never updated,
+  silently telling subscribers the window closed 35 minutes earlier than it
+  actually does every single trading day since. send_good_morning() already
+  read the real constant correctly the whole time — only this message drifted.
+  Fixed: now builds the string from ENTRY_WINDOW_BULLISH_END/
+  ENTRY_WINDOW_BEARISH_END directly, same pattern send_good_morning() uses,
+  so it can't silently go stale again the next time either window changes.
+
 v15.30 CHANGES vs v15.29 — CASH ENTRY WINDOW SYNC (2026-07-26, full-system audit)
   appscript.gs v15.29/v15.30 already extended CONFIG.CASH_ENTRY_WINDOW from
   10:30 AM to 1:30 PM on the scan side (to catch 4%+ gap/catalyst movers that
@@ -579,7 +590,7 @@ except Exception as _e:
     _EQ_AVAILABLE = False
 
 IST       = pytz.timezone('Asia/Kolkata')
-VERSION   = "v15.30"   # single source for the run banner + test messages (were stale at v15.16 before v15.23; was stuck at v15.28 in this constant through the v15.29 RSI dip-tolerance release — banner text only, no logic was affected)
+VERSION   = "v15.31"   # single source for the run banner + test messages (were stale at v15.16 before v15.23; was stuck at v15.28 in this constant through the v15.29 RSI dip-tolerance release — banner text only, no logic was affected)
 TG_TOKEN  = os.environ.get('TELEGRAM_BOT_TOKEN')
 
 CHAT_BASIC   = os.environ.get('CHAT_ID_BASIC')
@@ -2600,10 +2611,17 @@ def send_midday_pulse(log_sheet, mem, now, is_bullish):
             total_pnl += pnl_r
             open_trades.append(f"{'✅' if pct>=0 else '❌'} {sym} {pct:+.2f}% | TSL ₹{tsl:.2f}")
         lines = "\n".join(open_trades) if open_trades else "No open trades"
+        # v15.31: was hardcoded "2:30 PM" — ENTRY_WINDOW_BULLISH_END moved to
+        # 15:05 back on 2026-07-23 (see header changelog) and this one message
+        # was never updated, silently telling subscribers the window closed 35
+        # minutes earlier than it actually does. Now reads the real constant,
+        # same pattern send_good_morning() already used correctly.
+        window_end_str = (f"{ENTRY_WINDOW_BULLISH_END[0]}:{ENTRY_WINDOW_BULLISH_END[1]:02d} PM" if is_bullish
+                           else f"{ENTRY_WINDOW_BEARISH_END[0]}:{ENTRY_WINDOW_BEARISH_END[1]:02d} AM")
         msg   = (
             f"📊 <b>MID-DAY PULSE</b>\n━━━━━━━━━━━━━━━━━━━━\n{lines}\n\n"
             f"{'💰' if total_pnl>=0 else '📉'} Unrealised: <b>₹{total_pnl:+.0f}</b>\n"
-            f"<i>Entry window ends {'2:30 PM' if is_bullish else '11:00 AM'}</i>"
+            f"<i>Entry window ends {window_end_str}</i>"
         )
         basic_md = (
             f"📊 <b>Mid-Day Update — {now.strftime('%d %b %I:%M %p')}</b>\n"
