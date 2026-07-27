@@ -1,4 +1,13 @@
 {
-  "generated_at": "24 July 2026, 04:19 PM IST",
-  "setups": []
+  "generated_at": "27 July 2026, 12:04 PM IST",
+  "setups": [
+    {
+      "symbol": "IDFCFIRSTB",
+      "trade_type": "🔥 Cash Intraday",
+      "strategy": "CASH",
+      "stage": "🔥 WATCHLIST CASH | +5.7% | IDFC First Bank",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    }
+  ]
 }
