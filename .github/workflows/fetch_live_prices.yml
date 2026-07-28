@@ -30,9 +30,19 @@ jobs:
     # Own group — MUST NOT share `trading-bot` (see fetch_rs.py's docstring:
     # sharing a group with the all-day session loop is exactly what froze RS
     # for 4 days in July, GitHub only keeps one queued run per group).
+    # 2026-07-28: cancel-in-progress flipped true->false. This */5 cron was
+    # found to be throttled by GitHub to ~3-5 runs/day (some days ZERO) —
+    # the same platform issue trading_bot.yml hit, now worked around the
+    # same way via fetch_live_prices_session.yml's internal loop, which
+    # SHARES this group. With cancel-in-progress:true, a stray throttled
+    # tick of THIS cron would have killed the long-running session loop
+    # mid-tick. false makes it queue harmlessly behind the loop instead,
+    # exactly like trading_bot.yml queues behind trading_bot_session.yml.
+    # This cron now stays purely as a backup (covers the 15:50-16:25 tail
+    # the session loop doesn't reach, and any day the session fails).
     concurrency:
       group: fetch-live-prices
-      cancel-in-progress: true
+      cancel-in-progress: false
 
     steps:
       - name: Checkout

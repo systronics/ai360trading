@@ -6,6 +6,22 @@ name: Publish Swing Board (public teaser)
 # tab) with a static Jekyll data file, same doctrine as _data/performance.json.
 # Runs every 15 min through market hours; fail-open (script leaves the old
 # file untouched on any read error), so a missed run never breaks the page.
+# 2026-07-28: this */15 cron was found to be throttled by GitHub to ~3
+# runs/day instead of the ~32 expected across an 8-hour market window (some
+# days showed the same pattern going back to at least 07-24) — the exact
+# same high-frequency-cron platform issue already documented for
+# trading_bot.yml. The public dashboard page claims "auto-refreshes every
+# 5 min" but was really only refreshing 3x/day. Added swing_board_session.yml
+# (internal sleep loop, same proven fix as trading_bot_session.yml) to do
+# the dense, reliable refreshing; this cron now stays as a backup only —
+# hence the new concurrency block below (was previously undefined, meaning
+# this and the new session loop could have run concurrently and raced on
+# the git push — cancel-in-progress:false on both makes them queue safely
+# instead).
+concurrency:
+  group: swing-board
+  cancel-in-progress: false
+
 on:
   workflow_dispatch:
   schedule:

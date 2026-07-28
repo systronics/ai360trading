@@ -1,0 +1,149 @@
+name: Nifty200 Live Prices — Market Session Loop
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# WHY THIS EXISTS (2026-07-28, owner: "check the fetch_live_prices and
+# swing_board tabs too"):
+#   fetch_live_prices.yml's `*/5` cron is the exact CMP/%Change/Live_Volume
+#   fast lane the 2026-07-24 GOOGLEFINANCE migration built specifically to
+#   stay fresh every 5 minutes during market hours (see fetch_live_prices.py
+#   for the full history — CMP is the single most foundational Nifty200
+#   cell, read directly by trading_bot.py's regime gate with NO fallback).
+#   Live evidence (gh run list, sampled 2026-07-23 through 07-28) showed it
+#   firing only 0-5 times/day instead of the ~95 expected across an 8-hour
+#   market window — 2026-07-23 had ZERO runs all day. This is the EXACT same
+#   GitHub high-frequency-cron throttling already documented and fixed for
+#   trading_bot.yml (see trading_bot_session.yml's own header) — this feed
+#   just never got the equivalent fix until now.
+#
+#   Same proven solution: trust GitHub's LOW-frequency schedules (reliable),
+#   and run a dense internal sleep loop inside each triggered job instead of
+#   trusting the scheduler for every individual tick.
+#
+# SAFETY / "never break what works":
+#   • ADDITIVE — fetch_live_prices.py is UNTOUCHED; fetch_live_prices.yml's
+#     own `*/5` cron stays as a backup (covers the 15:50-16:25 tail this
+#     loop doesn't reach, and any day this session fails to trigger).
+#   • SAME concurrency group `fetch-live-prices` as fetch_live_prices.yml +
+#     cancel-in-progress:false on BOTH ⇒ they can never run at the same
+#     time or cancel each other (GitHub serialises them) — see the
+#     cancel-in-progress:true→false change made to fetch_live_prices.yml
+#     in the same commit as this file, without which a stray backup-cron
+#     tick would have killed this loop mid-session.
+#   • Each tick is a fresh `python fetch_live_prices.py --write` process,
+#     identical to how the `*/5` cron invokes it.
+#   • A crash in one tick does NOT stop the loop (`|| echo ... continuing`).
+#   • Trigger times, session-window split (morning/afternoon, <6h GitHub
+#     job limit), and redundant-trigger design are copied directly from
+#     trading_bot_session.yml, which has run reliably since 2026-05-30.
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+concurrency:
+  group: fetch-live-prices
+  cancel-in-progress: false
+
+on:
+  schedule:
+    - cron: '30 2 * * 1-5'   # 08:00 IST — morning session (early start)
+    - cron: '0 3 * * 1-5'    # 08:30 IST — morning session
+    - cron: '45 3 * * 1-5'   # 09:15 IST — morning session (open — last-resort)
+    - cron: '25 6 * * 1-5'   # 11:55 IST — afternoon session (→ ends 15:50 IST)
+    - cron: '0 7 * * 1-5'    # 12:30 IST — afternoon session (fallback)
+    - cron: '0 8 * * 1-5'    # 13:30 IST — afternoon session (last-resort)
+  workflow_dispatch:
+    inputs:
+      end_time:
+        description: 'Loop end time, IST HH:MM (manual runs only)'
+        required: false
+        default: '15:50'
+
+jobs:
+  session:
+    runs-on: ubuntu-latest
+    # < GitHub's 6h hard limit. The bash loop self-exits at the IST end time
+    # well before this; timeout-minutes is only a runaway backstop.
+    timeout-minutes: 235
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        # Lightweight, pinned install (not the full requirements.txt) — same
+        # rationale as fetch_live_prices.yml itself: this loop makes many
+        # calls/day, so it skips the heavy video/AI-generation stack.
+        run: |
+          python -m pip install --upgrade pip
+          pip install gspread==6.2.1 oauth2client==4.1.3 pytz==2026.2 yfinance==1.4.1 pandas==3.0.3
+
+      - name: Run live-price session loop
+        env:
+          GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
+          MANUAL_END: ${{ github.event.inputs.end_time }}
+          TICK_SECONDS: '300'
+        run: |
+          export TZ=Asia/Kolkata
+          # Decide this session's IST end time (same logic as trading_bot_session.yml):
+          #   • manual dispatch → use the provided end_time
+          #   • scheduled before noon → morning session, end 11:59
+          #   • scheduled at/after noon → afternoon session, end 15:50
+          if [ -n "$MANUAL_END" ]; then
+            END="$MANUAL_END"
+          elif [ "$(date +%H)" -lt 12 ]; then
+            END="11:59"
+          else
+            END="15:50"
+          fi
+          echo "[SESSION] start $(date '+%F %T %Z') — looping every ${TICK_SECONDS}s until ${END} IST"
+          TICKS=0
+          while [ "$(date +%H:%M)" \< "$END" ]; do
+            TICKS=$((TICKS+1))
+            echo "::group::[TICK $TICKS] $(date '+%T') IST"
+            python -u fetch_live_prices.py --write || echo "[TICK $TICKS] exited non-zero — continuing"
+            echo "::endgroup::"
+            # Stop sleeping if the next tick would land past the end time.
+            if [ "$(date +%H:%M)" \< "$END" ]; then
+              sleep "$TICK_SECONDS"
+            fi
+          done
+          echo "[SESSION] reached ${END} IST after ${TICKS} tick(s) — done"
+
+      - name: Notify Telegram on failure
+        if: failure()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID_BASIC:      ${{ secrets.CHAT_ID_BASIC }}
+          WF_NAME:            "${{ github.workflow }}"
+          RUN_URL:            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        continue-on-error: true
+        run: |
+          python - <<'PYEOF'
+          import os, json
+          from urllib.request import Request, urlopen
+          token = os.environ.get('TELEGRAM_BOT_TOKEN','')
+          chat  = os.environ.get('CHAT_ID_BASIC','')
+          if not token or not chat:
+              print('[NOTIFY] Telegram creds missing — skip'); raise SystemExit(0)
+          msg = (
+              "⚠️ <b>System Notice — AI360Trading</b>\n\n"
+              f"Workflow failed: <b>{os.environ.get('WF_NAME','?')}</b>\n"
+              f"Run log: {os.environ.get('RUN_URL','')}\n\n"
+              "<i>This is a system message, not a trade signal. "
+              "CMP/%Change/Volume stay at last good reading (fail-open) "
+              "until the next successful tick.</i>"
+          )
+          try:
+              req = Request(
+                  f"https://api.telegram.org/bot{token}/sendMessage",
+                  data=json.dumps({'chat_id':chat,'text':msg,'parse_mode':'HTML'}).encode(),
+                  headers={'Content-Type':'application/json'},
+              )
+              urlopen(req, timeout=10).read()
+              print('[NOTIFY] Failure alert sent to Basic channel')
+          except Exception as e:
+              print(f'[NOTIFY] Send failed: {e}')
+          PYEOF

@@ -1,0 +1,135 @@
+name: Swing Board — Market Session Loop
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# WHY THIS EXISTS (2026-07-28, owner: "check the fetch_live_prices and
+# swing_board tabs too"):
+#   swing_board.yml's `*/15` cron feeds _data/swing_board.json, which the
+#   public swing-dashboard.html page presents with the claim "auto-refreshes
+#   every 5 min". Live evidence (gh run list, sampled 2026-07-24 through
+#   07-28) showed it firing only ~3 times/day instead of the ~32 expected
+#   across the ~8-hour market window — the exact same GitHub high-frequency-
+#   cron throttling already documented and fixed for trading_bot.yml (see
+#   trading_bot_session.yml's own header). This page was quietly stale for
+#   subscribers most of the day, contradicting its own freshness claim.
+#
+#   Same proven solution: reliable low-frequency triggers + an internal
+#   sleep loop inside each job for dense, guaranteed ticks.
+#
+# IMPORTANT DIFFERENCE FROM trading_bot_session.yml / fetch_live_prices_
+# session.yml: this workflow does a real `git commit` + `git push` on
+# EVERY tick (publish_swing_board.py only writes a local file; committing
+# it to master is what actually publishes to the live site). Looping this
+# for hours inside ONE checkout means other automated commits landing on
+# master during the same window (article publishes, trending-keyword
+# refreshes, other workflows) WILL make this job's local clone stale
+# between ticks — so each tick does `git pull --rebase` immediately before
+# attempting to commit, not just once at job start. A failed push on one
+# tick is non-fatal; the next tick's pull+retry recovers automatically.
+#
+# SAFETY / "never break what works":
+#   • ADDITIVE — publish_swing_board.py is UNTOUCHED; swing_board.yml's own
+#     `*/15` cron stays as a backup (covers the 15:50-16:25 tail this loop
+#     doesn't reach, and any day this session fails to trigger).
+#   • SAME concurrency group `swing-board` as swing_board.yml (added to
+#     both in the same commit as this file) + cancel-in-progress:false on
+#     BOTH ⇒ they queue instead of running concurrently or cancelling each
+#     other — critical here specifically because two concurrent git-push
+#     loops against the same branch would race.
+#   • Each tick is a fresh `python publish_swing_board.py` process, fail-open
+#     per its own docstring (leaves the old file untouched on any read
+#     error) — a bad tick never blanks the live page.
+#   • Trigger times / session-window split are copied directly from
+#     trading_bot_session.yml, which has run reliably since 2026-05-30.
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+concurrency:
+  group: swing-board
+  cancel-in-progress: false
+
+on:
+  schedule:
+    - cron: '30 2 * * 1-5'   # 08:00 IST — morning session (early start)
+    - cron: '0 3 * * 1-5'    # 08:30 IST — morning session
+    - cron: '45 3 * * 1-5'   # 09:15 IST — morning session (open — last-resort)
+    - cron: '25 6 * * 1-5'   # 11:55 IST — afternoon session (→ ends 15:50 IST)
+    - cron: '0 7 * * 1-5'    # 12:30 IST — afternoon session (fallback)
+    - cron: '0 8 * * 1-5'    # 13:30 IST — afternoon session (last-resort)
+  workflow_dispatch:
+    inputs:
+      end_time:
+        description: 'Loop end time, IST HH:MM (manual runs only)'
+        required: false
+        default: '15:50'
+
+jobs:
+  session:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    # < GitHub's 6h hard limit. The bash loop self-exits at the IST end time
+    # well before this; timeout-minutes is only a runaway backstop.
+    timeout-minutes: 235
+    steps:
+      - name: Checkout master
+        uses: actions/checkout@v4
+        with:
+          ref: master
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install minimal dependencies
+        run: pip install gspread==6.2.1 oauth2client==4.1.3 pytz==2026.2 --quiet
+
+      - name: Run swing-board session loop
+        env:
+          GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
+          MANUAL_END: ${{ github.event.inputs.end_time }}
+          TICK_SECONDS: '900'
+        run: |
+          export TZ=Asia/Kolkata
+          git config --local user.email "admin@ai360trading.in"
+          git config --local user.name "AI360-Automation"
+
+          # Decide this session's IST end time (same logic as trading_bot_session.yml):
+          #   • manual dispatch → use the provided end_time
+          #   • scheduled before noon → morning session, end 11:59
+          #   • scheduled at/after noon → afternoon session, end 15:50
+          if [ -n "$MANUAL_END" ]; then
+            END="$MANUAL_END"
+          elif [ "$(date +%H)" -lt 12 ]; then
+            END="11:59"
+          else
+            END="15:50"
+          fi
+          echo "[SESSION] start $(date '+%F %T %Z') — looping every ${TICK_SECONDS}s until ${END} IST"
+          TICKS=0
+          while [ "$(date +%H:%M)" \< "$END" ]; do
+            TICKS=$((TICKS+1))
+            echo "::group::[TICK $TICKS] $(date '+%T') IST"
+            python -u publish_swing_board.py || echo "[TICK $TICKS] script exited non-zero — continuing"
+
+            # Pull first — other automated commits may have landed on
+            # master since this job's checkout or the last tick's push.
+            git pull --rebase origin master || echo "[TICK $TICKS] pull --rebase failed — attempting commit anyway"
+
+            git add _data/swing_board.json
+            if git diff --cached --quiet; then
+              echo "[TICK $TICKS] no change to commit"
+            else
+              git commit -m "📋 Swing board refresh: $(date +'%Y-%m-%d %H:%M') IST"
+              if ! git push origin master; then
+                echo "[TICK $TICKS] push failed — will retry via pull+commit next tick"
+              fi
+            fi
+            echo "::endgroup::"
+
+            # Stop sleeping if the next tick would land past the end time.
+            if [ "$(date +%H:%M)" \< "$END" ]; then
+              sleep "$TICK_SECONDS"
+            fi
+          done
+          echo "[SESSION] reached ${END} IST after ${TICKS} tick(s) — done"
