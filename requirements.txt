@@ -8,7 +8,14 @@
 # content jobs — with no one available to diagnose it.
 #
 # These versions are the EXACT set verified working in the live trading_bot
-# run on 2026-05-29 (GitHub Actions run 26640890465, success). Frozen 2026-05-30.
+# run on 2026-05-29 (GitHub Actions run 26640890465, success). Baseline frozen
+# 2026-05-30 — individual packages have been bumped since, one at a time, for
+# real security fixes (2026-07-12 cryptography CVE, 2026-07-21 Pillow 13
+# Dependabot CVEs) and a 3-unused-dependency cleanup (2026-07-22: pytrends/
+# python-dotenv/matplotlib removed, zero import references anywhere). The
+# "Frozen 2026-05-30" date describes the ORIGINAL pinning methodology, not a
+# claim that no line has changed since — check `git log -- requirements.txt`
+# for the real current history, don't assume this comment is a live diff.
 #
 # TO UPGRADE SAFELY (only if needed): bump ONE package, let a workflow run,
 # confirm green in `gh run list`, then commit. Never bulk-unpin.
@@ -25,9 +32,14 @@ yfinance==1.4.1
 pandas==3.0.3
 numpy==2.4.6
 
-# AI SCRIPT GENERATION (fallback chain: Groq → Gemini → Claude → OpenAI)
+# AI SCRIPT GENERATION — actual production chain is Groq -> Gemini -> Templates.
+# Claude/OpenAI packages are installed (ai_client.py imports them) but gated
+# behind ALLOW_PAID_AI=true, which is never set anywhere in this repo, so
+# they never actually run — kept installed so the paid tier is ready without
+# a redeploy if the owner ever flips that flag on. Don't read their presence
+# here as "these run in production" (corrected 2026-07-28, matches CLAUDE.md).
 groq==1.4.0
-google-genai==2.7.0          # new SDK — Veo video + Gemini 2.5 (ai_client.py v2.4)
+google-genai==2.7.0          # new SDK — Veo video + Gemini 2.5 (ai_client.py v2.5)
 google-generativeai==0.8.6
 anthropic==0.105.2
 openai==2.38.0
@@ -46,9 +58,6 @@ google-auth==2.53.0
 google-auth-oauthlib==1.4.0
 google-auth-httplib2==0.4.0
 pynacl==1.6.2
-
-# FACEBOOK & RSS
-feedparser==6.0.12
 
 # GOOGLE INDEXING API
 cryptography==48.0.1
