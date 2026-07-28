@@ -1,6 +1,18 @@
 """
-AI360 NSE Holiday Auto-Fetcher — v1.3
+AI360 NSE Holiday Auto-Fetcher — v1.4
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v1.4 (2026-07-28): PREVENTATIVE HARDENING (owner: "check the fetch_holidays
+  and token_refresh tabs too"). No confirmed data loss found for this
+  script (both HOLIDAYS_2026/2027 verified present and fresh live) — but
+  it shared the exact per-key write shape (own get_all_values()+write per
+  key, no batching) that caused a real, confirmed silent data-loss bug in
+  fetch_fii_dii.py the same day (8 keys/run there vs only up to 2 here, so
+  much lower risk, not zero). Applied the same proven atomic-write fix
+  (_bm_set_many, same pattern as refresh_cashwatchlist.py v1.3 /
+  fetch_earnings.py v1.1 / fetch_fii_dii.py v1.1) since it's cheap and
+  this script's data gates trading-day math bot-wide. Old per-key
+  _bm_set() removed.
+
 Fetches NSE trading holidays from the official API and stores them in BotMemory
 (HOLIDAYS_<year>). trading_bot.py + appscript.gs merge these with their hardcoded
 lists, so the authoritative NSE dates auto-extend the system every year.
@@ -77,18 +89,39 @@ def _connect():
     gc    = gspread.authorize(creds)
     return gc.open(SHEET_NAME)
 
-def _bm_set(bm_sheet, key, value):
-    """Write or update a key in BotMemory sheet."""
+def _bm_set_many(bm_sheet, updates: dict):
+    """v1.4: write ALL keys in ONE read + ONE atomic write, instead of the
+    old per-key helper (one get_all_values()+write round trip per key).
+    Preventative hardening, not a confirmed-bug fix for THIS script —
+    fetch_holidays.py only ever writes up to 2 keys/run (current+next
+    year), so the collision window is much smaller than the case this
+    was actually caught in. But it's the exact same shape of risk that
+    caused a real, confirmed data-loss bug in fetch_fii_dii.py (8 keys/run,
+    2 real trading days silently lost) — same fix applied there and in
+    refresh_cashwatchlist.py v1.3 / fetch_earnings.py v1.1, applied here
+    too since it's cheap and this script gates trading-day math bot-wide."""
     now_str = datetime.now(IST).strftime("%Y-%m-%d %H:%M")
     try:
-        data = bm_sheet.get_all_values()
-        for i, row in enumerate(data[1:], start=2):
-            if row and row[0] == key:
-                bm_sheet.update(f"A{i}:E{i}", [[key, value, now_str, "", "SYSTEM"]])
-                return
-        bm_sheet.append_row([key, value, now_str, "", "SYSTEM"])
+        existing = bm_sheet.get_all_values()
+        headers  = existing[0] if existing else ["Key", "Value", "UpdatedAt", "Symbol", "KeyType"]
+        rows     = [list(r) for r in existing[1:]]
+        by_key   = {r[0].strip(): i for i, r in enumerate(rows) if r and r[0].strip()}
+
+        for key, value in updates.items():
+            new_row = [key, value, now_str, "", "SYSTEM"]
+            if key in by_key:
+                rows[by_key[key]] = new_row
+            else:
+                rows.append(new_row)
+                by_key[key] = len(rows) - 1
+
+        final = [headers] + rows
+        width = max([len(r) for r in final] + [5])
+        final = [list(r) + [""] * (width - len(r)) for r in final]
+        bm_sheet.update("A1", final)
+        print(f"[BM] wrote {len(updates)} key(s) in one atomic call")
     except Exception as e:
-        print(f"[BM] Set {key}: {e}")
+        print(f"[BM] set_many failed: {e}")
 
 def fetch_nse_holidays(year):
     """
@@ -159,7 +192,7 @@ def main():
     wb = _connect()
     bm = wb.worksheet(BM_TAB)
 
-    stored = 0
+    updates = {}
     for year in years:
         holidays = fetch_nse_holidays(year)
 
@@ -179,13 +212,13 @@ def main():
                   f"[{MIN_PLAUSIBLE},{MAX_PLAUSIBLE}] — implausible, skipping to protect existing value")
             continue
 
-        key = f"HOLIDAYS_{year}"
-        _bm_set(bm, key, ",".join(holidays))
-        stored += 1
-        print(f"[HOLIDAYS] Stored {key} = {len(holidays)} dates")
+        updates[f"HOLIDAYS_{year}"] = ",".join(holidays)
+        print(f"[HOLIDAYS] Queued HOLIDAYS_{year} = {len(holidays)} dates")
         print(f"  {', '.join(holidays)}")
 
-    print(f"[HOLIDAYS] Done — {stored} year(s) updated in BotMemory")
+    if updates:
+        _bm_set_many(bm, updates)
+    print(f"[HOLIDAYS] Done — {len(updates)} year(s) updated in BotMemory")
 
 
 if __name__ == "__main__":

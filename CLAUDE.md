@@ -54,7 +54,7 @@ One broken file = zero income that day. Treat every edit as critical.
 |---|---|
 | `generate_longterm.py` | v1.7 (2026-07-26 full-system audit: internal `VERSION` constant was stuck at "v1.6" while the docstring header already said v1.7 — banner-text stale-stamp only, no logic affected) |
 | `refresh_cashwatchlist.py` | v1.3 |
-| `fetch_holidays.py` | v1.3 |
+| `fetch_holidays.py` | v1.4 (2026-07-28: preventative hardening — same per-key-write shape as the confirmed fetch_fii_dii.py v1.1 data-loss bug, no confirmed loss here but fixed with the same proven atomic-write pattern anyway, cheap to apply and this data gates trading-day math bot-wide) |
 
 ### Core Infrastructure
 | File | Version |
