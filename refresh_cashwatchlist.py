@@ -1,6 +1,22 @@
 """
-AI360 CashWatchlist Auto-Refresh — v1.3
+AI360 CashWatchlist Auto-Refresh — v1.4
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v1.4 (2026-07-28): 2 WRONG NSE TICKERS FIXED (owner: "check the CashWatchlist
+  and LTWatchlist tabs for stale entries too"). Live sheet showed UCO Bank and
+  Deepak Nitrite both stuck at CMP=0/Change=0/Volume=0 (GOOGLEFINANCE returning
+  nothing) — verified independently via yfinance that "UCOBK.NS" and
+  "DEEPAKNITR.NS" are both invalid/delisted-looking tickers (404, no data),
+  while "UCOBANK.NS" and "DEEPAKNTR.NS" are the real, valid symbols (confirmed
+  live prices). This script's own append-only seeding (never renames/removes
+  existing rows, only adds missing symbols) meant the wrong symbols had been
+  silently dead weight since whenever they were entered — UCO Bank had NO
+  working row at all, and Deepak Nitrite had a genuine duplicate: a correctly-
+  seeded old row (right symbol, real data) plus a newer broken row (wrong
+  symbol, appended once the code drifted to it, never populated). Fixed
+  CURATED_STOCKS to the verified-correct symbols; cleaned up the live sheet
+  directly (see .internal-ops.md for what was changed row-by-row) rather than
+  waiting for the next monthly cron.
+
 Fully automates the CashWatchlist tab. No manual work ever needed.
 
 What this does:
@@ -40,7 +56,7 @@ CASH_MIN   = 30
 # Circuit% = typical circuit limit for that stock (10 or 20)
 CURATED_STOCKS = [
     # PSU Banks — result/news driven 10%+ moves
-    ("NSE:UCOBK",      "UCO Bank",                 "PSU Bank",    20),
+    ("NSE:UCOBANK",    "UCO Bank",                 "PSU Bank",    20),
     ("NSE:MAHABANK",   "Bank of Maharashtra",       "PSU Bank",    10),
     ("NSE:BANKINDIA",  "Bank of India",             "PSU Bank",    10),
     ("NSE:CANBK",      "Canara Bank",               "PSU Bank",    10),
@@ -72,7 +88,7 @@ CURATED_STOCKS = [
     # Pharma / Chemicals Smallcap — result season moves
     ("NSE:GRANULES",   "Granules India",            "Pharma",      10),
     ("NSE:LAURUSLABS", "Laurus Labs",               "Pharma",      10),
-    ("NSE:DEEPAKNITR", "Deepak Nitrite",            "Chemicals",   10),
+    ("NSE:DEEPAKNTR",  "Deepak Nitrite",            "Chemicals",   10),
     ("NSE:GNFC",       "Gujarat Narmada Fertiliser","Chemicals",   10),
 
     # Metals / Mining
