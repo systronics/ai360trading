@@ -1,12 +1,12 @@
 {
-  "as_of": "July 27, 2026",
-  "total": 13,
+  "as_of": "July 28, 2026",
+  "total": 14,
   "wins": 8,
-  "losses": 5,
-  "win_rate": 62,
+  "losses": 6,
+  "win_rate": 57,
   "net_pnl_rs": 3033,
   "avg_win_pct": 5.0,
-  "avg_loss_pct": -3.2,
+  "avg_loss_pct": -2.7,
   "best": {
     "sym": "CUMMINSIND",
     "pct": 10.13
@@ -17,6 +17,12 @@
   },
   "recent": [
     {
+      "sym": "IDFCFIRSTB",
+      "exit_date": "2026-07-27",
+      "pct": 0.0,
+      "is_win": false
+    },
+    {
       "sym": "EICHERMOT",
       "exit_date": "2026-06-30",
       "pct": -3.87,
@@ -26,12 +32,6 @@
       "sym": "LAURUSLABS",
       "exit_date": "2026-06-23",
       "pct": 7.53,
-      "is_win": true
-    },
-    {
-      "sym": "ADANIPORTS",
-      "exit_date": "2026-06-22",
-      "pct": 0.35,
       "is_win": true
     }
   ]
