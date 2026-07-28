@@ -1,6 +1,19 @@
 """
-AI360 Trending Keywords Engine — v1.1
+AI360 Trending Keywords Engine — v1.2
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v1.2 (2026-07-28, owner: "check the trending_keywords and content_calendar
+  tabs too"): _OFFTOPIC exclusion list added — a DIFFERENT problem than
+  v1.1's prefix bug. "Nifty" is genuinely a whole word in "nifty song
+  hazbin hotel"/"nifty vs velvette"/"nifty and baxter" (confirmed live in
+  _data/trending.json) because Nifty is ALSO a real Hazbin Hotel character
+  name — a homonym collision the whole-word filter can't distinguish (it
+  checks word BOUNDARIES, not word SENSE). Not yet in a published article
+  (all 5 confirmed junk terms ranked below the top-15 cutoff
+  generate_articles.py actually reads via get_trending("finance", 15)) —
+  but this is the exact same "ranks lower today, could rank higher
+  tomorrow" fragility that already produced 2 live "ipod"-titled articles
+  before v1.1. Suggestions containing a known off-topic companion term are
+  now dropped outright regardless of whole-word seed match.
 v1.1 (2026-07-20): whole-word seed filter in _collect() — YouTube autocomplete
   for seed "ipo" was returning "ipod"-class consumer-electronics junk (shared
   PREFIX, not word) that then got published in real article titles
@@ -47,6 +60,21 @@ SEEDS = {
 # Tokens we never want surfacing as a "trend" (noise / unsafe / off-brand).
 _BLOCK = {"vs", "or", "the", "and", "for", "live", "news", "today", "tips"}
 
+# v1.2 (2026-07-28): homonym collision, not a prefix issue like v1.1's "ipod"
+# fix — "Nifty" is ALSO a real Hazbin Hotel character name, so seed "nifty"
+# legitimately whole-word-matches junk like "nifty song hazbin hotel",
+# "nifty vs velvette", "nifty and baxter" (confirmed live in _data/trending.json,
+# 2026-07-28). The v1.1 whole-word filter can't distinguish word SENSE, only
+# word BOUNDARIES, so it structurally can't catch this. Currently below the
+# top-15 cutoff generate_articles.py actually reads (get_trending("finance",
+# 15)) so no live article has used it yet — but this is exactly the same
+# fragile "ranks lower today, could rank higher tomorrow" risk that already
+# produced 2 live "ipod"-titled articles before the v1.1 fix. Any suggestion
+# containing one of these off-topic companion terms is dropped outright,
+# regardless of whole-word seed match. Extend this set (don't touch the
+# whole-word logic) if a new homonym pollution source shows up.
+_OFFTOPIC = {"hazbin", "velvette", "baxter", "rblx", "roblox"}
+
 _UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
        "(KHTML, like Gecko) Chrome/124.0 Safari/537.36")
 
@@ -90,6 +118,10 @@ def _collect(seeds: list) -> list:
                 if all(w in _BLOCK for w in s.split()):
                     continue
                 if not seed_re.search(s):
+                    continue
+                # v1.2: whole-word match alone isn't enough for a genuine
+                # homonym like "nifty" — drop known off-topic companions.
+                if any(w in _OFFTOPIC for w in s.split()):
                     continue
                 counter[s] += 1
             time.sleep(0.3)  # be gentle on the endpoint
