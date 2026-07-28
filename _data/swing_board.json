@@ -1,4 +1,13 @@
 {
-  "generated_at": "27 July 2026, 06:56 PM IST",
-  "setups": []
+  "generated_at": "28 July 2026, 11:21 AM IST",
+  "setups": [
+    {
+      "symbol": "ETERNAL",
+      "trade_type": "🔥 Cash Intraday",
+      "strategy": "CASH",
+      "stage": "🔥 CASH | +5.7% | Vol 20%",
+      "status": "✅ TRADED (PAPER)",
+      "days_in_trade": "0"
+    }
+  ]
 }
