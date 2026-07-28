@@ -1,6 +1,16 @@
 """
 generate_shorts.py — AI360Trading
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v3.13 (2026-07-26): this header comment was stuck at v3.12 even though
+  VOICE_PITCH="+15Hz" (Madhur/Hindi voice only) and the draw_arrow_icon()
+  thumbnail triangle (category badge) had already shipped and been live —
+  same "docstring never bumped" bug class this project keeps re-finding
+  elsewhere (trading_bot.py's VERSION const, ai_client.py's test banner,
+  upload_facebook.py's print banner). Fixed 2026-07-28 during a doc-drift
+  sweep prompted by an external review of CLAUDE.md's version table — that
+  table already said v3.13 correctly; this file's own header just never
+  caught up to it. No functional change, comment only.
+
 v3.12 (2026-07-19): hook prompts now STRONGLY PREFER a real number from the
   data as the hook's first word (never invented) — number-first hooks stop
   the scroll better than word-first. Captions gain a rotating free-calculator

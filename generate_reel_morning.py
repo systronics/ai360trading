@@ -1,6 +1,13 @@
 """
 generate_reel_morning.py — Morning Reel Generator (7:00 AM IST)
 ===============================================================
+v2.8 (2026-07-26) — header was stuck at v2.7 even though VOICE_PITCH="+15Hz"
+  and the draw_arrow_icon() triangle (sentiment badge + 3 ticker rows) had
+  already shipped and been live (same "docstring never bumped" bug class as
+  elsewhere in this repo). Fixed 2026-07-28 during a doc-drift sweep —
+  CLAUDE.md's version table already correctly said v2.8; this file's own
+  header just never caught up. No functional change, comment only.
+
 v2.7 (2026-07-24) — VOICE SWAP, LAST ZENO ARTIFACT REMOVED:
   VOICE_HI was still hi-IN-SwaraNeural (female) — the voice ZENO was cast
   with — even after v2.6 removed the character's art. Since the evening

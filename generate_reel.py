@@ -5,6 +5,13 @@ Generates the evening reel (8:30 PM) -- 45-60 second Hinglish reel.
 
 VOICE: hi-IN-MadhurNeural (Madhur -- male voice, matches Amit's persona)
 
+v2.7 (2026-07-26) -- header was stuck at v2.6 even though VOICE_PITCH="+15Hz"
+  and the draw_arrow_icon() triangle on the stat block had already shipped and
+  been live (same "docstring never bumped" bug class as elsewhere in this
+  repo). Fixed 2026-07-28 during a doc-drift sweep -- CLAUDE.md's version
+  table already correctly said v2.7; this file's own header just never
+  caught up. No functional change, comment only.
+
 v2.6 (2026-07-24) -- VOICE SWAP, LAST ZENO ARTIFACT REMOVED:
   v2.5 retired the ZENO character from the script/visuals but left the TTS
   voice on hi-IN-SwaraNeural -- the "wise female" voice ZENO was originally
