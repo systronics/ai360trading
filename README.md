@@ -66,7 +66,6 @@ All signals come with entry, stop-loss, target, risk-reward and suggested positi
 |---|---|
 | 🌐 Website | [ai360trading.in](https://ai360trading.in) |
 | 📣 Telegram | [@ai360trading](https://telegram.me/ai360trading) |
-| 🐦 Twitter / X | [@ai360trading](https://x.com/ai360trading) |
 | ▶️ YouTube | [@ai360trading](https://www.youtube.com/@ai360trading) |
 | 📸 Instagram | [@ai360trading](https://www.instagram.com/ai360trading) |
 | 👥 Facebook Group | [ai360trading](https://www.facebook.com/groups/ai360trading) |
