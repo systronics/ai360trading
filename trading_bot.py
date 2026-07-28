@@ -590,7 +590,7 @@ except Exception as _e:
     _EQ_AVAILABLE = False
 
 IST       = pytz.timezone('Asia/Kolkata')
-VERSION   = "v15.31"   # single source for the run banner + test messages (were stale at v15.16 before v15.23; was stuck at v15.28 in this constant through the v15.29 RSI dip-tolerance release — banner text only, no logic was affected)
+VERSION   = "v15.32"   # single source for the run banner + test messages (were stale at v15.16 before v15.23; was stuck at v15.28 in this constant through the v15.29 RSI dip-tolerance release — banner text only, no logic was affected). v15.32 (2026-07-28): TSL-UPDATE spam fix — see calc_new_tsl() comparison guard below.
 TG_TOKEN  = os.environ.get('TELEGRAM_BOT_TOKEN')
 
 CHAT_BASIC   = os.environ.get('CHAT_ID_BASIC')
@@ -2294,7 +2294,16 @@ def step_b_monitor_trades(log_sheet, hist_sheet, nifty_sheet, mem, now, is_bulli
         # TSL — not the capped recomputed value. Otherwise gap-down below an
         # activated TSL never triggers exit (cp <= cp*0.99 is always False).
         new_tsl, tsl_reason = calc_new_tsl(cp, ent, sl, atr, ttype, mem, key, now, ent_time)
-        if new_tsl > cur_tsl:
+        # v15.32: compare at the same paisa precision set_tsl()/get_tsl() store at.
+        # calc_new_tsl()'s formulas (e.g. breakeven = ent*1.002) are deterministic given
+        # unchanged inputs, but return an unrounded float — which can sit a fraction of a
+        # paisa above the previously STORED (rounded-to-paisa) value even when nothing
+        # actually changed. A plain `new_tsl > cur_tsl` float compare was true on EVERY
+        # tick in that state, re-sending an identical "TSL UPDATE" alert every ~5 min for
+        # as long as the trade sat in the same band (live case: ETERNAL fired the same
+        # unchanged 296.59 SL every cycle for ~1hr on 2026-07-28). Comparing in integer
+        # paise makes two computations of the same real value compare equal, not greater.
+        if int(round(new_tsl * 100)) > int(round(cur_tsl * 100)):
             mem = set_tsl(mem, key, new_tsl)
             print(f"[TSL] {sym}: {cur_tsl:.2f} → {new_tsl:.2f} ({tsl_reason})")
             _send_tsl_update(sym, cp, ent, new_tsl, pnl_pct, pnl_rs, tsl_reason)
