@@ -166,6 +166,14 @@ products/
 
 # ============================================================
 # EXPLICITLY TRACKED — DO NOT IGNORE
+# (2026-07-28: verified this section is currently a NO-OP — there is no
+#  blanket *.py/*.md/etc. ignore rule anywhere above for these `!` lines to
+#  counteract, so every file below would be tracked with or without this
+#  section. Kept anyway as a safety net + a living "what matters" list in
+#  case a broad ignore rule is ever added later; expanded below to cover
+#  ~20 real production files that existed by 2026-07 but were missing from
+#  this list since it was last touched. If adding this section ever stops
+#  being a no-op, re-verify nothing here needed the negation for a reason.)
 # ============================================================
 
 # ── Core infrastructure ────────────────────────────────────
@@ -174,10 +182,24 @@ products/
 !indian_holidays.py
 !token_refresh.py
 !content_calendar.py
+!money_funnel.py
+!health_watchdog.py
+!auto_heal.py
 !requirements.txt
 
 # ── Trading bot ────────────────────────────────────────────
 !trading_bot.py
+!appscript.gs
+!entry_quality.py
+!option_intelligence.py
+!institutional_edges.py
+!fetch_earnings.py
+!fetch_bhavcopy.py
+!fetch_smallmidcap.py
+!fetch_rs.py
+!fetch_live_prices.py
+!fetch_fii_dii.py
+!fetch_index_meta.py
 
 # ── Trading content generators ─────────────────────────────
 !generate_education.py
@@ -188,10 +210,22 @@ products/
 !generate_longterm.py
 !refresh_cashwatchlist.py
 !fetch_holidays.py
+!performance_stats.py
+!trending_keywords.py
 
-# ── Upload scripts ─────────────────────────────────────────
+# ── Upload / publish scripts ────────────────────────────────
 !upload_youtube.py
 !upload_facebook.py
+!publish_swing_board.py
+
+# ── Helpers ─────────────────────────────────────────────────
+!hook_helper.py
+!caption_helper.py
+!subtitle_helper.py
+
+# ── Break-glass / diagnostic tools (kept per 2026-07-14 orphan-scan audit) ──
+!reauth_youtube.py
+!inspect_nifty200.py
 
 # ── Website ────────────────────────────────────────────────
 !_posts/
@@ -205,4 +239,11 @@ products/
 !LICENSE.md
 !README.md
 !RUNBOOK.md
+
+# ============================================================
+# CLAUDE CODE — local session state (unrelated to the whitelist above;
+# this IS a real ignore, not a negation — moved to its own section
+# 2026-07-28, was previously tacked onto the end of the "DO NOT IGNORE"
+# block above where a real ignore rule looked structurally out of place)
+# ============================================================
 .claude/

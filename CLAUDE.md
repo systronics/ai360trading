@@ -212,7 +212,7 @@ git push
 - **Sheet:** `Ai360tradingAlgo` (Google Sheets)
 - **T2 cell = automation on/off** (AlertLog col T row 2 — YES = enabled)
 - **Paper trading only** — `CONFIG.BROKER_MODE = "PAPER"` in AppScript
-- **Phase 3 pending:** Facebook Group posting (needs `publish_to_groups` token scope), Instagram full auto
+- **Phase 3 pending:** Facebook Group posting (needs `publish_to_groups` token scope); Instagram full auto (needs Facebook Group fixed first — but also note: `upload_instagram.py` does NOT currently exist in the repo. It was built, then deliberately deleted twice as orphaned/never-wired code (last: commit `8edeace`, 2026-06-03 — "not imported anywhere, not invoked by any workflow"). Several docs kept describing it as "already built" for ~2 months after that deletion — corrected 2026-07-28. If Instagram auto-posting is ever picked up, it needs to be written from scratch, not just "unblocked")
 - **Phase 4 planned:** Dhan API live trading — do NOT implement until explicitly asked
 
 ---
