@@ -64,10 +64,11 @@ The alert tells you the issue title. Find it below.
 - **Meaning:** The Telegram bot key is wrong — alerts/signals can't be sent.
 - **What to tell a developer:** *"Regenerate the Telegram bot token via @BotFather and update the GitHub secret `TELEGRAM_BOT_TOKEN`."*
 
-### F. Facebook / Instagram stopped posting
+### F. Facebook stopped posting
 - **Meaning:** Social media access tokens expire every ~2 months. This is the most common recurring task.
-- **What happens:** Trading signals are **unaffected**. Only auto-posting to FB/Instagram pauses.
-- **What to tell a developer:** *"Refresh the Meta (Facebook/Instagram) long-lived access token and update the GitHub secret. Check `publish_to_groups` scope for the FB group."*
+- **What happens:** Trading signals are **unaffected**. Only auto-posting to Facebook pauses.
+- **What to tell a developer:** *"Refresh the Meta (Facebook) long-lived access token and update the GitHub secret. Check `publish_to_groups` scope for the FB group."*
+- **Note (2026-07-28):** Instagram auto-posting does not currently exist in the system — there's nothing there that can "stop," so don't spend time chasing an Instagram alert; it won't happen.
 
 ### H. "GitHub access token (GH_TOKEN) expiring soon / invalid"
 - **Meaning:** A GitHub password-key (called `GH_TOKEN`) is used to (1) auto-refresh the Facebook/Instagram token and (2) auto-restart failed jobs. If it expires, FB/Instagram posting will stop in a few weeks and auto-repair will stop. You get this alert **~3 weeks early** so there's plenty of time.
@@ -92,7 +93,7 @@ The alert tells you the issue title. Find it below.
 
 ## What is fully automatic (you never touch these)
 - Daily trading signals, monitoring, exits (market days).
-- Daily content: articles, reels, shorts, education + kids videos, YouTube/Facebook posting.
+- Daily content: articles, reels, shorts, education videos, YouTube/Facebook posting.
 - Yearly NSE holiday refresh (every December).
 - Token refresh attempts (1st & 15th monthly).
 - Weekly health check + problem alerts (this runbook).
