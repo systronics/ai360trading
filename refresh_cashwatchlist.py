@@ -4,7 +4,7 @@ AI360 CashWatchlist Auto-Refresh — v1.3
 Fully automates the CashWatchlist tab. No manual work ever needed.
 
 What this does:
-  1. Seeds CashWatchlist with 35 curated high-volatility stocks (first run)
+  1. Seeds CashWatchlist with 34 curated high-volatility stocks (first run)
   2. Sets GOOGLEFINANCE formulas for CMP, Change%, Volume (auto-live data)
   3. Auto-calculates AvgVol30d from yfinance history (no manual entry)
   4. Marks stocks INACTIVE if CMP > ₹500 (outside cash intraday range)
@@ -35,7 +35,7 @@ CW_TAB     = "CashWatchlist"
 CASH_MAX   = 500  # same as AppScript CONFIG.CASH_MAX_CMP
 CASH_MIN   = 30
 
-# ── 35 curated high-volatility stocks ─────────────────────────────────────────
+# ── 34 curated high-volatility stocks ─────────────────────────────────────────
 # (Symbol, Name, Sector, Circuit%)
 # Circuit% = typical circuit limit for that stock (10 or 20)
 CURATED_STOCKS = [
