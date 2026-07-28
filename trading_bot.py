@@ -1,6 +1,28 @@
 """
-AI360 TRADING BOT — v15.31
+AI360 TRADING BOT — v15.32
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v15.32 CHANGES vs v15.31 — REPEATED IDENTICAL TSL-UPDATE ALERTS FIXED (2026-07-28, owner-reported bug)
+  Owner screenshots showed the SAME "TSL UPDATE" alert (identical LTP/SL/
+  P&L) firing every ~5 min for nearly an hour on one live trade. Root
+  cause: calc_new_tsl()'s breakeven/lock1/chandelier formulas recompute a
+  deterministic value from unchanging inputs (e.g. breakeven = ent*1.002)
+  and return it UNROUNDED, while the stored TSL is rounded to paisa
+  (set_tsl()'s int(round(price*100))) — so a fresh recomputation of the
+  exact same real value sits a fraction of a paisa above the previously
+  stored value on every tick, and the old `new_tsl > cur_tsl` float
+  compare was true every single cycle even with zero real change. Fixed:
+  the guard now compares in integer paise (int(round(new_tsl*100)) >
+  int(round(cur_tsl*100))), matching storage precision exactly — two
+  computations of the same real value now compare equal, not greater,
+  while a genuine improvement (price actually moves) still fires
+  correctly. Verified both cases with the real screenshot numbers before
+  shipping. Not a trading-correctness bug — the stored SL value itself
+  was never wrong, only the alert was spamming. This docstring header was
+  itself found stale by 1 version 2 days later (2026-07-28, a `.gitignore`/
+  CLAUDE.md sweep) — the VERSION constant below had been bumped correctly
+  but this top comment never got the matching entry; same bug class as
+  the fix it's documenting, now fixed together.
+
 v15.31 CHANGES vs v15.30 — STALE SUBSCRIBER-FACING WINDOW TIME FIXED (2026-07-26, Telegram text audit)
   send_midday_pulse()'s Advance/Premium message hardcoded "Entry window ends
   2:30 PM" for the bullish case — but ENTRY_WINDOW_BULLISH_END moved 14:30→

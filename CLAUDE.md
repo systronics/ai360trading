@@ -31,7 +31,7 @@ One broken file = zero income that day. Treat every edit as critical.
 ---
 
 ## CURRENT FILE VERSIONS
-*(Read from actual files — 2026-07-14 full audit)*
+*(Read from actual files — verified 2026-07-28: every row below cross-checked against each file's real docstring/VERSION constant, 1:1, not just spot-checked. Update this date whenever a full pass like that is repeated — don't let it go stale the way it did sitting at "2026-07-14" for 2 weeks while the table itself kept changing underneath it.)*
 
 ### Trading Engine
 | File | Version |
@@ -162,7 +162,7 @@ One broken file = zero income that day. Treat every edit as critical.
 | **₹0/month forever** — no paid services without explicit owner approval | 6-family-member livelihood; free tiers only |
 | **`human_touch.py` on ALL content** — never bypass | Content authenticity pipeline |
 | **AI use is DISCLOSED, never evaded** — never build AI-detection evasion | FB flag 2026-06-07 was informational; disclosure + quality is the compliant path |
-| **`ai_client.py` for every AI call** (Groq → Gemini → Claude → OpenAI → Templates) | Never call AI APIs directly |
+| **`ai_client.py` for every AI call** — actual production chain is Groq → Gemini → Templates; Claude/OpenAI are coded but gated behind `ALLOW_PAID_AI`, never set (corrected 2026-07-28, this row had the same "implies Claude/OpenAI run live" framing already fixed elsewhere in this file/requirements.txt/.internal-ops.md — missed here until now) | Never call AI APIs directly |
 | **`money_funnel.py`** = single source of broker/referral links in content | |
 | **Any new India broker/investing affiliate link (in `generate_articles.py`'s `AFFILIATE_LINKS` or anywhere else) must reuse `money_funnel.LINKS['zerodha']`, never a separate hardcoded URL** | 2026-07-26 affiliate-link audit: `generate_articles.py` had its own separate, no-referral-code Zerodha default for in-body AI-inserted mentions, silently diverging from the correct referral-coded link used in the same article's CTA box — live in every article since April 2026, real lost referral income. Fixed by importing `money_funnel.LINKS` directly instead of duplicating the string |
 | Repo stays PUBLIC (GitHub Actions unlimited); `.internal-ops.md`/`SESSION.md`/`CHANGELOG.md` stay PC-LOCAL (gitignored) | Owner decision 2026-05-30 |
