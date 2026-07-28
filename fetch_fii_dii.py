@@ -1,6 +1,22 @@
 """
-fetch_fii_dii.py — Daily NSE FII / DII Cash market flow tracker — v1.0
+fetch_fii_dii.py — Daily NSE FII / DII Cash market flow tracker — v1.1
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v1.1 (2026-07-28): SILENT DATA-LOSS BUG FIXED (owner: "check the
+  fetch_fii_dii and fetch_index_meta tabs too"). Confirmed live: every
+  MKT_FII_*/MKT_DII_* key for 2 real trading days (2026-07-21, 2026-07-23)
+  was completely missing from BotMemory despite that day's run logging a
+  clean "[FII] Done" — not a fetch failure (data was genuinely fetched and
+  printed), not the weekly Monday-only blank-row cleanup, not a collision
+  with fetch_bhavcopy.py's own BotMemory rewrite (checked the real
+  timestamps — ~40min apart, no overlap). Root cause: main() called
+  _bm_set() once per key, 8 times per run, EACH doing its own full
+  ~3,800-row get_all_values() + a separate single-cell write with zero
+  pacing between calls — the same unbatched-rapid-API-calls class already
+  found and fixed in this project (refresh_cashwatchlist.py v1.3,
+  fetch_earnings.py v1.1). Fixed: new _bm_set_many() reads once, builds
+  all of today's 8 keys in memory, writes ONCE atomically (same pattern
+  as fetch_earnings.py v1.1). Old single-key _bm_set() removed (unused
+  elsewhere, no other file imports this script).
 
 Runs Mon-Fri at 6:45 PM IST (NSE publishes daily activity by ~6:00 PM).
 
@@ -99,19 +115,43 @@ def _connect():
     return gc.open(SHEET_NAME)
 
 
-def _bm_set(bm_sheet, key: str, value, ktype: str = "MARKET"):
-    """Write or update key in BotMemory sheet."""
+def _bm_set_many(bm_sheet, updates: dict, ktype: str = "MARKET"):
+    """v1.1 FIX: write ALL of today's keys in ONE read + ONE atomic write.
+    Replaces the old per-key helper that main() used to call once per key
+    (8 separate get_all_values()+write round trips per run). Root cause of
+    a real, confirmed bug: on at least 2 real trading days (2026-07-21,
+    2026-07-23) every single one of that day's MKT_FII_*/MKT_DII_* keys
+    went missing from BotMemory despite the script logging a clean
+    "[FII] Done" completion — each individual write re-read the whole
+    ~3,800-row sheet and wrote back independently, with no pacing between
+    8 rapid-fire calls, the same "many unbatched Sheets API calls" class
+    already found and fixed elsewhere in this project
+    (refresh_cashwatchlist.py v1.3, fetch_earnings.py v1.1). Same atomic
+    single-write fix as fetch_earnings.py v1.1: read once, mutate a plain
+    list in memory, pad to a uniform width, ONE update("A1", ...) call —
+    no window where a rapid second call can silently clobber the first."""
     now_str = datetime.now(IST).strftime("%Y-%m-%d %H:%M:%S")
-    val_str = str(value)
     try:
-        data = bm_sheet.get_all_values()
-        for i, row in enumerate(data[1:], start=2):
-            if row and row[0].strip() == key:
-                bm_sheet.update(f"A{i}:E{i}", [[key, val_str, now_str, "", ktype]])
-                return
-        bm_sheet.append_row([key, val_str, now_str, "", ktype])
+        existing = bm_sheet.get_all_values()
+        headers  = existing[0] if existing else ["Key", "Value", "UpdatedAt", "Symbol", "KeyType"]
+        rows     = [list(r) for r in existing[1:]]
+        by_key   = {r[0].strip(): i for i, r in enumerate(rows) if r and r[0].strip()}
+
+        for key, value in updates.items():
+            new_row = [key, str(value), now_str, "", ktype]
+            if key in by_key:
+                rows[by_key[key]] = new_row
+            else:
+                rows.append(new_row)
+                by_key[key] = len(rows) - 1
+
+        final = [headers] + rows
+        width = max([len(r) for r in final] + [5])
+        final = [list(r) + [""] * (width - len(r)) for r in final]
+        bm_sheet.update("A1", final)
+        print(f"[BM] wrote {len(updates)} keys in one atomic call — sheet now {len(rows)} data rows")
     except Exception as e:
-        print(f"[BM] set {key}: {e}")
+        print(f"[BM] set_many failed: {e} — none of today's keys written (fail-safe, no partial state)")
 
 
 def _bm_get(bm_sheet, key: str) -> Optional[str]:
@@ -338,20 +378,26 @@ def main():
         print(f"[FII] Sheet connect failed: {e}")
         return
 
-    # Write today's values
-    _bm_set(bm, f"MKT_FII_CASH_NET_{today_str}",  data["fii_net"])
-    _bm_set(bm, f"MKT_DII_CASH_NET_{today_str}",  data["dii_net"])
-    _bm_set(bm, f"MKT_FII_BUY_{today_str}",       data["fii_buy"])
-    _bm_set(bm, f"MKT_FII_SELL_{today_str}",      data["fii_sell"])
-    _bm_set(bm, f"MKT_DII_BUY_{today_str}",       data["dii_buy"])
-    _bm_set(bm, f"MKT_DII_SELL_{today_str}",      data["dii_sell"])
-
-    # Calculate 5-day trend (after writing today so calc_5d_trend can exclude today)
+    # v1.1: calc_5d_trend() takes today's net as a direct argument and
+    # explicitly skips reading today's own row from the sheet (see its
+    # docstring), so it's safe to compute BEFORE any of today's writes —
+    # no ordering dependency on the old per-key write sequence.
     trend  = calc_5d_trend(bm, data["fii_net"], today_str)
     regime = classify_regime(trend)
 
-    _bm_set(bm, "MKT_FII_TREND_5D", trend)
-    _bm_set(bm, "MKT_FII_REGIME",   regime)
+    # v1.1 FIX: write all 8 of today's keys in ONE atomic read+write
+    # instead of 8 separate _bm_set() round trips — see _bm_set_many()
+    # docstring for the real data-loss bug this replaces.
+    _bm_set_many(bm, {
+        f"MKT_FII_CASH_NET_{today_str}": data["fii_net"],
+        f"MKT_DII_CASH_NET_{today_str}": data["dii_net"],
+        f"MKT_FII_BUY_{today_str}":      data["fii_buy"],
+        f"MKT_FII_SELL_{today_str}":     data["fii_sell"],
+        f"MKT_DII_BUY_{today_str}":      data["dii_buy"],
+        f"MKT_DII_SELL_{today_str}":     data["dii_sell"],
+        "MKT_FII_TREND_5D":              trend,
+        "MKT_FII_REGIME":                regime,
+    })
 
     print(f"[FII] 5d trend: {fmt_cr(trend)} → regime: {regime}")
 
