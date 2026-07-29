@@ -1,4 +1,13 @@
 {
-  "generated_at": "28 July 2026, 04:34 PM IST",
-  "setups": []
+  "generated_at": "29 July 2026, 11:06 AM IST",
+  "setups": [
+    {
+      "symbol": "SWIGGY",
+      "trade_type": "🔥 Cash Intraday",
+      "strategy": "CASH",
+      "stage": "🔥 CASH | +4.8% | Vol 79%",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    }
+  ]
 }
