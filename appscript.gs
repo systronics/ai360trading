@@ -1,6 +1,29 @@
 /**
- * AI360 TRADING — APPSCRIPT v15.32
+ * AI360 TRADING — APPSCRIPT v15.33
  * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ * v15.33 CHANGES (2026-07-29) — SAME RR-MATH BUG FIXED FOR POSITIONAL + SWING (owner: "raise the target multipliers for both", after the v15.32 Intraday fix)
+ *   Same root problem as v15.32, found while explaining it in more depth:
+ *   - Positional: ATR_TGT_POSITIONAL(4.0)/ATR_SL_POSITIONAL(2.5) was a FIXED
+ *     RR of 1.6, always below MIN_RR 1.8. The v15.18 +5% floor could NEVER
+ *     rescue it — proved algebraically self-contradictory (needs ATR%<1.25%
+ *     to matter, but only activates at ATR%>=1.3%, so the two conditions can
+ *     never both be true). Confirmed with HCLTECH's real 2026-07-29 numbers:
+ *     only a ~10.4-point/0.278×ATR-wide DMA-anchor coincidence could ever
+ *     rescue it. ATR_TGT_POSITIONAL 4.0→4.7 (RR=1.88, unconditional).
+ *   - Swing (non-leader): ATR_TGT_SWING(3.0)/ATR_SL_SWING(2.0, never
+ *     DMA-anchored) was a FIXED RR of 1.5. The floor could only rescue it
+ *     inside a ~0.09-percentage-point ATR% sliver (1.30%-1.39%) — outside
+ *     that window, always fails. ATR_TGT_SWING 3.0→3.8 (RR=1.9, unconditional).
+ *   - ATR_TGT_SWING_LEADER 4.0→4.8 alongside it — not requested explicitly,
+ *     raised to preserve the same +1.0×ATR edge the top-3-ranked leader bonus
+ *     always had over the base swing target (RR 2.0→2.4).
+ *   Stop distances (ATR_SL_POSITIONAL, ATR_SL_SWING) UNCHANGED — only targets
+ *   moved further out, same shape as v15.32. Together with v15.32, ALL FIVE
+ *   trade-type branches (Base/Momentum/Swing/Positional/Intraday) now clear
+ *   MIN_RR unconditionally, with zero dependency on the +5% floor or
+ *   DMA-anchor luck. See CLAUDE.md version table + SESSION.md 2026-07-29 for
+ *   the full worked math.
+ *
  * v15.32 CHANGES (2026-07-29) — INTRADAY RR GATE WAS MATHEMATICALLY IMPOSSIBLE (owner: "why aren't today's top gainers in WAITING/TRADED, find the gap")
  *   Traced with live ScanDiag+Nifty200+AlertLog data: today's best RS-passing
  *   gainer (DIVISLAB, RS 13.96, Master_Score 44) was rejected with
@@ -584,7 +607,7 @@ const OPTIONS_CONFIG = {
 
 // ── CONFIG ────────────────────────────────────────────────────────────────────
 const CONFIG = {
-  VERSION       : "v15.32",  // single source for ALL subscriber-facing version stamps (was hardcoded per-message and went stale at v15.17)
+  VERSION       : "v15.33",  // single source for ALL subscriber-facing version stamps (was hardcoded per-message and went stale at v15.17)
   get TELEGRAM_BOT_TOKEN() { return PropertiesService.getScriptProperties().getProperty('TELEGRAM_BOT_TOKEN') || ""; },
   get CHAT_ID_BASIC()      { return PropertiesService.getScriptProperties().getProperty('CHAT_ID_BASIC')      || ""; },
   get CHAT_ID_ADVANCE()    { return PropertiesService.getScriptProperties().getProperty('CHAT_ID_ADVANCE')    || ""; },
@@ -623,10 +646,28 @@ const CONFIG = {
   // 1.333, always, mathematically unable to ever clear MIN_RR (1.8). 2.8
   // gives RR=1.867. Stop distance unchanged; only the target moved further out.
   ATR_TGT_INTRADAY    : 2.8,
-  ATR_TGT_SWING       : 3.0,
-  ATR_TGT_SWING_LEADER: 4.0,
+  // v15.33: was 3.0 — with ATR_SL_SWING 2.0 (flat, never DMA-anchored) that
+  // was a FIXED RR of exactly 1.5 for every non-leader swing trade, always
+  // below MIN_RR (1.8); the +5% floor only rescued a ~0.09-percentage-point
+  // sliver of ATR% (1.30%-1.39%). 3.8 gives a flat RR=1.9, clears 1.8 for
+  // every ATR%, no floor/luck dependency needed.
+  ATR_TGT_SWING       : 3.8,
+  // v15.33: was 4.0 — raised alongside ATR_TGT_SWING to preserve the same
+  // +1.0×ATR edge the top-3-ranked "leader" bonus always had over the base
+  // swing target. RR=4.8/2.0=2.4 (was 2.0).
+  ATR_TGT_SWING_LEADER: 4.8,
   ATR_TGT_BASE        : 5.0,
-  ATR_TGT_POSITIONAL  : 4.0,
+  // v15.33: was 4.0 — with ATR_SL_POSITIONAL 2.5 that was a FIXED RR of
+  // exactly 1.6, always below MIN_RR (1.8). Worse than Swing: the +5% floor
+  // was mathematically DEAD for this branch (its overlap condition needed
+  // ATR%<1.25% to matter AND ATR%>=1.3% to activate — impossible, never both
+  // true at once), so only a narrow DMA-anchor coincidence could ever rescue
+  // it (confirmed with HCLTECH's real 2026-07-29 numbers: CMP=1344.30,
+  // ATR=37.51 needed the 50-DMA inside a ~10.4-point/0.278×ATR-wide window
+  // to pass — otherwise dead). 4.7 gives a flat RR=1.88 with SL unanchored,
+  // clears 1.8 unconditionally; DMA-anchoring (still active) can only ever
+  // improve RR further from here, never below it.
+  ATR_TGT_POSITIONAL  : 4.7,
 
   // v15.18: lift multi-day (swing/mom/positional/base) targets toward +5%, but
   // ONLY when the stock's ATR makes +5% reachable — so sleepy low-vol large-caps
