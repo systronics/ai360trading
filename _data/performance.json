@@ -1,11 +1,11 @@
 {
-  "as_of": "July 28, 2026",
-  "total": 14,
-  "wins": 8,
+  "as_of": "July 29, 2026",
+  "total": 15,
+  "wins": 9,
   "losses": 6,
-  "win_rate": 57,
-  "net_pnl_rs": 3033,
-  "avg_win_pct": 5.0,
+  "win_rate": 60,
+  "net_pnl_rs": 3238,
+  "avg_win_pct": 4.8,
   "avg_loss_pct": -2.7,
   "best": {
     "sym": "CUMMINSIND",
@@ -17,6 +17,12 @@
   },
   "recent": [
     {
+      "sym": "ETERNAL",
+      "exit_date": "2026-07-28",
+      "pct": 3.01,
+      "is_win": true
+    },
+    {
       "sym": "IDFCFIRSTB",
       "exit_date": "2026-07-27",
       "pct": 0.0,
@@ -27,12 +33,6 @@
       "exit_date": "2026-06-30",
       "pct": -3.87,
       "is_win": false
-    },
-    {
-      "sym": "LAURUSLABS",
-      "exit_date": "2026-06-23",
-      "pct": 7.53,
-      "is_win": true
     }
   ]
 }
