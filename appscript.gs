@@ -1,6 +1,28 @@
 /**
- * AI360 TRADING — APPSCRIPT v15.31
+ * AI360 TRADING — APPSCRIPT v15.32
  * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ * v15.32 CHANGES (2026-07-29) — INTRADAY RR GATE WAS MATHEMATICALLY IMPOSSIBLE (owner: "why aren't today's top gainers in WAITING/TRADED, find the gap")
+ *   Traced with live ScanDiag+Nifty200+AlertLog data: today's best RS-passing
+ *   gainer (DIVISLAB, RS 13.96, Master_Score 44) was rejected with
+ *   "RR CHECK: 1.33 < MIN_RR 1.8". Root cause: the "⚡ Intraday" branch always
+ *   computes SL=CMP-ATR*1.5, target=CMP+ATR*2.0 — a FIXED ratio of exactly
+ *   2.0/1.5=1.333 for every stock, every time, regardless of setup quality.
+ *   MIN_RR=1.8 could never be satisfied by this formula, and the v15.18
+ *   reachability floor explicitly excludes Intraday/Options Alert — so NO
+ *   stock the sheet tags "⚡ INTRADAY" could ever clear the RR gate via the
+ *   standard scan path. `git log -p` confirms MIN_RR/ATR_SL_INTRADAY/
+ *   ATR_TGT_INTRADAY were all introduced together in commit 07b988c
+ *   (2026-05-22, v15.6) — broken from day one, not a drift bug, live ~9
+ *   weeks. Only the separate isMomentumEntry() breakout path (RR=2.0) could
+ *   ever produce an intraday-style entry. Fixed (owner-approved, 4 options
+ *   presented): ATR_TGT_INTRADAY 2.0→2.8, giving RR=2.8/1.5=1.867≥1.8. Stop
+ *   distance UNCHANGED — only the profit target moved further out, so these
+ *   trades now need a bigger move to hit target than before. Same root
+ *   math issue also found (milder, NOT fixed this pass, owner still
+ *   deciding) in the Positional (baseline RR 1.6, floor can never rescue it)
+ *   and non-leader Swing (baseline RR 1.5, only a narrow 1.30%-1.39% ATR%
+ *   band clears 1.8) branches — see SESSION.md 2026-07-29 entry.
+ *
  * v15.31 CHANGES (2026-07-24, evening) — SCAN DIAGNOSTIC MADE ACTUALLY READABLE (owner: "check if there were any bullish days missed like 07-21" → "yes go ahead, build it")
  *   The v15.28 diagnostic (below) was built to answer exactly this question
  *   but only ever wrote to Logger.log — Apps Script execution logs need a
@@ -562,7 +584,7 @@ const OPTIONS_CONFIG = {
 
 // ── CONFIG ────────────────────────────────────────────────────────────────────
 const CONFIG = {
-  VERSION       : "v15.31",  // single source for ALL subscriber-facing version stamps (was hardcoded per-message and went stale at v15.17)
+  VERSION       : "v15.32",  // single source for ALL subscriber-facing version stamps (was hardcoded per-message and went stale at v15.17)
   get TELEGRAM_BOT_TOKEN() { return PropertiesService.getScriptProperties().getProperty('TELEGRAM_BOT_TOKEN') || ""; },
   get CHAT_ID_BASIC()      { return PropertiesService.getScriptProperties().getProperty('CHAT_ID_BASIC')      || ""; },
   get CHAT_ID_ADVANCE()    { return PropertiesService.getScriptProperties().getProperty('CHAT_ID_ADVANCE')    || ""; },
@@ -597,7 +619,10 @@ const CONFIG = {
   ATR_SL_SWING        : 2.0,
   ATR_SL_BASE         : 1.5,
   ATR_SL_POSITIONAL   : 2.5,
-  ATR_TGT_INTRADAY    : 2.0,
+  // v15.32: was 2.0 — with ATR_SL_INTRADAY 1.5 that was a FIXED RR of exactly
+  // 1.333, always, mathematically unable to ever clear MIN_RR (1.8). 2.8
+  // gives RR=1.867. Stop distance unchanged; only the target moved further out.
+  ATR_TGT_INTRADAY    : 2.8,
   ATR_TGT_SWING       : 3.0,
   ATR_TGT_SWING_LEADER: 4.0,
   ATR_TGT_BASE        : 5.0,
