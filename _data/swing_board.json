@@ -1,5 +1,5 @@
 {
-  "generated_at": "29 July 2026, 01:07 PM IST",
+  "generated_at": "29 July 2026, 01:22 PM IST",
   "setups": [
     {
       "symbol": "SAIL",
@@ -8,6 +8,14 @@
       "stage": "🔥 CASH | +4.2% | Vol 91%",
       "status": "✅ TRADED (PAPER)",
       "days_in_trade": "0"
+    },
+    {
+      "symbol": "NAUKRI",
+      "trade_type": "📈 Positional",
+      "strategy": "➖ HOLD",
+      "stage": "🚀 MOMENTUM BREAKOUT | ⏸ No Setup",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
     },
     {
       "symbol": "HCLTECH",
@@ -21,7 +29,7 @@
       "symbol": "SWIGGY",
       "trade_type": "🔥 Cash Intraday",
       "strategy": "CASH",
-      "stage": "🔥 CASH | +7.6% | Vol 112%",
+      "stage": "🔥 CASH | +7.3% | Vol 122%",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
