@@ -1,0 +1,95 @@
+name: Nifty200 All-Time-High Distance (weekly, informational only)
+
+# v1.0 (2026-07-29):
+#   Adds 2 NEW, purely informational columns to Nifty200 — All_Time_High and
+#   %_from_ATH — computed from each stock's FULL yfinance history (back to
+#   IPO), not just the sheet's existing 52-week window.
+#
+#   WHY: owner asked why DIVISLAB and EXIDEIND both got a "breakout" style
+#   Breakout_Stage tag the same day when they clearly weren't the same kind
+#   of setup. Traced it: Breakout_Stage only ever compares CMP to
+#   52_Weeks_High, so a stock recovering toward a depressed 52-week ceiling
+#   (EXIDEIND, still 24.8% below its real 2024 high) gets the same label as
+#   a genuine new all-time high (DIVISLAB). These 2 columns make that
+#   distinction visible.
+#
+#   NOT WIRED INTO ANY GATE — owner instruction: "add the ATH check, but
+#   don't fix gate yet". Breakout_Stage/Trade_Type/every appscript.gs GATE
+#   are untouched. See fetch_ath.py's docstring + CLAUDE.md 🔒 NEVER CHANGE.
+#
+#   Fail-open: a symbol whose history can't be downloaded keeps its
+#   last-good value — never blanked. Own concurrency group, separate from
+#   fetch_index_meta (different columns, no shared resource, no need to
+#   serialize).
+#
+# Schedule: Saturday 10:45 IST (05:15 UTC) — markets closed, offset 45 min
+# from fetch_index_meta's 10:00 IST slot.
+
+on:
+  schedule:
+    - cron: "15 5 * * 6"   # Saturday 10:45 IST
+  workflow_dispatch:
+
+jobs:
+  fetch-ath:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    concurrency:
+      group: fetch-ath
+      cancel-in-progress: true
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Refresh all-time-high distance (writes All_Time_High / %_from_ATH)
+        env:
+          GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
+        run: python fetch_ath.py --write
+
+      - name: Notify Telegram on failure
+        if: failure()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID_BASIC:      ${{ secrets.CHAT_ID_BASIC }}
+          WF_NAME:            "${{ github.workflow }}"
+          RUN_URL:            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        continue-on-error: true
+        run: |
+          python - <<'PYEOF'
+          import os, json
+          from urllib.request import Request, urlopen
+          token = os.environ.get('TELEGRAM_BOT_TOKEN','')
+          chat  = os.environ.get('CHAT_ID_BASIC','')
+          if not token or not chat:
+              print('[NOTIFY] Telegram creds missing — skip'); raise SystemExit(0)
+          msg = (
+              "⚠️ <b>System Notice — AI360Trading</b>\n\n"
+              f"Workflow failed: <b>{os.environ.get('WF_NAME','?')}</b>\n"
+              f"Run log: {os.environ.get('RUN_URL','')}\n\n"
+              "<i>This is a system message, not a trade signal. All_Time_High / "
+              "%_from_ATH are informational-only columns (fail-open); retries "
+              "next Saturday.</i>"
+          )
+          try:
+              req = Request(
+                  f"https://api.telegram.org/bot{token}/sendMessage",
+                  data=json.dumps({'chat_id':chat,'text':msg,'parse_mode':'HTML'}).encode(),
+                  headers={'Content-Type':'application/json'},
+              )
+              urlopen(req, timeout=10).read()
+              print('[NOTIFY] Failure alert sent')
+          except Exception as e:
+              print(f'[NOTIFY] Send failed: {e}')
+          PYEOF
