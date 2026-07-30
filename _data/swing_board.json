@@ -1,5 +1,5 @@
 {
-  "generated_at": "30 July 2026, 11:54 AM IST",
+  "generated_at": "30 July 2026, 12:09 PM IST",
   "setups": [
     {
       "symbol": "NYKAA",
@@ -58,7 +58,7 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "EXIDEIND",
+      "symbol": "BAJFINANCE",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
@@ -66,7 +66,7 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "LENSKART",
+      "symbol": "EXIDEIND",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
@@ -77,7 +77,7 @@
       "symbol": "MOIL",
       "trade_type": "🔥 Cash Intraday",
       "strategy": "CASH",
-      "stage": "🔥 WATCHLIST CASH | +8.0% | MOIL",
+      "stage": "🔥 WATCHLIST CASH | +7.1% | MOIL",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
