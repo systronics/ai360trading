@@ -1,5 +1,5 @@
 {
-  "generated_at": "30 July 2026, 12:39 PM IST",
+  "generated_at": "30 July 2026, 12:54 PM IST",
   "setups": [
     {
       "symbol": "NYKAA",
@@ -18,14 +18,6 @@
       "days_in_trade": "0"
     },
     {
-      "symbol": "SUNPHARMA",
-      "trade_type": "🔄 Swing",
-      "strategy": "🎯 RETEST BUY",
-      "stage": "🎯 RETEST | 🚀 BREAKOUT CONFIRMED",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
       "symbol": "FEDERALBNK",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
@@ -38,6 +30,22 @@
       "trade_type": "⚡ Intraday",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "DIVISLAB",
+      "trade_type": "⚡ Intraday",
+      "strategy": "➖ HOLD",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "BAJFINANCE",
+      "trade_type": "📊 Options Alert",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
@@ -58,14 +66,6 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "BAJFINANCE",
-      "trade_type": "📊 Options Alert",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
       "symbol": "EXIDEIND",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
@@ -77,7 +77,7 @@
       "symbol": "MOIL",
       "trade_type": "🔥 Cash Intraday",
       "strategy": "CASH",
-      "stage": "🔥 WATCHLIST CASH | +7.5% | MOIL",
+      "stage": "🔥 WATCHLIST CASH | +5.9% | MOIL",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
