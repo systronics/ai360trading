@@ -1,6 +1,37 @@
 """
-AI360 TRADING BOT — v15.33
+AI360 TRADING BOT — v15.34
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v15.34 CHANGES vs v15.33 — RE-ENTRY COOLDOWN SPLIT BY TRADE FAMILY (2026-07-30, same-session owner follow-up)
+  Immediate follow-up to v15.33 below: that fix shortened the LOSS cooldown
+  duration but left the cooldown KEY purely symbol-based (sym_key(sym)) —
+  meaning a losing OPTIONS trade on a stock (theta decay, IV crush, the 20%
+  est-loss cap — option-specific risk, not necessarily a sign the STOCK's
+  own price structure failed) still locked out a completely unrelated fresh
+  CASH/SWING/POSITIONAL signal on that same stock, and vice versa. Owner
+  asked to fix this too. Added _cooldown_family(ttype) → "OPTION" | "CASH" |
+  "STOCK", and threaded a `family` parameter through get/set_reentry_
+  cooldown(), get/set_loss_cooldown(), and check_reentry_allowed() — the
+  BotMemory key now carries the family (e.g. `NSE_TCS_OPTION_LRECD_...`
+  vs `NSE_TCS_STOCK_LRECD_...`), so a cooldown set by one family has zero
+  effect on the others. check_all_entry_filters() gained a `ttype=""`
+  parameter to compute the candidate's own family at check time; the one
+  call site (Step B promotion loop) now passes it through. _exit_trade()
+  already received `ttype` as a parameter, so the exit-side fix was a pure
+  wiring change — no new inputs needed there. Side effect, not a separate
+  bug: CASH exits already bypassed this cooldown check entirely on the way
+  IN (cash entries skip check_all_entry_filters — see the `cash` branch of
+  the Step B loop), so isolating CASH into its own family key just means a
+  CASH loss no longer silently cooldowns a future OPTIONS/SWING signal on
+  the same symbol either, closing that asymmetry too. Verified with 8
+  hand-built boundary tests via direct function import: fresh-allowed,
+  same-family same-day-blocked, cross-family same-day-allowed (the actual
+  fix, both directions incl. CASH), next-trading-day-recovery, target-hit
+  family-scoping, and the real _cooldown_family() mapping against the
+  actual ttype strings used in the sheet ("CASH Intraday", "📊 Options
+  Alert", "🎯 SWING (Breakout)") — all 8 passed; py_compile clean. Entry
+  math, SL/target/trailing logic, resistance-room veto, RS/RSI/volume
+  gates — all untouched.
+
 v15.33 CHANGES vs v15.32 — LOSS RE-ENTRY COOLDOWN SPLIT FROM 5 DAYS TO 1 (2026-07-30, owner audit)
   Owner theory, confirmed against the real cooldown code: a stock breaks out,
   a same-day retest/shakeout stops the fresh position out at a small loss,
@@ -640,7 +671,7 @@ except Exception as _e:
     _EQ_AVAILABLE = False
 
 IST       = pytz.timezone('Asia/Kolkata')
-VERSION   = "v15.33"   # single source for the run banner + test messages (were stale at v15.16 before v15.23; was stuck at v15.28 in this constant through the v15.29 RSI dip-tolerance release — banner text only, no logic was affected). v15.32 (2026-07-28): TSL-UPDATE spam fix — see calc_new_tsl() comparison guard below. v15.33 (2026-07-30): loss re-entry cooldown split to 1 trading day (was sharing the 5-day target-hit cooldown) — see set_loss_cooldown() below.
+VERSION   = "v15.34"   # single source for the run banner + test messages (were stale at v15.16 before v15.23; was stuck at v15.28 in this constant through the v15.29 RSI dip-tolerance release — banner text only, no logic was affected). v15.32 (2026-07-28): TSL-UPDATE spam fix — see calc_new_tsl() comparison guard below. v15.33 (2026-07-30): loss re-entry cooldown split to 1 trading day (was sharing the 5-day target-hit cooldown) — see set_loss_cooldown() below. v15.34 (2026-07-30): re-entry cooldown scoped by trade family (OPTION/CASH/STOCK no longer cross-block each other) — see _cooldown_family() below.
 TG_TOKEN  = os.environ.get('TELEGRAM_BOT_TOKEN')
 
 CHAT_BASIC   = os.environ.get('CHAT_ID_BASIC')
@@ -685,7 +716,7 @@ MAX_NEW_ENTRIES_BULLISH  = 3
 # v15.0: Re-entry cooldown after TARGET HIT
 REENTRY_COOLDOWN_DAYS    = 5   # trading days — not calendar days
 
-# v15.34: SEPARATE, SHORTER cooldown after a LOSING exit (SL/TSL/hard-stop/
+# v15.33: SEPARATE, SHORTER cooldown after a LOSING exit (SL/TSL/hard-stop/
 # option-loss-cap). v15.17 originally reused REENTRY_COOLDOWN_DAYS (5 days,
 # calibrated for the TARGET HIT case) for losses too — owner audit 2026-07-30
 # found this blocked the common "breaks out, same-day retest stops it out,
@@ -915,62 +946,89 @@ def clean_mem(mem):
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# RE-ENTRY COOLDOWN HELPERS — v15.0 NEW
+# RE-ENTRY COOLDOWN HELPERS — v15.0 NEW; v15.33 split loss vs target-hit
+# duration; v15.34 split by trade FAMILY (OPTION / CASH / STOCK)
 # ══════════════════════════════════════════════════════════════════════════════
 
-def get_reentry_cooldown_date(mem: str, key: str) -> str:
+def _cooldown_family(ttype) -> str:
+    """
+    v15.34: Which cooldown "bucket" a trade type belongs to. A losing OPTIONS
+    trade (theta/IV/the 20% est-loss cap — option-specific risk) doesn't mean
+    the STOCK's price structure failed, so it shouldn't lock out a fresh
+    CASH/SWING/POSITIONAL signal on the same stock, and vice versa. CASH gets
+    its own bucket too (gap-driven intraday, already exempt from this check
+    entirely — see check_all_entry_filters() callers — so isolating it just
+    means a CASH loss no longer silently cooldowns a future OPTIONS/SWING
+    signal on the same symbol, which it did before this split).
+    Returns "OPTION" | "CASH" | "STOCK".
+    """
+    if is_option_trade(ttype):
+        return "OPTION"
+    if is_cash_trade(ttype):
+        return "CASH"
+    return "STOCK"
+
+def get_reentry_cooldown_date(mem: str, key: str, family: str) -> str:
     """
     Get the date a TARGET HIT cooldown was set (REENTRY_COOLDOWN_DAYS applies).
     RECD = Re-Entry Cooldown Date.
-    Format stored: NSE_SYMBOL_RECD_2026-05-15 (date of target hit)
+    Format stored: NSE_SYMBOL_OPTION_RECD_2026-05-15 (date of target hit)
     Returns: date string "YYYY-MM-DD" or "" if no cooldown
     """
-    prefix = f"{key}_RECD_"
+    prefix = f"{key}_{family}_RECD_"
     for p in mem.split(','):
         if p.startswith(prefix):
             return p[len(prefix):]
     return ""
 
-def set_reentry_cooldown(mem: str, key: str, hit_date: str) -> str:
+def set_reentry_cooldown(mem: str, key: str, hit_date: str, family: str) -> str:
     """
     Set re-entry cooldown after TARGET HIT (REENTRY_COOLDOWN_DAYS, 5 trading
-    days — unchanged since v15.0). check_reentry_allowed() calculates whether
-    enough days have passed.
+    days — unchanged since v15.0), scoped to the trade's FAMILY (v15.34) so
+    a target hit on one instrument doesn't block a different instrument on
+    the same stock. check_reentry_allowed() calculates whether enough days
+    have passed.
     """
-    prefix = f"{key}_RECD_"
+    prefix = f"{key}_{family}_RECD_"
     parts  = [p for p in mem.split(',') if p.strip() and not p.startswith(prefix)]
     parts.append(f"{prefix}{hit_date}")
-    print(f"[RECD] {key}: cooldown set — no re-entry for {REENTRY_COOLDOWN_DAYS} trading days from {hit_date} (TARGET HIT)")
+    print(f"[RECD] {key} [{family}]: cooldown set — no re-entry for {REENTRY_COOLDOWN_DAYS} trading days from {hit_date} (TARGET HIT)")
     return ','.join(parts)
 
-def get_loss_cooldown_date(mem: str, key: str) -> str:
+def get_loss_cooldown_date(mem: str, key: str, family: str) -> str:
     """
-    v15.34: Get the date a LOSING exit set its (shorter) cooldown.
+    v15.33: Get the date a LOSING exit set its (shorter) cooldown.
     LRECD = Loss Re-Entry Cooldown Date.
-    Format stored: NSE_SYMBOL_LRECD_2026-07-30 (date of the losing exit)
+    Format stored: NSE_SYMBOL_OPTION_LRECD_2026-07-30 (date of the losing exit)
     """
-    prefix = f"{key}_LRECD_"
+    prefix = f"{key}_{family}_LRECD_"
     for p in mem.split(','):
         if p.startswith(prefix):
             return p[len(prefix):]
     return ""
 
-def set_loss_cooldown(mem: str, key: str, exit_date: str) -> str:
+def set_loss_cooldown(mem: str, key: str, exit_date: str, family: str) -> str:
     """
-    v15.34: Set a SHORT re-entry cooldown after a LOSING exit (hard stop, TSL,
+    v15.33: Set a SHORT re-entry cooldown after a LOSING exit (hard stop, TSL,
     option-loss-cap — any exit_p < ent), split out from the TARGET HIT
     cooldown above.
 
-    Why split: REENTRY_COOLDOWN_DAYS (5 trading days) was calibrated for the
-    v15.0 IDEA case — the bot re-bought a stock the SAME DAY it hit target,
-    chasing an already-extended move. v15.17 reused that same 5-day number
-    for losing exits too, to stop EICHERMOT being re-bought at the same
-    ceiling twice. But that blanket 5-day lockout also caught the opposite,
-    common case: a stock breaks out, a same-day retest/shakeout stops it out
-    at a real (if small) loss, then the stock genuinely resumes the breakout
-    the very next trading day — the bot was locked out of that real move for
-    5 full trading days. Owner audit 2026-07-30 confirmed this live against
-    real sheet data.
+    Why split (duration): REENTRY_COOLDOWN_DAYS (5 trading days) was
+    calibrated for the v15.0 IDEA case — the bot re-bought a stock the SAME
+    DAY it hit target, chasing an already-extended move. v15.17 reused that
+    same 5-day number for losing exits too, to stop EICHERMOT being
+    re-bought at the same ceiling twice. But that blanket 5-day lockout also
+    caught the opposite, common case: a stock breaks out, a same-day
+    retest/shakeout stops it out at a real (if small) loss, then the stock
+    genuinely resumes the breakout the very next trading day — the bot was
+    locked out of that real move for 5 full trading days. Owner audit
+    2026-07-30 confirmed this live against real sheet data.
+
+    Why split (family, v15.34): a losing OPTIONS trade and a losing CASH/
+    SWING/POSITIONAL trade on the SAME stock used to share one cooldown key
+    — an option failing on theta/expiry/the 20% est-loss cap would lock out
+    a completely unrelated fresh cash/swing signal on that stock, and vice
+    versa. See _cooldown_family().
 
     The precise defence against EICHERMOT's actual failure mode (re-buying
     right under the SAME resistance ceiling) is the resistance-room veto
@@ -978,41 +1036,44 @@ def set_loss_cooldown(mem: str, key: str, exit_date: str) -> str:
     This cooldown is now just a same-day-re-chase backstop, not a multi-day
     lockout on every fresh loss.
     """
-    prefix = f"{key}_LRECD_"
+    prefix = f"{key}_{family}_LRECD_"
     parts  = [p for p in mem.split(',') if p.strip() and not p.startswith(prefix)]
     parts.append(f"{prefix}{exit_date}")
-    print(f"[LRECD] {key}: loss cooldown set — no re-entry for {LOSS_REENTRY_COOLDOWN_DAYS} trading day(s) from {exit_date} (LOSING EXIT)")
+    print(f"[LRECD] {key} [{family}]: loss cooldown set — no re-entry for {LOSS_REENTRY_COOLDOWN_DAYS} trading day(s) from {exit_date} (LOSING EXIT)")
     return ','.join(parts)
 
-def check_reentry_allowed(mem: str, key: str, sym: str, now: datetime) -> tuple:
+def check_reentry_allowed(mem: str, key: str, sym: str, now: datetime, family: str) -> tuple:
     """
-    Check if re-entry is allowed for a stock. Checks BOTH cooldown types —
-    TARGET HIT (REENTRY_COOLDOWN_DAYS, 5 trading days) and LOSS
-    (LOSS_REENTRY_COOLDOWN_DAYS, 1 trading day, v15.34) — and blocks if
-    EITHER is still active. Returns (allowed: bool, reason: str).
+    Check if re-entry is allowed for a stock, for the candidate's own trade
+    FAMILY (v15.34 — OPTION / CASH / STOCK, see _cooldown_family()). Checks
+    BOTH cooldown types — TARGET HIT (REENTRY_COOLDOWN_DAYS, 5 trading days)
+    and LOSS (LOSS_REENTRY_COOLDOWN_DAYS, 1 trading day, v15.33) — and blocks
+    if EITHER is still active for THIS family. A cooldown set by a different
+    family's trade on the same stock has no effect. Returns
+    (allowed: bool, reason: str).
 
     Note: expired cooldowns are left in memory (harmless — they're
-    symbol-keyed, so a fresh cooldown just overwrites the stale date; see
-    clean_mem()'s v15.23 comment on why symbol-state keys are never
+    symbol+family-keyed, so a fresh cooldown just overwrites the stale date;
+    see clean_mem()'s v15.23 comment on why symbol-state keys are never
     auto-pruned by date).
     """
-    recd_date = get_reentry_cooldown_date(mem, key)
+    recd_date = get_reentry_cooldown_date(mem, key, family)
     if recd_date:
         days_since = trading_days_since(recd_date, now)
         if days_since < REENTRY_COOLDOWN_DAYS:
             remaining = REENTRY_COOLDOWN_DAYS - days_since
             return False, (
-                f"Re-entry cooldown active (after TARGET HIT) — {days_since}/{REENTRY_COOLDOWN_DAYS} trading days "
+                f"Re-entry cooldown active [{family}] (after TARGET HIT) — {days_since}/{REENTRY_COOLDOWN_DAYS} trading days "
                 f"since {recd_date}. {remaining} more trading days before re-entry allowed."
             )
 
-    lrecd_date = get_loss_cooldown_date(mem, key)
+    lrecd_date = get_loss_cooldown_date(mem, key, family)
     if lrecd_date:
         days_since = trading_days_since(lrecd_date, now)
         if days_since < LOSS_REENTRY_COOLDOWN_DAYS:
             remaining = LOSS_REENTRY_COOLDOWN_DAYS - days_since
             return False, (
-                f"Re-entry cooldown active (after LOSING exit) — {days_since}/{LOSS_REENTRY_COOLDOWN_DAYS} trading day(s) "
+                f"Re-entry cooldown active [{family}] (after LOSING exit) — {days_since}/{LOSS_REENTRY_COOLDOWN_DAYS} trading day(s) "
                 f"since {lrecd_date}. {remaining} more trading day(s) before re-entry allowed."
             )
 
@@ -1229,7 +1290,7 @@ def check_daily_entry_limit(today_entries: int, is_bullish: bool) -> tuple:
 # ══════════════════════════════════════════════════════════════════════════════
 
 def check_all_entry_filters(sym, mem, key, is_bullish, now, nifty_pct, today_entries,
-                            vix_val=0.0, cp=0.0, nifty_sheet=None, bm_data=None):
+                            vix_val=0.0, cp=0.0, nifty_sheet=None, bm_data=None, ttype=""):
     """
     Run all entry filters in order of cost (fast checks first, API calls last).
     Returns (allowed: bool, reasons: list, rsi_val: float)
@@ -1250,8 +1311,8 @@ def check_all_entry_filters(sym, mem, key, is_bullish, now, nifty_pct, today_ent
     """
     reasons = []
 
-    # Filter 1: Re-entry cooldown (NEW v15.0)
-    allowed, msg = check_reentry_allowed(mem, key, sym, now)
+    # Filter 1: Re-entry cooldown (NEW v15.0; v15.34 scoped by trade family)
+    allowed, msg = check_reentry_allowed(mem, key, sym, now, _cooldown_family(ttype))
     reasons.append(f"[RECD] {msg}")
     if not allowed:
         return False, reasons, -1
@@ -2238,7 +2299,7 @@ def step_a_enter_trades(log_sheet, nifty_sheet, bm_sheet, mem, now, is_bullish, 
             # filters can do RS / volume / FII / PCR / delivery checks.
             allowed, filter_reasons, rsi_val = check_all_entry_filters(
                 sym, mem, key, is_bullish, now, nifty_pct, today_entries, vix_val,
-                cp=cp, nifty_sheet=nifty_sheet, bm_data=bm_data,
+                cp=cp, nifty_sheet=nifty_sheet, bm_data=bm_data, ttype=ttype,
             )
         for reason in filter_reasons:
             print(f"[FILTER] {sym}: {reason}")
@@ -2546,19 +2607,23 @@ def _exit_trade(log_sheet, hist_sheet, row_idx, sym, ent, exit_p, tgt, sl, tsl_a
         print(f"[EXIT] History: {e}")
 
     # ── v15.0: re-entry cooldown after TARGET HIT (5 trading days).
-    # ── v15.34: a LOSING exit now sets its OWN, SHORTER cooldown (1 trading
+    # ── v15.33: a LOSING exit now sets its OWN, SHORTER cooldown (1 trading
     #    day, LOSS_REENTRY_COOLDOWN_DAYS) instead of reusing the 5-day TARGET
     #    HIT number (v15.17's original approach). See set_loss_cooldown() for
     #    the full reasoning — the resistance-room veto is the precise defence
     #    against re-buying the same failed ceiling; this cooldown is just a
     #    same-day-re-chase backstop, kept short so a genuine next-day breakout
     #    resumption isn't locked out for most of a trading week.
+    # ── v15.34: cooldown is now scoped to the trade's FAMILY (OPTION / CASH /
+    #    STOCK, see _cooldown_family()) — a losing options trade no longer
+    #    locks out a fresh cash/swing signal on the same stock, and vice versa.
     is_loss    = exit_p < ent
     set_cd     = is_target_hit or is_loss
+    _family    = _cooldown_family(ttype)
     if is_target_hit:
-        mem = set_reentry_cooldown(mem, key, today_str)
+        mem = set_reentry_cooldown(mem, key, today_str, _family)
     elif is_loss:
-        mem = set_loss_cooldown(mem, key, today_str)
+        mem = set_loss_cooldown(mem, key, today_str, _family)
 
     print(f"[EXIT] {sym} @ ₹{exit_p:.2f} | {pnl_pct:+.2f}% | {result} | {reason} | RECD:{set_cd}")
 
@@ -2573,7 +2638,7 @@ def _exit_trade(log_sheet, hist_sheet, row_idx, sym, ent, exit_p, tgt, sl, tsl_a
         f"TSL at exit: ₹{tsl_at_exit:.2f}"
     )
     if set_cd:
-        # v15.34: TARGET HIT keeps its own 5-day message; LOSS now reports the
+        # v15.33: TARGET HIT keeps its own 5-day message; LOSS now reports the
         # shorter LOSS_REENTRY_COOLDOWN_DAYS instead of the old shared number.
         _cd_days = REENTRY_COOLDOWN_DAYS if is_target_hit else LOSS_REENTRY_COOLDOWN_DAYS
         msg += f"\n⏳ Re-entry blocked for {_cd_days} trading day{'s' if _cd_days != 1 else ''}"
