@@ -1,5 +1,5 @@
 {
-  "generated_at": "30 July 2026, 11:09 AM IST",
+  "generated_at": "30 July 2026, 11:24 AM IST",
   "setups": [
     {
       "symbol": "NYKAA",
@@ -16,14 +16,6 @@
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
       "status": "✅ TRADED (PAPER)",
       "days_in_trade": "0"
-    },
-    {
-      "symbol": "DIVISLAB",
-      "trade_type": "📊 Options Alert",
-      "strategy": "➖ HOLD",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
     },
     {
       "symbol": "FEDERALBNK",
@@ -45,6 +37,14 @@
       "symbol": "LAURUSLABS",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "DIVISLAB",
+      "trade_type": "📊 Options Alert",
+      "strategy": "➖ HOLD",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
