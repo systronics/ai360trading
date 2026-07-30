@@ -1,6 +1,34 @@
 """
-AI360 TRADING BOT — v15.32
+AI360 TRADING BOT — v15.33
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v15.33 CHANGES vs v15.32 — LOSS RE-ENTRY COOLDOWN SPLIT FROM 5 DAYS TO 1 (2026-07-30, owner audit)
+  Owner theory, confirmed against the real cooldown code: a stock breaks out,
+  a same-day retest/shakeout stops the fresh position out at a small loss,
+  and the stock genuinely resumes the breakout the very next trading day —
+  but the bot was blocked from touching it again. Root cause: _exit_trade()
+  set `is_loss = exit_p < ent; set_cd = is_target_hit or is_loss` and called
+  the SAME set_reentry_cooldown() for both cases — meaning ANY losing exit
+  (hard stop, TSL, option-loss-cap, even a fractional-percent shakeout) got
+  the identical REENTRY_COOLDOWN_DAYS=5 lockout that v15.0 calibrated for a
+  completely different problem (IDEA re-bought the SAME DAY it hit target,
+  chasing an already-extended move). v15.17 (2026-07-12) added the loss case
+  by reusing that same 5-day number, to stop EICHERMOT being re-bought at
+  the same ceiling twice — but never gave losses their own, separately
+  calibrated duration. Fixed: new LOSS_REENTRY_COOLDOWN_DAYS=1 constant +
+  new set_loss_cooldown()/get_loss_cooldown_date() (BotMemory prefix
+  `_LRECD_`, parallel to the existing `_RECD_` target-hit pair);
+  check_reentry_allowed() now checks both cooldowns and blocks if either is
+  still active. TARGET HIT keeps its original 5-trading-day cooldown,
+  unchanged — only the LOSS case got shorter. The precise fix for
+  EICHERMOT's actual failure mode (re-buying under the SAME resistance
+  ceiling) was already the resistance-room veto shipped in the same v15.17
+  release (MIN_TARGET_ROOM_ATR) — that stays fully in force untouched, so
+  a genuine repeat-ceiling mistake is still caught; only the blanket
+  same-loss-anywhere 5-day lockout was loosened. Good-morning digest and
+  the exit Telegram message both updated to report the correct duration
+  for whichever cooldown actually fired. Entry math, SL/target/trailing
+  logic, resistance-room veto, RS/RSI/volume gates — all untouched.
+
 v15.32 CHANGES vs v15.31 — REPEATED IDENTICAL TSL-UPDATE ALERTS FIXED (2026-07-28, owner-reported bug)
   Owner screenshots showed the SAME "TSL UPDATE" alert (identical LTP/SL/
   P&L) firing every ~5 min for nearly an hour on one live trade. Root
@@ -612,7 +640,7 @@ except Exception as _e:
     _EQ_AVAILABLE = False
 
 IST       = pytz.timezone('Asia/Kolkata')
-VERSION   = "v15.32"   # single source for the run banner + test messages (were stale at v15.16 before v15.23; was stuck at v15.28 in this constant through the v15.29 RSI dip-tolerance release — banner text only, no logic was affected). v15.32 (2026-07-28): TSL-UPDATE spam fix — see calc_new_tsl() comparison guard below.
+VERSION   = "v15.33"   # single source for the run banner + test messages (were stale at v15.16 before v15.23; was stuck at v15.28 in this constant through the v15.29 RSI dip-tolerance release — banner text only, no logic was affected). v15.32 (2026-07-28): TSL-UPDATE spam fix — see calc_new_tsl() comparison guard below. v15.33 (2026-07-30): loss re-entry cooldown split to 1 trading day (was sharing the 5-day target-hit cooldown) — see set_loss_cooldown() below.
 TG_TOKEN  = os.environ.get('TELEGRAM_BOT_TOKEN')
 
 CHAT_BASIC   = os.environ.get('CHAT_ID_BASIC')
@@ -656,6 +684,14 @@ MAX_NEW_ENTRIES_BULLISH  = 3
 
 # v15.0: Re-entry cooldown after TARGET HIT
 REENTRY_COOLDOWN_DAYS    = 5   # trading days — not calendar days
+
+# v15.34: SEPARATE, SHORTER cooldown after a LOSING exit (SL/TSL/hard-stop/
+# option-loss-cap). v15.17 originally reused REENTRY_COOLDOWN_DAYS (5 days,
+# calibrated for the TARGET HIT case) for losses too — owner audit 2026-07-30
+# found this blocked the common "breaks out, same-day retest stops it out,
+# genuinely resumes the breakout next trading day" pattern for a full 5
+# trading days. See set_loss_cooldown() for the full reasoning.
+LOSS_REENTRY_COOLDOWN_DAYS = 1   # trading days — not calendar days
 
 # ── Batch 2 profit-protection thresholds (v15.10) ─────────────────────────────
 # All tunable; default values picked from well-known professional rules.
@@ -884,7 +920,7 @@ def clean_mem(mem):
 
 def get_reentry_cooldown_date(mem: str, key: str) -> str:
     """
-    Get the date when TARGET HIT cooldown expires for a stock.
+    Get the date a TARGET HIT cooldown was set (REENTRY_COOLDOWN_DAYS applies).
     RECD = Re-Entry Cooldown Date.
     Format stored: NSE_SYMBOL_RECD_2026-05-15 (date of target hit)
     Returns: date string "YYYY-MM-DD" or "" if no cooldown
@@ -897,50 +933,92 @@ def get_reentry_cooldown_date(mem: str, key: str) -> str:
 
 def set_reentry_cooldown(mem: str, key: str, hit_date: str) -> str:
     """
-    Set re-entry cooldown after TARGET HIT.
-    Stores the date of the target hit.
-    check_reentry_allowed() calculates if 5 trading days have passed.
+    Set re-entry cooldown after TARGET HIT (REENTRY_COOLDOWN_DAYS, 5 trading
+    days — unchanged since v15.0). check_reentry_allowed() calculates whether
+    enough days have passed.
     """
     prefix = f"{key}_RECD_"
     parts  = [p for p in mem.split(',') if p.strip() and not p.startswith(prefix)]
     parts.append(f"{prefix}{hit_date}")
-    print(f"[RECD] {key}: cooldown set — no re-entry for {REENTRY_COOLDOWN_DAYS} trading days from {hit_date}")
+    print(f"[RECD] {key}: cooldown set — no re-entry for {REENTRY_COOLDOWN_DAYS} trading days from {hit_date} (TARGET HIT)")
+    return ','.join(parts)
+
+def get_loss_cooldown_date(mem: str, key: str) -> str:
+    """
+    v15.34: Get the date a LOSING exit set its (shorter) cooldown.
+    LRECD = Loss Re-Entry Cooldown Date.
+    Format stored: NSE_SYMBOL_LRECD_2026-07-30 (date of the losing exit)
+    """
+    prefix = f"{key}_LRECD_"
+    for p in mem.split(','):
+        if p.startswith(prefix):
+            return p[len(prefix):]
+    return ""
+
+def set_loss_cooldown(mem: str, key: str, exit_date: str) -> str:
+    """
+    v15.34: Set a SHORT re-entry cooldown after a LOSING exit (hard stop, TSL,
+    option-loss-cap — any exit_p < ent), split out from the TARGET HIT
+    cooldown above.
+
+    Why split: REENTRY_COOLDOWN_DAYS (5 trading days) was calibrated for the
+    v15.0 IDEA case — the bot re-bought a stock the SAME DAY it hit target,
+    chasing an already-extended move. v15.17 reused that same 5-day number
+    for losing exits too, to stop EICHERMOT being re-bought at the same
+    ceiling twice. But that blanket 5-day lockout also caught the opposite,
+    common case: a stock breaks out, a same-day retest/shakeout stops it out
+    at a real (if small) loss, then the stock genuinely resumes the breakout
+    the very next trading day — the bot was locked out of that real move for
+    5 full trading days. Owner audit 2026-07-30 confirmed this live against
+    real sheet data.
+
+    The precise defence against EICHERMOT's actual failure mode (re-buying
+    right under the SAME resistance ceiling) is the resistance-room veto
+    (v15.17, MIN_TARGET_ROOM_ATR) — that stays fully in force, untouched.
+    This cooldown is now just a same-day-re-chase backstop, not a multi-day
+    lockout on every fresh loss.
+    """
+    prefix = f"{key}_LRECD_"
+    parts  = [p for p in mem.split(',') if p.strip() and not p.startswith(prefix)]
+    parts.append(f"{prefix}{exit_date}")
+    print(f"[LRECD] {key}: loss cooldown set — no re-entry for {LOSS_REENTRY_COOLDOWN_DAYS} trading day(s) from {exit_date} (LOSING EXIT)")
     return ','.join(parts)
 
 def check_reentry_allowed(mem: str, key: str, sym: str, now: datetime) -> tuple:
     """
-    Check if re-entry is allowed for a stock.
-    Returns (allowed: bool, reason: str)
+    Check if re-entry is allowed for a stock. Checks BOTH cooldown types —
+    TARGET HIT (REENTRY_COOLDOWN_DAYS, 5 trading days) and LOSS
+    (LOSS_REENTRY_COOLDOWN_DAYS, 1 trading day, v15.34) — and blocks if
+    EITHER is still active. Returns (allowed: bool, reason: str).
 
-    Logic:
-      - No cooldown stored → entry allowed (first time entry)
-      - Cooldown stored → check if REENTRY_COOLDOWN_DAYS trading days have passed
-      - If not enough days → skip with clear reason
-      - If enough days passed → clear the cooldown, allow entry
-
-    Why this matters:
-      IDEA hit target at ₹13.19 (+5.94%) on May 15
-      Bot re-entered IDEA at ₹13.06 same day (12:11 PM)
-      New entry started negative immediately
-      Stock needs 5 trading days to reset momentum after target hit
+    Note: expired cooldowns are left in memory (harmless — they're
+    symbol-keyed, so a fresh cooldown just overwrites the stale date; see
+    clean_mem()'s v15.23 comment on why symbol-state keys are never
+    auto-pruned by date).
     """
     recd_date = get_reentry_cooldown_date(mem, key)
+    if recd_date:
+        days_since = trading_days_since(recd_date, now)
+        if days_since < REENTRY_COOLDOWN_DAYS:
+            remaining = REENTRY_COOLDOWN_DAYS - days_since
+            return False, (
+                f"Re-entry cooldown active (after TARGET HIT) — {days_since}/{REENTRY_COOLDOWN_DAYS} trading days "
+                f"since {recd_date}. {remaining} more trading days before re-entry allowed."
+            )
 
-    if not recd_date:
+    lrecd_date = get_loss_cooldown_date(mem, key)
+    if lrecd_date:
+        days_since = trading_days_since(lrecd_date, now)
+        if days_since < LOSS_REENTRY_COOLDOWN_DAYS:
+            remaining = LOSS_REENTRY_COOLDOWN_DAYS - days_since
+            return False, (
+                f"Re-entry cooldown active (after LOSING exit) — {days_since}/{LOSS_REENTRY_COOLDOWN_DAYS} trading day(s) "
+                f"since {lrecd_date}. {remaining} more trading day(s) before re-entry allowed."
+            )
+
+    if not recd_date and not lrecd_date:
         return True, "No cooldown — entry allowed"
-
-    days_since = trading_days_since(recd_date, now)
-
-    if days_since < REENTRY_COOLDOWN_DAYS:
-        remaining = REENTRY_COOLDOWN_DAYS - days_since
-        reason = (
-            f"Re-entry cooldown active (after target/loss) — {days_since}/{REENTRY_COOLDOWN_DAYS} trading days since {recd_date}. "
-            f"{remaining} more trading days before re-entry allowed. "
-            f"Stock needs to reset after the last exit."
-        )
-        return False, reason
-
-    return True, f"Cooldown expired ({days_since} trading days since {recd_date}) — entry allowed"
+    return True, "Cooldown(s) expired — entry allowed"
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -2467,15 +2545,20 @@ def _exit_trade(log_sheet, hist_sheet, row_idx, sym, ent, exit_p, tgt, sl, tsl_a
     except Exception as e:
         print(f"[EXIT] History: {e}")
 
-    # ── v15.0: re-entry cooldown after TARGET HIT.
-    # ── v15.17: ALSO set the cooldown after a LOSING exit — prevents the bot
-    #    from immediately re-buying a name that just failed. Audit finding:
-    #    EICHERMOT was re-entered after a loss and lost again. Same proven RECD
-    #    mechanism; the cooldown key survives _clear_mem_keys so it persists.
+    # ── v15.0: re-entry cooldown after TARGET HIT (5 trading days).
+    # ── v15.34: a LOSING exit now sets its OWN, SHORTER cooldown (1 trading
+    #    day, LOSS_REENTRY_COOLDOWN_DAYS) instead of reusing the 5-day TARGET
+    #    HIT number (v15.17's original approach). See set_loss_cooldown() for
+    #    the full reasoning — the resistance-room veto is the precise defence
+    #    against re-buying the same failed ceiling; this cooldown is just a
+    #    same-day-re-chase backstop, kept short so a genuine next-day breakout
+    #    resumption isn't locked out for most of a trading week.
     is_loss    = exit_p < ent
     set_cd     = is_target_hit or is_loss
-    if set_cd:
+    if is_target_hit:
         mem = set_reentry_cooldown(mem, key, today_str)
+    elif is_loss:
+        mem = set_loss_cooldown(mem, key, today_str)
 
     print(f"[EXIT] {sym} @ ₹{exit_p:.2f} | {pnl_pct:+.2f}% | {result} | {reason} | RECD:{set_cd}")
 
@@ -2490,7 +2573,10 @@ def _exit_trade(log_sheet, hist_sheet, row_idx, sym, ent, exit_p, tgt, sl, tsl_a
         f"TSL at exit: ₹{tsl_at_exit:.2f}"
     )
     if set_cd:
-        msg += f"\n⏳ Re-entry blocked for {REENTRY_COOLDOWN_DAYS} trading days"
+        # v15.34: TARGET HIT keeps its own 5-day message; LOSS now reports the
+        # shorter LOSS_REENTRY_COOLDOWN_DAYS instead of the old shared number.
+        _cd_days = REENTRY_COOLDOWN_DAYS if is_target_hit else LOSS_REENTRY_COOLDOWN_DAYS
+        msg += f"\n⏳ Re-entry blocked for {_cd_days} trading day{'s' if _cd_days != 1 else ''}"
 
     send_advance_and_premium(msg + ALERT_DISCLAIMER)
     if exit_p > ent:
@@ -2601,7 +2687,7 @@ def send_good_morning(log_sheet, mem, is_bullish, nifty_cmp, nifty_dma, nifty_pc
         f"Nifty: ₹{nifty_cmp:.0f} | 20DMA: ₹{nifty_dma:.0f} | {nifty_pct:+.2f}%\n\n"
         f"📊 Active: {traded}/{MAX_TRADES} | Watching: {waiting}\n"
         f"{window}\n"
-        f"RSI filter: < {RSI_MAX_BULLISH if is_bullish else RSI_MAX_BEARISH}{f' (leaders up on the day allowed to {RSI_HOT_MAX:.0f})' if is_bullish else ''} | Re-entry: {REENTRY_COOLDOWN_DAYS}d cooldown after target\n\n"
+        f"RSI filter: < {RSI_MAX_BULLISH if is_bullish else RSI_MAX_BEARISH}{f' (leaders up on the day allowed to {RSI_HOT_MAX:.0f})' if is_bullish else ''} | Re-entry: {REENTRY_COOLDOWN_DAYS}d after target, {LOSS_REENTRY_COOLDOWN_DAYS}d after a loss\n\n"
         f"{'Watching: ' + ', '.join(waiting_stocks[:5]) if waiting_stocks else 'No WAITING stocks'}\n\n"
         f"<i>{VERSION} — entry-quality: reversal veto + resistance-room veto + loss cooldown + best-of ranking + time-fair volume gate + real F&O option eligibility</i>"
     )
