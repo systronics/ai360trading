@@ -1,5 +1,5 @@
 {
-  "generated_at": "30 July 2026, 12:24 PM IST",
+  "generated_at": "30 July 2026, 12:39 PM IST",
   "setups": [
     {
       "symbol": "NYKAA",
@@ -42,6 +42,14 @@
       "days_in_trade": "—"
     },
     {
+      "symbol": "RADICO",
+      "trade_type": "📊 Options Alert",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
       "symbol": "LAURUSLABS",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
@@ -58,7 +66,7 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "RADICO",
+      "symbol": "EXIDEIND",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
@@ -66,18 +74,10 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "EXIDEIND",
-      "trade_type": "📊 Options Alert",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
       "symbol": "MOIL",
       "trade_type": "🔥 Cash Intraday",
       "strategy": "CASH",
-      "stage": "🔥 WATCHLIST CASH | +7.1% | MOIL",
+      "stage": "🔥 WATCHLIST CASH | +7.5% | MOIL",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
