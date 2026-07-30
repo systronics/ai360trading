@@ -1,0 +1,98 @@
+name: Nifty200 Dividend + Bonus/Split History (weekly, informational only)
+
+# v1.0 (2026-07-30):
+#   Adds 4 NEW, purely informational columns to Nifty200 — Div_Yield_%_TTM,
+#   Last_Div_Date, Last_Bonus_Split_Date, Last_Bonus_Split_Ratio — computed
+#   per-symbol from yfinance's Ticker.dividends / Ticker.splits history.
+#
+#   WHY: owner asked which cash stocks "benefit more with dividend, bonus
+#   etc." Nothing in the day-to-day cash/swing/options engine carried any
+#   dividend or bonus/split data before this. This is TRAILING history, not
+#   a forward calendar — NSE's real upcoming-corporate-actions data needs a
+#   protected session-cookie API this project deliberately avoids (same
+#   fragility class as the 2026-05-27 holiday-list outage).
+#
+#   NOT WIRED INTO ANY GATE — informational only, same doctrine as
+#   fetch_ath.py. Do not reference these columns from Master_Score,
+#   Trade_Type, Priority_Score, or any appscript.gs GATE, and do not use
+#   them to filter/select CASH candidates, without the owner explicitly
+#   approving it first. See fetch_dividends.py's docstring + CLAUDE.md
+#   🔒 NEVER CHANGE.
+#
+#   Fail-open per symbol; a stock that has never paid a dividend / never
+#   split is expected to have a blank cell, not an error. Own concurrency
+#   group, separate from fetch_index_meta and fetch_ath (different columns,
+#   no shared resource, no need to serialize).
+#
+# Schedule: Saturday 11:15 IST (05:45 UTC) — markets closed, offset 30 min
+# from fetch_ath's 10:45 IST slot (which is itself offset from
+# fetch_index_meta's 10:00 IST slot).
+
+on:
+  schedule:
+    - cron: "45 5 * * 6"   # Saturday 11:15 IST
+  workflow_dispatch:
+
+jobs:
+  fetch-dividends:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    concurrency:
+      group: fetch-dividends
+      cancel-in-progress: true
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Refresh dividend + bonus/split history
+        env:
+          GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
+        run: python fetch_dividends.py --write
+
+      - name: Notify Telegram on failure
+        if: failure()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID_BASIC:      ${{ secrets.CHAT_ID_BASIC }}
+          WF_NAME:            "${{ github.workflow }}"
+          RUN_URL:            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        continue-on-error: true
+        run: |
+          python - <<'PYEOF'
+          import os, json
+          from urllib.request import Request, urlopen
+          token = os.environ.get('TELEGRAM_BOT_TOKEN','')
+          chat  = os.environ.get('CHAT_ID_BASIC','')
+          if not token or not chat:
+              print('[NOTIFY] Telegram creds missing — skip'); raise SystemExit(0)
+          msg = (
+              "⚠️ <b>System Notice — AI360Trading</b>\n\n"
+              f"Workflow failed: <b>{os.environ.get('WF_NAME','?')}</b>\n"
+              f"Run log: {os.environ.get('RUN_URL','')}\n\n"
+              "<i>This is a system message, not a trade signal. Dividend/bonus "
+              "columns are informational-only (fail-open); retries next "
+              "Saturday.</i>"
+          )
+          try:
+              req = Request(
+                  f"https://api.telegram.org/bot{token}/sendMessage",
+                  data=json.dumps({'chat_id':chat,'text':msg,'parse_mode':'HTML'}).encode(),
+                  headers={'Content-Type':'application/json'},
+              )
+              urlopen(req, timeout=10).read()
+              print('[NOTIFY] Failure alert sent')
+          except Exception as e:
+              print(f'[NOTIFY] Send failed: {e}')
+          PYEOF
