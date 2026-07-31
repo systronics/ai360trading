@@ -1,5 +1,5 @@
 {
-  "generated_at": "31 July 2026, 11:20 AM IST",
+  "generated_at": "31 July 2026, 11:35 AM IST",
   "setups": [
     {
       "symbol": "NYKAA",
@@ -26,24 +26,24 @@
       "days_in_trade": "1"
     },
     {
+      "symbol": "ASHOKLEY",
+      "trade_type": "🔥 Cash Intraday",
+      "strategy": "CASH",
+      "stage": "🔥 CASH | +4.2% | Vol 52%",
+      "status": "✅ TRADED (PAPER)",
+      "days_in_trade": "0"
+    },
+    {
       "symbol": "FEDERALBNK",
       "trade_type": "📊 Options Alert",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "strategy": "🎯 RETEST BUY",
+      "stage": "🎯 RETEST | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
     {
       "symbol": "TITAN",
       "trade_type": "⚡ Intraday",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "DIVISLAB",
-      "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
@@ -58,18 +58,26 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "BAJFINANCE",
+      "symbol": "TORNTPHARM",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
     {
-      "symbol": "RADICO",
+      "symbol": "BAJFINANCE",
       "trade_type": "📊 Options Alert",
-      "strategy": "🟢 STRONG BUY",
+      "strategy": "➖ HOLD",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "MARICO",
+      "trade_type": "🔄 Swing",
+      "strategy": "➖ HOLD",
+      "stage": "🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
