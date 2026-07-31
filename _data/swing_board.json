@@ -1,5 +1,5 @@
 {
-  "generated_at": "31 July 2026, 11:50 AM IST",
+  "generated_at": "31 July 2026, 12:05 PM IST",
   "setups": [
     {
       "symbol": "NYKAA",
@@ -51,7 +51,7 @@
     },
     {
       "symbol": "SUNPHARMA",
-      "trade_type": "🔄 Swing",
+      "trade_type": "⚡ Intraday",
       "strategy": "🎯 RETEST BUY",
       "stage": "🎯 RETEST | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
