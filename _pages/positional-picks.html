@@ -280,6 +280,20 @@ meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
 
 <script>
 (function () {
+  // 2026-07-31: primary source is now the same static _data/positional.json
+  // pattern used by swing-dashboard.html (publish_positional.py, built from
+  // the live PositionalLatest tab) — no network fetch, no dependency on the
+  // Google Sheets "Publish to web" link that already broke once (silently)
+  // for the old SwingPublic tab. If this is empty (script hasn't run yet, or
+  // failed), loadPicks() falls through to the ORIGINAL CSV fetch below —
+  // completely unchanged — which itself still falls through to the iframe.
+  // Nothing below this line was removed, only a preferred path added above it.
+  {% if site.data.positional.rows %}
+  var EMBEDDED_ROWS = {{ site.data.positional.rows | jsonify }};
+  {% else %}
+  var EMBEDDED_ROWS = null;
+  {% endif %}
+
   var FEED_CSV     = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQyI_2dA66bYzzsxZNW9yqSAkmi8_TxLA7PK_x6vtI9uqSbUNz-M5FXrYIt4rsP5B7kl6Mrfi5AUpsp/pub?gid=775492772&single=true&output=csv';
   var FEED_PUBHTML = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQyI_2dA66bYzzsxZNW9yqSAkmi8_TxLA7PK_x6vtI9uqSbUNz-M5FXrYIt4rsP5B7kl6Mrfi5AUpsp/pubhtml?gid=775492772&single=true&widget=false&headers=false&chrome=false';
   var failedOnce = false;
@@ -356,6 +370,7 @@ meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
 
   window.loadPicks = function () {
     if (failedOnce) return;
+    if (EMBEDDED_ROWS && EMBEDDED_ROWS.length > 1) { render(EMBEDDED_ROWS); return; }
     if (!window.fetch) { failOpen(); return; } // ancient browser → old iframe
     fetch(FEED_CSV + '&t=' + Date.now())
       .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })

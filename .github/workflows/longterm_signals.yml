@@ -16,6 +16,8 @@ jobs:
   longterm-signals:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout
@@ -39,3 +41,22 @@ jobs:
           CHAT_ID_ADVANCE:          ${{ secrets.CHAT_ID_ADVANCE }}
           CHAT_ID_PREMIUM:          ${{ secrets.CHAT_ID_PREMIUM }}
         run: python generate_longterm.py
+
+      # 2026-07-31: publish PositionalLatest to a static _data/*.json file for
+      # positional-picks.html, same doctrine as publish_swing_board.py — see
+      # that file's header comment for why (SwingPublic's "Publish to web"
+      # link broke silently once already; positional-picks.html was still on
+      # the same fragile mechanism as a client-side fallback only, closing
+      # that gap proactively). Runs right after PositionalLatest is rewritten.
+      - name: Publish positional picks JSON
+        env:
+          GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
+        run: python publish_positional.py
+
+      - name: Commit and push if changed
+        run: |
+          git config --local user.email "admin@ai360trading.in"
+          git config --local user.name "AI360-Automation"
+          git add _data/positional.json
+          git diff --cached --quiet || git commit -m "📈 Positional picks refresh: $(date +'%Y-%m-%d %H:%M') IST"
+          git push origin master
