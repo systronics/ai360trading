@@ -48,12 +48,15 @@ concurrency:
 
 on:
   schedule:
-    - cron: '30 2 * * 1-5'   # 08:00 IST — morning session (early start)
-    - cron: '0 3 * * 1-5'    # 08:30 IST — morning session
-    - cron: '45 3 * * 1-5'   # 09:15 IST — morning session (open — last-resort)
-    - cron: '25 6 * * 1-5'   # 11:55 IST — afternoon session (→ ends 15:50 IST)
-    - cron: '0 7 * * 1-5'    # 12:30 IST — afternoon session (fallback)
-    - cron: '0 8 * * 1-5'    # 13:30 IST — afternoon session (last-resort)
+    # 2026-07-31: minutes shifted off :00/:15/:30/:45 + staggered ~11 min from
+    # trading_bot_session.yml's triggers — see that file's same-date comment for
+    # the full finding (2-3+ hour daily scheduling delays across the whole repo).
+    - cron: '43 2 * * 1-5'   # 08:13 IST — morning session (early start)
+    - cron: '13 3 * * 1-5'   # 08:43 IST — morning session
+    - cron: '58 3 * * 1-5'   # 09:28 IST — morning session (open — last-resort)
+    - cron: '38 6 * * 1-5'   # 12:08 IST — afternoon session (→ ends 15:50 IST)
+    - cron: '13 7 * * 1-5'   # 12:43 IST — afternoon session (fallback)
+    - cron: '13 8 * * 1-5'   # 13:43 IST — afternoon session (last-resort)
   workflow_dispatch:
     inputs:
       end_time:

@@ -48,18 +48,31 @@ on:
     # queues harmlessly behind the running loop (no overlap, no double-entry).
     # Each is "morning session" (before noon → END=11:59), so any one of them
     # covers the 09:15 open.
-    - cron: '30 2 * * 1-5'   # 08:00 IST — morning session (early start)
-    - cron: '0 3 * * 1-5'    # 08:30 IST — morning session
-    - cron: '45 3 * * 1-5'   # 09:15 IST — morning session (open — last-resort)
-    - cron: '25 6 * * 1-5'   # 11:55 IST — afternoon session (→ ends 15:50 IST)
+    # 2026-07-31: minutes shifted off :00/:15/:30/:45 (GitHub's own guidance —
+    # scheduled triggers queue behind heavier load at round minutes) and staggered
+    # a few minutes apart from fetch_live_prices_session.yml/swing_board_session.yml's
+    # triggers below, after live data showed ALL THREE workflows (identical round
+    # minutes) plus totally unrelated workflows with unique minutes (Daily Morning
+    # Reel 07:00 IST, System Watchdog 08:05 IST) were delayed 2-3+ HOURS EVERY
+    # SINGLE DAY this week (not a rare one-off like the 2026-06-02 note below) —
+    # first session-loop tick landing ~10:53-11:47 IST daily, leaving market open
+    # (09:15 IST) to ~11 AM running on the throttled */5 backup cron alone.
+    # This is a best-effort experiment per GitHub's documented advice, not a
+    # guaranteed fix — if the whole account/repo is scheduler-throttled by GitHub
+    # for total scheduled-workflow volume, off-grid minutes alone won't fully
+    # resolve it. Watch coverage over the following days.
+    - cron: '32 2 * * 1-5'   # 08:02 IST — morning session (early start)
+    - cron: '2 3 * * 1-5'    # 08:32 IST — morning session
+    - cron: '47 3 * * 1-5'   # 09:17 IST — morning session (open — last-resort)
+    - cron: '27 6 * * 1-5'   # 11:57 IST — afternoon session (→ ends 15:50 IST)
     # v15.18: afternoon fallbacks — GitHub sometimes delays the 11:55 trigger by
     # hours (seen 2026-06-02), which would blind afternoon SL/target monitoring.
     # These extra at/after-noon starts each open an afternoon session (END=15:50).
     # The `trading-bot` concurrency group + cancel-in-progress:false serialises
     # them: if 11:55's loop is already running they queue harmlessly; if it was
     # delayed/skipped, whichever fires first restarts the dense afternoon loop.
-    - cron: '0 7 * * 1-5'    # 12:30 IST — afternoon session (fallback)
-    - cron: '0 8 * * 1-5'    # 13:30 IST — afternoon session (last-resort)
+    - cron: '2 7 * * 1-5'    # 12:32 IST — afternoon session (fallback)
+    - cron: '2 8 * * 1-5'    # 13:32 IST — afternoon session (last-resort)
   workflow_dispatch:
     inputs:
       end_time:
