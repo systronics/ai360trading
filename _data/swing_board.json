@@ -1,5 +1,5 @@
 {
-  "generated_at": "31 July 2026, 11:35 AM IST",
+  "generated_at": "31 July 2026, 11:50 AM IST",
   "setups": [
     {
       "symbol": "NYKAA",
@@ -34,6 +34,30 @@
       "days_in_trade": "0"
     },
     {
+      "symbol": "TORNTPHARM",
+      "trade_type": "📊 Options Alert",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "status": "✅ TRADED (PAPER)",
+      "days_in_trade": "0"
+    },
+    {
+      "symbol": "MARICO",
+      "trade_type": "🔄 Swing",
+      "strategy": "➖ HOLD",
+      "stage": "🚀 BREAKOUT CONFIRMED",
+      "status": "✅ TRADED (PAPER)",
+      "days_in_trade": "0"
+    },
+    {
+      "symbol": "SUNPHARMA",
+      "trade_type": "🔄 Swing",
+      "strategy": "🎯 RETEST BUY",
+      "stage": "🎯 RETEST | 🚀 BREAKOUT CONFIRMED",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
       "symbol": "FEDERALBNK",
       "trade_type": "📊 Options Alert",
       "strategy": "🎯 RETEST BUY",
@@ -50,34 +74,10 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "LAURUSLABS",
-      "trade_type": "📊 Options Alert",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "TORNTPHARM",
-      "trade_type": "📊 Options Alert",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
       "symbol": "BAJFINANCE",
       "trade_type": "📊 Options Alert",
       "strategy": "➖ HOLD",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "MARICO",
-      "trade_type": "🔄 Swing",
-      "strategy": "➖ HOLD",
-      "stage": "🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
