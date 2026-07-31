@@ -1,5 +1,5 @@
 {
-  "generated_at": "31 July 2026, 01:06 PM IST",
+  "generated_at": "31 July 2026, 01:21 PM IST",
   "setups": [
     {
       "symbol": "NYKAA",
@@ -50,14 +50,6 @@
       "days_in_trade": "0"
     },
     {
-      "symbol": "SUNPHARMA",
-      "trade_type": "⚡ Intraday",
-      "strategy": "🎯 RETEST BUY",
-      "stage": "🎯 RETEST | 🚀 BREAKOUT CONFIRMED",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
       "symbol": "FEDERALBNK",
       "trade_type": "📊 Options Alert",
       "strategy": "🎯 RETEST BUY",
@@ -67,6 +59,14 @@
     },
     {
       "symbol": "TITAN",
+      "trade_type": "⚡ Intraday",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "SUNPHARMA",
       "trade_type": "⚡ Intraday",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
