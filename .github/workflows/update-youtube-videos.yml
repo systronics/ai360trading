@@ -1,7 +1,29 @@
 name: Update YouTube Video List
-# Runs every Sunday 6 AM IST (0:30 UTC) — fetches latest LONG-FORM education videos from channel RSS
+# Runs every Sunday 6 AM IST (0:30 UTC) — fetches latest EDUCATIONAL videos from channel RSS
 # No API key needed — YouTube provides a public RSS feed for every channel
-# Shorts are filtered out: title contains #Shorts OR duration <= 60 seconds
+#
+# 2026-08-02 FIX: switched from a Shorts-blocklist to an education-ALLOWLIST.
+# The old logic only tried to exclude Shorts (title #shorts/#short, or duration
+# <=60s) and let everything else through — but that also let non-educational
+# long-form uploads (daily "Morning Brief" market updates from
+# generate_reel_morning.py) onto the tutorial-videos page, since those are
+# >60s and don't say #Shorts. Verified live: the real YouTube RSS feed's
+# <media:content> element has NO duration attribute at all (url/type/width/
+# height only), so the old duration<=60 check silently never fired — every
+# entry in the RSS feed always parsed to duration=0. generate_education.py's
+# titles always follow the exact format "Topic | Week N | AI360 Trading", so
+# matching "| Week " is a reliable positive signal for genuine tutorial
+# content instead of trying to blocklist every non-educational format.
+#
+# ALSO FIXED: education uploads are weekly, but YouTube's public RSS feed only
+# ever returns the ~15 most-recent uploads channel-wide (daily Morning Briefs
+# + Shorts fill that window fast) — a single snapshot fetch could find at most
+# 1 real educational video, never "latest 6". Now MERGES each week's newly
+# discovered educational video(s) into the existing _data/youtube_videos.json
+# instead of overwriting it, so the list actually accumulates to 6 over time.
+# Also re-validates every entry already in the file against the same pattern,
+# so the 3 non-educational rows written by the old broken filter get dropped
+# on the very next run instead of lingering forever.
 on:
   workflow_dispatch:
   schedule:
@@ -18,76 +40,70 @@ jobs:
         with:
           ref: master
 
-      - name: Fetch long-form videos (filter out Shorts)
+      - name: Fetch educational videos only (allowlist, merged into history)
         run: |
           python - <<'EOF'
-          import json, requests, xml.etree.ElementTree as ET
+          import json, re, requests, xml.etree.ElementTree as ET
 
-          CHANNEL_ID    = "UC9dAJakbfPXk8zL31AVuTfA"
-          RSS_URL       = f"https://www.youtube.com/feeds/videos.xml?channel_id={CHANNEL_ID}"
-          SHORTS_WORDS  = ["#shorts", "#short"]   # case-insensitive check
-          MAX_VIDEOS    = 8
+          CHANNEL_ID   = "UC9dAJakbfPXk8zL31AVuTfA"
+          RSS_URL      = f"https://www.youtube.com/feeds/videos.xml?channel_id={CHANNEL_ID}"
+          DATA_FILE    = "_data/youtube_videos.json"
+          # generate_education.py always formats titles as "Topic | Week N | AI360 Trading"
+          EDU_PATTERN  = re.compile(r"\|\s*Week\s*\d+\s*\|", re.IGNORECASE)
+          MAX_VIDEOS   = 6
+
+          # ── Load existing list, re-validate every row against the same
+          #    pattern (drops any non-educational rows the old broken filter
+          #    let through in past runs) ──────────────────────────────────
+          try:
+              with open(DATA_FILE, encoding="utf-8") as f:
+                  existing = json.load(f)
+          except Exception:
+              existing = []
+          existing = [v for v in existing if EDU_PATTERN.search(v.get("title", ""))]
 
           try:
               r = requests.get(RSS_URL, timeout=12, headers={"User-Agent": "Mozilla/5.0"})
               r.raise_for_status()
               root = ET.fromstring(r.content)
           except Exception as e:
-              print(f"❌ RSS fetch failed: {e}")
-              exit(0)
+              print(f"RSS fetch failed ({e}) — keeping existing list as-is")
+              root = None
 
-          ns = {
-              "atom":  "http://www.w3.org/2005/Atom",
-              "yt":    "http://www.youtube.com/xml/schemas/2015",
-              "media": "http://search.yahoo.com/mrss/",
-          }
+          fresh = []
+          if root is not None:
+              ns = {
+                  "atom": "http://www.w3.org/2005/Atom",
+                  "yt":   "http://www.youtube.com/xml/schemas/2015",
+              }
+              for entry in root.findall("atom:entry", ns):
+                  try:
+                      vid_id   = entry.find("yt:videoId",     ns).text
+                      title_el = entry.find("atom:title",     ns)
+                      pub_el   = entry.find("atom:published", ns)
+                      title     = title_el.text  if title_el  is not None else "Untitled"
+                      published = pub_el.text[:10] if pub_el is not None else ""
 
-          videos = []
-          for entry in root.findall("atom:entry", ns):
-              try:
-                  vid_id   = entry.find("yt:videoId",     ns).text
-                  title_el = entry.find("atom:title",     ns)
-                  pub_el   = entry.find("atom:published", ns)
-                  title     = title_el.text  if title_el  is not None else "Untitled"
-                  published = pub_el.text[:10] if pub_el is not None else ""
+                      # ── ALLOWLIST: only genuine weekly-education uploads ──
+                      if not EDU_PATTERN.search(title):
+                          continue
 
-                  # ── Filter 1: title contains #Shorts ─────────────────────
-                  if any(kw in title.lower() for kw in SHORTS_WORDS):
-                      print(f"  ⏭  Skipping Short (title): {title[:55]}")
+                      fresh.append({"id": vid_id, "title": title, "published": published})
+                  except Exception:
                       continue
 
-                  # ── Filter 2: duration <= 60 s (YouTube defines Shorts ≤ 60s) ──
-                  duration = 0
-                  mg = entry.find("media:group", ns)
-                  if mg is not None:
-                      mc = mg.find("media:content", ns)
-                      if mc is not None:
-                          try:
-                              duration = int(mc.get("duration", "0"))
-                          except ValueError:
-                              pass
-                  if 0 < duration <= 60:
-                      print(f"  ⏭  Skipping Short ({duration}s): {title[:55]}")
-                      continue
+          # ── Merge: dedupe by video id, newest published date first ──────
+          by_id = {v["id"]: v for v in existing}
+          for v in fresh:
+              by_id[v["id"]] = v
+          videos = sorted(by_id.values(), key=lambda v: v.get("published", ""), reverse=True)[:MAX_VIDEOS]
 
-                  videos.append({
-                      "id":        vid_id,
-                      "title":     title,
-                      "published": published,
-                      "duration":  duration,
-                  })
-                  print(f"  ✅ Long video ({duration}s): {title[:55]}")
-
-              except Exception as ex:
-                  print(f"  ⚠️  Parse error: {ex}")
-                  continue
-
-          videos = videos[:MAX_VIDEOS]
-
-          with open("_data/youtube_videos.json", "w", encoding="utf-8") as f:
+          with open(DATA_FILE, "w", encoding="utf-8") as f:
               json.dump(videos, f, indent=2, ensure_ascii=False)
 
-          print(f"\n✅ Saved {len(videos)} long-form videos to _data/youtube_videos.json")
+          print(f"Saved {len(videos)} education videos to {DATA_FILE}")
+          for v in videos:
+              print(f"  - {v['published']}  {v['title'][:60].encode('ascii','replace').decode('ascii')}")
           EOF
 
       - name: Commit updated video list
@@ -95,5 +111,5 @@ jobs:
           git config --local user.email "admin@ai360trading.in"
           git config --local user.name "AI360-Automation"
           git add _data/youtube_videos.json
-          git diff --cached --quiet || git commit -m "🎥 Update YouTube long-form video list: $(date +'%Y-%m-%d')"
+          git diff --cached --quiet || git commit -m "🎥 Update YouTube education video list: $(date +'%Y-%m-%d')"
           git push origin master
