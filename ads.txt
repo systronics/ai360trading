@@ -1,13 +1,7 @@
 # ads.txt — AI360Trading (ai360trading.in)
 #
-# No ad network is connected yet, so NO active seller line is declared
-# (an invalid AdSense placeholder can hurt you — removed on purpose).
-#
-# When you join a network, uncomment/add its exact line:
-#
+# Google AdSense (2026-08-02) — verified active account, status "Open".
+google.com, pub-1324578425171534, DIRECT, f08c47fec0942fa0
+
 # Media.net (after approval — copy the exact line from your Media.net dashboard):
 #   media.net, <YOUR_MEDIA_NET_CUSTOMER_ID>, DIRECT
-#
-# Google AdSense — ONLY with an eligible account (our prior identity is
-# permanently disabled; do not reuse it). Format if/when eligible:
-#   google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0

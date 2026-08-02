@@ -131,6 +131,14 @@
   </script>
   {% endif %}
 
+  <!-- Google AdSense — site verification + Auto ads (account ai360trading@gmail.com,
+       pub-1324578425171534, added 2026-08-02). Coexists with Adsterra (_includes/adslot.html,
+       manual slots, untouched) — this is Google's own site-wide tag, not a manual ad unit.
+       Same site.ads_active kill switch covers both networks with one commit. -->
+  {% if site.ads_active %}
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1324578425171534" crossorigin="anonymous"></script>
+  {% endif %}
+
 </head>
 <!-- noscript tags moved outside <head> — fixes Google indexing warning -->
 <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"></noscript>
