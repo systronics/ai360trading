@@ -1,12 +1,12 @@
 {
-  "as_of": "July 31, 2026",
-  "total": 16,
-  "wins": 9,
-  "losses": 7,
-  "win_rate": 56,
-  "net_pnl_rs": 3163,
-  "avg_win_pct": 4.8,
-  "avg_loss_pct": -2.5,
+  "as_of": "August 03, 2026",
+  "total": 20,
+  "wins": 12,
+  "losses": 8,
+  "win_rate": 60,
+  "net_pnl_rs": 3516,
+  "avg_win_pct": 3.9,
+  "avg_loss_pct": -2.2,
   "best": {
     "sym": "CUMMINSIND",
     "pct": 10.13
@@ -17,22 +17,22 @@
   },
   "recent": [
     {
-      "sym": "SAIL",
-      "exit_date": "2026-07-29",
-      "pct": -1.08,
-      "is_win": false
-    },
-    {
-      "sym": "ETERNAL",
-      "exit_date": "2026-07-28",
-      "pct": 3.01,
+      "sym": "EXIDEIND",
+      "exit_date": "2026-08-03",
+      "pct": 2.9,
       "is_win": true
     },
     {
-      "sym": "IDFCFIRSTB",
-      "exit_date": "2026-07-27",
-      "pct": 0.0,
+      "sym": "NESTLEIND",
+      "exit_date": "2026-08-03",
+      "pct": -0.71,
       "is_win": false
+    },
+    {
+      "sym": "NYKAA",
+      "exit_date": "2026-08-03",
+      "pct": 0.32,
+      "is_win": true
     }
   ]
 }
