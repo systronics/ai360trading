@@ -253,8 +253,9 @@
  *   the market gapped up and the 09:28 open scan sent 6 candidates —
  *   contradictory for subscribers. Changes (message text only, ZERO gate /
  *   slot / scoring logic touched):
- *   1. Regime alerts sent outside 09:15-15:30 IST carry "(yesterday's close
- *      — live regime decided at 9:15)".
+ *   1. Regime alerts sent outside 09:15-15:40 IST carry "(yesterday's close
+ *      — live regime decided at 9:15)". (Upper bound was 15:30, moved to 15:40
+ *      2026-08-03 — NSE extended the F&O market close by 10 min that day.)
  *   2. When |Nifty − 20DMA| < REGIME_BORDERLINE_PCT (0.30%), both bearish
  *      and bullish messages add a ⚖️ BORDERLINE line ("a small gap at open
  *      can flip this"), and the overnight bearish no-candidates line becomes
@@ -607,7 +608,7 @@ const OPTIONS_CONFIG = {
 
 // ── CONFIG ────────────────────────────────────────────────────────────────────
 const CONFIG = {
-  VERSION       : "v15.33",  // single source for ALL subscriber-facing version stamps (was hardcoded per-message and went stale at v15.17)
+  VERSION       : "v15.34",  // single source for ALL subscriber-facing version stamps (was hardcoded per-message and went stale at v15.17)
   get TELEGRAM_BOT_TOKEN() { return PropertiesService.getScriptProperties().getProperty('TELEGRAM_BOT_TOKEN') || ""; },
   get CHAT_ID_BASIC()      { return PropertiesService.getScriptProperties().getProperty('CHAT_ID_BASIC')      || ""; },
   get CHAT_ID_ADVANCE()    { return PropertiesService.getScriptProperties().getProperty('CHAT_ID_ADVANCE')    || ""; },
@@ -1174,7 +1175,7 @@ function _sendOptionsAlertPremium(sym, cmp, optSignal, stage, sl, target, rr, bm
   // When this alert goes out outside market hours, tell the subscriber exactly
   // how to validate it live instead of trusting yesterday's snapshot.
   const _hhmmOpt   = parseInt(Utilities.formatDate(new Date(), CONFIG.IST_ZONE, "HHmm"), 10);
-  const isLiveOpt  = (_hhmmOpt >= 915 && _hhmmOpt <= 1530);
+  const isLiveOpt  = (_hhmmOpt >= 915 && _hhmmOpt <= 1540);   // v15.34 (2026-08-03): NSE extended F&O close 15:30->15:40, effective today
   const confirmRule = isLiveOpt ? "" :
     `\n━━ ⚠️ SUBAH CONFIRM KARE (night scan — kal ke close ka data) ━━\n` +
     `✅ Tabhi kharide jab stock 9:30 ke baad ₹${cmp.toFixed(2)} ke UPAR trade kare\n` +
@@ -2223,13 +2224,17 @@ function _runScanner(startRow, endRow) {
     const cashCount     = finalWaiting.filter(r => r[4] && r[4].toString().includes("Cash Intraday")).length;
     const breakoutCount = finalWaiting.length - baseCount - momentumCount - cashCount;
 
-    // v15.21 HONEST PREMARKET MESSAGING — outside live session (09:15-15:30 IST)
+    // v15.21 HONEST PREMARKET MESSAGING — outside live session (09:15-15:40 IST)
     // the Nifty quote is the PREVIOUS CLOSE, so the regime verdict is provisional;
     // and when Nifty sits within REGIME_BORDERLINE_PCT of the 20DMA, an ordinary
     // overnight gap can flip it (2026-07-15/16: "BEARISH −4 pts, no entries" at
     // 00:03 → green with 6 candidates by 09:28). Say so instead of false certainty.
+    // v15.34 (2026-08-03): upper bound 1530->1540 — NSE extended the F&O market
+    // close by 10 min effective today (new Closing Auction Session for cash-
+    // segment F&O stocks, 15:15-15:35, verified via multiple independent news
+    // sources same day). Message-text boundary only, zero gate/scoring logic.
     const _hhmmNow    = parseInt(Utilities.formatDate(new Date(), CONFIG.IST_ZONE, "HHmm"), 10);
-    const isLiveHours = (_hhmmNow >= 915 && _hhmmNow <= 1530);
+    const isLiveHours = (_hhmmNow >= 915 && _hhmmNow <= 1540);
     const distPct     = (nifty20d > 0) ? ((niftyCmp - nifty20d) / nifty20d) * 100 : 0;
     const borderline  = (nifty20d > 0) && (Math.abs(distPct) < CONFIG.REGIME_BORDERLINE_PCT);
     const staleNote   = isLiveHours ? "" : ` <i>(yesterday's close — live regime decided at 9:15)</i>`;
