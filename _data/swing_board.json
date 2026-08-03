@@ -1,5 +1,5 @@
 {
-  "generated_at": "03 August 2026, 02:06 PM IST",
+  "generated_at": "03 August 2026, 03:55 PM IST",
   "setups": [
     {
       "symbol": "TORNTPHARM",
@@ -26,26 +26,10 @@
       "days_in_trade": "0"
     },
     {
-      "symbol": "ASHOKLEY",
-      "trade_type": "🔥 Cash Intraday",
-      "strategy": "CASH",
-      "stage": "🔥 CASH | +4.7% | Vol 228%",
-      "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "0"
-    },
-    {
-      "symbol": "TMCV",
-      "trade_type": "🔥 Cash Intraday",
-      "strategy": "CASH",
-      "stage": "🔥 CASH | +5.0% | Vol 222%",
-      "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "0"
-    },
-    {
-      "symbol": "NYKAA",
-      "trade_type": "📊 Options Alert",
+      "symbol": "EICHERMOT",
+      "trade_type": "🔄 Swing",
       "strategy": "🎯 RETEST BUY",
-      "stage": "🎯 RETEST | 🚀 BREAKOUT CONFIRMED",
+      "stage": "🎯 RETEST | ⚡ BREAKOUT ALERT",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
@@ -58,9 +42,17 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "ABCAPITAL",
+      "symbol": "NYKAA",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "ABCAPITAL",
+      "trade_type": "📊 Options Alert",
+      "strategy": "➖ HOLD",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
@@ -74,7 +66,7 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "LAURUSLABS",
+      "symbol": "NESTLEIND",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
