@@ -1,29 +1,29 @@
 {
-  "generated_at": "31 July 2026, 05:09 PM IST",
+  "generated_at": "03 August 2026, 11:29 AM IST",
   "setups": [
     {
       "symbol": "NYKAA",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
-      "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "1"
+      "status": "EXITED (⏰ OPTION TIME EXIT (2 trading days — alert rule: intraday/1-2 din max))",
+      "days_in_trade": "4"
     },
     {
       "symbol": "NESTLEIND",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
-      "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "1"
+      "status": "EXITED (⏰ OPTION TIME EXIT (2 trading days — alert rule: intraday/1-2 din max))",
+      "days_in_trade": "4"
     },
     {
       "symbol": "EXIDEIND",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
-      "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "1"
+      "status": "EXITED (⏰ OPTION TIME EXIT (2 trading days — alert rule: intraday/1-2 din max))",
+      "days_in_trade": "4"
     },
     {
       "symbol": "TORNTPHARM",
@@ -31,7 +31,7 @@
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "0"
+      "days_in_trade": "3"
     },
     {
       "symbol": "MARICO",
@@ -39,7 +39,7 @@
       "strategy": "➖ HOLD",
       "stage": "🚀 BREAKOUT CONFIRMED",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "0"
+      "days_in_trade": "3"
     },
     {
       "symbol": "TITAN",
@@ -78,7 +78,23 @@
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
-      "status": "⏳ WAITING",
+      "status": "✅ TRADED (PAPER)",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "ASHOKLEY",
+      "trade_type": "🔥 Cash Intraday",
+      "strategy": "CASH",
+      "stage": "🔥 CASH | +4.7% | Vol 228%",
+      "status": "✅ TRADED (PAPER)",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "TMCV",
+      "trade_type": "🔥 Cash Intraday",
+      "strategy": "CASH",
+      "stage": "🔥 CASH | +5.0% | Vol 222%",
+      "status": "✅ TRADED (PAPER)",
       "days_in_trade": "—"
     }
   ]
