@@ -91,7 +91,17 @@ jobs:
         env:
           GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
           MANUAL_END: ${{ github.event.inputs.end_time }}
-          TICK_SECONDS: '900'
+          # 2026-08-03: 900->1800 (15min->30min). Every tick does a real git push,
+          # which auto-triggers CodeQL + a full Pages rebuild (see this repo's
+          # scheduling-delay investigation, same date) - this workflow alone was
+          # the single largest source of that push volume. Halving tick frequency
+          # roughly halves it. Trade-off: the public swing-dashboard page now
+          # refreshes every ~30min instead of ~15min - still far more current
+          # than the ~3x/day it managed before the 2026-07-28 fix that added
+          # this loop in the first place. swing_board.yml's own */15 backup
+          # cron (throttled by GitHub to ~3-5 actual runs/day anyway) is
+          # unchanged - it's a sparse safety net, not the main driver.
+          TICK_SECONDS: '1800'
         run: |
           export TZ=Asia/Kolkata
           git config --local user.email "admin@ai360trading.in"

@@ -230,7 +230,9 @@ meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
 
 <div class="terminal-wrapper">
   <!-- 2026-07-23: rebuilt on publish_swing_board.py → _data/swing_board.json
-       (a static Jekyll data file refreshed ~every 15 min by swing_board.yml),
+       (a static Jekyll data file refreshed ~every 30 min by swing_board_session.yml,
+       2026-08-03: slowed from ~15min to cut this workflow's contribution to a
+       GitHub Actions scheduling-delay investigation — see that date's notes),
        NOT a client-side Google Sheets fetch — the old SwingPublic "Publish to
        web" embed broke because republishing a sheet tab needs a manual Sheets-
        UI step with no API. Public-safe columns only: symbol/type/strategy/
@@ -272,7 +274,7 @@ meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
     {% endif %}
   </div>
   <div class="nt-meta">
-    <span>{% if site.data.swing_board %}🕒 Board updated {{ site.data.swing_board.generated_at }}{% else %}⏳ Board refreshing — check back shortly{% endif %} · updates ~every 15 min through market hours</span>
+    <span>{% if site.data.swing_board %}🕒 Board updated {{ site.data.swing_board.generated_at }}{% else %}⏳ Board refreshing — check back shortly{% endif %} · updates ~every 30 min through market hours</span>
     <a href="https://t.me/ai360trading" class="nt-refresh" style="text-decoration:none;">📣 Full alerts on Telegram</a>
   </div>
 </div>
