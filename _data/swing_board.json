@@ -1,5 +1,5 @@
 {
-  "generated_at": "03 August 2026, 11:44 AM IST",
+  "generated_at": "03 August 2026, 11:59 AM IST",
   "setups": [
     {
       "symbol": "TORNTPHARM",
@@ -66,17 +66,17 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "LAURUSLABS",
+      "symbol": "BAJFINANCE",
       "trade_type": "📊 Options Alert",
-      "strategy": "🟢 STRONG BUY",
+      "strategy": "➖ HOLD",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
     {
-      "symbol": "BAJFINANCE",
+      "symbol": "LAURUSLABS",
       "trade_type": "📊 Options Alert",
-      "strategy": "➖ HOLD",
+      "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
