@@ -39,6 +39,7 @@ on:
       - "_posts/**"
       - "output/**"
       - "vendor/**"
+      - ".keepalive"
       - "**/*.md"
       - "**/*.json"
       - "**/*.png"
