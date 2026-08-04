@@ -1,27 +1,51 @@
 {
-  "generated_at": "03 August 2026, 06:55 PM IST",
+  "generated_at": "04 August 2026, 11:03 AM IST",
   "setups": [
-    {
-      "symbol": "TORNTPHARM",
-      "trade_type": "📊 Options Alert",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
-      "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "3"
-    },
     {
       "symbol": "MARICO",
       "trade_type": "🔄 Swing",
       "strategy": "➖ HOLD",
       "stage": "🚀 BREAKOUT CONFIRMED",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "3"
+      "days_in_trade": "4"
     },
     {
       "symbol": "LENSKART",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
+      "status": "✅ TRADED (PAPER)",
+      "days_in_trade": "1"
+    },
+    {
+      "symbol": "HAL",
+      "trade_type": "🔄 Swing",
+      "strategy": "🎯 RETEST BUY",
+      "stage": "📦 BASE ENTRY | 📈 Near Breakout",
+      "status": "✅ TRADED (PAPER)",
+      "days_in_trade": "0"
+    },
+    {
+      "symbol": "PRESTIGE",
+      "trade_type": "📊 Options Alert",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | 📈 Near Breakout",
+      "status": "✅ TRADED (PAPER)",
+      "days_in_trade": "0"
+    },
+    {
+      "symbol": "ASHOKLEY",
+      "trade_type": "🔥 Cash Intraday",
+      "strategy": "CASH",
+      "stage": "🔥 CASH | +5.0% | Vol 166%",
+      "status": "✅ TRADED (PAPER)",
+      "days_in_trade": "0"
+    },
+    {
+      "symbol": "NATIONALUM",
+      "trade_type": "🔥 Cash Intraday",
+      "strategy": "CASH",
+      "stage": "🔥 CASH | +5.4% | Vol 69%",
       "status": "✅ TRADED (PAPER)",
       "days_in_trade": "0"
     },
@@ -50,14 +74,6 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "PRESTIGE",
-      "trade_type": "📊 Options Alert",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 📈 Near Breakout",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
       "symbol": "LAURUSLABS",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
@@ -66,10 +82,18 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "EXIDEIND",
-      "trade_type": "📊 Options Alert",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
+      "symbol": "NYKAA",
+      "trade_type": "⚡ MOM Swing",
+      "strategy": "➖ HOLD",
+      "stage": "⚡ MOMENTUM | +3.3% | Vol 14%",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "JUBLFOOD",
+      "trade_type": "🔥 Cash Intraday",
+      "strategy": "CASH",
+      "stage": "🔥 CASH | +7.2% | Vol 125%",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
