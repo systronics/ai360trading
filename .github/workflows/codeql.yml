@@ -1,0 +1,99 @@
+# CodeQL Advanced setup — migrated from Default setup 2026-08-04.
+#
+# WHY: Default setup (code-scanning/default-setup) has no path-filter option and
+# was firing on every single push to master — including pure content/data
+# commits ("Swing board refresh", "Daily Reports") that touch only _data/*.json
+# and _posts/*.md, never actual code. Confirmed via `git show --stat` on the
+# last 8 commits: swing-board/daily-report commits touch ONLY _data/**/_posts/**,
+# real code commits (appscript.gs, workflow YAML) are the rare exception.
+# CodeQL was ~8 of ~58 total Actions runs on 2026-08-04 alone — one of two
+# push-triggered workflows (with pages-build-deployment) identified as adding
+# to the GitHub Actions scheduler congestion documented in CLAUDE.md's
+# "Cron Delay" NEVER CHANGE entries. This file adds paths-ignore for content
+# file types so CodeQL only runs when code that could actually contain a
+# vulnerability changes — same detection coverage, far fewer redundant runs.
+#
+# Pages (pages-build-deployment, the other ~8 runs/day) was investigated the
+# same session and deliberately NOT touched: swing-dashboard.html,
+# membership.md, positional-picks.html, and tutorial-videos.html all read
+# _data/*.json via Liquid (`{% site.data.swing_board %}`) baked in AT BUILD
+# TIME — the exact files a naive paths-ignore here would have excluded. Path-
+# filtering Pages the same way would have silently frozen those live pages
+# (incl. membership's real win-rate stats) forever. CodeQL has no such
+# conflict — it never needed to run on data-only pushes in the first place.
+#
+# Languages match Default setup's own auto-detected set exactly (verified via
+# `gh api repos/.../code-scanning/default-setup` before this migration):
+# actions, python, javascript-typescript (modern CodeQL merges javascript+
+# typescript into one language — Default setup's separate "javascript"/
+# "typescript"/"javascript-typescript" entries are the same underlying
+# analysis reported three ways).
+
+name: "CodeQL"
+
+on:
+  push:
+    branches: ["master"]
+    paths-ignore:
+      - "_data/**"
+      - "_posts/**"
+      - "output/**"
+      - "vendor/**"
+      - "**/*.md"
+      - "**/*.json"
+      - "**/*.png"
+      - "**/*.jpg"
+      - "**/*.jpeg"
+      - "**/*.webp"
+      - "**/*.gif"
+      - "**/*.svg"
+      - "**/*.ico"
+  workflow_dispatch:
+  schedule:
+    # Off-grid weekly time, matching Default setup's own "weekly" cadence —
+    # deliberately not on a round minute (see CLAUDE.md cron-stagger notes).
+    - cron: "17 19 * * 0"
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+concurrency:
+  group: codeql
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      packages: read
+      actions: read
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: actions
+            build-mode: none
+          - language: javascript-typescript
+            build-mode: none
+          - language: python
+            build-mode: none
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"
