@@ -60,7 +60,13 @@ google-auth-httplib2==0.4.0
 pynacl==1.6.2
 
 # GOOGLE INDEXING API
-cryptography==48.0.1
+# 2026-08-04: bumped 48.0.1->50.0.0 (Dependabot alert #20, high severity: PKCS#7
+# EnvelopedData decryption Bleichenbacher oracle, fixed range >=44.0.0,<50.0.0).
+# We don't use PKCS#7 at all (only RSA-sign via hazmat primitives for the Google
+# Indexing API JWT in generate_articles.py) so this repo was never exploitable
+# via that specific CVE, but there's no reason to stay on a flagged version.
+# google-auth==2.53.0 only requires cryptography>=38.0.3, no upper-bound conflict.
+cryptography==50.0.0
 
 # SYSTEM
 certifi==2026.5.20
