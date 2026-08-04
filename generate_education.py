@@ -1,6 +1,26 @@
 """
 generate_education.py — AI360Trading
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v1.4 (2026-08-04):
+  FIX — repeated audio/text within the SAME long video. Owner reported the
+    education video repeating identical lines to pad length. Root cause:
+    expand_slide_content() padded any under-80-word slide from a pool of only
+    2 generic filler paragraphs (EXTRA_CONTENT_HI/EN), with no tracking of
+    what had already been used in that run. A 22-slide video routinely needs
+    5-10+ slides padded (the AI rarely returns "exactly 22 slides >=100 words"
+    on the first try — MIN_SLIDES top-up at line ~383 and the full AI-failure
+    fallback at line ~419 both padded from the SAME single fallback_content
+    string too) — so the identical paragraph was pasted into multiple
+    different slides of one video, and since gen_voice() does TTS off that
+    literal text, the same audio repeated too. FIX: filler pool expanded to
+    8 varied ~50-70-word paragraphs per language; expand_slide_content() now
+    chains fresh, not-yet-used fillers (one at a time, until MIN_WORDS_SLIDE
+    is cleared — usually 2) via a `used` set threaded through every callsite
+    in generate_edu_slides(), so no filler repeats within one video (only
+    recycles once the whole pool is exhausted, which needs far more padded
+    slides than the observed ~5-10 per run). Same repetition-bug class
+    already fixed for FB captions/video tags in human_touch.py v2.4/v2.5.
+
 v1.3 (2026-06-08):
   FIX — DUPLICATE upload bug. The 52-week course returns ONE topic per week
     (week_idx = days_since_start // 7), but daily-videos.yml runs this DAILY,
@@ -48,6 +68,7 @@ import re
 import io
 import sys
 import json
+import random
 import asyncio
 import textwrap
 import urllib.parse
@@ -180,48 +201,134 @@ def clean_edu_title(title: str, week: int, topic_name: str, lang: str = "hi") ->
 
 # ─── SLIDE CONTENT EXPANDER — v1.1 FIX 3 ─────────────────────────────────────
 
-EXTRA_CONTENT_HI = [
+FILLER_HI = [
     (
-        " Yeh concept Indian stock market mein bahut important role play karta hai. "
+        "Yeh concept Indian stock market mein bahut important role play karta hai. "
         "NSE aur BSE dono exchanges par yeh principle equally apply hota hai. "
         "Agar aap isko practically apply karna chahte hain toh pehle paper trading se shuru karo. "
         "Apne trades ko track karo, journal banao, aur har trade se kuch na kuch seekho. "
         "Discipline aur patience do cheezein hain jo successful traders ko average se alag karti hain."
     ),
     (
-        " Is concept ko global markets mein bhi dekha gaya hai — USA aur UK ke traders bhi yehi follow karte hain. "
+        "Is concept ko global markets mein bhi dekha gaya hai — USA aur UK ke traders bhi yehi follow karte hain. "
         "Indian market ki apni characteristics hain — FII activity, sector rotation, aur Nifty ka 20DMA "
         "yeh sab factors aapko samajhne chahiye taaki aap better decisions le sako. "
         "Regular study aur consistent practice se yeh skill naturally develop hoti hai."
     ),
+    (
+        "Risk management ke bina koi bhi strategy long term mein kaam nahi karti. "
+        "Har trade mein apna capital ka sirf ek chhota hissa risk pe daalo, poora paisa kabhi ek jagah mat lagao. "
+        "Position sizing aur stop-loss yeh do basic tools hain jo aapko bade nuksan se bachate hain. "
+        "Jo traders survive karte hain woh sabse zyada nahi kamate, woh sabse kam galtiyan karte hain."
+    ),
+    (
+        "Ek real example lete hain — Reliance ya TCS jaisi bade companies mein bhi price short term mein "
+        "up-down hoti rehti hai, lekin fundamentals strong hone par long term investors profit mein rehte hain. "
+        "Isi tarah kisi bhi stock ko samajhne ke liye sirf price nahi, company ka business bhi dekhna zaroori hai. "
+        "Yehi soch beginners ko average traders se alag banati hai."
+    ),
+    (
+        "Compounding ka power samajhna bahut zaroori hai — chhota returns bhi lambe time mein bada fark banate hain. "
+        "Jaldi shuru karna aur consistently invest karna, timing perfect karne se zyada important hota hai. "
+        "SIP jaisa disciplined approach volatility ko average out karta hai aur emotional decisions se bachata hai. "
+        "Patience yahan sabse bada asset hai."
+    ),
+    (
+        "Diversification ka matlab hai apna paisa alag-alag sectors aur asset classes mein spread karna. "
+        "Agar sirf ek sector ya ek stock mein sab paisa hai toh ek negative news poora portfolio hila sakti hai. "
+        "Banking, IT, FMCG jaise different sectors alag time pe alag perform karte hain, isliye balance zaroori hai. "
+        "Smart investors apna risk is tarah manage karte hain."
+    ),
+    (
+        "Emotions trading ke sabse bade dushman hain — fear aur greed dono galat decisions karwate hain. "
+        "Jab market girta hai tab panic mein bechna aur jab market chadta hai tab greed mein zyada risk lena, "
+        "yeh dono hi common mistakes hain jo naye traders karte hain. "
+        "Ek fixed plan follow karna aur usse stick rehna hi discipline kehlata hai."
+    ),
+    (
+        "Market research aur news ko samajhna bhi ek skill hai jo time ke saath develop hoti hai. "
+        "FII/DII data, quarterly results, aur global cues jaise factors Indian market ko directly affect karte hain. "
+        "Lekin har news par reaction dena zaroori nahi — sirf woh news jo aapke stock ya sector se directly juda ho. "
+        "Consistent learning hi is field mein aage badhne ka raasta hai."
+    ),
 ]
 
-EXTRA_CONTENT_EN = [
+FILLER_EN = [
     (
-        " This concept plays an important role in the Indian stock market and applies to both NSE and BSE. "
+        "This concept plays an important role in the Indian stock market and applies to both NSE and BSE. "
         "If you want to apply this practically, start with paper trading first. "
         "Track all your trades in a journal and learn something from every single trade you make. "
         "Discipline and patience are the two qualities that separate successful traders from average ones."
     ),
     (
-        " This concept also applies in global markets — traders in the USA and UK follow the same principles. "
+        "This concept also applies in global markets — traders in the USA and UK follow the same principles. "
         "The Indian market has unique characteristics — FII activity, sector rotation, and the Nifty 20DMA "
         "are all factors you need to understand to make better decisions. "
         "Regular study and consistent practice will help these skills develop naturally."
     ),
+    (
+        "No strategy works long term without proper risk management. "
+        "Risk only a small portion of your capital on any single trade, never put everything in one place. "
+        "Position sizing and a stop-loss are the two basic tools that protect you from large losses. "
+        "The traders who survive aren't the ones who earn the most, they're the ones who make the fewest mistakes."
+    ),
+    (
+        "Let's take a real example — even in large companies like Reliance or TCS, the price moves up and down "
+        "in the short term, but long-term investors profit when the underlying business stays strong. "
+        "Understanding any stock means looking beyond price alone to the actual business behind it. "
+        "That mindset is what separates beginners from consistent traders."
+    ),
+    (
+        "Understanding the power of compounding matters a lot — even small returns create a big difference over time. "
+        "Starting early and investing consistently matters more than trying to time the market perfectly. "
+        "A disciplined approach like a SIP averages out volatility and removes emotional decision-making. "
+        "Patience is the biggest asset here."
+    ),
+    (
+        "Diversification means spreading your money across different sectors and asset classes. "
+        "If all your money sits in one sector or one stock, a single piece of bad news can shake your entire portfolio. "
+        "Sectors like banking, IT, and FMCG perform differently at different times, so balance matters. "
+        "Smart investors manage their risk exactly this way."
+    ),
+    (
+        "Emotions are the biggest enemy of good trading — both fear and greed lead to poor decisions. "
+        "Panic-selling when the market falls and taking excess risk out of greed when it rises are both "
+        "common mistakes new traders make. "
+        "Following a fixed plan and sticking to it is what real discipline looks like."
+    ),
+    (
+        "Understanding market research and news is also a skill that develops over time. "
+        "Factors like FII/DII data, quarterly results, and global cues directly affect the Indian market. "
+        "But reacting to every headline isn't necessary — only news directly tied to your stock or sector matters. "
+        "Consistent learning is the real path forward in this field."
+    ),
 ]
 
-def expand_slide_content(content: str, heading: str, topic_name: str, lang: str) -> str:
-    """Ensure slide content is at least MIN_WORDS_SLIDE words."""
-    words = len(content.split())
-    if words >= MIN_WORDS_SLIDE:
+def expand_slide_content(content: str, heading: str, topic_name: str, lang: str, used: set = None) -> str:
+    """Ensure slide content is at least MIN_WORDS_SLIDE words.
+
+    `used` (shared across one video's worth of calls) tracks which filler
+    paragraphs have already been used so the same text/audio never repeats
+    within a single video — see v1.4 fix note in the file header. Each filler
+    paragraph alone is only ~50-70 words (under MIN_WORDS_SLIDE=80), so this
+    chains fresh, not-yet-used fillers one at a time until the threshold is
+    cleared (usually 2), only falling back to an already-used one if the
+    entire pool has been exhausted in this video."""
+    if len(content.split()) >= MIN_WORDS_SLIDE:
         return content
-    extras = EXTRA_CONTENT_EN if lang == "en" else EXTRA_CONTENT_HI
-    for ext in extras:
-        content = content + ext
+    pool = FILLER_EN if lang == "en" else FILLER_HI
+    if used is None:
+        used = set()
+    fresh = [f for f in pool if f not in used]
+    random.shuffle(fresh)
+    stale = [f for f in pool if f in used]
+    random.shuffle(stale)
+    for filler in fresh + stale:
         if len(content.split()) >= MIN_WORDS_SLIDE:
             break
-    return content.strip()
+        content = f"{content} {filler}".strip() if content else filler
+        used.add(filler)
+    return content
 
 # ─── EXPANSION SLIDE HEADINGS ─────────────────────────────────────────────────
 
@@ -326,18 +433,8 @@ def generate_edu_slides(topic, week):
         )
         title_format = f"{topic.get('title_en', topic['title'])} | Week {week} | AI360 Trading"
 
-    # Fallback content for padding
-    fallback_content = (
-        "Yeh concept trading mein bahut useful hai. "
-        "Agar aap isko consistently apply karo toh results zaroor aayenge. "
-        "Practice aur patience se sab possible hai. "
-        "Agli slide mein aur detail mein dekhenge."
-    ) if LANG == "hi" else (
-        "This concept is very useful in trading. "
-        "If you apply it consistently, results will follow. "
-        "Practice and patience make everything possible. "
-        "Let us look at more detail in the next slide."
-    )
+    # v1.4: one shared tracker so no filler paragraph repeats within this video
+    used_fillers = set()
 
     prompt = f"""You are a friendly financial educator teaching a free 52-week investing course on YouTube.
 Today: {today}
@@ -385,7 +482,7 @@ Return ONLY valid JSON, no markdown:
             heading = slide_headings[idx] if idx < len(slide_headings) else "Key Lesson"
             slides.append({
                 "title": heading,
-                "content": expand_slide_content(fallback_content, heading, topic["title"], LANG),
+                "content": expand_slide_content("", heading, topic["title"], LANG, used=used_fillers),
                 "key_takeaway": "Seekhte raho, consistent raho" if LANG == "hi" else "Keep learning, stay consistent"
             })
 
@@ -396,7 +493,7 @@ Return ONLY valid JSON, no markdown:
         for i, slide in enumerate(data["slides"]):
             orig_words = len(slide["content"].split())
             data["slides"][i]["content"] = expand_slide_content(
-                slide["content"], slide["title"], topic["title"], LANG
+                slide["content"], slide["title"], topic["title"], LANG, used=used_fillers
             )
             new_words = len(data["slides"][i]["content"].split())
             if new_words > orig_words:
@@ -416,7 +513,7 @@ Return ONLY valid JSON, no markdown:
             if i < len(topic_slides):
                 pts = topic_slides[i].get("points", [])
                 content = " ".join(pts)
-            content = expand_slide_content(content, heading, topic["title"], LANG)
+            content = expand_slide_content(content, heading, topic["title"], LANG, used=used_fillers)
             fallback_slides.append({
                 "title": heading,
                 "content": content,
