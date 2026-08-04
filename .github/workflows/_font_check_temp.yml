@@ -1,0 +1,51 @@
+name: TEMP Font Check
+on:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Check font files exist
+        run: |
+          for p in /usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf \
+                   /usr/share/fonts/truetype/dejavu/DejaVuSans.ttf \
+                   /usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf; do
+            if [ -f "$p" ]; then echo "FOUND: $p"; else echo "MISSING: $p"; fi
+          done
+          fc-list 2>/dev/null | grep -i emoji || echo "NO EMOJI FONT PACKAGE FOUND"
+      - name: Install Pillow and render a real test slide
+        run: |
+          pip install Pillow
+          python - <<'EOF'
+          from PIL import Image, ImageDraw, ImageFont
+          import os
+          FONT_BOLD_PATHS = [
+              "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+              "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
+              "/usr/share/fonts/truetype/freefont/FreeSansBold.ttf",
+              "/usr/share/fonts/truetype/ubuntu/Ubuntu-B.ttf",
+          ]
+          def get_font(paths, size):
+              for p in paths:
+                  if os.path.exists(p):
+                      try: return ImageFont.truetype(p, size)
+                      except: continue
+              return ImageFont.load_default()
+          img = Image.new("RGB", (1200, 300), (20, 20, 40))
+          d = ImageDraw.Draw(img)
+          f = get_font(FONT_BOLD_PATHS, 40)
+          print("Resolved font:", f)
+          d.text((40, 40), "Test em-dash — and text", fill=(255,255,255), font=f)
+          d.text((40, 120), "📚 🎯 💡 📱 🤖 emoji test", fill=(255,255,255), font=f)
+          img.save("font_test.png")
+          print("saved font_test.png")
+          EOF
+      - uses: actions/upload-artifact@v4
+        with:
+          name: font-check-result
+          path: font_test.png
