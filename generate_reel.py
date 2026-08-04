@@ -407,9 +407,9 @@ def build_reel_frame(title_text, display_text, emotion="thinking", nifty_cmp=0, 
                        dl, font=font_display, fill=(255, 220, 80), anchor="mm")
 
     font_brand = get_font(FONT_BOLD, 36)
-    draw_text.text((SW//2, SH-220), "✦ ai360trading.in",
+    draw_text.text((SW//2, SH-220), "ai360trading.in",
                    font=font_brand, fill=(160, 200, 255), anchor="mm")
-    draw_text.text((SW//2, SH-160), "📱 t.me/ai360trading",
+    draw_text.text((SW//2, SH-160), "t.me/ai360trading",
                    font=font_brand, fill=(140, 180, 240), anchor="mm")
 
     path = OUT / "zeno_reel_frame.png"  # internal output filename, unchanged

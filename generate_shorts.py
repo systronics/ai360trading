@@ -319,14 +319,13 @@ def short2_thumb_text(script_data: dict):
     if CONTENT_MODE in ("holiday", "weekend"):
         return ("WEEKEND TRADING LESSON",
                 script_data.get("insight", "Patience + discipline = profit"),
-                GOLD, "📚 LEARN TODAY")
+                GOLD, "LEARN TODAY")
     stock  = script_data.get("stock", "NIFTY")
     sent   = script_data.get("sentiment", "bullish").lower()
     accent = BULL_GREEN if sent == "bullish" else BEAR_RED if sent == "bearish" else GOLD
-    arrow  = "📈" if sent == "bullish" else "📉" if sent == "bearish" else "⚖️"
     return (f"{stock} {sent.upper()}",
             script_data.get("insight", "Today's trade setup inside"),
-            accent, f"{arrow} TRADE SETUP")
+            accent, "TRADE SETUP")
 
 
 def short3_thumb_text(script_data: dict):
@@ -336,7 +335,7 @@ def short3_thumb_text(script_data: dict):
              BEAR_RED if sent in ("bearish", "negative") else GOLD
     return ("GLOBAL MARKETS TODAY",
             script_data.get("insight", "Nifty • Gold • Bitcoin • S&P 500"),
-            accent, "🌍 MARKET PULSE")
+            accent, "MARKET PULSE")
 
 
 # ─── MARKET DATA ──────────────────────────────────────────────────────────────
@@ -418,9 +417,7 @@ def make_short2_frame(script_data, market):
     stock = script_data.get("stock", "FINANCIAL EDUCATION" if CONTENT_MODE in ("holiday", "weekend") else "NIFTY 50")
     draw_text_outlined(draw, stock.upper(), SW//2, 310, get_font(FONT_BOLD_PATHS, 90), WHITE, outline=2)
 
-    badge_icon = "📚" if CONTENT_MODE in ("holiday", "weekend") else (
-        "📈" if sentiment == "bullish" else "📉" if sentiment == "bearish" else "⚖️")
-    badge = f" {badge_icon} {sentiment.upper()} "
+    badge = f" {sentiment.upper()} "
     draw.rounded_rectangle([(SW//2-160, 360), (SW//2+160, 420)], radius=20, fill=(*accent, 40))
     draw.text((SW//2, 390), badge, font=get_font(FONT_BOLD_PATHS, 36), fill=accent, anchor="mm")
 
@@ -429,17 +426,17 @@ def make_short2_frame(script_data, market):
 
     if CONTENT_MODE in ("holiday", "weekend"):
         levels = [
-            ("📖 TOPIC",   script_data.get("entry",   "Financial Education"), WHITE),
-            ("💡 LESSON",  script_data.get("target",  "See Description"),     BULL_GREEN),
-            ("🎯 ACTION",  script_data.get("sl",      "Learn and Apply"),     GOLD),
-            ("⏱ HORIZON", script_data.get("horizon", "Long Term"),            ACCENT_BLUE),
+            ("TOPIC",   script_data.get("entry",   "Financial Education"), WHITE),
+            ("LESSON",  script_data.get("target",  "See Description"),     BULL_GREEN),
+            ("ACTION",  script_data.get("sl",      "Learn and Apply"),     GOLD),
+            ("HORIZON", script_data.get("horizon", "Long Term"),            ACCENT_BLUE),
         ]
     else:
         levels = [
-            ("🎯 ENTRY",   script_data.get("entry",   "Market Price"),  WHITE),
-            ("📊 TARGET",  script_data.get("target",  "See Desc."),     BULL_GREEN),
-            ("🛑 SL",      script_data.get("sl",      "Risk Managed"),  BEAR_RED),
-            ("⏱ HORIZON", script_data.get("horizon", "Intraday"),      GOLD),
+            ("ENTRY",   script_data.get("entry",   "Market Price"),  WHITE),
+            ("TARGET",  script_data.get("target",  "See Desc."),     BULL_GREEN),
+            ("SL",      script_data.get("sl",      "Risk Managed"),  BEAR_RED),
+            ("HORIZON", script_data.get("horizon", "Intraday"),      GOLD),
         ]
 
     ly = box_top + 60
@@ -451,7 +448,7 @@ def make_short2_frame(script_data, market):
     strip_y = 930
     draw.rounded_rectangle([(60, strip_y), (SW-60, strip_y+100)], radius=20, fill=(0, 0, 0, 100))
     if CONTENT_MODE in ("holiday", "weekend"):
-        draw.text((SW//2, strip_y+50), "📚 EDUCATION MODE", font=get_font(FONT_BOLD_PATHS, 44), fill=GOLD, anchor="mm")
+        draw.text((SW//2, strip_y+50), "EDUCATION MODE", font=get_font(FONT_BOLD_PATHS, 44), fill=GOLD, anchor="mm")
     else:
         nc = BULL_GREEN if market["nifty"]["up"] else BEAR_RED
         draw.text((120, strip_y+50),    "NIFTY",                 font=get_font(FONT_BOLD_PATHS, 38), fill=(160, 180, 220), anchor="lm")
@@ -474,9 +471,9 @@ def make_short2_frame(script_data, market):
         draw.text((SW//2, iy), il, font=get_font(FONT_REG_PATHS, 34), fill=(170, 190, 220), anchor="mm")
         iy += 48
 
-    draw.text((SW//2, SH-200), "📱 t.me/ai360trading", font=get_font(FONT_BOLD_PATHS, 38), fill=accent,    anchor="mm")
-    draw.text((SW//2, SH-140), "🌐 ai360trading.in",   font=get_font(FONT_REG_PATHS, 34),  fill=SOFT_WHITE, anchor="mm")
-    draw.text((SW//2, SH-80),  "⚠️ Educational Only — Not SEBI Advice",
+    draw.text((SW//2, SH-200), "t.me/ai360trading", font=get_font(FONT_BOLD_PATHS, 38), fill=accent,    anchor="mm")
+    draw.text((SW//2, SH-140), "ai360trading.in",   font=get_font(FONT_REG_PATHS, 34),  fill=SOFT_WHITE, anchor="mm")
+    draw.text((SW//2, SH-80),  "Educational Only — Not SEBI Advice",
               font=get_font(FONT_REG_PATHS, 28), fill=(100, 120, 160), anchor="mm")
 
     path = OUT / f"short2_{now_ist.strftime('%Y%m%d')}.png"
@@ -504,11 +501,11 @@ def make_short3_frame(script_data, market):
     draw.rectangle([(60, 180), (SW-60, 183)], fill=accent)
 
     markets_data = [
-        ("🇮🇳 NIFTY",   market.get("nifty",  {})),
-        ("₿ BTC",        market.get("btc",    {})),
-        ("🥇 GOLD",      market.get("gold",   {})),
-        ("💵 USD/INR",   market.get("usdinr", {})),
-        ("🇺🇸 S&P 500", market.get("sp500",  {})),
+        ("NIFTY",     market.get("nifty",  {})),
+        ("₿ BTC",     market.get("btc",    {})),
+        ("GOLD",      market.get("gold",   {})),
+        ("USD/INR",   market.get("usdinr", {})),
+        ("S&P 500",   market.get("sp500",  {})),
     ]
 
     my = 230
@@ -541,9 +538,9 @@ def make_short3_frame(script_data, market):
         draw.text((SW//2, iy), il, font=get_font(FONT_REG_PATHS, 34), fill=(170,190,220), anchor="mm")
         iy += 48
 
-    draw.text((SW//2, SH-200), "📱 t.me/ai360trading", font=get_font(FONT_BOLD_PATHS, 38), fill=accent,    anchor="mm")
-    draw.text((SW//2, SH-140), "🌐 ai360trading.in",   font=get_font(FONT_REG_PATHS, 34),  fill=SOFT_WHITE, anchor="mm")
-    draw.text((SW//2, SH-80),  "⚠️ Educational Only — Not SEBI Advice",
+    draw.text((SW//2, SH-200), "t.me/ai360trading", font=get_font(FONT_BOLD_PATHS, 38), fill=accent,    anchor="mm")
+    draw.text((SW//2, SH-140), "ai360trading.in",   font=get_font(FONT_REG_PATHS, 34),  fill=SOFT_WHITE, anchor="mm")
+    draw.text((SW//2, SH-80),  "Educational Only — Not SEBI Advice",
               font=get_font(FONT_REG_PATHS, 28), fill=(100,120,160), anchor="mm")
 
     path = OUT / f"short3_{now_ist.strftime('%Y%m%d')}.png"

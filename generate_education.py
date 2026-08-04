@@ -635,7 +635,7 @@ def make_edu_slide(slide, idx, total, topic, path, bg_img=None):
     draw.rectangle([(0,0),(W,10)], fill=th["accent"])
 
     # Header
-    draw.text((40,35), f"📚 {topic['category'].upper()}", fill=(*th["subtext"],220),
+    draw.text((40,35), f"{topic['category'].upper()}", fill=(*th["subtext"],220),
               font=get_font(FONT_BOLD_PATHS,30), anchor="la")
     draw.text((W//2,38), "ai360trading.in", fill=(*th["subtext"],160),
               font=get_font(FONT_REG_PATHS,26), anchor="mm")
@@ -670,10 +670,10 @@ def make_edu_slide(slide, idx, total, topic, path, bg_img=None):
         box_bot = box_top + 70
         draw.rectangle([(60,box_top),(W-60,box_bot)], fill=(*th["accent"],30))
         draw.rectangle([(60,box_top),(63,box_bot)], fill=th["accent"])
-        draw.text((90,box_top+35), f"💡 {slide['key_takeaway']}",
+        draw.text((90,box_top+35), f"{slide['key_takeaway']}",
                   fill=th["accent"], font=get_font(FONT_BOLD_PATHS,34), anchor="lm")
 
-    draw.text((40,H-45), "📱 t.me/ai360trading", fill=(*th["subtext"],180),
+    draw.text((40,H-45), "t.me/ai360trading", fill=(*th["subtext"],180),
               font=get_font(FONT_REG_PATHS,26), anchor="la")
     draw.rectangle([(0,H-10),(W,H)], fill=th["accent"])
     img.save(str(path), quality=95)

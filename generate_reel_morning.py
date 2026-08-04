@@ -557,7 +557,7 @@ def build_thumbnail(topic_display: str, sentiment: str, palette: dict, nifty_lev
 
     # Morning Brief badge (top) -- Amit's name replaces the cartoon presenter
     draw.rounded_rectangle([(20, 20), (480, 78)], radius=14, fill=(255, 200, 0))
-    draw.text((250, 49), "☀️ AMIT'S MORNING BRIEF", font=f_badge, fill=(0,0,0), anchor="mm")
+    draw.text((250, 49), "AMIT'S MORNING BRIEF", font=f_badge, fill=(0,0,0), anchor="mm")
 
     # Topic text (large yellow)
     safe_topic   = re.sub(r'[\u0900-\u097F]+', '', topic_display).strip().upper() or "MORNING BRIEF"
@@ -580,7 +580,7 @@ def build_thumbnail(topic_display: str, sentiment: str, palette: dict, nifty_lev
     # Sentiment badge — 2026-07-26: added a real triangle graphic (reads at
     # thumbnail size better than the emoji alone) for BULLISH/BEARISH; NEUTRAL
     # deliberately gets no arrow (no direction to point).
-    sent_label = {"BULLISH": "BULLISH", "BEARISH": "BEARISH", "NEUTRAL": "⚖️ NEUTRAL"}.get(sentiment, "⚖️ NEUTRAL")
+    sent_label = {"BULLISH": "BULLISH", "BEARISH": "BEARISH", "NEUTRAL": "NEUTRAL"}.get(sentiment, "NEUTRAL")
     badge_fill = (0,0,0) if sentiment=="BULLISH" else (255,255,255)
     draw.rounded_rectangle([(80, ty+10), (80+420, ty+82)], radius=14, fill=accent)
     if sentiment in ("BULLISH", "BEARISH"):

@@ -216,7 +216,7 @@ def build_fallback_thumbnail(reel_type: str, meta: dict) -> Path:
             ty += 138
 
         # Sentiment badge (like competitor's colored header)
-        sent_txt = {"BULLISH":"📈 BULLISH DAY","BEARISH":"📉 BEARISH DAY","NEUTRAL":"⚖️ NEUTRAL"}.get(sentiment,"⚖️ TODAY")
+        sent_txt = {"BULLISH":"BULLISH DAY","BEARISH":"BEARISH DAY","NEUTRAL":"NEUTRAL"}.get(sentiment,"TODAY")
         draw.rounded_rectangle([(80,ty+10),(80+380,ty+88)],radius=14,fill=accent)
         draw.text((270,ty+49),sent_txt,font=f_sub,fill=(0,0,0) if sentiment=="BULLISH" else (255,255,255),anchor="mm")
         ty += 108
@@ -230,7 +230,7 @@ def build_fallback_thumbnail(reel_type: str, meta: dict) -> Path:
 
         # 7:00 AM badge
         draw.rounded_rectangle([(20,20),(260,76)],radius=14,fill=(255,200,0))
-        draw.text((140,48),"☀️ 7:00 AM IST",font=f_badge,fill=(0,0,0),anchor="mm")
+        draw.text((140,48),"7:00 AM IST",font=f_badge,fill=(0,0,0),anchor="mm")
 
     else:
         # Evening reel: Show topic title + lesson preview
