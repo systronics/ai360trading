@@ -313,7 +313,24 @@ def expand_slide_content(content: str, heading: str, topic_name: str, lang: str,
     paragraph alone is only ~50-70 words (under MIN_WORDS_SLIDE=80), so this
     chains fresh, not-yet-used fillers one at a time until the threshold is
     cleared (usually 2), only falling back to an already-used one if the
-    entire pool has been exhausted in this video."""
+    entire pool has been exhausted in this video.
+
+    v1.4 also fixed a worse, separate problem found by actually running this
+    fallback path: `content_calendar.py`'s EDUCATION_COURSE topics only ever
+    define a slide "heading", never "points" — so whenever this function was
+    called with content="" (the full AI-failure fallback, ~line 419, or a
+    MIN_SLIDES pad, ~line 480), the slide ended up 100% generic filler with
+    ZERO mention of its own heading/topic (verified live: a real "Moving
+    Averages" video's fallback slides never said "EMA" or "moving average"
+    once). Now an empty slide gets a heading/topic-naming intro sentence
+    first, so even the worst case stays topically anchored instead of reading
+    as totally disconnected filler."""
+    if not content:
+        content = (
+            f"{heading} — {topic_name} ka ek zaroori hissa hai. Chaliye ise samajhte hain."
+            if lang != "en" else
+            f"{heading} is an important part of understanding {topic_name}. Let's break it down."
+        )
     if len(content.split()) >= MIN_WORDS_SLIDE:
         return content
     pool = FILLER_EN if lang == "en" else FILLER_HI
@@ -326,7 +343,7 @@ def expand_slide_content(content: str, heading: str, topic_name: str, lang: str,
     for filler in fresh + stale:
         if len(content.split()) >= MIN_WORDS_SLIDE:
             break
-        content = f"{content} {filler}".strip() if content else filler
+        content = f"{content} {filler}".strip()
         used.add(filler)
     return content
 
