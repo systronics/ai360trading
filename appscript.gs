@@ -748,8 +748,9 @@ const CONFIG = {
   CASH_TARGET_PCT      : 0.12,  // +12% target (10-15% potential)
   CASH_ENTRY_WINDOW    : "13:30", // v15.30: was 10:30 — a 4%+ gap/catalyst mover that builds its move after
                                    // 10:30 (very common — many NSE gainers accelerate after 12 PM) was invisible
-                                   // to this path entirely. 13:30 still leaves 1.5hr before the existing 15:00
-                                   // CASH_FORCE_EXIT_HOUR, plenty for a fast catalyst-driven move.
+                                   // to this path entirely. 13:30 still leaves ~1hr40min before trading_bot.py's
+                                   // CASH_FORCE_EXIT_HOUR (v15.35: 15:10, was 15:00), plenty for a fast
+                                   // catalyst-driven move.
   CASH_MAX_SLOTS       : 3,     // max 3 cash intraday candidates per day
   CASH_ATH_GAP_MIN_PCT : 5.0,   // stock must have 5%+ gap from ATH (room to run)
 
@@ -1759,10 +1760,10 @@ function _runScanner(startRow, endRow) {
     // ── CASH INTRADAY DETECTION (v15.7) ──────────────────────────────────────
     // Small-mid cap stocks with 4%+ gap + volume surge = 10-15% intraday potential.
     // These bypass normal swing/positional gates — they're news-driven same-day trades.
-    // Bot handles forced 3 PM exit automatically.
+    // Bot handles forced ~3:10 PM exit automatically (trading_bot.py v15.35 — was 3 PM).
     // v15.12: marketBullish requirement removed — cash trades are catalyst-driven
     // (PSU results, defence orders, sector news) and can move 10-15% even in bearish
-    // Nifty. Risk is contained by tight 3% SL + 3PM force-exit; the 4% pctChange
+    // Nifty. Risk is contained by tight 3% SL + ~3:10 PM force-exit; the 4% pctChange
     // threshold already requires strong conviction.
     // v15.24: volume condition is time-fair pace (diff-form 200 = 3.0× — the
     // old "2x average" comment was wrong for this diff-form column). Cash

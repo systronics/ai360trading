@@ -671,7 +671,7 @@ except Exception as _e:
     _EQ_AVAILABLE = False
 
 IST       = pytz.timezone('Asia/Kolkata')
-VERSION   = "v15.34"   # single source for the run banner + test messages (were stale at v15.16 before v15.23; was stuck at v15.28 in this constant through the v15.29 RSI dip-tolerance release — banner text only, no logic was affected). v15.32 (2026-07-28): TSL-UPDATE spam fix — see calc_new_tsl() comparison guard below. v15.33 (2026-07-30): loss re-entry cooldown split to 1 trading day (was sharing the 5-day target-hit cooldown) — see set_loss_cooldown() below. v15.34 (2026-07-30): re-entry cooldown scoped by trade family (OPTION/CASH/STOCK no longer cross-block each other) — see _cooldown_family() below.
+VERSION   = "v15.35"   # single source for the run banner + test messages (were stale at v15.16 before v15.23; was stuck at v15.28 in this constant through the v15.29 RSI dip-tolerance release — banner text only, no logic was affected). v15.32 (2026-07-28): TSL-UPDATE spam fix — see calc_new_tsl() comparison guard below. v15.33 (2026-07-30): loss re-entry cooldown split to 1 trading day (was sharing the 5-day target-hit cooldown) — see set_loss_cooldown() below. v15.34 (2026-07-30): re-entry cooldown scoped by trade family (OPTION/CASH/STOCK no longer cross-block each other) — see _cooldown_family() below. v15.35 (2026-08-05): Cash Intraday force-exit shifted 3:00 PM -> ~3:10 PM after a full 10-trade History review (7W/3L, all exits via this clock, never target/SL) showed the trailing stop already protects gains and the cutoff was never updated for NSE's 15:30->15:40 close move — see CASH_FORCE_EXIT_HOUR below. Entry criteria deliberately untouched (sample too small to recalibrate).
 TG_TOKEN  = os.environ.get('TELEGRAM_BOT_TOKEN')
 
 CHAT_BASIC   = os.environ.get('CHAT_ID_BASIC')
@@ -812,7 +812,32 @@ CASH_ENTRY_WINDOW_END  = (13, 30)  # v15.30: was 10:30 — appscript.gs v15.30 a
                                     # side cutoff was never updated to match — afternoon cash WAITING rows
                                     # were being queued by appscript.gs and then silently starved here,
                                     # never promoted to TRADED. Found in 2026-07-26 full-system audit.
-CASH_FORCE_EXIT_HOUR   = (15, 0)   # force-exit all cash trades at 3:00 PM
+CASH_FORCE_EXIT_HOUR   = (15, 10)  # v15.35 (2026-08-05): was (15,0) — owner asked for a full History
+                                    # review of the Cash Intraday strategy before deciding what to improve.
+                                    # Pulled all 10 closed Cash Intraday trades to date (2026-07-27 to
+                                    # 2026-08-05): 7 wins / 3 losses, avg win +2.61%, avg loss only -0.56%,
+                                    # net +₹1135 across 10 trades — a healthy, working strategy, NOT a
+                                    # broken one. But ALL 10/10 exits were "INTRADAY TIME EXIT" (this clock),
+                                    # never the +12% target and never the -3% SL — meaning the fixed 3:00 PM
+                                    # cutoff is the only thing currently deciding outcomes, and Max-Price-Seen
+                                    # vs actual Exit Price was within ~1% on every winner, proving the
+                                    # trailing stop (TSL_PARAMS["CASH"]) already protects gains well on its
+                                    # own — the clock isn't doing risk-control work, only cutting trades off
+                                    # early. Separately, NSE moved the real F&O/cash close 15:30->15:40 on
+                                    # 2026-08-03 (appscript.gs v15.34) and this constant was never revisited
+                                    # to match. Fix: shifted +10 min to preserve the exact same ~30-min
+                                    # safety buffer before the close this constant always had (was 30 min
+                                    # before the old 15:30 close; now 30 min before the real 15:40 close),
+                                    # giving trades already protected by their own trailing stop a bit more
+                                    # runway instead of an artificially early cutoff. Deliberately did NOT
+                                    # touch CASH_MIN_PCT_CHANGE/CASH_TARGET_PCT/CASH_SL_PCT/entry criteria —
+                                    # 10 trades over 9 calendar days is too small a sample to recalibrate an
+                                    # entry threshold without risking an overfit to noise; this timing shift
+                                    # is the one change the evidence directly supports on its own, without
+                                    # needing a bigger sample to trust it (it only gives existing, already-
+                                    # profitable trades more room — it doesn't change which stocks qualify).
+CASH_FORCE_EXIT_WINDOW_MIN = 15    # v15.35: width (minutes) of the force-exit check window — unchanged,
+                                    # only the start time moved; matches the window step_c_intraday_exit uses
 CASH_MAX_DAILY         = 2         # max 2 cash intraday trades per day
 CASH_CAPITAL           = CAPITAL_STD  # smallest tier — higher risk position
 
@@ -2503,7 +2528,7 @@ def step_b_monitor_trades(log_sheet, hist_sheet, nifty_sheet, mem, now, is_bulli
         # v15.10 Batch 2 — TIME STOP. After TIME_STOP_DAYS trading days, if the
         # trade has not delivered TIME_STOP_MIN_GAIN_PCT, exit and free the slot.
         # Runs AFTER target/TSL checks above so winners are never cut early.
-        # Cash intraday trades skip time stop (they have their own 3 PM force exit).
+        # Cash intraday trades skip time stop (they have their own ~3:10 PM force exit, v15.35).
         # v15.25: OPTION trades skip it too — their time rules are the alert's
         # own (expiry-week + v15.26 OPTION_MAX_TDAYS=2, handled above). Exception: if the
         # expiry cell doesn't parse, the generic time stop stays as the
@@ -2909,12 +2934,14 @@ def send_market_close_summary(log_sheet, hist_sheet, mem, now, is_bullish, nifty
 
 def step_c_intraday_exit(log_sheet, hist_sheet, nifty_sheet, mem, now):
     """
-    Force-exit all 🔥 Cash Intraday trades at 3:00 PM regardless of P/L.
+    Force-exit all 🔥 Cash Intraday trades at ~3:10 PM regardless of P/L.
     Cash intraday = same-day trade — must not hold overnight.
-    Runs only in the 3:00-3:15 PM window.
+    Runs only in the CASH_FORCE_EXIT_HOUR window (v15.35: 3:10-3:25 PM —
+    was 3:00-3:15 PM; see CASH_FORCE_EXIT_HOUR comment for why).
     """
     h, m = now.hour, now.minute
-    if not (h == 15 and m <= 15):
+    fx_h, fx_m = CASH_FORCE_EXIT_HOUR
+    if not (h == fx_h and fx_m <= m <= fx_m + CASH_FORCE_EXIT_WINDOW_MIN):
         return mem
 
     today_str = now.strftime("%Y-%m-%d")
@@ -2955,7 +2982,7 @@ def step_c_intraday_exit(log_sheet, hist_sheet, nifty_sheet, mem, now):
         exits += 1
 
     if exits > 0:
-        print(f"[CASH EXIT] {exits} intraday trade(s) force-exited at 3 PM")
+        print(f"[CASH EXIT] {exits} intraday trade(s) force-exited at ~3:10 PM")
     return mem
 
 
@@ -3478,8 +3505,10 @@ def main():
         if "12:28" <= time_str <= "12:38":
             mem = send_midday_pulse(log, mem, now, is_bullish)
 
-        # Cash intraday force-exit at 3:00 PM (before market close summary)
-        if "15:00" <= time_str <= "15:15":
+        # Cash intraday force-exit at ~3:10 PM (before market close summary).
+        # v15.35: was 15:00-15:15 — must stay in sync with CASH_FORCE_EXIT_HOUR/
+        # CASH_FORCE_EXIT_WINDOW_MIN above if either changes again.
+        if "15:10" <= time_str <= "15:25":
             mem = step_c_intraday_exit(log, hist, nifty, mem, now)
 
         if "15:15" <= time_str <= "15:45":
