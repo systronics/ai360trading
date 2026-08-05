@@ -1,5 +1,5 @@
 {
-  "generated_at": "05 August 2026, 12:03 PM IST",
+  "generated_at": "05 August 2026, 12:33 PM IST",
   "setups": [
     {
       "symbol": "MARICO",
@@ -34,18 +34,42 @@
       "days_in_trade": "0"
     },
     {
-      "symbol": "RADICO",
+      "symbol": "EXIDEIND",
       "trade_type": "📊 Options Alert",
-      "strategy": "🎯 RETEST BUY",
-      "stage": "🎯 RETEST | 🚀 BREAKOUT CONFIRMED",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "status": "✅ TRADED (PAPER)",
+      "days_in_trade": "0"
+    },
+    {
+      "symbol": "JUBLFOOD",
+      "trade_type": "🔥 Cash Intraday",
+      "strategy": "CASH",
+      "stage": "🔥 CASH | +4.1% | Vol 125%",
+      "status": "✅ TRADED (PAPER)",
+      "days_in_trade": "0"
     },
     {
       "symbol": "TITAN",
       "trade_type": "⚡ Intraday",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "INDUSINDBK",
+      "trade_type": "📊 Options Alert",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "RADICO",
+      "trade_type": "📊 Options Alert",
+      "strategy": "🎯 RETEST BUY",
+      "stage": "🎯 RETEST | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
@@ -59,18 +83,10 @@
     },
     {
       "symbol": "GODREJPROP",
-      "trade_type": "📊 Options Alert",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 🔄 Building Momentum",
+      "trade_type": "⚡ MOM Swing",
+      "strategy": "➖ HOLD",
+      "stage": "⚡ MOMENTUM | +4.2% | Vol 87%",
       "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "EXIDEIND",
-      "trade_type": "📊 Options Alert",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
-      "status": "✅ TRADED (PAPER)",
       "days_in_trade": "—"
     }
   ]
