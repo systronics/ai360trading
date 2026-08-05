@@ -1,5 +1,5 @@
 {
-  "generated_at": "05 August 2026, 11:02 AM IST",
+  "generated_at": "05 August 2026, 11:33 AM IST",
   "setups": [
     {
       "symbol": "MARICO",
@@ -10,20 +10,28 @@
       "days_in_trade": "5"
     },
     {
-      "symbol": "LENSKART",
-      "trade_type": "📊 Options Alert",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
-      "status": "EXITED (⏰ OPTION TIME EXIT (2 trading days — alert rule: intraday/1-2 din max))",
-      "days_in_trade": "2"
-    },
-    {
       "symbol": "HAL",
       "trade_type": "🔄 Swing",
       "strategy": "🎯 RETEST BUY",
       "stage": "📦 BASE ENTRY | 📈 Near Breakout",
       "status": "✅ TRADED (PAPER)",
       "days_in_trade": "1"
+    },
+    {
+      "symbol": "SAIL",
+      "trade_type": "🔥 Cash Intraday",
+      "strategy": "CASH",
+      "stage": "🔥 CASH | +5.2% | Vol 84%",
+      "status": "✅ TRADED (PAPER)",
+      "days_in_trade": "0"
+    },
+    {
+      "symbol": "360ONE",
+      "trade_type": "📊 Options Alert",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
+      "status": "✅ TRADED (PAPER)",
+      "days_in_trade": "0"
     },
     {
       "symbol": "INDUSINDBK",
@@ -42,10 +50,10 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "NYKAA",
-      "trade_type": "📊 Options Alert",
+      "symbol": "EICHERMOT",
+      "trade_type": "🔄 Swing",
       "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "stage": "⚡ BREAKOUT ALERT",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
@@ -66,27 +74,11 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "EXIDEIND",
-      "trade_type": "📊 Options Alert",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "SIEMENS",
+      "symbol": "GODREJPROP",
       "trade_type": "⚡ MOM Swing",
       "strategy": "➖ HOLD",
-      "stage": "⚡ MOMENTUM | +2.6% | Vol 212%",
+      "stage": "⚡ MOMENTUM | +4.0% | Vol 70%",
       "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "SAIL",
-      "trade_type": "🔥 Cash Intraday",
-      "strategy": "CASH",
-      "stage": "🔥 CASH | +5.2% | Vol 84%",
-      "status": "✅ TRADED (PAPER)",
       "days_in_trade": "—"
     }
   ]
