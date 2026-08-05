@@ -1,12 +1,12 @@
 {
-  "as_of": "August 04, 2026",
-  "total": 24,
-  "wins": 14,
-  "losses": 10,
-  "win_rate": 58,
-  "net_pnl_rs": 3837,
-  "avg_win_pct": 4.0,
-  "avg_loss_pct": -2.0,
+  "as_of": "August 05, 2026",
+  "total": 27,
+  "wins": 16,
+  "losses": 11,
+  "win_rate": 59,
+  "net_pnl_rs": 4205,
+  "avg_win_pct": 3.8,
+  "avg_loss_pct": -1.9,
   "best": {
     "sym": "CUMMINSIND",
     "pct": 10.13
@@ -17,22 +17,22 @@
   },
   "recent": [
     {
-      "sym": "PRESTIGE",
-      "exit_date": "2026-08-04",
-      "pct": -2.23,
-      "is_win": false
-    },
-    {
-      "sym": "TORNTPHARM",
-      "exit_date": "2026-08-04",
-      "pct": -0.28,
-      "is_win": false
-    },
-    {
-      "sym": "TMCV",
-      "exit_date": "2026-08-03",
-      "pct": 3.93,
+      "sym": "LENSKART",
+      "exit_date": "2026-08-05",
+      "pct": 1.61,
       "is_win": true
+    },
+    {
+      "sym": "NATIONALUM",
+      "exit_date": "2026-08-04",
+      "pct": 3.04,
+      "is_win": true
+    },
+    {
+      "sym": "ASHOKLEY",
+      "exit_date": "2026-08-04",
+      "pct": -0.6,
+      "is_win": false
     }
   ]
 }
