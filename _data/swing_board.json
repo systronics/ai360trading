@@ -1,5 +1,5 @@
 {
-  "generated_at": "05 August 2026, 01:03 PM IST",
+  "generated_at": "05 August 2026, 04:37 PM IST",
   "setups": [
     {
       "symbol": "MARICO",
@@ -18,14 +18,6 @@
       "days_in_trade": "1"
     },
     {
-      "symbol": "SAIL",
-      "trade_type": "🔥 Cash Intraday",
-      "strategy": "CASH",
-      "stage": "🔥 CASH | +5.2% | Vol 84%",
-      "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "0"
-    },
-    {
       "symbol": "360ONE",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
@@ -38,14 +30,6 @@
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
-      "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "0"
-    },
-    {
-      "symbol": "JUBLFOOD",
-      "trade_type": "🔥 Cash Intraday",
-      "strategy": "CASH",
-      "stage": "🔥 CASH | +4.1% | Vol 125%",
       "status": "✅ TRADED (PAPER)",
       "days_in_trade": "0"
     },
@@ -74,18 +58,26 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "INDUSINDBK",
+      "symbol": "LAURUSLABS",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
     {
-      "symbol": "GODREJPROP",
-      "trade_type": "⚡ MOM Swing",
+      "symbol": "LENSKART",
+      "trade_type": "📊 Options Alert",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "HINDZINC",
+      "trade_type": "📈 Positional",
       "strategy": "➖ HOLD",
-      "stage": "⚡ MOMENTUM | +4.0% | Vol 92%",
+      "stage": "🚀 MOMENTUM BREAKOUT | 🔁 Correction Base",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
