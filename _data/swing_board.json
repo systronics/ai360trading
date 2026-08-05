@@ -1,5 +1,5 @@
 {
-  "generated_at": "05 August 2026, 11:33 AM IST",
+  "generated_at": "05 August 2026, 12:03 PM IST",
   "setups": [
     {
       "symbol": "MARICO",
@@ -34,10 +34,10 @@
       "days_in_trade": "0"
     },
     {
-      "symbol": "INDUSINDBK",
+      "symbol": "RADICO",
       "trade_type": "📊 Options Alert",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
+      "strategy": "🎯 RETEST BUY",
+      "stage": "🎯 RETEST | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
@@ -50,14 +50,6 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "EICHERMOT",
-      "trade_type": "🔄 Swing",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ BREAKOUT ALERT",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
       "symbol": "LAURUSLABS",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
@@ -66,19 +58,19 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "RADICO",
+      "symbol": "GODREJPROP",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "stage": "⚡ MOMENTUM | 🔄 Building Momentum",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
     {
-      "symbol": "GODREJPROP",
-      "trade_type": "⚡ MOM Swing",
-      "strategy": "➖ HOLD",
-      "stage": "⚡ MOMENTUM | +4.0% | Vol 70%",
-      "status": "⏳ WAITING",
+      "symbol": "EXIDEIND",
+      "trade_type": "📊 Options Alert",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "status": "✅ TRADED (PAPER)",
       "days_in_trade": "—"
     }
   ]
