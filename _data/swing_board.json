@@ -1,5 +1,5 @@
 {
-  "generated_at": "06 August 2026, 11:35 AM IST",
+  "generated_at": "06 August 2026, 12:05 PM IST",
   "setups": [
     {
       "symbol": "MARICO",
@@ -66,26 +66,18 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "INDUSINDBK",
+      "symbol": "LAURUSLABS",
       "trade_type": "📊 Options Alert",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
+      "strategy": "🎯 RETEST BUY",
+      "stage": "🎯 RETEST | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
     {
-      "symbol": "LAURUSLABS",
+      "symbol": "CHOLAFIN",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "HINDZINC",
-      "trade_type": "📈 Positional",
-      "strategy": "➖ HOLD",
-      "stage": "🚀 MOMENTUM BREAKOUT | 🔁 Correction Base",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
