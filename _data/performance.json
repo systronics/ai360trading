@@ -1,11 +1,11 @@
 {
-  "as_of": "August 05, 2026",
-  "total": 27,
-  "wins": 16,
+  "as_of": "August 06, 2026",
+  "total": 29,
+  "wins": 18,
   "losses": 11,
-  "win_rate": 59,
-  "net_pnl_rs": 4205,
-  "avg_win_pct": 3.8,
+  "win_rate": 62,
+  "net_pnl_rs": 4346,
+  "avg_win_pct": 3.5,
   "avg_loss_pct": -1.9,
   "best": {
     "sym": "CUMMINSIND",
@@ -17,22 +17,22 @@
   },
   "recent": [
     {
+      "sym": "JUBLFOOD",
+      "exit_date": "2026-08-05",
+      "pct": 1.84,
+      "is_win": true
+    },
+    {
+      "sym": "SAIL",
+      "exit_date": "2026-08-05",
+      "pct": 0.23,
+      "is_win": true
+    },
+    {
       "sym": "LENSKART",
       "exit_date": "2026-08-05",
       "pct": 1.61,
       "is_win": true
-    },
-    {
-      "sym": "NATIONALUM",
-      "exit_date": "2026-08-04",
-      "pct": 3.04,
-      "is_win": true
-    },
-    {
-      "sym": "ASHOKLEY",
-      "exit_date": "2026-08-04",
-      "pct": -0.6,
-      "is_win": false
     }
   ]
 }
