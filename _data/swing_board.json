@@ -1,5 +1,5 @@
 {
-  "generated_at": "06 August 2026, 11:05 AM IST",
+  "generated_at": "06 August 2026, 11:35 AM IST",
   "setups": [
     {
       "symbol": "MARICO",
@@ -34,28 +34,12 @@
       "days_in_trade": "1"
     },
     {
-      "symbol": "INDUSINDBK",
-      "trade_type": "📊 Options Alert",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "📦 BASE ENTRY | 📈 Near Breakout",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
       "symbol": "RADICO",
       "trade_type": "📊 Options Alert",
       "strategy": "🎯 RETEST BUY",
       "stage": "🎯 RETEST | 🚀 BREAKOUT CONFIRMED",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "TITAN",
-      "trade_type": "⚡ Intraday",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
+      "days_in_trade": "0"
     },
     {
       "symbol": "EICHERMOT",
@@ -63,6 +47,30 @@
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ BREAKOUT ALERT",
       "status": "✅ TRADED (PAPER)",
+      "days_in_trade": "0"
+    },
+    {
+      "symbol": "JUBLFOOD",
+      "trade_type": "🔥 Cash Intraday",
+      "strategy": "CASH",
+      "stage": "🔥 CASH | +4.3% | Vol 446%",
+      "status": "✅ TRADED (PAPER)",
+      "days_in_trade": "0"
+    },
+    {
+      "symbol": "TITAN",
+      "trade_type": "⚡ Intraday",
+      "strategy": "🎯 RETEST BUY",
+      "stage": "🎯 RETEST | 🚀 BREAKOUT CONFIRMED",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "INDUSINDBK",
+      "trade_type": "📊 Options Alert",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
+      "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
     {
@@ -79,22 +87,6 @@
       "strategy": "➖ HOLD",
       "stage": "🚀 MOMENTUM BREAKOUT | 🔁 Correction Base",
       "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "GODREJPROP",
-      "trade_type": "⚡ MOM Swing",
-      "strategy": "➖ HOLD",
-      "stage": "⚡ MOMENTUM | +3.2% | Vol 137%",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "JUBLFOOD",
-      "trade_type": "🔥 Cash Intraday",
-      "strategy": "CASH",
-      "stage": "🔥 CASH | +4.3% | Vol 446%",
-      "status": "✅ TRADED (PAPER)",
       "days_in_trade": "—"
     }
   ]
