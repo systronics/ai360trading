@@ -83,7 +83,7 @@ from moviepy.editor import (
 )
 
 from ai_client import ai
-from human_touch import ht, seo
+from human_touch import ht, seo, safe_tts_par
 from content_calendar import get_todays_education_topic
 
 # Money funnel (free Telegram → membership + broker referrals + comment prompt).
@@ -690,7 +690,7 @@ async def gen_voice(text, path):
     last_err = None
     for attempt in range(1, 5):  # 4 tries: 5/15/30s backoff
         try:
-            await edge_tts.Communicate(text, VOICE, rate=rate_str).save(str(path))
+            await edge_tts.Communicate(safe_tts_par(text), VOICE, rate=rate_str).save(str(path))
             if os.path.exists(str(path)) and os.path.getsize(str(path)) > 0:
                 return
             raise RuntimeError("edge_tts produced empty audio file")

@@ -1,6 +1,25 @@
 """
 human_touch.py — Anti-AI-Penalty Human Touch Engine
 =====================================================
+v2.6 (2026-08-06) — TTS "PAR" MISPRONUNCIATION FIX:
+  Owner-reported: every video/reel's Hindi voice says "paar" (long a) instead
+  of "par" (short a) for the word "par" (e.g. "Nifty 24500 par hai" comes out
+  "24500 paar hai"). Root cause: all 4 TTS generators (generate_reel.py,
+  generate_reel_morning.py, generate_shorts.py, generate_education.py) feed
+  Roman-script Hinglish straight to edge_tts — Roman "par" is genuinely
+  ambiguous (it's also how the English word "par" is spelled, which IS
+  long-a), and the Hindi voice models default to the long-a reading every
+  time. New safe_tts_par() replaces the standalone word with Devanagari पर
+  (unambiguous, correct for every Hindi sense) — audio-string only, never
+  applied to on-screen text (would recreate the "पा" thumbnail artifact
+  safe_thumbnail_text() already exists to strip). Wired into all 4 TTS call
+  sites, scoped to the Hindi voice only where a generator has both an English
+  and Hindi path (generate_reel_morning.py's VOICE_EN, generate_shorts.py's
+  VOICE_SHORT3 — both untouched; genuine English "par" — e.g. "par value" —
+  never appears anywhere in this codebase's content, confirmed via grep, so
+  no ambiguity to protect against on the Hindi-only files). Not independently
+  audio-verified (I cannot listen) — owner to confirm after the next video.
+
 v2.5 (2026-07-26) — YOUTUBE HASHTAG ROTATION:
   get_video_tags() returned the SAME tags in the SAME order every call for a
   given mode — confirmed live (every morning reel had byte-identical hashtag
@@ -580,6 +599,28 @@ def safe_thumbnail_text(text: str) -> str:
     # Remove multiple spaces
     cleaned = re.sub(r'\s+', ' ', cleaned).strip()
     return cleaned
+
+
+def safe_tts_par(text: str) -> str:
+    """
+    Fix Hindi TTS mispronouncing the standalone Roman-script word "par" as
+    "paar" (long a) instead of the correct short-a "par" (on/at/but — e.g.
+    "Nifty 24500 par hai"). Roman "par" is phonetically ambiguous to the TTS
+    engine (it also spells the English word "par", which IS long-a), and it
+    defaults to the long-a reading every time. Devanagari पर is unambiguous
+    and correct for every Hindi sense of the word (postposition AND "but").
+
+    AUDIO TEXT ONLY. Never apply this to text that also gets drawn on-screen
+    (thumbnails/slides/captions) — mixed Devanagari in a PIL-rendered frame
+    is the exact "पा" artifact safe_thumbnail_text() exists to strip.
+
+    Usage:
+        from human_touch import safe_tts_par
+        await edge_tts.Communicate(safe_tts_par(text), VOICE, ...).save(path)
+    """
+    if not text:
+        return text
+    return re.sub(r'\bpar\b', 'पर', text, flags=re.IGNORECASE)
 
 
 def safe_tts_price(val, lang: str = "hi") -> str:

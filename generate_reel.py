@@ -89,7 +89,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter
 import edge_tts
 from moviepy.editor import ImageClip, AudioFileClip, CompositeVideoClip
 
-from human_touch import ht, seo
+from human_touch import ht, seo, safe_tts_par
 
 # Money funnel (free Telegram → membership + broker referrals + comment prompt).
 try:
@@ -491,7 +491,7 @@ async def generate_tts(text, output_path):
     last_err = None
     for attempt in range(1, 5):  # 4 tries: 5/15/30s backoff
         try:
-            await edge_tts.Communicate(text, VOICE, rate="+5%", pitch=VOICE_PITCH).save(str(output_path))
+            await edge_tts.Communicate(safe_tts_par(text), VOICE, rate="+5%", pitch=VOICE_PITCH).save(str(output_path))
             if os.path.exists(str(output_path)) and os.path.getsize(str(output_path)) > 0:
                 return
             raise RuntimeError("edge_tts produced empty audio file")

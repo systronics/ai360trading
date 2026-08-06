@@ -85,7 +85,7 @@ import moviepy.editor as mp
 import numpy as np
 
 from ai_client import ai
-from human_touch import ht, seo, MORNING_REEL_TOPICS
+from human_touch import ht, seo, MORNING_REEL_TOPICS, safe_tts_par
 
 # Money funnel (free Telegram → membership + broker referrals + comment prompt).
 try:
@@ -468,9 +468,10 @@ async def generate_tts(lines: list, output_path: str) -> bool:
     # Edge TTS (wss://speech.platform.bing.com) intermittently returns 503 /
     # WSServerHandshakeError. Retry with backoff so a transient blip self-heals
     # in-run; keeps the fail-soft bool contract on total failure.
+    tts_text = safe_tts_par(text) if voice == VOICE_HI else text
     for attempt in range(1, 5):  # 4 tries: 5/15/30s backoff
         try:
-            await edge_tts.Communicate(text, voice, rate=rate_str, pitch=pitch).save(output_path)
+            await edge_tts.Communicate(tts_text, voice, rate=rate_str, pitch=pitch).save(output_path)
             if os.path.exists(output_path) and os.path.getsize(output_path) > 0:
                 break
         except Exception as e:

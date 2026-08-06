@@ -120,7 +120,7 @@ from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 
-from human_touch import ht, seo, ai_disclosure
+from human_touch import ht, seo, ai_disclosure, safe_tts_par
 
 # Money funnel (free Telegram → membership + broker referrals + comment prompt).
 # Fail-open: if the module is missing, descriptions just skip the extra block.
@@ -692,13 +692,14 @@ async def gen_tts_async(text: str, voice: str, path: str):
     speed    = ht.get_tts_speed()
     rate_str = f"+{int((speed-1)*100)}%" if speed >= 1 else f"{int((speed-1)*100)}%"
     pitch    = VOICE_PITCH if voice == VOICE_SHORT2 else "+0Hz"
+    tts_text = safe_tts_par(text) if voice == VOICE_SHORT2 else text
     # Edge TTS (wss://speech.platform.bing.com) intermittently returns 503 /
     # WSServerHandshakeError. Retry with backoff so a transient blip self-heals
     # in-run instead of failing the whole job.
     last_err = None
     for attempt in range(1, 5):  # 4 tries: 5/15/30s backoff
         try:
-            await edge_tts.Communicate(text, voice, rate=rate_str, pitch=pitch).save(path)
+            await edge_tts.Communicate(tts_text, voice, rate=rate_str, pitch=pitch).save(path)
             if os.path.exists(path) and os.path.getsize(path) > 0:
                 return
             raise RuntimeError("edge_tts produced empty audio file")
