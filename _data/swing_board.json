@@ -1,5 +1,5 @@
 {
-  "generated_at": "05 August 2026, 04:37 PM IST",
+  "generated_at": "06 August 2026, 11:05 AM IST",
   "setups": [
     {
       "symbol": "MARICO",
@@ -7,7 +7,7 @@
       "strategy": "➖ HOLD",
       "stage": "🚀 BREAKOUT CONFIRMED",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "5"
+      "days_in_trade": "6"
     },
     {
       "symbol": "HAL",
@@ -15,7 +15,7 @@
       "strategy": "🎯 RETEST BUY",
       "stage": "📦 BASE ENTRY | 📈 Near Breakout",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "1"
+      "days_in_trade": "2"
     },
     {
       "symbol": "360ONE",
@@ -23,7 +23,7 @@
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "0"
+      "days_in_trade": "1"
     },
     {
       "symbol": "EXIDEIND",
@@ -31,14 +31,22 @@
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "0"
+      "days_in_trade": "1"
+    },
+    {
+      "symbol": "INDUSINDBK",
+      "trade_type": "📊 Options Alert",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "📦 BASE ENTRY | 📈 Near Breakout",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
     },
     {
       "symbol": "RADICO",
       "trade_type": "📊 Options Alert",
       "strategy": "🎯 RETEST BUY",
       "stage": "🎯 RETEST | 🚀 BREAKOUT CONFIRMED",
-      "status": "⏳ WAITING",
+      "status": "✅ TRADED (PAPER)",
       "days_in_trade": "—"
     },
     {
@@ -54,19 +62,11 @@
       "trade_type": "🔄 Swing",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ BREAKOUT ALERT",
-      "status": "⏳ WAITING",
+      "status": "✅ TRADED (PAPER)",
       "days_in_trade": "—"
     },
     {
       "symbol": "LAURUSLABS",
-      "trade_type": "📊 Options Alert",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "LENSKART",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
@@ -79,6 +79,22 @@
       "strategy": "➖ HOLD",
       "stage": "🚀 MOMENTUM BREAKOUT | 🔁 Correction Base",
       "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "GODREJPROP",
+      "trade_type": "⚡ MOM Swing",
+      "strategy": "➖ HOLD",
+      "stage": "⚡ MOMENTUM | +3.2% | Vol 137%",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "JUBLFOOD",
+      "trade_type": "🔥 Cash Intraday",
+      "strategy": "CASH",
+      "stage": "🔥 CASH | +4.3% | Vol 446%",
+      "status": "✅ TRADED (PAPER)",
       "days_in_trade": "—"
     }
   ]
