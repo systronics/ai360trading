@@ -1,5 +1,5 @@
 {
-  "generated_at": "06 August 2026, 01:05 PM IST",
+  "generated_at": "06 August 2026, 04:38 PM IST",
   "setups": [
     {
       "symbol": "MARICO",
@@ -34,14 +34,6 @@
       "days_in_trade": "1"
     },
     {
-      "symbol": "RADICO",
-      "trade_type": "📊 Options Alert",
-      "strategy": "🎯 RETEST BUY",
-      "stage": "🎯 RETEST | 🚀 BREAKOUT CONFIRMED",
-      "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "0"
-    },
-    {
       "symbol": "EICHERMOT",
       "trade_type": "🔄 Swing",
       "strategy": "🟢 STRONG BUY",
@@ -50,10 +42,10 @@
       "days_in_trade": "0"
     },
     {
-      "symbol": "JUBLFOOD",
-      "trade_type": "🔥 Cash Intraday",
-      "strategy": "CASH",
-      "stage": "🔥 CASH | +4.3% | Vol 446%",
+      "symbol": "CHOLAFIN",
+      "trade_type": "📊 Options Alert",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
       "status": "✅ TRADED (PAPER)",
       "days_in_trade": "0"
     },
@@ -68,16 +60,24 @@
     {
       "symbol": "LAURUSLABS",
       "trade_type": "📊 Options Alert",
-      "strategy": "🎯 RETEST BUY",
-      "stage": "🎯 RETEST | 🚀 BREAKOUT CONFIRMED",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
     {
-      "symbol": "CHOLAFIN",
+      "symbol": "KALYANKJIL",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "stage": "⚡ MOMENTUM | 📈 Near Breakout",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "RADICO",
+      "trade_type": "📊 Options Alert",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
