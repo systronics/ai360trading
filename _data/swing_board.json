@@ -1,5 +1,5 @@
 {
-  "generated_at": "07 August 2026, 11:07 AM IST",
+  "generated_at": "07 August 2026, 11:38 AM IST",
   "setups": [
     {
       "symbol": "HAL",
@@ -15,14 +15,6 @@
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ BREAKOUT ALERT",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "1"
-    },
-    {
-      "symbol": "CHOLAFIN",
-      "trade_type": "📊 Options Alert",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
-      "status": "EXITED (🛑 OPTION LOSS CAP (est -21% ≤ −20%))",
       "days_in_trade": "1"
     },
     {
@@ -78,6 +70,14 @@
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "UNITDSPR",
+      "trade_type": "⚡ Intraday",
+      "strategy": "➖ HOLD",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
