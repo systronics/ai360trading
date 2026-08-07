@@ -1,5 +1,5 @@
 {
-  "generated_at": "07 August 2026, 11:38 AM IST",
+  "generated_at": "07 August 2026, 12:08 PM IST",
   "setups": [
     {
       "symbol": "HAL",
@@ -34,16 +34,16 @@
       "days_in_trade": "0"
     },
     {
-      "symbol": "TITAN",
-      "trade_type": "⚡ Intraday",
-      "strategy": "🎯 RETEST BUY",
-      "stage": "🎯 RETEST | 🚀 BREAKOUT CONFIRMED",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
+      "symbol": "TECHM",
+      "trade_type": "📈 Positional",
+      "strategy": "➖ HOLD",
+      "stage": "📦 BASE ENTRY | 🔄 Building Momentum",
+      "status": "✅ TRADED (PAPER)",
+      "days_in_trade": "0"
     },
     {
-      "symbol": "LENSKART",
-      "trade_type": "📊 Options Alert",
+      "symbol": "TITAN",
+      "trade_type": "⚡ Intraday",
       "strategy": "🎯 RETEST BUY",
       "stage": "🎯 RETEST | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
@@ -66,17 +66,17 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "NYKAA",
+      "symbol": "LENSKART",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
     {
-      "symbol": "UNITDSPR",
-      "trade_type": "⚡ Intraday",
-      "strategy": "➖ HOLD",
+      "symbol": "PAYTM",
+      "trade_type": "📊 Options Alert",
+      "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
