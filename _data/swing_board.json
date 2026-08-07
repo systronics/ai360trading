@@ -1,14 +1,6 @@
 {
-  "generated_at": "07 August 2026, 10:07 AM IST",
+  "generated_at": "07 August 2026, 10:37 AM IST",
   "setups": [
-    {
-      "symbol": "MARICO",
-      "trade_type": "🔄 Swing",
-      "strategy": "➖ HOLD",
-      "stage": "🚀 BREAKOUT CONFIRMED",
-      "status": "EXITED (⏰ TIME STOP (5d, +-1.9%))",
-      "days_in_trade": "7"
-    },
     {
       "symbol": "HAL",
       "trade_type": "🔄 Swing",
@@ -16,22 +8,6 @@
       "stage": "📦 BASE ENTRY | 📈 Near Breakout",
       "status": "✅ TRADED (PAPER)",
       "days_in_trade": "3"
-    },
-    {
-      "symbol": "360ONE",
-      "trade_type": "📊 Options Alert",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
-      "status": "EXITED (⏰ OPTION TIME EXIT (2 trading days — alert rule: intraday/1-2 din max))",
-      "days_in_trade": "2"
-    },
-    {
-      "symbol": "EXIDEIND",
-      "trade_type": "📊 Options Alert",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
-      "status": "EXITED (⏰ OPTION TIME EXIT (2 trading days — alert rule: intraday/1-2 din max))",
-      "days_in_trade": "2"
     },
     {
       "symbol": "EICHERMOT",
@@ -50,6 +26,22 @@
       "days_in_trade": "1"
     },
     {
+      "symbol": "LODHA",
+      "trade_type": "📊 Options Alert",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | 📈 Near Breakout",
+      "status": "✅ TRADED (PAPER)",
+      "days_in_trade": "0"
+    },
+    {
+      "symbol": "BAJFINANCE",
+      "trade_type": "📊 Options Alert",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | 📈 Near Breakout",
+      "status": "✅ TRADED (PAPER)",
+      "days_in_trade": "0"
+    },
+    {
       "symbol": "TITAN",
       "trade_type": "⚡ Intraday",
       "strategy": "🎯 RETEST BUY",
@@ -58,26 +50,34 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "LAURUSLABS",
+      "symbol": "LENSKART",
       "trade_type": "📊 Options Alert",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "strategy": "🎯 RETEST BUY",
+      "stage": "🎯 RETEST | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
     {
-      "symbol": "LODHA",
+      "symbol": "TVSMOTOR",
       "trade_type": "📊 Options Alert",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 📈 Near Breakout",
-      "status": "✅ TRADED (PAPER)",
+      "strategy": "🎯 RETEST BUY",
+      "stage": "🎯 RETEST | 🚀 BREAKOUT CONFIRMED",
+      "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
     {
-      "symbol": "KALYANKJIL",
+      "symbol": "LAURUSLABS",
+      "trade_type": "📊 Options Alert",
+      "strategy": "🎯 RETEST BUY",
+      "stage": "🎯 RETEST | 🚀 BREAKOUT CONFIRMED",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "NYKAA",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 📈 Near Breakout",
+      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
