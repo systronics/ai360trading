@@ -1,5 +1,5 @@
 {
-  "generated_at": "07 August 2026, 02:24 PM IST",
+  "generated_at": "07 August 2026, 02:55 PM IST",
   "setups": [
     {
       "symbol": "HAL",
@@ -34,14 +34,6 @@
       "days_in_trade": "0"
     },
     {
-      "symbol": "LENSKART",
-      "trade_type": "📊 Options Alert",
-      "strategy": "🎯 RETEST BUY",
-      "stage": "🎯 RETEST | 🚀 BREAKOUT CONFIRMED",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
       "symbol": "LAURUSLABS",
       "trade_type": "📊 Options Alert",
       "strategy": "🎯 RETEST BUY",
@@ -60,6 +52,14 @@
     {
       "symbol": "TITAN",
       "trade_type": "⚡ Intraday",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "LENSKART",
+      "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
