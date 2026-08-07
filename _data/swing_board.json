@@ -1,5 +1,5 @@
 {
-  "generated_at": "07 August 2026, 10:37 AM IST",
+  "generated_at": "07 August 2026, 11:07 AM IST",
   "setups": [
     {
       "symbol": "HAL",
@@ -22,7 +22,7 @@
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
-      "status": "✅ TRADED (PAPER)",
+      "status": "EXITED (🛑 OPTION LOSS CAP (est -21% ≤ −20%))",
       "days_in_trade": "1"
     },
     {
