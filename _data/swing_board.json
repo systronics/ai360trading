@@ -1,5 +1,5 @@
 {
-  "generated_at": "07 August 2026, 03:55 PM IST",
+  "generated_at": "07 August 2026, 04:07 PM IST",
   "setups": [
     {
       "symbol": "HAL",
@@ -66,10 +66,10 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "PAYTM",
+      "symbol": "FEDERALBNK",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
