@@ -1,5 +1,5 @@
 {
-  "generated_at": "07 August 2026, 01:54 PM IST",
+  "generated_at": "07 August 2026, 02:24 PM IST",
   "setups": [
     {
       "symbol": "HAL",
@@ -26,14 +26,6 @@
       "days_in_trade": "0"
     },
     {
-      "symbol": "BAJFINANCE",
-      "trade_type": "📊 Options Alert",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 📈 Near Breakout",
-      "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "0"
-    },
-    {
       "symbol": "TECHM",
       "trade_type": "📈 Positional",
       "strategy": "➖ HOLD",
@@ -42,8 +34,8 @@
       "days_in_trade": "0"
     },
     {
-      "symbol": "TITAN",
-      "trade_type": "⚡ Intraday",
+      "symbol": "LENSKART",
+      "trade_type": "📊 Options Alert",
       "strategy": "🎯 RETEST BUY",
       "stage": "🎯 RETEST | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
@@ -66,8 +58,8 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "LENSKART",
-      "trade_type": "📊 Options Alert",
+      "symbol": "TITAN",
+      "trade_type": "⚡ Intraday",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
@@ -77,6 +69,14 @@
       "symbol": "PAYTM",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "UNITDSPR",
+      "trade_type": "⚡ Intraday",
+      "strategy": "➖ HOLD",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
