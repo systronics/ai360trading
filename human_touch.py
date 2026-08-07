@@ -658,7 +658,7 @@ def safe_tts_price(val, lang: str = "hi") -> str:
 # clear the DATA and ANALYSIS are real, so the audience keeps trusting the
 # content even though it is AI-produced.
 AI_DISCLOSURE = {
-    "hi": "🤖 AI tools se banaya gaya · 📊 Real market data aur analysis · Sirf shiksha ke liye",
+    "hi": "🤖 AI-generated · 📊 Real market data aur analysis · Only for educational purpose",
     "en": "🤖 Produced with AI tools · 📊 Real market data & analysis · Educational only",
 }
 

@@ -294,7 +294,7 @@ def build_fallback_metadata(reel_type: str, today: str):
         title = f"🎯 Amit Ki Baat — Trading Wisdom #{today[-4:]} #Shorts"
         desc  = (f"🎯 Daily trading insight by Amit\n\n🌍 India, USA, UK, Brazil & UAE\n"
                  f"🌐 https://ai360trading.in\n📱 https://t.me/ai360trading\n"
-                 f"⚠️ Educational only.\n\n#AmitKiBaat #ai360trading {hashtag_str}")
+                 f"⚠️ Educational only.\n\n#ai360trading {hashtag_str}")
     return title, desc, tags
 
 
