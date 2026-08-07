@@ -1,5 +1,5 @@
 {
-  "generated_at": "07 August 2026, 02:55 PM IST",
+  "generated_at": "07 August 2026, 03:25 PM IST",
   "setups": [
     {
       "symbol": "HAL",
@@ -34,6 +34,14 @@
       "days_in_trade": "0"
     },
     {
+      "symbol": "LENSKART",
+      "trade_type": "📊 Options Alert",
+      "strategy": "🎯 RETEST BUY",
+      "stage": "🎯 RETEST | 🚀 BREAKOUT CONFIRMED",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
       "symbol": "LAURUSLABS",
       "trade_type": "📊 Options Alert",
       "strategy": "🎯 RETEST BUY",
@@ -58,26 +66,18 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "LENSKART",
+      "symbol": "FEDERALBNK",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "PAYTM",
-      "trade_type": "📊 Options Alert",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
     {
       "symbol": "UNITDSPR",
-      "trade_type": "⚡ Intraday",
+      "trade_type": "🔄 Swing",
       "strategy": "➖ HOLD",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "stage": "⚡ BREAKOUT ALERT",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
