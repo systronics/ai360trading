@@ -1,11 +1,11 @@
 {
-  "as_of": "August 06, 2026",
-  "total": 29,
-  "wins": 18,
-  "losses": 11,
-  "win_rate": 62,
-  "net_pnl_rs": 4346,
-  "avg_win_pct": 3.5,
+  "as_of": "August 07, 2026",
+  "total": 35,
+  "wins": 20,
+  "losses": 15,
+  "win_rate": 57,
+  "net_pnl_rs": 3656,
+  "avg_win_pct": 3.2,
   "avg_loss_pct": -1.9,
   "best": {
     "sym": "CUMMINSIND",
@@ -17,21 +17,21 @@
   },
   "recent": [
     {
-      "sym": "JUBLFOOD",
-      "exit_date": "2026-08-05",
-      "pct": 1.84,
+      "sym": "CHOLAFIN",
+      "exit_date": "2026-08-07",
+      "pct": -2.1,
+      "is_win": false
+    },
+    {
+      "sym": "EXIDEIND",
+      "exit_date": "2026-08-07",
+      "pct": 0.87,
       "is_win": true
     },
     {
-      "sym": "SAIL",
-      "exit_date": "2026-08-05",
-      "pct": 0.23,
-      "is_win": true
-    },
-    {
-      "sym": "LENSKART",
-      "exit_date": "2026-08-05",
-      "pct": 1.61,
+      "sym": "360ONE",
+      "exit_date": "2026-08-07",
+      "pct": 0.25,
       "is_win": true
     }
   ]
