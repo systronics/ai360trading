@@ -1,13 +1,13 @@
 {
-  "generated_at": "06 August 2026, 04:38 PM IST",
+  "generated_at": "07 August 2026, 10:07 AM IST",
   "setups": [
     {
       "symbol": "MARICO",
       "trade_type": "🔄 Swing",
       "strategy": "➖ HOLD",
       "stage": "🚀 BREAKOUT CONFIRMED",
-      "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "6"
+      "status": "EXITED (⏰ TIME STOP (5d, +-1.9%))",
+      "days_in_trade": "7"
     },
     {
       "symbol": "HAL",
@@ -15,23 +15,23 @@
       "strategy": "🎯 RETEST BUY",
       "stage": "📦 BASE ENTRY | 📈 Near Breakout",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "2"
+      "days_in_trade": "3"
     },
     {
       "symbol": "360ONE",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
-      "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "1"
+      "status": "EXITED (⏰ OPTION TIME EXIT (2 trading days — alert rule: intraday/1-2 din max))",
+      "days_in_trade": "2"
     },
     {
       "symbol": "EXIDEIND",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
-      "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "1"
+      "status": "EXITED (⏰ OPTION TIME EXIT (2 trading days — alert rule: intraday/1-2 din max))",
+      "days_in_trade": "2"
     },
     {
       "symbol": "EICHERMOT",
@@ -39,7 +39,7 @@
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ BREAKOUT ALERT",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "0"
+      "days_in_trade": "1"
     },
     {
       "symbol": "CHOLAFIN",
@@ -47,7 +47,7 @@
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "0"
+      "days_in_trade": "1"
     },
     {
       "symbol": "TITAN",
@@ -66,18 +66,18 @@
       "days_in_trade": "—"
     },
     {
+      "symbol": "LODHA",
+      "trade_type": "📊 Options Alert",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | 📈 Near Breakout",
+      "status": "✅ TRADED (PAPER)",
+      "days_in_trade": "—"
+    },
+    {
       "symbol": "KALYANKJIL",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 📈 Near Breakout",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "RADICO",
-      "trade_type": "📊 Options Alert",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
