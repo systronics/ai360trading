@@ -1,5 +1,5 @@
 {
-  "generated_at": "10 August 2026, 10:17 AM IST",
+  "generated_at": "10 August 2026, 10:47 AM IST",
   "setups": [
     {
       "symbol": "HAL",
@@ -66,18 +66,18 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "UNIONBANK",
+      "symbol": "PAYTM",
       "trade_type": "📊 Options Alert",
       "strategy": "➖ HOLD",
-      "stage": "⚡ MOMENTUM | 🔄 Building Momentum",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
     {
       "symbol": "FEDERALBNK",
-      "trade_type": "📊 Options Alert",
+      "trade_type": "🔄 Swing",
       "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
+      "stage": "⚡ BREAKOUT ALERT",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
