@@ -1,12 +1,12 @@
 {
-  "as_of": "August 07, 2026",
-  "total": 35,
+  "as_of": "August 10, 2026",
+  "total": 36,
   "wins": 20,
-  "losses": 15,
-  "win_rate": 57,
-  "net_pnl_rs": 3656,
+  "losses": 16,
+  "win_rate": 56,
+  "net_pnl_rs": 3381,
   "avg_win_pct": 3.2,
-  "avg_loss_pct": -1.9,
+  "avg_loss_pct": -2.0,
   "best": {
     "sym": "CUMMINSIND",
     "pct": 10.13
@@ -17,6 +17,12 @@
   },
   "recent": [
     {
+      "sym": "BAJFINANCE",
+      "exit_date": "2026-08-07",
+      "pct": -2.08,
+      "is_win": false
+    },
+    {
       "sym": "CHOLAFIN",
       "exit_date": "2026-08-07",
       "pct": -2.1,
@@ -26,12 +32,6 @@
       "sym": "EXIDEIND",
       "exit_date": "2026-08-07",
       "pct": 0.87,
-      "is_win": true
-    },
-    {
-      "sym": "360ONE",
-      "exit_date": "2026-08-07",
-      "pct": 0.25,
       "is_win": true
     }
   ]
