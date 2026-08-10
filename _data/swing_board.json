@@ -1,5 +1,5 @@
 {
-  "generated_at": "07 August 2026, 05:02 PM IST",
+  "generated_at": "10 August 2026, 09:47 AM IST",
   "setups": [
     {
       "symbol": "HAL",
@@ -7,7 +7,7 @@
       "strategy": "🎯 RETEST BUY",
       "stage": "📦 BASE ENTRY | 📈 Near Breakout",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "3"
+      "days_in_trade": "6"
     },
     {
       "symbol": "EICHERMOT",
@@ -15,7 +15,7 @@
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ BREAKOUT ALERT",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "1"
+      "days_in_trade": "4"
     },
     {
       "symbol": "LODHA",
@@ -23,7 +23,7 @@
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 📈 Near Breakout",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "0"
+      "days_in_trade": "3"
     },
     {
       "symbol": "TECHM",
@@ -31,7 +31,7 @@
       "strategy": "➖ HOLD",
       "stage": "📦 BASE ENTRY | 🔄 Building Momentum",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "0"
+      "days_in_trade": "3"
     },
     {
       "symbol": "LENSKART",
@@ -66,10 +66,10 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "FEDERALBNK",
+      "symbol": "UNIONBANK",
       "trade_type": "📊 Options Alert",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
+      "strategy": "➖ HOLD",
+      "stage": "⚡ MOMENTUM | 🔄 Building Momentum",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
