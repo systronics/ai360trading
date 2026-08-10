@@ -2470,6 +2470,14 @@ def step_b_monitor_trades(log_sheet, hist_sheet, nifty_sheet, mem, now, is_bulli
                                   atr, ttype, strat, stage, ent_time, now, _oreason,
                                   today_str, mem, key, is_target_hit=False, qty=qty,
                                   opt_strike=opt_stk, opt_expiry=opt_exp)
+                # v15.36: real-money owner report (PRESTIGE/RADICO both recovered
+                # after this exact exit) — start building evidence on whether the
+                # 20% cap fires early on this trade type. Cap itself untouched.
+                if _oreason.startswith("🛑 OPTION LOSS CAP"):
+                    try:
+                        mem = log_option_cap_watch(nifty_sheet, mem, now, sym, ent, cp, pnl_pct * _lev)
+                    except Exception as _optcap_err:
+                        print(f"[OPTCAP] log call failed: {_optcap_err} — fail open")
                 mem = _clear_mem_keys(mem, key); continue
 
         # TSL — pass actual entry time so hold check works correctly.
@@ -3313,6 +3321,144 @@ def shadow_ledger_report(nifty_sheet) -> str:
 
 
 # ══════════════════════════════════════════════════════════════════════════════
+# OPTION CAP RECOVERY WATCH — v15.36
+# ══════════════════════════════════════════════════════════════════════════════
+# Owner-reported real-money losses (PRESTIGE, RADICO — both real trades, both
+# hit the 20% option loss cap on a same-day ~2% stock dip, both stocks
+# recovered within days afterward) raised a real question: is the 20% cap
+# firing on trades that would have recovered if held, or correctly catching
+# trades that would have gotten worse? Two real examples aren't enough
+# evidence to touch a deliberately-set 🔒 risk ceiling (OPTION_LOSS_CAP_PCT) —
+# this tracker builds the real evidence instead of reacting to two hard days.
+#
+# Logs every OPTION LOSS CAP exit (stock symbol, the ORIGINAL entry price,
+# the exit price), then watches the stock's real price for
+# OPTIONCAP_WATCH_DAYS trading days to see whether it recovers back to/above
+# the entry price. Same observation-only doctrine as ShadowLedger.
+#
+# SAFE BY DESIGN: reads/writes ONLY the OptionCapWatch tab. Never touches
+# AlertLog, History, BotMemory trade-state keys, never sends a Telegram alert,
+# never affects a real position or the 20% cap itself. Every function fails
+# open — any error just skips tracking for that tick, the real bot unaffected.
+# ══════════════════════════════════════════════════════════════════════════════
+OPTIONCAP_SHEET_NAME = "OptionCapWatch"
+OPTIONCAP_HEADER = ["Symbol", "Exit Date", "Entry Price (Stock)", "Exit Price (Stock)",
+                     "Est Option Loss %", "Status", "Recovered/Scored Date", "Trading Days"]
+OPTIONCAP_WATCH_DAYS = 10   # trading days to watch for recovery before giving up
+
+
+def _get_optioncap_sheet(nifty_sheet):
+    """Lazily gets/creates the OptionCapWatch tab. Same pattern as
+    _get_shadow_sheet — reuses the already-authorized session, fail-open."""
+    try:
+        ss = nifty_sheet.spreadsheet
+        try:
+            return ss.worksheet(OPTIONCAP_SHEET_NAME)
+        except gspread.exceptions.WorksheetNotFound:
+            ws = ss.add_worksheet(title=OPTIONCAP_SHEET_NAME, rows=1000, cols=len(OPTIONCAP_HEADER))
+            ws.update("A1", [OPTIONCAP_HEADER])
+            print(f"[OPTCAP] created {OPTIONCAP_SHEET_NAME} tab")
+            return ws
+    except Exception as e:
+        print(f"[OPTCAP] sheet access failed: {e} — tracking skipped this tick")
+        return None
+
+
+def log_option_cap_watch(nifty_sheet, mem, now, sym, ent, exit_p, opt_est_pct):
+    """Called right where a real OPTION LOSS CAP exit fires (step_b_monitor_trades).
+    Logs the stock's entry/exit price so we can watch whether it recovers
+    afterward — pure observation, never affects the real exit that already
+    happened, never touches the cap itself. Once per stock per day."""
+    try:
+        today_s = now.strftime("%Y-%m-%d")
+        key = sym_key(sym)
+        flag = f"{today_s}_OPTCAPWATCH_{key}"
+        if _mem_get(mem, flag):
+            return mem   # already logged this stock's cap-exit today
+        sheet = _get_optioncap_sheet(nifty_sheet)
+        if sheet is None or ent <= 0:
+            return mem
+        sheet.append_row(
+            [sym, today_s, ent, exit_p, opt_est_pct, "WATCHING", "", ""],
+            value_input_option="USER_ENTERED",
+        )
+        mem = _mem_set(mem, flag, "1")
+        print(f"[OPTCAP] logged {sym} — option cap exit, watching for stock recovery to {ent}")
+    except Exception as e:
+        print(f"[OPTCAP] log failed for {sym}: {e} — fail open")
+    return mem
+
+
+def score_option_cap_watch(nifty_sheet, now):
+    """Once per tick: checks every WATCHING row. If the stock's current price
+    has recovered to/above the original entry price, marks RECOVERED with how
+    many trading days it took. If OPTIONCAP_WATCH_DAYS trading days pass
+    without recovery, marks NOT-RECOVERED. Read/writes ONLY the OptionCapWatch
+    tab. Fail-open: any error leaves rows WATCHING for the next tick to retry."""
+    try:
+        sheet = _get_optioncap_sheet(nifty_sheet)
+        if sheet is None:
+            return
+        rows = sheet.get_all_values()
+        if len(rows) < 2:
+            return
+        updates = []
+        for i, r in enumerate(rows[1:], start=2):
+            if len(r) < 6 or r[5].strip() != "WATCHING":
+                continue
+            sym, exit_date_s = r[0].strip(), r[1].strip()
+            try:
+                ent_price = float(r[2])
+            except Exception:
+                continue
+            cmp_now = _read_nifty200_field(nifty_sheet, sym, ["CMP"], subs=["cmp", "ltp"])
+            if not cmp_now or cmp_now <= 0:
+                continue
+            hd = calc_trading_hold_days(exit_date_s, now)
+            if cmp_now >= ent_price:
+                updates.append((i, sym, "RECOVERED", now.strftime("%Y-%m-%d"), hd))
+            elif hd >= OPTIONCAP_WATCH_DAYS:
+                updates.append((i, sym, "NOT-RECOVERED", now.strftime("%Y-%m-%d"), hd))
+        for i, sym, status, scored_at, hd in updates:
+            sheet.update(f"F{i}:H{i}", [[status, scored_at, hd]])
+            print(f"[OPTCAP] scored row {i} ({sym}): {status} after {hd} trading days")
+    except Exception as e:
+        print(f"[OPTCAP] scoring pass failed: {e} — fail open, will retry next tick")
+
+
+def optioncap_watch_report(nifty_sheet) -> str:
+    """On-demand plain-language summary — answers 'does the 20% option cap fire
+    on trades that would have recovered?' with real numbers. Fail-open."""
+    try:
+        sheet = _get_optioncap_sheet(nifty_sheet)
+        if sheet is None:
+            return "⚠️ Option-cap watch unavailable right now."
+        rows = sheet.get_all_values()[1:]
+        if not rows:
+            return "📊 <b>Option Cap Recovery Watch</b>\nNo cap-exits logged yet."
+        scored  = [r for r in rows if len(r) > 5 and r[5].strip() not in ("", "WATCHING")]
+        pending = len(rows) - len(scored)
+        if not scored:
+            return (f"📊 <b>Option Cap Recovery Watch</b>\n"
+                     f"{len(rows)} cap-exit(s) logged, all still watching "
+                     f"(needs up to {OPTIONCAP_WATCH_DAYS} trading days each to score).")
+        recovered = [r for r in scored if r[5] == "RECOVERED"]
+        rate = round(len(recovered) / len(scored) * 100) if scored else 0
+        return (
+            f"📊 <b>Option Cap Recovery Watch</b> — did the stock recover after "
+            f"the 20% option cap closed the trade?\n"
+            f"━━━━━━━━━━━━━━━━━━━━\n"
+            f"<b>{len(scored)} scored</b> ({pending} still watching) · "
+            f"<b>{rate}% of stocks recovered</b> to/above entry within {OPTIONCAP_WATCH_DAYS} trading days\n\n"
+            f"<i>A consistently high recovery rate over enough samples would be real "
+            f"evidence the cap is firing too early on this trade type. A low rate "
+            f"means the cap is correctly catching trades that kept getting worse.</i>"
+        )
+    except Exception as e:
+        return f"⚠️ Option-cap watch report failed: {e}"
+
+
+# ══════════════════════════════════════════════════════════════════════════════
 # v15.15 — CONFIRMED-ACCUMULATION WATCH (the "corrected sector leader" case)
 # ══════════════════════════════════════════════════════════════════════════════
 ACCUM_MAX_DAILY = 1   # at most one accumulation signal per day (quality > quantity)
@@ -3501,6 +3647,13 @@ def main():
             score_volume_gate_shadow(nifty, now)
         except Exception as _shadow_err:
             print(f"[SHADOW] scoring call errored (fail-open): {_shadow_err}")
+
+        # v15.36 — score any WATCHING option-cap-recovery rows (same cheap,
+        # fail-open pattern as the shadow-ledger scoring call above).
+        try:
+            score_option_cap_watch(nifty, now)
+        except Exception as _optcap_err:
+            print(f"[OPTCAP] scoring call errored (fail-open): {_optcap_err}")
 
         if "12:28" <= time_str <= "12:38":
             mem = send_midday_pulse(log, mem, now, is_bullish)
