@@ -1,5 +1,5 @@
 {
-  "generated_at": "10 August 2026, 09:47 AM IST",
+  "generated_at": "10 August 2026, 10:17 AM IST",
   "setups": [
     {
       "symbol": "HAL",
@@ -34,6 +34,14 @@
       "days_in_trade": "3"
     },
     {
+      "symbol": "TITAN",
+      "trade_type": "⚡ Intraday",
+      "strategy": "🎯 RETEST BUY",
+      "stage": "🎯 RETEST | 🚀 BREAKOUT CONFIRMED",
+      "status": "✅ TRADED (PAPER)",
+      "days_in_trade": "0"
+    },
+    {
       "symbol": "LENSKART",
       "trade_type": "📊 Options Alert",
       "strategy": "🎯 RETEST BUY",
@@ -58,14 +66,6 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "TITAN",
-      "trade_type": "⚡ Intraday",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
       "symbol": "UNIONBANK",
       "trade_type": "📊 Options Alert",
       "strategy": "➖ HOLD",
@@ -74,10 +74,10 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "UNITDSPR",
-      "trade_type": "🔄 Swing",
-      "strategy": "➖ HOLD",
-      "stage": "⚡ BREAKOUT ALERT",
+      "symbol": "FEDERALBNK",
+      "trade_type": "📊 Options Alert",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
