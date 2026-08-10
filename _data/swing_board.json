@@ -1,5 +1,5 @@
 {
-  "generated_at": "10 August 2026, 11:17 AM IST",
+  "generated_at": "10 August 2026, 11:47 AM IST",
   "setups": [
     {
       "symbol": "HAL",
@@ -66,6 +66,14 @@
       "days_in_trade": "—"
     },
     {
+      "symbol": "RADICO",
+      "trade_type": "📊 Options Alert",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
       "symbol": "FEDERALBNK",
       "trade_type": "🔄 Swing",
       "strategy": "🟢 STRONG BUY",
@@ -74,18 +82,10 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "SIEMENS",
-      "trade_type": "📊 Options Alert",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
       "symbol": "PAYTM",
       "trade_type": "⚡ MOM Swing",
       "strategy": "➖ HOLD",
-      "stage": "⚡ MOMENTUM | +6.4% | Vol 43%",
+      "stage": "⚡ MOMENTUM | +8.0% | Vol 124%",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
