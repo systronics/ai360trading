@@ -1,5 +1,5 @@
 {
-  "generated_at": "11 August 2026, 02:20 PM IST",
+  "generated_at": "11 August 2026, 02:50 PM IST",
   "setups": [
     {
       "symbol": "HAL",
@@ -66,7 +66,7 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "RADICO",
+      "symbol": "LENSKART",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
@@ -74,10 +74,10 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "LENSKART",
+      "symbol": "ABB",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
