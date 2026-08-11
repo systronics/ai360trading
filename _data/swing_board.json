@@ -1,5 +1,5 @@
 {
-  "generated_at": "11 August 2026, 01:20 PM IST",
+  "generated_at": "11 August 2026, 01:50 PM IST",
   "setups": [
     {
       "symbol": "HAL",
@@ -50,15 +50,15 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "TVSMOTOR",
+      "symbol": "LAURUSLABS",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
     {
-      "symbol": "LAURUSLABS",
+      "symbol": "TVSMOTOR",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
