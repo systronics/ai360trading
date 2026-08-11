@@ -1,5 +1,5 @@
 {
-  "generated_at": "11 August 2026, 10:05 AM IST",
+  "generated_at": "11 August 2026, 10:35 AM IST",
   "setups": [
     {
       "symbol": "HAL",
@@ -42,42 +42,42 @@
       "days_in_trade": "0"
     },
     {
-      "symbol": "LENSKART",
+      "symbol": "NATIONALUM",
       "trade_type": "📊 Options Alert",
-      "strategy": "🎯 RETEST BUY",
-      "stage": "🎯 RETEST | 🚀 BREAKOUT CONFIRMED",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "LAURUSLABS",
-      "trade_type": "📊 Options Alert",
-      "strategy": "🎯 RETEST BUY",
-      "stage": "🎯 RETEST | 🚀 BREAKOUT CONFIRMED",
+      "strategy": "➖ HOLD",
+      "stage": "📦 BASE ENTRY | 🔄 Building Momentum",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
     {
       "symbol": "TVSMOTOR",
       "trade_type": "📊 Options Alert",
-      "strategy": "🎯 RETEST BUY",
-      "stage": "🎯 RETEST | 🚀 BREAKOUT CONFIRMED",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
     {
-      "symbol": "LODHA",
+      "symbol": "LAURUSLABS",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
-      "stage": "📦 BASE ENTRY | 📈 Near Breakout",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
     {
-      "symbol": "KALYANKJIL",
+      "symbol": "RADICO",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 📈 Near Breakout",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "LENSKART",
+      "trade_type": "📊 Options Alert",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
