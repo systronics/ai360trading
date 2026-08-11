@@ -1,6 +1,25 @@
 """
 human_touch.py — Anti-AI-Penalty Human Touch Engine
 =====================================================
+v2.7 (2026-08-11) — TTS PRONUNCIATION FIX LIST EXTENDED:
+  Owner-reported 2 more mispronunciations, same class of bug as v2.6's "par"
+  fix (AI-generated Hinglish script text, not a fixed template, so the exact
+  wording varies every video — the fix has to work on ANY occurrence of the
+  word, not a specific script). "samjhata" ("explains") was losing a
+  syllable, read as "samjhta". The English loanword "use" was being read
+  with the wrong vowel sound instead of the intended Hindi sense — owner
+  offered either a phonetic English respelling ("yooz") or the true Hindi
+  word; went with the true Hindi word (प्रयोग) for the same reason "par" got
+  a Devanagari fix over a Roman phonetic hack — unambiguous, matches this
+  project's established pattern, no guessing about which phonetic spelling
+  the TTS engine would actually read correctly.
+  `safe_tts_par()` generalized to loop a TTS_PRONUNCIATION_FIXES dict instead
+  of a single hardcoded pattern — function name deliberately kept the same so
+  none of the 4 existing Hindi-voice call sites need touching when a new word
+  is added to the dict in the future, only this one file changes. Verified:
+  substitutions don't clash with words containing "use"/"par" as a substring
+  (word-boundary regex — "because"/"used"/"partnership" etc. all correctly
+  unaffected, same test method as the original par fix).
 v2.6 (2026-08-06) — TTS "PAR" MISPRONUNCIATION FIX:
   Owner-reported: every video/reel's Hindi voice says "paar" (long a) instead
   of "par" (short a) for the word "par" (e.g. "Nifty 24500 par hai" comes out
@@ -601,18 +620,40 @@ def safe_thumbnail_text(text: str) -> str:
     return cleaned
 
 
+# v2.7: word-boundary Roman-Hinglish -> Devanagari fixes for known edge_tts
+# mispronunciations. Each entry was added only after a REPORTED, reproduced
+# mispronunciation — not guessed preemptively, same evidence discipline as
+# every other calibrated value in this project. Extend this dict (never
+# invent new entries speculatively) if another specific word is reported:
+#   "par"      -> "पर"    : TTS read long-a "paar" instead of short-a "par"
+#                             (postposition/"but" — e.g. "24500 par hai")
+#   "samjhata" -> "समझाता" : TTS dropped a syllable, read as "samjhta"
+#   "use"      -> "प्रयोग"  : TTS read the English loanword with wrong
+#                             vowel sound instead of the intended Hindi sense
+TTS_PRONUNCIATION_FIXES = {
+    "par": "पर",
+    "samjhata": "समझाता",
+    "use": "प्रयोग",
+}
+
+
 def safe_tts_par(text: str) -> str:
     """
-    Fix Hindi TTS mispronouncing the standalone Roman-script word "par" as
-    "paar" (long a) instead of the correct short-a "par" (on/at/but — e.g.
-    "Nifty 24500 par hai"). Roman "par" is phonetically ambiguous to the TTS
-    engine (it also spells the English word "par", which IS long-a), and it
-    defaults to the long-a reading every time. Devanagari पर is unambiguous
-    and correct for every Hindi sense of the word (postposition AND "but").
+    Fix known Hindi-TTS mispronunciations of specific Roman-script words by
+    substituting the unambiguous Devanagari spelling before synthesis. Each
+    word in TTS_PRONUNCIATION_FIXES was added after a reported, reproduced
+    mispronunciation (started with "par" reading as "paar"; see that dict's
+    comment for the full list and why each was added).
 
     AUDIO TEXT ONLY. Never apply this to text that also gets drawn on-screen
     (thumbnails/slides/captions) — mixed Devanagari in a PIL-rendered frame
     is the exact "पा" artifact safe_thumbnail_text() exists to strip.
+
+    Function name kept as safe_tts_par (not renamed to something broader)
+    so the 4 existing Hindi-voice call sites (generate_reel.py,
+    generate_education.py unconditional; generate_reel_morning.py,
+    generate_shorts.py conditional on the Hindi voice branch) don't need
+    re-wiring every time a new word is added to the fix list.
 
     Usage:
         from human_touch import safe_tts_par
@@ -620,7 +661,9 @@ def safe_tts_par(text: str) -> str:
     """
     if not text:
         return text
-    return re.sub(r'\bpar\b', 'पर', text, flags=re.IGNORECASE)
+    for word, fix in TTS_PRONUNCIATION_FIXES.items():
+        text = re.sub(r'\b' + re.escape(word) + r'\b', fix, text, flags=re.IGNORECASE)
+    return text
 
 
 def safe_tts_price(val, lang: str = "hi") -> str:
