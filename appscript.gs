@@ -608,7 +608,7 @@ const OPTIONS_CONFIG = {
 
 // ── CONFIG ────────────────────────────────────────────────────────────────────
 const CONFIG = {
-  VERSION       : "v15.34",  // single source for ALL subscriber-facing version stamps (was hardcoded per-message and went stale at v15.17)
+  VERSION       : "v15.37",  // single source for ALL subscriber-facing version stamps (was hardcoded per-message and went stale at v15.17)
   get TELEGRAM_BOT_TOKEN() { return PropertiesService.getScriptProperties().getProperty('TELEGRAM_BOT_TOKEN') || ""; },
   get CHAT_ID_BASIC()      { return PropertiesService.getScriptProperties().getProperty('CHAT_ID_BASIC')      || ""; },
   get CHAT_ID_ADVANCE()    { return PropertiesService.getScriptProperties().getProperty('CHAT_ID_ADVANCE')    || ""; },
@@ -1585,9 +1585,23 @@ function _tradeMode(r) {
   return "STD";
 }
 
-function _mapTradeType(niftyType, priority, atr, cmp, volVsAvg, pctChange, smaStr, timeStr) {
+function _mapTradeType(niftyType, priority, atr, cmp, volVsAvg, pctChange, smaStr, timeStr, isBreakoutStage) {
   const atrPct = (atr / cmp) * 100;
-  if (priority >= 28 && atrPct > 2.0) return { ttype: "📊 Options Alert" };
+  // v15.37 (2026-08-11, owner rule): Options Alert previously fired purely off
+  // priority+ATR% — no check that the stock had actually confirmed a real
+  // move. Owner asked for options only on momentum stocks, "cheap or retest"
+  // OK, otherwise fall back to cash/swing/positional. isBreakoutStage (already
+  // computed above, before this function is called) is exactly that check —
+  // stage.includes("BREAKOUT CONFIRMED") or "BREAKOUT ALERT", which already
+  // covers a RETEST of a confirmed breakout (a genuine pullback entry on a
+  // real move — the "cheap" case), not just a fresh breakout. A candidate
+  // that clears priority/ATR% without a confirmed stage now falls through to
+  // the Intraday/Swing/Positional logic below instead of becoming an option.
+  // Verified against live 2026-08-11 data before shipping: today's 4 real
+  // Options Alert candidates (LAURUSLABS, RADICO, TVSMOTOR, LENSKART) all
+  // already carried BREAKOUT CONFIRMED — this tightens the rare gap case,
+  // it does not block any real candidate seen live so far.
+  if (priority >= 28 && atrPct > 2.0 && isBreakoutStage) return { ttype: "📊 Options Alert" };
   const inMorning = (timeStr >= CONFIG.INTRADAY_WINDOW_START && timeStr <= CONFIG.INTRADAY_WINDOW_END);
   if (inMorning && volVsAvg > 200 && pctChange > 0.5 && (smaStr === "Strong Bull" || smaStr === "Bull")) return { ttype: "⚡ Intraday" };
   if (niftyType.includes("INTRADAY"))   return { ttype: "⚡ Intraday"   };
@@ -1927,7 +1941,7 @@ function _runScanner(startRow, endRow) {
     // GATE 10: Sector Concentration
     if ((sectorCount[sector] || 0) >= 2) { skipReasons.set(sym, `GATE 10: sector "${sector}" already has ${sectorCount[sector]} open trades`); continue; }
 
-    const { ttype } = _mapTradeType(niftyTradeType, priority, atr, cmp, volVsAvg, pctChange, smaStr, timeStr);
+    const { ttype } = _mapTradeType(niftyTradeType, priority, atr, cmp, volVsAvg, pctChange, smaStr, timeStr, isBreakoutStage);
 
     // SL / Target
     let sl, target;
