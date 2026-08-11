@@ -1,5 +1,20 @@
 """
-caption_helper.py — v1.0 (2026-05-31)
+caption_helper.py — v1.1 (2026-08-11)
+
+v1.1: Owner-reported the burned-in captions visibly drift out of sync with
+the voice ("voice mismatch... delay from displayed text") — a real, expected
+consequence of the PROPORTIONAL timing model this file has always used (see
+below): real speech isn't constant-paced (pauses at punctuation, variable
+word length), so an even word-count split across the audio duration
+accumulates drift as the clip plays. The correct permanent fix is real
+per-word timestamps from edge_tts's own WordBoundary synthesis events
+instead of this estimate — that's a real, separately-scoped pipeline change,
+not done here (deliberately not rushed into the same session as real-money-
+critical trading-logic work). Shipped instead as an interim mitigation:
+`words_per_caption` default 4->3 — smaller caption blocks mean drift resets
+more often (shorter runway to accumulate before the next block re-syncs),
+reducing the WORST-CASE mismatch without touching the render pipeline logic
+itself. Does not eliminate drift, meaningfully reduces its peak.
 
 Burned-in captions for Shorts / Reels.
 
@@ -108,7 +123,7 @@ def _render_band(text, size, font, y_ratio):
 
 
 def build_caption_clips(script_text, duration, size, font_paths,
-                        words_per_caption=4, y_ratio=0.74, font_size=None):
+                        words_per_caption=3, y_ratio=0.74, font_size=None):
     """
     Return a list of timed moviepy ImageClips (with alpha mask) to overlay.
     Returns [] on ANY problem (fail-open).

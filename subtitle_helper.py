@@ -1,6 +1,10 @@
 """
 subtitle_helper.py — AI360Trading
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v1.1 (2026-08-11): words_per_cue default 7->5 — same interim drift
+  mitigation as caption_helper.py v1.1 (smaller cues resync more often
+  against the same proportional-timing estimate); real fix is edge_tts
+  word-boundary timestamps, not done here, see that file's header for why.
 v1.0 (2026-05-31):
   Builds a real .srt subtitle track from the spoken script and uploads it to
   YouTube, so YouTube can AUTO-TRANSLATE the captions into the viewer's own
@@ -41,7 +45,7 @@ def _fmt_ts(sec: float) -> str:
 
 
 def build_srt(spoken_text: str, duration: float, out_path,
-              start_offset: float = 0.0, words_per_cue: int = 7):
+              start_offset: float = 0.0, words_per_cue: int = 5):
     """
     Write an .srt whose cues are spread PROPORTIONALLY across `duration`
     (same word-timing model as the burned-in captions → ₹0, deterministic,
