@@ -1,5 +1,5 @@
 {
-  "generated_at": "11 August 2026, 03:21 PM IST",
+  "generated_at": "11 August 2026, 03:51 PM IST",
   "setups": [
     {
       "symbol": "HAL",
@@ -42,6 +42,14 @@
       "days_in_trade": "—"
     },
     {
+      "symbol": "RADICO",
+      "trade_type": "📊 Options Alert",
+      "strategy": "🎯 RETEST BUY",
+      "stage": "🎯 RETEST | 🚀 BREAKOUT CONFIRMED",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
       "symbol": "FEDERALBNK",
       "trade_type": "🔄 Swing",
       "strategy": "🟢 STRONG BUY",
@@ -62,14 +70,6 @@
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "ABB",
-      "trade_type": "📊 Options Alert",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
