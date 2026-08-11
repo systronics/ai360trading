@@ -1,5 +1,5 @@
 {
-  "generated_at": "10 August 2026, 04:42 PM IST",
+  "generated_at": "11 August 2026, 09:35 AM IST",
   "setups": [
     {
       "symbol": "HAL",
@@ -7,7 +7,7 @@
       "strategy": "🎯 RETEST BUY",
       "stage": "📦 BASE ENTRY | 📈 Near Breakout",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "6"
+      "days_in_trade": "7"
     },
     {
       "symbol": "EICHERMOT",
@@ -15,15 +15,15 @@
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ BREAKOUT ALERT",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "4"
+      "days_in_trade": "5"
     },
     {
       "symbol": "LODHA",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 📈 Near Breakout",
-      "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "3"
+      "status": "EXITED (⏰ OPTION TIME EXIT (2 trading days — alert rule: intraday/1-2 din max))",
+      "days_in_trade": "4"
     },
     {
       "symbol": "TECHM",
@@ -31,7 +31,7 @@
       "strategy": "➖ HOLD",
       "stage": "📦 BASE ENTRY | 🔄 Building Momentum",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "3"
+      "days_in_trade": "4"
     },
     {
       "symbol": "TITAN",
@@ -39,7 +39,7 @@
       "strategy": "🎯 RETEST BUY",
       "stage": "🎯 RETEST | 🚀 BREAKOUT CONFIRMED",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "0"
+      "days_in_trade": "1"
     },
     {
       "symbol": "LENSKART",
@@ -74,10 +74,18 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "FEDERALBNK",
-      "trade_type": "🔄 Swing",
+      "symbol": "KALYANKJIL",
+      "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ BREAKOUT ALERT",
+      "stage": "⚡ MOMENTUM | 📈 Near Breakout",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "PAYTM",
+      "trade_type": "⚡ MOM Swing",
+      "strategy": "➖ HOLD",
+      "stage": "⚡ MOMENTUM | +9.9% | Vol 415%",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
