@@ -35,8 +35,16 @@ Disallow: /darvas-box/
 Disallow: /intraday-trading/
 Disallow: /SYSTEM/
 Disallow: /SYSTEM.md
-Disallow: /plot-for-sale/
-Disallow: /plot-for-sale.html
+# 2026-08-11: /plot-for-sale/(.html) removed from this block on purpose.
+# The page never existed in this repo (confirmed via git log --all --full-
+# history, zero results) — it's a phantom URL Google indexed once and kept
+# a bare listing for, BECAUSE it was blocked here: a Disallow rule stops
+# Googlebot from ever seeing the real 404, so it can't naturally deindex
+# the URL. Unblocking lets Googlebot crawl it, get GitHub Pages' genuine
+# 404, and drop it from the index over the next few crawl cycles — the
+# correct fix for Search Console's "indexed, though blocked by robots.txt"
+# warning. Do not re-add this line to "fix" a future reappearance of that
+# warning; re-blocking would recreate the exact same problem.
 
 # Bot optimization — allow Baiduspider (China/global index)
 User-agent: Baiduspider
