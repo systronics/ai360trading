@@ -1,5 +1,5 @@
 {
-  "generated_at": "12 August 2026, 03:02 PM IST",
+  "generated_at": "12 August 2026, 03:32 PM IST",
   "setups": [
     {
       "symbol": "HAL",
@@ -34,14 +34,6 @@
       "days_in_trade": "2"
     },
     {
-      "symbol": "PNB",
-      "trade_type": "🔥 Cash Intraday",
-      "strategy": "CASH",
-      "stage": "🔥 CASH | +4.0% | Vol 1%",
-      "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "0"
-    },
-    {
       "symbol": "PIDILITIND",
       "trade_type": "📊 Options Alert",
       "strategy": "🎯 RETEST BUY",
@@ -54,6 +46,14 @@
       "trade_type": "🔄 Swing",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ BREAKOUT ALERT",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "IDFCFIRSTB",
+      "trade_type": "📊 Options Alert",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
@@ -74,10 +74,10 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "RADICO",
-      "trade_type": "📊 Options Alert",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "symbol": "UNITDSPR",
+      "trade_type": "🔄 Swing",
+      "strategy": "➖ HOLD",
+      "stage": "🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
