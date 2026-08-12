@@ -30,9 +30,9 @@ EASY STEPS
 
 5. A browser window opens → pick the RIGHT Google account → click "Allow".
 
-6. The script prints a NEW token JSON and also saves it to
-     output/new_token_<which>.json
-   Copy the WHOLE JSON.
+6. The script saves the NEW token JSON to output/new_token_<which>.json
+   (never printed to the terminal — a real OAuth secret, kept out of any
+   terminal history/screen-share). Open that file and copy the WHOLE JSON.
 
 7. In GitHub → Settings → Secrets → Actions → update the secret:
      main  → YOUTUBE_CREDENTIALS
@@ -146,10 +146,13 @@ def main():
     print("\n" + "=" * 70)
     print(f"[SUCCESS] new token has scopes: {', '.join(creds.scopes or SCOPES)}")
     print("=" * 70)
-    print(f"\n[COPY] Copy the JSON below into GitHub secret  ->  {SECRET_NAME[args.which]}")
-    print("   (GitHub > Settings > Secrets and variables > Actions > Update)\n")
-    print(new_json)
-    print(f"\n[SAVED] Also saved to: {out_path}")
+    # Deliberately NOT printed to the terminal (real OAuth secret -- CodeQL
+    # py/clear-text-logging-sensitive-data, 2026-08-12: this tool is manual/
+    # local-only so it was never a live production exposure, but printing a
+    # real token to stdout is still avoidable here at zero cost, so fixed).
+    print(f"\n[SAVED] New token saved to: {out_path}")
+    print(f"[COPY] Open that file, copy the WHOLE JSON, paste it into GitHub secret  ->  {SECRET_NAME[args.which]}")
+    print("   (GitHub > Settings > Secrets and variables > Actions > Update)")
     print("   After updating the secret, delete that file (it contains a token).")
 
 
