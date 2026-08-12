@@ -1,5 +1,5 @@
 {
-  "generated_at": "12 August 2026, 09:56 AM IST",
+  "generated_at": "12 August 2026, 10:26 AM IST",
   "setups": [
     {
       "symbol": "HAL",
@@ -34,34 +34,18 @@
       "days_in_trade": "2"
     },
     {
+      "symbol": "PNB",
+      "trade_type": "🔥 Cash Intraday",
+      "strategy": "CASH",
+      "stage": "🔥 CASH | +4.0% | Vol 1%",
+      "status": "✅ TRADED (PAPER)",
+      "days_in_trade": "0"
+    },
+    {
       "symbol": "LAURUSLABS",
       "trade_type": "📊 Options Alert",
       "strategy": "🎯 RETEST BUY",
       "stage": "🎯 RETEST | 🚀 BREAKOUT CONFIRMED",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "NATIONALUM",
-      "trade_type": "📈 Positional",
-      "strategy": "➖ HOLD",
-      "stage": "📦 BASE ENTRY | 🔄 Building Momentum",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "RADICO",
-      "trade_type": "📊 Options Alert",
-      "strategy": "🎯 RETEST BUY",
-      "stage": "🎯 RETEST | 🚀 BREAKOUT CONFIRMED",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "ETERNAL",
-      "trade_type": "📈 Positional",
-      "strategy": "🎯 RETEST BUY",
-      "stage": "📦 BASE ENTRY | 🔄 Building Momentum",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
@@ -74,10 +58,42 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "MCX",
+      "symbol": "TVSMOTOR",
+      "trade_type": "📊 Options Alert",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "RADICO",
+      "trade_type": "📊 Options Alert",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "LENSKART",
+      "trade_type": "📊 Options Alert",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "NATIONALUM",
       "trade_type": "⚡ MOM Swing",
       "strategy": "➖ HOLD",
-      "stage": "⚡ MOMENTUM | +4.9% | Vol 116%",
+      "stage": "⚡ MOMENTUM | +7.9% | Vol 172%",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "NATIONALUM",
+      "trade_type": "🔥 Cash Intraday",
+      "strategy": "CASH",
+      "stage": "🔥 CASH | +7.9% | Vol 172%",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
