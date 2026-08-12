@@ -1,5 +1,5 @@
 {
-  "generated_at": "12 August 2026, 01:31 PM IST",
+  "generated_at": "12 August 2026, 02:02 PM IST",
   "setups": [
     {
       "symbol": "HAL",
@@ -85,15 +85,7 @@
       "symbol": "NATIONALUM",
       "trade_type": "⚡ MOM Swing",
       "strategy": "➖ HOLD",
-      "stage": "⚡ MOMENTUM | +7.5% | Vol 286%",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "NATIONALUM",
-      "trade_type": "🔥 Cash Intraday",
-      "strategy": "CASH",
-      "stage": "🔥 CASH | +7.5% | Vol 286%",
+      "stage": "⚡ MOMENTUM | +7.5% | Vol 305%",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
