@@ -1,5 +1,5 @@
 {
-  "generated_at": "11 August 2026, 04:36 PM IST",
+  "generated_at": "12 August 2026, 09:56 AM IST",
   "setups": [
     {
       "symbol": "HAL",
@@ -7,7 +7,7 @@
       "strategy": "🎯 RETEST BUY",
       "stage": "📦 BASE ENTRY | 📈 Near Breakout",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "7"
+      "days_in_trade": "8"
     },
     {
       "symbol": "EICHERMOT",
@@ -15,7 +15,7 @@
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ BREAKOUT ALERT",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "5"
+      "days_in_trade": "6"
     },
     {
       "symbol": "TECHM",
@@ -23,7 +23,7 @@
       "strategy": "➖ HOLD",
       "stage": "📦 BASE ENTRY | 🔄 Building Momentum",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "4"
+      "days_in_trade": "5"
     },
     {
       "symbol": "TITAN",
@@ -31,13 +31,21 @@
       "strategy": "🎯 RETEST BUY",
       "stage": "🎯 RETEST | 🚀 BREAKOUT CONFIRMED",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "1"
+      "days_in_trade": "2"
     },
     {
       "symbol": "LAURUSLABS",
       "trade_type": "📊 Options Alert",
       "strategy": "🎯 RETEST BUY",
       "stage": "🎯 RETEST | 🚀 BREAKOUT CONFIRMED",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "NATIONALUM",
+      "trade_type": "📈 Positional",
+      "strategy": "➖ HOLD",
+      "stage": "📦 BASE ENTRY | 🔄 Building Momentum",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
@@ -50,6 +58,14 @@
       "days_in_trade": "—"
     },
     {
+      "symbol": "ETERNAL",
+      "trade_type": "📈 Positional",
+      "strategy": "🎯 RETEST BUY",
+      "stage": "📦 BASE ENTRY | 🔄 Building Momentum",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
       "symbol": "FEDERALBNK",
       "trade_type": "🔄 Swing",
       "strategy": "🟢 STRONG BUY",
@@ -58,18 +74,10 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "TVSMOTOR",
-      "trade_type": "📊 Options Alert",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "LENSKART",
-      "trade_type": "📊 Options Alert",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "symbol": "MCX",
+      "trade_type": "⚡ MOM Swing",
+      "strategy": "➖ HOLD",
+      "stage": "⚡ MOMENTUM | +4.9% | Vol 116%",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
