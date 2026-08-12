@@ -1,5 +1,5 @@
 {
-  "generated_at": "12 August 2026, 11:26 AM IST",
+  "generated_at": "12 August 2026, 11:56 AM IST",
   "setups": [
     {
       "symbol": "HAL",
@@ -42,30 +42,6 @@
       "days_in_trade": "0"
     },
     {
-      "symbol": "PIDILITIND",
-      "trade_type": "📊 Options Alert",
-      "strategy": "🎯 RETEST BUY",
-      "stage": "🎯 RETEST | 🚀 BREAKOUT CONFIRMED",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "LAURUSLABS",
-      "trade_type": "📊 Options Alert",
-      "strategy": "🎯 RETEST BUY",
-      "stage": "🎯 RETEST | 🚀 BREAKOUT CONFIRMED",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "FEDERALBNK",
-      "trade_type": "🔄 Swing",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ BREAKOUT ALERT",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
       "symbol": "TVSMOTOR",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
@@ -74,7 +50,7 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "RADICO",
+      "symbol": "LAURUSLABS",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
@@ -83,17 +59,9 @@
     },
     {
       "symbol": "NATIONALUM",
-      "trade_type": "⚡ MOM Swing",
-      "strategy": "➖ HOLD",
-      "stage": "⚡ MOMENTUM | +7.7% | Vol 231%",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "NATIONALUM",
       "trade_type": "🔥 Cash Intraday",
       "strategy": "CASH",
-      "stage": "🔥 CASH | +7.7% | Vol 231%",
+      "stage": "🔥 CASH | +7.5% | Vol 256%",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
