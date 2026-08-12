@@ -1,10 +1,10 @@
 {
-  "as_of": "August 11, 2026",
-  "total": 37,
+  "as_of": "August 12, 2026",
+  "total": 38,
   "wins": 20,
-  "losses": 17,
-  "win_rate": 54,
-  "net_pnl_rs": 3370,
+  "losses": 18,
+  "win_rate": 53,
+  "net_pnl_rs": 3266,
   "avg_win_pct": 3.2,
   "avg_loss_pct": -1.8,
   "best": {
@@ -17,6 +17,12 @@
   },
   "recent": [
     {
+      "sym": "OIL",
+      "exit_date": "2026-08-11",
+      "pct": -1.55,
+      "is_win": false
+    },
+    {
       "sym": "LODHA",
       "exit_date": "2026-08-11",
       "pct": -0.08,
@@ -26,12 +32,6 @@
       "sym": "BAJFINANCE",
       "exit_date": "2026-08-07",
       "pct": -2.08,
-      "is_win": false
-    },
-    {
-      "sym": "CHOLAFIN",
-      "exit_date": "2026-08-07",
-      "pct": -2.1,
       "is_win": false
     }
   ]
