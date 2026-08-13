@@ -1,5 +1,5 @@
 {
-  "generated_at": "12 August 2026, 05:04 PM IST",
+  "generated_at": "13 August 2026, 09:59 AM IST",
   "setups": [
     {
       "symbol": "HAL",
@@ -7,15 +7,7 @@
       "strategy": "🎯 RETEST BUY",
       "stage": "📦 BASE ENTRY | 📈 Near Breakout",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "8"
-    },
-    {
-      "symbol": "EICHERMOT",
-      "trade_type": "🔄 Swing",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ BREAKOUT ALERT",
-      "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "6"
+      "days_in_trade": "9"
     },
     {
       "symbol": "TECHM",
@@ -23,7 +15,7 @@
       "strategy": "➖ HOLD",
       "stage": "📦 BASE ENTRY | 🔄 Building Momentum",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "5"
+      "days_in_trade": "6"
     },
     {
       "symbol": "TITAN",
@@ -31,37 +23,53 @@
       "strategy": "🎯 RETEST BUY",
       "stage": "🎯 RETEST | 🚀 BREAKOUT CONFIRMED",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "2"
+      "days_in_trade": "3"
     },
     {
       "symbol": "PIDILITIND",
       "trade_type": "📊 Options Alert",
       "strategy": "🎯 RETEST BUY",
       "stage": "🎯 RETEST | 🚀 BREAKOUT CONFIRMED",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
+      "status": "✅ TRADED (PAPER)",
+      "days_in_trade": "0"
     },
     {
       "symbol": "FEDERALBNK",
       "trade_type": "🔄 Swing",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ BREAKOUT ALERT",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
+      "status": "✅ TRADED (PAPER)",
+      "days_in_trade": "0"
     },
     {
       "symbol": "IDFCFIRSTB",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
+      "status": "✅ TRADED (PAPER)",
+      "days_in_trade": "0"
     },
     {
-      "symbol": "LAURUSLABS",
+      "symbol": "BHEL",
+      "trade_type": "🔥 Cash Intraday",
+      "strategy": "CASH",
+      "stage": "🔥 CASH | +4.2% | Vol 15%",
+      "status": "✅ TRADED (PAPER)",
+      "days_in_trade": "0"
+    },
+    {
+      "symbol": "PNB",
+      "trade_type": "🔥 Cash Intraday",
+      "strategy": "CASH",
+      "stage": "🔥 CASH | +4.3% | Vol 179%",
+      "status": "✅ TRADED (PAPER)",
+      "days_in_trade": "0"
+    },
+    {
+      "symbol": "RADICO",
       "trade_type": "📊 Options Alert",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "strategy": "🎯 RETEST BUY",
+      "stage": "🎯 RETEST | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
@@ -75,9 +83,17 @@
     },
     {
       "symbol": "UNITDSPR",
-      "trade_type": "📊 Options Alert",
+      "trade_type": "🔄 Swing",
       "strategy": "➖ HOLD",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "stage": "🚀 BREAKOUT CONFIRMED",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "TMCV",
+      "trade_type": "🔥 Cash Intraday",
+      "strategy": "CASH",
+      "stage": "🔥 CASH | +4.7% | Vol 7%",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
