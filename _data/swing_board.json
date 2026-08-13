@@ -1,5 +1,5 @@
 {
-  "generated_at": "13 August 2026, 03:03 PM IST",
+  "generated_at": "13 August 2026, 03:33 PM IST",
   "setups": [
     {
       "symbol": "HAL",
@@ -50,22 +50,6 @@
       "days_in_trade": "0"
     },
     {
-      "symbol": "BHEL",
-      "trade_type": "🔥 Cash Intraday",
-      "strategy": "CASH",
-      "stage": "🔥 CASH | +4.2% | Vol 15%",
-      "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "0"
-    },
-    {
-      "symbol": "PNB",
-      "trade_type": "🔥 Cash Intraday",
-      "strategy": "CASH",
-      "stage": "🔥 CASH | +4.3% | Vol 179%",
-      "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "0"
-    },
-    {
       "symbol": "RADICO",
       "trade_type": "📊 Options Alert",
       "strategy": "🎯 RETEST BUY",
@@ -82,9 +66,17 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "UNITDSPR",
-      "trade_type": "⚡ Intraday",
-      "strategy": "➖ HOLD",
+      "symbol": "TVSMOTOR",
+      "trade_type": "📊 Options Alert",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "LENSKART",
+      "trade_type": "📊 Options Alert",
+      "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
