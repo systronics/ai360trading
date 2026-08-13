@@ -1,12 +1,12 @@
 {
-  "as_of": "August 12, 2026",
-  "total": 38,
-  "wins": 20,
-  "losses": 18,
-  "win_rate": 53,
-  "net_pnl_rs": 3266,
-  "avg_win_pct": 3.2,
-  "avg_loss_pct": -1.8,
+  "as_of": "August 13, 2026",
+  "total": 40,
+  "wins": 21,
+  "losses": 19,
+  "win_rate": 52,
+  "net_pnl_rs": 3365,
+  "avg_win_pct": 3.1,
+  "avg_loss_pct": -1.7,
   "best": {
     "sym": "CUMMINSIND",
     "pct": 10.13
@@ -17,21 +17,21 @@
   },
   "recent": [
     {
+      "sym": "EICHERMOT",
+      "exit_date": "2026-08-13",
+      "pct": 0.78,
+      "is_win": true
+    },
+    {
+      "sym": "PNB",
+      "exit_date": "2026-08-12",
+      "pct": -0.36,
+      "is_win": false
+    },
+    {
       "sym": "OIL",
       "exit_date": "2026-08-11",
       "pct": -1.55,
-      "is_win": false
-    },
-    {
-      "sym": "LODHA",
-      "exit_date": "2026-08-11",
-      "pct": -0.08,
-      "is_win": false
-    },
-    {
-      "sym": "BAJFINANCE",
-      "exit_date": "2026-08-07",
-      "pct": -2.08,
       "is_win": false
     }
   ]
