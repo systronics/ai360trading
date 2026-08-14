@@ -1,5 +1,5 @@
 {
-  "generated_at": "13 August 2026, 05:04 PM IST",
+  "generated_at": "14 August 2026, 09:56 AM IST",
   "setups": [
     {
       "symbol": "HAL",
@@ -7,15 +7,7 @@
       "strategy": "🎯 RETEST BUY",
       "stage": "📦 BASE ENTRY | 📈 Near Breakout",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "9"
-    },
-    {
-      "symbol": "TECHM",
-      "trade_type": "📈 Positional",
-      "strategy": "➖ HOLD",
-      "stage": "📦 BASE ENTRY | 🔄 Building Momentum",
-      "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "6"
+      "days_in_trade": "10"
     },
     {
       "symbol": "TITAN",
@@ -23,7 +15,7 @@
       "strategy": "🎯 RETEST BUY",
       "stage": "🎯 RETEST | 🚀 BREAKOUT CONFIRMED",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "3"
+      "days_in_trade": "4"
     },
     {
       "symbol": "PIDILITIND",
@@ -31,7 +23,7 @@
       "strategy": "🎯 RETEST BUY",
       "stage": "🎯 RETEST | 🚀 BREAKOUT CONFIRMED",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "0"
+      "days_in_trade": "1"
     },
     {
       "symbol": "FEDERALBNK",
@@ -39,7 +31,7 @@
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ BREAKOUT ALERT",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "0"
+      "days_in_trade": "1"
     },
     {
       "symbol": "IDFCFIRSTB",
@@ -47,23 +39,31 @@
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "0"
+      "days_in_trade": "1"
     },
     {
       "symbol": "RADICO",
       "trade_type": "📊 Options Alert",
       "strategy": "🎯 RETEST BUY",
       "stage": "🎯 RETEST | 🚀 BREAKOUT CONFIRMED",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
+      "status": "✅ TRADED (PAPER)",
+      "days_in_trade": "0"
+    },
+    {
+      "symbol": "COFORGE",
+      "trade_type": "🔄 Swing",
+      "strategy": "🎯 RETEST BUY",
+      "stage": "📦 BASE ENTRY | 📈 Near Breakout",
+      "status": "✅ TRADED (PAPER)",
+      "days_in_trade": "0"
     },
     {
       "symbol": "LAURUSLABS",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
+      "status": "✅ TRADED (PAPER)",
+      "days_in_trade": "0"
     },
     {
       "symbol": "TVSMOTOR",
@@ -78,6 +78,22 @@
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "UNITDSPR",
+      "trade_type": "🔄 Swing",
+      "strategy": "➖ HOLD",
+      "stage": "⚡ BREAKOUT ALERT",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "KALYANKJIL",
+      "trade_type": "⚡ MOM Swing",
+      "strategy": "➖ HOLD",
+      "stage": "⚡ MOMENTUM | +2.8% | Vol -42%",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
