@@ -1,5 +1,5 @@
 {
-  "generated_at": "14 August 2026, 12:27 PM IST",
+  "generated_at": "14 August 2026, 01:27 PM IST",
   "setups": [
     {
       "symbol": "HAL",
@@ -58,15 +58,15 @@
       "days_in_trade": "0"
     },
     {
-      "symbol": "LAURUSLABS",
+      "symbol": "TVSMOTOR",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
-      "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "0"
+      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
     },
     {
-      "symbol": "TVSMOTOR",
+      "symbol": "LAURUSLABS",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
@@ -82,18 +82,10 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "UNITDSPR",
-      "trade_type": "📊 Options Alert",
-      "strategy": "➖ HOLD",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
       "symbol": "LGEINDIA",
       "trade_type": "⚡ MOM Swing",
       "strategy": "➖ HOLD",
-      "stage": "⚡ MOMENTUM | +7.8% | Vol 2280%",
+      "stage": "⚡ MOMENTUM | +8.8% | Vol 2922%",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
@@ -101,7 +93,7 @@
       "symbol": "ZEEL",
       "trade_type": "🔥 Cash Intraday",
       "strategy": "CASH",
-      "stage": "🔥 WATCHLIST CASH | +6.0% | Zee Entertainment",
+      "stage": "🔥 WATCHLIST CASH | +5.5% | Zee Entertainment",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
