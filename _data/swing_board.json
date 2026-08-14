@@ -1,5 +1,5 @@
 {
-  "generated_at": "14 August 2026, 09:56 AM IST",
+  "generated_at": "14 August 2026, 10:26 AM IST",
   "setups": [
     {
       "symbol": "HAL",
@@ -74,26 +74,18 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "LENSKART",
+      "symbol": "ABB",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
     {
       "symbol": "UNITDSPR",
-      "trade_type": "🔄 Swing",
+      "trade_type": "⚡ Intraday",
       "strategy": "➖ HOLD",
-      "stage": "⚡ BREAKOUT ALERT",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "KALYANKJIL",
-      "trade_type": "⚡ MOM Swing",
-      "strategy": "➖ HOLD",
-      "stage": "⚡ MOMENTUM | +2.8% | Vol -42%",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
