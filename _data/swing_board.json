@@ -1,5 +1,5 @@
 {
-  "generated_at": "14 August 2026, 02:29 PM IST",
+  "generated_at": "14 August 2026, 02:59 PM IST",
   "setups": [
     {
       "symbol": "HAL",
@@ -78,14 +78,6 @@
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "LGEINDIA",
-      "trade_type": "⚡ MOM Swing",
-      "strategy": "➖ HOLD",
-      "stage": "⚡ MOMENTUM | +8.8% | Vol 3236%",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
