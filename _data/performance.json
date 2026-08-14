@@ -1,12 +1,12 @@
 {
-  "as_of": "August 13, 2026",
-  "total": 40,
+  "as_of": "August 14, 2026",
+  "total": 43,
   "wins": 21,
-  "losses": 19,
-  "win_rate": 52,
-  "net_pnl_rs": 3365,
+  "losses": 22,
+  "win_rate": 49,
+  "net_pnl_rs": 3255,
   "avg_win_pct": 3.1,
-  "avg_loss_pct": -1.7,
+  "avg_loss_pct": -1.6,
   "best": {
     "sym": "CUMMINSIND",
     "pct": 10.13
@@ -17,21 +17,21 @@
   },
   "recent": [
     {
-      "sym": "EICHERMOT",
-      "exit_date": "2026-08-13",
-      "pct": 0.78,
-      "is_win": true
-    },
-    {
-      "sym": "PNB",
-      "exit_date": "2026-08-12",
-      "pct": -0.36,
+      "sym": "TECHM",
+      "exit_date": "2026-08-14",
+      "pct": -0.4,
       "is_win": false
     },
     {
-      "sym": "OIL",
-      "exit_date": "2026-08-11",
-      "pct": -1.55,
+      "sym": "PNB",
+      "exit_date": "2026-08-13",
+      "pct": -0.57,
+      "is_win": false
+    },
+    {
+      "sym": "BHEL",
+      "exit_date": "2026-08-13",
+      "pct": -0.46,
       "is_win": false
     }
   ]
