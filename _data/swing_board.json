@@ -1,5 +1,5 @@
 {
-  "generated_at": "14 August 2026, 01:29 PM IST",
+  "generated_at": "14 August 2026, 01:59 PM IST",
   "setups": [
     {
       "symbol": "HAL",
@@ -85,15 +85,7 @@
       "symbol": "LGEINDIA",
       "trade_type": "⚡ MOM Swing",
       "strategy": "➖ HOLD",
-      "stage": "⚡ MOMENTUM | +8.8% | Vol 2942%",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "ZEEL",
-      "trade_type": "🔥 Cash Intraday",
-      "strategy": "CASH",
-      "stage": "🔥 WATCHLIST CASH | +6.0% | Zee Entertainment",
+      "stage": "⚡ MOMENTUM | +8.9% | Vol 3105%",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
