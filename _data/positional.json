@@ -1,5 +1,5 @@
 {
-  "generated_at": "09 August 2026, 10:18 AM IST",
+  "generated_at": "16 August 2026, 09:39 AM IST",
   "rows": [
     [
       "Stock",
@@ -13,63 +13,84 @@
       "HDFC Bank",
       "Banking",
       "STRONG BUY 🟢",
-      "₹731"
+      "₹727"
     ],
     [
-      "NSE:DRREDDY",
-      "Dr Reddy's",
-      "Pharma",
-      "STRONG BUY 🟢",
-      "₹1,172"
+      "NSE:TCS",
+      "TCS",
+      "IT",
+      "ACCUMULATE 🟡",
+      "₹2,361"
+    ],
+    [
+      "NSE:RELIANCE",
+      "Reliance",
+      "Energy",
+      "ACCUMULATE 🟡",
+      "₹1,310"
     ],
     [
       "NSE:HINDUNILVR",
       "HUL",
       "FMCG",
       "ACCUMULATE 🟡",
-      "₹2,096"
+      "₹2,077"
     ],
     [
       "NSE:ITC",
       "ITC",
       "FMCG",
       "ACCUMULATE 🟡",
-      "₹286"
+      "₹278"
+    ],
+    [
+      "NSE:SUNPHARMA",
+      "Sun Pharma",
+      "Pharma",
+      "ACCUMULATE 🟡",
+      "₹1,930"
     ],
     [
       "NSE:POWERGRID",
       "Power Grid",
       "Utilities",
       "ACCUMULATE 🟡",
-      "₹272"
+      "₹266"
     ],
     [
-      "NSE:TCS",
-      "TCS",
+      "NSE:COALINDIA",
+      "Coal India",
+      "Energy",
+      "ACCUMULATE 🟡",
+      "₹407"
+    ],
+    [
+      "NSE:WIPRO",
+      "Wipro",
       "IT",
-      "HOLD ⚪",
-      "₹2,453"
+      "ACCUMULATE 🟡",
+      "₹184"
     ],
     [
       "NSE:INFY",
       "Infosys",
       "IT",
       "HOLD ⚪",
-      "₹1,175"
+      "₹nan"
     ],
     [
-      "NSE:RELIANCE",
-      "Reliance",
-      "Energy",
+      "NSE:ICICIBANK",
+      "ICICI Bank",
+      "Banking",
       "HOLD ⚪",
-      "₹1,335"
+      "₹1,417"
     ],
     [
       "NSE:ASIANPAINT",
       "Asian Paints",
       "FMCG",
       "HOLD ⚪",
-      "₹2,735"
+      "₹2,696"
     ],
     [
       "NSE:KOTAKBANK",
@@ -83,105 +104,84 @@
       "Axis Bank",
       "Banking",
       "HOLD ⚪",
-      "₹1,238"
+      "₹1,217"
+    ],
+    [
+      "NSE:HCLTECH",
+      "HCL Tech",
+      "IT",
+      "HOLD ⚪",
+      "₹1,360"
     ],
     [
       "NSE:ULTRACEMCO",
       "Ultratech Cement",
       "Cement",
       "HOLD ⚪",
-      "₹12,105"
+      "₹11,619"
     ],
     [
-      "NSE:COALINDIA",
-      "Coal India",
-      "Energy",
+      "NSE:DRREDDY",
+      "Dr Reddy's",
+      "Pharma",
       "HOLD ⚪",
-      "₹415"
+      "₹1,200"
     ],
     [
-      "NSE:ICICIBANK",
-      "ICICI Bank",
-      "Banking",
-      "BOOK PARTIAL 🔴",
-      "₹1,421"
+      "NSE:MARUTI",
+      "Maruti Suzuki",
+      "Auto",
+      "HOLD ⚪",
+      "₹13,834"
     ],
     [
-      "NSE:HCLTECH",
-      "HCL Tech",
-      "IT",
-      "BOOK PARTIAL 🔴",
-      "₹1,357"
+      "NSE:M&M",
+      "Mahindra",
+      "Auto",
+      "HOLD ⚪",
+      "₹3,428"
     ],
     [
       "NSE:TITAN",
       "Titan",
       "Consumer",
       "BOOK PARTIAL 🔴",
-      "₹4,941"
+      "₹5,056"
     ],
     [
       "NSE:NESTLEIND",
       "Nestle India",
       "FMCG",
       "BOOK PARTIAL 🔴",
-      "₹1,540"
+      "₹1,499"
     ],
     [
       "NSE:PIDILITIND",
       "Pidilite",
       "Chemicals",
       "BOOK PARTIAL 🔴",
-      "₹1,660"
+      "₹1,693"
     ],
     [
       "NSE:LT",
       "L&T",
       "Infra",
       "BOOK PARTIAL 🔴",
-      "₹4,056"
+      "₹4,057"
     ],
     [
       "NSE:DIVISLAB",
       "Divi's Lab",
       "Pharma",
       "BOOK PARTIAL 🔴",
-      "₹8,275"
-    ],
-    [
-      "NSE:SUNPHARMA",
-      "Sun Pharma",
-      "Pharma",
-      "BOOK PARTIAL 🔴",
-      "₹1,945"
-    ],
-    [
-      "NSE:MARUTI",
-      "Maruti Suzuki",
-      "Auto",
-      "BOOK PARTIAL 🔴",
-      "₹14,037"
-    ],
-    [
-      "NSE:M&M",
-      "Mahindra",
-      "Auto",
-      "BOOK PARTIAL 🔴",
-      "₹3,502"
-    ],
-    [
-      "NSE:WIPRO",
-      "Wipro",
-      "IT",
-      "BOOK PARTIAL 🔴",
-      "₹188"
+      "₹8,477"
     ],
     [
       "NSE:BAJFINANCE",
       "Bajaj Finance",
       "NBFC",
       "WAIT 🔵",
-      "₹1,078"
+      "₹nan"
     ]
   ]
 }
