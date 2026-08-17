@@ -1,43 +1,11 @@
 {
-  "generated_at": "17 August 2026, 09:01 AM IST",
+  "generated_at": "17 August 2026, 09:31 AM IST",
   "setups": [
-    {
-      "symbol": "HAL",
-      "trade_type": "🔄 Swing",
-      "strategy": "🎯 RETEST BUY",
-      "stage": "📦 BASE ENTRY | 📈 Near Breakout",
-      "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "13"
-    },
-    {
-      "symbol": "TITAN",
-      "trade_type": "⚡ Intraday",
-      "strategy": "🎯 RETEST BUY",
-      "stage": "🎯 RETEST | 🚀 BREAKOUT CONFIRMED",
-      "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "7"
-    },
-    {
-      "symbol": "PIDILITIND",
-      "trade_type": "📊 Options Alert",
-      "strategy": "🎯 RETEST BUY",
-      "stage": "🎯 RETEST | 🚀 BREAKOUT CONFIRMED",
-      "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "4"
-    },
     {
       "symbol": "FEDERALBNK",
       "trade_type": "🔄 Swing",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ BREAKOUT ALERT",
-      "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "4"
-    },
-    {
-      "symbol": "IDFCFIRSTB",
-      "trade_type": "📊 Options Alert",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
       "status": "✅ TRADED (PAPER)",
       "days_in_trade": "4"
     },
@@ -74,26 +42,10 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "ABB",
+      "symbol": "MOTHERSON",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "LGEINDIA",
-      "trade_type": "⚡ MOM Swing",
-      "strategy": "➖ HOLD",
-      "stage": "⚡ MOMENTUM | +10.0% | Vol 3610%",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "ZEEL",
-      "trade_type": "🔥 Cash Intraday",
-      "strategy": "CASH",
-      "stage": "🔥 WATCHLIST CASH | +5.4% | Zee Entertainment",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
