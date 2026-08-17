@@ -1,5 +1,5 @@
 {
-  "generated_at": "17 August 2026, 01:06 PM IST",
+  "generated_at": "17 August 2026, 01:36 PM IST",
   "setups": [
     {
       "symbol": "FEDERALBNK",
@@ -34,7 +34,7 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "AUROPHARMA",
+      "symbol": "SHRIRAMFIN",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
@@ -53,7 +53,15 @@
       "symbol": "MOTHERSON",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "NATIONALUM",
+      "trade_type": "📈 Positional",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "📉 CORR.END | 🔄 Building Momentum",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
@@ -62,14 +70,6 @@
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "SHRIRAMFIN",
-      "trade_type": "📊 Options Alert",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
