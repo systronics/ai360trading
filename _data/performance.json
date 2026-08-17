@@ -1,12 +1,12 @@
 {
-  "as_of": "August 14, 2026",
-  "total": 43,
-  "wins": 21,
-  "losses": 22,
-  "win_rate": 49,
-  "net_pnl_rs": 3255,
-  "avg_win_pct": 3.1,
-  "avg_loss_pct": -1.6,
+  "as_of": "August 17, 2026",
+  "total": 48,
+  "wins": 23,
+  "losses": 25,
+  "win_rate": 48,
+  "net_pnl_rs": 4216,
+  "avg_win_pct": 3.2,
+  "avg_loss_pct": -1.5,
   "best": {
     "sym": "CUMMINSIND",
     "pct": 10.13
@@ -17,21 +17,21 @@
   },
   "recent": [
     {
-      "sym": "TECHM",
-      "exit_date": "2026-08-14",
-      "pct": -0.4,
+      "sym": "HAL",
+      "exit_date": "2026-08-17",
+      "pct": 9.16,
+      "is_win": true
+    },
+    {
+      "sym": "IDFCFIRSTB",
+      "exit_date": "2026-08-17",
+      "pct": -0.13,
       "is_win": false
     },
     {
-      "sym": "PNB",
-      "exit_date": "2026-08-13",
-      "pct": -0.57,
-      "is_win": false
-    },
-    {
-      "sym": "BHEL",
-      "exit_date": "2026-08-13",
-      "pct": -0.46,
+      "sym": "PIDILITIND",
+      "exit_date": "2026-08-17",
+      "pct": -0.5,
       "is_win": false
     }
   ]
