@@ -1,11 +1,11 @@
 {
-  "as_of": "August 17, 2026",
-  "total": 48,
-  "wins": 23,
+  "as_of": "August 18, 2026",
+  "total": 49,
+  "wins": 24,
   "losses": 25,
-  "win_rate": 48,
-  "net_pnl_rs": 4216,
-  "avg_win_pct": 3.2,
+  "win_rate": 49,
+  "net_pnl_rs": 4270,
+  "avg_win_pct": 3.1,
   "avg_loss_pct": -1.5,
   "best": {
     "sym": "CUMMINSIND",
@@ -17,6 +17,12 @@
   },
   "recent": [
     {
+      "sym": "RADICO",
+      "exit_date": "2026-08-18",
+      "pct": 0.39,
+      "is_win": true
+    },
+    {
       "sym": "HAL",
       "exit_date": "2026-08-17",
       "pct": 9.16,
@@ -26,12 +32,6 @@
       "sym": "IDFCFIRSTB",
       "exit_date": "2026-08-17",
       "pct": -0.13,
-      "is_win": false
-    },
-    {
-      "sym": "PIDILITIND",
-      "exit_date": "2026-08-17",
-      "pct": -0.5,
       "is_win": false
     }
   ]
