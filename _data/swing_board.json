@@ -1,5 +1,5 @@
 {
-  "generated_at": "18 August 2026, 08:56 AM IST",
+  "generated_at": "18 August 2026, 09:26 AM IST",
   "setups": [
     {
       "symbol": "FEDERALBNK",
@@ -8,14 +8,6 @@
       "stage": "⚡ BREAKOUT ALERT",
       "status": "✅ TRADED (PAPER)",
       "days_in_trade": "5"
-    },
-    {
-      "symbol": "RADICO",
-      "trade_type": "📊 Options Alert",
-      "strategy": "🎯 RETEST BUY",
-      "stage": "🎯 RETEST | 🚀 BREAKOUT CONFIRMED",
-      "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "4"
     },
     {
       "symbol": "COFORGE",
@@ -29,15 +21,7 @@
       "symbol": "MOTHERSON",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "INOXWIND",
-      "trade_type": "🔥 Cash Intraday",
-      "strategy": "CASH",
-      "stage": "🔥 WATCHLIST CASH | +6.2% | Inox Wind",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
