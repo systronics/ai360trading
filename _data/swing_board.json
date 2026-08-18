@@ -1,5 +1,5 @@
 {
-  "generated_at": "18 August 2026, 09:26 AM IST",
+  "generated_at": "18 August 2026, 09:56 AM IST",
   "setups": [
     {
       "symbol": "FEDERALBNK",
@@ -16,6 +16,14 @@
       "stage": "📦 BASE ENTRY | 📈 Near Breakout",
       "status": "✅ TRADED (PAPER)",
       "days_in_trade": "4"
+    },
+    {
+      "symbol": "TVSMOTOR",
+      "trade_type": "📊 Options Alert",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
     },
     {
       "symbol": "MOTHERSON",
