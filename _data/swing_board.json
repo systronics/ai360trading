@@ -1,5 +1,5 @@
 {
-  "generated_at": "19 August 2026, 12:29 PM IST",
+  "generated_at": "19 August 2026, 12:53 PM IST",
   "setups": [
     {
       "symbol": "FEDERALBNK",
@@ -18,18 +18,18 @@
       "days_in_trade": "5"
     },
     {
-      "symbol": "MOTHERSON",
-      "trade_type": "📊 Options Alert",
-      "strategy": "🎯 RETEST BUY",
-      "stage": "🎯 RETEST | 🚀 BREAKOUT CONFIRMED",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
       "symbol": "TVSMOTOR",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "MOTHERSON",
+      "trade_type": "📊 Options Alert",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
