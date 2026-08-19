@@ -1,5 +1,5 @@
 {
-  "generated_at": "19 August 2026, 09:58 AM IST",
+  "generated_at": "19 August 2026, 10:28 AM IST",
   "setups": [
     {
       "symbol": "FEDERALBNK",
@@ -30,6 +30,14 @@
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "RAILTEL",
+      "trade_type": "🔥 Cash Intraday",
+      "strategy": "CASH",
+      "stage": "🔥 WATCHLIST CASH | +4.2% | Railtel Corporation",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
