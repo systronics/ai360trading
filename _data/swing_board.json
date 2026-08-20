@@ -1,5 +1,5 @@
 {
-  "generated_at": "20 August 2026, 12:55 PM IST",
+  "generated_at": "20 August 2026, 01:25 PM IST",
   "setups": [
     {
       "symbol": "COFORGE",
@@ -11,9 +11,9 @@
     },
     {
       "symbol": "TVSMOTOR",
-      "trade_type": "⚡ Intraday",
+      "trade_type": "🔄 Swing",
       "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "stage": "⚡ BREAKOUT ALERT",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
