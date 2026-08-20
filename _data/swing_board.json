@@ -1,5 +1,5 @@
 {
-  "generated_at": "19 August 2026, 04:33 PM IST",
+  "generated_at": "20 August 2026, 08:58 AM IST",
   "setups": [
     {
       "symbol": "FEDERALBNK",
@@ -7,7 +7,7 @@
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ BREAKOUT ALERT",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "6"
+      "days_in_trade": "7"
     },
     {
       "symbol": "COFORGE",
@@ -15,7 +15,7 @@
       "strategy": "🎯 RETEST BUY",
       "stage": "📦 BASE ENTRY | 📈 Near Breakout",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "5"
+      "days_in_trade": "6"
     },
     {
       "symbol": "MOTHERSON",
