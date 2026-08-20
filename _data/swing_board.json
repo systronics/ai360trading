@@ -1,14 +1,6 @@
 {
-  "generated_at": "20 August 2026, 08:58 AM IST",
+  "generated_at": "20 August 2026, 09:28 AM IST",
   "setups": [
-    {
-      "symbol": "FEDERALBNK",
-      "trade_type": "🔄 Swing",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ BREAKOUT ALERT",
-      "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "7"
-    },
     {
       "symbol": "COFORGE",
       "trade_type": "🔄 Swing",
@@ -18,18 +10,18 @@
       "days_in_trade": "6"
     },
     {
-      "symbol": "MOTHERSON",
-      "trade_type": "📊 Options Alert",
-      "strategy": "🎯 RETEST BUY",
-      "stage": "🎯 RETEST | 🚀 BREAKOUT CONFIRMED",
+      "symbol": "TVSMOTOR",
+      "trade_type": "🔄 Swing",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ BREAKOUT ALERT",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
     {
-      "symbol": "TVSMOTOR",
+      "symbol": "MOTHERSON",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
