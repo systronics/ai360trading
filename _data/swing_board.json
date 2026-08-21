@@ -1,35 +1,27 @@
 {
-  "generated_at": "21 August 2026, 09:04 AM IST",
+  "generated_at": "21 August 2026, 09:34 AM IST",
   "setups": [
     {
-      "symbol": "COFORGE",
-      "trade_type": "🔄 Swing",
+      "symbol": "ETERNAL",
+      "trade_type": "📈 Positional",
       "strategy": "🎯 RETEST BUY",
-      "stage": "📦 BASE ENTRY | 📈 Near Breakout",
-      "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "7"
+      "stage": "🎯 RETEST | 🔄 Building Momentum",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "LAURUSLABS",
+      "trade_type": "🔄 Swing",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ BREAKOUT ALERT",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
     },
     {
       "symbol": "TVSMOTOR",
-      "trade_type": "⚡ Intraday",
+      "trade_type": "🔄 Swing",
       "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "MOTHERSON",
-      "trade_type": "📊 Options Alert",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "ZEEL",
-      "trade_type": "🔥 Cash Intraday",
-      "strategy": "CASH",
-      "stage": "🔥 WATCHLIST CASH | +5.8% | Zee Entertainment",
+      "stage": "⚡ BREAKOUT ALERT",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
