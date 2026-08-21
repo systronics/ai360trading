@@ -1,5 +1,5 @@
 {
-  "generated_at": "20 August 2026, 04:18 PM IST",
+  "generated_at": "21 August 2026, 09:04 AM IST",
   "setups": [
     {
       "symbol": "COFORGE",
@@ -7,7 +7,7 @@
       "strategy": "🎯 RETEST BUY",
       "stage": "📦 BASE ENTRY | 📈 Near Breakout",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "6"
+      "days_in_trade": "7"
     },
     {
       "symbol": "TVSMOTOR",
@@ -22,6 +22,14 @@
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "ZEEL",
+      "trade_type": "🔥 Cash Intraday",
+      "strategy": "CASH",
+      "stage": "🔥 WATCHLIST CASH | +5.8% | Zee Entertainment",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
