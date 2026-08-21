@@ -1,14 +1,6 @@
 {
-  "generated_at": "21 August 2026, 12:57 PM IST",
+  "generated_at": "21 August 2026, 01:27 PM IST",
   "setups": [
-    {
-      "symbol": "ETERNAL",
-      "trade_type": "🔄 Swing",
-      "strategy": "🎯 RETEST BUY",
-      "stage": "🎯 RETEST | 🔄 Building Momentum",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
     {
       "symbol": "TVSMOTOR",
       "trade_type": "🔄 Swing",
@@ -22,6 +14,14 @@
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "LENSKART",
+      "trade_type": "📊 Options Alert",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
