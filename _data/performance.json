@@ -1,10 +1,10 @@
 {
-  "as_of": "August 20, 2026",
-  "total": 50,
-  "wins": 25,
+  "as_of": "August 21, 2026",
+  "total": 51,
+  "wins": 26,
   "losses": 25,
-  "win_rate": 50,
-  "net_pnl_rs": 4340,
+  "win_rate": 51,
+  "net_pnl_rs": 4711,
   "avg_win_pct": 3.0,
   "avg_loss_pct": -1.5,
   "best": {
@@ -17,6 +17,12 @@
   },
   "recent": [
     {
+      "sym": "COFORGE",
+      "exit_date": "2026-08-21",
+      "pct": 2.9,
+      "is_win": true
+    },
+    {
       "sym": "FEDERALBNK",
       "exit_date": "2026-08-20",
       "pct": 0.55,
@@ -26,12 +32,6 @@
       "sym": "RADICO",
       "exit_date": "2026-08-18",
       "pct": 0.39,
-      "is_win": true
-    },
-    {
-      "sym": "HAL",
-      "exit_date": "2026-08-17",
-      "pct": 9.16,
       "is_win": true
     }
   ]
