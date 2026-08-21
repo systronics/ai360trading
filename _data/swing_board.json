@@ -1,14 +1,6 @@
 {
-  "generated_at": "21 August 2026, 10:34 AM IST",
+  "generated_at": "21 August 2026, 11:04 AM IST",
   "setups": [
-    {
-      "symbol": "ETERNAL",
-      "trade_type": "🔄 Swing",
-      "strategy": "🎯 RETEST BUY",
-      "stage": "🎯 RETEST | 🔄 Building Momentum",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
     {
       "symbol": "LAURUSLABS",
       "trade_type": "🔄 Swing",
@@ -22,6 +14,14 @@
       "trade_type": "🔄 Swing",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ BREAKOUT ALERT",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "MOTHERSON",
+      "trade_type": "📊 Options Alert",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
