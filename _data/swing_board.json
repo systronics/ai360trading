@@ -1,5 +1,5 @@
 {
-  "generated_at": "24 August 2026, 10:36 AM IST",
+  "generated_at": "24 August 2026, 11:06 AM IST",
   "setups": [
     {
       "symbol": "SAIL",
@@ -26,18 +26,10 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "LENSKART",
-      "trade_type": "📊 Options Alert",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
       "symbol": "VMM",
       "trade_type": "🔥 Cash Intraday",
       "strategy": "CASH",
-      "stage": "🔥 CASH | +10.0% | Vol 528%",
+      "stage": "🔥 CASH | +9.3% | Vol 918%",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
