@@ -1,12 +1,12 @@
 {
-  "generated_at": "24 August 2026, 02:47 PM IST",
+  "generated_at": "24 August 2026, 03:17 PM IST",
   "setups": [
     {
       "symbol": "SAIL",
       "trade_type": "🔥 Cash Intraday",
       "strategy": "CASH",
       "stage": "🔥 CASH | +4.0% | Vol 16%",
-      "status": "✅ TRADED (PAPER)",
+      "status": "EXITED (⏰ INTRADAY TIME EXIT)",
       "days_in_trade": "0"
     },
     {
