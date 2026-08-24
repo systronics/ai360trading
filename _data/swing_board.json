@@ -1,5 +1,5 @@
 {
-  "generated_at": "21 August 2026, 04:20 PM IST",
+  "generated_at": "24 August 2026, 09:06 AM IST",
   "setups": [
     {
       "symbol": "TVSMOTOR",
@@ -22,6 +22,14 @@
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "VEDL",
+      "trade_type": "🔥 Cash Intraday",
+      "strategy": "CASH",
+      "stage": "🔥 CASH | +4.1% | Vol 313%",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
