@@ -1,5 +1,5 @@
 {
-  "generated_at": "24 August 2026, 01:17 PM IST",
+  "generated_at": "24 August 2026, 01:47 PM IST",
   "setups": [
     {
       "symbol": "SAIL",
@@ -30,14 +30,6 @@
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "VMM",
-      "trade_type": "🔥 Cash Intraday",
-      "strategy": "CASH",
-      "stage": "🔥 CASH | +9.4% | Vol 1145%",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
