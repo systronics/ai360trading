@@ -1,6 +1,14 @@
 {
-  "generated_at": "24 August 2026, 10:06 AM IST",
+  "generated_at": "24 August 2026, 10:36 AM IST",
   "setups": [
+    {
+      "symbol": "SAIL",
+      "trade_type": "🔥 Cash Intraday",
+      "strategy": "CASH",
+      "stage": "🔥 CASH | +4.0% | Vol 16%",
+      "status": "✅ TRADED (PAPER)",
+      "days_in_trade": "0"
+    },
     {
       "symbol": "TVSMOTOR",
       "trade_type": "🔄 Swing",
@@ -29,7 +37,7 @@
       "symbol": "VMM",
       "trade_type": "🔥 Cash Intraday",
       "strategy": "CASH",
-      "stage": "🔥 CASH | +8.9% | Vol 354%",
+      "stage": "🔥 CASH | +10.0% | Vol 528%",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
