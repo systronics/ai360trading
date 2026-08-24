@@ -1,19 +1,19 @@
 {
-  "generated_at": "24 August 2026, 09:06 AM IST",
+  "generated_at": "24 August 2026, 09:36 AM IST",
   "setups": [
     {
       "symbol": "TVSMOTOR",
-      "trade_type": "⚡ Intraday",
+      "trade_type": "🔄 Swing",
       "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "stage": "⚡ BREAKOUT ALERT",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
     {
-      "symbol": "COFORGE",
-      "trade_type": "📊 Options Alert",
+      "symbol": "LAURUSLABS",
+      "trade_type": "🔄 Swing",
       "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
+      "stage": "⚡ BREAKOUT ALERT",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
@@ -22,14 +22,6 @@
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "VEDL",
-      "trade_type": "🔥 Cash Intraday",
-      "strategy": "CASH",
-      "stage": "🔥 CASH | +4.1% | Vol 313%",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
