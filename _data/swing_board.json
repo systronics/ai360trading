@@ -1,5 +1,5 @@
 {
-  "generated_at": "25 August 2026, 12:58 PM IST",
+  "generated_at": "25 August 2026, 01:28 PM IST",
   "setups": [
     {
       "symbol": "VMM",
@@ -10,8 +10,16 @@
       "days_in_trade": "0"
     },
     {
-      "symbol": "LENSKART",
-      "trade_type": "📊 Options Alert",
+      "symbol": "LAURUSLABS",
+      "trade_type": "⚡ Intraday",
+      "strategy": "🎯 RETEST BUY",
+      "stage": "🎯 RETEST | 🚀 BREAKOUT CONFIRMED",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "TVSMOTOR",
+      "trade_type": "⚡ Intraday",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
