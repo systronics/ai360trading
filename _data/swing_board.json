@@ -1,5 +1,5 @@
 {
-  "generated_at": "25 August 2026, 03:28 PM IST",
+  "generated_at": "25 August 2026, 03:58 PM IST",
   "setups": [
     {
       "symbol": "LAURUSLABS",
@@ -14,6 +14,14 @@
       "trade_type": "⚡ Intraday",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "COFORGE",
+      "trade_type": "📊 Options Alert",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
