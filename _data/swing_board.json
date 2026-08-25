@@ -1,5 +1,5 @@
 {
-  "generated_at": "25 August 2026, 12:32 PM IST",
+  "generated_at": "25 August 2026, 12:58 PM IST",
   "setups": [
     {
       "symbol": "VMM",
@@ -11,6 +11,14 @@
     },
     {
       "symbol": "LENSKART",
+      "trade_type": "📊 Options Alert",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "PAYTM",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
