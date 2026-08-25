@@ -1,5 +1,5 @@
 {
-  "generated_at": "25 August 2026, 02:28 PM IST",
+  "generated_at": "25 August 2026, 02:58 PM IST",
   "setups": [
     {
       "symbol": "VMM",
@@ -26,10 +26,10 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "LENSKART",
+      "symbol": "COFORGE",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
