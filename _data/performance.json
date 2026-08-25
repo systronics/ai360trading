@@ -1,10 +1,10 @@
 {
-  "as_of": "August 24, 2026",
-  "total": 51,
+  "as_of": "August 25, 2026",
+  "total": 52,
   "wins": 26,
-  "losses": 25,
-  "win_rate": 51,
-  "net_pnl_rs": 4711,
+  "losses": 26,
+  "win_rate": 50,
+  "net_pnl_rs": 4667,
   "avg_win_pct": 3.0,
   "avg_loss_pct": -1.5,
   "best": {
@@ -17,6 +17,12 @@
   },
   "recent": [
     {
+      "sym": "SAIL",
+      "exit_date": "2026-08-24",
+      "pct": -0.64,
+      "is_win": false
+    },
+    {
       "sym": "COFORGE",
       "exit_date": "2026-08-21",
       "pct": 2.9,
@@ -26,12 +32,6 @@
       "sym": "FEDERALBNK",
       "exit_date": "2026-08-20",
       "pct": 0.55,
-      "is_win": true
-    },
-    {
-      "sym": "RADICO",
-      "exit_date": "2026-08-18",
-      "pct": 0.39,
       "is_win": true
     }
   ]
