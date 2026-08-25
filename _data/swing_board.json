@@ -1,5 +1,5 @@
 {
-  "generated_at": "25 August 2026, 09:29 AM IST",
+  "generated_at": "25 August 2026, 09:59 AM IST",
   "setups": [
     {
       "symbol": "VMM",
@@ -10,18 +10,10 @@
       "days_in_trade": "0"
     },
     {
-      "symbol": "TVSMOTOR",
-      "trade_type": "🔄 Swing",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ BREAKOUT ALERT",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "MOTHERSON",
+      "symbol": "LENSKART",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
