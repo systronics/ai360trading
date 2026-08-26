@@ -1,5 +1,5 @@
 {
-  "generated_at": "26 August 2026, 10:07 AM IST",
+  "generated_at": "26 August 2026, 10:37 AM IST",
   "setups": [
     {
       "symbol": "COFORGE",
@@ -11,7 +11,7 @@
     },
     {
       "symbol": "LAURUSLABS",
-      "trade_type": "📊 Options Alert",
+      "trade_type": "⚡ Intraday",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
@@ -29,7 +29,7 @@
       "symbol": "MAHABANK",
       "trade_type": "🔥 Cash Intraday",
       "strategy": "CASH",
-      "stage": "🔥 WATCHLIST CASH | +4.3% | Bank of Maharashtra",
+      "stage": "🔥 WATCHLIST CASH | +4.2% | Bank of Maharashtra",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
