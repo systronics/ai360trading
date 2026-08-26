@@ -1,35 +1,27 @@
 {
-  "generated_at": "26 August 2026, 09:07 AM IST",
+  "generated_at": "26 August 2026, 09:37 AM IST",
   "setups": [
     {
-      "symbol": "LAURUSLABS",
-      "trade_type": "⚡ Intraday",
+      "symbol": "COFORGE",
+      "trade_type": "📊 Options Alert",
       "strategy": "🎯 RETEST BUY",
-      "stage": "🎯 RETEST | 🚀 BREAKOUT CONFIRMED",
+      "stage": "🎯 RETEST | ⚡ BREAKOUT ALERT",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
     {
-      "symbol": "TVSMOTOR",
-      "trade_type": "⚡ Intraday",
+      "symbol": "LAURUSLABS",
+      "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
     {
-      "symbol": "COFORGE",
+      "symbol": "PAYTM",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "DELTACORP",
-      "trade_type": "🔥 Cash Intraday",
-      "strategy": "CASH",
-      "stage": "🔥 WATCHLIST CASH | +4.7% | Delta Corp",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
