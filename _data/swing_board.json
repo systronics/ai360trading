@@ -1,11 +1,11 @@
 {
-  "generated_at": "26 August 2026, 11:07 AM IST",
+  "generated_at": "26 August 2026, 12:07 PM IST",
   "setups": [
     {
       "symbol": "COFORGE",
-      "trade_type": "📊 Options Alert",
+      "trade_type": "🔄 Swing",
       "strategy": "🎯 RETEST BUY",
-      "stage": "🎯 RETEST | ⚡ BREAKOUT ALERT",
+      "stage": "🎯 RETEST | 📈 Near Breakout",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
@@ -14,6 +14,22 @@
       "trade_type": "⚡ Intraday",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "PAYTM",
+      "trade_type": "📊 Options Alert",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "MAHABANK",
+      "trade_type": "🔥 Cash Intraday",
+      "strategy": "CASH",
+      "stage": "🔥 WATCHLIST CASH | +4.5% | Bank of Maharashtra",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
