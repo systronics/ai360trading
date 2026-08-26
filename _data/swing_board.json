@@ -1,5 +1,5 @@
 {
-  "generated_at": "25 August 2026, 04:23 PM IST",
+  "generated_at": "26 August 2026, 09:07 AM IST",
   "setups": [
     {
       "symbol": "LAURUSLABS",
@@ -22,6 +22,14 @@
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "DELTACORP",
+      "trade_type": "🔥 Cash Intraday",
+      "strategy": "CASH",
+      "stage": "🔥 WATCHLIST CASH | +4.7% | Delta Corp",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
