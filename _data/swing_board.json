@@ -1,27 +1,27 @@
 {
-  "generated_at": "26 August 2026, 04:15 PM IST",
+  "generated_at": "27 August 2026, 07:28 PM IST",
   "setups": [
     {
-      "symbol": "LAURUSLABS",
-      "trade_type": "⚡ Intraday",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
+      "symbol": "SAIL",
+      "trade_type": "🔥 Cash Intraday",
+      "strategy": "CASH",
+      "stage": "🔥 CASH | +5.6% | Vol 102%",
+      "status": "✅ TRADED (PAPER)",
+      "days_in_trade": "0"
     },
     {
-      "symbol": "MCX",
-      "trade_type": "📊 Options Alert",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
+      "symbol": "VEDL",
+      "trade_type": "🔥 Cash Intraday",
+      "strategy": "CASH",
+      "stage": "🔥 CASH | +4.2% | Vol 90%",
+      "status": "✅ TRADED (PAPER)",
+      "days_in_trade": "0"
     },
     {
-      "symbol": "PAYTM",
+      "symbol": "COFORGE",
       "trade_type": "📊 Options Alert",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "strategy": "🎯 RETEST BUY",
+      "stage": "🎯 RETEST | ⚡ BREAKOUT ALERT",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
