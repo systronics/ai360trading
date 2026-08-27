@@ -1,11 +1,11 @@
 {
-  "as_of": "August 25, 2026",
-  "total": 52,
-  "wins": 26,
+  "as_of": "August 27, 2026",
+  "total": 53,
+  "wins": 27,
   "losses": 26,
-  "win_rate": 50,
-  "net_pnl_rs": 4667,
-  "avg_win_pct": 3.0,
+  "win_rate": 51,
+  "net_pnl_rs": 4673,
+  "avg_win_pct": 2.9,
   "avg_loss_pct": -1.5,
   "best": {
     "sym": "CUMMINSIND",
@@ -17,6 +17,12 @@
   },
   "recent": [
     {
+      "sym": "VMM",
+      "exit_date": "2026-08-25",
+      "pct": 0.08,
+      "is_win": true
+    },
+    {
       "sym": "SAIL",
       "exit_date": "2026-08-24",
       "pct": -0.64,
@@ -26,12 +32,6 @@
       "sym": "COFORGE",
       "exit_date": "2026-08-21",
       "pct": 2.9,
-      "is_win": true
-    },
-    {
-      "sym": "FEDERALBNK",
-      "exit_date": "2026-08-20",
-      "pct": 0.55,
       "is_win": true
     }
   ]
