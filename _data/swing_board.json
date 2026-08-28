@@ -1,5 +1,5 @@
 {
-  "generated_at": "28 August 2026, 08:39 PM IST",
+  "generated_at": "29 August 2026, 12:28 AM IST",
   "setups": [
     {
       "symbol": "SAIL",
@@ -7,7 +7,7 @@
       "strategy": "CASH",
       "stage": "🔥 CASH | +5.6% | Vol 102%",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "1"
+      "days_in_trade": "2"
     },
     {
       "symbol": "VEDL",
@@ -15,18 +15,10 @@
       "strategy": "CASH",
       "stage": "🔥 CASH | +4.2% | Vol 90%",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "1"
+      "days_in_trade": "2"
     },
     {
       "symbol": "COFORGE",
-      "trade_type": "⚡ Intraday",
-      "strategy": "➖ HOLD",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "LAURUSLABS",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
