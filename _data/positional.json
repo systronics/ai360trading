@@ -1,5 +1,5 @@
 {
-  "generated_at": "23 August 2026, 09:40 AM IST",
+  "generated_at": "30 August 2026, 02:56 PM IST",
   "rows": [
     [
       "Stock",
@@ -9,179 +9,179 @@
       "CMP ₹"
     ],
     [
-      "NSE:TCS",
-      "TCS",
-      "IT",
-      "STRONG BUY 🟢",
-      "₹2,302"
-    ],
-    [
       "NSE:HDFCBANK",
       "HDFC Bank",
       "Banking",
       "STRONG BUY 🟢",
-      "₹727"
+      "₹720"
+    ],
+    [
+      "NSE:RELIANCE",
+      "Reliance",
+      "Energy",
+      "STRONG BUY 🟢",
+      "₹1,287"
     ],
     [
       "NSE:HINDUNILVR",
       "HUL",
       "FMCG",
       "STRONG BUY 🟢",
-      "₹2,015"
+      "₹2,010"
     ],
     [
       "NSE:ITC",
       "ITC",
       "FMCG",
       "STRONG BUY 🟢",
-      "₹269"
+      "₹266"
     ],
     [
-      "NSE:WIPRO",
-      "Wipro",
+      "NSE:TCS",
+      "TCS",
       "IT",
-      "STRONG BUY 🟢",
-      "₹181"
+      "ACCUMULATE 🟡",
+      "₹2,342"
     ],
     [
       "NSE:INFY",
       "Infosys",
       "IT",
       "ACCUMULATE 🟡",
-      "₹1,121"
-    ],
-    [
-      "NSE:RELIANCE",
-      "Reliance",
-      "Energy",
-      "ACCUMULATE 🟡",
-      "₹1,316"
+      "₹1,144"
     ],
     [
       "NSE:ASIANPAINT",
       "Asian Paints",
       "FMCG",
       "ACCUMULATE 🟡",
-      "₹2,640"
-    ],
-    [
-      "NSE:AXISBANK",
-      "Axis Bank",
-      "Banking",
-      "ACCUMULATE 🟡",
-      "₹1,246"
-    ],
-    [
-      "NSE:HCLTECH",
-      "HCL Tech",
-      "IT",
-      "ACCUMULATE 🟡",
-      "₹1,302"
+      "₹2,609"
     ],
     [
       "NSE:NESTLEIND",
       "Nestle India",
       "FMCG",
       "ACCUMULATE 🟡",
-      "₹1,477"
+      "₹1,455"
     ],
     [
       "NSE:ULTRACEMCO",
       "Ultratech Cement",
       "Cement",
       "ACCUMULATE 🟡",
-      "₹11,570"
+      "₹11,589"
     ],
     [
       "NSE:DRREDDY",
       "Dr Reddy's",
       "Pharma",
       "ACCUMULATE 🟡",
-      "₹1,175"
-    ],
-    [
-      "NSE:SUNPHARMA",
-      "Sun Pharma",
-      "Pharma",
-      "ACCUMULATE 🟡",
-      "₹1,902"
+      "₹1,178"
     ],
     [
       "NSE:MARUTI",
       "Maruti Suzuki",
       "Auto",
       "ACCUMULATE 🟡",
-      "₹13,565"
+      "₹13,376"
     ],
     [
       "NSE:POWERGRID",
       "Power Grid",
       "Utilities",
       "ACCUMULATE 🟡",
-      "₹272"
+      "₹266"
     ],
     [
-      "NSE:COALINDIA",
-      "Coal India",
-      "Energy",
+      "NSE:WIPRO",
+      "Wipro",
+      "IT",
       "ACCUMULATE 🟡",
-      "₹405"
-    ],
-    [
-      "NSE:ICICIBANK",
-      "ICICI Bank",
-      "Banking",
-      "HOLD ⚪",
-      "₹1,420"
+      "₹181"
     ],
     [
       "NSE:BAJFINANCE",
       "Bajaj Finance",
       "NBFC",
       "HOLD ⚪",
-      "₹1,095"
+      "₹1,080"
+    ],
+    [
+      "NSE:AXISBANK",
+      "Axis Bank",
+      "Banking",
+      "HOLD ⚪",
+      "₹1,265"
+    ],
+    [
+      "NSE:HCLTECH",
+      "HCL Tech",
+      "IT",
+      "HOLD ⚪",
+      "₹1,316"
+    ],
+    [
+      "NSE:PIDILITIND",
+      "Pidilite",
+      "Chemicals",
+      "HOLD ⚪",
+      "₹nan"
+    ],
+    [
+      "NSE:SUNPHARMA",
+      "Sun Pharma",
+      "Pharma",
+      "HOLD ⚪",
+      "₹nan"
+    ],
+    [
+      "NSE:M&M",
+      "Mahindra",
+      "Auto",
+      "HOLD ⚪",
+      "₹3,334"
+    ],
+    [
+      "NSE:COALINDIA",
+      "Coal India",
+      "Energy",
+      "HOLD ⚪",
+      "₹401"
+    ],
+    [
+      "NSE:ICICIBANK",
+      "ICICI Bank",
+      "Banking",
+      "BOOK PARTIAL 🔴",
+      "₹1,423"
     ],
     [
       "NSE:KOTAKBANK",
       "Kotak Bank",
       "Banking",
-      "HOLD ⚪",
-      "₹403"
+      "BOOK PARTIAL 🔴",
+      "₹424"
     ],
     [
       "NSE:TITAN",
       "Titan",
       "Consumer",
       "BOOK PARTIAL 🔴",
-      "₹5,086"
-    ],
-    [
-      "NSE:PIDILITIND",
-      "Pidilite",
-      "Chemicals",
-      "BOOK PARTIAL 🔴",
-      "₹1,649"
+      "₹5,169"
     ],
     [
       "NSE:DIVISLAB",
       "Divi's Lab",
       "Pharma",
       "BOOK PARTIAL 🔴",
-      "₹8,597"
+      "₹9,239"
     ],
     [
       "NSE:LT",
       "L&T",
       "Infra",
       "WAIT 🔵",
-      "₹4,093"
-    ],
-    [
-      "NSE:M&M",
-      "Mahindra",
-      "Auto",
-      "WAIT 🔵",
-      "₹3,412"
+      "₹4,046"
     ]
   ]
 }
