@@ -1,24 +1,8 @@
 {
-  "generated_at": "31 August 2026, 02:53 PM IST",
+  "generated_at": "31 August 2026, 03:23 PM IST",
   "setups": [
     {
-      "symbol": "SAIL",
-      "trade_type": "🔥 Cash Intraday",
-      "strategy": "CASH",
-      "stage": "🔥 CASH | +5.6% | Vol 102%",
-      "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "4"
-    },
-    {
-      "symbol": "VEDL",
-      "trade_type": "🔥 Cash Intraday",
-      "strategy": "CASH",
-      "stage": "🔥 CASH | +4.2% | Vol 90%",
-      "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "4"
-    },
-    {
-      "symbol": "MCX",
+      "symbol": "MOTILALOFS",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
