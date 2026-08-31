@@ -1,5 +1,5 @@
 {
-  "generated_at": "29 August 2026, 07:54 AM IST",
+  "generated_at": "31 August 2026, 02:23 PM IST",
   "setups": [
     {
       "symbol": "SAIL",
@@ -7,7 +7,7 @@
       "strategy": "CASH",
       "stage": "🔥 CASH | +5.6% | Vol 102%",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "2"
+      "days_in_trade": "4"
     },
     {
       "symbol": "VEDL",
@@ -15,15 +15,7 @@
       "strategy": "CASH",
       "stage": "🔥 CASH | +4.2% | Vol 90%",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "2"
-    },
-    {
-      "symbol": "COFORGE",
-      "trade_type": "📊 Options Alert",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
+      "days_in_trade": "4"
     },
     {
       "symbol": "MCX",
