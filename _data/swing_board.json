@@ -1,21 +1,4 @@
 {
-  "generated_at": "01 September 2026, 01:28 PM IST",
-  "setups": [
-    {
-      "symbol": "POLICYBZR",
-      "trade_type": "🔄 Swing",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "📈 Near Breakout",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "PAYTM",
-      "trade_type": "📊 Options Alert",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    }
-  ]
+  "generated_at": "01 September 2026, 01:58 PM IST",
+  "setups": []
 }
