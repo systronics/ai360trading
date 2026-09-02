@@ -1,21 +1,4 @@
 {
-  "generated_at": "02 September 2026, 02:49 PM IST",
-  "setups": [
-    {
-      "symbol": "ITC",
-      "trade_type": "🔥 Cash Intraday",
-      "strategy": "CASH",
-      "stage": "🔥 CASH | +4.3% | Vol 126%",
-      "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "0"
-    },
-    {
-      "symbol": "LENSKART",
-      "trade_type": "📊 Options Alert",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    }
-  ]
+  "generated_at": "02 September 2026, 06:09 PM IST",
+  "setups": []
 }
