@@ -1,4 +1,21 @@
 {
-  "generated_at": "02 September 2026, 06:09 PM IST",
-  "setups": []
+  "generated_at": "03 September 2026, 12:52 PM IST",
+  "setups": [
+    {
+      "symbol": "COALINDIA",
+      "trade_type": "🔥 Cash Intraday",
+      "strategy": "CASH",
+      "stage": "🔥 CASH | +4.0% | Vol 255%",
+      "status": "✅ TRADED (PAPER)",
+      "days_in_trade": "0"
+    },
+    {
+      "symbol": "MAHABANK",
+      "trade_type": "🔥 Cash Intraday",
+      "strategy": "CASH",
+      "stage": "🔥 WATCHLIST CASH | +5.5% | Bank of Maharashtra",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    }
+  ]
 }
