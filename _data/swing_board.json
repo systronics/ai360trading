@@ -1,21 +1,4 @@
 {
-  "generated_at": "03 September 2026, 02:52 PM IST",
-  "setups": [
-    {
-      "symbol": "COALINDIA",
-      "trade_type": "🔥 Cash Intraday",
-      "strategy": "CASH",
-      "stage": "🔥 CASH | +4.0% | Vol 255%",
-      "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "0"
-    },
-    {
-      "symbol": "LENSKART",
-      "trade_type": "📊 Options Alert",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    }
-  ]
+  "generated_at": "03 September 2026, 03:22 PM IST",
+  "setups": []
 }
