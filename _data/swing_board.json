@@ -1,5 +1,5 @@
 {
-  "generated_at": "03 September 2026, 12:52 PM IST",
+  "generated_at": "03 September 2026, 01:22 PM IST",
   "setups": [
     {
       "symbol": "COALINDIA",
@@ -10,10 +10,18 @@
       "days_in_trade": "0"
     },
     {
+      "symbol": "LENSKART",
+      "trade_type": "📊 Options Alert",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
       "symbol": "MAHABANK",
       "trade_type": "🔥 Cash Intraday",
       "strategy": "CASH",
-      "stage": "🔥 WATCHLIST CASH | +5.5% | Bank of Maharashtra",
+      "stage": "🔥 WATCHLIST CASH | +5.6% | Bank of Maharashtra",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
