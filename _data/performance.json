@@ -1,11 +1,11 @@
 {
-  "as_of": "September 02, 2026",
-  "total": 55,
-  "wins": 28,
+  "as_of": "September 03, 2026",
+  "total": 57,
+  "wins": 30,
   "losses": 27,
-  "win_rate": 51,
-  "net_pnl_rs": 4583,
-  "avg_win_pct": 2.8,
+  "win_rate": 53,
+  "net_pnl_rs": 4603,
+  "avg_win_pct": 2.7,
   "avg_loss_pct": -1.5,
   "best": {
     "sym": "CUMMINSIND",
@@ -17,22 +17,22 @@
   },
   "recent": [
     {
+      "sym": "COALINDIA",
+      "exit_date": "2026-09-03",
+      "pct": 0.04,
+      "is_win": true
+    },
+    {
+      "sym": "ITC",
+      "exit_date": "2026-09-02",
+      "pct": 0.26,
+      "is_win": true
+    },
+    {
       "sym": "VEDL",
       "exit_date": "2026-08-31",
       "pct": -2.72,
       "is_win": false
-    },
-    {
-      "sym": "SAIL",
-      "exit_date": "2026-08-31",
-      "pct": 1.42,
-      "is_win": true
-    },
-    {
-      "sym": "VMM",
-      "exit_date": "2026-08-25",
-      "pct": 0.08,
-      "is_win": true
     }
   ]
 }
