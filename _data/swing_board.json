@@ -1,4 +1,21 @@
 {
-  "generated_at": "07 September 2026, 01:02 PM IST",
-  "setups": []
+  "generated_at": "07 September 2026, 01:32 PM IST",
+  "setups": [
+    {
+      "symbol": "MOTILALOFS",
+      "trade_type": "📊 Options Alert",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "IDEA",
+      "trade_type": "📊 Options Alert",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    }
+  ]
 }
