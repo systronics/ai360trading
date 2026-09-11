@@ -1,19 +1,11 @@
 {
-  "generated_at": "11 September 2026, 02:58 PM IST",
+  "generated_at": "11 September 2026, 06:12 PM IST",
   "setups": [
     {
       "symbol": "MCX",
       "trade_type": "🔄 Swing",
       "strategy": "🟢 STRONG BUY",
       "stage": "📈 Near Breakout",
-      "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "0"
-    },
-    {
-      "symbol": "INDUSTOWER",
-      "trade_type": "🔥 Cash Intraday",
-      "strategy": "CASH",
-      "stage": "🔥 CASH | +5.0% | Vol 244%",
       "status": "✅ TRADED (PAPER)",
       "days_in_trade": "0"
     },
