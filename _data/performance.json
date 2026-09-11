@@ -1,10 +1,10 @@
 {
-  "as_of": "September 10, 2026",
-  "total": 57,
+  "as_of": "September 11, 2026",
+  "total": 58,
   "wins": 30,
-  "losses": 27,
-  "win_rate": 53,
-  "net_pnl_rs": 4603,
+  "losses": 28,
+  "win_rate": 52,
+  "net_pnl_rs": 4580,
   "avg_win_pct": 2.7,
   "avg_loss_pct": -1.5,
   "best": {
@@ -17,6 +17,12 @@
   },
   "recent": [
     {
+      "sym": "INDUSTOWER",
+      "exit_date": "2026-09-11",
+      "pct": -0.35,
+      "is_win": false
+    },
+    {
       "sym": "COALINDIA",
       "exit_date": "2026-09-03",
       "pct": 0.04,
@@ -27,12 +33,6 @@
       "exit_date": "2026-09-02",
       "pct": 0.26,
       "is_win": true
-    },
-    {
-      "sym": "VEDL",
-      "exit_date": "2026-08-31",
-      "pct": -2.72,
-      "is_win": false
     }
   ]
 }
