@@ -1,5 +1,5 @@
 {
-  "generated_at": "06 September 2026, 01:35 PM IST",
+  "generated_at": "13 September 2026, 02:00 PM IST",
   "rows": [
     [
       "Stock",
@@ -9,179 +9,179 @@
       "CMP ₹"
     ],
     [
+      "NSE:TCS",
+      "TCS",
+      "IT",
+      "STRONG BUY 🟢",
+      "₹2,201"
+    ],
+    [
+      "NSE:INFY",
+      "Infosys",
+      "IT",
+      "STRONG BUY 🟢",
+      "₹1,038"
+    ],
+    [
       "NSE:HDFCBANK",
       "HDFC Bank",
       "Banking",
       "STRONG BUY 🟢",
-      "₹712"
+      "₹708"
     ],
     [
       "NSE:HINDUNILVR",
       "HUL",
       "FMCG",
       "STRONG BUY 🟢",
-      "₹1,973"
-    ],
-    [
-      "NSE:DRREDDY",
-      "Dr Reddy's",
-      "Pharma",
-      "STRONG BUY 🟢",
-      "₹1,151"
+      "₹1,927"
     ],
     [
       "NSE:MARUTI",
       "Maruti Suzuki",
       "Auto",
       "STRONG BUY 🟢",
-      "₹12,694"
+      "₹12,400"
     ],
     [
-      "NSE:TCS",
-      "TCS",
+      "NSE:WIPRO",
+      "Wipro",
       "IT",
-      "ACCUMULATE 🟡",
-      "₹2,304"
+      "STRONG BUY 🟢",
+      "₹167"
     ],
     [
       "NSE:RELIANCE",
       "Reliance",
       "Energy",
       "ACCUMULATE 🟡",
-      "₹1,322"
+      "₹1,258"
     ],
     [
       "NSE:ASIANPAINT",
       "Asian Paints",
       "FMCG",
       "ACCUMULATE 🟡",
-      "₹2,527"
+      "₹2,472"
+    ],
+    [
+      "NSE:HCLTECH",
+      "HCL Tech",
+      "IT",
+      "ACCUMULATE 🟡",
+      "₹1,206"
+    ],
+    [
+      "NSE:NESTLEIND",
+      "Nestle India",
+      "FMCG",
+      "ACCUMULATE 🟡",
+      "₹1,383"
+    ],
+    [
+      "NSE:PIDILITIND",
+      "Pidilite",
+      "Chemicals",
+      "ACCUMULATE 🟡",
+      "₹1,567"
     ],
     [
       "NSE:ITC",
       "ITC",
       "FMCG",
       "ACCUMULATE 🟡",
-      "₹264"
+      "₹260"
+    ],
+    [
+      "NSE:ULTRACEMCO",
+      "Ultratech Cement",
+      "Cement",
+      "ACCUMULATE 🟡",
+      "₹11,000"
+    ],
+    [
+      "NSE:DRREDDY",
+      "Dr Reddy's",
+      "Pharma",
+      "ACCUMULATE 🟡",
+      "₹1,166"
     ],
     [
       "NSE:M&M",
       "Mahindra",
       "Auto",
       "ACCUMULATE 🟡",
-      "₹3,170"
+      "₹3,107"
     ],
     [
-      "NSE:WIPRO",
-      "Wipro",
-      "IT",
-      "ACCUMULATE 🟡",
-      "₹176"
-    ],
-    [
-      "NSE:INFY",
-      "Infosys",
-      "IT",
+      "NSE:ICICIBANK",
+      "ICICI Bank",
+      "Banking",
       "HOLD ⚪",
-      "₹1,130"
+      "₹1,379"
     ],
     [
       "NSE:BAJFINANCE",
       "Bajaj Finance",
       "NBFC",
       "HOLD ⚪",
-      "₹1,060"
+      "₹1,034"
+    ],
+    [
+      "NSE:KOTAKBANK",
+      "Kotak Bank",
+      "Banking",
+      "HOLD ⚪",
+      "₹419"
     ],
     [
       "NSE:AXISBANK",
       "Axis Bank",
       "Banking",
       "HOLD ⚪",
-      "₹1,273"
-    ],
-    [
-      "NSE:HCLTECH",
-      "HCL Tech",
-      "IT",
-      "HOLD ⚪",
-      "₹1,293"
-    ],
-    [
-      "NSE:NESTLEIND",
-      "Nestle India",
-      "FMCG",
-      "HOLD ⚪",
-      "₹1,410"
-    ],
-    [
-      "NSE:PIDILITIND",
-      "Pidilite",
-      "Chemicals",
-      "HOLD ⚪",
-      "₹1,630"
+      "₹1,246"
     ],
     [
       "NSE:LT",
       "L&T",
       "Infra",
       "HOLD ⚪",
-      "₹3,964"
-    ],
-    [
-      "NSE:ULTRACEMCO",
-      "Ultratech Cement",
-      "Cement",
-      "HOLD ⚪",
-      "₹11,408"
+      "₹3,931"
     ],
     [
       "NSE:SUNPHARMA",
       "Sun Pharma",
       "Pharma",
       "HOLD ⚪",
-      "₹1,899"
+      "₹1,840"
     ],
     [
       "NSE:POWERGRID",
       "Power Grid",
       "Utilities",
       "HOLD ⚪",
-      "₹266"
-    ],
-    [
-      "NSE:COALINDIA",
-      "Coal India",
-      "Energy",
-      "HOLD ⚪",
-      "₹415"
-    ],
-    [
-      "NSE:ICICIBANK",
-      "ICICI Bank",
-      "Banking",
-      "BOOK PARTIAL 🔴",
-      "₹1,423"
-    ],
-    [
-      "NSE:KOTAKBANK",
-      "Kotak Bank",
-      "Banking",
-      "BOOK PARTIAL 🔴",
-      "₹424"
+      "₹269"
     ],
     [
       "NSE:TITAN",
       "Titan",
       "Consumer",
       "BOOK PARTIAL 🔴",
-      "₹5,020"
+      "₹5,010"
     ],
     [
       "NSE:DIVISLAB",
       "Divi's Lab",
       "Pharma",
       "BOOK PARTIAL 🔴",
-      "₹9,100"
+      "₹9,322"
+    ],
+    [
+      "NSE:COALINDIA",
+      "Coal India",
+      "Energy",
+      "BOOK PARTIAL 🔴",
+      "₹426"
     ]
   ]
 }
