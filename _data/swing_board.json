@@ -1,5 +1,5 @@
 {
-  "generated_at": "15 September 2026, 03:01 PM IST",
+  "generated_at": "15 September 2026, 03:31 PM IST",
   "setups": [
     {
       "symbol": "MCX",
@@ -8,14 +8,6 @@
       "stage": "📈 Near Breakout",
       "status": "✅ TRADED (PAPER)",
       "days_in_trade": "4"
-    },
-    {
-      "symbol": "INDUSTOWER",
-      "trade_type": "🔥 Cash Intraday",
-      "strategy": "CASH",
-      "stage": "🔥 CASH | +4.3% | Vol 264%",
-      "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "0"
     },
     {
       "symbol": "LENSKART",
