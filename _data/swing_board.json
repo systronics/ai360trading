@@ -1,5 +1,5 @@
 {
-  "generated_at": "16 September 2026, 03:23 PM IST",
+  "generated_at": "16 September 2026, 07:10 PM IST",
   "setups": [
     {
       "symbol": "MCX",
@@ -8,14 +8,6 @@
       "stage": "📈 Near Breakout",
       "status": "✅ TRADED (PAPER)",
       "days_in_trade": "5"
-    },
-    {
-      "symbol": "LENSKART",
-      "trade_type": "📊 Options Alert",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
     }
   ]
 }
