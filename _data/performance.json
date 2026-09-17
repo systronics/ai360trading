@@ -1,12 +1,12 @@
 {
-  "as_of": "September 16, 2026",
-  "total": 59,
+  "as_of": "September 17, 2026",
+  "total": 60,
   "wins": 30,
-  "losses": 29,
-  "win_rate": 51,
-  "net_pnl_rs": 4464,
+  "losses": 30,
+  "win_rate": 50,
+  "net_pnl_rs": 4427,
   "avg_win_pct": 2.7,
-  "avg_loss_pct": -1.5,
+  "avg_loss_pct": -1.4,
   "best": {
     "sym": "CUMMINSIND",
     "pct": 10.13
@@ -16,6 +16,12 @@
     "pct": -6.86
   },
   "recent": [
+    {
+      "sym": "PATANJALI",
+      "exit_date": "2026-09-17",
+      "pct": -0.55,
+      "is_win": false
+    },
     {
       "sym": "INDUSTOWER",
       "exit_date": "2026-09-15",
@@ -27,12 +33,6 @@
       "exit_date": "2026-09-11",
       "pct": -0.35,
       "is_win": false
-    },
-    {
-      "sym": "COALINDIA",
-      "exit_date": "2026-09-03",
-      "pct": 0.04,
-      "is_win": true
     }
   ]
 }
