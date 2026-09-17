@@ -1,5 +1,5 @@
 {
-  "generated_at": "16 September 2026, 07:10 PM IST",
+  "generated_at": "17 September 2026, 01:28 PM IST",
   "setups": [
     {
       "symbol": "MCX",
@@ -7,7 +7,15 @@
       "strategy": "🟢 STRONG BUY",
       "stage": "📈 Near Breakout",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "5"
+      "days_in_trade": "6"
+    },
+    {
+      "symbol": "PATANJALI",
+      "trade_type": "🔥 Cash Intraday",
+      "strategy": "CASH",
+      "stage": "🔥 CASH | +7.8% | Vol 809%",
+      "status": "✅ TRADED (PAPER)",
+      "days_in_trade": "—"
     }
   ]
 }
