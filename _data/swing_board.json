@@ -1,5 +1,5 @@
 {
-  "generated_at": "17 September 2026, 07:18 PM IST",
+  "generated_at": "18 September 2026, 01:06 PM IST",
   "setups": [
     {
       "symbol": "MCX",
@@ -7,7 +7,15 @@
       "strategy": "🟢 STRONG BUY",
       "stage": "📈 Near Breakout",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "6"
+      "days_in_trade": "7"
+    },
+    {
+      "symbol": "TMPV",
+      "trade_type": "🔥 Cash Intraday",
+      "strategy": "CASH",
+      "stage": "🔥 CASH | +4.5% | Vol 44%",
+      "status": "✅ TRADED (PAPER)",
+      "days_in_trade": "0"
     }
   ]
 }
