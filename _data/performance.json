@@ -1,10 +1,10 @@
 {
-  "as_of": "September 18, 2026",
-  "total": 61,
+  "as_of": "September 21, 2026",
+  "total": 64,
   "wins": 30,
-  "losses": 31,
-  "win_rate": 49,
-  "net_pnl_rs": 4210,
+  "losses": 34,
+  "win_rate": 47,
+  "net_pnl_rs": 3837,
   "avg_win_pct": 2.7,
   "avg_loss_pct": -1.5,
   "best": {
@@ -17,21 +17,21 @@
   },
   "recent": [
     {
-      "sym": "TMPV",
-      "exit_date": "2026-09-18",
-      "pct": -3.13,
+      "sym": "IREDA",
+      "exit_date": "2026-09-21",
+      "pct": -2.82,
       "is_win": false
     },
     {
-      "sym": "PATANJALI",
-      "exit_date": "2026-09-17",
-      "pct": -0.55,
+      "sym": "EXIDEIND",
+      "exit_date": "2026-09-21",
+      "pct": -0.24,
       "is_win": false
     },
     {
-      "sym": "INDUSTOWER",
-      "exit_date": "2026-09-15",
-      "pct": -1.66,
+      "sym": "MCX",
+      "exit_date": "2026-09-21",
+      "pct": -1.21,
       "is_win": false
     }
   ]
