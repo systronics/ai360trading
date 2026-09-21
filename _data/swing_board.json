@@ -1,5 +1,5 @@
 {
-  "generated_at": "21 September 2026, 02:11 PM IST",
+  "generated_at": "21 September 2026, 02:41 PM IST",
   "setups": [
     {
       "symbol": "EXIDEIND",
@@ -16,6 +16,14 @@
       "stage": "🔥 CASH | +4.9% | Vol 26%",
       "status": "✅ TRADED (PAPER)",
       "days_in_trade": "0"
+    },
+    {
+      "symbol": "LAURUSLABS",
+      "trade_type": "📊 Options Alert",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
     }
   ]
 }
