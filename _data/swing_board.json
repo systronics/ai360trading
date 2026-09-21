@@ -1,22 +1,6 @@
 {
-  "generated_at": "21 September 2026, 03:11 PM IST",
+  "generated_at": "21 September 2026, 03:42 PM IST",
   "setups": [
-    {
-      "symbol": "EXIDEIND",
-      "trade_type": "🔥 Cash Intraday",
-      "strategy": "CASH",
-      "stage": "🔥 CASH | +4.1% | Vol 151%",
-      "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "0"
-    },
-    {
-      "symbol": "IREDA",
-      "trade_type": "🔥 Cash Intraday",
-      "strategy": "CASH",
-      "stage": "🔥 CASH | +4.9% | Vol 26%",
-      "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "0"
-    },
     {
       "symbol": "LAURUSLABS",
       "trade_type": "📊 Options Alert",
