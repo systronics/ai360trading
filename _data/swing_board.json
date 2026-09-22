@@ -1,19 +1,11 @@
 {
-  "generated_at": "22 September 2026, 01:26 PM IST",
+  "generated_at": "22 September 2026, 01:56 PM IST",
   "setups": [
     {
       "symbol": "LAURUSLABS",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "PATANJALI",
-      "trade_type": "🔥 Cash Intraday",
-      "strategy": "CASH",
-      "stage": "🔥 CASH | +8.0% | Vol 437%",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
