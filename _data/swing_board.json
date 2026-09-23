@@ -1,13 +1,13 @@
 {
-  "generated_at": "23 September 2026, 02:57 PM IST",
+  "generated_at": "23 September 2026, 03:27 PM IST",
   "setups": [
     {
-      "symbol": "SWIGGY",
-      "trade_type": "🔥 Cash Intraday",
-      "strategy": "CASH",
-      "stage": "🔥 CASH | +4.2% | Vol 27%",
-      "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "0"
+      "symbol": "MCX",
+      "trade_type": "📊 Options Alert",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
     }
   ]
 }
