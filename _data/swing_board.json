@@ -1,5 +1,5 @@
 {
-  "generated_at": "23 September 2026, 01:27 PM IST",
+  "generated_at": "23 September 2026, 01:57 PM IST",
   "setups": [
     {
       "symbol": "SWIGGY",
@@ -8,14 +8,6 @@
       "stage": "🔥 CASH | +4.2% | Vol 27%",
       "status": "✅ TRADED (PAPER)",
       "days_in_trade": "0"
-    },
-    {
-      "symbol": "DELTACORP",
-      "trade_type": "🔥 Cash Intraday",
-      "strategy": "CASH",
-      "stage": "🔥 WATCHLIST CASH | +6.7% | Delta Corp",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
     }
   ]
 }
