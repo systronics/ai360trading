@@ -1,5 +1,5 @@
 {
-  "generated_at": "23 September 2026, 07:17 PM IST",
+  "generated_at": "24 September 2026, 01:18 PM IST",
   "setups": [
     {
       "symbol": "LAURUSLABS",
@@ -14,6 +14,22 @@
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "DELTACORP",
+      "trade_type": "🔥 Cash Intraday",
+      "strategy": "CASH",
+      "stage": "🔥 WATCHLIST CASH | +5.2% | Delta Corp",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "SAIL",
+      "trade_type": "🔥 Cash Intraday",
+      "strategy": "CASH",
+      "stage": "🔥 CASH | +6.6% | Vol 119%",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
