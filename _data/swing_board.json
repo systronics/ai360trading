@@ -1,4 +1,13 @@
 {
-  "generated_at": "06 October 2026, 03:24 PM IST",
-  "setups": []
+  "generated_at": "06 October 2026, 10:06 PM IST",
+  "setups": [
+    {
+      "symbol": "LAURUSLABS",
+      "trade_type": "📊 Options Alert",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    }
+  ]
 }
