@@ -1,21 +1,13 @@
 {
-  "generated_at": "06 October 2026, 12:49 AM IST",
+  "generated_at": "06 October 2026, 02:54 PM IST",
   "setups": [
-    {
-      "symbol": "DELTACORP",
-      "trade_type": "🔥 Cash Intraday",
-      "strategy": "CASH",
-      "stage": "🔥 WATCHLIST CASH | +15.7% | Delta Corp",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
     {
       "symbol": "ITC",
       "trade_type": "🔥 Cash Intraday",
       "strategy": "CASH",
       "stage": "🔥 CASH | +5.1% | Vol 285%",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
+      "status": "✅ TRADED (PAPER)",
+      "days_in_trade": "0"
     }
   ]
 }
