@@ -1,10 +1,10 @@
 {
-  "as_of": "October 05, 2026",
-  "total": 65,
+  "as_of": "October 06, 2026",
+  "total": 66,
   "wins": 30,
-  "losses": 35,
-  "win_rate": 46,
-  "net_pnl_rs": 3691,
+  "losses": 36,
+  "win_rate": 45,
+  "net_pnl_rs": 3571,
   "avg_win_pct": 2.7,
   "avg_loss_pct": -1.5,
   "best": {
@@ -17,6 +17,12 @@
   },
   "recent": [
     {
+      "sym": "ITC",
+      "exit_date": "2026-10-06",
+      "pct": -1.71,
+      "is_win": false
+    },
+    {
       "sym": "SWIGGY",
       "exit_date": "2026-09-23",
       "pct": -2.15,
@@ -26,12 +32,6 @@
       "sym": "IREDA",
       "exit_date": "2026-09-21",
       "pct": -2.82,
-      "is_win": false
-    },
-    {
-      "sym": "EXIDEIND",
-      "exit_date": "2026-09-21",
-      "pct": -0.24,
       "is_win": false
     }
   ]
