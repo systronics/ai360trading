@@ -1,21 +1,4 @@
 {
-  "generated_at": "12 October 2026, 03:14 PM IST",
-  "setups": [
-    {
-      "symbol": "GMRAIRPORT",
-      "trade_type": "🔥 Cash Intraday",
-      "strategy": "CASH",
-      "stage": "🔥 CASH | +5.2% | Vol 265%",
-      "status": "EXITED (⏰ INTRADAY TIME EXIT)",
-      "days_in_trade": "0"
-    },
-    {
-      "symbol": "ITC",
-      "trade_type": "🔥 Cash Intraday",
-      "strategy": "CASH",
-      "stage": "🔥 CASH | +4.3% | Vol 57%",
-      "status": "EXITED (⏰ INTRADAY TIME EXIT)",
-      "days_in_trade": "0"
-    }
-  ]
+  "generated_at": "12 October 2026, 03:44 PM IST",
+  "setups": []
 }
