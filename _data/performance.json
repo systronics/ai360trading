@@ -1,12 +1,12 @@
 {
-  "as_of": "October 09, 2026",
-  "total": 67,
+  "as_of": "October 12, 2026",
+  "total": 69,
   "wins": 30,
-  "losses": 37,
-  "win_rate": 45,
+  "losses": 39,
+  "win_rate": 43,
   "net_pnl_rs": 3449,
   "avg_win_pct": 2.7,
-  "avg_loss_pct": -1.5,
+  "avg_loss_pct": -1.4,
   "best": {
     "sym": "CUMMINSIND",
     "pct": 10.13
@@ -17,21 +17,21 @@
   },
   "recent": [
     {
+      "sym": "ITC",
+      "exit_date": "2026-10-12",
+      "pct": 0.0,
+      "is_win": false
+    },
+    {
+      "sym": "GMRAIRPORT",
+      "exit_date": "2026-10-12",
+      "pct": 0.0,
+      "is_win": false
+    },
+    {
       "sym": "VEDL",
       "exit_date": "2026-10-07",
       "pct": -1.77,
-      "is_win": false
-    },
-    {
-      "sym": "ITC",
-      "exit_date": "2026-10-06",
-      "pct": -1.71,
-      "is_win": false
-    },
-    {
-      "sym": "SWIGGY",
-      "exit_date": "2026-09-23",
-      "pct": -2.15,
       "is_win": false
     }
   ]
