@@ -1,11 +1,11 @@
 {
-  "as_of": "October 13, 2026",
-  "total": 69,
-  "wins": 30,
-  "losses": 39,
-  "win_rate": 43,
-  "net_pnl_rs": 3449,
-  "avg_win_pct": 2.7,
+  "as_of": "October 14, 2026",
+  "total": 71,
+  "wins": 31,
+  "losses": 40,
+  "win_rate": 44,
+  "net_pnl_rs": 3518,
+  "avg_win_pct": 2.6,
   "avg_loss_pct": -1.4,
   "best": {
     "sym": "CUMMINSIND",
@@ -17,21 +17,21 @@
   },
   "recent": [
     {
+      "sym": "MOTHERSON",
+      "exit_date": "2026-10-14",
+      "pct": -0.31,
+      "is_win": false
+    },
+    {
+      "sym": "PFC",
+      "exit_date": "2026-10-14",
+      "pct": 1.32,
+      "is_win": true
+    },
+    {
       "sym": "ITC",
       "exit_date": "2026-10-12",
       "pct": 0.0,
-      "is_win": false
-    },
-    {
-      "sym": "GMRAIRPORT",
-      "exit_date": "2026-10-12",
-      "pct": 0.0,
-      "is_win": false
-    },
-    {
-      "sym": "VEDL",
-      "exit_date": "2026-10-07",
-      "pct": -1.77,
       "is_win": false
     }
   ]
