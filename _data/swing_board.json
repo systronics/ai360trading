@@ -1,4 +1,21 @@
 {
-  "generated_at": "13 October 2026, 11:14 PM IST",
-  "setups": []
+  "generated_at": "14 October 2026, 01:30 PM IST",
+  "setups": [
+    {
+      "symbol": "PFC",
+      "trade_type": "🔥 Cash Intraday",
+      "strategy": "CASH",
+      "stage": "🔥 CASH | +4.3% | Vol 109%",
+      "status": "✅ TRADED (PAPER)",
+      "days_in_trade": "0"
+    },
+    {
+      "symbol": "MOTHERSON",
+      "trade_type": "🔥 Cash Intraday",
+      "strategy": "CASH",
+      "stage": "🔥 CASH | +4.6% | Vol -50%",
+      "status": "✅ TRADED (PAPER)",
+      "days_in_trade": "0"
+    }
+  ]
 }
