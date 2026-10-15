@@ -1,5 +1,5 @@
 {
-  "generated_at": "15 October 2026, 01:43 PM IST",
+  "generated_at": "15 October 2026, 02:13 PM IST",
   "setups": [
     {
       "symbol": "ADANIPOWER",
@@ -30,22 +30,6 @@
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "LGEINDIA",
-      "trade_type": "📊 Options Alert",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "BHEL",
-      "trade_type": "🔄 Swing",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "📈 Near Breakout",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
