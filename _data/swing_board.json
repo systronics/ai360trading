@@ -1,14 +1,6 @@
 {
-  "generated_at": "15 October 2026, 03:13 PM IST",
+  "generated_at": "15 October 2026, 06:57 PM IST",
   "setups": [
-    {
-      "symbol": "ADANIPOWER",
-      "trade_type": "🔥 Cash Intraday",
-      "strategy": "CASH",
-      "stage": "🔥 CASH | +4.9% | Vol 72%",
-      "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "0"
-    },
     {
       "symbol": "TECHM",
       "trade_type": "📈 Positional",
@@ -34,7 +26,7 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "MOTILALOFS",
+      "symbol": "INDHOTEL",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
@@ -42,10 +34,10 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "KOTAKBANK",
+      "symbol": "MOTILALOFS",
       "trade_type": "📊 Options Alert",
-      "strategy": "➖ HOLD",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
