@@ -1,4 +1,29 @@
 {
-  "generated_at": "14 October 2026, 07:33 PM IST",
-  "setups": []
+  "generated_at": "15 October 2026, 01:13 PM IST",
+  "setups": [
+    {
+      "symbol": "ADANIPOWER",
+      "trade_type": "🔥 Cash Intraday",
+      "strategy": "CASH",
+      "stage": "🔥 CASH | +4.9% | Vol 72%",
+      "status": "✅ TRADED (PAPER)",
+      "days_in_trade": "0"
+    },
+    {
+      "symbol": "RITES",
+      "trade_type": "🔥 Cash Intraday",
+      "strategy": "CASH",
+      "stage": "🔥 WATCHLIST CASH | +4.1% | RITES",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "JSWENERGY",
+      "trade_type": "🔥 Cash Intraday",
+      "strategy": "CASH",
+      "stage": "🔥 CASH | +6.5% | Vol 269%",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    }
+  ]
 }
