@@ -1,10 +1,10 @@
 {
-  "as_of": "October 14, 2026",
-  "total": 71,
-  "wins": 31,
+  "as_of": "October 15, 2026",
+  "total": 72,
+  "wins": 32,
   "losses": 40,
   "win_rate": 44,
-  "net_pnl_rs": 3518,
+  "net_pnl_rs": 3546,
   "avg_win_pct": 2.6,
   "avg_loss_pct": -1.4,
   "best": {
@@ -17,6 +17,12 @@
   },
   "recent": [
     {
+      "sym": "ADANIPOWER",
+      "exit_date": "2026-10-15",
+      "pct": 0.41,
+      "is_win": true
+    },
+    {
       "sym": "MOTHERSON",
       "exit_date": "2026-10-14",
       "pct": -0.31,
@@ -27,12 +33,6 @@
       "exit_date": "2026-10-14",
       "pct": 1.32,
       "is_win": true
-    },
-    {
-      "sym": "ITC",
-      "exit_date": "2026-10-12",
-      "pct": 0.0,
-      "is_win": false
     }
   ]
 }
