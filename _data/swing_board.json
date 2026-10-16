@@ -1,5 +1,5 @@
 {
-  "generated_at": "16 October 2026, 01:00 PM IST",
+  "generated_at": "16 October 2026, 01:30 PM IST",
   "setups": [
     {
       "symbol": "TECHM",
@@ -26,10 +26,18 @@
       "days_in_trade": "0"
     },
     {
+      "symbol": "WIPRO",
+      "trade_type": "🔥 Cash Intraday",
+      "strategy": "CASH",
+      "stage": "🔥 CASH | +5.8% | Vol 147%",
+      "status": "✅ TRADED (PAPER)",
+      "days_in_trade": "0"
+    },
+    {
       "symbol": "LAURUSLABS",
       "trade_type": "📊 Options Alert",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
+      "strategy": "🎯 RETEST BUY",
+      "stage": "🎯 RETEST | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
@@ -37,7 +45,7 @@
       "symbol": "INDHOTEL",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
@@ -46,6 +54,14 @@
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "KOTAKBANK",
+      "trade_type": "📊 Options Alert",
+      "strategy": "➖ HOLD",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
