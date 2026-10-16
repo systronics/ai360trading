@@ -1,11 +1,11 @@
 {
-  "as_of": "October 15, 2026",
-  "total": 72,
-  "wins": 32,
-  "losses": 40,
-  "win_rate": 44,
-  "net_pnl_rs": 3546,
-  "avg_win_pct": 2.6,
+  "as_of": "October 16, 2026",
+  "total": 74,
+  "wins": 33,
+  "losses": 41,
+  "win_rate": 45,
+  "net_pnl_rs": 3525,
+  "avg_win_pct": 2.5,
   "avg_loss_pct": -1.4,
   "best": {
     "sym": "CUMMINSIND",
@@ -17,21 +17,21 @@
   },
   "recent": [
     {
-      "sym": "ADANIPOWER",
-      "exit_date": "2026-10-15",
-      "pct": 0.41,
+      "sym": "WIPRO",
+      "exit_date": "2026-10-16",
+      "pct": 0.48,
       "is_win": true
     },
     {
-      "sym": "MOTHERSON",
-      "exit_date": "2026-10-14",
-      "pct": -0.31,
+      "sym": "HINDPETRO",
+      "exit_date": "2026-10-16",
+      "pct": -0.77,
       "is_win": false
     },
     {
-      "sym": "PFC",
-      "exit_date": "2026-10-14",
-      "pct": 1.32,
+      "sym": "ADANIPOWER",
+      "exit_date": "2026-10-15",
+      "pct": 0.41,
       "is_win": true
     }
   ]
