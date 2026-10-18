@@ -1,0 +1,44 @@
+{% comment %}
+  Shared broker block (2026-10-18). One source for the 4 referral links on every
+  page that asks a visitor to act (swing dashboard, positional picks, SIP list,
+  breakout list). Keep the URLs identical to money_funnel.LINKS (zerodha, dhan,
+  groww, coindcx). Usage: include broker-links.html with heading and intro.
+{% endcomment %}
+<style>
+  .bk-section { margin: 28px 0; padding: 22px; background: #f0f7ff; border: 1px solid #bfdbfe; border-radius: 12px; }
+  .bk-section h3 { font-size: 18px; font-weight: 900; color: #0f172a; margin: 0 0 6px 0; }
+  .bk-section p  { font-size: 14px; color: #64748b; margin: 0 0 16px 0; }
+  .bk-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
+  .bk-card { display: flex; flex-direction: column; gap: 8px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px; text-decoration: none !important; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+  .bk-card:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(0,98,255,0.12); border-color: #0062ff; }
+  .bk-name { font-size: 16px; font-weight: 900; color: #0f172a; }
+  .bk-desc { font-size: 13px; color: #64748b; line-height: 1.5; }
+  .bk-btn  { display: inline-block; margin-top: 5px; background: #0062ff; color: #fff !important; padding: 7px 14px; border-radius: 6px; font-size: 12px; font-weight: 800; text-align: center; }
+  @media (max-width: 768px) { .bk-grid { grid-template-columns: 1fr; } }
+</style>
+<div class="bk-section">
+  <h3>{{ include.title | default: "🏦 Open a Trading Account" }}</h3>
+  <p>{{ include.intro | default: "Open a free account with a trusted broker to act on these ideas." }}</p>
+  <div class="bk-grid">
+    <a href="https://zerodha.com/open-account?c=YS3694" class="bk-card" target="_blank" rel="nofollow noopener">
+      <span class="bk-name">📊 Zerodha</span>
+      <span class="bk-desc">India's #1 discount broker. Zero brokerage on equity delivery. Trusted by 1 crore+ investors.</span>
+      <span class="bk-btn">Open Free Account →</span>
+    </a>
+    <a href="https://join.dhan.co/?invite=MSIVC45309" class="bk-card" target="_blank" rel="nofollow noopener">
+      <span class="bk-name">⚡ Dhan</span>
+      <span class="bk-desc">Fast execution, clean app. Good for active traders who want speed and simplicity.</span>
+      <span class="bk-btn">Open Free Account →</span>
+    </a>
+    <a href="https://app.groww.in/v3cO/gdbyojxy" class="bk-card" target="_blank" rel="nofollow noopener">
+      <span class="bk-name">🌱 Groww</span>
+      <span class="bk-desc">Easiest platform for beginners. Stocks, mutual funds and SIP in one place.</span>
+      <span class="bk-btn">Open Free Account →</span>
+    </a>
+    <a href="https://invite.coindcx.com/13383200" class="bk-card" target="_blank" rel="nofollow noopener">
+      <span class="bk-name">₿ CoinDCX</span>
+      <span class="bk-desc">India's leading crypto exchange. Buy Bitcoin, Ethereum &amp; 500+ coins. Quick KYC, secure wallet.</span>
+      <span class="bk-btn">Start Crypto →</span>
+    </a>
+  </div>
+</div>
