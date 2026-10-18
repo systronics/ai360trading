@@ -84,8 +84,8 @@ jobs:
   session:
     runs-on: ubuntu-latest
     # < GitHub's 6h hard limit. The bash loop self-exits at the IST end time
-    # well before this; timeout-minutes is only a runaway backstop.
-    timeout-minutes: 235
+    # well before this; timeout-minutes is only a runaway backstop (355 = just under GitHub's 360-min cap; the loop self-stops at 340 min, see MAX_RUN_MIN).
+    timeout-minutes: 355
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -124,15 +124,22 @@ jobs:
           else
             END="15:50"
           fi
-          echo "[SESSION] start $(date '+%F %T %Z') — looping every ${TICK_SECONDS}s until ${END} IST"
+          # 2026-10-18: clean self-stop before GitHub's 6h job limit. An early start
+          # (e.g. cron-job.org at ~08:40 IST for the Good Morning message) with END=15:50
+          # would otherwise be force-CANCELLED by the job timeout mid-session. Stopping
+          # cleanly after MAX_RUN_MIN lets the already-queued afternoon session (same
+          # concurrency group, cancel-in-progress:false) take over with no gap.
+          MAX_RUN_MIN=340
+          CAP=$(( $(date +%s) + MAX_RUN_MIN * 60 ))
+          echo "[SESSION] start $(date '+%F %T %Z') — looping every ${TICK_SECONDS}s until ${END} IST (or ${MAX_RUN_MIN} min)"
           TICKS=0
-          while [ "$(date +%H:%M)" \< "$END" ]; do
+          while [ "$(date +%H:%M)" \< "$END" ] && [ "$(date +%s)" -lt "$CAP" ]; do
             TICKS=$((TICKS+1))
             echo "::group::[TICK $TICKS] $(date '+%T') IST"
             python -u trading_bot.py || echo "[TICK $TICKS] bot exited non-zero — continuing"
             echo "::endgroup::"
             # Stop sleeping if the next tick would land past the end time.
-            if [ "$(date +%H:%M)" \< "$END" ]; then
+            if [ "$(date +%H:%M)" \< "$END" ] && [ "$(date +%s)" -lt "$CAP" ]; then
               sleep "$TICK_SECONDS"
             fi
           done
