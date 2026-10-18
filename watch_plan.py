@@ -208,6 +208,10 @@ def fetch_analyses(symbols, now=None):
     return out
 
 
+def _ar(up):
+    return "↑" if up else "↓"
+
+
 def htf_line(sym, now=None):
     """One-line higher-timeframe check for a live entry alert (fail-open -> '')."""
     try:
@@ -217,7 +221,7 @@ def htf_line(sym, now=None):
         d = "UP" if (a["close"] > a["ema50"] and a["ema50"] > a["ema200"]) else "MIXED" if a["close"] > a["ema50"] else "DOWN"
         w = "UP" if a["weekly_up"] else "DOWN"
         vol = f"{a['vol_x']:.1f}x" if a["vol_x"] else "n/a"
-        return (f"📊 Bade timeframe: Daily {d} | Weekly {w} | RSI d{a['rsi_d']:.0f}/w{a['rsi_w']:.0f} | ADX {a['adx']:.0f} | Vol {vol}"
+        return (f"📊 D{_ar(d == 'UP')} W{_ar(a['weekly_up'])} | RSI {a['rsi_d']:.0f}/{a['rsi_w']:.0f} | ADX {a['adx']:.0f} | Vol {vol}"
                 + chr(10))
     except Exception:
         return ""
@@ -280,41 +284,42 @@ def _trend_word(a):
     return "MIXED" if a["close"] > a["ema50"] else "DOWN"
 
 
+def _arrow(up):
+    return "↑" if up else "↓"
+
+
 def build_messages(now, is_bullish, mkt, items, opt_flags, sector_by_sym, weak_mkt=False):
-    date_s = now.strftime("%d %b %Y")
+    """COMPACT by design (owner 2026-10-19: members read the signal and the level, long text costs time):
+    2 lines per stock, one short header, one short footer."""
+    date_s = now.strftime("%d %b")
     if mkt:
-        mline = (f"Nifty: Daily {_trend_word(mkt)} (50-DMA {'upar' if mkt['close'] > mkt['ema50'] else 'neeche'}) | "
-                 f"Weekly {'UP' if mkt['weekly_up'] else 'DOWN'} | RSI d{mkt['rsi_d']:.0f}")
+        mline = (f"Nifty: D{_arrow(mkt['close'] > mkt['ema50'])} W{_arrow(mkt['weekly_up'])} RSI {mkt['rsi_d']:.0f}")
     else:
-        mline = "Nifty context unavailable"
+        mline = ""
     if not is_bullish or not items:
-        why = "market weak hai" if not is_bullish else "koi stock hamare 7-point checklist me pass nahi hua"
-        adv = (f"📋 <b>MORNING WATCH PLAN — {date_s}</b>\n━━━━━━━━━━━━━━━━━━━━\n{mline}\n\n"
-               f"🚫 Aaj intraday/option ka plan NAHI: {why}.\nIntezaar bhi ek position hai. Sirf swing watchlist par nazar rakhe.\n")
-        basic = (f"📋 <b>Morning watch plan — {date_s}</b>\n{mline}\n🚫 Aaj intraday/option plan nahi ({why}).\n\n"
-                 f"📈 Swing signals hamara main product hai — <b>ai360trading.in/membership</b>")
+        why = "market weak" if not is_bullish else "koi stock checklist me pass nahi"
+        adv = (f"📋 <b>WATCH PLAN {date_s}</b>  {mline}\n"
+               f"🚫 Aaj intraday/option plan nahi ({why}). Intezaar bhi position hai.")
+        basic = (f"📋 <b>Watch plan {date_s}</b>  {mline}\n🚫 Aaj plan nahi ({why}).\n"
+                 f"📈 Swing = hamara main product: ai360trading.in/membership")
         return adv, basic
-    caution = ["🟠 Market kamzor hai (Nifty daily + weekly dono neeche): sirf top 2 A+ setup, size aur chhota, jaldi book kare."] if weak_mkt else []
-    lines = [f"📋 <b>MORNING WATCH PLAN — {date_s}</b>", "━━━━━━━━━━━━━━━━━━━━", mline] + caution + [
-             "Rule: entry sirf 15m CANDLE CLOSE par. Level se CHASE mat karo. Alert/plan 5-10 min purana ho sakta hai — apna live chart dekhe.", ""]
+    head = f"📋 <b>WATCH PLAN {date_s}</b>  {mline}"
+    if weak_mkt:
+        head += "\n🟠 Market kamzor: sirf top 2, size chhota."
+    lines = [head, ""]
     for k, it in enumerate(items, 1):
         a = it["a"]
-        sec = sector_by_sym.get(it["symbol"], "")
-        ce = " | CE idea (1-2 din hold)" if opt_flags.get(it["symbol"]) else ""
-        vol = f"{a['vol_x']:.1f}x" if a["vol_x"] else "n/a"
-        lines += [
-            f"<b>{k}) {it['symbol']}</b> {('(' + sec + ') ') if sec else ''}— checklist {it['score']}/7{ce}",
-            f"   Daily: {_trend_word(a)} | Weekly: {'UP' if a['weekly_up'] else 'DOWN'} | RSI d{a['rsi_d']:.0f}/w{a['rsi_w']:.0f} | ADX {a['adx']:.0f} | Vol {vol}",
-            f"   Trigger: 15m close ₹{_fmt(it['trigger'])} ke upar (pichhle din ka high)",
-            f"   Chase limit: ₹{_fmt(it['chase'])} ke upar ho to SKIP",
-            f"   Cancel: 15m close ₹{_fmt(it['cancel'])} (pichhle din ka low) ke neeche | 5-din Support ₹{_fmt(it['support'])} | Resistance ₹{_fmt(it['resistance'])}",
-            f"   Setup: {a['setup']}", ""]
-    lines.append("⚠️ Option me sirf CE aur sirf 1-2 din hold. Size chhota rakhe, stop-loss ke bina trade nahi. Ye plan hai, advice nahi.")
+        ce = " CE" if opt_flags.get(it["symbol"]) else ""
+        vol = f"{a['vol_x']:.1f}x" if a["vol_x"] else "-"
+        lines.append(f"<b>{k}) {it['symbol']}</b> {it['score']}/7{ce}")
+        lines.append(f"Buy: 15m close &gt; {_fmt(it['trigger'])} | Skip &gt; {_fmt(it['chase'])} | Cancel &lt; {_fmt(it['cancel'])}")
+        lines.append(f"D{_arrow(a['close'] > a['ema50'] and a['ema50'] > a['ema200'])} W{_arrow(a['weekly_up'])} RSI {a['rsi_d']:.0f}/{a['rsi_w']:.0f} ADX {a['adx']:.0f} Vol {vol}")
+        lines.append("")
+    lines.append("⏱ Sirf 15m close par entry, chase nahi. Option: CE, 1-2 din. Stop-loss zaroor.")
     adv = "\n".join(lines)
-    names = ", ".join(i["symbol"] for i in items)
-    basic = (f"📋 <b>Morning watch plan — {date_s}</b>\n{mline}\n"
-             f"{len(items)} stock(s) pass hue hamare 7-point higher-timeframe checklist me. Levels (trigger / chase limit / cancel) sirf Advance/Premium members ko bheje gaye.\n\n"
-             f"📈 <b>Join Advance @ ₹699/month</b>\n📱 ai360trading.in/membership")
+    basic = (f"📋 <b>Watch plan {date_s}</b>  {mline}\n"
+             f"{len(items)} stock checklist me pass. Levels sirf members ko.\n"
+             f"📈 <b>Advance ₹699/month</b>: ai360trading.in/membership")
     return adv, basic
 
 

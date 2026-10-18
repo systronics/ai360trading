@@ -2129,10 +2129,9 @@ def _late_alert_line(ttype, cp):
         t = str(ttype)
         if is_cash_trade(t) or "Intraday" in t or "Option" in t:
             lim = cp * 1.004
-            return (f"⏱ Alert 5-10 min purana ho sakta hai. CHASE MAT KARO: price ₹{lim:.2f} ke upar chala gaya ho to SKIP. "
-                    f"Entry sirf apne 15m chart par candle CLOSE confirm hone par.\n")
+            return f"⏱ Alert late ho sakta hai: price ₹{lim:.2f} ke upar ho to SKIP (chase nahi).\n"
         lim = cp * 1.01
-        return f"⏱ Alert thoda purana ho sakta hai. Price ₹{lim:.2f} ke upar chala gaya ho to entry skip/wait kare.\n"
+        return f"⏱ Price ₹{lim:.2f} ke upar ho to entry skip/wait.\n"
     except Exception:
         return ""
 
@@ -2184,8 +2183,7 @@ def build_entry_premium(sym, cp, stage, sl, tgt, rr, ttype, atr, rank, capital, 
                                  bm_data=bm_data)
     if ce_block and cp > 0:
         # option premiums move fast and this alert can be minutes old (free infrastructure) — say so, give a stock chase limit
-        ce_block += (f"\n⏱ Option premium tez badalta hai: stock ₹{cp * 1.004:.2f} ke upar ho to CE mat le (chase). "
-                     f"Apne 15m chart par candle close + bade timeframe (daily/weekly trend) confirm kare.")
+        ce_block += f"\n⏱ Stock ₹{cp * 1.004:.2f} ke upar ho to CE skip. 15m close + daily/weekly trend dekhe."
     return base + ce_block
 
 def _fmt12(h, m):
