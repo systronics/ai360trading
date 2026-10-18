@@ -40,7 +40,7 @@ from datetime import datetime
 import pytz
 
 IST        = pytz.timezone("Asia/Kolkata")
-VERSION    = "v1.0"
+VERSION    = "v1.1"
 SHEET_NAME = "Ai360tradingAlgo"
 NIFTY200   = "Nifty200"
 TAB        = "BottomScanner"
@@ -71,12 +71,12 @@ NIFTY_PULL = [
 LEVEL_COLS = [
     "Prev_Day_High", "Prev_Day_Low", "Prev_Week_High", "Prev_Week_Low",
     "Support_1", "Support_2", "Resistance_1", "Base_Range_20D_%",
-    "Retest_Level", "Retest_Status", "Levels_Updated",
+    "Retest_Level", "Retest_Status", "EMA50", "ADX_14", "TLB_Breakout_5D", "Levels_Updated",
 ]
 # Formula columns (computed in-sheet from the two groups above).
 FORMULA_COLS = [
     "Liquidity_Cr", "Above_Prev_Day_High", "Above_Prev_Week_High",
-    "%_above_Support_1", "Bottom_Stage", "Intraday_Setup",
+    "%_above_Support_1", "Base_Stage", "Trend_Setup", "Intraday_Setup",
 ]
 
 
@@ -179,6 +179,126 @@ def compute_levels(dates, highs, lows, closes, today):
                 base=base_rng, retest_level=level, retest_status=status)
 
 
+def _atr(h, l, c, n=14):
+    import pandas as pd
+    pc = c.shift(1)
+    tr = pd.concat([h - l, (h - pc).abs(), (l - pc).abs()], axis=1).max(axis=1)
+    return tr.ewm(alpha=1 / n, adjust=False).mean()
+
+
+def _adx(h, l, c, n=14):
+    import numpy as np, pandas as pd
+    up, dn = h.diff(), -l.diff()
+    pdm = pd.Series(np.where((up > dn) & (up > 0), up, 0.0), index=h.index)
+    mdm = pd.Series(np.where((dn > up) & (dn > 0), dn, 0.0), index=h.index)
+    a = _atr(h, l, c, n)
+    pdi = 100 * pdm.ewm(alpha=1 / n, adjust=False).mean() / a
+    mdi = 100 * mdm.ewm(alpha=1 / n, adjust=False).mean() / a
+    dx = 100 * (pdi - mdi).abs() / (pdi + mdi).replace(0, np.nan)
+    return dx.ewm(alpha=1 / n, adjust=False).mean()
+
+
+def tlb_upbreak(highs, closes, atrs, length=14):
+    """Exact port of the Pine 'ai360trading (TLB)' up-trendline breakout: pivot high
+    confirmed `length` bars later, slope = ATR/length, breakout when close crosses
+    above the decaying pivot line. Returns list[bool], True on the breakout bar."""
+    n = len(closes)
+    upper = 0.0; sph = 0.0; upos = 0
+    out = [False] * n
+    for i in range(n):
+        ph = None
+        if i >= 2 * length:
+            j = i - length
+            if highs[j] == max(highs[j - length:j + length + 1]):
+                ph = highs[j]
+        if ph is not None:
+            sph = atrs[i] / length
+            upper = ph
+        else:
+            upper = upper - sph
+        prev = upos
+        upos = 0 if ph is not None else (1 if closes[i] > upper - sph * length else upos)
+        out[i] = upos > prev
+    return out
+
+
+TW_TAB    = "TrendWatch"
+TW_HEADER = ["Signal_Date", "Symbol", "Sector", "Entry_Price", "Initial_Stop", "ATR_Entry",
+             "Highest_Close", "Trail_Stop", "Status", "Exit_Date", "Exit_Price", "Return_%",
+             "Days_Held", "Last_Scored"]
+TW_MAX_DAYS = 120
+TW_ATR_MULT = 3.0
+TW_COST     = 0.002
+
+
+def trendwatch(sh, frames, sectors, now):
+    """Observation-only forward tracker (same doctrine as ShadowLedger). Logs each new
+    'TREND BREAKOUT' (Pine trendline breakout + close>EMA50 on the last COMPLETED bar)
+    and scores open rows with the exact exit rule the 2026-10-18 backtest used: initial
+    stop = 20-day low capped 12% below entry; 3xATR(14) chandelier trail on closes;
+    exit at next open; 120-day max hold. Reads/writes ONLY the TrendWatch tab."""
+    try:
+        try:
+            ws = sh.worksheet(TW_TAB)
+        except Exception:
+            ws = sh.add_worksheet(title=TW_TAB, rows=300, cols=len(TW_HEADER))
+            ws.update(range_name="A1", values=[TW_HEADER])
+        vals = ws.get_all_values()
+        if not vals or vals[0][:3] != TW_HEADER[:3]:
+            ws.update(range_name="A1", values=[TW_HEADER]); vals = [TW_HEADER]
+        rows = vals[1:]
+        open_syms = {r[1] for r in rows if len(r) > 8 and r[8] == "OPEN"}
+        seen = {(r[0], r[1]) for r in rows if len(r) > 1}
+        # 1) score open rows
+        updates = []
+        for i, r in enumerate(rows):
+            if len(r) < 9 or r[8] != "OPEN" or r[1] not in frames:
+                continue
+            x = frames[r[1]]
+            entry = float(r[3]); stop = float(r[4]); hi = float(r[6]); trail = float(r[7])
+            sig = datetime.strptime(r[0], "%Y-%m-%d").date()
+            bars = [(d, o, c, a) for d, o, c, a in zip(x["date"], x["o"], x["c"], x["atr"]) if d > sig]
+            status, exit_d, exit_p = "OPEN", "", ""
+            for k, (d, o, c, a) in enumerate(bars):
+                hi = max(hi, c); trail = max(trail, hi - TW_ATR_MULT * a)
+                if (c < trail and k > 0) or k + 1 >= TW_MAX_DAYS:
+                    nxt = bars[k + 1] if k + 1 < len(bars) else None
+                    px = nxt[1] if nxt else c
+                    exit_d = (nxt[0] if nxt else d).strftime("%Y-%m-%d")
+                    exit_p = round(px, 2); status = "CLOSED"
+                    break
+            ret = ""
+            days = len(bars)
+            if status == "CLOSED":
+                ret = round((exit_p / entry - 1 - TW_COST) * 100, 2)
+            r2 = r[:14] + [""] * (14 - len(r))
+            r2[6], r2[7], r2[8] = round(hi, 2), round(trail, 2), status
+            r2[9], r2[10], r2[11], r2[12], r2[13] = exit_d, exit_p, ret, days, now.strftime("%Y-%m-%d %H:%M")
+            updates.append({"range": f"A{i + 2}:N{i + 2}", "values": [r2]})
+            if status == "CLOSED":
+                open_syms.discard(r[1])
+        for j in range(0, len(updates), 100):
+            ws.batch_update(updates[j:j + 100], value_input_option="USER_ENTERED")
+        # 2) log new signals (last completed bar only; one open position per symbol)
+        new = []
+        for sym, x in frames.items():
+            if not x["tlb"][-1] or not (x["c"][-1] > x["ema50"][-1]):
+                continue
+            sd = x["date"][-1].strftime("%Y-%m-%d")
+            if sym in open_syms or (sd, sym) in seen:
+                continue
+            entry = x["c"][-1] * (1 + TW_COST / 2)
+            stop = max(min(x["l"][-20:]), entry * 0.88)
+            new.append([sd, sym, sectors.get(sym, ""), round(entry, 2), round(stop, 2),
+                        round(x["atr"][-1], 2), round(x["c"][-1], 2), round(stop, 2), "OPEN",
+                        "", "", "", 0, now.strftime("%Y-%m-%d %H:%M")])
+        if new:
+            ws.append_rows(new, value_input_option="USER_ENTERED")
+        print(f"[TRENDWATCH] scored {len(updates)} open rows, logged {len(new)} new signals")
+    except Exception as e:
+        print(f"[TRENDWATCH] skipped (fail-open): {e}")
+
+
 def _round(v, nd=2):
     return "" if v is None else round(float(v), nd)
 
@@ -206,9 +326,13 @@ def build_layout(ws, n_rows, header_map):
         tight = f'{c("Base_Range_20D_%")}<=15'
         row.append(
             f'=IF({c("Prev_Week_High")}="","",'
-            f'IF(AND({deep},{tight},{cmp_}>{c("Prev_Week_High")}),"BOTTOM CONFIRMED",'
+            f'IF(AND({deep},{tight},{cmp_}>{c("Prev_Week_High")}),"BASE + WEEK-HIGH CROSS",'
             f'IF(AND({deep},{tight}),"BASING",'
             f'IF({deep},"DEEP CORRECTION","-"))))')
+        row.append(
+            f'=IF({c("TLB_Breakout_5D")}="","",'
+            f'IF(AND({c("TLB_Breakout_5D")}="YES",{cmp_}>{c("EMA50")}),"TREND BREAKOUT",'
+            f'IF({c("TLB_Breakout_5D")}="YES","BREAKOUT BELOW EMA50","-")))')
         liq_ok = f'N({c("Liquidity_Cr")})>={MIN_TRADED_CR}'
         row.append(
             f'=IF({c("Prev_Day_High")}="","",'
@@ -271,12 +395,15 @@ def main():
 
     import pandas as pd
     tick = [_yf_symbol(s) for _, s in targets]
-    raw = yf.download(tick, period="9mo", interval="1d", group_by="ticker",
+    raw = yf.download(tick, period="2y", interval="1d", group_by="ticker",
                       auto_adjust=False, progress=False, threads=True)
     today = now.date()
     drop_today = now.hour * 60 + now.minute < 15 * 60 + 45
     updates = {}
+    frames = {}
+    sectors = {}
     ok = bad = 0
+    sec_col = ws.col_values(2)
     for (row, s), t in zip(targets, tick):
         try:
             df = raw[t].dropna(subset=["High", "Low", "Close"])
@@ -287,9 +414,21 @@ def main():
             if not lv:
                 bad += 1
                 continue
+            # indicator block (Pine TLB / EMA50 / ADX) — informational
+            hh, ll, cc = df["High"], df["Low"], df["Close"]
+            atr_s = _atr(hh, ll, cc)
+            ema50 = cc.ewm(span=50, adjust=False).mean()
+            adx_v = _adx(hh, ll, cc).iloc[-1]
+            tlb = tlb_upbreak(hh.tolist(), cc.tolist(), atr_s.tolist())
+            tlb5 = "YES" if any(tlb[-5:]) else "NO"
+            frames[s] = {"date": [d.date() for d in df.index], "o": df["Open"].tolist(),
+                         "l": ll.tolist(), "c": cc.tolist(), "atr": atr_s.tolist(),
+                         "ema50": ema50.tolist(), "tlb": tlb}
+            sectors[s] = sec_col[row - 1] if row - 1 < len(sec_col) else ""
             vals = [_round(lv["pdh"]), _round(lv["pdl"]), _round(lv["pwh"]), _round(lv["pwl"]),
                     _round(lv["s1"]), _round(lv["s2"]), _round(lv["r1"]), _round(lv["base"]),
-                    _round(lv["retest_level"]), lv["retest_status"], f"{now:%Y-%m-%d %H:%M}"]
+                    _round(lv["retest_level"]), lv["retest_status"],
+                    _round(ema50.iloc[-1]), _round(adx_v, 1), tlb5, f"{now:%Y-%m-%d %H:%M}"]
             updates[row] = vals
             ok += 1
         except Exception:
@@ -309,6 +448,7 @@ def main():
     for i in range(0, len(batch), 100):
         ws.batch_update(batch[i:i + 100], value_input_option="USER_ENTERED")
     print(f"[WRITE] {len(batch)} rows updated")
+    trendwatch(sh, frames, sectors, now)
     return 0
 
 
