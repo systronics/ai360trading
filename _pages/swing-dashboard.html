@@ -140,6 +140,12 @@ meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
     gap: 16px;
     margin: 28px 0;
   }
+  .dash-about { margin: 10px 0 24px 0; border: 1px solid #e2e8f0; border-radius: 10px; background: #ffffff; }
+  .dash-about > summary { cursor: pointer; padding: 12px 16px; font-size: 14px; font-weight: 800; color: #0f172a; list-style: none; }
+  .dash-about > summary::-webkit-details-marker { display: none; }
+  .dash-about > summary::after { content: " +"; color: #0062ff; font-weight: 900; }
+  .dash-about[open] > summary::after { content: " −"; }
+  .dash-about .dashboard-features { padding: 0 12px 12px; }
   .feature-card {
     background: #ffffff;
     border: 1px solid #e2e8f0;
@@ -279,6 +285,8 @@ meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
   </div>
 </div>
 
+<details class="dash-about">
+  <summary>How this page works</summary>
 <div class="dashboard-features">
   <div class="feature-card">
     <h3>🎯 Nifty 200 Stocks</h3>
@@ -301,6 +309,7 @@ meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
     </p>
   </div>
 </div>
+</details>
 
 <div class="broker-section">
   <h3>🏦 Start Trading with Trusted Brokers</h3>

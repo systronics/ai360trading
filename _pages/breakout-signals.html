@@ -7,30 +7,33 @@ canonical: https://ai360trading.in/breakout-signals/
 ---
 
 <style>
-.sg{--bg:#05080f;--card:#0f1520;--border:#1c2535;--gold:#fbbf24;--green:#10b981;--red:#ef4444;--text:#e2e8f0;--muted:#94a3b8;background:var(--bg);color:var(--text);font-family:'Mulish',system-ui,sans-serif;padding:22px 14px 40px;border-radius:14px;}
+.sg{--bg:transparent;--card:#ffffff;--border:#e2e8f0;--gold:#b45309;--green:#059669;--red:#dc2626;--text:#334155;--muted:#64748b;background:var(--bg);color:var(--text);font-family:'Mulish',system-ui,sans-serif;padding:8px 0 30px;}
 .sg *{box-sizing:border-box;}
 .sg-wrap{max-width:980px;margin:0 auto;}
-.sg h1{font-size:clamp(1.35rem,3.4vw,1.9rem);color:#fff;line-height:1.2;margin:0 0 8px;}
-.sg h2{font-size:1.05rem;color:#fff;margin:26px 0 8px;}
+.sg h1{font-size:clamp(1.35rem,3.4vw,1.9rem);color:#0f172a;line-height:1.2;margin:0 0 8px;}
+.sg h2{font-size:1.05rem;color:#0f172a;margin:26px 0 8px;}
 .sg p,.sg li{font-size:0.86rem;line-height:1.65;color:var(--text);}
 .sg .sub{color:var(--muted);max-width:720px;}
-.sg-pill{display:inline-block;font-size:0.66rem;font-weight:800;letter-spacing:0.08em;color:var(--gold);border:1px solid rgba(251,191,36,0.35);border-radius:100px;padding:3px 10px;margin-bottom:10px;text-transform:uppercase;}
+.sg-pill{display:inline-block;font-size:0.66rem;font-weight:800;letter-spacing:0.08em;color:var(--gold);border:1px solid #f59e0b;border-radius:100px;padding:3px 10px;margin-bottom:10px;text-transform:uppercase;}
 .sg-mkt{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin:14px 0;font-size:0.82rem;}
-.sg-mkt b{color:#fff;}
+.sg-mkt b{color:#0f172a;}
 .sg .up{color:var(--green);} .sg .down{color:var(--red);}
 .sg-table-wrap{overflow-x:auto;background:var(--card);border:1px solid var(--border);border-radius:12px;margin:12px 0;}
 .sg table.sg-table{width:100%;border-collapse:collapse;font-size:0.8rem;background:transparent;border:none;margin:0;}
 .sg table.sg-table th{text-align:left;padding:10px 12px;color:var(--muted);font-weight:700;font-size:0.68rem;text-transform:uppercase;letter-spacing:0.05em;border:none;border-bottom:1px solid var(--border);background:transparent;white-space:nowrap;}
-.sg table.sg-table td{padding:10px 12px;border:none;border-bottom:1px solid rgba(255,255,255,0.06);background:transparent;color:var(--text);white-space:nowrap;}
+.sg table.sg-table td{padding:10px 12px;border:none;border-bottom:1px solid #eef2f7;background:transparent;color:var(--text);white-space:nowrap;}
 .sg table.sg-table tbody tr:nth-child(odd) td{background:transparent;}
-.sg table.sg-table td.sym{font-weight:800;color:#fff;}
+.sg table.sg-table td.sym{font-weight:800;color:#0f172a;}
 .sg .dot-g{color:var(--green);} .sg .dot-r{color:var(--red);}
-.sg-note{background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.22);border-radius:12px;padding:14px 16px;margin:16px 0;}
+.sg-note{background:#fffbeb;border:1px solid #fde68a;border-radius:12px;padding:14px 16px;margin:16px 0;}
 .sg-note b{color:var(--gold);}
 .sg-cta{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--border);border-left:4px solid #0088cc;border-radius:12px;padding:16px 18px;margin:22px 0;}
 .sg-cta p{margin:0;max-width:560px;color:var(--muted);}
 .sg-btn{display:inline-block;padding:11px 18px;border-radius:9px;font-size:0.8rem;font-weight:800;text-decoration:none;}
-.sg-tg{background:#0088cc;color:#fff;} .sg-ml{border:1px solid rgba(251,191,36,0.4);color:var(--gold);}
+.sg-tg{background:#0088cc;color:#ffffff;} .sg-ml{border:1px solid #f59e0b;color:var(--gold);}
+.sg-act{display:inline-block;padding:3px 10px;border-radius:100px;font-size:0.68rem;font-weight:800;letter-spacing:0.04em;}
+.sg-act-acc{background:#dcfce7;color:#166534;} .sg-act-watch{background:#dbeafe;color:#1e40af;}
+.sg-key{background:#f1f5f9;border:1px solid #e2e8f0;border-radius:10px;padding:10px 14px;margin:12px 0;font-size:0.8rem;color:#334155;}
 .sg-foot{font-size:0.7rem;color:var(--muted);margin-top:18px;line-height:1.6;}
 .sg ul{padding-left:20px;margin:6px 0;}
 .sg-empty{padding:22px;text-align:center;color:var(--muted);}
@@ -46,14 +49,17 @@ canonical: https://ai360trading.in/breakout-signals/
   <div class="sg-mkt"><span class="{% if sl.market.up %}up{% else %}down{% endif %}">●</span> <span><b>Market today:</b> {{ sl.market.label }} (NIFTY {{ sl.market.close }} vs {{ sl.market.ema50 }}). {% if sl.market.up %}Breakouts did better in our test when the index was above its 50-day average.{% else %}In our test, breakouts were weaker when the index was below its 50-day average, so be selective and keep position sizes small.{% endif %}</span></div>
   {% endif %}
 
+  <div class="sg-key"><b>How to read this:</b> these stocks have just broken out. <b>Watch for entry</b> means they are candidates for a swing trade (a few days to weeks), not an instant Buy. Wait for your own entry, set a stop-loss first, and keep the position small.</div>
+
   {% if sl.breakout and sl.breakout.size > 0 %}
   <div class="sg-table-wrap">
     <table class="sg-table">
-      <thead><tr><th>Stock</th><th>Sector</th><th>Price ₹</th><th>Signal</th><th>Level broken ₹</th><th>Relative strength vs Nifty</th><th>Sector trend</th></tr></thead>
+      <thead><tr><th>Stock</th><th>What to do</th><th>Sector</th><th>Price ₹</th><th>Signal</th><th>Level broken ₹</th><th>Relative strength vs Nifty</th><th>Sector trend</th></tr></thead>
       <tbody>
       {% for s in sl.breakout %}
         <tr>
           <td class="sym">{{ s.symbol }}</td>
+          <td><span class="sg-act sg-act-watch">WATCH FOR ENTRY</span></td>
           <td>{{ s.sector }}</td>
           <td>{{ s.cmp }}</td>
           <td>{{ s.signal }}</td>
@@ -80,9 +86,9 @@ canonical: https://ai360trading.in/breakout-signals/
   <div class="sg-note"><p><b>Honest numbers:</b> in a 5-year test on 194 large stocks, these rules earned about +2.9% to +3.4% per trade on average, against +1.7% for random entries. Only about 4 in 10 trades won, and the typical trade was a small loss. The profit came from a few large winners. Most of the gain came from 2023, and the test only includes today's index members, which flatters results. Treat it as an edge worth watching, not a guarantee.</p></div>
 
   <div class="sg-cta">
-    <p><b style="color:#fff;">Want entry zones, stop-loss and targets with these ideas?</b><br>Join the free Telegram channel for daily updates. Advance and Premium members get the full trade details and live stop updates.</p>
+    <p><b style="color:#0f172a;">Want entry zones, stop-loss and targets with these ideas?</b><br>Join the free Telegram channel for daily updates. Advance and Premium members get the full trade details and live stop updates.</p>
     <div><a class="sg-btn sg-tg" href="https://t.me/{{ site.telegram_username }}" target="_blank" rel="noopener">Join free on Telegram</a> <a class="sg-btn sg-ml" href="/membership/">See plans &amp; verified ledger</a></div>
   </div>
 
-  <p class="sg-foot">Educational information, not investment advice. We are not SEBI-registered advisers. Past results do not guarantee future results. See our <a href="/disclaimer/" style="color:#fbbf24;">disclaimer</a> and the <a href="/membership/" style="color:#fbbf24;">verified ledger</a> of every closed signal, wins and losses.</p>
+  <p class="sg-foot">Educational information, not investment advice. We are not SEBI-registered advisers. Past results do not guarantee future results. See our <a href="/disclaimer/" style="color:#b45309;">disclaimer</a> and the <a href="/membership/" style="color:#b45309;">verified ledger</a> of every closed signal, wins and losses.</p>
 </div></div>
