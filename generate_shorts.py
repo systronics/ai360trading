@@ -751,27 +751,40 @@ def _sanitize_script(data: dict, lang: str) -> dict:
 # ══════════════════════════════════════════════════════════════════════════════
 
 def render_short(frame_path: Path, audio_path: str, out_path: str, spoken_text: str = "",
-                 hook_text: str = "", hook_accent=GOLD, srt_path: str = "", srt_lang: str = "hi"):
+                 hook_text: str = "", hook_accent=GOLD, srt_path: str = "", srt_lang: str = "hi",
+                 video_factory=None):
     audio_clip = AudioFileClip(audio_path)
     duration   = audio_clip.duration + 0.5
     video      = ImageClip(str(frame_path)).set_duration(duration)
+    # 2026-10-18: optional animated real-data chart (story_short.py). Fully fail-open:
+    # any error keeps the static info-card frame exactly as before.
+    _story_clip = False
+    if video_factory is not None:
+        try:
+            video = video_factory(duration)
+            _story_clip = True
+            print("  ✅ Chart-story animation applied")
+        except Exception as e:
+            print(f"  ⚠️ chart story skipped (fail-open, static card): {e}")
+            video = ImageClip(str(frame_path)).set_duration(duration)
 
     # v3.11 MOTION (retention): slow Ken Burns zoom 1.0→1.08 across the video so
     # the previously 100% static info-card visibly moves the whole time — motion
     # is what stops the swipe reflex after the hook. Centered composite keeps the
     # frame edge-to-edge while it grows. FULLY FAIL-OPEN → static frame on error.
-    try:
-        # moviepy 1.0.3 resize still calls Image.ANTIALIAS (removed in Pillow 10+)
-        from PIL import Image as _PILImage
-        if not hasattr(_PILImage, "ANTIALIAS"):
-            _PILImage.ANTIALIAS = _PILImage.LANCZOS
-        _d = max(duration, 0.1)
-        zoomed = video.resize(lambda t: 1.0 + 0.08 * (t / _d)).set_position(("center", "center"))
-        video  = CompositeVideoClip([zoomed], size=(SW, SH)).set_duration(duration)
-        print("  ✅ Ken Burns motion applied")
-    except Exception as e:
-        print(f"  ⚠️ motion skipped (fail-open, static frame): {e}")
-        video = ImageClip(str(frame_path)).set_duration(duration)
+    if not _story_clip:
+        try:
+            # moviepy 1.0.3 resize still calls Image.ANTIALIAS (removed in Pillow 10+)
+            from PIL import Image as _PILImage
+            if not hasattr(_PILImage, "ANTIALIAS"):
+                _PILImage.ANTIALIAS = _PILImage.LANCZOS
+            _d = max(duration, 0.1)
+            zoomed = video.resize(lambda t: 1.0 + 0.08 * (t / _d)).set_position(("center", "center"))
+            video  = CompositeVideoClip([zoomed], size=(SW, SH)).set_duration(duration)
+            print("  ✅ Ken Burns motion applied")
+        except Exception as e:
+            print(f"  ⚠️ motion skipped (fail-open, static frame): {e}")
+            video = ImageClip(str(frame_path)).set_duration(duration)
 
     # Build an .srt subtitle track (for YouTube auto-translate). Cues are
     # offset by the hook length so they stay in sync with the shifted audio.
@@ -1309,18 +1322,40 @@ def main():
 
     # ── SHORT 2 (Madhur — Hindi Trade Setup) ──────────────────────────────────
     print(f"\n─── SHORT 2 (Madhur) ────────────────────────")
-    s2_data  = _sanitize_script(generate_short2_script(market, part1_url), "hi")
+    # 2026-10-18: real-data chart STORIES (story_short.py). Fail-open to the classic flow.
+    story = None
+    if CONTENT_MODE == "market":
+        try:
+            import story_short
+            story = story_short.pick_story()
+        except Exception as e:
+            print(f"  ⚠️ chart stories unavailable (fail-open, classic Shorts): {e}")
+    s2_factory, s2_story = None, False
+    if story and story.get("stock"):
+        try:
+            from ai_client import ai as _story_ai
+            s2_data = _sanitize_script(story_short.stock_script(_story_ai, story["stock"], story["market_label"]), "hi")
+            s2_factory = story_short.make_clip_factory(story_short.stock_spec(story["stock"]), FONT_BOLD_PATHS)
+            s2_story = bool(s2_data.get("script"))
+        except Exception as e:
+            print(f"  ⚠️ stock story skipped (fail-open): {e}")
+    if not s2_story:
+        s2_factory = None
+        s2_data  = _sanitize_script(generate_short2_script(market, part1_url), "hi")
     s2_frame = make_short2_frame(s2_data, market)
     s2_audio = str(OUT / f"short2_audio_{today}.mp3")
     s2_video = str(OUT / f"short2_{today}.mp4")
     s2_spoken = _with_cta(s2_data.get("script", ""), "hi")
     gen_tts(s2_spoken, VOICE_SHORT2, s2_audio)
     s2_head, s2_sub, s2_acc, s2_badge = short2_thumb_text(s2_data)
+    if s2_story:
+        s2_head, s2_badge = f"{s2_data.get('stock', 'STOCK')} BREAKOUT", "CHART STORY"
     # In-feed cover = curiosity HOOK from the AI (falls back to the label if none).
     s2_hook = (s2_data.get("hook") or "").strip() or s2_head
     s2_srt = str(OUT / f"short2_{today}.srt")
     render_short(s2_frame, s2_audio, s2_video, spoken_text=s2_spoken,
-                 hook_text=s2_hook, hook_accent=s2_acc, srt_path=s2_srt, srt_lang="hi")
+                 hook_text=s2_hook, hook_accent=s2_acc, srt_path=s2_srt, srt_lang="hi",
+                 video_factory=s2_factory)
 
     # Bold-text thumbnail (fail-open — never blocks upload)
     s2_thumb = ""
@@ -1330,6 +1365,8 @@ def main():
         print(f"  ⚠️ Short 2 thumbnail skipped (fail-open): {e}")
 
     s2_title  = build_title_short2(s2_data)
+    if s2_story:
+        s2_title = _uniq_title(s2_data, f"{s2_data.get('stock', 'Stock')} breakout: what the chart shows #Shorts")
     s2_desc   = build_desc(s2_data, 2, part1_url)
     short2_id = upload_short(s2_video, s2_title, s2_desc, yt_tags, s2_thumb,
                              caption_srt=s2_srt, caption_lang="hi")
@@ -1344,18 +1381,32 @@ def main():
 
     # ── SHORT 3 (Neerja — Global Market Pulse) ────────────────────────────────
     print(f"\n─── SHORT 3 (Neerja) ────────────────────────")
-    s3_data  = _sanitize_script(generate_short3_script(market), "en")
+    s3_factory, s3_story = None, False
+    if story and story.get("index"):
+        try:
+            from ai_client import ai as _story_ai
+            s3_data = _sanitize_script(story_short.index_script(_story_ai, story["index"], story["market_label"]), "en")
+            s3_factory = story_short.make_clip_factory(story_short.index_spec(story["index"]), FONT_BOLD_PATHS)
+            s3_story = bool(s3_data.get("script"))
+        except Exception as e:
+            print(f"  ⚠️ market story skipped (fail-open): {e}")
+    if not s3_story:
+        s3_factory = None
+        s3_data  = _sanitize_script(generate_short3_script(market), "en")
     s3_frame = make_short3_frame(s3_data, market)
     s3_audio = str(OUT / f"short3_audio_{today}.mp3")
     s3_video = str(OUT / f"short3_{today}.mp4")
     s3_spoken = _with_cta(s3_data.get("script", ""), "en")
     gen_tts(s3_spoken, VOICE_SHORT3, s3_audio)
     s3_head, s3_sub, s3_acc, s3_badge = short3_thumb_text(s3_data)
+    if s3_story:
+        s3_head, s3_badge = "NIFTY MARKET STORY", "MARKET STORY"
     # In-feed cover = curiosity HOOK from the AI (falls back to the label if none).
     s3_hook = (s3_data.get("hook") or "").strip() or s3_head
     s3_srt = str(OUT / f"short3_{today}.srt")
     render_short(s3_frame, s3_audio, s3_video, spoken_text=s3_spoken,
-                 hook_text=s3_hook, hook_accent=s3_acc, srt_path=s3_srt, srt_lang="en")
+                 hook_text=s3_hook, hook_accent=s3_acc, srt_path=s3_srt, srt_lang="en",
+                 video_factory=s3_factory)
 
     # Bold-text thumbnail (fail-open — never blocks upload)
     s3_thumb = ""
@@ -1365,6 +1416,8 @@ def main():
         print(f"  ⚠️ Short 3 thumbnail skipped (fail-open): {e}")
 
     s3_title  = build_title_short3(s3_data)
+    if s3_story:
+        s3_title = _uniq_title(s3_data, "NIFTY market story: what the chart shows #Shorts")
     s3_desc   = build_desc(s3_data, 3, part1_url)
     short3_id = upload_short(s3_video, s3_title, s3_desc, yt_tags, s3_thumb,
                              caption_srt=s3_srt, caption_lang="en")

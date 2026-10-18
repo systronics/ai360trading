@@ -19,10 +19,11 @@ name: "Daily Shorts — AI360Trading (Short 2 + Short 3)"
 on:
   workflow_dispatch:
   schedule:
-    # Mon-Fri: 4:00 PM IST (10:30 UTC)
-    - cron: "30 10 * * 1-5"
-    # Sat-Sun: 1:30 PM IST (08:00 UTC)
-    - cron: "0 8 * * 6,0"
+    # 2026-10-18 (owner decision): 3 quality Shorts-days per week instead of 7. Each posting day
+    # publishes the Hindi STOCK story + the English NIFTY story (animated real-data charts,
+    # story_short.py). Mon / Wed / Fri 4:00 PM IST (10:30 UTC). Weekend schedule removed;
+    # workflow_dispatch still works for a manual run.
+    - cron: "30 10 * * 1,3,5"
 
 jobs:
   build-and-upload:
