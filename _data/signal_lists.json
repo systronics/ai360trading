@@ -1,5 +1,5 @@
 {
-  "generated_at": "18 October 2026, 07:25 PM IST",
+  "generated_at": "18 October 2026, 07:26 PM IST",
   "market": {
     "up": false,
     "close": 23146,
@@ -199,7 +199,7 @@
       "sector": "Information Technology",
       "cmp": 1161.2,
       "signal": "Trendline breakout",
-      "level": 1190.7,
+      "level": null,
       "rs": 13.1,
       "volume": 92.0,
       "sector_trend": "HEADWIND"
@@ -209,7 +209,7 @@
       "sector": "Information Technology",
       "cmp": 184.4,
       "signal": "Trendline breakout",
-      "level": 187.53,
+      "level": null,
       "rs": 11.4,
       "volume": 181.0,
       "sector_trend": "HEADWIND"
@@ -219,7 +219,7 @@
       "sector": "Information Technology",
       "cmp": 2500.0,
       "signal": "Trendline breakout",
-      "level": 2545.0,
+      "level": null,
       "rs": 10.2,
       "volume": 119.0,
       "sector_trend": "HEADWIND"
@@ -249,7 +249,7 @@
       "sector": "Information Technology",
       "cmp": 1951.9,
       "signal": "Trendline breakout",
-      "level": 2014.6,
+      "level": null,
       "rs": 6.9,
       "volume": -2.0,
       "sector_trend": "TAILWIND"
@@ -269,7 +269,7 @@
       "sector": "Financial Services",
       "cmp": 553.0,
       "signal": "Trendline breakout",
-      "level": 561.5,
+      "level": null,
       "rs": 5.5,
       "volume": 22.0,
       "sector_trend": "HEADWIND"
@@ -289,7 +289,7 @@
       "sector": "Capital Goods",
       "cmp": 4989.0,
       "signal": "Trendline breakout",
-      "level": 5099.0,
+      "level": null,
       "rs": 2.9,
       "volume": 34.0,
       "sector_trend": "TAILWIND"

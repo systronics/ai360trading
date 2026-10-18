@@ -117,7 +117,7 @@ def build():
         brk.append({
             "symbol": name(r), "sector": str(r.get("SECTOR", "")), "cmp": round(cmp_, 2),
             "signal": "50-day closing-high breakout" if sig.startswith("50D") else "Trendline breakout",
-            "level": round(lvl, 2) if lvl else None,
+            "level": round(lvl, 2) if (lvl and sig.startswith("50D")) else None,   # only the closing-high rule has a clean "level broken"
             "rs": round(rs, 1) if rs is not None else None,
             "volume": round(vol, 0) if vol is not None else None,
             "sector_trend": str(r.get("Sector_Trend", "")),
