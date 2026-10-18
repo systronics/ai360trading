@@ -242,7 +242,10 @@ def bars_scene(title, bars, note="", tag="THE EVIDENCE", accent=GOLD):
     base = _bg()
     d = ImageDraw.Draw(base, "RGBA")
     _header(d, tag, title, accent)
-    cx, half = 760, 380
+    has_pos = any(b[1] > 0 for b in bars)
+    has_neg = any(b[1] < 0 for b in bars)
+    # all-negative / all-positive charts use the full width so value labels never hit the row labels
+    cx, half = (1150, 520) if (has_neg and not has_pos) else (480, 600) if (has_pos and not has_neg) else (760, 380)
     vmax = max(abs(b[1]) for b in bars) or 1
     rows = len(bars)
     top = 230

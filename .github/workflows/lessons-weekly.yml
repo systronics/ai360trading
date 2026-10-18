@@ -1,0 +1,112 @@
+name: Weekly Lessons — Evergreen Trading Lessons
+
+# 2026-10-18 (owner decision: fewer but perfect, universal, evergreen).
+# Replaces the daily slide-style education videos with ONE real-data lesson per week per
+# language edition (see lesson_runner.py):
+#   US / global English : goes live Saturday 14:00 UTC (10 AM New York, 7:30 PM India)
+#   India Hindi         : goes live Sunday   13:30 UTC (7:00 PM India)
+# The run uploads PRIVATE with a publishAt time, so YouTube itself publishes at the exact minute
+# (GitHub schedule delays do not matter) and the owner can review/cancel in Studio before then.
+#
+# KILL SWITCH: set the repository variable LESSONS_ENABLED to anything but "true" to pause the
+# scheduled run (manual runs still work).
+# MANUAL TEST: Run workflow -> mode "private-test" uploads a PRIVATE video, no announcement, and
+# does not mark the lesson as done.
+# Free: public repo Actions minutes, edge_tts, yfinance, Pillow/moviepy. No AI call is needed.
+
+on:
+  schedule:
+    - cron: "17 6 * * 3"      # Wednesday 06:17 UTC (11:47 AM IST); weekend publish times are set inside the runner
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "scheduled = real weekly run, private-test = private upload for checking"
+        required: false
+        default: "private-test"
+        type: choice
+        options: [private-test, scheduled, dry]
+      edition:
+        description: "Which edition(s)"
+        required: false
+        default: "both"
+        type: choice
+        options: [both, us-en, in-hi]
+
+concurrency:
+  group: lessons-weekly
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  lessons:
+    if: ${{ github.event_name == 'workflow_dispatch' || vars.LESSONS_ENABLED == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      MODE: ${{ github.event.inputs.mode || 'scheduled' }}
+      EDITION: ${{ github.event.inputs.edition || 'both' }}
+      YOUTUBE_CREDENTIALS: ${{ secrets.YOUTUBE_CREDENTIALS }}
+      GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      CHAT_ID_BASIC: ${{ secrets.CHAT_ID_BASIC }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: master
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends ffmpeg fonts-dejavu fonts-liberation fonts-freefont-ttf
+
+      - name: Install Python dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Lesson - US / global English
+        if: ${{ env.EDITION == 'both' || env.EDITION == 'us-en' }}
+        continue-on-error: true
+        run: python lesson_runner.py --region us --lang en --mode "$MODE" --out output/lesson_us_en
+
+      - name: Lesson - India Hindi
+        if: ${{ env.EDITION == 'both' || env.EDITION == 'in-hi' }}
+        continue-on-error: true
+        run: python lesson_runner.py --region in --lang hi --mode "$MODE" --out output/lesson_in_hi
+
+      - name: Record what was scheduled
+        if: ${{ env.MODE == 'scheduled' }}
+        run: |
+          git config --local user.email "admin@ai360trading.in"
+          git config --local user.name "AI360-Automation"
+          git add _data/lessons_done.json || true
+          git diff --cached --quiet || git commit -m "Lessons scheduled: $(date +'%Y-%m-%d') (done-list)"
+          git pull --rebase origin master || true
+          git push origin master || true
+
+      - name: Notify Telegram on failure
+        if: failure()
+        continue-on-error: true
+        env:
+          WF_NAME: "${{ github.workflow }}"
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          python - <<'PYEOF'
+          import os, json
+          from urllib.request import Request, urlopen
+          tok, chat = os.environ.get('TELEGRAM_BOT_TOKEN',''), os.environ.get('CHAT_ID_BASIC','')
+          if tok and chat:
+              msg = f"Workflow failed: {os.environ['WF_NAME']}\n{os.environ['RUN_URL']}"
+              req = Request(f"https://api.telegram.org/bot{tok}/sendMessage", data=json.dumps({"chat_id": chat, "text": msg}).encode(), headers={"Content-Type": "application/json"})
+              urlopen(req, timeout=20)
+          PYEOF

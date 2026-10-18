@@ -7,11 +7,10 @@ name: Daily Videos — Education
 #   Uploads to YOUTUBE_CREDENTIALS (main channel) only.
 
 on:
-  schedule:
-    # Mon-Sat 10:00 AM IST = 4:30 AM UTC
-    - cron: '30 4 * * 1-6'
-    # Sunday 11:00 AM IST = 5:30 AM UTC (weekend learners)
-    - cron: '30 5 * * 0'
+    # 2026-10-18 (owner decision): the DAILY slide-style education videos are PAUSED — replaced by the
+    # weekly evidence-based lessons in lessons-weekly.yml (lesson_runner.py). Re-enable by restoring:
+    #   - cron: '30 4 * * 1-6'   (Mon-Sat 10:00 AM IST)    - cron: '30 5 * * 0'   (Sun 11:00 AM IST)
+    # workflow_dispatch below still works for a manual run.
   workflow_dispatch:
     inputs:
       content_mode:
