@@ -92,14 +92,14 @@ description: "AI360Trading Membership — Live Telegram signals, TradingView ind
 
 .plan-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:28px 24px;position:relative;display:flex;flex-direction:column;overflow:hidden;transition:transform 0.25s,border-color 0.25s;}
 .plan-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;border-radius:20px 20px 0 0;}
-.plan-card.advance::before{background:linear-gradient(90deg,#3b82f6,#60a5fa);}
+.plan-card.advance::before{background:linear-gradient(90deg,#3b82f6,#1d4ed8);}
 .plan-card.premium::before{background:linear-gradient(90deg,#fbbf24,#f59e0b);}
 .plan-card.premium{border-color:rgba(251,191,36,0.3);}
 .plan-card:hover{transform:translateY(-4px);border-color:rgba(251,191,36,0.5);}
 
 .plan-badge{position:absolute;top:16px;right:16px;font-size:0.6rem;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;padding:3px 8px;border-radius:100px;}
 .plan-card.premium .plan-badge{background:rgba(251,191,36,0.15);color:var(--gold);border:1px solid rgba(251,191,36,0.3);}
-.plan-card.advance .plan-badge{background:rgba(59,130,246,0.15);color:#60a5fa;border:1px solid rgba(59,130,246,0.3);}
+.plan-card.advance .plan-badge{background:rgba(59,130,246,0.15);color:#1d4ed8;border:1px solid rgba(59,130,246,0.3);}
 
 /* FIXED: plan name font size reduced */
 .plan-name{font-family:'Syne',sans-serif;font-size:1.2rem;color:#0f172a;margin-bottom:4px;}
@@ -117,7 +117,7 @@ description: "AI360Trading Membership — Live Telegram signals, TradingView ind
 .feat-star{color:var(--gold);font-size:0.85rem;flex-shrink:0;margin-top:1px;}
 
 .plan-cta{display:block;text-align:center;padding:12px 20px;border-radius:10px;font-size:0.82rem;font-weight:800;text-decoration:none;cursor:pointer;border:none;font-family:'Mulish',sans-serif;transition:all 0.2s;letter-spacing:0.02em;}
-.plan-cta.advance-cta{background:rgba(59,130,246,0.15);color:#60a5fa;border:1px solid rgba(59,130,246,0.3);}
+.plan-cta.advance-cta{background:rgba(59,130,246,0.15);color:#1d4ed8;border:1px solid rgba(59,130,246,0.3);}
 .plan-cta.advance-cta:hover{background:#3b82f6;color:#fff;}
 .plan-cta.premium-cta{background:var(--gold);color:#ffffff;}
 .plan-cta.premium-cta:hover{background:#92400e;}
@@ -138,7 +138,7 @@ description: "AI360Trading Membership — Live Telegram signals, TradingView ind
 .compare-table tr:last-child td{border-bottom:none;}
 .ct-yes{color:var(--green);font-size:1rem;}
 .ct-no{color:var(--muted);font-size:1rem;}
-.ct-adv{color:#60a5fa;font-size:0.62rem;font-weight:700;text-transform:uppercase;}
+.ct-adv{color:#1d4ed8;font-size:0.62rem;font-weight:700;text-transform:uppercase;}
 .ct-prem{color:var(--gold);font-size:0.62rem;font-weight:700;text-transform:uppercase;}
 .compare-table .section-row td{background-color:rgba(15,23,42,0.05) !important;color:#0f172a !important;font-size:0.68rem;text-transform:uppercase;letter-spacing:0.08em;font-weight:700;padding:8px 14px;}
 
