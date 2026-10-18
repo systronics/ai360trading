@@ -636,7 +636,7 @@ ALERTLOG COLUMN MAP (0-based):
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 """
 
-import os, json, pytz, requests, gspread
+import os, json, time, pytz, requests, gspread
 from datetime import datetime, timedelta
 from oauth2client.service_account import ServiceAccountCredentials
 
@@ -2165,11 +2165,69 @@ def build_entry_premium(sym, cp, stage, sl, tgt, rr, ttype, atr, rank, capital, 
                                     sym=sym, mem=mem, now=now, opt_tag=opt_tag,
                                     bm_data=bm_data)
 
-def build_entry_basic(sym, cp, stage, pct_chg):
+def _fmt12(h, m):
+    """(15, 5) -> '3:05 PM' — the entry-window constants are 24h tuples and were being
+    printed as '15:05 PM' in subscriber messages."""
+    return f"{(h - 1) % 12 + 1}:{m:02d} {'AM' if h < 12 else 'PM'}"
+
+
+_PROOF_CACHE = {"ts": 0.0, "line": ""}
+
+
+def _proof_line(ref_sheet=None):
+    """2026-10-18: one honest track-record line for the FREE channel messages.
+    Swing & positional only, labelled as such, and it points to the full ledger
+    (which also shows intraday + options, the weaker strategies) so nothing is
+    hidden. Reads the History tab at most once every 6 hours; FAIL-OPEN: any
+    error returns the last good line or '' and never affects trading."""
+    try:
+        now_ts = time.time()
+        if _PROOF_CACHE["line"] and now_ts - _PROOF_CACHE["ts"] < 6 * 3600:
+            return _PROOF_CACHE["line"]
+        if ref_sheet is None:
+            return _PROOF_CACHE["line"]
+        rows = ref_sheet.spreadsheet.worksheet("History").get_all_values()[1:]
+        wins, losses, first = [], [], ""
+        for r in rows:
+            r = list(r) + [""] * (17 - len(r))
+            t = str(r[9]).lower()
+            if "swing" not in t and "positional" not in t:
+                continue
+            res = str(r[6]).upper()
+            try:
+                pct = float(str(r[5]).replace("%", "").replace(",", "").strip())
+            except Exception:
+                continue
+            if "WIN" in res:
+                wins.append(pct)
+            elif "LOSS" in res:
+                losses.append(pct)
+            else:
+                continue
+            ed = str(r[1]).strip()
+            if ed and (not first or ed < first):
+                first = ed
+        n = len(wins) + len(losses)
+        if n < 10:
+            return _PROOF_CACHE["line"]
+        aw = sum(wins) / len(wins) if wins else 0.0
+        al = sum(losses) / len(losses) if losses else 0.0
+        line = (f"📊 <b>Track record</b> (swing & positional, paper ledger since {first}): "
+                f"{n} closed | {round(len(wins) / n * 100)}% winners | avg win +{aw:.1f}% / avg loss {al:.1f}%\n"
+                f"🔎 Full ledger incl. intraday & options: ai360trading.in/membership\n\n")
+        _PROOF_CACHE.update(ts=now_ts, line=line)
+        return line
+    except Exception as e:
+        print(f"[PROOF] skipped: {e}")
+        return _PROOF_CACHE["line"]
+
+
+def build_entry_basic(sym, cp, stage, pct_chg, ref_sheet=None):
     name = sym.replace("NSE:", "")
     return (
         f"🚨 <b>SIGNAL ALERT — {name}</b>\n"
         f"Entry: ₹{cp:.2f} | {stage}\n\n"
+        f"{_proof_line(ref_sheet)}"
         f"🔒 SL and Target shared with Advance/Premium members only\n\n"
         f"📈 <b>Join Advance @ ₹699/month</b> — get full entry details\n"
         f"📱 ai360trading.in/membership"
@@ -2391,7 +2449,7 @@ def step_a_enter_trades(log_sheet, nifty_sheet, bm_sheet, mem, now, is_bullish, 
                                           mem=mem, now=now,
                                           opt_tag=_read_opt_tag_from_nifty200(nifty_sheet, sym),
                                           bm_data=bm_data)
-        msg_basic   = build_entry_basic(sym, cp, stage, to_f(row[C_PNL]))
+        msg_basic   = build_entry_basic(sym, cp, stage, to_f(row[C_PNL]), log_sheet)
         # Append the educational/not-SEBI disclaimer to every member alert.
         send_basic(msg_basic + ALERT_DISCLAIMER)
         send_advance(msg_advance + ALERT_DISCLAIMER)
@@ -2776,7 +2834,7 @@ def send_good_morning(log_sheet, mem, is_bullish, nifty_cmp, nifty_dma, nifty_pc
         print(f"[GM] {e}")
 
     regime = "🟢 BULLISH" if is_bullish else "⚠️ BEARISH"
-    window = f"Entry window: 9:15 AM – {ENTRY_WINDOW_BULLISH_END[0]}:{ENTRY_WINDOW_BULLISH_END[1]:02d} PM" if is_bullish else f"⚠️ Bearish: 9:15–{ENTRY_WINDOW_BEARISH_END[0]}:{ENTRY_WINDOW_BEARISH_END[1]:02d} AM ONLY"
+    window = f"Entry window: 9:15 AM – {_fmt12(*ENTRY_WINDOW_BULLISH_END)}" if is_bullish else f"⚠️ Bearish market: new entries only 9:15 AM – {_fmt12(*ENTRY_WINDOW_BEARISH_END)}"
 
     msg_adv = (
         f"🌅 <b>GOOD MORNING — {now.strftime('%d %b %Y')}</b>\n"
@@ -2785,9 +2843,8 @@ def send_good_morning(log_sheet, mem, is_bullish, nifty_cmp, nifty_dma, nifty_pc
         f"Nifty: ₹{nifty_cmp:.0f} | 20DMA: ₹{nifty_dma:.0f} | {nifty_pct:+.2f}%\n\n"
         f"📊 Active: {traded}/{MAX_TRADES} | Watching: {waiting}\n"
         f"{window}\n"
-        f"RSI filter: < {RSI_MAX_BULLISH if is_bullish else RSI_MAX_BEARISH}{f' (leaders up on the day allowed to {RSI_HOT_MAX:.0f})' if is_bullish else ''} | Re-entry: {REENTRY_COOLDOWN_DAYS}d after target, {LOSS_REENTRY_COOLDOWN_DAYS}d after a loss\n\n"
-        f"{'Watching: ' + ', '.join(waiting_stocks[:5]) if waiting_stocks else 'No WAITING stocks'}\n\n"
-        f"<i>{VERSION} — entry-quality: reversal veto + resistance-room veto + loss cooldown + best-of ranking + time-fair volume gate + real F&O option eligibility</i>"
+        f"\n{'Watching: ' + ', '.join(waiting_stocks[:5]) if waiting_stocks else 'No WAITING stocks yet — the scan starts at market open'}\n\n"
+        f"<i>Use a stop-loss on every trade and size each position to its stop. Educational signals — not investment advice.</i>"
     )
     watchlist_line = f"📋 Watchlist: {waiting} stock(s) identified today" if waiting else "📋 No setups in watchlist yet — scan runs at market open"
     msg_basic = (
@@ -2795,6 +2852,7 @@ def send_good_morning(log_sheet, mem, is_bullish, nifty_cmp, nifty_dma, nifty_pc
         f"Market: {regime} | Nifty: ₹{nifty_cmp:.0f}\n\n"
         f"{watchlist_line}\n"
         f"💼 Active trades: {traded}/{MAX_TRADES}\n\n"
+        f"{_proof_line(log_sheet)}"
         f"🔒 Entry price, SL and Target sent to Advance/Premium only\n"
         f"📈 <b>Join Advance @ ₹699/month</b>\n"
         f"📱 ai360trading.in/membership"
@@ -2831,8 +2889,8 @@ def send_midday_pulse(log_sheet, mem, now, is_bullish):
         # was never updated, silently telling subscribers the window closed 35
         # minutes earlier than it actually does. Now reads the real constant,
         # same pattern send_good_morning() already used correctly.
-        window_end_str = (f"{ENTRY_WINDOW_BULLISH_END[0]}:{ENTRY_WINDOW_BULLISH_END[1]:02d} PM" if is_bullish
-                           else f"{ENTRY_WINDOW_BEARISH_END[0]}:{ENTRY_WINDOW_BEARISH_END[1]:02d} AM")
+        window_end_str = (_fmt12(*ENTRY_WINDOW_BULLISH_END) if is_bullish
+                           else _fmt12(*ENTRY_WINDOW_BEARISH_END))
         msg   = (
             f"📊 <b>MID-DAY PULSE</b>\n━━━━━━━━━━━━━━━━━━━━\n{lines}\n\n"
             f"{'💰' if total_pnl>=0 else '📉'} Unrealised: <b>₹{total_pnl:+.0f}</b>\n"
@@ -2842,6 +2900,7 @@ def send_midday_pulse(log_sheet, mem, now, is_bullish):
             f"📊 <b>Mid-Day Update — {now.strftime('%d %b %I:%M %p')}</b>\n"
             f"Active trades: {len(open_trades)}\n"
             f"{'💰' if total_pnl>=0 else '📉'} Unrealised P/L: ₹{total_pnl:+.0f}\n\n"
+            f"{_proof_line(log_sheet)}"
             f"🔒 TSL updates and trade details → Advance/Premium\n"
             f"📈 <b>Join Advance @ ₹699/month</b>\n"
             f"📱 ai360trading.in/membership"
@@ -2921,6 +2980,7 @@ def send_market_close_summary(log_sheet, hist_sheet, mem, now, is_bullish, nifty
             f"Today: {wins}✅ {losses}❌ | {pnl_emoji} Realised: ₹{today_pnl:+.0f}\n"
             f"Holding overnight: {len(open_list)} trade(s)\n"
             + (f"⚠️ Weekend gap risk — manage open trades before close\n\n" if (is_friday and open_list) else "\n")
+            + f"{_proof_line(hist_sheet)}"
             + f"📊 Full report and overnight TSL alerts sent to Advance/Premium\n"
             f"📈 <b>Join Advance @ ₹699/month</b>\n"
             f"📱 ai360trading.in/membership"

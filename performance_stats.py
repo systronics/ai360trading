@@ -54,6 +54,39 @@ def _to_float(s):
         return None
 
 
+def _category(trade_type):
+    t = trade_type.lower()
+    if "option" in t:
+        return "Options alerts"
+    if "swing" in t or "positional" in t:
+        return "Swing & positional"
+    if "intraday" in t:
+        return "Intraday (cash)"
+    return "Other"
+
+
+_CAT_ORDER = ["Swing & positional", "Intraday (cash)", "Options alerts", "Other"]
+
+
+def _by_type(groups):
+    out = []
+    for cat in _CAT_ORDER:
+        if cat not in groups:
+            continue
+        pcts, rss = groups[cat]
+        w = [x for x in pcts if x > 0]
+        l = [x for x in pcts if x <= 0]
+        out.append({
+            "name":         cat,
+            "trades":       len(pcts),
+            "win_rate":     round(len(w) / len(pcts) * 100),
+            "avg_win_pct":  round(sum(w) / len(w), 1) if w else 0.0,
+            "avg_loss_pct": round(sum(l) / len(l), 1) if l else 0.0,
+            "net_pnl_rs":   round(sum(rss)),
+        })
+    return out
+
+
 def get_performance_summary(max_recent=3):
     """
     Returns a dict of honest ledger stats, or None if anything fails:
@@ -69,6 +102,8 @@ def get_performance_summary(max_recent=3):
         wins, losses = [], []
         net_rs = 0.0
         closed = []
+        groups = {}      # category -> [pct list, rupee list]
+        first_entry = ""
         for r in rows:
             while len(r) < 17:
                 r.append("")
@@ -82,6 +117,15 @@ def get_performance_summary(max_recent=3):
             rs = _to_float(r[16])
             if rs is not None:
                 net_rs += rs
+            # 2026-10-18: per-strategy breakdown so the public ledger shows each
+            # strategy honestly instead of one blended number.
+            cat = _category(str(r[9]))
+            g = groups.setdefault(cat, [[], []])
+            g[0].append(pct)
+            g[1].append(rs if rs is not None else 0.0)
+            ed = str(r[1]).strip()
+            if ed and (not first_entry or ed < first_entry):
+                first_entry = ed
             closed.append((sym, str(r[3]).strip(), pct, is_win))
 
         total = len(closed)
@@ -102,6 +146,8 @@ def get_performance_summary(max_recent=3):
             "worst":        (by_pct[0][0], by_pct[0][2]),
             # History is append-only → last rows = most recently closed
             "recent":       closed[-max_recent:][::-1],
+            "since":        first_entry,
+            "by_type":      _by_type(groups),
         }
         _cache["stats"] = stats
         return stats
@@ -188,6 +234,8 @@ def write_data_json(as_of_display, path="_data/performance.json"):
                 {"sym": sym, "exit_date": exit_dt, "pct": pct, "is_win": is_win}
                 for sym, exit_dt, pct, is_win in s["recent"]
             ],
+            "since":   s.get("since", ""),
+            "by_type": s.get("by_type", []),
         }
         os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
         with open(path, "w", encoding="utf-8") as f:

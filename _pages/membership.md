@@ -223,6 +223,26 @@ description: "AI360Trading Membership — Live Telegram signals, TradingView ind
       <div class="ledger-stat"><b class="ledger-win">+{{ perf.avg_win_pct }}%</b><span>Avg winner</span></div>
       <div class="ledger-stat"><b class="ledger-loss">{{ perf.avg_loss_pct }}%</b><span>Avg loser</span></div>
     </div>
+    {% if perf.by_type and perf.by_type.size > 0 %}
+    <div class="ledger-sub" style="margin-top:6px;">Results by strategy{% if perf.since %} since {{ perf.since }}{% endif %} — shown separately so you can see exactly which kind of signal worked and which did not. Intraday and options are the higher-risk styles.</div>
+    <div class="ledger-table-wrap">
+    <table class="ledger-table">
+      <thead><tr><th>Strategy</th><th>Trades</th><th>Win rate</th><th>Avg winner</th><th>Avg loser</th><th>Net P/L</th></tr></thead>
+      <tbody>
+        {% for g in perf.by_type %}
+        <tr>
+          <td><b>{{ g.name }}</b></td>
+          <td>{{ g.trades }}</td>
+          <td>{{ g.win_rate }}%</td>
+          <td class="ledger-win">+{{ g.avg_win_pct }}%</td>
+          <td class="ledger-loss">{{ g.avg_loss_pct }}%</td>
+          <td class="{% if g.net_pnl_rs >= 0 %}ledger-win{% else %}ledger-loss{% endif %}">{% if g.net_pnl_rs >= 0 %}+{% endif %}₹{{ g.net_pnl_rs }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+    {% endif %}
     <div class="ledger-table-wrap">
     <table class="ledger-table">
       <thead><tr><th>Latest trades</th><th>Closed</th><th>Result</th></tr></thead>
