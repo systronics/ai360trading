@@ -64,6 +64,15 @@ jobs:
           GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
         run: python fetch_rs.py --write
 
+      # 2026-10-18: BottomScanner level feed (prev day/week high-low, support,
+      # retest). Informational only; continue-on-error so it can never fail the
+      # RS+ATR job above or trigger a false failure alert for it.
+      - name: BottomScanner levels (informational)
+        continue-on-error: true
+        env:
+          GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
+        run: python fetch_bottom_levels.py --write
+
       - name: Notify Telegram on failure
         if: failure()
         env:
