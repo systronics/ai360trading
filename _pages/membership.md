@@ -8,16 +8,16 @@ description: "AI360Trading Membership — Live Telegram signals, TradingView ind
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Mulish:wght@300;400;500;600;700&display=swap');
 :root {
-  --bg:#05080f; --surface:#0b0f1a; --card:#0f1520; --border:#1c2535;
-  --gold:#fbbf24; --green:#10b981; --red:#ef4444; --blue:#3b82f6;
-  --purple:#8b5cf6; --orange:#f97316; --text:#e2e8f0; --muted:#64748b;
-  --shadow:0 8px 32px rgba(0,0,0,0.4);
+  --bg:#f8fafc; --surface:#ffffff; --card:#ffffff; --border:#e2e8f0;
+  --gold:#b45309; --green:#059669; --red:#dc2626; --blue:#2563eb;
+  --purple:#8b5cf6; --orange:#f97316; --text:#334155; --muted:#64748b;
+  --shadow:0 8px 24px rgba(15,23,42,0.08);
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 .mp{background:var(--bg);font-family:'Mulish',sans-serif;color:var(--text);min-height:100vh;overflow-x:hidden;}
 
 /* ── NAV ── */
-.mp-nav{background:rgba(11,15,26,0.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:10px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;}
+.mp-nav{background:rgba(255,255,255,0.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:10px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;}
 .mp-nav-home{display:flex;align-items:center;gap:6px;text-decoration:none;color:var(--text);font-size:0.82rem;font-weight:700;padding:6px 14px;border-radius:8px;background:var(--card);border:1px solid var(--border);transition:all 0.2s;}
 .mp-nav-home:hover{border-color:var(--gold);color:var(--gold);}
 .mp-nav-links{display:flex;gap:4px;}
@@ -32,23 +32,23 @@ description: "AI360Trading Membership — Live Telegram signals, TradingView ind
 .live-dot{width:6px;height:6px;background:var(--green);border-radius:50%;animation:blink 1.4s infinite;}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
 /* FIXED: text size reduced from clamp(1.5rem,4vw,2.6rem) */
-.mp-hero h1{font-family:'Syne',sans-serif;font-size:clamp(1.4rem,3vw,2.0rem);line-height:1.15;color:#fff;letter-spacing:-0.02em;margin-bottom:8px;}
+.mp-hero h1{font-family:'Syne',sans-serif;font-size:clamp(1.4rem,3vw,2.0rem);line-height:1.15;color:#0f172a;letter-spacing:-0.02em;margin-bottom:8px;}
 .mp-hero h1 em{font-style:normal;color:var(--gold);}
 .mp-hero p{font-size:0.82rem;color:var(--muted);max-width:480px;margin:0 auto 20px;line-height:1.6;}
 
 /* Billing toggle */
 .billing-toggle{display:inline-flex;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:3px;gap:3px;margin-bottom:24px;}
 .billing-btn{padding:7px 16px;border-radius:8px;border:none;font-family:'Mulish',sans-serif;font-size:0.8rem;font-weight:700;cursor:pointer;transition:all 0.2s;color:var(--muted);background:transparent;}
-.billing-btn.active{background:var(--gold);color:#000;}
+.billing-btn.active{background:var(--gold);color:#ffffff;}
 .billing-save{font-size:0.62rem;background:var(--green);color:#fff;padding:2px 5px;border-radius:100px;margin-left:3px;}
 
 /* ── LEDGER ── */
 .ledger-section{max-width:900px;margin:0 auto 32px;padding:0 16px;}
 .ledger-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px 22px;}
-.ledger-title{font-family:'Syne',sans-serif;font-size:1rem;color:#fff;margin-bottom:4px;}
+.ledger-title{font-family:'Syne',sans-serif;font-size:1rem;color:#0f172a;margin-bottom:4px;}
 .ledger-sub{font-size:0.74rem;color:var(--muted);margin-bottom:14px;line-height:1.5;}
 .ledger-stats{display:flex;flex-wrap:wrap;gap:10px 24px;margin-bottom:14px;}
-.ledger-stat b{display:block;font-family:'Syne',sans-serif;font-size:1.15rem;color:#fff;}
+.ledger-stat b{display:block;font-family:'Syne',sans-serif;font-size:1.15rem;color:#0f172a;}
 .ledger-stat span{font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;}
 .ledger-table-wrap{overflow-x:auto;}
 /* Explicit + nested under .ledger-card so these beat the site's global
@@ -57,7 +57,7 @@ description: "AI360Trading Membership — Live Telegram signals, TradingView ind
    text color, this was the 2026-07-21 low-contrast bug. */
 .ledger-card table.ledger-table{width:100%;border-collapse:collapse;font-size:0.76rem;background:transparent;border:none;margin:0;}
 .ledger-card table.ledger-table th{text-align:left;padding:6px 10px;color:var(--muted);font-weight:700;border:none;border-bottom:1px solid var(--border);font-size:0.68rem;text-transform:uppercase;background:transparent;}
-.ledger-card table.ledger-table td{padding:6px 10px;border:none;border-bottom:1px solid rgba(255,255,255,0.06);background:transparent;color:var(--text);}
+.ledger-card table.ledger-table td{padding:6px 10px;border:none;border-bottom:1px solid rgba(15,23,42,0.08);background:transparent;color:var(--text);}
 .ledger-card table.ledger-table tbody tr:nth-child(odd) td{background:transparent;}
 .ledger-win{color:var(--green);font-weight:700;}
 .ledger-loss{color:var(--red);font-weight:700;}
@@ -66,7 +66,7 @@ description: "AI360Trading Membership — Live Telegram signals, TradingView ind
 
 /* ── CASE STUDIES ── */
 .case-section{max-width:900px;margin:0 auto 32px;padding:0 16px;}
-.case-title{font-family:'Syne',sans-serif;font-size:1rem;color:#fff;margin-bottom:4px;}
+.case-title{font-family:'Syne',sans-serif;font-size:1rem;color:#0f172a;margin-bottom:4px;}
 .case-sub{font-size:0.74rem;color:var(--muted);margin-bottom:14px;line-height:1.5;}
 .case-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
 @media(max-width:640px){.case-grid{grid-template-columns:1fr;}}
@@ -74,7 +74,7 @@ description: "AI360Trading Membership — Live Telegram signals, TradingView ind
 .case-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
 .case-card.win::before{background:var(--green);}
 .case-card.loss::before{background:var(--red);}
-.case-sym{font-family:'Syne',sans-serif;font-size:1.05rem;color:#fff;}
+.case-sym{font-family:'Syne',sans-serif;font-size:1.05rem;color:#0f172a;}
 .case-strategy{font-size:0.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;}
 .case-rows{font-size:0.78rem;color:var(--text);line-height:2;margin-bottom:8px;}
 .case-rows b{color:var(--muted);font-weight:600;}
@@ -102,16 +102,16 @@ description: "AI360Trading Membership — Live Telegram signals, TradingView ind
 .plan-card.advance .plan-badge{background:rgba(59,130,246,0.15);color:#60a5fa;border:1px solid rgba(59,130,246,0.3);}
 
 /* FIXED: plan name font size reduced */
-.plan-name{font-family:'Syne',sans-serif;font-size:1.2rem;color:#fff;margin-bottom:4px;}
+.plan-name{font-family:'Syne',sans-serif;font-size:1.2rem;color:#0f172a;margin-bottom:4px;}
 .plan-tagline{font-size:0.75rem;color:var(--muted);margin-bottom:16px;}
-.plan-price{font-family:'Syne',sans-serif;font-size:2.0rem;color:#fff;font-weight:800;line-height:1;}
+.plan-price{font-family:'Syne',sans-serif;font-size:2.0rem;color:#0f172a;font-weight:800;line-height:1;}
 .plan-price span{font-size:0.8rem;color:var(--muted);font-weight:400;}
 .plan-price-annual{font-size:0.72rem;color:var(--green);margin-top:4px;margin-bottom:20px;display:none;}
 .plan-price-annual.show{display:block;}
 .plan-strike{font-size:0.7rem;color:var(--muted);text-decoration:line-through;margin-right:4px;}
 
 .plan-features{list-style:none;flex:1;margin-bottom:22px;}
-.plan-features li{font-size:0.78rem;color:var(--text);padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);display:flex;align-items:flex-start;gap:8px;line-height:1.45;}
+.plan-features li{font-size:0.78rem;color:var(--text);padding:6px 0;border-bottom:1px solid rgba(15,23,42,0.06);display:flex;align-items:flex-start;gap:8px;line-height:1.45;}
 .plan-features li:last-child{border-bottom:none;}
 .feat-check{color:var(--green);font-size:0.85rem;flex-shrink:0;margin-top:1px;}
 .feat-star{color:var(--gold);font-size:0.85rem;flex-shrink:0;margin-top:1px;}
@@ -119,8 +119,8 @@ description: "AI360Trading Membership — Live Telegram signals, TradingView ind
 .plan-cta{display:block;text-align:center;padding:12px 20px;border-radius:10px;font-size:0.82rem;font-weight:800;text-decoration:none;cursor:pointer;border:none;font-family:'Mulish',sans-serif;transition:all 0.2s;letter-spacing:0.02em;}
 .plan-cta.advance-cta{background:rgba(59,130,246,0.15);color:#60a5fa;border:1px solid rgba(59,130,246,0.3);}
 .plan-cta.advance-cta:hover{background:#3b82f6;color:#fff;}
-.plan-cta.premium-cta{background:var(--gold);color:#000;}
-.plan-cta.premium-cta:hover{background:#f59e0b;}
+.plan-cta.premium-cta{background:var(--gold);color:#ffffff;}
+.plan-cta.premium-cta:hover{background:#92400e;}
 
 /* Section labels */
 .feat-section{font-size:0.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;font-weight:700;padding:10px 0 4px;border-top:1px solid var(--border);margin-top:4px;}
@@ -130,17 +130,17 @@ description: "AI360Trading Membership — Live Telegram signals, TradingView ind
 .compare-section{max-width:860px;margin:0 auto 48px;padding:0 16px;}
 .compare-title{font-size:0.75rem;color:var(--muted);text-align:center;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:16px;font-weight:700;}
 .compare-table{width:100%;border-collapse:collapse;font-size:0.76rem;background-color:transparent !important;}
-.compare-table th{padding:10px 14px;text-align:left;color:#cbd5e1 !important;background-color:transparent !important;font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;border-bottom:1px solid var(--border);}
+.compare-table th{padding:10px 14px;text-align:left;color:#475569 !important;background-color:transparent !important;font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;border-bottom:1px solid var(--border);}
 .compare-table th:nth-child(2),.compare-table th:nth-child(3){text-align:center;}
 .compare-table tr{background-color:transparent !important;}
-.compare-table td{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.08);color:#e2e8f0 !important;background-color:transparent !important;vertical-align:middle;}
+.compare-table td{padding:10px 14px;border-bottom:1px solid rgba(15,23,42,0.10);color:#334155 !important;background-color:transparent !important;vertical-align:middle;}
 .compare-table td:nth-child(2),.compare-table td:nth-child(3){text-align:center;}
 .compare-table tr:last-child td{border-bottom:none;}
 .ct-yes{color:var(--green);font-size:1rem;}
 .ct-no{color:var(--muted);font-size:1rem;}
 .ct-adv{color:#60a5fa;font-size:0.62rem;font-weight:700;text-transform:uppercase;}
 .ct-prem{color:var(--gold);font-size:0.62rem;font-weight:700;text-transform:uppercase;}
-.compare-table .section-row td{background-color:rgba(255,255,255,0.05) !important;color:#f1f5f9 !important;font-size:0.68rem;text-transform:uppercase;letter-spacing:0.08em;font-weight:700;padding:8px 14px;}
+.compare-table .section-row td{background-color:rgba(15,23,42,0.05) !important;color:#0f172a !important;font-size:0.68rem;text-transform:uppercase;letter-spacing:0.08em;font-weight:700;padding:8px 14px;}
 
 /* ── HOW IT WORKS ── */
 .how-section{max-width:680px;margin:0 auto 48px;padding:0 16px;text-align:center;}
@@ -149,7 +149,7 @@ description: "AI360Trading Membership — Live Telegram signals, TradingView ind
 @media(max-width:560px){.steps-grid{grid-template-columns:repeat(2,1fr);}}
 .step{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 12px;text-align:center;}
 .step-num{width:28px;height:28px;background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.3);color:var(--gold);border-radius:50%;font-size:0.75rem;font-weight:800;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;}
-.step-label{font-size:0.72rem;font-weight:700;color:#fff;margin-bottom:4px;}
+.step-label{font-size:0.72rem;font-weight:700;color:#0f172a;margin-bottom:4px;}
 .step-desc{font-size:0.65rem;color:var(--muted);line-height:1.5;}
 
 /* ── FAQ ── */
@@ -167,11 +167,11 @@ description: "AI360Trading Membership — Live Telegram signals, TradingView ind
 .pay-modal{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:28px 24px;max-width:380px;width:100%;position:relative;}
 .pay-close{position:absolute;top:14px;right:16px;background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer;padding:4px;}
 .pay-close:hover{color:var(--text);}
-.pay-plan-name{font-family:'Syne',sans-serif;font-size:1rem;color:#fff;margin-bottom:4px;}
+.pay-plan-name{font-family:'Syne',sans-serif;font-size:1rem;color:#0f172a;margin-bottom:4px;}
 .pay-amount{font-size:1.6rem;font-weight:800;color:var(--gold);margin-bottom:16px;}
 .upi-box{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px;}
 .upi-label{font-size:0.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;}
-.upi-id{font-size:0.95rem;font-weight:800;color:#fff;letter-spacing:0.02em;}
+.upi-id{font-size:0.95rem;font-weight:800;color:#0f172a;letter-spacing:0.02em;}
 .upi-copy{display:inline-block;font-size:0.68rem;color:var(--gold);cursor:pointer;margin-top:4px;padding:3px 8px;border:1px solid rgba(251,191,36,0.3);border-radius:6px;}
 .upi-copy:hover{background:rgba(251,191,36,0.1);}
 .pay-steps{font-size:0.72rem;color:var(--muted);line-height:1.9;margin-bottom:16px;}
