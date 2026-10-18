@@ -275,13 +275,16 @@ def build_short_thumbnail(headline: str, subline: str, accent, badge: str, out_n
               fill=(185, 205, 240), anchor="mm")
 
     # Headline — huge, centered, auto-fit to max 3 lines
+    # 2026-10-18: also shrink when a single long word is wider than the safe width
+    # (same cut-off bug as hook_helper.build_hook_frame).
     size   = 150
-    f_head = get_font(FONT_BOLD_PATHS, size)
-    lines  = _wrap_to_width(draw, headline.upper(), f_head, SW - 120)
-    while len(lines) > 3 and size > 90:
-        size  -= 12
+    while True:
         f_head = get_font(FONT_BOLD_PATHS, size)
         lines  = _wrap_to_width(draw, headline.upper(), f_head, SW - 120)
+        widest = max((draw.textbbox((0, 0), ln, font=f_head)[2] for ln in lines), default=0)
+        if (len(lines) <= 3 and widest <= SW - 120) or size <= 64:
+            break
+        size -= 8
 
     total_h = len(lines) * (size + 18)
     ty = (SH - total_h) // 2 - 60

@@ -76,16 +76,21 @@ def build_hook_frame(headline, screen_size, fonts, accent=(255, 210, 0),
     draw.rectangle([(0, SH - 16), (SW, SH)], fill=accent)
 
     # Headline — huge, centered, auto-fit to max 4 lines
+    # 2026-10-18: a single long word (DIVERSIFICATION, COMPOUNDING) used to stay on its
+    # own line even when wider than the screen, so the first frame of live Shorts showed
+    # cut-off words. Shrink until every line fits the safe width (floor 64px).
+    max_w = SW - 110
     size = 168
-    f    = _get_font(fonts, size)
-    lines = _wrap(draw, headline.upper(), f, SW - 110)
-    while len(lines) > 4 and size > 96:
-        size -= 12
+    while True:
         f     = _get_font(fonts, size)
-        lines = _wrap(draw, headline.upper(), f, SW - 110)
+        lines = _wrap(draw, headline.upper(), f, max_w)
+        widest = max((draw.textbbox((0, 0), ln, font=f)[2] for ln in lines), default=0)
+        if (len(lines) <= 4 and widest <= max_w) or size <= 64:
+            break
+        size -= 8
 
     total_h = len(lines) * (size + 16)
-    ty = (SH - total_h) // 2
+    ty = (SH - total_h) // 2 + (size + 16) // 2
     for line in lines[:4]:
         for dx, dy in [(-5, 5), (5, -5), (-5, -5), (5, 5)]:
             draw.text((SW // 2 + dx, ty + dy), line, font=f, fill=(0, 0, 0, 230), anchor="mm")
