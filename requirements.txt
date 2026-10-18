@@ -47,7 +47,7 @@ openai==2.38.0
 # VIDEO & AUDIO  (moviepy/imageio/decorator stack is fragile — keep these exact)
 Pillow==12.3.0
 moviepy==1.0.3
-edge-tts==7.2.8
+edge-tts==7.3.1   # 2026-10-18: 7.2.8 returns HTTP 403 (Microsoft rotated Sec-MS-GEC); 7.3.1 verified OK locally
 imageio==2.9.0
 imageio-ffmpeg==0.6.0
 decorator==4.4.2

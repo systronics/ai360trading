@@ -77,6 +77,96 @@ GEMINI_MODELS = [
     "gemini-2.5-flash-8b",        # Fast fallback
 ]
 
+# v2.6 (2026-10-18): the hardcoded lists above went stale (Groq retired/removed
+# llama-3.3-70b, llama-3.1-8b, gemma2, qwen-qwq; Gemini 2.5 reaches end of life
+# Oct 2026) and every video/article job silently fell to templates. The lists
+# are now only a LAST-RESORT fallback: each provider's own live model list is
+# queried once per process and ranked, so new models are picked up and retired
+# ones dropped with no code change. Fully fail-open: any discovery error ->
+# the static lists below are used exactly as before.
+GROQ_MODELS_FALLBACK   = ["openai/gpt-oss-120b", "openai/gpt-oss-20b"]
+GEMINI_MODELS_FALLBACK = ["gemini-flash-latest", "gemini-flash-lite-latest"]
+
+_DISCOVERY_CACHE = {}
+_GROQ_SKIP = ("whisper", "guard", "tts", "orpheus", "embed", "compound", "vision-preview", "distil")
+_GEMINI_SKIP = ("image", "tts", "live", "audio", "embed", "veo", "imagen", "lyria",
+                "robotics", "computer-use", "aqa", "learnlm", "gemma", "thinking-exp")
+
+
+def _num_after(pattern, text, default=0.0):
+    import re
+    m = re.search(pattern, text)
+    return float(m.group(1)) if m else default
+
+
+def rank_groq_models(ids):
+    """Order live Groq chat-model ids best-first (pure function, unit-testable)."""
+    usable = [m for m in ids if not any(s in m.lower() for s in _GROQ_SKIP)]
+
+    def score(m):
+        low = m.lower()
+        size = _num_after(r"(\d+(?:\.\d+)?)b", low)             # parameter count, billions
+        ver = _num_after(r"(?:llama-|qwen|gpt-oss-?|kimi-k)(\d+(?:\.\d+)?)", low)
+        bonus = 30 if "versatile" in low or "gpt-oss" in low else 0
+        return size + ver * 5 + bonus
+
+    return sorted(usable, key=score, reverse=True)
+
+
+def rank_gemini_models(names):
+    """Order live Gemini model names best-first: newest flash, then flash-lite."""
+    import re
+    out = []
+    for n in names:
+        low = n.lower().replace("models/", "")
+        if "flash" not in low or any(s in low for s in _GEMINI_SKIP):
+            continue
+        ver = _num_after(r"gemini-(\d+(?:\.\d+)?)", low)
+        lite = 1 if "lite" in low or "8b" in low else 0
+        preview = 1 if "preview" in low or "exp" in low else 0
+        out.append(((-ver, lite, preview), low))
+    return [n for _, n in sorted(out)]
+
+
+def discover_groq_models(api_key):
+    """Live Groq model list, ranked; static fallback on any error."""
+    if "groq" in _DISCOVERY_CACHE:
+        return _DISCOVERY_CACHE["groq"]
+    models = []
+    try:
+        from groq import Groq
+        ids = [m.id for m in Groq(api_key=api_key).models.list().data]
+        models = rank_groq_models(ids)
+        logger.info(f"[discovery] Groq live models, ranked: {models[:5]}")
+    except Exception as e:
+        logger.warning(f"[discovery] Groq model list failed ({e}) — using static fallback")
+    models = models + [m for m in GROQ_MODELS_FALLBACK + GROQ_MODELS if m not in models]
+    _DISCOVERY_CACHE["groq"] = models
+    return models
+
+
+def discover_gemini_models(api_key):
+    """Live Gemini model list, ranked; static fallback on any error."""
+    if "gemini" in _DISCOVERY_CACHE:
+        return _DISCOVERY_CACHE["gemini"]
+    models = []
+    try:
+        from google import genai
+        client = genai.Client(api_key=api_key)
+        names = []
+        for m in client.models.list():
+            acts = getattr(m, "supported_actions", None) or []
+            if not acts or "generateContent" in acts:
+                names.append(m.name)
+        models = rank_gemini_models(names)
+        logger.info(f"[discovery] Gemini live models, ranked: {models[:5]}")
+    except Exception as e:
+        logger.warning(f"[discovery] Gemini model list failed ({e}) — using static fallback")
+    models = models + [m for m in GEMINI_MODELS_FALLBACK + GEMINI_MODELS if m not in models]
+    _DISCOVERY_CACHE["gemini"] = models
+    return models
+
+
 CLAUDE_MODELS = [
     "claude-haiku-4-5-20251001",
     "claude-sonnet-4-6",
@@ -287,7 +377,7 @@ class AIClient:
             raise ImportError("groq not installed")
 
         client = Groq(api_key=self.groq_key)
-        for model in GROQ_MODELS:
+        for model in discover_groq_models(self.groq_key)[:6]:
             try:
                 kwargs = {
                     "model": model,
@@ -333,7 +423,7 @@ class AIClient:
         if json_mode:
             config.response_mime_type = "application/json"
 
-        for model_name in GEMINI_MODELS:
+        for model_name in discover_gemini_models(self.gemini_key)[:6]:
             try:
                 response = client.models.generate_content(
                     model=model_name, contents=full_prompt, config=config,
