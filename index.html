@@ -16,6 +16,39 @@ keywords: "NIFTY trading signals, S&P 500 analysis today, FTSE 100 analysis, IBO
     <span class="status-text">SYSTEMS LIVE: MARKET DATA SYNCED</span>
   </div>
 
+  {% if site.data.performance.by_type %}
+  {% assign sw = site.data.performance.by_type | first %}
+  <div class="proof-strip">
+    <div class="proof-main">
+      <div class="proof-label">VERIFIED TRACK RECORD &middot; SWING &amp; POSITIONAL</div>
+      <div class="proof-stats">
+        <span><b>{{ sw.trades }}</b> closed trades</span>
+        <span><b>{{ sw.win_rate }}%</b> winners</span>
+        <span class="proof-win">avg win <b>+{{ sw.avg_win_pct }}%</b></span>
+        <span class="proof-loss">avg loss <b>{{ sw.avg_loss_pct }}%</b></span>
+      </div>
+      <div class="proof-note">Live paper-trading ledger since {{ site.data.performance.since }}, losses included. Intraday and options results are shown separately on the full ledger. Educational only, not investment advice.</div>
+    </div>
+    <div class="proof-actions">
+      <a class="proof-btn proof-tg" href="https://t.me/{{ site.telegram_username }}" target="_blank" rel="noopener">Join free on Telegram</a>
+      <a class="proof-btn proof-ledger" href="/membership/">See full ledger &amp; plans</a>
+    </div>
+  </div>
+  <style>
+    .proof-strip{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px 20px;background:#0b0f1a;border:1px solid #1c2535;border-left:4px solid #10b981;border-radius:12px;padding:14px 18px;margin:0 0 18px;}
+    .proof-label{font-size:0.66rem;font-weight:800;letter-spacing:0.1em;color:#fbbf24;margin-bottom:6px;}
+    .proof-stats{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:0.85rem;color:#e2e8f0;}
+    .proof-stats b{color:#fff;}
+    .proof-win b{color:#10b981;} .proof-loss b{color:#ef4444;}
+    .proof-note{font-size:0.68rem;color:#94a3b8;margin-top:6px;max-width:560px;line-height:1.5;}
+    .proof-actions{display:flex;flex-wrap:wrap;gap:8px;}
+    .proof-btn{display:inline-block;padding:10px 16px;border-radius:9px;font-size:0.78rem;font-weight:800;text-decoration:none;}
+    .proof-tg{background:#0088cc;color:#fff;}
+    .proof-ledger{background:transparent;color:#fbbf24;border:1px solid rgba(251,191,36,0.4);}
+    @media(max-width:560px){.proof-actions{width:100%;} .proof-btn{flex:1;text-align:center;}}
+  </style>
+  {% endif %}
+
   <div class="dashboard-grid">
     <a href="/swing-dashboard/" class="card-link">
       <div class="dashboard-card swing">
