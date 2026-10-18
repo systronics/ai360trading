@@ -18,7 +18,7 @@ keywords: "global markets today, Dow Jones today, Nasdaq today, crude oil price,
 
 <div class="pillar-links">
   <a href="/topics/stock-market/" class="pillar-cta">📊 Stock Market</a>
-  <a href="/topics/gold/" class="pillar-cta secondary">🪙 Gold &amp; Commodities</a>
+  <a href="/topics/gold/" class="pillar-cta secondary">🥇 Gold &amp; Commodities</a>
   <a href="/topics/bitcoin/" class="pillar-cta secondary">₿ Bitcoin &amp; Crypto</a>
   <a href="/swing-dashboard/" class="pillar-cta secondary">📈 Live Dashboard</a>
 </div>
