@@ -38,6 +38,8 @@ jobs:
   fetch-rs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    permissions:
+      contents: write   # 2026-10-18: lets the signal-lists step commit _data/signal_lists.json
     # v2.0: own group — MUST NOT share `trading-bot` (see header). cancel-in-progress
     # lets a fresher scheduled run supersede a stuck older one.
     concurrency:
@@ -72,6 +74,22 @@ jobs:
         env:
           GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
         run: python fetch_bottom_levels.py --write
+
+      # 2026-10-18: public SIP-accumulation + breakout lists for the website (teaser only,
+      # fail-open: a bad run leaves the existing JSON untouched). continue-on-error so it can
+      # never fail the RS+ATR job or trigger its failure alert.
+      - name: Publish signal lists (website teaser)
+        continue-on-error: true
+        env:
+          GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
+        run: |
+          python publish_signal_lists.py
+          git config --local user.email "admin@ai360trading.in"
+          git config --local user.name "AI360-Automation"
+          git add _data/signal_lists.json
+          git diff --cached --quiet || git commit -m "Signal lists refresh: $(date +'%Y-%m-%d %H:%M') IST"
+          git pull --rebase origin master || true
+          git push origin master || true
 
       - name: Notify Telegram on failure
         if: failure()

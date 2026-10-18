@@ -40,7 +40,7 @@ from datetime import datetime
 import pytz
 
 IST        = pytz.timezone("Asia/Kolkata")
-VERSION    = "v1.1"
+VERSION    = "v1.3"
 SHEET_NAME = "Ai360tradingAlgo"
 NIFTY200   = "Nifty200"
 TAB        = "BottomScanner"
@@ -71,12 +71,12 @@ NIFTY_PULL = [
 LEVEL_COLS = [
     "Prev_Day_High", "Prev_Day_Low", "Prev_Week_High", "Prev_Week_Low",
     "Support_1", "Support_2", "Resistance_1", "Base_Range_20D_%",
-    "Retest_Level", "Retest_Status", "EMA50", "ADX_14", "TLB_Breakout_5D", "Levels_Updated",
+    "Retest_Level", "Retest_Status", "EMA50", "ADX_14", "TLB_Breakout_5D", "Close_High_50D", "CH50_Breakout_5D", "Levels_Updated",
 ]
 # Formula columns (computed in-sheet from the two groups above).
 FORMULA_COLS = [
     "Liquidity_Cr", "Above_Prev_Day_High", "Above_Prev_Week_High",
-    "%_above_Support_1", "Base_Stage", "Trend_Setup", "Intraday_Setup",
+    "%_above_Support_1", "Base_Stage", "Trend_Setup", "SIP_Zone", "Breakout_Signal", "Intraday_Setup",
 ]
 
 
@@ -306,7 +306,7 @@ def _round(v, nd=2):
 def build_layout(ws, n_rows, header_map):
     """Write header + row-aligned Nifty200 pull formulas + in-sheet formulas.
     header_map: Nifty200 header -> column letter."""
-    headers = [h for h, _ in NIFTY_PULL] + LEVEL_COLS + FORMULA_COLS
+    headers = [h for h, _ in NIFTY_PULL] + LEVEL_COLS + FORMULA_COLS + ["Sector_Trend"]   # trailing pull: keeps earlier column positions stable
     col = {h: _a1(i + 1) for i, h in enumerate(headers)}
     rows = [headers]
     for r in range(2, n_rows + 2):
@@ -333,6 +333,13 @@ def build_layout(ws, n_rows, header_map):
             f'=IF({c("TLB_Breakout_5D")}="","",'
             f'IF(AND({c("TLB_Breakout_5D")}="YES",{cmp_}>{c("EMA50")}),"TREND BREAKOUT",'
             f'IF({c("TLB_Breakout_5D")}="YES","BREAKOUT BELOW EMA50","-")))')
+        row.append(  # SIP_Zone (informational): deep correction + tight base + liquid. NOT a timing signal.
+            f'=IF({c("Prev_Week_High")}="","",'
+            f'IF(AND({deep},{tight},N({c("Liquidity_Cr")})>={MIN_TRADED_CR}),"ACCUMULATION ZONE","-"))')
+        row.append(  # Breakout_Signal (informational): the two rules that backtested best on daily bars
+            f'=IF({c("CH50_Breakout_5D")}="","",'
+            f'IF(AND({c("CH50_Breakout_5D")}="YES",{cmp_}>{c("EMA50")},N({c("Liquidity_Cr")})>={MIN_TRADED_CR}),"50D CLOSING-HIGH BREAKOUT",'
+            f'IF(AND({c("TLB_Breakout_5D")}="YES",{cmp_}>{c("EMA50")},N({c("Liquidity_Cr")})>={MIN_TRADED_CR}),"TRENDLINE BREAKOUT","-")))')
         liq_ok = f'N({c("Liquidity_Cr")})>={MIN_TRADED_CR}'
         row.append(
             f'=IF({c("Prev_Day_High")}="","",'
@@ -340,10 +347,18 @@ def build_layout(ws, n_rows, header_map):
             f'IF({c("Retest_Status")}="RETEST ZONE","RETEST BUY ZONE",'
             f'IF(AND(ABS({c("%_above_Support_1")})<=1.5,{cmp_}>={c("Support_1")}),"AT SUPPORT",'
             f'IF({c("Above_Prev_Day_High")}="YES","ABOVE PDH - CHASING, WAIT PULLBACK","-")))))')
+        st_letter = header_map.get("sector_trend")
+        row.append(f"=Nifty200!{st_letter}{r}" if st_letter else "")
         rows.append(row)
     ws.clear()
     end_col = _a1(len(headers))
     ws.update(range_name=f"A1:{end_col}{len(rows)}", values=rows, value_input_option="USER_ENTERED")
+    # ws.clear() keeps old cell number-formats; a former date column made new numeric
+    # columns render as 1906-xx-xx dates (2026-10-18). Reset the data area to a plain number format.
+    try:
+        ws.format(f"A2:{end_col}{len(rows)}", {"numberFormat": {"type": "NUMBER", "pattern": "#,##0.00"}})
+    except Exception as e:
+        print(f"[BUILD] number-format reset skipped: {e}")
     return headers
 
 
@@ -421,6 +436,12 @@ def main():
             adx_v = _adx(hh, ll, cc).iloc[-1]
             tlb = tlb_upbreak(hh.tolist(), cc.tolist(), atr_s.tolist())
             tlb5 = "YES" if any(tlb[-5:]) else "NO"
+            # 50-day CLOSING-high breakout (2026-10-18 backtest: lookbacks 50-100d all ~+3.3%/trade).
+            # Event = close crosses above the highest close of the prior 50 sessions.
+            ch_ref = cc.shift(1).rolling(50).max()
+            ch_evt = ((cc > ch_ref) & (cc.shift(1) <= ch_ref.shift(1))).fillna(False).tolist()
+            ch50_5d = "YES" if any(ch_evt[-5:]) else "NO"
+            ch50_lvl = ch_ref.iloc[-1]
             frames[s] = {"date": [d.date() for d in df.index], "o": df["Open"].tolist(),
                          "l": ll.tolist(), "c": cc.tolist(), "atr": atr_s.tolist(),
                          "ema50": ema50.tolist(), "tlb": tlb}
@@ -428,7 +449,8 @@ def main():
             vals = [_round(lv["pdh"]), _round(lv["pdl"]), _round(lv["pwh"]), _round(lv["pwl"]),
                     _round(lv["s1"]), _round(lv["s2"]), _round(lv["r1"]), _round(lv["base"]),
                     _round(lv["retest_level"]), lv["retest_status"],
-                    _round(ema50.iloc[-1]), _round(adx_v, 1), tlb5, f"{now:%Y-%m-%d %H:%M}"]
+                    _round(ema50.iloc[-1]), _round(adx_v, 1), tlb5,
+                    _round(ch50_lvl), ch50_5d, f"{now:%Y-%m-%d %H:%M}"]
             updates[row] = vals
             ok += 1
         except Exception:
@@ -447,6 +469,13 @@ def main():
         batch.append({"range": a, "values": [vals]})
     for i in range(0, len(batch), 100):
         ws.batch_update(batch[i:i + 100], value_input_option="USER_ENTERED")
+    # Number format for the Python-fed block (leftover date formats from older column layouts
+    # made numeric levels display as 1906-xx-xx dates, 2026-10-18).
+    try:
+        ws.format(f"{_a1(first + 1)}2:{_a1(first + len(LEVEL_COLS))}{ws.row_count}",
+                  {"numberFormat": {"type": "NUMBER", "pattern": "#,##0.00"}})
+    except Exception as e:
+        print(f"[WRITE] number-format reset skipped: {e}")
     print(f"[WRITE] {len(batch)} rows updated")
     trendwatch(sh, frames, sectors, now)
     return 0
