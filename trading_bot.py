@@ -671,7 +671,7 @@ except Exception as _e:
     _EQ_AVAILABLE = False
 
 IST       = pytz.timezone('Asia/Kolkata')
-VERSION   = "v15.37"   # single source for the run banner + test messages (were stale at v15.16 before v15.23; was stuck at v15.28 in this constant through the v15.29 RSI dip-tolerance release — banner text only, no logic was affected). v15.32 (2026-07-28): TSL-UPDATE spam fix — see calc_new_tsl() comparison guard below. v15.33 (2026-07-30): loss re-entry cooldown split to 1 trading day (was sharing the 5-day target-hit cooldown) — see set_loss_cooldown() below. v15.34 (2026-07-30): re-entry cooldown scoped by trade family (OPTION/CASH/STOCK no longer cross-block each other) — see _cooldown_family() below. v15.35 (2026-08-05): Cash Intraday force-exit shifted 3:00 PM -> ~3:10 PM after a full 10-trade History review (7W/3L, all exits via this clock, never target/SL) showed the trailing stop already protects gains and the cutoff was never updated for NSE's 15:30->15:40 close move — see CASH_FORCE_EXIT_HOUR below. Entry criteria deliberately untouched (sample too small to recalibrate).
+VERSION   = "v15.38"   # single source for the run banner + test messages (were stale at v15.16 before v15.23; was stuck at v15.28 in this constant through the v15.29 RSI dip-tolerance release — banner text only, no logic was affected). v15.32 (2026-07-28): TSL-UPDATE spam fix — see calc_new_tsl() comparison guard below. v15.33 (2026-07-30): loss re-entry cooldown split to 1 trading day (was sharing the 5-day target-hit cooldown) — see set_loss_cooldown() below. v15.34 (2026-07-30): re-entry cooldown scoped by trade family (OPTION/CASH/STOCK no longer cross-block each other) — see _cooldown_family() below. v15.35 (2026-08-05): Cash Intraday force-exit shifted 3:00 PM -> ~3:10 PM after a full 10-trade History review (7W/3L, all exits via this clock, never target/SL) showed the trailing stop already protects gains and the cutoff was never updated for NSE's 15:30->15:40 close move — see CASH_FORCE_EXIT_HOUR below. Entry criteria deliberately untouched (sample too small to recalibrate).
 TG_TOKEN  = os.environ.get('TELEGRAM_BOT_TOKEN')
 
 CHAT_BASIC   = os.environ.get('CHAT_ID_BASIC')
@@ -2119,7 +2119,25 @@ ALERT_DISCLAIMER = (
     "Not investment advice. Do your own research and manage your own risk.</i>"
 )
 
-def _trade_style_lines(ttype):
+def _late_alert_line(ttype, cp):
+    """2026-10-19 owner decision: free infrastructure is not instant (price file 5 min + scanner + bot tick),
+    so every alert says so and gives a CHASE LIMIT instead of pretending to be fast. Message text only —
+    no entry/exit/sizing logic. Chase limits: +0.4% for intraday/cash, +1.0% for swing/positional."""
+    try:
+        if cp <= 0:
+            return ""
+        t = str(ttype)
+        if is_cash_trade(t) or "Intraday" in t or "Option" in t:
+            lim = cp * 1.004
+            return (f"⏱ Alert 5-10 min purana ho sakta hai. CHASE MAT KARO: price ₹{lim:.2f} ke upar chala gaya ho to SKIP. "
+                    f"Entry sirf apne 15m chart par candle CLOSE confirm hone par.\n")
+        lim = cp * 1.01
+        return f"⏱ Alert thoda purana ho sakta hai. Price ₹{lim:.2f} ke upar chala gaya ho to entry skip/wait kare.\n"
+    except Exception:
+        return ""
+
+
+def _trade_style_lines(ttype, cp=0.0):
     """v15.26 (owner rule 2026-07-18): every entry alert states in easy language
     HOW the trade is taken (cash/MTF vs intraday) and WHICH TradingView chart
     to cross-check, plus that the entry stays valid while price holds above SL."""
@@ -2148,7 +2166,7 @@ def build_entry_advance(sym, cp, stage, sl, tgt, rr, ttype, atr, rank, capital, 
         f"SL: ₹{sl:.2f} (Risk: ₹{int((cp-sl)*qty)})\n"
         f"Target: ₹{tgt:.2f} (Reward: ₹{int((tgt-cp)*qty)})\n"
         f"RR: {rr} | Priority: {rank}\n{filters}\n"
-        f"{_trade_style_lines(ttype)}"
+        f"{_trade_style_lines(ttype, cp)}\n{_late_alert_line(ttype, cp)}"
     )
 
 def build_entry_premium(sym, cp, stage, sl, tgt, rr, ttype, atr, rank, capital, is_bullish,
@@ -2160,10 +2178,15 @@ def build_entry_premium(sym, cp, stage, sl, tgt, rr, ttype, atr, rank, capital, 
     # option_intelligence (HV regime + earnings + ITM strike + PE side).
     # v15.22: opt_tag gates the CE block on real F&O eligibility (Nifty200 col AJ).
     # v15.23: bm_data carries the EARNINGS_* BotMemory rows to the earnings block.
-    return base + ce_candidate_flag(cp, atr, stage, is_bullish, rank,
-                                    opt_signal, opt_strike, opt_expiry, opt_theta,
-                                    sym=sym, mem=mem, now=now, opt_tag=opt_tag,
-                                    bm_data=bm_data)
+    ce_block = ce_candidate_flag(cp, atr, stage, is_bullish, rank,
+                                 opt_signal, opt_strike, opt_expiry, opt_theta,
+                                 sym=sym, mem=mem, now=now, opt_tag=opt_tag,
+                                 bm_data=bm_data)
+    if ce_block and cp > 0:
+        # option premiums move fast and this alert can be minutes old (free infrastructure) — say so, give a stock chase limit
+        ce_block += (f"\n⏱ Option premium tez badalta hai: stock ₹{cp * 1.004:.2f} ke upar ho to CE mat le (chase). "
+                     f"Apne 15m chart par candle close + bade timeframe (daily/weekly trend) confirm kare.")
+    return base + ce_block
 
 def _fmt12(h, m):
     """(15, 5) -> '3:05 PM' — the entry-window constants are 24h tuples and were being
@@ -2450,6 +2473,16 @@ def step_a_enter_trades(log_sheet, nifty_sheet, bm_sheet, mem, now, is_bullish, 
                                           opt_tag=_read_opt_tag_from_nifty200(nifty_sheet, sym),
                                           bm_data=bm_data)
         msg_basic   = build_entry_basic(sym, cp, stage, to_f(row[C_PNL]), log_sheet)
+        # 2026-10-19: higher-timeframe check (daily/weekly trend, RSI, ADX, volume) for member alerts.
+        # Fail-open: any error -> no extra line, alert unchanged.
+        try:
+            import watch_plan as _wp
+            _htf = _wp.htf_line(sym, now)
+            if _htf:
+                msg_advance += chr(10) + _htf
+                msg_premium += chr(10) + _htf
+        except Exception as _e:
+            print(f"[HTF] skipped: {_e}")
         # Append the educational/not-SEBI disclaimer to every member alert.
         send_basic(msg_basic + ALERT_DISCLAIMER)
         send_advance(msg_advance + ALERT_DISCLAIMER)
@@ -2865,6 +2898,32 @@ def send_good_morning(log_sheet, mem, is_bullish, nifty_cmp, nifty_dma, nifty_pc
 # ══════════════════════════════════════════════════════════════════════════════
 # MID-DAY PULSE — 12:28-12:38
 # ══════════════════════════════════════════════════════════════════════════════
+
+def send_watch_plan(nifty_sheet, mem, is_bullish, now):
+    """2026-10-19: morning WATCH PLAN for intraday/option ideas (see watch_plan.py). Sent once a day in the
+    Good Morning window. Informational only; FULLY fail-open — any error returns mem unchanged and never
+    affects Good Morning, scanning, entries or exits."""
+    flag_key = now.strftime("%Y-%m-%d") + "_WP"
+    if _mem_get(mem, flag_key):
+        return mem
+    try:
+        import watch_plan as _wp
+        ss = nifty_sheet.spreadsheet
+        _wp.score_plan(ss, now)                       # score earlier plans first (builds the real hit-rate evidence)
+        res = _wp.build_plan(nifty_sheet, is_bullish, now)
+        if not res:
+            print("[WATCHPLAN] no plan built (fail-open)")
+            return mem
+        adv, basic, items, opt = res
+        send_advance_and_premium(adv + ALERT_DISCLAIMER)
+        send_basic(basic)
+        _wp.log_plan(ss, items, opt, now)
+        print(f"[WATCHPLAN] sent: {[i['symbol'] for i in items]}")
+        return _mem_set(mem, flag_key, "1")
+    except Exception as e:
+        print(f"[WATCHPLAN] skipped (fail-open): {e}")
+        return mem
+
 
 def send_midday_pulse(log_sheet, mem, now, is_bullish):
     flag_key = now.strftime("%Y-%m-%d") + "_MD"
@@ -3683,6 +3742,7 @@ def main():
 
     if "08:44" <= time_str <= "08:52":
         mem = send_good_morning(log, mem, is_bullish, nifty_cmp, nifty_dma, nifty_pct, now)
+        mem = send_watch_plan(nifty, mem, is_bullish, now)
 
     # v15.10: fetch India VIX once per tick (one yfinance call, fail-open).
     # Used as a regime filter for new entries only; existing trades continue

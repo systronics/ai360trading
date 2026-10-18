@@ -320,7 +320,8 @@ description: "AI360Trading Membership — Live Telegram signals, TradingView ind
       </div>
       <ul class="plan-features">
         <li class="feat-section">📱 Telegram Signals</li>
-        <li><span class="feat-check">✓</span> Daily swing + positional trade alerts</li>
+        <li><span class="feat-check">✓</span> Daily swing + positional trade alerts (our main strategy)</li>
+        <li><span class="feat-check">✓</span> Morning watch plan: intraday + option ideas with levels and a daily/weekly trend check</li>
         <li><span class="feat-check">✓</span> Entry, stop loss, target levels for every trade</li>
         <li><span class="feat-check">✓</span> Market regime alerts (bullish/bearish)</li>
         <li><span class="feat-check">✓</span> Weekly performance report</li>
@@ -348,8 +349,8 @@ description: "AI360Trading Membership — Live Telegram signals, TradingView ind
       <ul class="plan-features">
         <li class="feat-section">📱 Telegram Signals</li>
         <li><span class="feat-star">★</span> Everything in Advance</li>
-        <li><span class="feat-star">★</span> Options CE/PE candidate alerts</li>
-        <li><span class="feat-star">★</span> Intraday momentum alerts (10:30 AM)</li>
+        <li><span class="feat-star">★</span> Live option CE alerts (buy-side only, 1-2 day holds)</li>
+        <li><span class="feat-star">★</span> Live intraday alerts with a chase limit</li>
         <li class="feat-section">🛠️ Tools</li>
         <li><span class="feat-star">★</span> All Advance tools included</li>
         <li><span class="feat-star">★</span> Chartink screener + email alerts setup</li>
@@ -382,9 +383,10 @@ description: "AI360Trading Membership — Live Telegram signals, TradingView ind
     </thead>
     <tbody>
       <tr class="section-row"><td colspan="3">📱 Telegram Signals</td></tr>
-      <tr><td>Daily swing + positional alerts</td><td><span class="ct-yes">✓</span></td><td><span class="ct-yes">✓</span></td></tr>
-      <tr><td>Options CE/PE alerts</td><td><span class="ct-no">—</span></td><td><span class="ct-yes">✓</span></td></tr>
-      <tr><td>Intraday momentum alerts</td><td><span class="ct-no">—</span></td><td><span class="ct-yes">✓</span></td></tr>
+      <tr><td>Daily swing + positional alerts (our main strategy)</td><td><span class="ct-yes">✓</span></td><td><span class="ct-yes">✓</span></td></tr>
+      <tr><td>Morning watch plan: intraday + option ideas with levels and a higher-timeframe check</td><td><span class="ct-yes">✓</span></td><td><span class="ct-yes">✓</span></td></tr>
+      <tr><td>Live option CE alerts (1-2 day holds)</td><td><span class="ct-no">—</span></td><td><span class="ct-yes">✓</span></td></tr>
+      <tr><td>Live intraday alerts (with chase limit)</td><td><span class="ct-no">—</span></td><td><span class="ct-yes">✓</span></td></tr>
       <tr><td>Weekly performance report</td><td><span class="ct-yes">✓</span></td><td><span class="ct-yes">✓</span></td></tr>
       <tr class="section-row"><td colspan="3">🛠️ Tools &amp; Screeners</td></tr>
       <tr><td>TradingView Pine Script indicator</td><td><span class="ct-yes">✓</span></td><td><span class="ct-yes">✓</span></td></tr>
