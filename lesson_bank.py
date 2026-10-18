@@ -133,6 +133,38 @@ LIMIT_MARKERS = ("does not prove", "doesn't prove", "not a guarantee", "no guara
                  "small sample", "may not")
 
 
+def duplicate_issues(text: str):
+    """2026-10-19 owner rule: no repeated filler inside one video (the old education videos padded
+    their length with repeated paragraphs). Flags (1) an identical sentence said twice, (2) two
+    near-identical sentences (word-set overlap >= 70%), (3) any 7-word phrase used 3+ times.
+    Short boilerplate like the 'not investment advice' line is allowed once, never repeated."""
+    issues = []
+    sents = [x.strip() for x in re.split(r"(?<=[.?!।])\s+", text) if len(x.split()) >= 6]
+    norm = [re.sub(r"[^\w\s]", "", x.lower()) for x in sents]
+    seen = {}
+    for i, n in enumerate(norm):
+        if n in seen:
+            issues.append(f"repeated sentence: '{sents[i][:50]}...'")
+        seen[n] = i
+    sets = [set(n.split()) for n in norm]
+    for i in range(len(sets)):
+        for j in range(i + 1, len(sets)):
+            if len(sets[i]) >= 8 and len(sets[j]) >= 8:
+                inter = len(sets[i] & sets[j]) / max(1, len(sets[i] | sets[j]))
+                if inter >= 0.7 and norm[i] != norm[j]:
+                    issues.append(f"near-duplicate sentences: '{sents[i][:40]}...' / '{sents[j][:40]}...'")
+    words = re.sub(r"[^\w\s]", "", text.lower()).split()
+    counts = {}
+    for k in range(len(words) - 6):
+        g = " ".join(words[k:k + 7])
+        counts[g] = counts.get(g, 0) + 1
+    for g, c in counts.items():
+        if c >= 3:
+            issues.append(f"phrase repeated {c}x: '{g}'")
+            break
+    return issues[:3]
+
+
 def quality_gate(script_text: str, facts: dict, min_words=250, max_words=1100):
     """Return (ok, [reasons]). script_text = the full narration, facts = {name: number or str}
     that came from our own data (at least one must be quoted in the script)."""
@@ -157,6 +189,7 @@ def quality_gate(script_text: str, facts: dict, min_words=250, max_words=1100):
     bad = [b for b in BANNED if b in low]
     if bad:
         reasons.append("hype/advice phrases: " + ", ".join(bad))
+    reasons += duplicate_issues(script_text)
     if "lorem" in low or "[insert" in low or "todo" in low:
         reasons.append("placeholder text left in script")
     return (not reasons), reasons

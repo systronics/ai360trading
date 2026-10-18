@@ -124,7 +124,7 @@ def render_lesson(L, lang, voice, out_dir, region):
     return mp4, str(srt_path), str(out_dir / "thumbnail.jpg"), chapters, final.duration
 
 
-def description(L, lang, chapters):
+def description(L, lang, chapters, extra=""):
     import money_funnel as mf
     from human_touch import ai_disclosure
     ch = "\n".join(f"{int(t // 60)}:{int(t % 60):02d} {name}" for t, name in chapters)
@@ -136,7 +136,8 @@ def description(L, lang, chapters):
     funnel = chr(10).join(ln for ln in funnel.splitlines() if "kal usi" not in ln.lower() and "tomorrow" not in ln.lower())
     hi = lang == "hi"
     foot = "शिक्षा के लिए, निवेश सलाह नहीं। हम SEBI-पंजीकृत सलाहकार नहीं हैं।" if hi else "Educational only, not investment advice. We are not a registered adviser."
-    return f"{L['desc'][lang]}\n\n{ch}\n\n{funnel}\n\n{foot}\n{ai_disclosure(lang)}"
+    top = f"{extra}\n\n" if extra else ""
+    return f"{top}{L['desc'][lang]}\n\n{ch}\n\n{funnel}\n\n{foot}\n{ai_disclosure(lang)}"
 
 
 # ───────────────────────────── upload ───────────────────────────────────────
@@ -175,6 +176,23 @@ def upload(mp4, title, desc, tags, lang, thumb, srt, publish_at=None):
     return vid
 
 
+def append_to_description(video_id, line):
+    """Add a cross-link line to the TOP of an existing video's description. Fail-open."""
+    try:
+        yt = youtube_service()
+        item = yt.videos().list(part="snippet", id=video_id).execute()["items"][0]
+        sn = item["snippet"]
+        if line in sn.get("description", ""):
+            return
+        sn["description"] = f"{line}\n\n{sn.get('description', '')}"[:4900]
+        yt.videos().update(part="snippet", body={"id": video_id, "snippet": {
+            "title": sn["title"], "description": sn["description"], "categoryId": sn.get("categoryId", "27"),
+            "tags": sn.get("tags", []), "defaultLanguage": sn.get("defaultLanguage"), "defaultAudioLanguage": sn.get("defaultAudioLanguage")}}).execute()
+        print(f"[RUNNER] cross-link added to {video_id}")
+    except Exception as e:
+        print(f"[RUNNER] cross-link skipped (fail-open): {e}")
+
+
 # ───────────────────────────── main ─────────────────────────────────────────
 
 def run(region, lang, mode, out_dir, lesson=None):
@@ -201,7 +219,15 @@ def run(region, lang, mode, out_dir, lesson=None):
     voice = E.VOICES[(region, lang)][0]
     mp4, srt, thumb, chapters, dur = render_lesson(L, lang, voice, out_dir, region)
     print(f"[RUNNER] rendered {mp4} ({dur:.0f}s)")
-    title, desc = L["title"][lang], description(L, lang, chapters)
+    # YouTube cannot switch the audio language of one upload through its API, so each language is its
+    # own video; link the two versions to each other so a viewer can jump to the other language.
+    other_ed = "us-en" if lang == "hi" else "in-hi"
+    other = done.get(lid, {}).get(other_ed)
+    extra = ""
+    if other and other.get("video"):
+        extra = (f"English edition: https://youtu.be/{other['video']}" if lang == "hi"
+                 else f"Hindi edition: https://youtu.be/{other['video']}")
+    title, desc = L["title"][lang], description(L, lang, chapters, extra)
     if mode == "dry":
         print(f"[RUNNER] DRY RUN, nothing uploaded.{chr(10)}TITLE: {title}{chr(10)}DESC:{chr(10)}{desc}")
         return 0
@@ -213,6 +239,11 @@ def run(region, lang, mode, out_dir, lesson=None):
     when = next_publish(wd, hhmm)
     vid = upload(mp4, title, desc, L["tags"][lang], lang, thumb, srt, publish_at=when)
     print(f"[RUNNER] scheduled {vid} for {when.isoformat()}")
+    if other and other.get("video"):
+        if lang == "hi":
+            append_to_description(other["video"], f"Hindi edition: https://youtu.be/{vid}")
+        else:
+            append_to_description(other["video"], f"English edition: https://youtu.be/{vid}")
     done.setdefault(lid, {})[f"{region}-{lang}"] = {"video": vid, "publish_at": when.isoformat()}
     save_done(done)
     link = f"https://youtu.be/{vid}"

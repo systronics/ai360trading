@@ -104,6 +104,17 @@ jobs:
           python generate_shorts.py
           echo "✅ Hindi short done"
 
+      - name: Remember which stock was told (no repeats for 21 days)
+        if: always()
+        continue-on-error: true
+        run: |
+          git config --local user.email "admin@ai360trading.in"
+          git config --local user.name "AI360-Automation"
+          git add _data/story_history.json || true
+          git diff --cached --quiet || git commit -m "Shorts story history: $(date +'%Y-%m-%d')"
+          git pull --rebase origin master || true
+          git push origin master || true
+
       - name: Upload artifacts for debug
         if: always()
         uses: actions/upload-artifact@v4

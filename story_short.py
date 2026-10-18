@@ -50,6 +50,8 @@ DEFAULT_FONTS = [
 ]
 
 SIGNAL_JSON = Path("_data/signal_lists.json")
+STORY_HISTORY = Path("_data/story_history.json")
+STORY_COOLDOWN_DAYS = 21      # a stock is not told twice within three weeks
 
 
 # ───────────────────────────── data ─────────────────────────────────────────
@@ -82,6 +84,37 @@ def _ema(vals, span):
     return out
 
 
+def _recent_symbols(now, days=STORY_COOLDOWN_DAYS):
+    try:
+        items = json.loads(STORY_HISTORY.read_text(encoding="utf-8")).get("items", [])
+    except Exception:
+        return set()
+    cutoff = now.toordinal() - days
+    out = set()
+    for it in items:
+        try:
+            if datetime.fromisoformat(it["date"]).toordinal() >= cutoff:
+                out.add(it["symbol"])
+        except Exception:
+            continue
+    return out
+
+
+def record_story(symbol, now=None):
+    """Remember a stock we just published a story about (keeps the last 60). Fail-open."""
+    try:
+        now = now or datetime.now()
+        try:
+            items = json.loads(STORY_HISTORY.read_text(encoding="utf-8")).get("items", [])
+        except Exception:
+            items = []
+        items.append({"symbol": symbol, "date": now.strftime("%Y-%m-%d")})
+        STORY_HISTORY.parent.mkdir(parents=True, exist_ok=True)
+        STORY_HISTORY.write_text(json.dumps({"items": items[-60:]}, indent=1), encoding="utf-8")
+    except Exception as e:
+        print(f"[STORY] history not saved (fail-open): {e}")
+
+
 def pick_story(now=None):
     """Return {'stock': {...} or None, 'index': {...} or None, 'market_label': str} or None.
     Stock = a 50-day closing-high breakout from our own public list, rotated by date so
@@ -95,8 +128,10 @@ def pick_story(now=None):
         cands = [b for b in (sl.get("breakout") or [])
                  if str(b.get("signal", "")).startswith("50-day") and b.get("level") and b.get("cmp")]
         if cands:
-            pool = cands[:5]
-            pick = pool[now.toordinal() % len(pool)]
+            recent = _recent_symbols(now)
+            fresh = [c for c in cands[:10] if c["symbol"] not in recent]
+            # strongest fresh candidate first; if every candidate was used recently, rotate the top 5
+            pick = fresh[0] if fresh else cands[:5][now.toordinal() % len(cands[:5])]
             sym = pick["symbol"]
             series = _closes(sym + ".NS")
             story["stock"] = {

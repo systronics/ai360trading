@@ -1372,6 +1372,11 @@ def main():
                              caption_srt=s2_srt, caption_lang="hi")
     if short2_id:
         print(f"  ✅ YouTube: https://youtube.com/shorts/{short2_id}")
+        if s2_story:
+            try:
+                story_short.record_story(s2_data.get("stock", ""))
+            except Exception:
+                pass
 
     print(f"  📘 Short 2 → Facebook...")
     share_to_facebook(s2_video, build_fb_caption(s2_data, 2))
