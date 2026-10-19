@@ -1,5 +1,5 @@
 {
-  "generated_at": "19 October 2026, 02:04 PM IST",
+  "generated_at": "19 October 2026, 09:22 PM IST",
   "setups": [
     {
       "symbol": "TECHM",
@@ -16,14 +16,6 @@
       "stage": "🚀 MOMENTUM BREAKOUT | ⏸ No Setup",
       "status": "✅ TRADED (PAPER)",
       "days_in_trade": "4"
-    },
-    {
-      "symbol": "WIPRO",
-      "trade_type": "🔥 Cash Intraday",
-      "strategy": "CASH",
-      "stage": "🔥 CASH | +6.0% | Vol 181%",
-      "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "0"
     },
     {
       "symbol": "LAURUSLABS",
