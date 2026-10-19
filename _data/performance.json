@@ -1,10 +1,10 @@
 {
-  "as_of": "October 18, 2026",
-  "total": 74,
+  "as_of": "October 19, 2026",
+  "total": 75,
   "wins": 33,
-  "losses": 41,
-  "win_rate": 45,
-  "net_pnl_rs": 3525,
+  "losses": 42,
+  "win_rate": 44,
+  "net_pnl_rs": 3425,
   "avg_win_pct": 2.5,
   "avg_loss_pct": -1.4,
   "best": {
@@ -18,6 +18,12 @@
   "recent": [
     {
       "sym": "WIPRO",
+      "exit_date": "2026-10-19",
+      "pct": -1.46,
+      "is_win": false
+    },
+    {
+      "sym": "WIPRO",
       "exit_date": "2026-10-16",
       "pct": 0.48,
       "is_win": true
@@ -27,12 +33,6 @@
       "exit_date": "2026-10-16",
       "pct": -0.77,
       "is_win": false
-    },
-    {
-      "sym": "ADANIPOWER",
-      "exit_date": "2026-10-15",
-      "pct": 0.41,
-      "is_win": true
     }
   ],
   "since": "2026-05-13",
@@ -47,11 +47,11 @@
     },
     {
       "name": "Intraday (cash)",
-      "trades": 38,
-      "win_rate": 39,
+      "trades": 39,
+      "win_rate": 38,
       "avg_win_pct": 1.5,
       "avg_loss_pct": -1.1,
-      "net_pnl_rs": -211
+      "net_pnl_rs": -311
     },
     {
       "name": "Options alerts",
