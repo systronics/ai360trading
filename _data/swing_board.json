@@ -1,5 +1,5 @@
 {
-  "generated_at": "19 October 2026, 09:22 PM IST",
+  "generated_at": "20 October 2026, 01:25 PM IST",
   "setups": [
     {
       "symbol": "TECHM",
@@ -7,7 +7,7 @@
       "strategy": "➖ HOLD",
       "stage": "📉 CORR.END | 🔄 Building Momentum",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "4"
+      "days_in_trade": "5"
     },
     {
       "symbol": "HCLTECH",
@@ -15,7 +15,7 @@
       "strategy": "➖ HOLD",
       "stage": "🚀 MOMENTUM BREAKOUT | ⏸ No Setup",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "4"
+      "days_in_trade": "5"
     },
     {
       "symbol": "LAURUSLABS",
@@ -23,7 +23,7 @@
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "0"
+      "days_in_trade": "1"
     },
     {
       "symbol": "INDHOTEL",
@@ -31,7 +31,7 @@
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "0"
+      "days_in_trade": "1"
     },
     {
       "symbol": "KOTAKBANK",
@@ -39,7 +39,7 @@
       "strategy": "➖ HOLD",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "0"
+      "days_in_trade": "1"
     }
   ]
 }
