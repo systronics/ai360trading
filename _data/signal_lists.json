@@ -1,5 +1,5 @@
 {
-  "generated_at": "20 October 2026, 02:00 PM IST",
+  "generated_at": "20 October 2026, 06:08 PM IST",
   "market": {
     "up": false,
     "close": 22889,
@@ -12,8 +12,8 @@
       "sector": "Automobile and Auto Components",
       "cmp": 121905.0,
       "down_from_high": -25.5,
-      "base_range": 4.2,
-      "support": 122745.0,
+      "base_range": 3.7,
+      "support": 121310.0,
       "sector_trend": "HEADWIND"
     },
     {
@@ -53,21 +53,21 @@
       "sector_trend": "HEADWIND"
     },
     {
+      "symbol": "SHREECEM",
+      "sector": "Construction Materials",
+      "cmp": 22290.0,
+      "down_from_high": -25.3,
+      "base_range": 7.0,
+      "support": 21665.0,
+      "sector_trend": "HEADWIND"
+    },
+    {
       "symbol": "IRCTC",
       "sector": "Consumer Services",
       "cmp": 455.5,
       "down_from_high": -38.1,
       "base_range": 7.2,
       "support": 448.0,
-      "sector_trend": "HEADWIND"
-    },
-    {
-      "symbol": "SHREECEM",
-      "sector": "Construction Materials",
-      "cmp": 22290.0,
-      "down_from_high": -25.3,
-      "base_range": 7.3,
-      "support": 21665.0,
       "sector_trend": "HEADWIND"
     },
     {
@@ -98,21 +98,21 @@
       "sector_trend": "HEADWIND"
     },
     {
+      "symbol": "CANBK",
+      "sector": "Financial Services",
+      "cmp": 122.0,
+      "down_from_high": -25.1,
+      "base_range": 8.3,
+      "support": 121.81,
+      "sector_trend": "HEADWIND"
+    },
+    {
       "symbol": "RELIANCE",
       "sector": "Oil Gas & Consumable Fuels",
       "cmp": 1202.0,
       "down_from_high": -25.4,
       "base_range": 8.4,
       "support": 1160.8,
-      "sector_trend": "HEADWIND"
-    },
-    {
-      "symbol": "CANBK",
-      "sector": "Financial Services",
-      "cmp": 122.0,
-      "down_from_high": -25.1,
-      "base_range": 8.6,
-      "support": 116.51,
       "sector_trend": "HEADWIND"
     },
     {
@@ -150,7 +150,7 @@
       "cmp": 1779.1,
       "signal": "50-day closing-high breakout",
       "level": 1790.0,
-      "rs": 17.6,
+      "rs": 17.7,
       "volume": -1.0,
       "sector_trend": "TAILWIND"
     },
@@ -200,7 +200,7 @@
       "cmp": 1130.7,
       "signal": "Trendline breakout",
       "level": null,
-      "rs": 11.1,
+      "rs": 11.2,
       "volume": 2.0,
       "sector_trend": "HEADWIND"
     },
@@ -210,7 +210,7 @@
       "cmp": 2500.0,
       "signal": "Trendline breakout",
       "level": null,
-      "rs": 11.1,
+      "rs": 11.2,
       "volume": 28.0,
       "sector_trend": "HEADWIND"
     },
@@ -229,8 +229,8 @@
       "sector": "Consumer Services",
       "cmp": 760.0,
       "signal": "50-day closing-high breakout",
-      "level": 745.0,
-      "rs": 9.6,
+      "level": 772.1,
+      "rs": 8.0,
       "volume": -10.0,
       "sector_trend": "TAILWIND"
     },
@@ -240,7 +240,7 @@
       "cmp": 442.3,
       "signal": "50-day closing-high breakout",
       "level": 447.95,
-      "rs": 7.7,
+      "rs": 7.8,
       "volume": -41.0,
       "sector_trend": "HEADWIND"
     },
@@ -260,7 +260,7 @@
       "cmp": 1925.0,
       "signal": "Trendline breakout",
       "level": null,
-      "rs": 6.4,
+      "rs": 6.5,
       "volume": -38.0,
       "sector_trend": "TAILWIND"
     },
@@ -270,18 +270,8 @@
       "cmp": 5690.0,
       "signal": "50-day closing-high breakout",
       "level": 5988.0,
-      "rs": 5.3,
+      "rs": 5.4,
       "volume": 96.0,
-      "sector_trend": "TAILWIND"
-    },
-    {
-      "symbol": "HAL",
-      "sector": "Capital Goods",
-      "cmp": 4959.0,
-      "signal": "Trendline breakout",
-      "level": null,
-      "rs": 3.9,
-      "volume": -16.0,
       "sector_trend": "TAILWIND"
     },
     {
@@ -290,8 +280,18 @@
       "cmp": 180.7,
       "signal": "Trendline breakout",
       "level": null,
-      "rs": 3.6,
+      "rs": 3.7,
       "volume": 270.0,
+      "sector_trend": "TAILWIND"
+    },
+    {
+      "symbol": "FEDERALBNK",
+      "sector": "Financial Services",
+      "cmp": 348.85,
+      "signal": "Trendline breakout",
+      "level": null,
+      "rs": 3.5,
+      "volume": 251.0,
       "sector_trend": "TAILWIND"
     }
   ],
