@@ -1,11 +1,11 @@
 {
-  "as_of": "October 19, 2026",
-  "total": 75,
-  "wins": 33,
-  "losses": 42,
-  "win_rate": 44,
-  "net_pnl_rs": 3425,
-  "avg_win_pct": 2.5,
+  "as_of": "October 21, 2026",
+  "total": 79,
+  "wins": 34,
+  "losses": 45,
+  "win_rate": 43,
+  "net_pnl_rs": 2784,
+  "avg_win_pct": 2.4,
   "avg_loss_pct": -1.4,
   "best": {
     "sym": "CUMMINSIND",
@@ -17,21 +17,21 @@
   },
   "recent": [
     {
-      "sym": "WIPRO",
-      "exit_date": "2026-10-19",
-      "pct": -1.46,
-      "is_win": false
-    },
-    {
-      "sym": "WIPRO",
-      "exit_date": "2026-10-16",
-      "pct": 0.48,
+      "sym": "UNIONBANK",
+      "exit_date": "2026-10-21",
+      "pct": 0.53,
       "is_win": true
     },
     {
-      "sym": "HINDPETRO",
-      "exit_date": "2026-10-16",
-      "pct": -0.77,
+      "sym": "PNB",
+      "exit_date": "2026-10-21",
+      "pct": -0.06,
+      "is_win": false
+    },
+    {
+      "sym": "INDHOTEL",
+      "exit_date": "2026-10-21",
+      "pct": -3.11,
       "is_win": false
     }
   ],
@@ -47,19 +47,19 @@
     },
     {
       "name": "Intraday (cash)",
-      "trades": 39,
-      "win_rate": 38,
-      "avg_win_pct": 1.5,
+      "trades": 41,
+      "win_rate": 39,
+      "avg_win_pct": 1.4,
       "avg_loss_pct": -1.1,
-      "net_pnl_rs": -311
+      "net_pnl_rs": -278
     },
     {
       "name": "Options alerts",
-      "trades": 17,
-      "win_rate": 35,
+      "trades": 19,
+      "win_rate": 32,
       "avg_win_pct": 1.1,
-      "avg_loss_pct": -1.4,
-      "net_pnl_rs": -1034
+      "avg_loss_pct": -1.6,
+      "net_pnl_rs": -1709
     }
   ]
 }
