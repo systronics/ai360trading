@@ -1,5 +1,5 @@
 {
-  "generated_at": "21 October 2026, 01:59 PM IST",
+  "generated_at": "21 October 2026, 07:32 PM IST",
   "setups": [
     {
       "symbol": "TECHM",
@@ -26,20 +26,12 @@
       "days_in_trade": "2"
     },
     {
-      "symbol": "PNB",
-      "trade_type": "🔥 Cash Intraday",
-      "strategy": "CASH",
-      "stage": "🔥 CASH | +4.8% | Vol 327%",
-      "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "0"
-    },
-    {
-      "symbol": "UNIONBANK",
-      "trade_type": "🔥 Cash Intraday",
-      "strategy": "CASH",
-      "stage": "🔥 CASH | +5.3% | Vol 270%",
-      "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "0"
+      "symbol": "INDHOTEL",
+      "trade_type": "📊 Options Alert",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
     }
   ]
 }
