@@ -426,15 +426,16 @@ def build_youtube_title(script_data, today_str):
     nifty_tag  = f"Nifty {nifty_cmp:,.0f} | " if nifty_cmp else ""
     if CONTENT_MODE == "holiday":
         label = HOLIDAY_NAME if HOLIDAY_NAME else "Market Holiday"
-        return f"🎉 {label} — Amit Ki Baat #{today_str[-4:]} #Shorts"
+        return f"🎉 {label} | Trader's Notebook #Shorts"
     elif CONTENT_MODE == "weekend":
-        return f"📚 Weekend Wisdom — Amit Ki Baat #{today_str[-4:]} #Shorts"
+        return f"📚 Weekend Wisdom | Trader's Notebook #Shorts"
     else:
-        return f"🎯 {nifty_tag}Amit Ki Baat: {title_word.title()} — {date_tag} #Shorts"
+        # v2.8: evergreen title (no date / Nifty level), series renamed from the owner's name
+        return f"🎯 {title_word.title()} | Trader's Notebook #Shorts"
 
 
 def build_youtube_description(script_data, today_str):
-    desc_clean  = script_data.get("description", "Daily trading insight by Amit.")
+    desc_clean  = script_data.get("description", "Daily trading insight from AI360Trading.")
     display     = script_data.get("display_text", "")
     nifty_cmp   = script_data.get("nifty_cmp", 0)
     nifty_pct   = script_data.get("nifty_pct", 0.0)
@@ -469,7 +470,7 @@ def build_youtube_description(script_data, today_str):
         )
     else:
         desc = (
-            f"🎯 Amit Ki Baat — Daily trading insight\n\n"
+            f"🎯 Trader's Notebook — daily trading insight\n\n"
             f"{nifty_line}"
             f"💡 {desc_clean}\n\n"
             f'✦ "{display}"\n\n'

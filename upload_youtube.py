@@ -246,8 +246,8 @@ def build_fallback_thumbnail(reel_type: str, meta: dict) -> Path:
             ty += 138
 
         # v2.4: Amit Ki Baat badge (was ZENO KI BAAT)
-        draw.rounded_rectangle([(20,20),(340,76)],radius=14,fill=(255,200,0))
-        draw.text((180,48),"AMIT KI BAAT",font=f_badge,fill=(0,0,0),anchor="mm")
+        draw.rounded_rectangle([(20,20),(440,76)],radius=14,fill=(255,200,0))
+        draw.text((230,48),"TRADER'S NOTEBOOK",font=f_badge,fill=(0,0,0),anchor="mm")
 
     # Date (like competitor showing date)
     date_str = datetime.datetime.now().strftime("%d %b %Y")
@@ -291,8 +291,8 @@ def build_fallback_metadata(reel_type: str, today: str):
                  f"🌐 https://ai360trading.in\n📱 https://t.me/ai360trading\n"
                  f"⚠️ Educational only.\n\n#ai360trading #MorningBrief {hashtag_str}")
     else:
-        title = f"🎯 Amit Ki Baat — Trading Wisdom #{today[-4:]} #Shorts"
-        desc  = (f"🎯 Daily trading insight by Amit\n\n🌍 India, USA, UK, Brazil & UAE\n"
+        title = "🎯 Trading Wisdom | Trader's Notebook #Shorts"
+        desc  = (f"🎯 Daily trading insight from AI360Trading\n\n🌍 India, USA, UK, Brazil & UAE\n"
                  f"🌐 https://ai360trading.in\n📱 https://t.me/ai360trading\n"
                  f"⚠️ Educational only.\n\n#ai360trading {hashtag_str}")
     return title, desc, tags

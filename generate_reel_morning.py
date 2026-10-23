@@ -571,7 +571,7 @@ def build_thumbnail(topic_display: str, sentiment: str, palette: dict, nifty_lev
 
     # Morning Brief badge (top) -- Amit's name replaces the cartoon presenter
     draw.rounded_rectangle([(20, 20), (480, 78)], radius=14, fill=(255, 200, 0))
-    draw.text((250, 49), "AMIT'S MORNING BRIEF", font=f_badge, fill=(0,0,0), anchor="mm")
+    draw.text((250, 49), "MORNING BRIEF", font=f_badge, fill=(0,0,0), anchor="mm")
 
     # Topic text (large yellow)
     safe_topic   = re.sub(r'[\u0900-\u097F]+', '', topic_display).strip().upper() or "MORNING BRIEF"
@@ -694,7 +694,7 @@ def create_frame(line, line_index, total_lines, topic, palette, intel=None):
         draw.text((VIDEO_WIDTH//2, start_y+i*88), wl, font=main_font, fill=palette["text"], anchor="mm")
 
     draw.rectangle([(0,VIDEO_HEIGHT-10),(VIDEO_WIDTH,VIDEO_HEIGHT)], fill=palette["accent"])
-    draw.text((VIDEO_WIDTH//2, VIDEO_HEIGHT-55), "AMIT'S MORNING BRIEF",
+    draw.text((VIDEO_WIDTH//2, VIDEO_HEIGHT-55), "MORNING BRIEF",
               font=get_font(FONT_BOLD_PATHS,30), fill=palette["accent"], anchor="mm")
 
     return np.array(img)
