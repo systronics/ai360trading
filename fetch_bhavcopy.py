@@ -213,6 +213,23 @@ def write_to_botmemory(delivery: dict, pcr_nifty: float, pcr_banknifty: float):
 
     new_rows = []
     if delivery:
+        # v1.2 (2026-10-23): the whole NSE cash file (~2,700 symbols) was being stored, but the delivery
+        # filter only ever looks up the Nifty200 / CashWatchlist stocks the bot can trade — 2,694 of
+        # BotMemory's 4,129 rows were unused weight read by every 5-minute bot tick. Keep only the
+        # tradeable universe. Fail-open: if the universe can't be read, keep everything as before.
+        try:
+            universe = set()
+            for tab in ("Nifty200", "CashWatchlist"):
+                for v in ss.worksheet(tab).col_values(1)[1:]:
+                    v = str(v).replace("NSE:", "").strip().upper()
+                    if v:
+                        universe.add(v)
+            if len(universe) >= 100:
+                before = len(delivery)
+                delivery = {s: p for s, p in delivery.items() if s in universe}
+                print(f"[BM] delivery trimmed to tradeable universe: {before} -> {len(delivery)}")
+        except Exception as e:
+            print(f"[BM] universe trim skipped (fail-open, storing all): {e}")
         for sym, pct in delivery.items():
             new_rows.append([f"DLV_{sym}", str(pct), now_str, "", "DELIVERY"])
     if pcr_nifty > 0:
