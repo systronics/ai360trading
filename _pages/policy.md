@@ -3,6 +3,9 @@ layout: default
 title: "Privacy Policy & Terms | AI360Trading"
 description: "Privacy Policy and Terms of Service for AI360Trading. GDPR, India DPDPA, US CCPA and Brazil LGPD compliant. Learn how we handle your data."
 permalink: /policy/
+redirect_from:
+  - /privacy-policy/
+  - /terms/
 ---
 
 <div class="policy-container">
