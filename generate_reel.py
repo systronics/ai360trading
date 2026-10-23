@@ -303,6 +303,20 @@ def build_thumbnail(title_text, display_text, emotion="thinking", nifty_cmp=0, n
       - Accent bars top and bottom
       - AI360Trading badge
     """
+    # 2026-10-23: Trader's Notebook cover = concept title over a real NIFTY chart (thumb_kit),
+    # classic design below stays as the fail-open fallback (also used if the title has no Latin text).
+    try:
+        import re as _re, thumb_kit as _tk
+        _t = _re.sub(r"[^A-Za-z0-9 %&'\-\.,\?!]", "", str(title_text)).strip()
+        _s = _re.sub(r"[^A-Za-z0-9 %&'\-\.,\?!]", "", str(display_text)).strip()
+        if _t:
+            _img = _tk.concept_card(_t.title(), _s or "Daily trading insight", _tk.get_closes("^NSEI", 90), ema_span=20)
+            _p = _tk.save(_img, OUT / "zeno_reel_thumb.png")
+            if _p:
+                return _p
+    except Exception as _e:
+        print(f"[THUMB] thumb_kit skipped (fail-open): {_e}")
+
     img  = Image.new("RGB", (SW, SH))
     draw = ImageDraw.Draw(img, "RGBA")
 

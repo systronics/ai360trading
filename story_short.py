@@ -393,6 +393,33 @@ def make_clip_factory(spec, fonts=None):
     return factory
 
 
+# ───────────────────────────── thumbnails ───────────────────────────────────
+
+def story_thumbnail(kind, obj, out_path):
+    """2026-10-23: real-chart cover for a story Short (thumb_kit). kind = 'stock' | 'index';
+    obj = the same dict stock_spec()/index_spec() receive. Returns the saved path or None
+    (fail-open — the caller keeps its classic thumbnail)."""
+    try:
+        import thumb_kit as tk
+        closes = [v for _, v in obj["series"]][-90:]
+        if kind == "stock":
+            pa = float(obj.get("pct_above", 0) or 0)
+            head = "Closed above its 50-day closing high" if pa >= 0 else "Broke its 50-day high, now retesting it"
+            img = tk.stock_card(
+                obj["symbol"], head, closes, level=obj["level"],
+                level_label="50-DAY HIGH", series="CHART STORY",
+                chips=[("Close", f"Rs {_fmt(obj['cmp'])}"), ("vs level", f"{pa:+.1f}%")])
+        else:
+            pct = (closes[-1] / closes[-2] - 1) * 100 if len(closes) > 1 else 0.0
+            img = tk.market_card(obj["close"], pct, closes, "BULLISH" if obj["above"] else "BEARISH",
+                                 None, series="MARKET STORY")
+        p = tk.save(img, out_path)
+        return str(p) if p else None
+    except Exception as e:
+        print(f"[STORY] thumbnail skipped (fail-open): {e}")
+        return None
+
+
 # ───────────────────────────── specs ────────────────────────────────────────
 
 def stock_spec(st, fonts=None):

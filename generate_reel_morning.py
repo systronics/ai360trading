@@ -537,6 +537,27 @@ def build_thumbnail(topic_display: str, sentiment: str, palette: dict, nifty_lev
                      intel: dict = None):
     import textwrap
     intel = intel or {}
+    # 2026-10-23: real-chart card (thumb_kit) first — NIFTY level + % + real index line with its
+    # 50-day average + ticker rows. Fail-open: any problem falls through to the classic design below.
+    try:
+        import thumb_kit as _tk
+        if nifty_level and nifty_level > 0:
+            _pr = intel.get("prices", {}) or {}
+            _rows = []
+            for _lab, _k, _fmt in (("CRUDE", "crude", lambda v: f"${v:,.1f}"), ("GOLD", "gold", lambda v: f"${v:,.0f}"),
+                                   ("BITCOIN", "btc", lambda v: f"${v:,.0f}")):
+                _d = _pr.get(_k) or {}
+                if _d.get("cmp", 0) > 0:
+                    _rows.append((_lab, _fmt(_d["cmp"]), _d.get("pct", 0)))
+            _img = _tk.market_card(nifty_level, (_pr.get("nifty") or {}).get("pct", intel.get("nifty_pct", 0)) or 0,
+                                   _tk.get_closes("^NSEI", 90), sentiment if sentiment in ("BULLISH", "BEARISH") else "NEUTRAL",
+                                   _rows, series="MORNING BRIEF")
+            _p = _tk.save(_img, OUTPUT_DIR / f"morning_reel_thumb_{DATE_STR}.png")
+            if _p:
+                logger.info(f"Thumbnail saved (thumb_kit): {_p.name} (Nifty: {nifty_level})")
+                return _p
+    except Exception as _e:
+        logger.warning(f"thumb_kit thumbnail skipped (fail-open): {_e}")
     W, H   = VIDEO_WIDTH, VIDEO_HEIGHT
     accent = palette["accent"]
     bg     = palette["bg"]

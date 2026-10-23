@@ -1363,6 +1363,10 @@ def main():
         s2_thumb = str(build_short_thumbnail(s2_head, s2_sub, s2_acc, s2_badge, f"short2_thumb_{today}.jpg"))
     except Exception as e:
         print(f"  ⚠️ Short 2 thumbnail skipped (fail-open): {e}")
+    if s2_story:   # 2026-10-23: real-chart cover with the stock name for story Shorts
+        _t = story_short.story_thumbnail("stock", story["stock"], str(OUT / f"short2_thumb_{today}.jpg"))
+        if _t:
+            s2_thumb = _t
 
     s2_title  = build_title_short2(s2_data)
     if s2_story:
@@ -1419,6 +1423,10 @@ def main():
         s3_thumb = str(build_short_thumbnail(s3_head, s3_sub, s3_acc, s3_badge, f"short3_thumb_{today}.jpg"))
     except Exception as e:
         print(f"  ⚠️ Short 3 thumbnail skipped (fail-open): {e}")
+    if s3_story:   # 2026-10-23: real index chart + 50-day average cover
+        _t = story_short.story_thumbnail("index", story["index"], str(OUT / f"short3_thumb_{today}.jpg"))
+        if _t:
+            s3_thumb = _t
 
     s3_title  = build_title_short3(s3_data)
     if s3_story:
