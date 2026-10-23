@@ -1938,7 +1938,13 @@ End with:
             )
 
         with open(file_path, "w", encoding="utf-8") as f:
-            f.write(header + schema_block + hero_block + media_content + perf_block + cta_footer + ai_disc_footer)
+            # 2026-10-23: 'Further reading' books (book_links.py) — empty string until the owner fills a link
+            try:
+                import book_links as _bl
+                _books_html = _bl.article_block_html(safe_title + " " + media_content[:6000])
+            except Exception:
+                _books_html = ""
+            f.write(header + schema_block + hero_block + media_content + perf_block + _books_html + cta_footer + ai_disc_footer)
 
         article_url = f"{SITE_URL}/{pillar['permalink_base']}/{chosen_slug}/"
         print(f"  ✅ /{pillar['permalink_base']}/{chosen_slug}/")

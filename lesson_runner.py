@@ -137,7 +137,13 @@ def description(L, lang, chapters, extra=""):
     hi = lang == "hi"
     foot = "शिक्षा के लिए, निवेश सलाह नहीं। हम SEBI-पंजीकृत सलाहकार नहीं हैं।" if hi else "Educational only, not investment advice. We are not a registered adviser."
     top = f"{extra}\n\n" if extra else ""
-    return f"{top}{L['desc'][lang]}\n\n{ch}\n\n{funnel}\n\n{foot}\n{ai_disclosure(lang)}"
+    try:
+        import book_links as _bl
+        _bk = _bl.description_lines(str(L.get("desc", {}).get(lang, "")) + " " + str(L.get("title", "")))
+    except Exception:
+        _bk = ""
+    _bk = f"{_bk}\n\n" if _bk else ""
+    return f"{top}{L['desc'][lang]}\n\n{ch}\n\n{_bk}{funnel}\n\n{foot}\n{ai_disclosure(lang)}"
 
 
 # ───────────────────────────── upload ───────────────────────────────────────
