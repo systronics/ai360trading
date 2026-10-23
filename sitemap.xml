@@ -27,23 +27,25 @@ sitemap: false
     <priority>0.7</priority>
   </url>
 {% endfor %}
+{% comment %}
+  2026-10-23 FIX: the old single `{% if a and b and c contains "/page" == false and ... %}` condition mixed
+  `contains` with `== false` — Liquid evaluates conditions right-to-left without precedence, so the whole
+  expression never passed and NO static page (about, contact, tools + 30 calculators, membership, swing
+  dashboard, breakout/SIP lists, tutorial videos...) was ever listed — the live sitemap had only the home
+  page + posts. Rewritten with one simple test per `if` (nested), no mixed operators.
+{% endcomment %}
 {% for page in site.pages %}
-{% assign page_url = page.url | downcase %}
-{% if page.sitemap != false
-    and page_url != "/sitemap.xml"
-    and page_url != "/robots.txt"
-    and page_url != "/indexnow.txt"
-    and page_url != "/ads.txt"
-    and page_url != "/404.html"
-    and page_url contains "/page" == false
-    and page_url contains ".html" == false
-    and page_url contains ".xml" == false
-    and page.url %}
+{% assign u = page.url | downcase %}
+{% assign keep = true %}
+{% if page.sitemap == false %}{% assign keep = false %}{% endif %}
+{% if u == "/" or u == "/404.html" %}{% assign keep = false %}{% endif %}
+{% if u contains "/page" %}{% assign keep = false %}{% endif %}
+{% if u contains "." %}{% assign keep = false %}{% endif %}
+{% if keep %}
   <url>
     <loc>{{ site.url }}{{ page.url }}</loc>
-    {% if page.date %}<lastmod>{{ page.date | date_to_xmlschema }}</lastmod>{% endif %}
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
   </url>
 {% endif %}
 {% endfor %}
