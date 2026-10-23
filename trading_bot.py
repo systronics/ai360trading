@@ -861,6 +861,13 @@ def _send_one(chat_id, msg):
         if r.status_code != 200:
             print(f"[TG FAIL] {chat_id} {r.status_code}")
             return False
+        # v15.39: delivery is now auditable from the run logs (success used to be silent, so a
+        # sheet-vs-Telegram comparison could only prove "no failure", not "delivered")
+        try:
+            _first = str(msg).strip().split("\n")[0][:60]
+            print(f"[TG OK] {str(chat_id)[-5:]} | {_first}")
+        except Exception:
+            pass
         return True
     except Exception as e:
         print(f"[TG ERROR] {e}"); return False
