@@ -746,6 +746,14 @@ OPTION_LEVERAGE_EST      = 10.0
 # stock time-stop the alert never mentioned; 🔒 owner risk rule: "option loss
 # hard-capped 20%, option exit stock-anchored"):
 OPTION_LOSS_CAP_PCT      = 20.0  # exit when ESTIMATED option loss reaches 20%
+# v15.39 (owner decision 2026-10-23, after the History review found NO stock edge on option
+# alerts — entry-day close avg -0.5%, day+2 +0.15%, 19 trades): a live OPTION entry is taken only
+# when ALL three hold. Anything else stays WAITING (no alert, no ledger trade). Informational
+# data missing (HV / PCR) fails OPEN; an unreadable expiry fails CLOSED (row is malformed).
+OPTION_MIN_DAYS_LEFT     = 15    # "no time decay": >=15 calendar days to expiry (appscript theta label 🟢 LOW)
+OPTION_HV_MAX            = 35.0  # "cheap": HV-20 below 35% (the codebase's calm/normal regime; not elevated)
+OPTION_PCR_MIN           = 0.6   # "PCR ok": NIFTY OI put/call ratio inside [0.6, 1.4]
+OPTION_PCR_MAX           = 1.4   #   (end-of-day, official F&O bhavcopy via fetch_bhavcopy.py v1.1)
 OPTION_EXPIRY_EXIT_DAYS  = 5     # backstop: never hold into expiry week (≤5 calendar days to expiry)
 # v15.26 (owner rule 2026-07-18): options are INTRADAY / max 1-2 day holds —
 # the alert now says so, and the ledger follows the alert (v15.25 doctrine).
@@ -1608,6 +1616,50 @@ def is_option_trade(ttype):
     return "OPTION" in str(ttype).upper()
 
 
+def option_entry_gate(sym, opt_expiry, now, bm_data):
+    """v15.39: (ok, [reasons]) for taking a live 📊 Options Alert entry.
+    1. time decay: >= OPTION_MIN_DAYS_LEFT calendar days to expiry (unreadable expiry -> block)
+    2. cheap premium: HV-20 <= OPTION_HV_MAX (HV unavailable -> allow)
+    3. PCR ok: NIFTY PCR within [OPTION_PCR_MIN, OPTION_PCR_MAX] (not cached -> allow)
+    Pure read-only; never raises."""
+    reasons, ok = [], True
+    try:
+        exp_d = _parse_expiry(opt_expiry)
+        if exp_d is None:
+            return False, [f"[OPT-GATE] {sym}: expiry '{opt_expiry}' unreadable — skip"]
+        dleft = (exp_d - now.date()).days
+        if dleft < OPTION_MIN_DAYS_LEFT:
+            ok = False
+            reasons.append(f"[OPT-GATE] {sym}: only {dleft}d to expiry < {OPTION_MIN_DAYS_LEFT}d (time decay) — skip")
+        else:
+            reasons.append(f"[OPT-GATE] {sym}: {dleft}d to expiry ✅")
+    except Exception as e:
+        return False, [f"[OPT-GATE] {sym}: expiry check errored ({e}) — skip"]
+    try:
+        if _OPT_INTEL_AVAILABLE:
+            hv = opt_intel.get_historical_volatility(sym)
+            if hv > OPTION_HV_MAX:
+                ok = False
+                reasons.append(f"[OPT-GATE] {sym}: HV {hv:.0f}% > {OPTION_HV_MAX:.0f}% (premium not cheap) — skip")
+            elif hv > 0:
+                reasons.append(f"[OPT-GATE] {sym}: HV {hv:.0f}% ✅")
+    except Exception as e:
+        reasons.append(f"[OPT-GATE] {sym}: HV check errored ({e}) — allowed")
+    try:
+        pcr = to_f((bm_data or {}).get("MKT_PCR_NIFTY", ""))
+        if pcr > 0:
+            if pcr < OPTION_PCR_MIN or pcr > OPTION_PCR_MAX:
+                ok = False
+                reasons.append(f"[OPT-GATE] {sym}: NIFTY PCR {pcr:.2f} outside {OPTION_PCR_MIN}-{OPTION_PCR_MAX} — skip")
+            else:
+                reasons.append(f"[OPT-GATE] {sym}: NIFTY PCR {pcr:.2f} ✅")
+        else:
+            reasons.append(f"[OPT-GATE] {sym}: PCR not cached — allowed")
+    except Exception as e:
+        reasons.append(f"[OPT-GATE] {sym}: PCR check errored ({e}) — allowed")
+    return ok, reasons
+
+
 def est_option_pnl_pct(stock_pnl_pct):
     """v15.16: rough option-premium P/L from the stock move, for DISPLAY only.
     ITM ~0.7Δ option ≈ OPTION_LEVERAGE_EST× the stock %. Returns a rounded %.
@@ -2420,6 +2472,14 @@ def step_a_enter_trades(log_sheet, nifty_sheet, bm_sheet, mem, now, is_bullish, 
             # — never trades it, just observes whether it would have worked.
             mem = log_volume_gate_shadow(nifty_sheet, mem, now, sym, filter_reasons, cp, sl, tgt)
             continue
+
+        # v15.39: option entries need low time decay + cheap premium + PCR ok (owner 2026-10-23)
+        if is_option_trade(ttype):
+            _og_ok, _og_why = option_entry_gate(sym, opt_expiry, now, bm_data)
+            for _r in _og_why:
+                print(_r)
+            if not _og_ok:
+                continue
 
         # Result/event day gap check
         # v15.23 BUG FIX: prev_close (`_LP_`) never exists for a fresh WAITING

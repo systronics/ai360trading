@@ -1,5 +1,5 @@
 """
-AI360 BHAVCOPY CACHE — v1.0
+AI360 BHAVCOPY CACHE — v1.1
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Daily NSE bhavcopy fetcher. Populates BotMemory cache used by
 institutional_edges.py for delivery % and Put-Call Ratio filters.
@@ -7,7 +7,7 @@ institutional_edges.py for delivery % and Put-Call Ratio filters.
 Data sources (₹0 / month, no API key):
   1. NSE Cash market sec_bhavdata_full_{DDMMYYYY}.csv (full delivery file)
      → DLV_{SYM} = delivery % per symbol
-  2. NSE F&O option chain indices API (BANKNIFTY + NIFTY)
+  2. NSE official F&O bhavcopy archive (BANKNIFTY + NIFTY index options, end-of-day OI)
      → MKT_PCR_NIFTY     = today's Nifty options PCR (OI)
      → MKT_PCR_BANKNIFTY = today's BankNifty options PCR (OI)
 
@@ -109,43 +109,62 @@ def _parse_delivery_csv(text: str) -> dict:
 
 
 # ════════════════════════════════════════════════════════════════════════════
-# 2. PUT-CALL RATIO — NSE option chain endpoint
+# 2. PUT-CALL RATIO — official F&O bhavcopy archive (v1.1)
 # ════════════════════════════════════════════════════════════════════════════
+# v1.1 (2026-10-23): the old source was NSE's cookie-protected option-chain API, which fails
+# from GitHub runners — MKT_PCR_NIFTY/BANKNIFTY were NEVER cached (verified in BotMemory), so
+# the PCR check in institutional_edges.py silently always said "not yet cached". Now computed
+# from the official end-of-day F&O bhavcopy archive file (static download, no session cookie,
+# same family as the cash bhavcopy above): total PUT open interest / total CALL open interest
+# across all expiries of the index options. End-of-day, i.e. yesterday's positioning.
+
+_FO_CACHE = {}
+
+
+def _fo_rows():
+    """Rows (dicts) of the latest available F&O bhavcopy, walking back up to 6 days. [] on failure."""
+    if "rows" in _FO_CACHE:
+        return _FO_CACHE["rows"]
+    import zipfile
+    today = datetime.now(IST).date()
+    for back in range(0, 7):
+        d = today - timedelta(days=back)
+        if d.weekday() >= 5:
+            continue
+        url = ("https://nsearchives.nseindia.com/content/fo/"
+               f"BhavCopy_NSE_FO_0_0_0_{d.strftime('%Y%m%d')}_F_0000.csv.zip")
+        try:
+            raw = _fetch_url(url, retries=2, timeout=40)
+            z = zipfile.ZipFile(io.BytesIO(raw))
+            text = z.read(z.namelist()[0]).decode("utf-8", errors="replace")
+            rows = list(csv.DictReader(io.StringIO(text)))
+            print(f"[PCR] using F&O bhavcopy for {d.isoformat()} ({len(rows):,} rows)")
+            _FO_CACHE["rows"] = rows
+            return rows
+        except Exception as e:
+            print(f"[PCR] {d.isoformat()}: {e}")
+    _FO_CACHE["rows"] = []
+    return []
+
 
 def fetch_pcr(symbol: str = "NIFTY") -> float:
-    """
-    Returns the PCR (open interest) for the index. 0.0 on failure.
-    NSE needs cookies — we hit homepage first.
-    """
+    """PCR (open interest) for an index from the official F&O bhavcopy. 0.0 on any failure."""
     try:
-        # Use requests for cookie jar convenience if available; else fall back
-        # to urllib with manual cookie capture from Set-Cookie headers.
-        import requests
-        s = requests.Session()
-        s.headers.update(DEFAULT_HEADERS)
-        s.get("https://www.nseindia.com/", timeout=15)
-        time.sleep(0.5)
-        url = f"https://www.nseindia.com/api/option-chain-indices?symbol={symbol}"
-        r = s.get(url, timeout=20)
-        if r.status_code != 200:
-            print(f"[PCR] {symbol}: HTTP {r.status_code}")
+        ce = pe = 0.0
+        for r in _fo_rows():
+            if (r.get("TckrSymb") or "").strip() != symbol or (r.get("FinInstrmTp") or "").strip() != "IDO":
+                continue
+            oi = float((r.get("OpnIntrst") or "0").strip() or 0)
+            tp = (r.get("OptnTp") or "").strip()
+            if tp == "CE":
+                ce += oi
+            elif tp == "PE":
+                pe += oi
+        if ce <= 0:
             return 0.0
-        data = r.json()
-        records = data.get("filtered", data).get("data", [])
-        total_call_oi = total_put_oi = 0
-        for rec in records:
-            ce = rec.get("CE") or {}
-            pe = rec.get("PE") or {}
-            total_call_oi += float(ce.get("openInterest") or 0)
-            total_put_oi  += float(pe.get("openInterest") or 0)
-        if total_call_oi <= 0:
-            return 0.0
-        pcr = total_put_oi / total_call_oi
-        print(f"[PCR] {symbol}: {pcr:.2f}  (OI PUT {total_put_oi:,.0f} / CALL {total_call_oi:,.0f})")
+        pcr = pe / ce
+        print(f"[PCR] {symbol}: {pcr:.3f}  (OI PUT {pe:,.0f} / CALL {ce:,.0f})")
         return round(pcr, 3)
-    except ImportError:
-        print("[PCR] requests not installed — skip")
-        return 0.0
     except Exception as e:
         print(f"[PCR] {symbol}: {e}")
         return 0.0
