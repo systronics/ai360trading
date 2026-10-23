@@ -1,0 +1,35 @@
+name: Telegram tracked invite links (manual)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: telegram-links
+  cancel-in-progress: false
+
+jobs:
+  links:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install requests
+      - name: Create named invite links (only missing ones)
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID_BASIC: ${{ secrets.CHAT_ID_BASIC }}
+        run: python telegram_links.py
+      - name: Commit the link file
+        run: |
+          git config --local user.email "admin@ai360trading.in"
+          git config --local user.name "AI360-Automation"
+          git add _data/telegram_links.json || true
+          git diff --cached --quiet || git commit -m "Telegram tracked invite links"
+          git pull --rebase origin master || true
+          git push origin master || true

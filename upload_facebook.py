@@ -501,6 +501,16 @@ def resolve_meta_and_video(prefix: str):
 
 # ─── BUILD CAPTION ────────────────────────────────────────────────────────────
 
+def _fb_tg() -> str:
+    """Facebook captions use the NAMED Telegram invite link (so Telegram counts joins from Facebook);
+    falls back to the plain public link. 2026-10-23, fail-open."""
+    try:
+        import money_funnel as _mf
+        return _mf.tg_link("facebook").replace("https://", "")
+    except Exception:
+        return "t.me/ai360trading"
+
+
 def build_caption(meta: dict, prefix: str) -> str:
     today_str = datetime.now().strftime("%d %B %Y")
 
@@ -512,7 +522,7 @@ def build_caption(meta: dict, prefix: str) -> str:
         return (
             f"{opener}\n\n"
             f"💡 {edu_desc}\n\n"
-            f"🎯 FREE daily signals → t.me/ai360trading\n"
+            f"🎯 FREE daily signals → {_fb_tg()}\n"
             f"🌐 ai360trading.in\n"
             f"⚠️ Educational only. Not SEBI registered.\n"
             f"{ai_disclosure('en')}\n"
@@ -530,7 +540,7 @@ def build_caption(meta: dict, prefix: str) -> str:
         return (
             f"{opener} — {today_str}\n\n"
             f"💡 {desc[:120]}\n\n"
-            f"🌐 ai360trading.in | 📱 t.me/ai360trading\n"
+            f"🌐 ai360trading.in | 📱 {_fb_tg()}\n"
             f"⚠️ Educational only.\n"
             f"{ai_disclosure('hi')}\n"
             f"{tags}"
@@ -541,7 +551,7 @@ def build_caption(meta: dict, prefix: str) -> str:
         return (
             f"{opener} — {today_str}\n\n"
             f"💡 {desc[:120]}\n\n"
-            f"🌐 ai360trading.in | 📱 t.me/ai360trading\n"
+            f"🌐 ai360trading.in | 📱 {_fb_tg()}\n"
             f"⚠️ Educational only.\n"
             f"{ai_disclosure('hi')}\n"
             f"{tags}"
@@ -552,7 +562,7 @@ def build_caption(meta: dict, prefix: str) -> str:
         return (
             f"{opener}\n\n"
             f"💡 {desc[:120]}\n\n"
-            f"🌐 ai360trading.in | 📱 t.me/ai360trading\n"
+            f"🌐 ai360trading.in | 📱 {_fb_tg()}\n"
             f"⚠️ Educational only.\n"
             f"{ai_disclosure('hi')}\n"
             f"{tags}"

@@ -40,6 +40,23 @@ LINKS = {
 }
 MEMBERSHIP = "₹699 Advance / ₹1,499 Premium"
 
+
+def tg_link(source: str = "") -> str:
+    """Telegram link for a traffic source. Uses the NAMED invite link from _data/telegram_links.json
+    (telegram_links.py) so Telegram counts joins per source; falls back to the plain public link
+    when the file/source is missing (fail-open, behaviour unchanged until the links exist)."""
+    try:
+        import json
+        from pathlib import Path
+        p = Path(__file__).parent / "_data" / "telegram_links.json"
+        if source and p.exists():
+            v = json.loads(p.read_text(encoding="utf-8")).get(source, "")
+            if v:
+                return v
+    except Exception:
+        pass
+    return LINKS["telegram"]
+
 # ── Free tools — the traffic loop (video → website → ads/affiliate) ─────────
 # (teaser_hi, teaser_en, url). Teasers use only evergreen, honest math.
 TOOL_PAGES = [
@@ -115,12 +132,12 @@ def broker_lines(lang: str = "en", bullet: str = "•") -> str:
     )
 
 
-def funnel_block(lang: str = "hi", compact: bool = False) -> str:
+def funnel_block(lang: str = "hi", compact: bool = False, source: str = "") -> str:
     """
     The full money funnel for a video description / article footer.
     compact=True → short version for Instagram / Facebook captions.
     """
-    tg, site = LINKS["telegram"], LINKS["website"]
+    tg, site = tg_link(source or ("social" if compact else "youtube")), LINKS["website"]
     if compact:
         free = ("🎯 FREE roz ke signals → " if lang == "hi"
                 else "🎯 FREE daily signals → ") + tg
@@ -143,7 +160,7 @@ def funnel_block(lang: str = "hi", compact: bool = False) -> str:
     ])
 
 
-def comment_text(lang: str = "hi") -> str:
+def comment_text(lang: str = "hi", source: str = "youtube") -> str:
     """The channel's own top comment (links + engagement) auto-posted on upload."""
     L = LINKS
     if lang == "hi":
@@ -152,7 +169,7 @@ def comment_text(lang: str = "hi") -> str:
         head = "🎯 Get FREE daily trading signals here 👇"
     return (
         f"{head}\n"
-        f"📱 Telegram: {L['telegram']}\n"
+        f"📱 Telegram: {tg_link(source)}\n"
         f"💎 Premium (entry/SL/target): {MEMBERSHIP} — DM on Telegram\n"
         f"📈 Free demat: Zerodha {L['zerodha']} | Dhan {L['dhan']} | Groww {L['groww']}\n"
         f"{tool_plug(lang)}\n"
