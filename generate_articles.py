@@ -1577,11 +1577,27 @@ def generate_article(pillar, prices, trends, fear_greed, persona, article_index,
         "story_led", "contrarian", "trader_notebook",
         "macro_driver", "chart_story", "question_led",
     ]
+    # 2026-10-23 (owner: fewer, more varied, evergreen): three extra formats. Weekend/holiday articles are
+    # always evergreen; on market days every 4th day is evergreen too (day_of_year % 4 == 3).
+    EVERGREEN_FORMATS = ["how_to_guide", "myth_vs_fact", "book_idea"]
     _pillar_idx = (
         ["stock-market","bitcoin","personal-finance","ai-trading"].index(pillar["id"])
         if pillar["id"] in ["stock-market","bitcoin","personal-finance","ai-trading"] else 0
     )
     fmt = FORMAT_TYPES[(day_of_year + article_index + _pillar_idx * 17) % len(FORMAT_TYPES)]
+    if CONTENT_MODE in ("holiday", "weekend") or day_of_year % 4 == 3:
+        fmt = EVERGREEN_FORMATS[(day_of_year // 4 + _pillar_idx) % len(EVERGREEN_FORMATS)]
+    book_block = ""
+    if fmt == "book_idea":
+        try:
+            import json as _bj
+            _books = _bj.load(open(os.path.join("_data", "book_refs.json"), encoding="utf-8")).get("books", [])
+            _b = _books[(day_of_year // 4 + _pillar_idx) % len(_books)]
+            book_block = (f"\nBOOK TO DISCUSS: \"{_b['title']}\" by {_b['author']}. Core idea (our words): {_b['idea']}\n"
+                          "Rules: explain the idea in YOUR OWN words, credit the book and author once, never quote more than 5 "
+                          "consecutive words, never invent quotes or page numbers, and tie it to a real market situation.\n")
+        except Exception:
+            fmt = "how_to_guide"
 
     FORMAT_INSTRUCTIONS = {
         "story_led":      "Start with a specific observation — a fact, a number, or a situation that real readers face today.",
@@ -1590,15 +1606,21 @@ def generate_article(pillar, prices, trends, fear_greed, persona, article_index,
         "macro_driver":   "Identify the single biggest force affecting personal finances or markets today and build the whole article around it.",
         "chart_story":    "Describe what the data is telling you in plain language. Then connect to actionable advice.",
         "question_led":   "Open with the exact question your target reader is googling right now. Answer it directly in paragraph 1.",
+        "how_to_guide":   "Open with the exact outcome the reader wants, then teach it as numbered steps a beginner can follow today. Evergreen: do not depend on today's price.",
+        "myth_vs_fact":   "Open with a common belief many Indian investors hold. Test it against real numbers or a simple example and say honestly where it is true and where it fails.",
+        "book_idea":      "Open with a real situation traders face, then explain ONE idea from the named book in your own words and show how to use it.",
     }
 
     SECTION_STRUCTURES = {
-        "story_led":      ["The Setup", "What the Data Actually Says", "How This Affects Each Country", "Key Numbers to Know", "The Risk Nobody's Talking About", "My Take", "Quick Answers"],
-        "contrarian":     ["The Consensus View (And Why It's Wrong)", "What the Data Shows Instead", "Country By Country Breakdown", "The Numbers That Actually Matter", "What Smart Investors Are Doing", "Bottom Line", "Reader Questions"],
-        "trader_notebook":["Today's Observations", "India View", "Global Context", "The Numbers I'm Using", "What Could Go Wrong", "Action Steps", "Common Questions"],
-        "macro_driver":   ["The Big Force Today", "How It Affects Each Market", "India's Position", "US and Global Impact", "Numbers to Watch", "Scenario Analysis", "Key Questions Answered"],
-        "chart_story":    ["What the Data Is Saying", "Confirming Signals", "Country By Country View", "The Numbers That Matter", "Best Case vs Worst Case", "My Recommendation", "Trader FAQs"],
-        "question_led":   ["The Direct Answer", "The Deeper Context", "India View", "US, UK and Brazil View", "Numbers and Levels", "What Happens Next", "More Questions"],
+        "story_led":      ["The Setup", "What the Data Actually Says", "What It Means for an Indian Investor", "Key Numbers to Know", "The Risk Nobody's Talking About", "My Take", "Quick Answers"],
+        "contrarian":     ["The Consensus View (And Why It's Wrong)", "What the Data Shows Instead", "Where the Crowd Gets It Wrong", "The Numbers That Actually Matter", "What Smart Investors Are Doing", "Bottom Line", "Reader Questions"],
+        "trader_notebook":["What I Noticed", "Why It Matters for India", "One Global Factor to Watch", "The Numbers I'm Using", "What Could Go Wrong", "Action Steps", "Common Questions"],
+        "macro_driver":   ["The Big Force Today", "How It Reaches Indian Markets", "Who Gains and Who Loses", "Numbers to Watch", "Scenario Analysis", "What To Do Now", "Key Questions Answered"],
+        "chart_story":    ["What the Chart Is Saying", "Confirming Signals", "The Levels That Matter", "Best Case vs Worst Case", "My Recommendation", "Trader FAQs"],
+        "question_led":   ["The Direct Answer", "The Deeper Context", "Numbers and Levels", "A Worked Example", "What Happens Next", "More Questions"],
+        "how_to_guide":   ["What You Will Be Able to Do", "Before You Start", "Step-by-Step", "A Worked Example With Real Numbers", "Common Mistakes", "Your Next Step", "Quick Answers"],
+        "myth_vs_fact":   ["The Belief", "What the Numbers Say", "Where It Is True", "Where It Fails", "A Simple Test You Can Run", "The Bottom Line", "Quick Answers"],
+        "book_idea":      ["The Situation", "The Idea in Plain Words", "How to Use It", "A Worked Example", "Where the Idea Falls Short", "Your Takeaway", "Quick Answers"],
     }
 
     sections            = SECTION_STRUCTURES[fmt]
@@ -1654,7 +1676,7 @@ Today is {day_name}, {date_display}.
 
 ARTICLE FORMAT TYPE: {fmt}
 OPENING INSTRUCTION: {opening_instruction}
-
+{book_block}
 {mode_note}
 
 TOPIC: {pillar['name']}
@@ -1759,7 +1781,7 @@ End with:
                 f"You are Amit Kumar of AI360Trading writing as a {persona['name']}. "
                 f"Tone: {persona['tone']}. Style: {persona['style']}. "
                 "Write 100% original human-sounding financial content. "
-                "Readers are in US, UK, Brazil and India — all four groups must find genuine value."
+                "Primary readers are Indian retail investors; mention US/UK/global markets only where they directly matter, in a short paragraph — never a separate section per country. Never invent statistics, quotes or sources."
             ),
             content_mode=CONTENT_MODE,
             lang="en",
@@ -2003,6 +2025,9 @@ def generate_all_articles():
     # day is never left with zero articles.
     if not active_pillars:
         active_pillars = PILLARS[:2]
+    # 2026-10-23 (owner: fewer, more varied articles): ONE article per day — the pair alternates every
+    # 4-day cycle, so each pillar still publishes every 8 days (14 -> 7 articles a week).
+    active_pillars = [active_pillars[(day_of_year // 4) % len(active_pillars)]]
     print(f"  Active pillars today (day {day_of_year}): {[p['id'] for p in active_pillars]}")
 
     # v15.x (2026-05-28) SEO Phase 2: strict evergreen mode for holiday/weekend.
