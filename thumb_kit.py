@@ -93,13 +93,21 @@ def _ema(vals, span):
     return out
 
 
+_CLOSE_CACHE = {}
+
+
 def get_closes(ticker, days=90):
-    """Real daily closes, oldest first. Raises on failure (callers wrap)."""
+    """Real daily closes, oldest first (cached per run). Raises on failure (callers wrap)."""
+    key = (ticker, days)
+    if key in _CLOSE_CACHE:
+        return _CLOSE_CACHE[key]
     import yfinance as yf
     d = yf.Ticker(ticker).history(period="9mo", interval="1d")["Close"].dropna()
     if len(d) < 40:
         raise RuntimeError(f"only {len(d)} closes for {ticker}")
-    return [float(v) for v in d.iloc[-days:]]
+    out = [float(v) for v in d.iloc[-days:]]
+    _CLOSE_CACHE[key] = out
+    return out
 
 
 def _chart(img, box, closes, accent, level=None, ema_span=None, level_label=""):
@@ -264,7 +272,7 @@ def concept_card(title, subtitle, closes, series="TRADER'S NOTEBOOK", accent=GOL
     over a real index chart. Used for Trader's Notebook, lessons and article share images."""
     try:
         v = size == "vertical"
-        W, H = (1080, 1920) if v else (1280, 720)
+        W, H = (1080, 1920) if v else ((1200, 630) if size == "og" else (1280, 720))
         img = _bg(W, H, accent)
         d = ImageDraw.Draw(img, "RGBA")
         d.rectangle([(0, 0), (W, 14)], fill=accent + (255,))

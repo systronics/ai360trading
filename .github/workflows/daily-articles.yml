@@ -78,7 +78,8 @@ jobs:
           # 2026-07-20: also commit the ledger snapshot the membership page
           # reads (site.data.performance) — same fail-open carry-forward
           # doctrine, only written when the sheet read actually succeeds.
-          git add _posts/ _data/prices_cache.json _data/performance.json
+          mkdir -p public/image/articles
+          git add _posts/ public/image/articles/ _data/prices_cache.json _data/performance.json
           git diff --cached --quiet || git commit -m "📊 Daily Reports: $(date +'%Y-%m-%d %H:%M') IST"
           git push origin master
 

@@ -1808,6 +1808,25 @@ End with:
         def safe_fm(val):
             return str(val).replace('"', "'").replace('\n', ' ').replace('▲', '+').replace('▼', '-')
 
+        # 2026-10-23: per-article share image (real chart + the article title) via thumb_kit. Fail-open:
+        # any problem -> no `image:` line, head.html falls back to the pillar card exactly as before.
+        _img_fm = ""
+        try:
+            import thumb_kit as _tk
+            _pm = {"stock-market": ("^NSEI", "STOCK MARKET", _tk.GREEN), "personal-finance": ("^NSEI", "MONEY", _tk.GREEN),
+                   "ai-trading": ("^NSEI", "AI TRADING", _tk.BLUE), "ipo": ("^NSEI", "IPO", _tk.GREEN),
+                   "mutual-funds": ("^NSEI", "MUTUAL FUNDS", _tk.GREEN), "world-markets": ("^GSPC", "WORLD MARKETS", _tk.BLUE),
+                   "gold": ("GC=F", "GOLD", _tk.GOLD), "bitcoin": ("BTC-USD", "BITCOIN", (247, 147, 26))}
+            _tkr, _lab, _acc = _pm.get(pillar['id'], ("^NSEI", "MARKETS", _tk.GREEN))
+            _t = re.sub(r"[^A-Za-z0-9 %&'\-\.,\?!:]", "", safe_title).strip()
+            if _t:
+                _im = _tk.concept_card(_t, f"{_lab.title()}  |  {date_str}", _tk.get_closes(_tkr, 90), series=_lab, accent=_acc, size="og")
+                _ip = _tk.save(_im, os.path.join("public", "image", "articles", f"{date_str}-{chosen_slug}.png"))
+                if _ip:
+                    _img_fm = f"image: /public/image/articles/{date_str}-{chosen_slug}.png\n"
+        except Exception as _ie:
+            print(f"[IMG] share image skipped (fail-open): {_ie}")
+
         header = (
             "---\n"
             "layout: post\n"
@@ -1829,6 +1848,7 @@ End with:
             f"sp500_level: \"{safe_fm(sp500_level)}\"\n"
             f"bitcoin_level: \"{safe_fm(bitcoin_level)}\"\n"
             f"gold_level: \"{safe_fm(gold_level)}\"\n"
+            + _img_fm +
             "---\n\n"
         )
 
