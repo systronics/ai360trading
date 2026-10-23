@@ -28,11 +28,10 @@ sitemap: false
   </url>
 {% endfor %}
 {% comment %}
-  2026-10-23 FIX: the old single `{% if a and b and c contains "/page" == false and ... %}` condition mixed
-  `contains` with `== false` — Liquid evaluates conditions right-to-left without precedence, so the whole
-  expression never passed and NO static page (about, contact, tools + 30 calculators, membership, swing
-  dashboard, breakout/SIP lists, tutorial videos...) was ever listed — the live sitemap had only the home
-  page + posts. Rewritten with one simple test per `if` (nested), no mixed operators.
+  2026-10-23 FIX: the old pages loop used one long if-condition that mixed contains with == false.
+  Liquid evaluates conditions right-to-left without precedence, so it never passed and NO static page
+  (about, contact, tools and calculators, membership, signal pages) was listed. Rewritten as simple
+  one-test-per-if statements. Never put curly-percent tag text inside this comment: it breaks the build.
 {% endcomment %}
 {% for page in site.pages %}
 {% assign u = page.url | downcase %}
