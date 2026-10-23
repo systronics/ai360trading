@@ -55,12 +55,27 @@ jobs:
           # ── Load existing list, re-validate every row against the same
           #    pattern (drops any non-educational rows the old broken filter
           #    let through in past runs) ──────────────────────────────────
+          # 2026-10-23: the weekly LESSONS (lesson_runner.py) have their own titles — no "| Week N |"
+          # marker — so this page stayed frozen at the last old-style video (2026-08-28). Accept any
+          # video whose id lesson_runner recorded in _data/lessons_done.json as well.
+          LESSON_IDS = set()
+          try:
+              for _l in json.load(open("_data/lessons_done.json", encoding="utf-8")).values():
+                  for _e in (_l or {}).values():
+                      if isinstance(_e, dict) and _e.get("video"):
+                          LESSON_IDS.add(_e["video"])
+          except Exception:
+              pass
+
+          def is_edu(vid_id, title):
+              return bool(EDU_PATTERN.search(title or "")) or vid_id in LESSON_IDS
+
           try:
               with open(DATA_FILE, encoding="utf-8") as f:
                   existing = json.load(f)
           except Exception:
               existing = []
-          existing = [v for v in existing if EDU_PATTERN.search(v.get("title", ""))]
+          existing = [v for v in existing if is_edu(v.get("id", ""), v.get("title", ""))]
 
           try:
               r = requests.get(RSS_URL, timeout=12, headers={"User-Agent": "Mozilla/5.0"})
@@ -85,7 +100,7 @@ jobs:
                       published = pub_el.text[:10] if pub_el is not None else ""
 
                       # ── ALLOWLIST: only genuine weekly-education uploads ──
-                      if not EDU_PATTERN.search(title):
+                      if not is_edu(vid_id, title):
                           continue
 
                       fresh.append({"id": vid_id, "title": title, "published": published})
