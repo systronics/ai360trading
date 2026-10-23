@@ -1,5 +1,5 @@
 {
-  "generated_at": "22 October 2026, 07:31 PM IST",
+  "generated_at": "23 October 2026, 01:25 PM IST",
   "setups": [
     {
       "symbol": "TECHM",
@@ -7,7 +7,7 @@
       "strategy": "➖ HOLD",
       "stage": "📉 CORR.END | 🔄 Building Momentum",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "7"
+      "days_in_trade": "8"
     },
     {
       "symbol": "HCLTECH",
@@ -15,7 +15,7 @@
       "strategy": "➖ HOLD",
       "stage": "🚀 MOMENTUM BREAKOUT | ⏸ No Setup",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "7"
+      "days_in_trade": "8"
     },
     {
       "symbol": "KOTAKBANK",
@@ -23,7 +23,7 @@
       "strategy": "➖ HOLD",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "3"
+      "days_in_trade": "4"
     }
   ]
 }
