@@ -183,9 +183,22 @@ def fetch_prices() -> dict:
         for name, sym in symbols.items():
             try:
                 ticker = yf.Ticker(sym)
-                info   = ticker.fast_info
-                cmp    = info.get("last_price", 0)
-                prev   = info.get("previous_close", 0)
+                # v2.9 (2026-10-23): fast_info.get() silently returns None on yfinance 1.4.x, so every
+                # price was 0 (thumbnail "Nifty: 0", empty ticker). Daily history is the reliable source;
+                # fast_info[...] item access stays as the fallback.
+                cmp = prev = 0
+                try:
+                    closes = ticker.history(period="7d")["Close"].dropna()
+                    if len(closes) >= 2:
+                        cmp, prev = float(closes.iloc[-1]), float(closes.iloc[-2])
+                except Exception:
+                    pass
+                if not (cmp > 0 and prev > 0):
+                    try:
+                        cmp  = float(ticker.fast_info["last_price"])
+                        prev = float(ticker.fast_info["previous_close"])
+                    except Exception:
+                        cmp = prev = 0
                 if cmp > 0 and prev > 0:
                     pct = ((cmp - prev) / prev) * 100
                     prices[name] = {"cmp": round(cmp, 2), "pct": round(pct, 2), "up": pct >= 0}
