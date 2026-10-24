@@ -267,7 +267,7 @@ def market_card(level, pct, closes, mood, tickers=None, series="MORNING BRIEF", 
 
 
 def concept_card(title, subtitle, closes, series="TRADER'S NOTEBOOK", accent=GOLD, ema_span=None,
-                 big_number=None, size="vertical"):
+                 big_number=None, size="vertical", face=None):
     """Evergreen concept card (indicator / rule / book idea): big title (and optional big number)
     over a real index chart. Used for Trader's Notebook, lessons and article share images."""
     try:
@@ -279,23 +279,35 @@ def concept_card(title, subtitle, closes, series="TRADER'S NOTEBOOK", accent=GOL
         d.rectangle([(0, H - 14), (W, H)], fill=accent + (255,))
         m = 70 if v else 60
         _pill_left(d, m, 120 if v else 70, series, GOLD, size=40 if v else 30, pad=24)
+        # optional presenter cut-out (landscape/og only): text + chart use the left ~62%, the face fills the right
+        fimg = None
+        if face and not v:
+            try:
+                fimg = Image.open(face).convert("RGBA")
+                fh = int(H * 0.93)
+                fimg = fimg.resize((int(fimg.width * fh / fimg.height), fh), Image.LANCZOS)
+            except Exception:
+                fimg = None
+        rpad = (fimg.width + 30) if fimg else 0
         top = 270 if v else 150
         if big_number:
             f = _fit(d, big_number, W - 2 * m, 300 if v else 170, 120)
             d.text((m, top + (130 if v else 60)), big_number, font=f, fill=accent, anchor="lm")
             top += 380 if v else 190
-        tf, tl = _wrap_fit(d, title, W - 2 * m, 120 if v else 76, 52, 3 if v else 2)
+        tf, tl = _wrap_fit(d, title, W - 2 * m - rpad, 120 if v else 76, 52, 3 if v else 2)
         for k, line in enumerate(tl):
             d.text((m, top + k * (tf.size + 12)), line, font=tf, fill=WHITE, anchor="lm")
         yb = top + len(tl) * (tf.size + 12)
-        sf, sl = _wrap_fit(d, subtitle, W - 2 * m, 52 if v else 34, 28, 2)
+        sf, sl = _wrap_fit(d, subtitle, W - 2 * m - rpad, 52 if v else 34, 28, 2)
         for k, line in enumerate(sl):
             d.text((m, yb + 30 + k * (sf.size + 8)), line, font=sf, fill=MUTED, anchor="lm")
         ytop = max(yb + 40 + len(sl) * (sf.size + 8) + 20, 880 if v else 400)
-        box = (m, ytop, W - m, 1700 if v else H - 70)
+        box = (m, ytop, W - m - rpad, 1700 if v else H - 70)
         img = _chart(img, box, closes, accent, ema_span=ema_span)
+        if fimg is not None:
+            img.alpha_composite(fimg, (W - fimg.width - 10, H - fimg.height - 14))
         d = ImageDraw.Draw(img, "RGBA")
-        d.text((W // 2, H - 60 if v else H - 28), "ai360trading.in", font=_font(34 if v else 22), fill=(120, 136, 172), anchor="mm")
+        d.text(((W - rpad) // 2, H - 60 if v else H - 28), "ai360trading.in", font=_font(34 if v else 22), fill=(120, 136, 172), anchor="mm")
         return img.convert("RGB")
     except Exception as e:
         print(f"[THUMB_KIT] concept_card failed (fail-open): {e}")

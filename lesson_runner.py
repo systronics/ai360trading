@@ -119,8 +119,18 @@ def render_lesson(L, lang, voice, out_dir, region):
             try:
                 import thumb_kit as _tk
                 _tick = "^GSPC" if region == "us" else "^NSEI"
+                # A/B test (owner OK'd his author photo on thumbnails): every other lesson in the queue shows the
+                # presenter cut-out, the rest stay chart-only; compare CTR in YouTube Studio after a few lessons.
+                _face = None
+                try:
+                    _qi = list(B.QUEUE).index(L["id"])
+                    if _qi % 2 == 1 and os.path.exists("public/image/amit_cutout.png"):
+                        _face = "public/image/amit_cutout.png"
+                except Exception:
+                    _face = None
+                print(f"[RUNNER] thumbnail variant for {L['id']}: {'FACE' if _face else 'CHART-ONLY'}")
                 _im = _tk.concept_card(str(L["heading"]), str(L["sub"]), _tk.get_closes(_tick, 90),
-                                       series="TRADING LESSON", ema_span=50, accent=_tk.GOLD, size="landscape")
+                                       series="TRADING LESSON", ema_span=50, accent=_tk.GOLD, size="landscape", face=_face)
                 _tk.save(_im, out_dir / "thumbnail.jpg")
             except Exception as _te:
                 print(f"[RUNNER] thumb_kit thumbnail skipped (fail-open): {_te}")
