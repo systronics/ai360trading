@@ -289,12 +289,12 @@ def build_fallback_metadata(reel_type: str, today: str):
         title = f"🌅 Morning Trading Brief — ai360trading #{today[-4:]} #Shorts"
         desc  = (f"🌅 Morning market update\n\n🌍 India, USA, UK, Brazil & UAE\n"
                  f"🌐 https://ai360trading.in\n📱 https://t.me/ai360trading\n"
-                 f"⚠️ Educational only.\n\n#ai360trading #MorningBrief {hashtag_str}")
+                 f"⚠️ Educational only.\n\n{hashtag_str} #MorningBrief")
     else:
         title = "🎯 Trading Wisdom | Trader's Notebook #Shorts"
         desc  = (f"🎯 Daily trading insight from AI360Trading\n\n🌍 India, USA, UK, Brazil & UAE\n"
                  f"🌐 https://ai360trading.in\n📱 https://t.me/ai360trading\n"
-                 f"⚠️ Educational only.\n\n#ai360trading {hashtag_str}")
+                 f"⚠️ Educational only.\n\n{hashtag_str}")
     return title, desc, tags
 
 

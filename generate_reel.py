@@ -469,7 +469,7 @@ def build_youtube_description(script_data, today_str):
             f"{funnel}"
             f"⚠️ Educational only. Not financial advice.\n\n"
             f"👍 Like • 🔔 Subscribe • 📤 Share with a friend\n"
-            f"#ai360trading #HolidayLearning {hashtag_str}"
+            f"{hashtag_str} #HolidayLearning"
         )
     elif CONTENT_MODE == "weekend":
         desc = (
@@ -480,7 +480,7 @@ def build_youtube_description(script_data, today_str):
             f"{funnel}"
             f"⚠️ Educational only. Not financial advice.\n\n"
             f"👍 Like • 🔔 Subscribe • 📤 Share with a friend\n"
-            f"#WeekendWisdom #ai360trading {hashtag_str}"
+            f"#WeekendWisdom {hashtag_str}"
         )
     else:
         desc = (
@@ -492,7 +492,7 @@ def build_youtube_description(script_data, today_str):
             f"{funnel}"
             f"⚠️ Educational only. Not SEBI registered.\n\n"
             f"👍 Like • 🔔 Subscribe • 📤 Share with a trader friend\n"
-            f"#StockMarket #ai360trading {hashtag_str}"
+            f"{hashtag_str}"
         )
     return desc
 

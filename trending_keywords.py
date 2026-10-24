@@ -73,7 +73,7 @@ _BLOCK = {"vs", "or", "the", "and", "for", "live", "news", "today", "tips"}
 # containing one of these off-topic companion terms is dropped outright,
 # regardless of whole-word seed match. Extend this set (don't touch the
 # whole-word logic) if a new homonym pollution source shows up.
-_OFFTOPIC = {"hazbin", "velvette", "baxter", "rblx", "roblox"}
+_OFFTOPIC = {"hazbin", "velvette", "baxter", "rblx", "roblox", "menu", "nut", "crosslister", "fiftys", "fifty's"}  # 2026-10-24: + live junk (nifty fifty menu / nut house / crosslister)
 
 _UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
        "(KHTML, like Gecko) Chrome/124.0 Safari/537.36")

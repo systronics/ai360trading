@@ -1248,7 +1248,7 @@ def build_fb_caption(script_data: dict, short_num: int) -> str:
             f"💡 {insight}\n\n"
             f"{funnel}"
             f"{ai_disclosure(lang)}\n"
-            f"#ai360trading #StockMarket #Trading #WeekendLearning"
+            f"#StockMarket #Trading #WeekendLearning #ai360trading"
         )
     stock = script_data.get("stock", "Market")
     sent  = script_data.get("sentiment", "").capitalize()
@@ -1258,7 +1258,7 @@ def build_fb_caption(script_data: dict, short_num: int) -> str:
         f"{funnel}"
         f"⚠️ Educational only.\n"
         f"{ai_disclosure(lang)}\n"
-        f"#ai360trading #StockMarket #{stock.replace(' ','')}"
+        f"#{stock.replace(' ','')} #StockMarket #Nifty50 #ai360trading"
     )
 
 def build_ig_caption_short2(script_data: dict) -> str:
@@ -1273,7 +1273,7 @@ def build_ig_caption_short2(script_data: dict) -> str:
             f"💡 {insight}\n\n"
             f"{funnel}"
             f"{ai_disclosure('hi')}\n"
-            f"#ai360trading #StockMarket #Trading #Investing"
+            f"#StockMarket #Trading #Investing #ai360trading"
         )
     return (
         f"📊 {stock} {sent} Setup!\n\n"
@@ -1281,7 +1281,7 @@ def build_ig_caption_short2(script_data: dict) -> str:
         f"{funnel}"
         f"⚠️ Educational only.\n"
         f"{ai_disclosure('hi')}\n"
-        f"#ai360trading #Nifty50 #StockMarket #TradingIndia"
+        f"#Nifty50 #StockMarket #TradingIndia #ai360trading"
     )
 
 def build_ig_caption_short3(script_data: dict) -> str:

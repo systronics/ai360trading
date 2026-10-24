@@ -517,7 +517,6 @@ class SEO:
         "AI360Trading", "StockMarket", "Trading", "Investing", "Nifty50",
         "NSE", "BSE", "SEBI", "IndianStockMarket", "SwingTrading",
         "TradingSignals", "StockMarketIndia", "ShareMarket", "NiftyTrading",
-        "ai360trading",
     ]
 
     EDUCATION_TAGS = [
@@ -527,9 +526,10 @@ class SEO:
         "MoneyManagement", "FinancialLiteracy", "IndianInvestor",
     ]
 
+    # 2026-10-24: FTSE100 / IBOVESPA / IndianDiaspora dropped — we cover none of them, so those tags only
+    # diluted the hashtag line for an India swing-trading audience.
     GLOBAL_TAGS = [
-        "GlobalMarkets", "SP500", "Bitcoin", "Gold", "FTSE100",
-        "IBOVESPA", "NRIInvesting", "IndianDiaspora",
+        "GlobalMarkets", "SP500", "Bitcoin", "Gold", "NRIInvesting",
     ]
 
     # 2026-07-26 (owner: "improve hashtag rotation"): get_video_tags() used to
@@ -546,7 +546,10 @@ class SEO:
     # category-specific tags (GLOBAL_TAGS/EDUCATION_TAGS) actually get a
     # chance to appear in a caller's tags[:15] slice instead of always
     # sitting past index 15 behind a fixed-length BASE_TAGS block.
-    CORE_TAGS = ["AI360Trading", "ai360trading", "Nifty50", "StockMarket"]
+    # 2026-10-24: the FIRST THREE hashtags of a description are the ones YouTube shows ABOVE the title, so they
+    # must be discovery terms people search (not the brand twice: AI360Trading and ai360trading are the same
+    # hashtag, case-insensitive). Brand stays 4th.
+    CORE_TAGS = ["Nifty50", "StockMarketIndia", "SwingTrading", "AI360Trading"]
 
     def get_video_tags(self, mode: str = "market", is_short: bool = False,
                         channel: str = "main", lang: str = "hi") -> list:
