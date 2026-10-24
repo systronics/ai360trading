@@ -12,7 +12,7 @@ redirect_from:
   <div class="policy-header">
     <h1>Privacy Policy & Terms</h1>
     <p class="policy-subtitle">AI360Trading is an educational platform focused on market intelligence and algorithmic trading education. By using our website, you agree to the terms outlined below regarding data privacy and financial responsibility.</p>
-    <p class="policy-date">Last Updated: March 20, 2026</p>
+    <p class="policy-date">Last Updated: October 24, 2026</p>
   </div>
 
   <div class="policy-content">
@@ -65,6 +65,14 @@ redirect_from:
       <li>We are <strong>NOT</strong> SEBI registered advisors (India), nor are we registered with the SEC (US), FCA (UK), or CVM (Brazil).</li>
       <li>We do not provide guaranteed trading signals or investment advice.</li>
       <li>Nothing on this website should be construed as personalized investment advice.</li>
+    </ul>
+
+    <h3>Membership, Payments and Refunds</h3>
+    <ul>
+      <li>Paid memberships (Advance, Premium) are one-month plans. They do not renew automatically; access ends when the month ends.</li>
+      <li><strong>All membership payments are final and non-refundable</strong> once paid. Please read the plan details and use the free channel first.</li>
+      <li>The one exception: if you were charged twice, or you did not receive access within 24 hours of sending your payment proof, contact us at admin@ai360trading.in and we will give you access or refund the duplicate payment.</li>
+      <li>Membership gives educational market information only. It is not investment advice and does not guarantee profit.</li>
     </ul>
 
     <h3>Intellectual Property</h3>

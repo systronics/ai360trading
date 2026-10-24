@@ -455,6 +455,11 @@ description: "AI360Trading Membership — Live Telegram signals, TradingView ind
   </div>
 
   <div class="faq-item">
+    <div class="faq-q">Is there a refund?</div>
+    <div class="faq-a">No. Membership payments are final and non-refundable (see our <a href="/policy/">Terms</a>). The only exception is a duplicate payment, or if you do not get access within 24 hours of sending your payment proof - in that case write to admin@ai360trading.in and we will fix it.</div>
+  </div>
+
+  <div class="faq-item">
     <div class="faq-q">Can I upgrade from Advance to Premium?</div>
     <div class="faq-a">Yes — pay the difference and WhatsApp the screenshot. Upgrade is processed within 1 hour during market hours.</div>
   </div>
