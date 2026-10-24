@@ -114,6 +114,16 @@ def render_lesson(L, lang, voice, out_dir, region):
         mf = sc["visual"](dur)
         if k == 0:
             Image.fromarray(lv.title_scene(L["heading"], L["sub"], tag="TRADING LESSON")(3.5)).convert("RGB").save(str(out_dir / "thumbnail.jpg"), quality=90)
+            # 2026-10-24: real-chart thumbnail (thumb_kit) replaces the plain title card when it can be built —
+            # big short title + a real index chart (S&P 500 for the US edition, NIFTY otherwise). Fail-open.
+            try:
+                import thumb_kit as _tk
+                _tick = "^GSPC" if region == "us" else "^NSEI"
+                _im = _tk.concept_card(str(L["heading"]), str(L["sub"]), _tk.get_closes(_tick, 90),
+                                       series="TRADING LESSON", ema_span=50, accent=_tk.GOLD, size="landscape")
+                _tk.save(_im, out_dir / "thumbnail.jpg")
+            except Exception as _te:
+                print(f"[RUNNER] thumb_kit thumbnail skipped (fail-open): {_te}")
         clips.append(VideoClip(mf, duration=dur).set_audio(aud))
     final = concatenate_videoclips(clips, method="compose")
     name = f"lesson_{L['id']}_{region}_{lang}"
