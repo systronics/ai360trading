@@ -84,12 +84,17 @@ jobs:
         continue-on-error: true
         run: python lesson_runner.py --region in --lang hi --mode "$MODE" --out output/lesson_in_hi
 
+      - name: Refresh real search ideas for future lessons (informational)
+        if: ${{ env.MODE == 'scheduled' }}
+        continue-on-error: true
+        run: python title_seo.py
+
       - name: Record what was scheduled
         if: ${{ env.MODE == 'scheduled' }}
         run: |
           git config --local user.email "admin@ai360trading.in"
           git config --local user.name "AI360-Automation"
-          git add _data/lessons_done.json || true
+          git add _data/lessons_done.json _data/lesson_ideas.json || true
           git diff --cached --quiet || git commit -m "Lessons scheduled: $(date +'%Y-%m-%d') (done-list)"
           git pull --rebase origin master || true
           git push origin master || true

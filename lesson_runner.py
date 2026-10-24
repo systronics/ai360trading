@@ -254,16 +254,25 @@ def run(region, lang, mode, out_dir, lesson=None):
         extra = (f"English edition: https://youtu.be/{other['video']}" if lang == "hi"
                  else f"Hindi edition: https://youtu.be/{other['video']}")
     title, desc = L["title"][lang], description(L, lang, chapters, extra)
+    # 2026-10-24: real search phrase (title_seo) in the title when it is missing, the description lead, tags and the 3 hashtags
+    # shown above the title. Fail-open: any problem leaves the original title/description/tags.
+    tags = L["tags"][lang]
+    try:
+        import title_seo as _ts
+        title, desc, tags, _ph = _ts.apply(lid, lang, title, desc, tags)
+        print(f"[RUNNER] search phrases used: {_ph}")
+    except Exception as _se:
+        print(f"[RUNNER] title_seo skipped (fail-open): {_se}")
     if mode == "dry":
         print(f"[RUNNER] DRY RUN, nothing uploaded.{chr(10)}TITLE: {title}{chr(10)}DESC:{chr(10)}{desc}")
         return 0
     if mode == "private-test":
-        vid = upload(mp4, "[TEST - private] " + title, desc, L["tags"][lang], lang, thumb, srt, publish_at=None)
+        vid = upload(mp4, "[TEST - private] " + title, desc, tags, lang, thumb, srt, publish_at=None)
         print(f"[RUNNER] PRIVATE TEST uploaded: https://youtu.be/{vid}  (not announced, not marked done)")
         return 0
     wd, hhmm = PUBLISH_SLOT[(region, lang)]
     when = next_publish(wd, hhmm)
-    vid = upload(mp4, title, desc, L["tags"][lang], lang, thumb, srt, publish_at=when)
+    vid = upload(mp4, title, desc, tags, lang, thumb, srt, publish_at=when)
     print(f"[RUNNER] scheduled {vid} for {when.isoformat()}")
     if other and other.get("video"):
         if lang == "hi":
