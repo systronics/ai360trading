@@ -1,0 +1,49 @@
+name: Weekly Scorecard (paper trades, wins and losses)
+
+# Saturday 10:17 AM IST (off the round-minute grid). Sends the honest weekly scorecard to the three Telegram
+# channels and writes _data/scorecard.json. weekly_scorecard.py is fail-open (any error = nothing sent, exit 0).
+on:
+  workflow_dispatch:
+    inputs:
+      dry:
+        description: "true = only print the scorecard, do not send"
+        required: false
+        default: "false"
+  schedule:
+    - cron: "47 4 * * 6"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: weekly-scorecard
+  cancel-in-progress: false
+
+jobs:
+  scorecard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install gspread oauth2client requests pytz
+      - name: Build and send the scorecard
+        env:
+          GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID_BASIC: ${{ secrets.CHAT_ID_BASIC }}
+          CHAT_ID_ADVANCE: ${{ secrets.CHAT_ID_ADVANCE }}
+          CHAT_ID_PREMIUM: ${{ secrets.CHAT_ID_PREMIUM }}
+          DRY: ${{ github.event.inputs.dry }}
+        run: |
+          if [ "$DRY" = "true" ]; then python weekly_scorecard.py --dry; else python weekly_scorecard.py; fi
+      - name: Commit the scorecard data
+        run: |
+          git config --local user.email "admin@ai360trading.in"
+          git config --local user.name "AI360-Automation"
+          git add _data/scorecard.json || true
+          git diff --cached --quiet || git commit -m "Weekly scorecard: $(date +'%Y-%m-%d')"
+          git pull --rebase origin master || true
+          git push origin master || true
