@@ -46,6 +46,34 @@
   }
   evts.forEach(function (e) { window.addEventListener(e, onInteract, { passive: true }); });
 
+  // 2026-10-24: money-click events. The 2026-08 GA4 audit found NO custom events anywhere, so the site could not say
+  // how many real visitors click Telegram / membership / a broker link. These four events answer that. One tiny
+  // delegated listener; fail-safe (never throws, never blocks the click). In GA4: Admin > Events > mark
+  // telegram_click, membership_click, referral_click, whatsapp_click as key events.
+  document.addEventListener('click', function (ev) {
+    try {
+      var a = ev.target && ev.target.closest ? ev.target.closest('a') : null;
+      if (!a || !a.href) return;
+      var h = a.href.toLowerCase(), type = '', extra = {};
+      if (h.indexOf('t.me/') > -1) { type = 'telegram_click'; }
+      else if (/zerodha|dhan\.co|groww\.in|coindcx/.test(h)) {
+        type = 'referral_click';
+        extra.broker = (h.match(/zerodha|dhan|groww|coindcx/) || ['other'])[0];
+      }
+      else if (h.indexOf('wa.me') > -1 || h.indexOf('whatsapp') > -1) { type = 'whatsapp_click'; }
+      else if (h.indexOf('/membership') > -1) { type = 'membership_click'; }
+      if (!type) return;
+      loadAnalytics();
+      if (window.gtag) {
+        extra.link_url = a.href;
+        extra.page_path = location.pathname;
+        extra.link_text = (a.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 40);
+        extra.transport_type = 'beacon';
+        window.gtag('event', type, extra);
+      }
+    } catch (e) { /* analytics must never break the page */ }
+  }, true);
+
   // Idle fallback so passive readers / instant bounces are still tracked.
   function armFallback() { setTimeout(loadAnalytics, 3000); }
   if (document.readyState === 'complete') { armFallback(); }
