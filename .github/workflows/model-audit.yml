@@ -1,0 +1,28 @@
+name: "AI Model Audit (manual)"
+
+# 2026-10-25: read-only health check of every free AI text / image / voice layer with the real secrets.
+# Prints PASS/FAIL and model names only. No schedule, no commits, no uploads.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install
+        run: pip install groq==1.4.0 google-genai==2.7.0 "edge-tts==7.3.1" requests pytz
+      - name: Audit
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: python model_audit.py

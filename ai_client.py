@@ -1,7 +1,8 @@
 """
 ai_client.py — Universal AI Client for AI360Trading
 ====================================================
-Fallback chain (default): Groq → Gemini → FREE Templates.
+v2.7 (2026-10-25): + Cloudflare Workers AI as a 3rd FREE text provider.
+Fallback chain (default): Groq → Gemini → Cloudflare → FREE Templates.
 Claude/OpenAI (PAID) only added when ALLOW_PAID_AI=true.
 
 v2.5 CHANGES (2026-05-31) — FREE-TIER HARDENING (₹0/month invariant):
@@ -49,7 +50,7 @@ logger = logging.getLogger(__name__)
 # PROVIDER CONFIG
 # ─────────────────────────────────────────────
 
-PROVIDERS = ["groq", "gemini", "claude", "openai"]
+PROVIDERS = ["groq", "gemini", "cloudflare", "claude", "openai"]
 
 # ─── FREE-TIER HARDENING (₹0/month invariant) ───────────────────────────────
 # Groq + Gemini are FREE. Claude + OpenAI are PAID. To guarantee zero spend by
@@ -58,7 +59,7 @@ PROVIDERS = ["groq", "gemini", "claude", "openai"]
 # content always publishes, just template-quality on the rare day both free
 # providers are down). Set GitHub Secret/env ALLOW_PAID_AI=true to re-enable
 # Claude/OpenAI as a last-resort paid fallback.
-FREE_PROVIDERS = ("groq", "gemini")
+FREE_PROVIDERS = ("groq", "gemini", "cloudflare")   # v2.7: Cloudflare Workers AI = 3rd FREE text provider (same account/keys as the FLUX images)
 PAID_PROVIDERS = ("claude", "openai")
 ALLOW_PAID_AI  = os.environ.get("ALLOW_PAID_AI", "").strip().lower() in ("1", "true", "yes", "on")
 
@@ -167,6 +168,43 @@ def discover_gemini_models(api_key):
     return models
 
 
+# v2.7 (2026-10-25): third FREE text provider so a Groq/Gemini outage or quota day no longer drops content to
+# templates. Uses the Cloudflare account already used for FLUX images (CLOUDFLARE_ACCOUNT_ID / CLOUDFLARE_API_TOKEN),
+# so no new signup. Static list = last resort; the live catalogue is queried once per process.
+CF_TEXT_MODELS_FALLBACK = [
+    "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+    "@cf/openai/gpt-oss-120b",
+    "@cf/meta/llama-3.1-8b-instruct",
+]
+
+
+def discover_cf_text_models(account, token):
+    if "cf" in _DISCOVERY_CACHE:
+        return _DISCOVERY_CACHE["cf"]
+    models = []
+    try:
+        import requests
+        r = requests.get(
+            f"https://api.cloudflare.com/client/v4/accounts/{account}/ai/models/search",
+            headers={"Authorization": f"Bearer {token}"}, params={"task": "Text Generation", "per_page": 100}, timeout=30)
+        if r.status_code == 200:
+            ids = [m.get("name", "") for m in r.json().get("result", [])]
+            ids = [i for i in ids if i.startswith("@cf/") and not any(x in i.lower() for x in ("guard", "coder", "math", "vision", "embed"))]
+
+            def score(i):
+                low = i.lower()
+                size = _num_after(r"(\d+(?:\.\d+)?)b", low)
+                return size + (40 if "instruct" in low or "gpt-oss" in low else 0) + (20 if "fast" in low else 0)
+
+            models = sorted(ids, key=score, reverse=True)[:6]
+            logger.info(f"[discovery] Cloudflare live text models, ranked: {models[:4]}")
+    except Exception as e:
+        logger.warning(f"[discovery] Cloudflare model list failed ({e}) — using static fallback")
+    models = models + [m for m in CF_TEXT_MODELS_FALLBACK if m not in models]
+    _DISCOVERY_CACHE["cf"] = models
+    return models
+
+
 CLAUDE_MODELS = [
     "claude-haiku-4-5-20251001",
     "claude-sonnet-4-6",
@@ -267,6 +305,8 @@ class AIClient:
         self.gemini_key = os.environ.get("GEMINI_API_KEY")
         self.claude_key = os.environ.get("ANTHROPIC_API_KEY")
         self.openai_key = os.environ.get("OPENAI_API_KEY")
+        self.cf_account = os.environ.get("CLOUDFLARE_ACCOUNT_ID")
+        self.cf_token   = os.environ.get("CLOUDFLARE_API_TOKEN")
         self.active_provider = None
         self.stats = {p: {"success": 0, "fail": 0} for p in PROVIDERS}
 
@@ -308,7 +348,7 @@ class AIClient:
                 time.sleep(1)
 
         if not ALLOW_PAID_AI:
-            logger.error("Free AI providers (Groq, Gemini) failed — using FREE template "
+            logger.error("Free AI providers (Groq, Gemini, Cloudflare) failed — using FREE template "
                          "(paid Claude/OpenAI disabled by default; set ALLOW_PAID_AI=true to enable).")
         else:
             logger.error("ALL AI providers failed — using fallback template.")
@@ -351,6 +391,7 @@ class AIClient:
             "available": {
                 "groq":   bool(self.groq_key),
                 "gemini": bool(self.gemini_key),
+                "cloudflare": bool(self.cf_account and self.cf_token),
                 "claude": bool(self.claude_key) if ALLOW_PAID_AI else False,
                 "openai": bool(self.openai_key) if ALLOW_PAID_AI else False,
             },
@@ -362,6 +403,8 @@ class AIClient:
             return self._groq(prompt, system_prompt, max_tokens, temperature, json_mode)
         elif provider == "gemini":
             return self._gemini(prompt, system_prompt, max_tokens, temperature, json_mode)
+        elif provider == "cloudflare":
+            return self._cloudflare(prompt, system_prompt, max_tokens, temperature)
         elif provider == "claude":
             return self._claude(prompt, system_prompt, max_tokens, temperature)
         elif provider == "openai":
@@ -456,6 +499,31 @@ class AIClient:
             except Exception as e:
                 logger.warning(f"Gemini old SDK {model_name}: {e}")
         raise Exception("All Gemini models failed (old SDK)")
+
+    def _cloudflare(self, prompt, system_prompt, max_tokens, temperature):
+        if not (self.cf_account and self.cf_token):
+            raise ValueError("CLOUDFLARE_ACCOUNT_ID / CLOUDFLARE_API_TOKEN not set")
+        import requests
+        for model in discover_cf_text_models(self.cf_account, self.cf_token)[:5]:
+            try:
+                r = requests.post(
+                    f"https://api.cloudflare.com/client/v4/accounts/{self.cf_account}/ai/run/{model}",
+                    headers={"Authorization": f"Bearer {self.cf_token}"},
+                    json={"messages": [{"role": "system", "content": system_prompt},
+                                       {"role": "user", "content": prompt}],
+                          "max_tokens": max_tokens, "temperature": temperature}, timeout=90)
+                if r.status_code != 200:
+                    logger.warning(f"Cloudflare {model}: HTTP {r.status_code} {r.text[:100]}")
+                    continue
+                res = r.json().get("result") or {}
+                text = res.get("response")
+                if not text and res.get("choices"):
+                    text = (res["choices"][0].get("message") or {}).get("content")
+                if isinstance(text, str) and text.strip():
+                    return text.strip()
+            except Exception as e:
+                logger.warning(f"Cloudflare {model}: {e}")
+        raise Exception("All Cloudflare models failed")
 
     def _claude(self, prompt, system_prompt, max_tokens, temperature):
         if not self.claude_key:

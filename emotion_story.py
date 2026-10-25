@@ -34,8 +34,12 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter
 W, H = 1080, 1920
 FPS = 24
 VOICE = "hi-IN-MadhurNeural"
-VOICE_RATE = "+12%"   # owner 2026-10-25: voice was too slow
-VOICE_PITCH = "+8Hz"
+# Per-scene delivery (edge-tts has no emotion styles for Hindi, so emotion = pace + pitch per scene).
+# Owner 2026-10-25: faster, and the feeling must be audible. tense = fear/greed/fomo/revenge, calm = patience.
+VOICE_PROFILES = {
+    "tense": [("+24%", "+10Hz"), ("+28%", "+16Hz"), ("+32%", "+20Hz"), ("+20%", "-6Hz"), ("+16%", "+2Hz")],
+    "calm":  [("+18%", "+6Hz"), ("+20%", "+8Hz"), ("+28%", "+16Hz"), ("+22%", "+10Hz"), ("+16%", "+2Hz")],
+}
 OUT_DIR = Path("_drafts_local/story_sample")
 FONTS = [
     "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
@@ -191,21 +195,27 @@ STORIES = {
 # ───────────────────────────── images ───────────────────────────────────────
 
 def _cf_image(prompt, seed):
+    """Cloudflare Workers AI: FLUX first (JSON base64), then SDXL-Lightning / SDXL (raw image bytes) if FLUX is
+    down, retired or over quota. All free on the same account."""
     acct, tok = os.environ.get("CLOUDFLARE_ACCOUNT_ID", ""), os.environ.get("CLOUDFLARE_API_TOKEN", "")
     if not (acct and tok):
         return None
     import requests, base64
-    url = f"https://api.cloudflare.com/client/v4/accounts/{acct}/ai/run/@cf/black-forest-labs/flux-1-schnell"
-    for body in ({"prompt": prompt[:2048], "steps": 8},):
+    base = f"https://api.cloudflare.com/client/v4/accounts/{acct}/ai/run/"
+    for model, body in (("@cf/black-forest-labs/flux-1-schnell", {"prompt": prompt[:2048], "steps": 8}),
+                        ("@cf/bytedance/stable-diffusion-xl-lightning", {"prompt": prompt[:1000], "width": 1024, "height": 1024}),
+                        ("@cf/stabilityai/stable-diffusion-xl-base-1.0", {"prompt": prompt[:1000], "width": 1024, "height": 1024})):
         try:
-            r = requests.post(url, headers={"Authorization": f"Bearer {tok}"}, json=body, timeout=90)
+            r = requests.post(base + model, headers={"Authorization": f"Bearer {tok}"}, json=body, timeout=120)
             if r.status_code == 200:
+                if r.headers.get("content-type", "").startswith("image"):
+                    return r.content
                 b64 = ((r.json().get("result") or {}).get("image", "")) or ""
                 if b64:
                     return base64.b64decode(b64)
-            print(f"  [IMG] Cloudflare {r.status_code}: {r.text[:120]}")
-        except Exception as e:
-            print(f"  [IMG] Cloudflare error: {str(e)[:80]}")
+            print(f"  [IMG] {model.split('/')[-1]} -> {r.status_code}: {r.text[:100]}")
+        except Exception as ex:
+            print(f"  [IMG] {model.split('/')[-1]} error: {str(ex)[:80]}")
     return None
 
 
@@ -259,7 +269,7 @@ def get_scene_image(story_key, idx, who, scene_prompt, accent, cache_dir):
 
 # ───────────────────────────── audio ────────────────────────────────────────
 
-def make_voice(text, path):
+def make_voice(text, path, rate="+20%", pitch="+8Hz"):
     import edge_tts
     from human_touch import safe_tts_par
 
@@ -267,7 +277,7 @@ def make_voice(text, path):
         last = None
         for attempt in range(3):
             try:
-                await edge_tts.Communicate(safe_tts_par(text), VOICE, rate=VOICE_RATE, pitch=VOICE_PITCH).save(str(path))
+                await edge_tts.Communicate(safe_tts_par(text), VOICE, rate=rate, pitch=pitch).save(str(path))
                 if path.exists() and path.stat().st_size > 1000:
                     return
             except Exception as e:
@@ -450,7 +460,8 @@ def build_story(story_key, out_dir=OUT_DIR):
         if i == 1 or first_img is None:
             first_img = img   # scene 2 (emotional close-up) becomes the thumbnail
         ap = out_dir / f"{story_key}_{i}.mp3"
-        make_voice(narr, ap)
+        rate, pitch = VOICE_PROFILES["calm" if story_key == "patience" else "tense"][i]
+        make_voice(narr, ap, rate, pitch)
         a = AudioFileClip(str(ap))
         dur = a.duration + 0.5
         clips.append(_scene_clip(img, _static_overlay(st["accent"], st["tag"], cap, i, n), dur, i, st["charts"][i], st["accent"]))
