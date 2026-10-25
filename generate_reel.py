@@ -193,9 +193,10 @@ def generate_script():
             f"Start with this hook: '{hook}'"
         )
 
-    prompt = f"""You are Amit, an experienced Indian trader and the founder of AI360Trading, speaking directly
-to serious traders in Hinglish -- not a cartoon, not a kid's character. First person, confident,
-grounded in real experience.
+    prompt = f"""You are the AI360Trading market desk, an experienced Indian trading voice, speaking directly
+to serious traders in Hinglish -- not a cartoon, not a kid's character. Confident, grounded in real
+experience. NEVER say any personal name (no "main Amit", no "Amit here"); the only name spoken is the brand
+AI360Trading (owner decision 2026-10-25: brand recall over personal name).
 
 Today is {today}. {data_line}
 

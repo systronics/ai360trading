@@ -640,6 +640,54 @@ TTS_PRONUNCIATION_FIXES = {
 }
 
 
+# v2.8 (2026-10-25): AUDIO-ONLY lexicon. Roman Hinglish is ambiguous for hi-IN neural voices (they guess an English
+# or long-vowel reading). Devanagari spellings are unambiguous. Only words that are clearly Hindi (or finance terms
+# the Hindi voice should say with a Hindi accent) are listed; words that are also common English words
+# (to, is, do, main, the, he, so, hi) are deliberately left out so English sentences are not damaged.
+# Ear-check after the next video and extend only with words actually heard wrong.
+TTS_HINGLISH_LEXICON = {
+    "ai360trading": "ए आई थ्री सिक्स्टी ट्रेडिंग",
+    "bank nifty": "बैंक निफ्टी", "banknifty": "बैंक निफ्टी", "nifty": "निफ्टी", "sensex": "सेंसेक्स",
+    "stop loss": "स्टॉप लॉस", "stop-loss": "स्टॉप लॉस", "stoploss": "स्टॉप लॉस",
+    "market": "मार्केट", "markets": "मार्केट्स", "stock": "स्टॉक", "stocks": "स्टॉक्स", "trading": "ट्रेडिंग",
+    "trader": "ट्रेडर", "traders": "ट्रेडर्स", "loss": "लॉस", "profit": "प्रॉफिट", "risk": "रिस्क",
+    "target": "टारगेट", "breakout": "ब्रेकआउट", "trend": "ट्रेंड", "patience": "पेशेंस", "discipline": "डिसिप्लिन",
+    "fear": "फियर", "greed": "ग्रीड", "subscribe": "सब्सक्राइब", "channel": "चैनल", "share": "शेयर",
+    "hai": "है", "hain": "हैं", "tha": "था", "thi": "थी", "hoga": "होगा", "hogi": "होगी", "honge": "होंगे",
+    "hota": "होता", "hoti": "होती", "hote": "होते", "ho": "हो", "raha": "रहा", "rahi": "रही", "rahe": "रहे",
+    "ka": "का", "ki": "की", "ke": "के", "ko": "को", "se": "से", "mein": "में", "aur": "और", "ya": "या",
+    "nahi": "नहीं", "nahin": "नहीं", "yeh": "यह", "ye": "ये", "woh": "वह", "wo": "वो", "kya": "क्या",
+    "kyun": "क्यों", "kyunki": "क्योंकि", "kaise": "कैसे", "jab": "जब", "tab": "तब", "agar": "अगर",
+    "lekin": "लेकिन", "magar": "मगर", "bhi": "भी", "sirf": "सिर्फ़", "bahut": "बहुत", "aaj": "आज", "kal": "कल",
+    "abhi": "अभी", "hamesha": "हमेशा", "kabhi": "कभी", "sabse": "सबसे", "sab": "सब", "zyada": "ज़्यादा",
+    "jyada": "ज़्यादा", "kam": "कम", "accha": "अच्छा", "acha": "अच्छा", "achha": "अच्छा", "bura": "बुरा",
+    "paisa": "पैसा", "paise": "पैसे", "log": "लोग", "logon": "लोगों", "karo": "करो", "kare": "करे",
+    "karna": "करना", "kiya": "किया", "karte": "करते", "karta": "करता", "dekho": "देखो", "dekhna": "देखना",
+    "samjho": "समझो", "samajh": "समझ", "sochna": "सोचना", "rakho": "रखो", "milta": "मिलता", "milega": "मिलेगा",
+    "jata": "जाता", "jayega": "जाएगा", "gaya": "गया", "gayi": "गई", "aata": "आता", "aayega": "आएगा",
+    "chahiye": "चाहिए", "sakta": "सकता", "sakte": "सकते", "wala": "वाला", "wale": "वाले", "jaise": "जैसे",
+    "isliye": "इसलिए", "phir": "फिर", "fir": "फिर", "bas": "बस", "thoda": "थोड़ा", "bada": "बड़ा",
+    "chhota": "छोटा", "naya": "नया", "pehle": "पहले", "baad": "बाद", "ek": "एक", "teen": "तीन", "saal": "साल",
+    "din": "दिन", "hafta": "हफ़्ता", "mahina": "महीना", "wapas": "वापस", "upar": "ऊपर", "neeche": "नीचे",
+    "andar": "अंदर", "bahar": "बाहर", "saath": "साथ", "bina": "बिना", "liye": "लिए", "tak": "तक",
+    "kisi": "किसी", "koi": "कोई", "kuch": "कुछ", "apna": "अपना", "apne": "अपने", "uska": "उसका",
+    "unka": "उनका", "iska": "इसका", "mera": "मेरा", "meri": "मेरी", "aapka": "आपका", "aapki": "आपकी",
+    "aapke": "आपके", "aap": "आप", "hum": "हम", "tum": "तुम", "dar": "डर", "lalach": "लालच", "sabr": "सब्र",
+    "nuksaan": "नुकसान", "faayda": "फ़ायदा", "fayda": "फ़ायदा", "kamai": "कमाई", "bazaar": "बाज़ार",
+    "girta": "गिरता", "girti": "गिरती", "badhta": "बढ़ता", "badhti": "बढ़ती", "giravat": "गिरावट",
+    "tezi": "तेज़ी", "mandi": "मंदी", "nivesh": "निवेश", "niveshak": "निवेशक", "sahi": "सही", "galat": "ग़लत",
+    "mat": "मत", "zaroor": "ज़रूर", "zaroori": "ज़रूरी", "bilkul": "बिल्कुल", "sach": "सच", "jhooth": "झूठ",
+    "kahani": "कहानी", "sabak": "सबक", "seekho": "सीखो", "seekh": "सीख",
+    "lagao": "लगाओ", "lagana": "लगाना", "dono": "दोनों", "wahi": "वही", "yahi": "यही", "isse": "इससे",
+    "usse": "उससे", "ruko": "रुको", "rukna": "रुकना", "becho": "बेचो", "bechna": "बेचना", "kharido": "खरीदो",
+    "kharidna": "खरीदना", "sunna": "सुनना", "suno": "सुनो", "dekhte": "देखते", "dekha": "देखा",
+    "bolta": "बोलता", "kehta": "कहता", "kehte": "कहते", "sochte": "सोचते", "chalta": "चलता", "chalti": "चलती",
+}
+_TTS_LEX_RE = re.compile(
+    r'(?<![\w/.-])(' + '|'.join(re.escape(k) for k in sorted(TTS_HINGLISH_LEXICON, key=len, reverse=True)) + r')(?![\w/-]|\.[A-Za-z])',
+    flags=re.IGNORECASE)
+
+
 def safe_tts_par(text: str) -> str:
     """
     Fix known Hindi-TTS mispronunciations of specific Roman-script words by
@@ -666,7 +714,9 @@ def safe_tts_par(text: str) -> str:
         return text
     for word, fix in TTS_PRONUNCIATION_FIXES.items():
         text = re.sub(r'\b' + re.escape(word) + r'\b', fix, text, flags=re.IGNORECASE)
-    return text
+    # v2.8: Devanagari for the common Hinglish words the hi-IN voices read with an English accent (owner:
+    # "sometimes Hindi pronunciation is not perfect"). One pass, longest phrase first, whole words only.
+    return _TTS_LEX_RE.sub(lambda m: TTS_HINGLISH_LEXICON[m.group(0).lower()], text)
 
 
 def safe_tts_price(val, lang: str = "hi") -> str:
