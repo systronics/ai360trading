@@ -34,7 +34,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter
 W, H = 1080, 1920
 FPS = 24
 VOICE = "hi-IN-MadhurNeural"
-VOICE_RATE = "-4%"
+VOICE_RATE = "+12%"   # owner 2026-10-25: voice was too slow
 VOICE_PITCH = "+8Hz"
 OUT_DIR = Path("_drafts_local/story_sample")
 FONTS = [
@@ -42,8 +42,9 @@ FONTS = [
     "/usr/share/fonts/truetype/freefont/FreeSansBold.ttf",
     "C:/Windows/Fonts/arialbd.ttf",
 ]
-STYLE = ("3D render, Pixar-quality realistic CGI, cinematic lighting, shallow depth of field, dramatic mood, "
-         "highly detailed, vertical composition, no text, no letters, no logos, no watermark")
+STYLE = ("Pixar-style 3D animated movie still, stylized CGI characters with big expressive eyes and smooth skin, "
+         "soft cinematic lighting, rich vibrant colors, sharp focus, highly detailed, vertical composition, "
+         "no text, no letters, no logos, no watermark")
 
 
 def _font(size):
@@ -76,10 +77,10 @@ STORIES = {
              "pressing the sell button on a laptop, the screen shows a deep red chart touching its lowest point"),
             ("कुछ दिन बाद मार्केट वापस ऊपर चढ़ने लगा। और राजेश बस देखता रह गया।",
              "THEN IT RECOVERED",
-             "standing by a window at dawn, a green rising chart glowing on a screen behind him, regretful look"),
+             "standing by a window at dawn with his young daughter hugging his leg, a green rising chart glowing on a screen behind him, regretful look"),
             ("सबक यह है: डर में लिया गया फ़ैसला अक्सर सबसे महंगा होता है। स्टॉप लॉस पहले से तय करो। AI360Trading को फ़ॉलो करो।",
              "DECIDE BEFORE YOU PANIC",
-             "calm man writing a plan in a notebook in morning sunlight, a steady chart on the monitor"),
+             "calm man writing a plan in a notebook in morning sunlight while his wife serves tea, a steady chart on the monitor"),
         ],
         "desc": "Fear makes traders sell at the worst price. Decide your stop-loss before the trade, not during the panic.",
     },
@@ -95,7 +96,7 @@ STORIES = {
              "smiling at a monitor showing a small green profit, golden warm light, coffee on the desk"),
             ("उसने सोचा, थोड़ा और। उसने साइज़ दोगुना कर दिया। फिर चार गुना।",
              "JUST ONE MORE LOT",
-             "eyes wide with excitement, stacks of golden coins and rising numbers reflected around the desk"),
+             "eyes wide with excitement, two cheering colleagues behind him, golden coins and rising numbers floating around the desk"),
             ("फिर मार्केट पलटा। एक बड़ा लाल कैंडल, और सारा मुनाफ़ा गायब।",
              "THE MARKET TURNED",
              "a huge red candle crashing down on the monitor, the golden coins turning dark and falling"),
@@ -276,10 +277,25 @@ def make_voice(text, path):
 
 # ───────────────────────────── frames ───────────────────────────────────────
 
+def _compose_square(img):
+    """Square image -> 9:16 frame: blurred, darkened copy as background, sharp image full-width in the middle."""
+    bg = img.resize((W, W), Image.LANCZOS)
+    scale = H / W
+    bgf = img.resize((int(img.width * scale) + 1, H), Image.LANCZOS)
+    left = (bgf.width - W) // 2
+    bgf = bgf.crop((left, 0, left + W, H)).filter(ImageFilter.GaussianBlur(28))
+    bgf = Image.eval(bgf, lambda v: int(v * 0.45))
+    bgf.paste(bg, (0, 150))
+    return bgf
+
+
 def _cover(img, pad=1.0):
     """Crop the bottom (service watermark), scale to cover the 1080x1920 frame (times pad)."""
     w, h = img.size
-    img = img.crop((0, 0, w, int(h * 0.93)))
+    if 0.85 <= w / h <= 1.18:
+        img = _compose_square(img)
+    else:
+        img = img.crop((0, 0, w, int(h * 0.93)))   # trims the free service's corner watermark
     w, h = img.size
     s = max(W / w, H / h) * pad
     return img.resize((int(w * s) + 1, int(h * s) + 1), Image.LANCZOS)

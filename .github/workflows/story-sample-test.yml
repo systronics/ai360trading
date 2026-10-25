@@ -1,0 +1,39 @@
+name: "Story Sample (manual, never uploads)"
+
+# 2026-10-25: renders ONE emotion_story.py sample in the cloud (uses the Cloudflare FLUX keys, which exist only
+# in GitHub secrets) and attaches the mp4 as a downloadable artifact. It NEVER uploads to YouTube/Facebook and
+# has no schedule — manual dispatch only. Used to judge image quality before any publishing workflow exists.
+
+on:
+  workflow_dispatch:
+    inputs:
+      story:
+        description: "fear | greed | patience | fomo | revenge"
+        default: "fear"
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install
+        run: pip install "moviepy==1.0.3" "edge-tts==7.3.1" pillow numpy requests
+      - name: Render sample
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: python emotion_story.py --sample "${{ github.event.inputs.story }}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: story-sample
+          path: |
+            _drafts_local/story_sample/*.mp4
+            _drafts_local/story_sample/*.jpg
+            _drafts_local/story_sample/*.json
+          retention-days: 7
