@@ -1,0 +1,118 @@
+name: Story Shorts — Trader Psychology (Tue + Thu)
+
+# 2026-10-25 (owner approved wiring after reviewing the samples).
+# One fictional trader-psychology story Short (fear, greed, patience, FOMO, revenge, averaging down, tips,
+# overtrading, no stop-loss, leverage) per run; Pixar-style images (Cloudflare FLUX, free), Hindi narration
+# (edge-tts), self-drawing chart. Uploaded PRIVATE with a publishAt (19:30 IST that day) so YouTube publishes at
+# the exact minute and the owner can still glance at / delete it in Studio first. See emotion_story.py.
+#
+# KILL SWITCH: set the repository variable STORIES_ENABLED to anything but "true" to pause the scheduled run
+# (manual runs still work).
+# MANUAL: mode "dry" renders only (nothing uploaded); "private-test" uploads a PRIVATE test video, no publishAt,
+# not announced, not marked done; "scheduled" = the real run.
+# Queue: 10 stories in emotion_story.STORY_ORDER; when empty, a Telegram note asks for more (never repeats).
+# Free: public-repo Actions minutes, Cloudflare free tier, edge-tts, Pillow/moviepy.
+
+on:
+  schedule:
+    - cron: "43 6 * * 2,4"     # Tue + Thu 06:43 UTC (12:13 IST); publish time is set inside the runner
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "scheduled = real run, private-test = private upload for checking, dry = render only"
+        required: false
+        default: "dry"
+        type: choice
+        options: [dry, private-test, scheduled]
+      story:
+        description: "Optional: force one story key (leave empty for the next in the queue)"
+        required: false
+        default: ""
+
+concurrency:
+  group: stories-weekly
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  story:
+    if: ${{ github.event_name == 'workflow_dispatch' || vars.STORIES_ENABLED == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      MODE: ${{ github.event.inputs.mode || 'scheduled' }}
+      STORY: ${{ github.event.inputs.story || '' }}
+      YOUTUBE_CREDENTIALS: ${{ secrets.YOUTUBE_CREDENTIALS }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      CHAT_ID_BASIC: ${{ secrets.CHAT_ID_BASIC }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: master
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends ffmpeg fonts-dejavu fonts-liberation fonts-freefont-ttf
+
+      - name: Install Python dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Render and upload story Short
+        run: |
+          if [ -n "$STORY" ]; then
+            python emotion_story.py --run --mode "$MODE" --story "$STORY" --out output/story
+          else
+            python emotion_story.py --run --mode "$MODE" --out output/story
+          fi
+
+      - name: Keep the preview as a downloadable file (dry / test runs)
+        if: ${{ env.MODE != 'scheduled' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: story-preview
+          path: |
+            output/story/*.mp4
+            output/story/*_thumb.jpg
+          retention-days: 7
+
+      - name: Record what was scheduled
+        if: ${{ env.MODE == 'scheduled' }}
+        run: |
+          git config --local user.email "admin@ai360trading.in"
+          git config --local user.name "AI360-Automation"
+          git add _data/stories_done.json || true
+          git diff --cached --quiet || git commit -m "Story Short scheduled: $(date +'%Y-%m-%d') (done-list)"
+          git pull --rebase origin master || true
+          git push origin master || true
+
+      - name: Notify Telegram on failure
+        if: failure()
+        continue-on-error: true
+        env:
+          WF_NAME: "${{ github.workflow }}"
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          python - <<'PYEOF'
+          import os, json
+          from urllib.request import Request, urlopen
+          tok, chat = os.environ.get('TELEGRAM_BOT_TOKEN',''), os.environ.get('CHAT_ID_BASIC','')
+          if tok and chat:
+              msg = f"Workflow failed: {os.environ['WF_NAME']}\n{os.environ['RUN_URL']}"
+              req = Request(f"https://api.telegram.org/bot{tok}/sendMessage", data=json.dumps({"chat_id": chat, "text": msg}).encode(), headers={"Content-Type": "application/json"})
+              urlopen(req, timeout=20)
+          PYEOF

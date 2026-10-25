@@ -192,6 +192,17 @@ STORIES = {
 }
 
 
+try:  # five more stories live in their own file; a problem there must never break the original five
+    from emotion_stories_more import MORE as _MORE
+    STORIES.update(_MORE)
+except Exception as _e:  # pragma: no cover
+    print(f"[STORY] extra stories skipped: {_e}")
+
+STORY_ORDER = ["fear", "greed", "patience", "fomo", "revenge", "averaging", "tip", "overtrade", "nostop", "leverage"]
+DONE_FILE = Path("_data/stories_done.json")
+PUBLISH_UTC = (14, 0)   # 19:30 IST: evening, after the market, when traders scroll
+
+
 # ───────────────────────────── images ───────────────────────────────────────
 
 def _cf_image(prompt, seed):
@@ -487,8 +498,127 @@ def build_story(story_key, out_dir=OUT_DIR):
     return mp4
 
 
+# ───────────────────────────── scheduled run (private-first upload) ─────────────────────────────
+
+def _tg(msg):
+    try:
+        import requests
+        tok, chat = os.environ.get("TELEGRAM_BOT_TOKEN", ""), os.environ.get("CHAT_ID_BASIC", "")
+        if tok and chat:
+            requests.post(f"https://api.telegram.org/bot{tok}/sendMessage",
+                          data={"chat_id": chat, "text": msg, "parse_mode": "HTML", "disable_web_page_preview": "false"}, timeout=20)
+    except Exception as e:
+        print(f"[STORY] telegram skipped: {e}")
+
+
+def _load_done():
+    try:
+        return json.loads(DONE_FILE.read_text(encoding="utf-8")).get("done", [])
+    except Exception:
+        return []
+
+
+def _save_done(items):
+    DONE_FILE.parent.mkdir(parents=True, exist_ok=True)
+    DONE_FILE.write_text(json.dumps({"done": items}, indent=2, ensure_ascii=False), encoding="utf-8")
+
+
+def _next_publish(now=None):
+    import datetime as dt
+    now = now or dt.datetime.now(dt.timezone.utc)
+    cand = now.replace(hour=PUBLISH_UTC[0], minute=PUBLISH_UTC[1], second=0, microsecond=0)
+    if cand <= now + dt.timedelta(hours=2):
+        cand += dt.timedelta(days=1)
+    return cand
+
+
+def _upload(mp4, title, desc, tags, thumb, publish_at=None):
+    from google.oauth2.credentials import Credentials
+    from googleapiclient.discovery import build
+    from googleapiclient.http import MediaFileUpload
+    raw = os.environ.get("YOUTUBE_CREDENTIALS") or (open("token.json").read() if os.path.exists("token.json") else "")
+    if not raw:
+        raise RuntimeError("no YouTube credentials")
+    yt = build("youtube", "v3", credentials=Credentials.from_authorized_user_info(json.loads(raw)))
+    status = {"privacyStatus": "private", "selfDeclaredMadeForKids": False}
+    if publish_at:
+        status["publishAt"] = publish_at.strftime("%Y-%m-%dT%H:%M:%S.000Z")
+    body = {"snippet": {"title": title[:100], "description": desc[:4900], "tags": tags[:15], "categoryId": "27",
+                        "defaultLanguage": "hi", "defaultAudioLanguage": "hi"}, "status": status}
+    req = yt.videos().insert(part="snippet,status", body=body,
+                             media_body=MediaFileUpload(mp4, mimetype="video/mp4", resumable=True, chunksize=8 * 1024 * 1024))
+    resp = None
+    while resp is None:
+        _, resp = req.next_chunk()
+    vid = resp["id"]
+    try:
+        yt.thumbnails().set(videoId=vid, media_body=MediaFileUpload(thumb, mimetype="image/jpeg")).execute()
+    except Exception as e:
+        print(f"[STORY] thumbnail skipped (fail-open): {e}")
+    return vid
+
+
+def run(mode, out_dir, story=None):
+    """pick next story -> render -> checks -> upload PRIVATE with publishAt. Never raises; always exit 0."""
+    done = _load_done()
+    used = {d.get("story") for d in done}
+    key = story or next((k for k in STORY_ORDER if k in STORIES and k not in used), None)
+    if not key:
+        _tg("AI360 story Shorts: the story queue is EMPTY, nothing was published. Ask Claude to add more stories.")
+        print("[STORY] queue empty")
+        return 0
+    try:
+        out = Path(out_dir)
+        mp4 = build_story(key, out)
+        meta = json.loads((out / f"{key}_meta.json").read_text(encoding="utf-8"))
+        if meta["duration_s"] > 59.0:
+            _tg(f"AI360 story Shorts: '{key}' is {meta['duration_s']}s (over 59s) so it was NOT uploaded.")
+            print("[STORY] too long, not uploaded")
+            return 0
+        if mode == "dry":
+            print(f"[STORY] DRY RUN, nothing uploaded. {key}: {meta['title']} ({meta['duration_s']}s)")
+            return 0
+        from human_touch import ai_disclosure
+        try:
+            import money_funnel as mf
+            funnel = mf.funnel_block("hi", compact=True)
+        except Exception:
+            funnel = "Telegram: https://t.me/ai360trading" + chr(10) + "Website: https://ai360trading.in"
+        NL = chr(10)
+        desc = meta["description"] + NL + NL + funnel + NL + NL + ai_disclosure("hi")
+        tags = ["trading psychology", "stock market india", "share market", "trader story", "fear and greed",
+                "AI360Trading", "hindi", "shorts", "nifty", "risk management"]
+        thumb = str(out / f"{key}_thumb.jpg")
+        title = meta["title"]
+        if mode == "private-test":
+            vid = _upload(str(mp4), "[TEST - private] " + title, desc, tags, thumb, None)
+            print(f"[STORY] PRIVATE TEST uploaded: https://youtu.be/{vid} (not announced, not marked done)")
+            return 0
+        when = _next_publish()
+        vid = _upload(str(mp4), title, desc, tags, thumb, when)
+        print(f"[STORY] scheduled {vid} for {when.isoformat()}")
+        done.append({"story": key, "video": vid, "publish_at": when.isoformat()})
+        _save_done(done)
+        _tg("<b>New story Short</b>: " + title + chr(10) + "Goes live " + when.strftime("%a %d %b, %H:%M") + " UTC" + chr(10) + "https://youtu.be/" + vid)
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        _tg(f"AI360 story Shorts: pipeline error for '{key}': {str(e)[:160]}. Nothing published; it will retry next run.")
+    return 0
+
+
 if __name__ == "__main__":
-    if len(sys.argv) >= 3 and sys.argv[1] == "--sample":
-        build_story(sys.argv[2])
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--sample", default=None, help="local sample of one story, never uploads")
+    ap.add_argument("--run", action="store_true", help="scheduled pipeline")
+    ap.add_argument("--mode", default="scheduled", choices=["scheduled", "private-test", "dry"])
+    ap.add_argument("--story", default=None)
+    ap.add_argument("--out", default="output/story")
+    a = ap.parse_args()
+    if a.sample:
+        build_story(a.sample)
+    elif a.run:
+        sys.exit(run(a.mode, a.out, a.story))
     else:
-        print("usage: python emotion_story.py --sample <" + "|".join(STORIES) + ">  (local sample only, never uploads)")
+        print("usage: --sample <" + "|".join(STORIES) + "> | --run --mode scheduled|private-test|dry")
