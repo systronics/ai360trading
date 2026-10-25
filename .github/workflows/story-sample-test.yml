@@ -23,7 +23,7 @@ jobs:
         with:
           python-version: "3.11"
       - name: Install
-        run: pip install "moviepy==1.0.3" "edge-tts==7.3.1" pillow numpy requests
+        run: pip install "moviepy==1.0.3" "edge-tts==7.3.1" pillow numpy requests pytz
       - name: Render sample
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

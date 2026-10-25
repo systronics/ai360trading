@@ -194,15 +194,18 @@ def _cf_image(prompt, seed):
     acct, tok = os.environ.get("CLOUDFLARE_ACCOUNT_ID", ""), os.environ.get("CLOUDFLARE_API_TOKEN", "")
     if not (acct and tok):
         return None
-    try:
-        import requests, base64
-        r = requests.post(
-            f"https://api.cloudflare.com/client/v4/accounts/{acct}/ai/run/@cf/black-forest-labs/flux-1-schnell",
-            headers={"Authorization": f"Bearer {tok}"}, json={"prompt": prompt, "steps": 6, "seed": seed}, timeout=90)
-        if r.status_code == 200:
-            return base64.b64decode(r.json()["result"]["image"])
-    except Exception as e:
-        print(f"  [IMG] Cloudflare skip: {str(e)[:80]}")
+    import requests, base64
+    url = f"https://api.cloudflare.com/client/v4/accounts/{acct}/ai/run/@cf/black-forest-labs/flux-1-schnell"
+    for body in ({"prompt": prompt[:2048], "steps": 8, "seed": seed}, {"prompt": prompt[:2048], "steps": 8}):
+        try:
+            r = requests.post(url, headers={"Authorization": f"Bearer {tok}"}, json=body, timeout=90)
+            if r.status_code == 200:
+                b64 = ((r.json().get("result") or {}).get("image", "")) or ""
+                if b64:
+                    return base64.b64decode(b64)
+            print(f"  [IMG] Cloudflare {r.status_code}: {r.text[:120]}")
+        except Exception as e:
+            print(f"  [IMG] Cloudflare error: {str(e)[:80]}")
     return None
 
 
