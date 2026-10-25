@@ -18,6 +18,8 @@ nifty_level: "23,389.25 - 0.18%"
 sp500_level: "7,636.36 - 1.07%"
 bitcoin_level: "77,933.15 - 0.42%"
 gold_level: "4,434.4 + 0.42%"
+redirect_from:
+  - /ai-trading/ai-human-trader-who-called-it/
 ---
 
 <script type="application/ld+json">

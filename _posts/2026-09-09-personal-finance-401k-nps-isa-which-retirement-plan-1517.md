@@ -18,6 +18,8 @@ nifty_level: "23,462.45 - 0.73%"
 sp500_level: "7,673.52 - 0.96%"
 bitcoin_level: "79,040.67 + 0.77%"
 gold_level: "4,442.0 + 1.09%"
+redirect_from:
+  - /personal-finance/401k-nps-isa-which-retirement-plan/
 ---
 
 <script type="application/ld+json">

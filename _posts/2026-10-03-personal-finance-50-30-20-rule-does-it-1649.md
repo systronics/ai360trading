@@ -18,6 +18,8 @@ nifty_level: "N/A"
 sp500_level: "N/A"
 bitcoin_level: "N/A"
 gold_level: "N/A"
+redirect_from:
+  - /personal-finance/50-30-20-rule-does-it/
 ---
 
 <script type="application/ld+json">

@@ -12,6 +12,20 @@
 
   <meta name="author" content="Amit Kumar">
 
+  <!-- 2026-10-25 SEO: old date-bound market-news posts (older than 45 days, not in _data/seo_keep.json) are noindex,follow so
+       Google concentrates on evergreen pages, tools and lessons. Kept pages are the ones that earned impressions. -->
+  {%- assign seo_stale = false -%}
+  {%- if page.layout == 'post' and page.content_mode == 'market' -%}
+    {%- assign seo_page_s = page.date | date: '%s' | plus: 0 -%}
+    {%- assign seo_now_s = 'now' | date: '%s' | plus: 0 -%}
+    {%- assign seo_age_days = seo_now_s | minus: seo_page_s | divided_by: 86400 -%}
+    {%- if seo_age_days > 45 -%}
+      {%- assign seo_stale = true -%}
+      {%- if site.data.seo_keep.keep contains page.url -%}{%- assign seo_stale = false -%}{%- endif -%}
+    {%- endif -%}
+  {%- endif -%}
+  {%- if seo_stale -%}<meta name="robots" content="noindex, follow">{%- endif -%}
+
   <!-- Canonical -->
   <link rel="canonical" href="{{ page.url | replace:'index.html','' | absolute_url }}">
 

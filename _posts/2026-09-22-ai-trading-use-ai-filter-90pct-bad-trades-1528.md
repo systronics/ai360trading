@@ -18,6 +18,8 @@ nifty_level: "23,329.0 - 0.36%"
 sp500_level: "7,764.7 + 1.66%"
 bitcoin_level: "86,220.72 - 0.44%"
 gold_level: "4,358.0 - 0.59%"
+redirect_from:
+  - /ai-trading/use-ai-filter-90pct-bad-trades/
 ---
 
 <script type="application/ld+json">

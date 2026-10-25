@@ -18,6 +18,8 @@ nifty_level: "N/A"
 sp500_level: "N/A"
 bitcoin_level: "N/A"
 gold_level: "N/A"
+redirect_from:
+  - /stock-market/global-markets-await-monday-open-amid/
 ---
 
 <script type="application/ld+json">

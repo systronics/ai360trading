@@ -20,12 +20,21 @@ sitemap: false
     <priority>1.0</priority>
   </url>
 {% for post in site.posts %}
+{% assign in_map = true %}
+{% if post.content_mode == 'market' %}
+{% assign p_s = post.date | date: '%s' | plus: 0 %}
+{% assign n_s = 'now' | date: '%s' | plus: 0 %}
+{% assign a_days = n_s | minus: p_s | divided_by: 86400 %}
+{% if a_days > 45 %}{% assign in_map = false %}{% if site.data.seo_keep.keep contains post.url %}{% assign in_map = true %}{% endif %}{% endif %}
+{% endif %}
+{% if in_map %}
   <url>
     <loc>{{ site.url }}{{ post.url }}</loc>
     <lastmod>{{ post.date | date_to_xmlschema }}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
+{% endif %}
 {% endfor %}
 {% comment %}
   2026-10-23 FIX: the old pages loop used one long if-condition that mixed contains with == false.
