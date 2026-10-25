@@ -458,26 +458,58 @@ def _scene_clip(img, overlay, dur, idx, chart=None, accent=(255, 255, 255)):
     return VideoClip(make, duration=dur).set_fps(FPS)
 
 
-def build_thumbnail(story_key, img, path):
-    """Shorts thumbnail: the Pixar close-up, a 2-4 word hook in huge white letters, emotion tag, brand chip."""
+YELLOW = (255, 230, 0)
+
+
+def _bright(im):
+    """Punchier, brighter colours like the thumbnails that win clicks (more saturation, light contrast lift)."""
+    from PIL import ImageEnhance
+    im = ImageEnhance.Color(im).enhance(1.35)
+    im = ImageEnhance.Contrast(im).enhance(1.12)
+    return ImageEnhance.Brightness(im).enhance(1.12)
+
+
+def build_thumbnail(story_key, img, path, face=None):
+    """Shorts thumbnail, bright style. Variant A: Pixar close-up + 2-4 huge hook words. Variant B (face given):
+    the presenter cut-out on the right, hook words on the left over a softened Pixar background."""
     st = STORIES[story_key]
-    th = _cover(img, 1.0).crop((0, 0, W, H)).resize((720, 1280), Image.LANCZOS).convert("RGB")
-    d = ImageDraw.Draw(th, "RGBA")
-    for y in range(560, 1280):
-        d.line([(0, y), (720, y)], fill=(0, 0, 0, int(min(225, (y - 560) / 720 * 300))))
+    base = _cover(img, 1.0).crop((0, 0, W, H)).resize((720, 1280), Image.LANCZOS).convert("RGB")
     hook = THUMB_TEXT.get(story_key, st["tag"])
     words = hook.split()
     lines = [hook] if len(words) <= 2 else [" ".join(words[:2]), " ".join(words[2:])]
-    size = 118
-    while size > 60 and max(d.textlength(l, font=_font(size)) for l in lines) > 650:
-        size -= 6
-    f = _font(size)
-    y = 930 if len(lines) == 1 else 880
-    for i, l in enumerate(lines):
-        col = (255, 255, 255) if i == 0 else st["accent"]
-        d.text((360, y), l, font=f, fill=col, anchor="mm", stroke_width=9, stroke_fill=(0, 0, 0))
-        y += size + 16
-    d.rounded_rectangle((250, y + 6, 470, y + 16), radius=5, fill=st["accent"])
+    if face and os.path.exists(face):
+        th = _bright(base.filter(ImageFilter.GaussianBlur(5)))
+        th = Image.eval(th, lambda v: int(v * 0.62))
+        ph = Image.open(face).convert("RGBA")
+        fh = 760
+        ph = ph.resize((int(ph.width * fh / ph.height), fh), Image.LANCZOS)
+        th = th.convert("RGBA")
+        th.alpha_composite(ph, (720 - ph.width + 70, 1280 - fh))
+        th = th.convert("RGB")
+        d = ImageDraw.Draw(th, "RGBA")
+        size = 128
+        while size > 60 and max(d.textlength(l, font=_font(size)) for l in lines) > 660:
+            size -= 6
+        f = _font(size)
+        y = 215
+        for i, l in enumerate(lines):
+            d.text((360, y), l, font=f, fill=(255, 255, 255) if i == 0 else YELLOW, anchor="mm", stroke_width=10, stroke_fill=(0, 0, 0))
+            y += size + 18
+        d.rounded_rectangle((250, y - 4, 470, y + 8), radius=6, fill=st["accent"])
+    else:
+        th = _bright(base)
+        d = ImageDraw.Draw(th, "RGBA")
+        for yy in range(640, 1280):
+            d.line([(0, yy), (720, yy)], fill=(0, 0, 0, int(min(165, (yy - 640) / 640 * 210))))
+        size = 118
+        while size > 60 and max(d.textlength(l, font=_font(size)) for l in lines) > 650:
+            size -= 6
+        f = _font(size)
+        y = 930 if len(lines) == 1 else 880
+        for i, l in enumerate(lines):
+            d.text((360, y), l, font=f, fill=(255, 255, 255) if i == 0 else YELLOW, anchor="mm", stroke_width=9, stroke_fill=(0, 0, 0))
+            y += size + 16
+        d.rounded_rectangle((250, y + 6, 470, y + 16), radius=5, fill=st["accent"])
     d.rounded_rectangle((28, 30, 28 + 250, 30 + 52), radius=26, fill=(10, 14, 32, 225), outline=st["accent"], width=3)
     d.text((28 + 125, 56), "AI360TRADING", font=_font(30), fill=(255, 255, 255), anchor="mm")
     tw = d.textlength(st["tag"], font=_font(36)) + 44
@@ -516,7 +548,14 @@ def build_story(story_key, out_dir=OUT_DIR):
     video = video.set_audio(audio)
     mp4 = out_dir / f"{story_key}_story.mp4"
     video.write_videofile(str(mp4), fps=FPS, codec="libx264", audio_codec="aac", preset="medium", logger=None)
-    build_thumbnail(story_key, first_img, out_dir / f"{story_key}_thumb.jpg")
+    _face = None
+    try:
+        if STORY_ORDER.index(story_key) % 2 == 1 and os.path.exists("public/image/amit_cutout.png"):
+            _face = "public/image/amit_cutout.png"   # A/B: every other story shows the presenter (owner approved his photo)
+    except ValueError:
+        pass
+    print(f"[STORY:{story_key}] thumbnail variant: {'FACE' if _face else 'CHARACTER-ONLY'}")
+    build_thumbnail(story_key, first_img, out_dir / f"{story_key}_thumb.jpg", face=_face)
     phrase, topic_tag = STORY_SEO.get(story_key, ("trading psychology", "TradingPsychology"))
     hook = st["title"].split(" | ")[0]
     title = f"{hook} | {phrase.title()} #shorts"
