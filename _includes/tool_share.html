@@ -1,0 +1,17 @@
+{%- comment -%} 2026-10-25: share + link-back block for free tool pages. Natural way for other sites/blogs/students to link to a tool. {%- endcomment -%}
+{%- assign tool_name = page.title | split: ' — ' | first | strip_html -%}
+{%- assign tool_url = page.url | absolute_url -%}
+{%- capture tool_anchor -%}<a href="{{ tool_url }}">{{ tool_name }} (free) — AI360Trading</a>{%- endcapture -%}
+{%- capture wa_text -%}{{ tool_name }} (free, no sign-up): {{ tool_url }}{%- endcapture -%}
+<section class="tool-share" style="max-width:760px;margin:28px auto;padding:16px 18px;border:1px solid rgba(128,128,128,.35);border-radius:12px;font-size:15px;line-height:1.5">
+  <strong>Found this useful? Share it or link to it</strong>
+  <p style="margin:8px 0">
+    <a href="https://wa.me/?text={{ wa_text | url_encode }}" target="_blank" rel="noopener">Share on WhatsApp</a> &nbsp;|&nbsp;
+    <a href="https://t.me/share/url?url={{ tool_url | url_encode }}&amp;text={{ tool_name | url_encode }}" target="_blank" rel="noopener">Share on Telegram</a>
+  </p>
+  <details>
+    <summary>Teachers, bloggers and students: copy a link to this page</summary>
+    <p style="margin:8px 0 4px">Paste this into your website, blog post or class notes:</p>
+    <textarea readonly rows="2" style="width:100%;font-family:monospace;font-size:13px" onclick="this.select()">{{ tool_anchor | escape }}</textarea>
+  </details>
+</section>

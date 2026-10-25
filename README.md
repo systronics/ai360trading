@@ -83,3 +83,13 @@ See `LICENSE.md` for intellectual property terms.
 ---
 
 **Admin:** admin@ai360trading.in | Haridwar, Uttarakhand, India
+
+---
+
+## Free tools (no sign-up, runs in your browser)
+
+- [SIP Calculator](https://ai360trading.in/tools/sip-calculator/) · [Step-up SIP](https://ai360trading.in/tools/step-up-sip-calculator/) · [Lumpsum](https://ai360trading.in/tools/lumpsum-calculator/) · [CAGR](https://ai360trading.in/tools/cagr-calculator/)
+- [Percentage Calculator](https://ai360trading.in/tools/percentage-calculator/) · [EMI](https://ai360trading.in/tools/emi-calculator/) · [Income Tax](https://ai360trading.in/tools/income-tax-calculator/) · [PPF](https://ai360trading.in/tools/ppf-calculator/) · [NPS](https://ai360trading.in/tools/nps-calculator/)
+- [Image Compressor](https://ai360trading.in/tools/image-compressor/) · [QR Code Generator](https://ai360trading.in/tools/qr-code-generator/) · [All tools](https://ai360trading.in/tools/)
+
+Free weekly trading lessons (honest, with our own real numbers): [ai360trading.in/tutorial-videos](https://ai360trading.in/tutorial-videos/) · Telegram: [t.me/ai360trading](https://t.me/ai360trading)
