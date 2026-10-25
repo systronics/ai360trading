@@ -28,6 +28,11 @@ on:
   workflow_dispatch:
   schedule:
     - cron: "30 0 * * 0"
+    # 2026-10-25: weekly lessons go live Sat 14:00 UTC (US English) and Sun 13:30 UTC (India Hindi); the
+    # once-a-week Sunday-morning run above therefore always lagged a week behind. These two runs pick each
+    # lesson up right after it publishes (off the round minutes on purpose).
+    - cron: "11 15 * * 6"
+    - cron: "41 14 * * 0"
 
 jobs:
   update:
