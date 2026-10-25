@@ -196,7 +196,7 @@ def _cf_image(prompt, seed):
         return None
     import requests, base64
     url = f"https://api.cloudflare.com/client/v4/accounts/{acct}/ai/run/@cf/black-forest-labs/flux-1-schnell"
-    for body in ({"prompt": prompt[:2048], "steps": 8, "seed": seed}, {"prompt": prompt[:2048], "steps": 8}):
+    for body in ({"prompt": prompt[:2048], "steps": 8},):
         try:
             r = requests.post(url, headers={"Authorization": f"Bearer {tok}"}, json=body, timeout=90)
             if r.status_code == 200:
@@ -447,7 +447,8 @@ def build_story(story_key, out_dir=OUT_DIR):
     for i, (narr, cap, prompt) in enumerate(st["scenes"]):
         print(f"[STORY:{story_key}] scene {i + 1}/{n}")
         img = get_scene_image(story_key, i, st["who"], prompt, st["accent"], out_dir)
-        first_img = first_img or img
+        if i == 1 or first_img is None:
+            first_img = img   # scene 2 (emotional close-up) becomes the thumbnail
         ap = out_dir / f"{story_key}_{i}.mp3"
         make_voice(narr, ap)
         a = AudioFileClip(str(ap))
