@@ -1,6 +1,10 @@
 """
-fetch_fii_dii.py — Daily NSE FII / DII Cash market flow tracker — v1.1
+fetch_fii_dii.py — Daily NSE FII / DII Cash market flow tracker — v1.2
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v1.2 (2026-10-25 sheet audit): rows are keyed by NSE's own data date (was the job's run date) and the weekend
+  guard on the run date is gone; an identical already-recorded day is skipped (no duplicate Telegram report).
+  Found: all 6 Mondays Sep-Oct missing (delayed Monday run crossed midnight IST, stored under Tuesday, overwritten
+  by Tuesday's run) and 2026-06-26 / 2026-08-25 were stale copies of the previous day.
 v1.1 (2026-07-28): SILENT DATA-LOSS BUG FIXED (owner: "check the
   fetch_fii_dii and fetch_index_meta tabs too"). Confirmed live: every
   MKT_FII_*/MKT_DII_* key for 2 real trading days (2026-07-21, 2026-07-23)
@@ -63,7 +67,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 import pytz
 
 IST          = pytz.timezone("Asia/Kolkata")
-VERSION      = "v1.0"
+VERSION      = "v1.2"
 SHEET_NAME   = "Ai360tradingAlgo"
 BM_TAB       = "BotMemory"
 TREND_DAYS   = 5      # rolling window for MKT_FII_TREND_5D
@@ -240,8 +244,8 @@ def calc_5d_trend(bm_sheet, today_net: float, today_str: str) -> float:
     Reads MKT_FII_CASH_NET_* keys from BotMemory.
     """
     total = today_net
-    days_included = 1
     cutoff = (datetime.strptime(today_str, "%Y-%m-%d").date() - timedelta(days=10)).isoformat()
+    prior = []   # (date, net) for earlier days inside the window
 
     try:
         data = bm_sheet.get_all_values()
@@ -252,17 +256,18 @@ def calc_5d_trend(bm_sheet, today_net: float, today_str: str) -> float:
             if not key.startswith("MKT_FII_CASH_NET_"):
                 continue
             date_part = key.replace("MKT_FII_CASH_NET_", "")
-            if date_part == today_str:    # don't double-count today
+            if date_part >= today_str:    # today itself (never double-count) or anything newer
                 continue
             if date_part < cutoff:        # too old
                 continue
             try:
-                total += float(row[1])
-                days_included += 1
-                if days_included >= TREND_DAYS:
-                    break
+                prior.append((date_part, float(row[1])))
             except (ValueError, IndexError):
                 pass
+        # v1.2 FIX: rows are stored oldest-first, so the old loop (break after 5 days) summed today + the OLDEST
+        # four days of the window, not the latest five trading days the label promises. Take the NEWEST four.
+        for _d, _v in sorted(prior, reverse=True)[:TREND_DAYS - 1]:
+            total += _v
     except Exception as e:
         print(f"[TREND] read error: {e}")
 
@@ -357,10 +362,8 @@ def main():
 
     print(f"[FII] AI360Trading FII/DII Fetcher {VERSION} — {now.strftime('%Y-%m-%d %H:%M IST')}")
 
-    # Skip weekends defensively (workflow cron already handles, but belt-and-braces)
-    if now.weekday() >= 5:
-        print(f"[FII] Weekend ({now.strftime('%A')}) — skip")
-        return
+    # v1.2: NO weekend guard on the RUN date any more. GitHub delays this cron by 4-9 hours, so a Friday run can
+    # land on Saturday IST and still carries Friday's real data; the key date below comes from NSE's own data date.
 
     # Fetch from NSE
     data = fetch_fii_dii()
@@ -368,7 +371,16 @@ def main():
         print("[FII] No data fetched — exiting (likely NSE rate-limit or holiday)")
         return
 
-    print(f"[FII] FII net: {fmt_cr(data['fii_net'])} | DII net: {fmt_cr(data['dii_net'])}")
+    # v1.2 (2026-10-25 sheet audit): key every row by the DATE NSE REPORTS, not the date the job happened to run.
+    # Before: GitHub delayed the Monday run past midnight IST, so Monday's flows were stored under Tuesday's date and
+    # then overwritten by Tuesday's own run (all 6 Mondays Sep-Oct were missing); an early run before NSE updated
+    # stored yesterday's numbers as today's (2026-06-26 and 2026-08-25 were exact copies of the day before).
+    try:
+        today_str = datetime.strptime(data.get("date", ""), "%d-%b-%Y").strftime("%Y-%m-%d")
+    except Exception:
+        print(f"[FII] NSE date {data.get('date')!r} not parseable — falling back to run date {today_str}")
+
+    print(f"[FII] NSE data date {today_str} | FII net: {fmt_cr(data['fii_net'])} | DII net: {fmt_cr(data['dii_net'])}")
 
     # Connect to Sheet
     try:
@@ -377,6 +389,18 @@ def main():
     except Exception as e:
         print(f"[FII] Sheet connect failed: {e}")
         return
+
+    # v1.2: already recorded with the same numbers (an early/second run before NSE published a new day, or a
+    # re-run) -> nothing to write and, importantly, no duplicate Telegram report.
+    try:
+        for _row in bm.get_all_values()[1:]:
+            if _row and _row[0].strip() == f"MKT_FII_CASH_NET_{today_str}":
+                if abs(float(_row[1]) - float(data["fii_net"])) < 0.005:
+                    print(f"[FII] {today_str} already recorded with identical numbers — skip (no duplicate report)")
+                    return
+                break
+    except Exception as e:
+        print(f"[FII] duplicate check skipped (fail-open): {e}")
 
     # v1.1: calc_5d_trend() takes today's net as a direct argument and
     # explicitly skips reading today's own row from the sheet (see its
