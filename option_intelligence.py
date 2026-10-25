@@ -377,7 +377,7 @@ def format_option_alert(symbol: str, cp: float, rec: dict, scanner_strike: str =
         f"   📅 Expiry: {scanner_expiry or 'current monthly'} (current — yahi volume hai)"
         f"{scanner_note}\n"
         f"   📊 HV-20: {rec['hv']:.0f}%  |  Theta: {scanner_theta or 'see sheet'}\n"
-        f"   ⚡ Entry: 9:30-9:45 AM after stock triggers\n"
+        f"   ⚡ Entry: jab stock trigger ke upar tike (late ho gaya to skip, chase NAHI)\n"
         f"   ⏱ Hold: intraday ya max 1-2 din — usse zyada NAHI (lamba trade = CASH/MTF)\n"
         f"   🛑 SL: stock −{rec['sl_pct']}% (premium ≈ −{int(rec['sl_pct']*rec['delta_est']*10)}%)\n"
         f"   🎯 Target: option premium +{rec['tgt_pct']:.0f}% (≈ stock +5%) ya 2 din pure — jo pehle ho\n"

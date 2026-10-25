@@ -2143,9 +2143,9 @@ def ce_candidate_flag(cp, atr, stage, is_bullish, rank=99,
             f"   🎰 Buy: <b>{opt_strike}</b>\n"
             f"   📅 Expiry: {opt_expiry} (current — yahi volume hai)\n"
             f"   ⏳ Theta: {opt_theta}\n"
-            f"   ⚡ Entry: 9:30-9:45 AM after stock triggers\n"
+            f"   ⚡ Entry: jab stock trigger ke upar tike (late ho gaya to skip, chase NAHI)\n"
             f"   ⏱ Hold: intraday ya max 1-2 din — usse zyada NAHI\n"
-            f"   🛑 Exit: stock −1.5% (≈ option −10% to −15%) ya 2 din pure\n"
+            f"   🛑 Exit: stock apna SL tode (option ≈ −15-20%, hard cap −20%) ya 2 din pure\n"
             f"   ⚠️ Check live premium on Zerodha"
             f"{_liq_note}"
         )
