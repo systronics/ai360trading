@@ -198,6 +198,20 @@ try:  # five more stories live in their own file; a problem there must never bre
 except Exception as _e:  # pragma: no cover
     print(f"[STORY] extra stories skipped: {_e}")
 
+# Real search phrases (verified in live YouTube autocomplete on 2026-10-25) + one topic hashtag per story, and the
+# 2-4 word hook printed on the thumbnail. A phrase is used only because the story is genuinely about that topic.
+STORY_SEO = {
+    "fear": ("trading psychology hindi", "TradingPsychology"), "greed": ("share market psychology", "ShareMarket"),
+    "patience": ("patience in trading", "PatienceInTrading"), "fomo": ("fomo in trading", "FOMO"),
+    "revenge": ("revenge trading se kaise bache", "RevengeTrading"), "averaging": ("averaging down in stock market", "AveragingDown"),
+    "tip": ("why traders lose money", "TradingMistakes"), "overtrade": ("overtrading ko kaise control kare", "Overtrading"),
+    "nostop": ("why stop loss is important", "StopLoss"), "leverage": ("margin trading risk", "MarginTrading"),
+}
+THUMB_TEXT = {
+    "fear": "SOLD THE BOTTOM", "greed": "ONE MORE LOT", "patience": "12 DAYS. 1 TRADE", "fomo": "BOUGHT THE TOP",
+    "revenge": "WIN IT BACK?", "averaging": "NEVER ADD TO LOSS", "tip": "THE 'SURE' TIP", "overtrade": "52 TRADES",
+    "nostop": "NO STOP LOSS", "leverage": "FULL MARGIN",
+}
 STORY_ORDER = ["fear", "greed", "patience", "fomo", "revenge", "averaging", "tip", "overtrade", "nostop", "leverage"]
 DONE_FILE = Path("_data/stories_done.json")
 PUBLISH_UTC = (14, 0)   # 19:30 IST: evening, after the market, when traders scroll
@@ -445,18 +459,31 @@ def _scene_clip(img, overlay, dur, idx, chart=None, accent=(255, 255, 255)):
 
 
 def build_thumbnail(story_key, img, path):
+    """Shorts thumbnail: the Pixar close-up, a 2-4 word hook in huge white letters, emotion tag, brand chip."""
     st = STORIES[story_key]
-    base = _cover(img, 1.0).crop((0, 0, W, H))
-    th = base.resize((720, 1280), Image.LANCZOS).convert("RGB")
+    th = _cover(img, 1.0).crop((0, 0, W, H)).resize((720, 1280), Image.LANCZOS).convert("RGB")
     d = ImageDraw.Draw(th, "RGBA")
-    for y in range(640, 1280):
-        d.line([(0, y), (720, y)], fill=(0, 0, 0, int(min(215, (y - 640) / 640 * 260))))
-    f = _font(150)
-    d.text((360, 900), st["tag"], font=f, fill=st["accent"], anchor="mm", stroke_width=6, stroke_fill=(0, 0, 0))
-    f2 = _font(62)
-    d.text((360, 1040), "A TRADER'S STORY", font=f2, fill=(255, 255, 255), anchor="mm", stroke_width=4, stroke_fill=(0, 0, 0))
-    d.text((360, 1210), "AI360TRADING", font=_font(44), fill=(255, 255, 255, 230), anchor="mm")
-    th.save(path, quality=90)
+    for y in range(560, 1280):
+        d.line([(0, y), (720, y)], fill=(0, 0, 0, int(min(225, (y - 560) / 720 * 300))))
+    hook = THUMB_TEXT.get(story_key, st["tag"])
+    words = hook.split()
+    lines = [hook] if len(words) <= 2 else [" ".join(words[:2]), " ".join(words[2:])]
+    size = 118
+    while size > 60 and max(d.textlength(l, font=_font(size)) for l in lines) > 650:
+        size -= 6
+    f = _font(size)
+    y = 930 if len(lines) == 1 else 880
+    for i, l in enumerate(lines):
+        col = (255, 255, 255) if i == 0 else st["accent"]
+        d.text((360, y), l, font=f, fill=col, anchor="mm", stroke_width=9, stroke_fill=(0, 0, 0))
+        y += size + 16
+    d.rounded_rectangle((250, y + 6, 470, y + 16), radius=5, fill=st["accent"])
+    d.rounded_rectangle((28, 30, 28 + 250, 30 + 52), radius=26, fill=(10, 14, 32, 225), outline=st["accent"], width=3)
+    d.text((28 + 125, 56), "AI360TRADING", font=_font(30), fill=(255, 255, 255), anchor="mm")
+    tw = d.textlength(st["tag"], font=_font(36)) + 44
+    d.rounded_rectangle((692 - tw, 30, 692, 82), radius=26, fill=st["accent"] + (240,))
+    d.text((692 - tw / 2, 56), st["tag"], font=_font(36), fill=(10, 10, 20), anchor="mm")
+    th.save(path, quality=92)
 
 
 def build_story(story_key, out_dir=OUT_DIR):
@@ -490,9 +517,19 @@ def build_story(story_key, out_dir=OUT_DIR):
     mp4 = out_dir / f"{story_key}_story.mp4"
     video.write_videofile(str(mp4), fps=FPS, codec="libx264", audio_codec="aac", preset="medium", logger=None)
     build_thumbnail(story_key, first_img, out_dir / f"{story_key}_thumb.jpg")
-    meta = {"title": st["title"], "description": st["desc"] + "\n\nThis is a fictional illustrative story. Visuals are "
-            "AI-generated. Educational content, not investment advice.\n\n#tradingpsychology #stockmarketindia "
-            "#ai360trading", "duration_s": round(video.duration, 1)}
+    phrase, topic_tag = STORY_SEO.get(story_key, ("trading psychology", "TradingPsychology"))
+    hook = st["title"].split(" | ")[0]
+    title = f"{hook} | {phrase.title()} #shorts"
+    if len(title) > 100:
+        title = f"{hook} #shorts"[:100]
+    NL = chr(10)
+    desc = (phrase.capitalize() + ": " + st["desc"] + NL + NL + "This is a fictional illustrative story. Visuals are AI-generated. "
+            "Educational content, not investment advice." + NL + NL +
+            "More free lessons: https://ai360trading.in/tutorial-videos/" + NL + NL +
+            f"#{topic_tag} #StockMarketIndia #TradingPsychology #AI360Trading")
+    tags = [phrase, "trading psychology", "stock market india", "share market", "trader story", topic_tag.lower(),
+            "AI360Trading", "hindi", "shorts", "nifty"]
+    meta = {"title": title, "description": desc, "tags": tags, "duration_s": round(video.duration, 1)}
     (out_dir / f"{story_key}_meta.json").write_text(json.dumps(meta, indent=1, ensure_ascii=False), encoding="utf-8")
     print(f"[STORY:{story_key}] done: {mp4} ({meta['duration_s']}s)")
     return mp4
@@ -586,8 +623,7 @@ def run(mode, out_dir, story=None):
             funnel = "Telegram: https://t.me/ai360trading" + chr(10) + "Website: https://ai360trading.in"
         NL = chr(10)
         desc = meta["description"] + NL + NL + funnel + NL + NL + ai_disclosure("hi")
-        tags = ["trading psychology", "stock market india", "share market", "trader story", "fear and greed",
-                "AI360Trading", "hindi", "shorts", "nifty", "risk management"]
+        tags = meta.get("tags") or ["trading psychology", "stock market india", "AI360Trading", "hindi", "shorts"]
         thumb = str(out / f"{key}_thumb.jpg")
         title = meta["title"]
         if mode == "private-test":
