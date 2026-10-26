@@ -1,10 +1,10 @@
 {
-  "as_of": "October 23, 2026",
-  "total": 80,
-  "wins": 34,
+  "as_of": "October 26, 2026",
+  "total": 81,
+  "wins": 35,
   "losses": 46,
-  "win_rate": 42,
-  "net_pnl_rs": 2392,
+  "win_rate": 43,
+  "net_pnl_rs": 2583,
   "avg_win_pct": 2.4,
   "avg_loss_pct": -1.5,
   "best": {
@@ -17,6 +17,12 @@
   },
   "recent": [
     {
+      "sym": "ETERNAL",
+      "exit_date": "2026-10-26",
+      "pct": 2.74,
+      "is_win": true
+    },
+    {
       "sym": "KOTAKBANK",
       "exit_date": "2026-10-23",
       "pct": -3.98,
@@ -27,12 +33,6 @@
       "exit_date": "2026-10-21",
       "pct": 0.53,
       "is_win": true
-    },
-    {
-      "sym": "PNB",
-      "exit_date": "2026-10-21",
-      "pct": -0.06,
-      "is_win": false
     }
   ],
   "since": "2026-05-13",
@@ -47,11 +47,11 @@
     },
     {
       "name": "Intraday (cash)",
-      "trades": 42,
-      "win_rate": 38,
-      "avg_win_pct": 1.4,
+      "trades": 43,
+      "win_rate": 40,
+      "avg_win_pct": 1.5,
       "avg_loss_pct": -1.2,
-      "net_pnl_rs": -670
+      "net_pnl_rs": -478
     },
     {
       "name": "Options alerts",
