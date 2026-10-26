@@ -1,17 +1,17 @@
 {
-  "generated_at": "23 October 2026, 06:01 PM IST",
+  "generated_at": "26 October 2026, 02:22 PM IST",
   "market": {
     "up": false,
-    "close": 22600,
-    "ema50": 23229,
+    "close": 22678,
+    "ema50": 23207,
     "label": "NIFTY is below its 50-day average"
   },
   "sip": [
     {
       "symbol": "GODREJCP",
       "sector": "Fast Moving Consumer Goods",
-      "cmp": 845.0,
-      "down_from_high": -33.7,
+      "cmp": 833.7,
+      "down_from_high": -34.6,
       "base_range": 6.1,
       "support": 856.0,
       "sector_trend": "HEADWIND"
@@ -19,8 +19,8 @@
     {
       "symbol": "ITC",
       "sector": "Fast Moving Consumer Goods",
-      "cmp": 257.15,
-      "down_from_high": -39.7,
+      "cmp": 259.75,
+      "down_from_high": -39.1,
       "base_range": 6.7,
       "support": 257.7,
       "sector_trend": "HEADWIND"
@@ -28,8 +28,8 @@
     {
       "symbol": "TATACONSUM",
       "sector": "Fast Moving Consumer Goods",
-      "cmp": 952.0,
-      "down_from_high": -25.8,
+      "cmp": 929.75,
+      "down_from_high": -27.5,
       "base_range": 6.9,
       "support": 945.0,
       "sector_trend": "HEADWIND"
@@ -37,8 +37,8 @@
     {
       "symbol": "BANKBARODA",
       "sector": "Financial Services",
-      "cmp": 230.41,
-      "down_from_high": -29.2,
+      "cmp": 231.23,
+      "down_from_high": -29.0,
       "base_range": 7.4,
       "support": 225.2,
       "sector_trend": "HEADWIND"
@@ -46,8 +46,8 @@
     {
       "symbol": "RELIANCE",
       "sector": "Oil Gas & Consumable Fuels",
-      "cmp": 1185.5,
-      "down_from_high": -26.4,
+      "cmp": 1200.5,
+      "down_from_high": -25.5,
       "base_range": 7.5,
       "support": 1160.8,
       "sector_trend": "HEADWIND"
@@ -55,8 +55,8 @@
     {
       "symbol": "HDFCBANK",
       "sector": "Financial Services",
-      "cmp": 691.5,
-      "down_from_high": -32.2,
+      "cmp": 687.8,
+      "down_from_high": -32.6,
       "base_range": 7.6,
       "support": 690.5,
       "sector_trend": "HEADWIND"
@@ -64,8 +64,8 @@
     {
       "symbol": "MRF",
       "sector": "Automobile and Auto Components",
-      "cmp": 118350.0,
-      "down_from_high": -27.7,
+      "cmp": 117650.0,
+      "down_from_high": -28.1,
       "base_range": 7.7,
       "support": 116700.0,
       "sector_trend": "HEADWIND"
@@ -73,8 +73,8 @@
     {
       "symbol": "ONGC",
       "sector": "Oil Gas & Consumable Fuels",
-      "cmp": 225.53,
-      "down_from_high": -26.7,
+      "cmp": 227.65,
+      "down_from_high": -26.0,
       "base_range": 9.0,
       "support": 220.6,
       "sector_trend": "HEADWIND"
@@ -82,8 +82,8 @@
     {
       "symbol": "IRCTC",
       "sector": "Consumer Services",
-      "cmp": 441.95,
-      "down_from_high": -39.9,
+      "cmp": 439.4,
+      "down_from_high": -40.3,
       "base_range": 9.3,
       "support": 437.45,
       "sector_trend": "HEADWIND"
@@ -91,8 +91,8 @@
     {
       "symbol": "HINDUNILVR",
       "sector": "Fast Moving Consumer Goods",
-      "cmp": 1804.0,
-      "down_from_high": -32.4,
+      "cmp": 1808.4,
+      "down_from_high": -32.2,
       "base_range": 9.5,
       "support": 1814.4,
       "sector_trend": "HEADWIND"
@@ -100,8 +100,8 @@
     {
       "symbol": "IOC",
       "sector": "Oil Gas & Consumable Fuels",
-      "cmp": 128.0,
-      "down_from_high": -32.3,
+      "cmp": 129.84,
+      "down_from_high": -31.3,
       "base_range": 9.8,
       "support": 124.92,
       "sector_trend": "HEADWIND"
@@ -109,8 +109,8 @@
     {
       "symbol": "CANBK",
       "sector": "Financial Services",
-      "cmp": 116.1,
-      "down_from_high": -28.7,
+      "cmp": 116.62,
+      "down_from_high": -28.4,
       "base_range": 9.8,
       "support": 115.37,
       "sector_trend": "HEADWIND"
@@ -118,8 +118,8 @@
     {
       "symbol": "TATAPOWER",
       "sector": "Power",
-      "cmp": 345.9,
-      "down_from_high": -25.6,
+      "cmp": 335.75,
+      "down_from_high": -27.8,
       "base_range": 9.8,
       "support": 347.0,
       "sector_trend": "HEADWIND"
@@ -127,8 +127,8 @@
     {
       "symbol": "BRITANNIA",
       "sector": "Fast Moving Consumer Goods",
-      "cmp": 4526.6,
-      "down_from_high": -27.8,
+      "cmp": 4565.3,
+      "down_from_high": -27.2,
       "base_range": 9.9,
       "support": 4515.0,
       "sector_trend": "HEADWIND"
@@ -136,8 +136,8 @@
     {
       "symbol": "DABUR",
       "sector": "Fast Moving Consumer Goods",
-      "cmp": 360.25,
-      "down_from_high": -32.5,
+      "cmp": 358.35,
+      "down_from_high": -32.9,
       "base_range": 10.2,
       "support": 356.05,
       "sector_trend": "HEADWIND"
@@ -147,116 +147,116 @@
     {
       "symbol": "TCS",
       "sector": "Information Technology",
-      "cmp": 2525.6,
+      "cmp": 2528.1,
       "signal": "50-day closing-high breakout",
       "level": 2529.0,
-      "rs": 23.7,
-      "volume": 3.0,
-      "sector_trend": "HEADWIND"
-    },
-    {
-      "symbol": "TECHM",
-      "sector": "Information Technology",
-      "cmp": 1789.4,
-      "signal": "50-day closing-high breakout",
-      "level": 1834.7,
-      "rs": 19.9,
-      "volume": -21.0,
-      "sector_trend": "TAILWIND"
-    },
-    {
-      "symbol": "HCLTECH",
-      "sector": "Information Technology",
-      "cmp": 1418.7,
-      "signal": "50-day closing-high breakout",
-      "level": 1424.2,
-      "rs": 17.3,
-      "volume": -16.0,
+      "rs": 22.0,
+      "volume": -45.0,
       "sector_trend": "HEADWIND"
     },
     {
       "symbol": "WIPRO",
       "sector": "Information Technology",
-      "cmp": 189.84,
+      "cmp": 189.29,
       "signal": "50-day closing-high breakout",
       "level": 190.41,
-      "rs": 17.3,
-      "volume": -13.0,
+      "rs": 18.2,
+      "volume": -70.0,
       "sector_trend": "HEADWIND"
+    },
+    {
+      "symbol": "TECHM",
+      "sector": "Information Technology",
+      "cmp": 1778.3,
+      "signal": "50-day closing-high breakout",
+      "level": 1834.7,
+      "rs": 17.4,
+      "volume": -25.0,
+      "sector_trend": "TAILWIND"
     },
     {
       "symbol": "TATAELXSI",
       "sector": "Information Technology",
-      "cmp": 3700.0,
+      "cmp": 3733.4,
       "signal": "50-day closing-high breakout",
       "level": 3850.1,
       "rs": 16.8,
-      "volume": -48.0,
+      "volume": -76.0,
+      "sector_trend": "HEADWIND"
+    },
+    {
+      "symbol": "HCLTECH",
+      "sector": "Information Technology",
+      "cmp": 1417.1,
+      "signal": "50-day closing-high breakout",
+      "level": 1424.2,
+      "rs": 13.8,
+      "volume": -49.0,
       "sector_trend": "HEADWIND"
     },
     {
       "symbol": "MPHASIS",
       "sector": "Information Technology",
-      "cmp": 2495.0,
+      "cmp": 2528.2,
       "signal": "50-day closing-high breakout",
       "level": 2575.0,
-      "rs": 11.3,
-      "volume": 52.0,
-      "sector_trend": "TAILWIND"
-    },
-    {
-      "symbol": "INDHOTEL",
-      "sector": "Consumer Services",
-      "cmp": 777.0,
-      "signal": "50-day closing-high breakout",
-      "level": 782.3,
-      "rs": 10.2,
-      "volume": 100.0,
+      "rs": 13.4,
+      "volume": -57.0,
       "sector_trend": "TAILWIND"
     },
     {
       "symbol": "DRREDDY",
       "sector": "Healthcare",
-      "cmp": 1222.0,
+      "cmp": 1313.1,
       "signal": "Trendline breakout",
       "level": null,
-      "rs": 7.2,
-      "volume": -31.0,
+      "rs": 12.9,
+      "volume": 271.0,
       "sector_trend": "HEADWIND"
     },
     {
-      "symbol": "PNB",
-      "sector": "Financial Services",
-      "cmp": 119.7,
+      "symbol": "INDHOTEL",
+      "sector": "Consumer Services",
+      "cmp": 789.3,
       "signal": "50-day closing-high breakout",
-      "level": 122.5,
-      "rs": 6.1,
-      "volume": 4.0,
+      "level": 782.3,
+      "rs": 9.2,
+      "volume": -15.0,
       "sector_trend": "TAILWIND"
     },
     {
       "symbol": "FEDERALBNK",
       "sector": "Financial Services",
-      "cmp": 340.5,
+      "cmp": 342.6,
       "signal": "Trendline breakout",
       "level": null,
-      "rs": 5.9,
-      "volume": 13.0,
+      "rs": 6.5,
+      "volume": -52.0,
+      "sector_trend": "TAILWIND"
+    },
+    {
+      "symbol": "PNB",
+      "sector": "Financial Services",
+      "cmp": 120.58,
+      "signal": "50-day closing-high breakout",
+      "level": 122.5,
+      "rs": 5.4,
+      "volume": -47.0,
       "sector_trend": "TAILWIND"
     },
     {
       "symbol": "UNIONBANK",
       "sector": "Financial Services",
-      "cmp": 178.1,
+      "cmp": 181.4,
       "signal": "Trendline breakout",
       "level": null,
-      "rs": 4.8,
-      "volume": -19.0,
-      "sector_trend": "HEADWIND"
+      "rs": 5.0,
+      "volume": -21.0,
+      "sector_trend": "TAILWIND"
     }
   ],
   "counts": {
-    "sip_total_zone": 34,
+    "sip_total_zone": 33,
     "breakout_total": 11
   }
 }
