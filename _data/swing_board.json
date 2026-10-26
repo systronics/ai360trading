@@ -1,5 +1,5 @@
 {
-  "generated_at": "23 October 2026, 07:13 PM IST",
+  "generated_at": "26 October 2026, 01:36 PM IST",
   "setups": [
     {
       "symbol": "TECHM",
@@ -7,7 +7,7 @@
       "strategy": "➖ HOLD",
       "stage": "📉 CORR.END | 🔄 Building Momentum",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "8"
+      "days_in_trade": "11"
     },
     {
       "symbol": "HCLTECH",
@@ -15,7 +15,15 @@
       "strategy": "➖ HOLD",
       "stage": "🚀 MOMENTUM BREAKOUT | ⏸ No Setup",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "8"
+      "days_in_trade": "11"
+    },
+    {
+      "symbol": "ETERNAL",
+      "trade_type": "🔥 Cash Intraday",
+      "strategy": "CASH",
+      "stage": "🔥 CASH | +4.3% | Vol 98%",
+      "status": "✅ TRADED (PAPER)",
+      "days_in_trade": "0"
     }
   ]
 }
