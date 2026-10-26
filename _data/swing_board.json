@@ -1,5 +1,5 @@
 {
-  "generated_at": "26 October 2026, 02:06 PM IST",
+  "generated_at": "26 October 2026, 08:59 PM IST",
   "setups": [
     {
       "symbol": "TECHM",
@@ -18,12 +18,28 @@
       "days_in_trade": "11"
     },
     {
-      "symbol": "ETERNAL",
-      "trade_type": "🔥 Cash Intraday",
-      "strategy": "CASH",
-      "stage": "🔥 CASH | +4.3% | Vol 98%",
-      "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "0"
+      "symbol": "INDHOTEL",
+      "trade_type": "📊 Options Alert",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "LAURUSLABS",
+      "trade_type": "📊 Options Alert",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "KOTAKBANK",
+      "trade_type": "🔄 Swing",
+      "strategy": "➖ HOLD",
+      "stage": "⚡ BREAKOUT ALERT",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
     }
   ]
 }
