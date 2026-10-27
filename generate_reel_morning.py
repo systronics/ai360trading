@@ -829,7 +829,8 @@ def save_meta(script, video_path, thumb_path, intel) -> str:
     # ── v2.3 SEO TITLE: Nifty level + sentiment + date (searchable) ──────────
     sent_emoji = {"BULLISH": "📈", "BEARISH": "📉", "NEUTRAL": "⚖️"}.get(sentiment, "⚖️")
     nifty_str  = f"Nifty {nifty:,}" if nifty > 0 else "Nifty Update"
-    title      = f"{nifty_str} {sent_emoji} {sentiment} | {date_short} Morning Brief | AI360Trading"
+    # 2026-10-27 owner: no dates in titles (long-run discoverability); Nifty level keeps each title unique
+    title      = f"{nifty_str} {sent_emoji} {sentiment} | Market Brief | AI360Trading"
     title      = title[:100]
 
     # ── v2.3 SEO DESCRIPTION: 500+ chars + hashtags in body ──────────────────
