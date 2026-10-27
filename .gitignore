@@ -248,3 +248,6 @@ products/
 # block above where a real ignore rule looked structurally out of place)
 # ============================================================
 .claude/
+
+# Client project files (confidential, never commit)
+Suresh/
