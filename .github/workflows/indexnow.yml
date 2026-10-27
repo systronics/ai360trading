@@ -28,10 +28,14 @@ jobs:
           urls = re.findall(r"<loc>([^<]+)</loc>", sm)
           print("urls:", len(urls))
           body = json.dumps({"host": "ai360trading.in", "key": key, "keyLocation": f"https://ai360trading.in/{key}.txt", "urlList": urls[:9000]}).encode()
-          req = urllib.request.Request("https://api.indexnow.org/indexnow", data=body, headers={"Content-Type": "application/json; charset=utf-8"})
-          try:
-              r = urllib.request.urlopen(req, timeout=30)
-              print("IndexNow status:", r.status)
-          except Exception as e:
-              print("IndexNow response:", e)
+          ok = False
+          for ep in ("https://www.bing.com/indexnow", "https://yandex.com/indexnow", "https://api.indexnow.org/indexnow"):
+              req = urllib.request.Request(ep, data=body, headers={"Content-Type": "application/json; charset=utf-8", "User-Agent": "Mozilla/5.0 AI360Trading-IndexNow"})
+              try:
+                  r = urllib.request.urlopen(req, timeout=30)
+                  print(ep, "->", r.status)
+                  ok = ok or r.status in (200, 202)
+              except Exception as e:
+                  print(ep, "->", e)
+          print("IndexNow accepted:", ok)
           PYEOF
