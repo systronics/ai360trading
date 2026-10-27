@@ -1,0 +1,20 @@
+name: "Net Check (manual, read-only)"
+
+# 2026-10-27: one-off reachability test from GitHub's cloud for Telegram/other directories that are
+# not reachable from the owner's PC. Read-only: only HEAD/GET requests, no accounts, no posting.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - name: Reachability
+        run: |
+          for u in https://tgstat.com/ https://tgstat.com/add/channel https://tgstat.ru/ https://telemetr.io/ https://telegramchannels.me/ https://tlgrm.eu/ https://www.indexnow.org/ https://api.indexnow.org/ https://www.bing.com/ https://yandex.com/ ; do
+            echo "$u -> $(curl -s -o /dev/null -w '%{http_code}' -m 20 -A 'Mozilla/5.0' "$u")"
+          done
