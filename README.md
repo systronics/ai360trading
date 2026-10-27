@@ -93,3 +93,5 @@ See `LICENSE.md` for intellectual property terms.
 - [Image Compressor](https://ai360trading.in/tools/image-compressor/) · [QR Code Generator](https://ai360trading.in/tools/qr-code-generator/) · [All tools](https://ai360trading.in/tools/)
 
 Free weekly trading lessons (honest, with our own real numbers): [ai360trading.in/tutorial-videos](https://ai360trading.in/tutorial-videos/) · Telegram: [t.me/ai360trading](https://t.me/ai360trading)
+
+Open research: [Nifty 200 breakout backtest (code + honest numbers)](https://github.com/systronics/nifty200-breakout-backtest)

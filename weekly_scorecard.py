@@ -92,11 +92,11 @@ def build(today=None):
         c[2] += t["pl"]
     lines = [f"📊 <b>WEEK SCORECARD</b> ({s_d} - {e_d}) — paper trades"]
     if n:
-        lines.append(f"Closed: {n} | Won {wins} | Lost {n - wins} | Avg per trade {_fmt_pct(avg)} | Net ₹{net_inr:,.0f}")
+        lines.append(f"Closed: {n} | Profit trades {wins} | Loss trades {n - wins} | Hit rate {wins * 100 // n}% | Avg per trade {_fmt_pct(avg)} | Net ₹{net_inr:,.0f}")
         for name in ps._CAT_ORDER:
             if name in cats:
                 c = cats[name]
-                lines.append(f"• {name}: {c[0]} closed, {c[1]}W/{c[0] - c[1]}L, avg {_fmt_pct(c[2] / c[0])}")
+                lines.append(f"• {name}: {c[0]} closed, {c[1]} profit / {c[0] - c[1]} loss, avg {_fmt_pct(c[2] / c[0])}")
         best = max(closed, key=lambda t: t["pl"])
         worst = min(closed, key=lambda t: t["pl"])
         lines.append(f"Best: {best['sym']} {_fmt_pct(best['pl'])} | Worst: {worst['sym']} {_fmt_pct(worst['pl'])}")
@@ -105,7 +105,7 @@ def build(today=None):
     if opens:
         top = sorted(opens, key=lambda x: -x[1])[:4]
         lines.append("Open now: " + ", ".join(f"{s} {_fmt_pct(p)}" for s, p in top) + (f" (+{len(opens) - 4} more)" if len(opens) > 4 else ""))
-    lines.append("Wins and losses both shown. Paper trading, educational only. Full ledger: ai360trading.in/membership")
+    lines.append("Every closed trade counted, profit and loss. Paper trading, educational only. Full ledger: ai360trading.in/membership")
     data = {"week_start": start, "week_end": end, "closed": n, "wins": wins, "avg_pct": round(avg, 2),
             "net_inr": round(net_inr), "open": len(opens), "updated": datetime.now(IST).strftime("%Y-%m-%d %H:%M")}
     return "\n".join(lines), data
