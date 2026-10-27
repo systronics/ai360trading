@@ -1,0 +1,37 @@
+name: "IndexNow ping (Bing, Yandex, others)"
+
+# 2026-10-27: tells IndexNow search engines (Bing, Yandex, Seznam, Naver...) about every URL in our live sitemap, so new and
+# changed pages are found in hours instead of weeks. Google does NOT use IndexNow (Google reads the sitemap itself).
+# Free, no account: the key file f95be574f83cb1536ab7f7add95a4594.txt in the site root proves we own the site. Read-only for our repo.
+# Weekly + manual. The same ping can be reused after publishing (see the 'workflow_dispatch').
+
+on:
+  schedule:
+    - cron: "11 4 * * 1"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Ping IndexNow with the live sitemap URLs
+        env:
+          INDEXNOW_KEY: f95be574f83cb1536ab7f7add95a4594
+        run: |
+          python3 - <<'PYEOF'
+          import os, re, json, urllib.request
+          key = os.environ["INDEXNOW_KEY"]
+          sm = urllib.request.urlopen("https://ai360trading.in/sitemap.xml", timeout=30).read().decode("utf-8", "ignore")
+          urls = re.findall(r"<loc>([^<]+)</loc>", sm)
+          print("urls:", len(urls))
+          body = json.dumps({"host": "ai360trading.in", "key": key, "keyLocation": f"https://ai360trading.in/{key}.txt", "urlList": urls[:9000]}).encode()
+          req = urllib.request.Request("https://api.indexnow.org/indexnow", data=body, headers={"Content-Type": "application/json; charset=utf-8"})
+          try:
+              r = urllib.request.urlopen(req, timeout=30)
+              print("IndexNow status:", r.status)
+          except Exception as e:
+              print("IndexNow response:", e)
+          PYEOF
