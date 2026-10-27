@@ -1,0 +1,53 @@
+name: "Motion quota test (manual, read-only)"
+
+# 2026-10-27: measures how many Wan 2.2 clips the free Hugging Face ZeroGPU Space gives us per run WITH the
+# HF_TOKEN secret (anonymous gave only ~3). Generates short clips from a public image until the quota error,
+# prints the count and timing, uploads nothing, commits nothing.
+
+on:
+  workflow_dispatch:
+    inputs:
+      max_clips:
+        description: "Stop after this many clips even if quota remains"
+        default: "10"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install gradio_client
+      - name: Count clips until quota error
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          MAX_CLIPS: ${{ github.event.inputs.max_clips }}
+        run: |
+          python3 - <<'PYEOF'
+          import os, time
+          from gradio_client import Client, handle_file
+          tok = os.environ.get("HF_TOKEN", "")
+          print("token present:", bool(tok))
+          try:
+              c = Client("zerogpu-aoti/wan2-2-fp8da-aoti-faster", token=tok or None)
+          except TypeError:
+              c = Client("zerogpu-aoti/wan2-2-fp8da-aoti-faster", hf_token=tok or None)
+          img = "https://ai360trading.in/public/image/og-card.png"
+          ok = 0
+          t0 = time.time()
+          for i in range(int(os.environ.get("MAX_CLIPS", "10"))):
+              t = time.time()
+              try:
+                  c.predict(input_image=handle_file(img), prompt="subtle cinematic motion, smooth 3D animation", steps=6,
+                            duration_seconds=3.0, api_name="/generate_video")
+                  ok += 1
+                  print(f"clip {ok} ok in {time.time()-t:.0f}s")
+              except Exception as e:
+                  print(f"clip {i+1} FAILED after {time.time()-t:.0f}s: {str(e)[:220]}")
+                  break
+          print(f"RESULT: {ok} clips, total {time.time()-t0:.0f}s, token={'yes' if tok else 'no'}")
+          PYEOF
