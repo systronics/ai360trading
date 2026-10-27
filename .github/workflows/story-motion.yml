@@ -1,0 +1,137 @@
+name: Story Shorts — Real Motion (clip bank)
+
+# 2026-10-27 (owner approved: "make clips within the daily free limit, post when the story is complete").
+# Each run makes as many Wan 2.2 clips as the free Hugging Face ZeroGPU quota allows (measured: ~8 per day-window
+# WITH the HF_TOKEN secret) and stores them on the 'motion-bank' branch. When every scene of the next story has its
+# clips, the Short is assembled and uploaded PRIVATE with a publishAt (19:30 IST). See story_motion.py.
+#
+# KILL SWITCH: repository variable MOTION_ENABLED must be 'true' for scheduled runs (manual runs always work).
+# MANUAL: mode 'dry' = build clips/assemble only (default), 'private-test' = private upload, 'scheduled' = real.
+# Shares concurrency + _data/stories_done.json with stories-weekly.yml so a story is never published twice.
+
+on:
+  schedule:
+    - cron: "27 5,17 * * *"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "dry (no upload) | private-test | scheduled (real)"
+        required: false
+        default: "dry"
+        type: choice
+        options: [dry, private-test, scheduled]
+      story:
+        description: "Optional: force a story key"
+        required: false
+        default: ""
+
+concurrency:
+  group: stories-weekly
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  motion:
+    if: ${{ github.event_name == 'workflow_dispatch' || vars.MOTION_ENABLED == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      MODE: ${{ github.event.inputs.mode || 'scheduled' }}
+      STORY: ${{ github.event.inputs.story || '' }}
+      HF_TOKEN: ${{ secrets.HF_TOKEN }}
+      YOUTUBE_CREDENTIALS: ${{ secrets.YOUTUBE_CREDENTIALS }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      CHAT_ID_BASIC: ${{ secrets.CHAT_ID_BASIC }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      GH_REPO: ${{ github.repository }}
+      GH_PAT: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: master
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends ffmpeg fonts-dejavu fonts-liberation fonts-freefont-ttf
+
+      - name: Install Python dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt gradio_client
+
+      - name: Fetch the clip bank (branch motion-bank)
+        run: |
+          URL="https://x-access-token:${GH_PAT}@github.com/${GH_REPO}.git"
+          if git ls-remote --exit-code --heads "$URL" motion-bank >/dev/null 2>&1; then
+            git clone -q --branch motion-bank --single-branch "$URL" bank
+          else
+            mkdir bank && cd bank && git init -q -b motion-bank && git remote add origin "$URL"
+            echo "bank" > README.md
+          fi
+
+      - name: Make clips and, when a story is complete, build and upload it
+        run: |
+          if [ -n "$STORY" ]; then
+            python story_motion.py --run --mode "$MODE" --bank bank --out output/motion --story "$STORY"
+          else
+            python story_motion.py --run --mode "$MODE" --bank bank --out output/motion
+          fi
+
+      - name: Keep the preview as a downloadable file (dry / test runs)
+        if: ${{ env.MODE != 'scheduled' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: motion-preview
+          path: |
+            output/motion/*.mp4
+            output/motion/*_thumb.jpg
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Save the clip bank
+        run: |
+          cd bank
+          git config user.email "admin@ai360trading.in"
+          git config user.name "AI360-Automation"
+          git add -A
+          git diff --cached --quiet || git commit -q -m "clip bank update $(date -u +'%Y-%m-%d %H:%M')"
+          git push -q origin motion-bank || true
+
+      - name: Record what was scheduled
+        if: ${{ env.MODE == 'scheduled' }}
+        run: |
+          git config --local user.email "admin@ai360trading.in"
+          git config --local user.name "AI360-Automation"
+          git add _data/stories_done.json || true
+          git diff --cached --quiet || git commit -m "Story Short (motion) scheduled: $(date +'%Y-%m-%d') (done-list)"
+          git pull --rebase origin master || true
+          git push origin master || true
+
+      - name: Notify Telegram on failure
+        if: failure()
+        continue-on-error: true
+        env:
+          WF_NAME: "${{ github.workflow }}"
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          python - <<'PYEOF'
+          import os, json
+          from urllib.request import Request, urlopen
+          tok, chat = os.environ.get('TELEGRAM_BOT_TOKEN',''), os.environ.get('CHAT_ID_BASIC','')
+          if tok and chat:
+              msg = f"Workflow failed: {os.environ['WF_NAME']}\n{os.environ['RUN_URL']}"
+              req = Request(f"https://api.telegram.org/bot{tok}/sendMessage", data=json.dumps({"chat_id": chat, "text": msg}).encode(), headers={"Content-Type": "application/json"})
+              urlopen(req, timeout=20)
+          PYEOF

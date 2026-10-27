@@ -518,6 +518,24 @@ def build_thumbnail(story_key, img, path, face=None):
     th.save(path, quality=92)
 
 
+def make_meta(story_key, duration):
+    """Title (real search phrase), description, tags and duration for a story Short. Shared with story_motion.py."""
+    st = STORIES[story_key]
+    phrase, topic_tag = STORY_SEO.get(story_key, ("trading psychology", "TradingPsychology"))
+    hook = st["title"].split(" | ")[0]
+    title = f"{hook} | {phrase.title()} #shorts"
+    if len(title) > 100:
+        title = f"{hook} #shorts"[:100]
+    NL = chr(10)
+    desc = (phrase.capitalize() + ": " + st["desc"] + NL + NL + "This is a fictional illustrative story. Visuals are AI-generated. "
+            "Educational content, not investment advice." + NL + NL +
+            "More free lessons: https://ai360trading.in/tutorial-videos/" + NL + NL +
+            f"#{topic_tag} #StockMarketIndia #TradingPsychology #AI360Trading")
+    tags = [phrase, "trading psychology", "stock market india", "share market", "trader story", topic_tag.lower(),
+            "AI360Trading", "hindi", "shorts", "nifty"]
+    return {"title": title, "description": desc, "tags": tags, "duration_s": round(duration, 1)}
+
+
 def build_story(story_key, out_dir=OUT_DIR):
     from moviepy.editor import AudioFileClip, concatenate_videoclips, concatenate_audioclips
     st = STORIES[story_key]
@@ -556,19 +574,7 @@ def build_story(story_key, out_dir=OUT_DIR):
         pass
     print(f"[STORY:{story_key}] thumbnail variant: {'FACE' if _face else 'CHARACTER-ONLY'}")
     build_thumbnail(story_key, first_img, out_dir / f"{story_key}_thumb.jpg", face=_face)
-    phrase, topic_tag = STORY_SEO.get(story_key, ("trading psychology", "TradingPsychology"))
-    hook = st["title"].split(" | ")[0]
-    title = f"{hook} | {phrase.title()} #shorts"
-    if len(title) > 100:
-        title = f"{hook} #shorts"[:100]
-    NL = chr(10)
-    desc = (phrase.capitalize() + ": " + st["desc"] + NL + NL + "This is a fictional illustrative story. Visuals are AI-generated. "
-            "Educational content, not investment advice." + NL + NL +
-            "More free lessons: https://ai360trading.in/tutorial-videos/" + NL + NL +
-            f"#{topic_tag} #StockMarketIndia #TradingPsychology #AI360Trading")
-    tags = [phrase, "trading psychology", "stock market india", "share market", "trader story", topic_tag.lower(),
-            "AI360Trading", "hindi", "shorts", "nifty"]
-    meta = {"title": title, "description": desc, "tags": tags, "duration_s": round(video.duration, 1)}
+    meta = make_meta(story_key, video.duration)
     (out_dir / f"{story_key}_meta.json").write_text(json.dumps(meta, indent=1, ensure_ascii=False), encoding="utf-8")
     print(f"[STORY:{story_key}] done: {mp4} ({meta['duration_s']}s)")
     return mp4
