@@ -1,5 +1,5 @@
 {
-  "generated_at": "27 October 2026, 02:22 PM IST",
+  "generated_at": "27 October 2026, 08:43 PM IST",
   "setups": [
     {
       "symbol": "TECHM",
@@ -26,12 +26,12 @@
       "days_in_trade": "0"
     },
     {
-      "symbol": "JUBLFOOD",
-      "trade_type": "🔥 Cash Intraday",
-      "strategy": "CASH",
-      "stage": "🔥 CASH | +4.7% | Vol 116%",
-      "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "0"
+      "symbol": "LAURUSLABS",
+      "trade_type": "📊 Options Alert",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
     }
   ]
 }
