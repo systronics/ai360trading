@@ -6,6 +6,7 @@ name: Story Shorts — Real Motion (clip bank)
 # clips, the Short is assembled and uploaded PRIVATE with a publishAt (19:30 IST). See story_motion.py.
 #
 # KILL SWITCH: repository variable MOTION_ENABLED must be 'true' for scheduled runs (manual runs always work).
+# SCHEDULED MODE: repository variable MOTION_MODE ('dry' until the owner approves a finished video, then 'scheduled').
 # MANUAL: mode 'dry' = build clips/assemble only (default), 'private-test' = private upload, 'scheduled' = real.
 # Shares concurrency + _data/stories_done.json with stories-weekly.yml so a story is never published twice.
 
@@ -38,7 +39,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
-      MODE: ${{ github.event.inputs.mode || 'scheduled' }}
+      MODE: ${{ github.event.inputs.mode || vars.MOTION_MODE || 'dry' }}
       STORY: ${{ github.event.inputs.story || '' }}
       HF_TOKEN: ${{ secrets.HF_TOKEN }}
       YOUTUBE_CREDENTIALS: ${{ secrets.YOUTUBE_CREDENTIALS }}
