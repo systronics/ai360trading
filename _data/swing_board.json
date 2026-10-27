@@ -1,5 +1,5 @@
 {
-  "generated_at": "27 October 2026, 01:52 PM IST",
+  "generated_at": "27 October 2026, 02:22 PM IST",
   "setups": [
     {
       "symbol": "TECHM",
@@ -32,22 +32,6 @@
       "stage": "🔥 CASH | +4.7% | Vol 116%",
       "status": "✅ TRADED (PAPER)",
       "days_in_trade": "0"
-    },
-    {
-      "symbol": "INDHOTEL",
-      "trade_type": "📊 Options Alert",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "LAURUSLABS",
-      "trade_type": "📊 Options Alert",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
     }
   ]
 }
