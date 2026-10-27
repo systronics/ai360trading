@@ -1,0 +1,54 @@
+name: "Meta permissions check (manual, read-only)"
+
+# 2026-10-27: read-only. Lists which Meta permissions the stored token has (names only, never the token)
+# and whether the linked Instagram business account is reachable, to decide if Instagram auto-posting is possible.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - name: Check permissions
+        env:
+          META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
+          IG_ID: ${{ secrets.INSTAGRAM_BUSINESS_ACCOUNT_ID }}
+          PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
+        run: |
+          python3 - <<'PYEOF'
+          import os, json
+          from urllib.request import urlopen
+          from urllib.error import HTTPError
+          from urllib.parse import quote
+          tok = os.environ.get("META_ACCESS_TOKEN", "")
+          def get(path):
+              try:
+                  return json.loads(urlopen("https://graph.facebook.com/v19.0/" + path + ("&" if "?" in path else "?") + "access_token=" + quote(tok), timeout=30).read())
+              except HTTPError as e:
+                  try:
+                      return {"error": json.loads(e.read()).get("error", {}).get("message", str(e))}
+                  except Exception:
+                      return {"error": str(e)}
+              except Exception as e:
+                  return {"error": str(e)}
+          print("token present:", bool(tok))
+          p = get("me/permissions")
+          if "error" in p:
+              print("permissions error:", p["error"])
+          else:
+              for x in p.get("data", []):
+                  print(" ", x.get("permission"), x.get("status"))
+          ig = os.environ.get("IG_ID", "")
+          print("IG id secret present:", bool(ig))
+          if ig:
+              r = get(f"{ig}?fields=username,media_count")
+              print("IG account:", r if "error" in r else {"username": r.get("username"), "media_count": r.get("media_count")})
+          page = os.environ.get("PAGE_ID", "")
+          if page:
+              r = get(f"{page}?fields=name,instagram_business_account")
+              print("Page:", r if "error" in r else {"name": r.get("name"), "ig_linked": bool(r.get("instagram_business_account"))})
+          PYEOF
