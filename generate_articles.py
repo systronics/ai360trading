@@ -1747,6 +1747,15 @@ TRENDING SEARCHES: {', '.join(trends[:8])}
     projections are allowed ONLY with the assumption stated ("assuming 12%
     annual returns"). If you are not certain a number is real, make the
     point WITHOUT the number.
+    SIP / LUMP-SUM ARITHMETIC (verified 2026-10-27 — the model kept inventing
+    wrong corpus figures): the ONLY allowed worked examples are these, computed
+    with monthly compounding: Rs.5,000/month for 25 years (Rs.15 lakh invested)
+    grows to about Rs.48 lakh at 8%, Rs.67 lakh at 10%, Rs.95 lakh at 12%.
+    A Rs.15 lakh lump sum left for 25 years becomes about Rs.1.03 crore at 8%,
+    Rs.1.6 crore at 10%, Rs.2.55 crore at 12% (a lump sum invested on day one
+    beats the same money invested monthly — never claim SIP beats lump sum on
+    returns; SIP wins on discipline and affordability). Do NOT write any other
+    SIP/lump-sum corpus figure, and always state the return assumption.
 
 === ARTICLE STRUCTURE ===
 Use EXACTLY these section names:
