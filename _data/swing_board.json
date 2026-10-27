@@ -1,5 +1,5 @@
 {
-  "generated_at": "26 October 2026, 08:59 PM IST",
+  "generated_at": "27 October 2026, 01:52 PM IST",
   "setups": [
     {
       "symbol": "TECHM",
@@ -7,7 +7,7 @@
       "strategy": "➖ HOLD",
       "stage": "📉 CORR.END | 🔄 Building Momentum",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "11"
+      "days_in_trade": "12"
     },
     {
       "symbol": "HCLTECH",
@@ -15,7 +15,23 @@
       "strategy": "➖ HOLD",
       "stage": "🚀 MOMENTUM BREAKOUT | ⏸ No Setup",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "11"
+      "days_in_trade": "12"
+    },
+    {
+      "symbol": "KOTAKBANK",
+      "trade_type": "🔄 Swing",
+      "strategy": "➖ HOLD",
+      "stage": "⚡ BREAKOUT ALERT",
+      "status": "✅ TRADED (PAPER)",
+      "days_in_trade": "0"
+    },
+    {
+      "symbol": "JUBLFOOD",
+      "trade_type": "🔥 Cash Intraday",
+      "strategy": "CASH",
+      "stage": "🔥 CASH | +4.7% | Vol 116%",
+      "status": "✅ TRADED (PAPER)",
+      "days_in_trade": "0"
     },
     {
       "symbol": "INDHOTEL",
@@ -30,14 +46,6 @@
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "KOTAKBANK",
-      "trade_type": "🔄 Swing",
-      "strategy": "➖ HOLD",
-      "stage": "⚡ BREAKOUT ALERT",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
