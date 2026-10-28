@@ -1,5 +1,5 @@
 {
-  "generated_at": "28 October 2026, 02:58 PM IST",
+  "generated_at": "28 October 2026, 09:43 PM IST",
   "setups": [
     {
       "symbol": "TECHM",
@@ -18,15 +18,7 @@
       "days_in_trade": "1"
     },
     {
-      "symbol": "BANKINDIA",
-      "trade_type": "🔥 Cash Intraday",
-      "strategy": "CASH",
-      "stage": "🔥 WATCHLIST CASH | +4.5% | Bank of India",
-      "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "0"
-    },
-    {
-      "symbol": "INDHOTEL",
+      "symbol": "LAURUSLABS",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
@@ -34,7 +26,7 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "LAURUSLABS",
+      "symbol": "INDHOTEL",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
