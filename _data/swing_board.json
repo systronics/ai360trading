@@ -1,5 +1,5 @@
 {
-  "generated_at": "28 October 2026, 02:28 PM IST",
+  "generated_at": "28 October 2026, 02:58 PM IST",
   "setups": [
     {
       "symbol": "TECHM",
@@ -7,14 +7,6 @@
       "strategy": "➖ HOLD",
       "stage": "📉 CORR.END | 🔄 Building Momentum",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "13"
-    },
-    {
-      "symbol": "HCLTECH",
-      "trade_type": "📈 Positional",
-      "strategy": "➖ HOLD",
-      "stage": "🚀 MOMENTUM BREAKOUT | ⏸ No Setup",
-      "status": "EXITED (⏰ TIME STOP (8d, +1.8%))",
       "days_in_trade": "13"
     },
     {
@@ -34,10 +26,26 @@
       "days_in_trade": "0"
     },
     {
+      "symbol": "INDHOTEL",
+      "trade_type": "📊 Options Alert",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
       "symbol": "LAURUSLABS",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "COFORGE",
+      "trade_type": "📊 Options Alert",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
