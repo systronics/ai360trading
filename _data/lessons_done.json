@@ -8,5 +8,15 @@
       "video": "SEaPNw7hbTU",
       "publish_at": "2026-10-25T13:30:00+00:00"
     }
+  },
+  "rm01": {
+    "us-en": {
+      "video": "Se-SlvubkEY",
+      "publish_at": "2026-10-31T14:00:00+00:00"
+    },
+    "in-hi": {
+      "video": "p3gBCIlQF6Q",
+      "publish_at": "2026-11-01T13:30:00+00:00"
+    }
   }
 }
