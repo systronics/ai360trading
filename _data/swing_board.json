@@ -1,5 +1,5 @@
 {
-  "generated_at": "27 October 2026, 08:43 PM IST",
+  "generated_at": "28 October 2026, 02:28 PM IST",
   "setups": [
     {
       "symbol": "TECHM",
@@ -7,21 +7,29 @@
       "strategy": "➖ HOLD",
       "stage": "📉 CORR.END | 🔄 Building Momentum",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "12"
+      "days_in_trade": "13"
     },
     {
       "symbol": "HCLTECH",
       "trade_type": "📈 Positional",
       "strategy": "➖ HOLD",
       "stage": "🚀 MOMENTUM BREAKOUT | ⏸ No Setup",
-      "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "12"
+      "status": "EXITED (⏰ TIME STOP (8d, +1.8%))",
+      "days_in_trade": "13"
     },
     {
       "symbol": "KOTAKBANK",
       "trade_type": "🔄 Swing",
       "strategy": "➖ HOLD",
       "stage": "⚡ BREAKOUT ALERT",
+      "status": "✅ TRADED (PAPER)",
+      "days_in_trade": "1"
+    },
+    {
+      "symbol": "BANKINDIA",
+      "trade_type": "🔥 Cash Intraday",
+      "strategy": "CASH",
+      "stage": "🔥 WATCHLIST CASH | +4.5% | Bank of India",
       "status": "✅ TRADED (PAPER)",
       "days_in_trade": "0"
     },
