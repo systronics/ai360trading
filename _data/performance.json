@@ -1,11 +1,11 @@
 {
-  "as_of": "October 27, 2026",
-  "total": 82,
-  "wins": 36,
+  "as_of": "October 28, 2026",
+  "total": 84,
+  "wins": 38,
   "losses": 46,
-  "win_rate": 44,
-  "net_pnl_rs": 2660,
-  "avg_win_pct": 2.4,
+  "win_rate": 45,
+  "net_pnl_rs": 2817,
+  "avg_win_pct": 2.3,
   "avg_loss_pct": -1.5,
   "best": {
     "sym": "CUMMINSIND",
@@ -17,41 +17,41 @@
   },
   "recent": [
     {
+      "sym": "BANKINDIA",
+      "exit_date": "2026-10-28",
+      "pct": 0.52,
+      "is_win": true
+    },
+    {
+      "sym": "HCLTECH",
+      "exit_date": "2026-10-28",
+      "pct": 1.76,
+      "is_win": true
+    },
+    {
       "sym": "JUBLFOOD",
       "exit_date": "2026-10-27",
       "pct": 1.14,
       "is_win": true
-    },
-    {
-      "sym": "ETERNAL",
-      "exit_date": "2026-10-26",
-      "pct": 2.74,
-      "is_win": true
-    },
-    {
-      "sym": "KOTAKBANK",
-      "exit_date": "2026-10-23",
-      "pct": -3.98,
-      "is_win": false
     }
   ],
   "since": "2026-05-13",
   "by_type": [
     {
       "name": "Swing & positional",
-      "trades": 19,
-      "win_rate": 63,
-      "avg_win_pct": 4.5,
+      "trades": 20,
+      "win_rate": 65,
+      "avg_win_pct": 4.2,
       "avg_loss_pct": -2.4,
-      "net_pnl_rs": 4770
+      "net_pnl_rs": 4891
     },
     {
       "name": "Intraday (cash)",
-      "trades": 44,
-      "win_rate": 41,
-      "avg_win_pct": 1.5,
+      "trades": 45,
+      "win_rate": 42,
+      "avg_win_pct": 1.4,
       "avg_loss_pct": -1.2,
-      "net_pnl_rs": -402
+      "net_pnl_rs": -366
     },
     {
       "name": "Options alerts",
