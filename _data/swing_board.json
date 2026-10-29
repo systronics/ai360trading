@@ -1,5 +1,5 @@
 {
-  "generated_at": "29 October 2026, 02:54 PM IST",
+  "generated_at": "29 October 2026, 03:24 PM IST",
   "setups": [
     {
       "symbol": "TECHM",
@@ -16,14 +16,6 @@
       "stage": "⚡ BREAKOUT ALERT",
       "status": "✅ TRADED (PAPER)",
       "days_in_trade": "2"
-    },
-    {
-      "symbol": "BIOCON",
-      "trade_type": "🔥 Cash Intraday",
-      "strategy": "CASH",
-      "stage": "🔥 CASH | +5.5% | Vol 52%",
-      "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "0"
     },
     {
       "symbol": "LAURUSLABS",
