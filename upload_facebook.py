@@ -482,6 +482,10 @@ def resolve_meta_and_video(prefix: str):
     elif prefix == "education":
         meta_patterns  = [f"education_meta_{today}_bi.json", "education_meta_*.json"]
         video_patterns = ["education_video_bi.mp4", "education_video_*.mp4"]
+    elif prefix == "story":
+        # 2026-10-29: Pixar-style story Shorts written by emotion_story.py into output/story/
+        meta_patterns  = ["story/*_meta.json"]
+        video_patterns = ["story/*_story.mp4"]
     else:
         meta_patterns  = [f"meta_{today}.json", "meta_*.json"]
         video_patterns = [f"reel_{today}.mp4", "reel_*.mp4"]
@@ -631,6 +635,30 @@ def main():
                              video_path, caption, page_token)
         else:
             print("⚠️ Education video not found — skipping Facebook education upload")
+        return
+
+    # ── Story Short (Pixar-style, evergreen) → Facebook Page Reel ONLY ─────────
+    # No Group post, no RSS share, no Instagram here: one clean reel per story.
+    if prefix == "story":
+        if not FACEBOOK_PAGE_ID:
+            print("⚠️ FACEBOOK_PAGE_ID not set — skipping story FB upload")
+            return
+        if not (video_path and video_path.exists()):
+            print("⚠️ Story video not found — skipping Facebook story upload")
+            return
+        page_token = get_page_token(FACEBOOK_PAGE_ID, META_ACCESS_TOKEN)
+        title = (meta.get("title") or "Trading psychology story").replace(" #shorts", "").replace(" #Shorts", "").strip()
+        desc  = (meta.get("description") or "").split("More free lessons")[0].strip()
+        caption = (
+            f"{title}\n\n{desc}\n\n"
+            f"🎯 Free trading lessons → {_fb_tg()}\n"
+            f"🌐 ai360trading.in\n"
+            f"⚠️ Educational only. Not SEBI registered.\n"
+            f"{ai_disclosure('hi')}\n"
+            f"#TradingPsychology #StockMarketIndia #ShareMarket"
+        )
+        print(f"🎥 Story reel: {video_path.name}")
+        upload_reel_to_page(FACEBOOK_PAGE_ID, "AI360Trading Page", video_path, caption, page_token)
         return
 
     # ── Main Page + Group + Instagram ─────────────────────────────────────────

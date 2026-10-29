@@ -59,7 +59,7 @@ MORE = {
         "charts": ["flat", "flat", "down", "down", "flat"],
         "accent": (255, 100, 170),
         "tag": "OVERTRADING",
-        "title": "52 Trades In One Day | A Trader's Story #shorts",
+        "title": "Too Many Trades In One Day | A Trader's Story #shorts",
         "who": "an Indian man in his 30s with short black hair wearing a dark blue t-shirt",
         "scenes": [
             ("अमित को खाली बैठना पसंद नहीं था। उसे लगता था, ट्रेड नहीं किया तो मौका गया।",

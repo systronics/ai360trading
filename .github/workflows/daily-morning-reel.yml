@@ -26,6 +26,7 @@ on:
 
 jobs:
   morning-reel:
+    if: ${{ github.event_name == 'workflow_dispatch' || vars.LEGACY_REELS != 'off' }}  # 2026-10-29: set repo variable LEGACY_REELS=off to retire the daily info-card reels/Shorts (manual runs still work)
     runs-on: ubuntu-latest
     timeout-minutes: 30
 

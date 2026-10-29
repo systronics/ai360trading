@@ -49,6 +49,8 @@ jobs:
       CHAT_ID_BASIC: ${{ secrets.CHAT_ID_BASIC }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
+      FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
 
     steps:
       - name: Checkout
@@ -89,6 +91,16 @@ jobs:
             output/story/*.mp4
             output/story/*_thumb.jpg
           retention-days: 7
+
+      - name: Post the same story to the Facebook Page as a Reel (only when a new story was scheduled this run)
+        if: ${{ env.MODE == 'scheduled' }}
+        continue-on-error: true
+        run: |
+          if git diff --quiet _data/stories_done.json; then
+            echo 'no new story this run, skipping Facebook'
+          else
+            python upload_facebook.py --meta-prefix story
+          fi
 
       - name: Record what was scheduled
         if: ${{ env.MODE == 'scheduled' }}
