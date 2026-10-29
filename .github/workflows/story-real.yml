@@ -8,6 +8,8 @@ name: Story Short — Real Footage (manual until approved)
 # MODES: dry (build only, preview artifact), private-test (uploads PRIVATE, not marked done), scheduled (real, publishAt 19:30 IST).
 
 on:
+  schedule:
+    - cron: "47 6 * * 2,4"   # Tue + Thu 06:47 UTC; runs in MODE = repo variable REAL_MODE (default dry). Owner flips REAL_MODE=scheduled AND STORIES_ENABLED off together.
   workflow_dispatch:
     inputs:
       mode:
@@ -33,7 +35,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 40
     env:
-      MODE: ${{ github.event.inputs.mode || 'dry' }}
+      MODE: ${{ github.event.inputs.mode || vars.REAL_MODE || 'dry' }}
       STORY: ${{ github.event.inputs.story || '' }}
       PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
       YOUTUBE_CREDENTIALS: ${{ secrets.YOUTUBE_CREDENTIALS }}
