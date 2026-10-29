@@ -268,7 +268,9 @@ def scene_video(paths, dur, overlay_rgb, overlay_alpha):
     zoom = base.resize(lambda t: 1.0 + 0.045 * t / max(dur, 0.1)).set_position("center")
     ov = ImageClip(overlay_rgb).set_duration(dur)
     ov = ov.set_mask(ImageClip(overlay_alpha, ismask=True).set_duration(dur))
-    return CompositeVideoClip([zoom, ov], size=(W, H)).set_duration(dur).set_fps(FPS)
+    comp = CompositeVideoClip([zoom, ov], size=(W, H)).set_duration(dur).set_fps(FPS)
+    comp.plain = CompositeVideoClip([zoom], size=(W, H)).set_duration(dur)   # same footage without captions (for the thumbnail)
+    return comp
 
 
 def ambient_bed(dur, sr=44100):
@@ -314,7 +316,7 @@ def build(key, out_dir, cache_dir):
         rgb, alpha = overlay(st["accent"], st["tag"], cap, i, n)
         sc = scene_video(paths, dur, rgb, alpha)
         if i == 1 or frame_for_thumb is None:
-            frame_for_thumb = Image.fromarray(sc.get_frame(min(1.0, dur - 0.1))).convert("RGB")
+            frame_for_thumb = Image.fromarray(sc.plain.get_frame(min(1.0, dur - 0.1))).convert("RGB")
         bed = ambient_bed(dur)
         bed = AudioArrayClip(np.stack([bed, bed], axis=1), fps=44100)
         sc = sc.set_audio(CompositeAudioClip([bed, voice.set_start(0)]).set_duration(dur))
