@@ -1,0 +1,122 @@
+name: Story Short — Real Footage (manual until approved)
+
+# 2026-10-29: realistic story Shorts from real Pexels stock footage (no AI video), English narration for a worldwide audience.
+# MANUAL ONLY for now: owner reviews a dry-run preview first. To make it the weekly Short later:
+#   1) add a schedule here (Tue + Thu, like stories-weekly.yml), 2) set repo variable STORIES_ENABLED to anything but 'true'
+#   so the old image-based stories-weekly.yml stops, 3) keep this workflow's concurrency group the same so a story is never
+#   published twice (both share _data/stories_done.json).
+# MODES: dry (build only, preview artifact), private-test (uploads PRIVATE, not marked done), scheduled (real, publishAt 19:30 IST).
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "dry | private-test | scheduled"
+        required: false
+        default: "dry"
+        type: choice
+        options: [dry, private-test, scheduled]
+      story:
+        description: "Optional: force a story key (fear, greed, patience, fomo, revenge, averaging, tip, overtrade, nostop, leverage)"
+        required: false
+        default: ""
+
+concurrency:
+  group: stories-weekly
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  story:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      MODE: ${{ github.event.inputs.mode || 'dry' }}
+      STORY: ${{ github.event.inputs.story || '' }}
+      PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+      YOUTUBE_CREDENTIALS: ${{ secrets.YOUTUBE_CREDENTIALS }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      CHAT_ID_BASIC: ${{ secrets.CHAT_ID_BASIC }}
+      META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
+      FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: master
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends ffmpeg fonts-dejavu fonts-liberation fonts-freefont-ttf
+
+      - name: Install Python dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Build the real-footage story Short
+        run: |
+          if [ -n "$STORY" ]; then
+            python story_real.py --run --mode "$MODE" --story "$STORY" --out output/story
+          else
+            python story_real.py --run --mode "$MODE" --out output/story
+          fi
+
+      - name: Keep the preview as a downloadable file (dry / test runs)
+        if: ${{ env.MODE != 'scheduled' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: story-real-preview
+          path: |
+            output/story/*.mp4
+            output/story/*_thumb.jpg
+            output/story/*_meta.json
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Post the same story to Facebook (and Instagram) when a new story was scheduled
+        if: ${{ env.MODE == 'scheduled' }}
+        continue-on-error: true
+        run: |
+          if git diff --quiet _data/stories_done.json; then
+            echo 'no new story this run, skipping Facebook/Instagram'
+          else
+            python upload_facebook.py --meta-prefix story
+          fi
+
+      - name: Record what was scheduled
+        if: ${{ env.MODE == 'scheduled' }}
+        run: |
+          git config --local user.email "admin@ai360trading.in"
+          git config --local user.name "AI360-Automation"
+          git add _data/stories_done.json || true
+          git diff --cached --quiet || git commit -m "Story Short (real footage) scheduled: $(date +'%Y-%m-%d') (done-list)"
+          git pull --rebase origin master || true
+          git push origin master || true
+
+      - name: Notify Telegram on failure
+        if: failure()
+        continue-on-error: true
+        env:
+          WF_NAME: "${{ github.workflow }}"
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          python - <<'PYEOF'
+          import os, json
+          from urllib.request import Request, urlopen
+          tok, chat = os.environ.get('TELEGRAM_BOT_TOKEN',''), os.environ.get('CHAT_ID_BASIC','')
+          if tok and chat:
+              msg = f"Workflow failed: {os.environ['WF_NAME']}\n{os.environ['RUN_URL']}"
+              req = Request(f"https://api.telegram.org/bot{tok}/sendMessage", data=json.dumps({"chat_id": chat, "text": msg}).encode(), headers={"Content-Type": "application/json"})
+              urlopen(req, timeout=20)
+          PYEOF
