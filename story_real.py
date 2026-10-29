@@ -333,6 +333,30 @@ def build(key, out_dir, cache_dir):
     return mp4, thumb, meta
 
 
+def register_extras():
+    """Load auto-written stories (story_writer.py -> _data/stories_extra.json) into the same tables as the built-in ten."""
+    try:
+        import story_writer as W
+        for s in W.load_extra():
+            k = s["key"]
+            if k in EN:
+                continue
+            E.STORIES[k] = {"accent": W.ACCENTS.get(s["accent"], (235, 70, 70)), "tag": s["tag"].upper(),
+                            "title": s["title"] + " | A Trader's Story #shorts", "desc": s["desc"],
+                            "scenes": [("", c, "") for c in s["captions"]], "charts": ["flat"] * 5, "who": ""}
+            E.THUMB_TEXT[k] = s["thumb_text"]
+            if k not in E.STORY_ORDER:
+                E.STORY_ORDER.append(k)
+            EN[k] = list(s["narration"])
+            QUERIES[k] = list(s["queries"])
+            EN_SEO[k] = (s["seo_phrase"], s["topic_tag"])
+    except Exception as e:
+        print(f"[REAL] extra stories not loaded (fail-open): {str(e)[:120]}")
+
+
+register_extras()
+
+
 def make_meta(key, duration):
     st = E.STORIES[key]
     phrase, tag = EN_SEO.get(key, ("trading psychology", "TradingPsychology"))
@@ -356,9 +380,23 @@ def run(mode, out_dir, cache_dir, story=None):
     try:
         done = E._load_done()
         used = {x.get("story") for x in done}
-        key = story or next((k for k in E.STORY_ORDER if k in EN and k not in used), None)
+        unused = [k for k in E.STORY_ORDER if k in EN and k not in used]
+        if not story and len(unused) < 3:
+            # queue running low: write new stories automatically (story_writer.py, theme bank, validated)
+            try:
+                import story_writer as W
+                new = W.top_up(3, existing_keys=set(EN))
+                register_extras()
+                if new:
+                    E._tg("<b>AI360: wrote " + str(len(new)) + " new story scripts automatically</b>" + chr(10) +
+                          chr(10).join("- " + s["title"] for s in new) + chr(10) +
+                          "They publish PRIVATE first (goes live 19:30 IST), so you can cancel one in YouTube Studio.")
+            except Exception as e:
+                print(f"[REAL] auto top-up failed (fail-open): {str(e)[:120]}")
+            unused = [k for k in E.STORY_ORDER if k in EN and k not in used]
+        key = story or (unused[0] if unused else None)
         if not key:
-            E._tg("AI360 story Shorts (real footage): the story queue is EMPTY. Ask Claude to add more stories.")
+            E._tg("AI360 story Shorts (real footage): the story queue is EMPTY and the automatic writer could not add valid stories. Nothing was published.")
             print("[REAL] queue empty")
             return 0
         print(f"[REAL] story = {key} (mode={mode})")
