@@ -614,7 +614,7 @@ def _next_publish(now=None):
     return cand
 
 
-def _upload(mp4, title, desc, tags, thumb, publish_at=None):
+def _upload(mp4, title, desc, tags, thumb, publish_at=None, lang="hi"):
     from google.oauth2.credentials import Credentials
     from googleapiclient.discovery import build
     from googleapiclient.http import MediaFileUpload
@@ -626,7 +626,7 @@ def _upload(mp4, title, desc, tags, thumb, publish_at=None):
     if publish_at:
         status["publishAt"] = publish_at.strftime("%Y-%m-%dT%H:%M:%S.000Z")
     body = {"snippet": {"title": title[:100], "description": desc[:4900], "tags": tags[:15], "categoryId": "27",
-                        "defaultLanguage": "hi", "defaultAudioLanguage": "hi"}, "status": status}
+                        "defaultLanguage": lang, "defaultAudioLanguage": lang}, "status": status}
     req = yt.videos().insert(part="snippet,status", body=body,
                              media_body=MediaFileUpload(mp4, mimetype="video/mp4", resumable=True, chunksize=8 * 1024 * 1024))
     resp = None

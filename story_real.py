@@ -378,11 +378,11 @@ def run(mode, out_dir, cache_dir, story=None):
         NL = chr(10)
         desc = meta["description"] + NL + NL + funnel + NL + NL + ai_disclosure("en")
         if mode == "private-test":
-            vid = E._upload(str(mp4), "[TEST - private] " + meta["title"], desc, meta["tags"], str(thumb), None)
+            vid = E._upload(str(mp4), "[TEST - private] " + meta["title"], desc, meta["tags"], str(thumb), None, lang="en")
             print(f"[REAL] PRIVATE TEST uploaded: https://youtu.be/{vid} (not announced, not marked done)")
             return 0
         when = E._next_publish()
-        vid = E._upload(str(mp4), meta["title"], desc, meta["tags"], str(thumb), when)
+        vid = E._upload(str(mp4), meta["title"], desc, meta["tags"], str(thumb), when, lang="en")
         print(f"[REAL] scheduled {vid} for {when.isoformat()}")
         done.append({"story": key, "video": vid, "publish_at": when.isoformat(), "kind": "real"})
         E._save_done(done)
