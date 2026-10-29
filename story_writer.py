@@ -153,6 +153,20 @@ def validate(s):
         return False, f"validator error {e}"
 
 
+def _clean(x):
+    """Normalise typographic dashes/quotes the AI likes to emit (they can trip TTS and the caption font)."""
+    if isinstance(x, str):
+        for bad, good in (("‑", "-"), ("‐", "-"), ("–", "-"), ("—", ", "), ("’", "'"), ("‘", "'"),
+                          ("“", '"'), ("”", '"'), ("…", "...")):
+            x = x.replace(bad, good)
+        return x
+    if isinstance(x, list):
+        return [_clean(i) for i in x]
+    if isinstance(x, dict):
+        return {k: _clean(v) for k, v in x.items()}
+    return x
+
+
 def load_extra():
     try:
         return json.loads(EXTRA_FILE.read_text(encoding="utf-8")).get("stories", [])
@@ -183,6 +197,7 @@ def write_stories(n=3, existing_keys=(), verbose=False):
             except Exception as e:
                 print(f"[WRITER] {key} attempt {attempt + 1} AI error: {str(e)[:100]}")
                 continue
+            data = _clean(data)
             ok, why = validate(data)
             if ok:
                 story = data
