@@ -1,5 +1,5 @@
 {
-  "generated_at": "29 October 2026, 02:24 PM IST",
+  "generated_at": "29 October 2026, 02:54 PM IST",
   "setups": [
     {
       "symbol": "TECHM",
@@ -23,14 +23,6 @@
       "strategy": "CASH",
       "stage": "🔥 CASH | +5.5% | Vol 52%",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "0"
-    },
-    {
-      "symbol": "EXIDEIND",
-      "trade_type": "🔥 Cash Intraday",
-      "strategy": "CASH",
-      "stage": "🔥 CASH | +4.4% | Vol 169%",
-      "status": "EXITED (🔔 TRAILING SL HIT)",
       "days_in_trade": "0"
     },
     {
