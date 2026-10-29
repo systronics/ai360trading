@@ -659,6 +659,13 @@ def main():
         )
         print(f"🎥 Story reel: {video_path.name}")
         upload_reel_to_page(FACEBOOK_PAGE_ID, "AI360Trading Page", video_path, caption, page_token)
+        # 2026-10-29 owner: the same story Reel also goes to Instagram (own content, no watermark, fail-open)
+        if INSTAGRAM_BUSINESS_ACCOUNT_ID:
+            try:
+                upload_reel_to_instagram(INSTAGRAM_BUSINESS_ACCOUNT_ID, video_path,
+                                         caption + "\n#Reels #InstagramReels", page_token)
+            except Exception as e:
+                print(f"  ⚠️ Instagram story upload failed (fail-open): {e}")
         return
 
     # ── Main Page + Group + Instagram ─────────────────────────────────────────
