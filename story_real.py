@@ -122,7 +122,7 @@ QUERIES = {
              "finger pressing laptop keyboard", "sunrise through window city morning", "hand writing in notebook morning coffee"],
     "greed": ["green stock chart rising on screen", "stack of money cash close up", "hands typing on laptop trading",
               "red candlestick chart falling on screen", "empty office desk laptop night"],
-    "patience": ["person sitting calmly at laptop morning coffee", "stock chart on screen sideways",
+    "patience": ["hands holding coffee cup beside laptop morning light", "stock chart on screen sideways",
                  "crowd walking fast city street blur", "green candlestick chart breakout screen", "sunrise city skyline calm"],
     "fomo": ["stock market screen green candles", "phone notifications messages scrolling", "finger tapping smartphone screen",
              "stock chart red falling on screen", "city traffic night lights"],
