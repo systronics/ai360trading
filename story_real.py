@@ -39,6 +39,7 @@ if not hasattr(Image, "ANTIALIAS"):          # moviepy 1.0.3 still calls the old
 
 W, H = E.W, E.H
 FPS = 24
+CUT_SECONDS = 2.8   # 2026-10-30: shorter cuts (2-4 shots per scene) feel edited, not like one long stock clip
 VOICES_EN = ["en-US-AndrewNeural", "en-US-GuyNeural", "en-IN-PrabhatNeural"]
 EN_PROFILES = [("+2%", "+0Hz"), ("+6%", "+4Hz"), ("+8%", "+6Hz"), ("-2%", "-4Hz"), ("+0%", "+0Hz")]
 
@@ -190,7 +191,7 @@ def _best_file(video):
     return sorted(pool, key=lambda f: abs(f["height"] - 1920))[0]
 
 
-def get_footage(query, key, cache_dir, used, need_seconds, tries=3):
+def get_footage(query, key, cache_dir, used, need_seconds, tries=4):
     """Download up to `tries` distinct clips for a query until they cover need_seconds. Returns [Path]."""
     import requests
     out, total = [], 0.0
@@ -209,7 +210,7 @@ def get_footage(query, key, cache_dir, used, need_seconds, tries=3):
                         fh.write(chunk)
         used.add(v["id"])
         out.append(p)
-        total += min(6.0, float(v.get("duration", 4)))
+        total += min(CUT_SECONDS, float(v.get("duration", 4)))
         if total >= need_seconds or len(out) >= tries:
             break
     return out
@@ -251,21 +252,33 @@ def overlay(accent, tag, caption, idx, n):
     return arr[..., :3].astype(np.uint8), (arr[..., 3].astype(np.float32) / 255.0)
 
 
-def scene_video(paths, dur, overlay_rgb, overlay_alpha):
+def _grade(frame):
+    """Light cinematic grade: a little contrast and warmth, same on every shot so the cuts feel like one film."""
+    f = frame.astype(np.float32)
+    f = (f - 128.0) * 1.08 + 128.0 + 3.0
+    f[..., 0] *= 1.02
+    f[..., 2] *= 0.98
+    return np.clip(f, 0, 255).astype(np.uint8)
+
+
+def scene_video(paths, dur, overlay_rgb, overlay_alpha, zoom_out=False):
     """Cover-crop footage to 1080x1920, join clips to length, gentle push-in, then the caption overlay."""
     from moviepy.editor import VideoFileClip, concatenate_videoclips, CompositeVideoClip, ImageClip
     import moviepy.video.fx.all as vfx
     parts = []
     for p in paths:
         c = VideoFileClip(str(p), audio=False)
-        c = c.subclip(0, min(c.duration, 6.0))
+        c = c.subclip(0, min(c.duration, CUT_SECONDS)).fl_image(_grade)
         s = max(W / c.w, H / c.h)
         parts.append(c.resize(s))
     base = parts[0] if len(parts) == 1 else concatenate_videoclips(parts, method="compose")
     if base.duration < dur:
         base = vfx.loop(base, duration=dur) if base.duration >= 2.5 else base.fx(vfx.speedx, final_duration=dur)
     base = base.subclip(0, dur)
-    zoom = base.resize(lambda t: 1.0 + 0.045 * t / max(dur, 0.1)).set_position("center")
+    if zoom_out:
+        zoom = base.resize(lambda t: 1.045 - 0.045 * t / max(dur, 0.1)).set_position("center")
+    else:
+        zoom = base.resize(lambda t: 1.0 + 0.045 * t / max(dur, 0.1)).set_position("center")
     ov = ImageClip(overlay_rgb).set_duration(dur)
     ov = ov.set_mask(ImageClip(overlay_alpha, ismask=True).set_duration(dur))
     comp = CompositeVideoClip([zoom, ov], size=(W, H)).set_duration(dur).set_fps(FPS)
@@ -348,7 +361,7 @@ def build(key, out_dir, cache_dir, lang="en"):
         if not paths:
             raise RuntimeError(f"no footage for scene {i + 1}: {QUERIES[key][i]!r}")
         rgb, alpha = overlay(st["accent"], st["tag"], cap, i, n)
-        sc = scene_video(paths, dur, rgb, alpha)
+        sc = scene_video(paths, dur, rgb, alpha, zoom_out=(i % 2 == 1))
         if i == 1 or frame_for_thumb is None:
             frame_for_thumb = Image.fromarray(sc.plain.get_frame(min(1.0, dur - 0.1))).convert("RGB")
         bed = ambient_bed(dur)

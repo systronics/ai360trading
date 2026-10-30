@@ -1585,7 +1585,8 @@ def generate_article(pillar, prices, trends, fear_greed, persona, article_index,
         if pillar["id"] in ["stock-market","bitcoin","personal-finance","ai-trading"] else 0
     )
     fmt = FORMAT_TYPES[(day_of_year + article_index + _pillar_idx * 17) % len(FORMAT_TYPES)]
-    if CONTENT_MODE in ("holiday", "weekend") or day_of_year % 4 == 3:
+    ALWAYS_EVERGREEN = True   # 2026-10-30 owner: date-bound market articles stopped earning; every article is now an evergreen format
+    if ALWAYS_EVERGREEN or CONTENT_MODE in ("holiday", "weekend") or day_of_year % 4 == 3:
         fmt = EVERGREEN_FORMATS[(day_of_year // 4 + _pillar_idx) % len(EVERGREEN_FORMATS)]
     book_block = ""
     if fmt == "book_idea":
