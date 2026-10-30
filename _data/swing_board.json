@@ -1,5 +1,5 @@
 {
-  "generated_at": "30 October 2026, 03:28 PM IST",
+  "generated_at": "30 October 2026, 10:05 PM IST",
   "setups": [
     {
       "symbol": "TECHM",
@@ -18,14 +18,6 @@
       "days_in_trade": "3"
     },
     {
-      "symbol": "INDHOTEL",
-      "trade_type": "📊 Options Alert",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
       "symbol": "COFORGE",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
@@ -34,15 +26,7 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "ADANIPORTS",
-      "trade_type": "📊 Options Alert",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "NYKAA",
+      "symbol": "INDHOTEL",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
@@ -50,9 +34,9 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "LAURUSLABS",
+      "symbol": "NYKAA",
       "trade_type": "📊 Options Alert",
-      "strategy": "➖ HOLD",
+      "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
