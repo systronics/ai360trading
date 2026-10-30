@@ -1,5 +1,5 @@
 {
-  "generated_at": "30 October 2026, 02:58 PM IST",
+  "generated_at": "30 October 2026, 03:28 PM IST",
   "setups": [
     {
       "symbol": "TECHM",
@@ -16,22 +16,6 @@
       "stage": "⚡ BREAKOUT ALERT",
       "status": "✅ TRADED (PAPER)",
       "days_in_trade": "3"
-    },
-    {
-      "symbol": "TATACAP",
-      "trade_type": "🔥 Cash Intraday",
-      "strategy": "CASH",
-      "stage": "🔥 CASH | +5.1% | Vol 478%",
-      "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "0"
-    },
-    {
-      "symbol": "BANKBARODA",
-      "trade_type": "🔥 Cash Intraday",
-      "strategy": "CASH",
-      "stage": "🔥 CASH | +4.1% | Vol -3%",
-      "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "0"
     },
     {
       "symbol": "INDHOTEL",
