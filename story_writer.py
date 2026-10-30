@@ -80,7 +80,14 @@ def _example():
             "A few days later, the market started climbing again. And he could only watch.",
             "The lesson: a decision made in fear is often the most expensive one. Decide your stop-loss before you trade. Follow AI360Trading.",
         ],
-        "captions": ["LATE NIGHT. EVERYTHING IS RED.", "FEAR TAKES OVER", "HE SOLD THE BOTTOM", "THEN IT RECOVERED", "DECIDE BEFORE YOU PANIC"],
+        "narration_hi": [
+            "रात के दो बजे थे। उसकी आँखों में नींद नहीं थी। स्क्रीन पर बस लाल रंग।",
+            "मार्केट गिरता गया, और उसका डर बढ़ता गया। उसने सोचा, अब और नहीं सह सकता।",
+            "उसने सब बेच दिया। ठीक उसी दिन, जब भाव सबसे नीचे था।",
+            "कुछ दिन बाद मार्केट वापस ऊपर चढ़ने लगा। और वह बस देखता रह गया।",
+            "सबक यह है: डर में लिया गया फ़ैसला अक्सर सबसे महंगा होता है। स्टॉप लॉस पहले से तय करो। AI360Trading को फ़ॉलो करो।",
+        ],
+        "captions": ["2 AM. EVERYTHING IS RED.", "FEAR TAKES OVER", "HE SOLD THE BOTTOM", "THEN IT RECOVERED", "DECIDE BEFORE YOU PANIC"],
         "queries": ["man silhouette alone dark room night laptop glow", "hand trembling over computer mouse red screen",
                     "finger pressing laptop keyboard", "sunrise through window city morning", "hand writing in notebook morning coffee"],
     }
@@ -89,26 +96,35 @@ def _example():
 def build_prompt(theme_key, theme_text):
     return (
         f"Write ONE new short story. Mistake to dramatise: {theme_text}.\n"
-        "Rules: five scenes; the hero is only 'he'; past tense; emotional but simple; no digits anywhere; no names; "
+        "Rules: five scenes; the hero is only 'he'; past tense; emotional but simple; no digits in narration or description (spell numbers as words); a small story count such as '3 losses' or '12 days' (at most two digits, no % or currency) is allowed ONLY in the title, thumb_text and captions; no names; "
         "no stock names; no advice to buy or sell; scene 5 must start with 'The lesson:' and end with 'Follow AI360Trading.'; "
         "each narration is at most 22 words (scene 5 at most 32); each caption is 2-5 UPPERCASE words, at most 32 characters; "
         "'queries' are 5 stock-video search phrases (3-9 words) showing hands, screens, charts, silhouettes, city or objects, NOT faces; "
         "'seo_phrase' is a 3-7 word lowercase phrase people really search on YouTube about this mistake; "
         "'accent' is one of: red, gold, green, blue, orange, purple, pink, teal; 'tag' is ONE uppercase word up to 12 letters; "
         "'thumb_text' is 2-4 UPPERCASE words; 'topic_tag' is one CamelCase hashtag word; 'title' is a hook of at most 60 characters.\n"
+        "'narration_hi' is the SAME five scenes in simple spoken Hindi written in Devanagari (no digits, no English words except AI360Trading in scene 5, same meaning as narration). "
         "Return JSON with exactly these keys: title, tag, accent, desc, thumb_text, seo_phrase, topic_tag, narration (5 strings), "
-        "captions (5 strings), queries (5 strings). Example of the style and shape:\n"
+        "narration_hi (5 strings), captions (5 strings), queries (5 strings). Example of the style and shape:\n"
         + json.dumps(_example(), ensure_ascii=False)
     )
+
+
+def _count_ok(t):
+    """Small story counts (e.g. '12 days', '3 losses') are evergreen and allowed in title/thumb_text/captions only."""
+    t = BRAND.sub("", t)
+    if re.search(r"[%$\u20b9,]", t):
+        return False
+    return all(len(n) <= 2 for n in re.findall(r"\d+", t))
 
 
 def validate(s):
     """Return (ok, reason)."""
     try:
-        for k in ("title", "tag", "accent", "desc", "thumb_text", "seo_phrase", "topic_tag", "narration", "captions", "queries"):
+        for k in ("title", "tag", "accent", "desc", "thumb_text", "seo_phrase", "topic_tag", "narration", "narration_hi", "captions", "queries"):
             if k not in s:
                 return False, f"missing {k}"
-        for k in ("narration", "captions", "queries"):
+        for k in ("narration", "narration_hi", "captions", "queries"):
             if not isinstance(s[k], list) or len(s[k]) != 5 or not all(isinstance(x, str) and x.strip() for x in s[k]):
                 return False, f"{k} must be 5 non-empty strings"
         if s["accent"] not in ACCENTS:
@@ -119,9 +135,23 @@ def validate(s):
             return False, "bad topic_tag"
         if len(s["title"]) > 60 or len(s["title"]) < 8:
             return False, "title length"
+        for t in [s["title"], s["thumb_text"]] + s["captions"]:
+            if not _count_ok(t):
+                return False, f"number not allowed in: {t[:50]!r}"
+        for t in s["narration_hi"]:
+            if not re.search(r"[\u0900-\u097F]", t):
+                return False, "narration_hi must be Devanagari"
+            if re.search(r"[0-9\u0966-\u096F]", BRAND.sub("", t)):
+                return False, f"digit in Hindi: {t[:40]!r}"
+            if not (4 <= len(t.split()) <= 34):
+                return False, "narration_hi length"
+        if "AI360Trading" not in s["narration_hi"][4]:
+            return False, "narration_hi scene 5 must mention AI360Trading"
         everything = [s["title"], s["desc"], s["thumb_text"], s["seo_phrase"]] + s["narration"] + s["captions"]
         for t in everything:
-            if re.search(r"\d", BRAND.sub("", t)):
+            if t in s["captions"] or t in (s["title"], s["thumb_text"]):
+                pass
+            elif re.search(r"\d", BRAND.sub("", t)):
                 return False, f"digit in: {t[:50]!r}"
             low = t.lower()
             for w in BAD_WORDS:

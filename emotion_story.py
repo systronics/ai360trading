@@ -71,7 +71,7 @@ STORIES = {
         "who": "an Indian man in his 30s with short black hair wearing a white shirt",
         "scenes": [
             ("रात के दो बजे थे। राजेश की आँखों में नींद नहीं थी। स्क्रीन पर बस लाल रंग।",
-             "LATE NIGHT. EVERYTHING IS RED.",
+             "2 AM. EVERYTHING IS RED.",
              "sitting alone in a dark room at night, face lit by a glowing red falling stock chart on a monitor"),
             ("मार्केट गिरता गया, और उसका डर बढ़ता गया। उसने सोचा, अब और नहीं सह सकता।",
              "FEAR TAKES OVER",
@@ -117,7 +117,7 @@ STORIES = {
         "charts": ["flat","flat","break","break","up"],
         "accent": (0, 210, 100),
         "tag": "PATIENCE",
-        "title": "He Waited Patiently For One Trade | A Trader's Story #shorts",
+        "title": "He Waited 12 Days For One Trade | A Trader's Story #shorts",
         "who": "an Indian man in his 40s with short grey-black hair wearing a light green shirt",
         "scenes": [
             ("अनिल हर रोज़ चार्ट देखता था। लेकिन ट्रेड नहीं करता था। क्योंकि उसका सेटअप अभी पूरा नहीं हुआ था।",
@@ -126,7 +126,7 @@ STORIES = {
             ("बाकी लोग हर छोटी हलचल में कूद रहे थे। अनिल बस इंतज़ार करता रहा।",
              "OTHERS KEPT CHASING",
              "in the background blurred traders shouting and tapping phones, in the foreground Anil sits still and calm"),
-            ("कुछ दिन बाद, भाव अपने पिछले ऊँचे स्तर के ऊपर बंद हुआ। यही उसका इशारा था।",
+            ("बारह दिन बाद, भाव अपने पिछले ऊँचे स्तर के ऊपर बंद हुआ। यही उसका इशारा था।",
              "THE SIGNAL ARRIVED",
              "a green candle closing above a glowing horizontal line on the monitor, his eyes sharp and focused"),
             ("हमारे बैकटेस्ट में ऐसे ब्रेकआउट में आधे से भी कम ट्रेड जीते। लेकिन जीतने वाले ट्रेड बड़े थे।",
@@ -208,8 +208,8 @@ STORY_SEO = {
     "nostop": ("why stop loss is important", "StopLoss"), "leverage": ("margin trading risk", "MarginTrading"),
 }
 THUMB_TEXT = {
-    "fear": "SOLD THE BOTTOM", "greed": "ONE MORE LOT", "patience": "WAITED. ONE TRADE.", "fomo": "BOUGHT THE TOP",
-    "revenge": "WIN IT BACK?", "averaging": "NEVER ADD TO LOSS", "tip": "THE 'SURE' TIP", "overtrade": "TOO MANY TRADES",
+    "fear": "SOLD THE BOTTOM", "greed": "ONE MORE LOT", "patience": "12 DAYS. 1 TRADE", "fomo": "BOUGHT THE TOP",
+    "revenge": "WIN IT BACK?", "averaging": "NEVER ADD TO LOSS", "tip": "THE 'SURE' TIP", "overtrade": "52 TRADES",
     "nostop": "NO STOP LOSS", "leverage": "FULL MARGIN",
 }
 STORY_ORDER = ["fear", "greed", "patience", "fomo", "revenge", "averaging", "tip", "overtrade", "nostop", "leverage"]

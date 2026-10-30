@@ -484,8 +484,9 @@ def resolve_meta_and_video(prefix: str):
         video_patterns = ["education_video_bi.mp4", "education_video_*.mp4"]
     elif prefix == "story":
         # 2026-10-29: Pixar-style story Shorts written by emotion_story.py into output/story/
-        meta_patterns  = ["story/*_meta.json"]
-        video_patterns = ["story/*_story.mp4"]
+        # 2026-10-30: Hindi edition first (the Page audience is 97% India), English edition as fallback
+        meta_patterns  = ["story/*_meta_hi.json", "story/*_meta.json"]
+        video_patterns = ["story/*_story_hi.mp4", "story/*_story.mp4"]
     else:
         meta_patterns  = [f"meta_{today}.json", "meta_*.json"]
         video_patterns = [f"reel_{today}.mp4", "reel_*.mp4"]
@@ -648,7 +649,7 @@ def main():
             return
         page_token = get_page_token(FACEBOOK_PAGE_ID, META_ACCESS_TOKEN)
         title = (meta.get("title") or "Trading psychology story").replace(" #shorts", "").replace(" #Shorts", "").strip()
-        desc  = (meta.get("description") or "").split("More free lessons")[0].strip()
+        desc  = (meta.get("lesson") or meta.get("description") or "").split("More free lessons")[0].strip()
         caption = (
             f"{title}\n\n{desc}\n\n"
             f"🎯 Free trading lessons → {_fb_tg()}\n"

@@ -61,7 +61,7 @@ EN = {
     "patience": [
         "Every day he watched the chart. But he didn't trade. His setup wasn't complete yet.",
         "Everyone else jumped at every small move. He just kept waiting.",
-        "Days later, the price closed above its previous high. That was his signal.",
+        "Twelve days later, the price closed above its previous high. That was his signal.",
         "In our backtest, fewer than half of such breakouts won. But the winners were bigger than the losers.",
         "The lesson: waiting for the right setup is also a position. This is a story, not advice. Follow AI360Trading.",
     ],
@@ -95,7 +95,7 @@ EN = {
     ],
     "overtrade": [
         "He hated sitting idle. He felt that if he didn't trade, the chance was gone.",
-        "From morning to evening, one trade after another. Some lasted minutes, some less.",
+        "From morning to evening, fifty-two trades, one after another. Some lasted minutes, some less.",
         "Each trade made a little or lost a little. But brokerage was cut every single time.",
         "In the evening he checked the results. The market had been fine, but his account was down.",
         "The lesson: more trades don't mean more profit. Choose fewer, better setups. Follow AI360Trading.",
@@ -280,34 +280,68 @@ def ambient_bed(dur, sr=44100):
 
 # ───────────────────────────── build ──────────────────────────────────────────
 
+def _count_ok(t):
+    """Story-internal counts (e.g. '12 days', '52 trades') are evergreen and allowed in titles/captions/thumbnails; market
+    levels, prices, percentages and dates are not (owner rule 2026-10-30: numbers helped Facebook reels, but only evergreen ones)."""
+    t = re.sub(r"AI360Trading", "", t, flags=re.I)
+    if re.search(r"[%$\u20b9,]", t):
+        return False
+    return all(len(n) <= 2 for n in re.findall(r"\d+", t))
+
+
+def hi_narration(key):
+    """Hindi narration (5 scenes) or None. Built-in stories carry it in emotion_story.STORIES; auto-written ones in narration_hi."""
+    try:
+        h = [s[0] for s in E.STORIES[key]["scenes"]]
+        return h if len(h) == len(EN[key]) and all(x and x.strip() for x in h) else None
+    except Exception:
+        return None
+
+
 def check_story(key):
-    texts = list(EN[key]) + [c for _, c, _ in E.STORIES[key]["scenes"]] + [E.THUMB_TEXT.get(key, ""), E.STORIES[key]["title"].split(" | ")[0]]
-    for t in texts:
+    st = E.STORIES[key]
+    spoken = list(EN[key]) + (hi_narration(key) or [])
+    for t in spoken:
         if re.search(r"\d", re.sub(r"AI360Trading", "", t, flags=re.I)):
-            raise ValueError(f"digit in story '{key}': {t!r} (evergreen rule: no numbers)")
-    if len(EN[key]) != len(E.STORIES[key]["scenes"]) or len(QUERIES[key]) != len(EN[key]):
+            raise ValueError(f"digit in narration of '{key}': {t!r} (spell numbers as words)")
+    shown = [c for _, c, _ in st["scenes"]] + [E.THUMB_TEXT.get(key, ""), st["title"].split(" | ")[0]]
+    for t in shown:
+        if not _count_ok(t):
+            raise ValueError(f"on-screen number not allowed in '{key}': {t!r}")
+    if len(EN[key]) != len(st["scenes"]) or len(QUERIES[key]) != len(EN[key]):
         raise ValueError("scene count mismatch")
 
 
-def build(key, out_dir, cache_dir):
+def build(key, out_dir, cache_dir, lang="en"):
+    """lang 'en' -> YouTube edition ({key}_story.mp4 + thumb + meta); lang 'hi' -> Facebook/Instagram edition
+    ({key}_story_hi.mp4 + {key}_meta_hi.json): same footage, Hindi voice, same on-screen captions."""
     from moviepy.editor import AudioFileClip, concatenate_videoclips, CompositeAudioClip
     from moviepy.audio.AudioClip import AudioArrayClip
     key_env = os.environ.get("PEXELS_API_KEY", "")
     if not key_env:
         raise RuntimeError("PEXELS_API_KEY missing")
     check_story(key)
+    narr_all = EN[key] if lang == "en" else hi_narration(key)
+    if not narr_all:
+        raise RuntimeError(f"no {lang} narration for '{key}'")
     out_dir, cache_dir = Path(out_dir), Path(cache_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     cache_dir.mkdir(parents=True, exist_ok=True)
     st = E.STORIES[key]
-    n = len(EN[key])
+    n = len(narr_all)
+    sfx = "" if lang == "en" else "_hi"
     used, scenes, frame_for_thumb = set(), [], None
+    mood = "calm" if key == "patience" else "tense"
     for i in range(n):
-        narr = EN[key][i]
+        narr = narr_all[i]
         cap = st["scenes"][i][1]
-        rate, pitch = EN_PROFILES[i]
-        ap = out_dir / f"{key}_{i}.mp3"
-        make_voice_en(narr, ap, rate, pitch)
+        ap = out_dir / f"{key}_{i}{sfx}.mp3"
+        if lang == "en":
+            rate, pitch = EN_PROFILES[i]
+            make_voice_en(narr, ap, rate, pitch)
+        else:
+            rate, pitch = E.VOICE_PROFILES[mood][i]
+            E.make_voice(narr, ap, rate, pitch)
         voice = AudioFileClip(str(ap))
         dur = voice.duration + 0.5
         paths = get_footage(QUERIES[key][i], key_env, cache_dir, used, dur)
@@ -321,15 +355,21 @@ def build(key, out_dir, cache_dir):
         bed = AudioArrayClip(np.stack([bed, bed], axis=1), fps=44100)
         sc = sc.set_audio(CompositeAudioClip([bed, voice.set_start(0)]).set_duration(dur))
         scenes.append(sc)
-        print(f"[REAL:{key}] scene {i + 1}/{n} ok ({dur:.1f}s, {len(paths)} clip(s))")
+        print(f"[REAL:{key}:{lang}] scene {i + 1}/{n} ok ({dur:.1f}s, {len(paths)} clip(s))")
     final = concatenate_videoclips(scenes, method="compose")
-    mp4 = out_dir / f"{key}_story.mp4"
+    mp4 = out_dir / f"{key}_story{sfx}.mp4"
     final.write_videofile(str(mp4), fps=FPS, codec="libx264", audio_codec="aac", preset="medium", logger=None)
-    thumb = out_dir / f"{key}_thumb.jpg"
-    E.build_thumbnail(key, frame_for_thumb, thumb, face=None)
-    meta = make_meta(key, final.duration)
-    (out_dir / f"{key}_meta.json").write_text(json.dumps(meta, indent=1, ensure_ascii=False), encoding="utf-8")
-    print(f"[REAL:{key}] done: {mp4} ({meta['duration_s']}s)")
+    if lang == "en":
+        thumb = out_dir / f"{key}_thumb.jpg"
+        E.build_thumbnail(key, frame_for_thumb, thumb, face=None)
+        meta = make_meta(key, final.duration)
+        (out_dir / f"{key}_meta.json").write_text(json.dumps(meta, indent=1, ensure_ascii=False), encoding="utf-8")
+    else:
+        thumb = None
+        hook = st["title"].split(" | ")[0]
+        meta = {"title": hook, "lesson": narr_all[-1], "duration_s": round(final.duration, 1), "lang": "hi"}
+        (out_dir / f"{key}_meta_hi.json").write_text(json.dumps(meta, indent=1, ensure_ascii=False), encoding="utf-8")
+    print(f"[REAL:{key}:{lang}] done: {mp4} ({meta['duration_s']}s)")
     return mp4, thumb, meta
 
 
@@ -343,7 +383,8 @@ def register_extras():
                 continue
             E.STORIES[k] = {"accent": W.ACCENTS.get(s["accent"], (235, 70, 70)), "tag": s["tag"].upper(),
                             "title": s["title"] + " | A Trader's Story #shorts", "desc": s["desc"],
-                            "scenes": [("", c, "") for c in s["captions"]], "charts": ["flat"] * 5, "who": ""}
+                            "scenes": [((s.get("narration_hi") or [""] * 5)[i], c, "") for i, c in enumerate(s["captions"])],
+                            "charts": ["flat"] * 5, "who": ""}
             E.THUMB_TEXT[k] = s["thumb_text"]
             if k not in E.STORY_ORDER:
                 E.STORY_ORDER.append(k)
@@ -404,6 +445,14 @@ def run(mode, out_dir, cache_dir, story=None):
         if meta["duration_s"] > 59.0:
             E._tg(f"AI360 story Shorts (real footage): '{key}' is {meta['duration_s']}s (over 59s), NOT uploaded.")
             return 0
+        try:   # Hindi edition for Facebook/Instagram (97% of the Page audience is in India); fail-open -> English is posted
+            _m, _t, hmeta = build(key, out_dir, cache_dir, lang="hi")
+            if hmeta["duration_s"] > 59.0:
+                (Path(out_dir) / f"{key}_story_hi.mp4").unlink(missing_ok=True)
+                (Path(out_dir) / f"{key}_meta_hi.json").unlink(missing_ok=True)
+                print("[REAL] Hindi edition over 59s, dropped (English will be posted to Facebook)")
+        except Exception as e:
+            print(f"[REAL] Hindi edition skipped (fail-open): {str(e)[:140]}")
         if mode == "dry":
             print(f"[REAL] DRY RUN, nothing uploaded: {meta['title']} ({meta['duration_s']}s)")
             return 0
