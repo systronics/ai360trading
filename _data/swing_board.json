@@ -1,5 +1,5 @@
 {
-  "generated_at": "29 October 2026, 09:55 PM IST",
+  "generated_at": "30 October 2026, 02:28 PM IST",
   "setups": [
     {
       "symbol": "TECHM",
@@ -7,7 +7,7 @@
       "strategy": "➖ HOLD",
       "stage": "📉 CORR.END | 🔄 Building Momentum",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "14"
+      "days_in_trade": "15"
     },
     {
       "symbol": "KOTAKBANK",
@@ -15,7 +15,23 @@
       "strategy": "➖ HOLD",
       "stage": "⚡ BREAKOUT ALERT",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "2"
+      "days_in_trade": "3"
+    },
+    {
+      "symbol": "TATACAP",
+      "trade_type": "🔥 Cash Intraday",
+      "strategy": "CASH",
+      "stage": "🔥 CASH | +5.1% | Vol 478%",
+      "status": "✅ TRADED (PAPER)",
+      "days_in_trade": "0"
+    },
+    {
+      "symbol": "BANKBARODA",
+      "trade_type": "🔥 Cash Intraday",
+      "strategy": "CASH",
+      "stage": "🔥 CASH | +4.1% | Vol -3%",
+      "status": "✅ TRADED (PAPER)",
+      "days_in_trade": "0"
     },
     {
       "symbol": "INDHOTEL",
@@ -29,15 +45,31 @@
       "symbol": "COFORGE",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "ADANIPORTS",
+      "trade_type": "📊 Options Alert",
+      "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
     {
-      "symbol": "BLUESTARCO",
-      "trade_type": "📈 Positional",
+      "symbol": "NYKAA",
+      "trade_type": "📊 Options Alert",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "LAURUSLABS",
+      "trade_type": "📊 Options Alert",
       "strategy": "➖ HOLD",
-      "stage": "🚀 MOMENTUM BREAKOUT | 🔁 Correction Base",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
