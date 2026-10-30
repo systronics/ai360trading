@@ -1,0 +1,48 @@
+name: "Facebook reels count (manual, read-only)"
+
+# 2026-10-30: read-only. Lists the Page's recent Reels (time + length) to count them toward the Meta reels bonus.
+# Prints no token. Uploads/changes nothing.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - name: List recent reels
+        env:
+          META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
+          PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
+        run: |
+          python3 - <<'PYEOF'
+          import os, json
+          from urllib.request import urlopen
+          from urllib.error import HTTPError
+          from urllib.parse import quote
+          tok, page = os.environ.get("META_ACCESS_TOKEN", ""), os.environ.get("PAGE_ID", "")
+          G = "https://graph.facebook.com/v21.0/"
+          def get(path, t):
+              try:
+                  return json.loads(urlopen(G + path + ("&" if "?" in path else "?") + "access_token=" + quote(t), timeout=30).read())
+              except HTTPError as e:
+                  try:
+                      return {"error": json.loads(e.read()).get("error", {}).get("message", str(e))}
+                  except Exception:
+                      return {"error": str(e)}
+              except Exception as e:
+                  return {"error": str(e)}
+          r = get(f"{page}?fields=access_token", tok)
+          pt = r.get("access_token") or tok
+          out = get(f"{page}/video_reels?fields=created_time,length&limit=40", pt)
+          if "error" in out:
+              print("ERROR:", out["error"])
+          else:
+              rows = out.get("data", [])
+              print("reels returned:", len(rows))
+              for x in rows:
+                  print(x.get("created_time", "")[:16], "len", x.get("length"))
+          PYEOF
