@@ -371,3 +371,15 @@ def build_au01(region):
 
 BUILDERS = {"rc01": build_rc01, "rm01": build_rm01, "rs01": build_rs01, "au01": build_au01}
 LESSON_REGIONS = {"rc01": ["us", "in"], "rm01": ["us", "in"], "rs01": ["us", "in"], "au01": ["in"]}   # which regions each lesson supports
+
+
+# 2026-10-31: three more risk-maths lessons (rm03 expectancy, rm02 position sizing, rm04 losing streaks) so the weekly queue
+# does not run dry on 21 Nov. Fail-open: if the extra module breaks, the original four lessons still work.
+try:
+    import lesson_builders2 as _b2
+    BUILDERS.update(_b2.BUILDERS)
+    for _k in _b2.QUEUE:
+        if _k not in QUEUE:
+            QUEUE.append(_k)
+except Exception as _e:
+    print(f"[LESSON] extra lessons not loaded (fail-open): {_e}")
