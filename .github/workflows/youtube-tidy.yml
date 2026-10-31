@@ -1,0 +1,59 @@
+name: "YouTube tidy (hide old zero-view videos, reversible)"
+
+# 2026-10-31: sets OLD (>45 days), near-zero-view (<=5) PUBLIC videos to PRIVATE, 150 per run (API quota). Nothing is deleted;
+# every id is logged in _data/youtube_hidden.json and `restore` makes them public again.
+# Mode: repo variable TIDY_MODE (default dry). Manual runs can pick dry | live | restore.
+
+on:
+  schedule:
+    - cron: "37 4 * * *"
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "dry | live | restore"
+        required: false
+        default: "dry"
+        type: choice
+        options: [dry, live, restore]
+
+concurrency:
+  group: youtube-tidy
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  tidy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      YOUTUBE_CREDENTIALS: ${{ secrets.YOUTUBE_CREDENTIALS }}
+      TIDY_MODE: ${{ (github.event.inputs.action == 'restore' && 'dry') || github.event.inputs.action || vars.TIDY_MODE || 'dry' }}
+      ACTION: ${{ github.event.inputs.action || 'auto' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: master
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+      - run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Run
+        run: |
+          if [ "$ACTION" = "restore" ]; then
+            python youtube_tidy.py --restore
+          else
+            python youtube_tidy.py
+          fi
+      - name: Commit the log
+        run: |
+          git config --local user.email "admin@ai360trading.in"
+          git config --local user.name "AI360-Automation"
+          git add _data/youtube_hidden.json || true
+          git diff --cached --quiet || git commit -m "YouTube tidy log: $(date +'%Y-%m-%d')"
+          git pull --rebase origin master || true
+          git push origin master || true
