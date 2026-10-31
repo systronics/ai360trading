@@ -218,7 +218,7 @@ def get_footage(query, key, cache_dir, used, need_seconds, tries=4):
 
 # ───────────────────────────── frames ─────────────────────────────────────────
 
-def overlay(accent, tag, caption, idx, n):
+def overlay(accent, tag, caption, idx, n, brand="AI360TRADING", note="Fictional story | Stock footage | Educational, not advice"):
     """Bottom shade, brand chip, tag chip, caption in the safe zone (above the platform buttons), progress segments."""
     ov = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     d = ImageDraw.Draw(ov)
@@ -228,7 +228,7 @@ def overlay(accent, tag, caption, idx, n):
         d.line([(0, y), (W, y)], fill=(0, 0, 0, int(min(215, a_bot + a_top))))
     f_b = E._font(40)
     d.rounded_rectangle((44, 52, 44 + 330, 52 + 66), radius=33, fill=(10, 14, 32, 205), outline=accent, width=3)
-    d.text((44 + 165, 52 + 33), "AI360TRADING", font=f_b, fill=(255, 255, 255, 255), anchor="mm")
+    d.text((44 + 165, 52 + 33), brand, font=f_b, fill=(255, 255, 255, 255), anchor="mm")
     f_t = E._font(46)
     tw = d.textlength(tag, font=f_t) + 56
     d.rounded_rectangle((W - 44 - tw, 52, W - 44, 118), radius=33, fill=accent + (230,))
@@ -242,7 +242,7 @@ def overlay(accent, tag, caption, idx, n):
         d.text((W / 2, y), ln, font=f_c, fill=(255, 255, 255, 255), anchor="mm")
         y += 90
     d.rectangle((W / 2 - 140, y + 2, W / 2 + 140, y + 10), fill=accent + (255,))
-    d.text((W / 2, H - 360), "Fictional story | Stock footage | Educational, not advice", font=E._font(32),
+    d.text((W / 2, H - 360), note, font=E._font(32),
            fill=(225, 230, 245, 255), anchor="mm")
     seg = (W - 160) / n
     for i in range(n):
@@ -360,7 +360,9 @@ def build(key, out_dir, cache_dir, lang="en"):
         paths = get_footage(QUERIES[key][i], key_env, cache_dir, used, dur)
         if not paths:
             raise RuntimeError(f"no footage for scene {i + 1}: {QUERIES[key][i]!r}")
-        rgb, alpha = overlay(st["accent"], st["tag"], cap, i, n)
+        life = key.startswith("life_")
+        rgb, alpha = (overlay(st["accent"], st["tag"], cap, i, n, brand="AI360 KAHANI", note="Fictional story | Stock footage")
+                      if life else overlay(st["accent"], st["tag"], cap, i, n))
         sc = scene_video(paths, dur, rgb, alpha, zoom_out=(i % 2 == 1))
         if i == 1 or frame_for_thumb is None:
             frame_for_thumb = Image.fromarray(sc.plain.get_frame(min(1.0, dur - 0.1))).convert("RGB")
@@ -374,7 +376,7 @@ def build(key, out_dir, cache_dir, lang="en"):
     final.write_videofile(str(mp4), fps=FPS, codec="libx264", audio_codec="aac", preset="medium", logger=None)
     if lang == "en":
         thumb = out_dir / f"{key}_thumb.jpg"
-        E.build_thumbnail(key, frame_for_thumb, thumb, face=None)
+        E.build_thumbnail(key, frame_for_thumb, thumb, face=None, brand="AI360 KAHANI" if key.startswith("life_") else "AI360TRADING")
         meta = make_meta(key, final.duration)
         (out_dir / f"{key}_meta.json").write_text(json.dumps(meta, indent=1, ensure_ascii=False), encoding="utf-8")
     else:
@@ -408,7 +410,33 @@ def register_extras():
         print(f"[REAL] extra stories not loaded (fail-open): {str(e)[:120]}")
 
 
+def register_life():
+    """Separate Hindi-first life/moral story series (life_stories.py). Loaded ONLY when env LIFE_STORIES=1 so it can never
+    leak into the AI360Trading story queue."""
+    if os.environ.get("LIFE_STORIES") != "1":
+        return
+    try:
+        import life_stories as L
+        for s in L.load():
+            k = s["key"]
+            if k in EN:
+                continue
+            E.STORIES[k] = {"accent": L.ACCENTS.get(s["accent"], (255, 100, 170)), "tag": s["tag"].upper(),
+                            "title": s["title"] + " | A Short Story #shorts", "desc": s["desc"],
+                            "scenes": [(s["narration_hi"][i], c, "") for i, c in enumerate(s["captions"])],
+                            "charts": ["flat"] * 5, "who": ""}
+            E.THUMB_TEXT[k] = s["thumb_text"]
+            if k not in E.STORY_ORDER:
+                E.STORY_ORDER.append(k)
+            EN[k] = list(s["narration"])
+            QUERIES[k] = list(s["queries"])
+            EN_SEO[k] = (s["seo_phrase"], s["topic_tag"])
+    except Exception as e:
+        print(f"[REAL] life stories not loaded (fail-open): {str(e)[:120]}")
+
+
 register_extras()
+register_life()
 
 
 def make_meta(key, duration):
@@ -419,6 +447,11 @@ def make_meta(key, duration):
     if len(title) > 100:
         title = f"{hook} #shorts"[:100]
     NL = chr(10)
+    if key.startswith("life_"):
+        desc = (st["desc"] + NL + NL + "This is a fictional, illustrative story. Footage: stock video from Pexels. The narration is a synthetic (AI) voice." + NL + NL +
+                f"#{tag} #HindiKahani #MoralStories #LifeLessons")
+        tags = [phrase, "hindi kahani", "moral story hindi", "emotional story", "life lesson", tag.lower(), "shorts"]
+        return {"title": title, "description": desc, "tags": tags, "duration_s": round(duration, 1)}
     desc = (phrase.capitalize() + ": " + st["desc"] + NL + NL +
             "This is a fictional, illustrative story. Footage: stock video from Pexels. The narration is a synthetic (AI) voice. "
             "Educational content only, not investment advice or a recommendation to buy or sell anything. "

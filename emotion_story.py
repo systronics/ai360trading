@@ -469,7 +469,7 @@ def _bright(im):
     return ImageEnhance.Brightness(im).enhance(1.12)
 
 
-def build_thumbnail(story_key, img, path, face=None):
+def build_thumbnail(story_key, img, path, face=None, brand="AI360TRADING"):
     """Shorts thumbnail, bright style. Variant A: Pixar close-up + 2-4 huge hook words. Variant B (face given):
     the presenter cut-out on the right, hook words on the left over a softened Pixar background."""
     st = STORIES[story_key]
@@ -511,7 +511,7 @@ def build_thumbnail(story_key, img, path, face=None):
             y += size + 16
         d.rounded_rectangle((250, y + 6, 470, y + 16), radius=5, fill=st["accent"])
     d.rounded_rectangle((28, 30, 28 + 250, 30 + 52), radius=26, fill=(10, 14, 32, 225), outline=st["accent"], width=3)
-    d.text((28 + 125, 56), "AI360TRADING", font=_font(30), fill=(255, 255, 255), anchor="mm")
+    d.text((28 + 125, 56), brand, font=_font(30), fill=(255, 255, 255), anchor="mm")
     tw = d.textlength(st["tag"], font=_font(36)) + 44
     d.rounded_rectangle((692 - tw, 30, 692, 82), radius=26, fill=st["accent"] + (240,))
     d.text((692 - tw / 2, 56), st["tag"], font=_font(36), fill=(10, 10, 20), anchor="mm")
