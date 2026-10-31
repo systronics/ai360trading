@@ -7,7 +7,7 @@ WHY
   is educational, not a recommendation: no live pick, no entry, no stop-loss, no target, no "buy now".
 
 WHAT IT BUILDS
-  * Picks a big stock from a fixed liquid list, finds its latest 50-day closing-high breakout that is 24-90 sessions old,
+  * Picks a big stock from a fixed liquid list, finds its latest 50-day closing-high breakout whose WHOLE chart window is older than 3 months,
     classifies the outcome from the real daily closes, and rotates the outcomes (failed / worked / failed / worked / sideways)
     so the series stays honest (most breakouts do NOT work: our own backtest won fewer than half).
   * Animated real-data chart (story_short.make_clip_factory) + Hindi narration (hi-IN-MadhurNeural) + soft bed.
@@ -38,6 +38,7 @@ import emotion_story as E
 
 HIST = Path("_data/case_history.json")
 COOLDOWN_DAYS = 60
+AGE_DAYS = 92      # shown data must be at least ~3 months old (see find_event)
 PATTERN = ["failed", "worked", "failed", "worked", "flat"]    # honest mix: breakouts fail often
 
 # symbol -> (display name, sector for the screen, sector word in Hindi)
@@ -87,8 +88,14 @@ def find_event(c, v):
     hi = c.rolling(50).max().shift(1)
     brk = (c > hi)
     n = len(c)
-    for i in range(n - 24, max(50, n - 90), -1):
-        if not bool(brk.iloc[i]) or bool(brk.iloc[max(0, i - 10):i].any()) or i + 21 >= n:
+    # SEBI (Jan 2025 circular on educational content by unregistered persons, as reported): market data used in education
+    # must be at least ~3 months old. Everything shown (the whole chart window) therefore ends before today - 92 days.
+    limit = dt.date.today() - dt.timedelta(days=AGE_DAYS)
+    cut = max((k for k in range(n) if c.index[k].date() <= limit), default=-1)
+    if cut < 80:
+        return None
+    for i in range(cut - 21, max(50, cut - 130), -1):
+        if not bool(brk.iloc[i]) or bool(brk.iloc[max(0, i - 10):i].any()) or i + 21 > cut:
             continue
         level = float(hi.iloc[i])
         close_i = float(c.iloc[i])
@@ -102,7 +109,7 @@ def find_event(c, v):
             outcome = "flat"
         vr = float(v.iloc[i]) / max(1.0, float(v.iloc[max(0, i - 20):i].mean()))
         volume = "high" if vr >= 1.5 else ("low" if vr < 1.0 else "average")
-        s, e = max(0, i - 45), min(n, i + 26)
+        s, e = max(0, i - 45), min(cut + 1, i + 26)
         return {"outcome": outcome, "volume": volume, "level": level, "idx": i - s,
                 "closes": [float(x) for x in c.iloc[s:e].tolist()], "date": str(c.index[i].date())}
     return None
