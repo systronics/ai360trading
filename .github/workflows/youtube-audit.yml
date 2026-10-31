@@ -1,0 +1,25 @@
+name: "YouTube audit (manual, read-only)"
+
+# 2026-10-31: lists every video with views/likes/age/privacy and prints a summary. Changes nothing on YouTube.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    env:
+      YOUTUBE_CREDENTIALS: ${{ secrets.YOUTUBE_CREDENTIALS }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+      - run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+      - run: python youtube_audit.py
