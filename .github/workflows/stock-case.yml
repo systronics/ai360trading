@@ -1,0 +1,121 @@
+name: Hindi Stock Case-Study Short (PAST breakouts, SEBI-safe)
+
+# 2026-10-31: Thursday Hindi Short about a PAST breakout of a large stock and what happened next (worked / failed / sideways).
+# Educational only: no live pick, no entry/stop/target, no prices in speech or on screen. See stock_case.py.
+# Runs in MODE = repo variable CASE_MODE (default dry). Owner flips CASE_MODE=scheduled after reviewing a dry-run preview.
+# YouTube upload is PRIVATE with publishAt (19:30 IST); the same video is posted to the Facebook Page + Instagram.
+
+on:
+  schedule:
+    - cron: "52 6 * * 4"   # Thursday 06:52 UTC
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "dry | private-test | scheduled"
+        required: false
+        default: "dry"
+        type: choice
+        options: [dry, private-test, scheduled]
+      symbol:
+        description: "Optional: force a symbol (e.g. TCS)"
+        required: false
+        default: ""
+
+concurrency:
+  group: stories-weekly
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  case:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      MODE: ${{ github.event.inputs.mode || vars.CASE_MODE || 'dry' }}
+      SYMBOL: ${{ github.event.inputs.symbol || '' }}
+      YOUTUBE_CREDENTIALS: ${{ secrets.YOUTUBE_CREDENTIALS }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      CHAT_ID_BASIC: ${{ secrets.CHAT_ID_BASIC }}
+      META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
+      FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: master
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends ffmpeg fonts-dejavu fonts-liberation fonts-freefont-ttf
+
+      - name: Install Python dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Build the case-study Short
+        run: |
+          if [ -n "$SYMBOL" ]; then
+            python stock_case.py --run --mode "$MODE" --symbol "$SYMBOL" --out output/case
+          else
+            python stock_case.py --run --mode "$MODE" --out output/case
+          fi
+
+      - name: Keep the preview (dry / test runs)
+        if: ${{ env.MODE != 'scheduled' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: case-preview
+          path: |
+            output/case/*.mp4
+            output/case/*_thumb.jpg
+            output/case/*_meta.json
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Post to Facebook and Instagram when a case was scheduled
+        if: ${{ env.MODE == 'scheduled' }}
+        continue-on-error: true
+        run: |
+          if [ -z "$(git status --porcelain _data/case_history.json)" ]; then
+            echo 'no new case this run, skipping Facebook/Instagram'
+          else
+            python upload_facebook.py --meta-prefix case
+          fi
+
+      - name: Record what was scheduled
+        if: ${{ env.MODE == 'scheduled' }}
+        run: |
+          git config --local user.email "admin@ai360trading.in"
+          git config --local user.name "AI360-Automation"
+          git add _data/case_history.json || true
+          git diff --cached --quiet || git commit -m "Case-study Short scheduled: $(date +'%Y-%m-%d') (history)"
+          git pull --rebase origin master || true
+          git push origin master || true
+
+      - name: Notify Telegram on failure
+        if: failure()
+        continue-on-error: true
+        env:
+          WF_NAME: "${{ github.workflow }}"
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          python - <<'PYEOF'
+          import os, json
+          from urllib.request import Request, urlopen
+          tok, chat = os.environ.get('TELEGRAM_BOT_TOKEN',''), os.environ.get('CHAT_ID_BASIC','')
+          if tok and chat:
+              msg = f"Workflow failed: {os.environ['WF_NAME']}\n{os.environ['RUN_URL']}"
+              req = Request(f"https://api.telegram.org/bot{tok}/sendMessage", data=json.dumps({"chat_id": chat, "text": msg}).encode(), headers={"Content-Type": "application/json"})
+              urlopen(req, timeout=20)
+          PYEOF

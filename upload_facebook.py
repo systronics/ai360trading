@@ -487,6 +487,10 @@ def resolve_meta_and_video(prefix: str):
         # 2026-10-30: Hindi edition first (the Page audience is 97% India), English edition as fallback
         meta_patterns  = ["story/*_meta_hi.json", "story/*_meta.json"]
         video_patterns = ["story/*_story_hi.mp4", "story/*_story.mp4"]
+    elif prefix == "case":
+        # 2026-10-31: Hindi stock case-study Short written by stock_case.py into output/case/
+        meta_patterns  = ["case/*_meta.json"]
+        video_patterns = ["case/*_case.mp4"]
     else:
         meta_patterns  = [f"meta_{today}.json", "meta_*.json"]
         video_patterns = [f"reel_{today}.mp4", "reel_*.mp4"]
@@ -640,7 +644,7 @@ def main():
 
     # ── Story Short (Pixar-style, evergreen) → Facebook Page Reel ONLY ─────────
     # No Group post, no RSS share, no Instagram here: one clean reel per story.
-    if prefix == "story":
+    if prefix in ("story", "case"):
         if not FACEBOOK_PAGE_ID:
             print("⚠️ FACEBOOK_PAGE_ID not set — skipping story FB upload")
             return
@@ -650,6 +654,8 @@ def main():
         page_token = get_page_token(FACEBOOK_PAGE_ID, META_ACCESS_TOKEN)
         title = (meta.get("title") or "Trading psychology story").replace(" #shorts", "").replace(" #Shorts", "").strip()
         desc  = (meta.get("lesson") or meta.get("description") or "").split("More free lessons")[0].strip()
+        if prefix == "case" and meta.get("caption"):
+            title, desc = meta["caption"], ""
         caption = (
             f"{title}\n\n{desc}\n\n"
             f"🎯 Free trading lessons → {_fb_tg()}\n"

@@ -337,7 +337,7 @@ def make_clip_factory(spec, fonts=None):
 
     def make_frame(t):
         dur = factory_state["dur"]
-        draw_secs = max(2.0, min(0.6 * dur, 9.0))
+        draw_secs = float(spec.get('draw_secs') or max(2.0, min(0.6 * dur, 9.0)))   # 2026-10-31: spec may stretch the draw over the narration
         p = _ease(t / draw_secs)
         kf = p * (n - 1)
         k = int(kf)
