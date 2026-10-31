@@ -489,6 +489,10 @@ def resolve_meta_and_video(prefix: str):
         # 2026-10-30: Hindi edition first (the Page audience is 97% India), English edition as fallback
         meta_patterns  = ["story/*_meta_hi.json", "story/*_meta.json"]
         video_patterns = ["story/*_story_hi.mp4", "story/*_story.mp4"]
+    elif prefix == "life":
+        # 2026-10-31: Hindi life/moral story (story_real.py --life), Facebook + Instagram only, never YouTube
+        meta_patterns  = ["life/*_meta_hi.json"]
+        video_patterns = ["life/*_story_hi.mp4"]
     elif prefix == "case":
         # 2026-10-31: Hindi stock case-study Short written by stock_case.py into output/case/
         meta_patterns  = ["case/*_meta.json"]
@@ -646,6 +650,23 @@ def main():
 
     # ── Story Short (Pixar-style, evergreen) → Facebook Page Reel ONLY ─────────
     # No Group post, no RSS share, no Instagram here: one clean reel per story.
+    if prefix == "life":
+        if not (FACEBOOK_PAGE_ID and video_path and video_path.exists()):
+            print("life story: page id or video missing, skipping")
+            return
+        page_token = get_page_token(FACEBOOK_PAGE_ID, META_ACCESS_TOKEN)
+        NLL = chr(10)
+        caption = (meta.get('title', '') + NLL + NLL + meta.get('lesson', '') + NLL + NLL +
+                   'काल्पनिक कहानी | AI आवाज़ और स्टॉक वीडियो' + NLL + '#HindiKahani #MoralStories #LifeLessons #Motivation #Reels')
+        print(f"Life story reel: {video_path.name}")
+        upload_reel_to_page(FACEBOOK_PAGE_ID, "AI360Trading Page", video_path, caption, page_token)
+        if INSTAGRAM_BUSINESS_ACCOUNT_ID:
+            try:
+                upload_reel_to_instagram(INSTAGRAM_BUSINESS_ACCOUNT_ID, video_path, caption, page_token)
+            except Exception as e:
+                print(f"  Instagram life upload failed (fail-open): {e}")
+        return
+
     if prefix in ("story", "case"):
         if not FACEBOOK_PAGE_ID:
             print("⚠️ FACEBOOK_PAGE_ID not set — skipping story FB upload")

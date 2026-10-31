@@ -268,7 +268,7 @@ def scene_video(paths, dur, overlay_rgb, overlay_alpha, zoom_out=False):
     parts = []
     for p in paths:
         c = VideoFileClip(str(p), audio=False)
-        c = c.subclip(0, min(c.duration, CUT_SECONDS)).fl_image(_grade)
+        c = c.subclip(0, max(0.5, min(c.duration - 0.1, CUT_SECONDS))).fl_image(_grade)   # -0.1s: last decoded frame can be black
         s = max(W / c.w, H / c.h)
         parts.append(c.resize(s))
     base = parts[0] if len(parts) == 1 else concatenate_videoclips(parts, method="compose")
@@ -284,6 +284,26 @@ def scene_video(paths, dur, overlay_rgb, overlay_alpha, zoom_out=False):
     comp = CompositeVideoClip([zoom, ov], size=(W, H)).set_duration(dur).set_fps(FPS)
     comp.plain = CompositeVideoClip([zoom], size=(W, H)).set_duration(dur)   # same footage without captions (for the thumbnail)
     return comp
+
+
+def normalize_voice(src):
+    """Owner 2026-10-31: voice sometimes loud, sometimes soft. Bring every scene's voice to the same loudness (EBU R128, -16 LUFS)
+    with ffmpeg loudnorm + a gentle limiter. Fail-open: returns the original file if ffmpeg fails."""
+    import subprocess
+    try:
+        import imageio_ffmpeg
+        ff = imageio_ffmpeg.get_ffmpeg_exe()
+    except Exception:
+        ff = "ffmpeg"
+    dst = Path(str(src)).with_suffix(".norm.wav")
+    try:
+        subprocess.run([ff, "-y", "-i", str(src), "-af", "loudnorm=I=-16:TP=-1.5:LRA=5,alimiter=limit=0.89", "-ar", "44100", "-ac", "2", str(dst)],
+                       check=True, capture_output=True, timeout=120)
+        if dst.exists() and dst.stat().st_size > 1000:
+            return dst
+    except Exception as e:
+        print(f"[REAL] loudness normalise skipped (fail-open): {str(e)[:100]}")
+    return src
 
 
 def ambient_bed(dur, sr=44100):
@@ -355,7 +375,7 @@ def build(key, out_dir, cache_dir, lang="en"):
         else:
             rate, pitch = E.VOICE_PROFILES[mood][i]
             E.make_voice(narr, ap, rate, pitch)
-        voice = AudioFileClip(str(ap))
+        voice = AudioFileClip(str(normalize_voice(ap)))
         dur = voice.duration + 0.5
         paths = get_footage(QUERIES[key][i], key_env, cache_dir, used, dur)
         if not paths:
@@ -367,6 +387,8 @@ def build(key, out_dir, cache_dir, lang="en"):
         if i == 1 or frame_for_thumb is None:
             frame_for_thumb = Image.fromarray(sc.plain.get_frame(min(1.0, dur - 0.1))).convert("RGB")
         bed = ambient_bed(dur)
+        rms = float(np.sqrt(np.mean(np.square(bed)))) or 1e-6
+        bed = np.clip(bed * (0.02 / rms), -1, 1)   # fixed quiet bed (about -34 dB RMS) so it never fights the voice
         bed = AudioArrayClip(np.stack([bed, bed], axis=1), fps=44100)
         sc = sc.set_audio(CompositeAudioClip([bed, voice.set_start(0)]).set_duration(dur))
         scenes.append(sc)
@@ -528,14 +550,46 @@ def run(mode, out_dir, cache_dir, story=None):
     return 0
 
 
+LIFE_DONE = Path("_data/life_done.json")
+
+
+def run_life(mode, out_dir, cache_dir, story=None):
+    """Life/moral stories: HINDI edition only, for Facebook + Instagram. NEVER uploads to YouTube (owner 2026-10-31).
+    mode dry = build only; post = build and record in _data/life_done.json (the workflow then posts it with upload_facebook --meta-prefix life)."""
+    try:
+        done = json.loads(LIFE_DONE.read_text(encoding="utf-8")) if LIFE_DONE.exists() else []
+        used = {x.get("story") for x in done}
+        keys = [k for k in E.STORY_ORDER if k.startswith("life_") and k in EN]
+        key = story or next((k for k in keys if k not in used), None)
+        if not key:
+            print("[LIFE] no unused life story left")
+            return 0
+        mp4, _t, meta = build(key, out_dir, cache_dir, lang="hi")
+        if meta["duration_s"] > 59.0:
+            print(f"[LIFE] {key} is {meta['duration_s']}s (over 59s), not posted")
+            return 0
+        print(f"[LIFE] built {mp4} ({meta['duration_s']}s) mode={mode}")
+        if mode == "post":
+            done.append({"story": key, "kind": "life", "date": __import__("datetime").date.today().isoformat()})
+            LIFE_DONE.parent.mkdir(parents=True, exist_ok=True)
+            LIFE_DONE.write_text(json.dumps(done, indent=1), encoding="utf-8")
+    except Exception:
+        import traceback
+        traceback.print_exc()
+    return 0
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--run", action="store_true")
+    ap.add_argument("--life", action="store_true")
     ap.add_argument("--mode", default="dry", choices=["dry", "private-test", "scheduled"])
     ap.add_argument("--out", default="output/story")
     ap.add_argument("--cache", default="bank_real")
     ap.add_argument("--story", default=None)
     a = ap.parse_args()
+    if a.life:
+        sys.exit(run_life("post" if a.mode == "scheduled" else "dry", a.out, a.cache, a.story))
     if a.run:
         sys.exit(run(a.mode, a.out, a.cache, a.story))
     print("usage: python story_real.py --run --mode dry|private-test|scheduled")

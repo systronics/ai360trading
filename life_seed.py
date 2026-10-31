@@ -1,0 +1,113 @@
+"""
+life_seed.py v1.0 (2026-10-31) — six HAND-WRITTEN Hindi life/moral stories (natural spoken Hindi, written by Claude, not machine-translated).
+Owner feedback on the AI-written test stories: "Hindi is not proper". Hand-written text fixes that; the AI writer (life_stories.py)
+stays as the later top-up. Run `python life_seed.py` once: it validates every story and writes _data/life_extra.json.
+"""
+import json
+import life_stories as L
+
+C = "Follow for more stories."
+
+
+def S(key, title, tag, accent, desc, thumb, seo, topic, en, hi, caps, queries):
+    return {"key": "life_" + key, "series": "life", "title": title, "tag": tag, "accent": accent, "desc": desc, "thumb_text": thumb,
+            "seo_phrase": seo, "topic_tag": topic, "narration": en, "narration_hi": hi, "captions": caps, "queries": queries,
+            "theme": key}
+
+
+STORIES = [
+    S("maa", "Maa Ki Aakhri Roti", "MAA", "pink", "A mother's silent sacrifice, and the day her son finally understood it.", "MAA KA TYAAG",
+      "maa ki kahani hindi", "HindiKahani",
+      ["Every night, she served her son the last roti and said she had already eaten.",
+       "He believed her. He thought mothers never felt hungry.",
+       "Years later, he found her old steel plate on the kitchen shelf. Empty.",
+       "He held it close to his chest and cried like a child.",
+       "The lesson: some love is so quiet that we notice it only when it is gone. Hug your parents today. " + C],
+      ["हर रात माँ अपने बेटे को आख़िरी रोटी खिला देती, और कहती, मैंने तो खा लिया।",
+       "बेटे ने मान लिया। उसे लगता था, माँओं को भूख लगती ही नहीं।",
+       "सालों बाद, रसोई की अलमारी में उसे माँ की पुरानी थाली मिली। ख़ाली।",
+       "उसने थाली को सीने से लगाया, और बच्चे की तरह रो पड़ा।",
+       "सीख यही है। कुछ प्यार इतना चुप होता है कि उसकी क़ीमत जाने के बाद पता चलती है। आज अपने माँ-बाप को गले लगाइए। और कहानियों के लिए फ़ॉलो कीजिए।"],
+      ["THE LAST ROTI", "SHE SAID SHE ATE", "THE EMPTY PLATE", "HE CRIED LIKE A CHILD", "HUG THEM TODAY"],
+      ["hands serving roti on a steel plate", "family dinner table warm light hands", "old steel plate on kitchen shelf", "man sitting alone holding an old plate", "hands holding an old photograph warm light"]),
+    S("imaandari", "Imaandari Ki Jeet", "IMAANDARI", "gold", "A found watch, a hard choice, and the trust that honesty earns.", "IMAANDARI KI JEET",
+      "imaandari ki kahani hindi", "HindiKahani",
+      ["He found a gold watch on a park bench. For a moment, he wanted to keep it.",
+       "Then he remembered what his father always said: honesty never goes out of fashion.",
+       "He walked to the police booth and handed it over.",
+       "The owner, a shopkeeper, trusted him from that day, and gave him work he had never dreamed of.",
+       "The lesson: honesty may cost you a quick gain, but it earns a trust that money cannot buy. " + C],
+      ["पार्क की बेंच पर उसे एक सोने की घड़ी मिली। पल भर को उसका मन ललचाया।",
+       "फिर उसे पिताजी की बात याद आई। ईमानदारी कभी पुरानी नहीं होती।",
+       "वो सीधा पुलिस चौकी गया, और घड़ी वहाँ जमा करा दी।",
+       "घड़ी का मालिक एक दुकानदार था। उसने उस पर भरोसा किया, और उसे ऐसा काम दिया जिसका उसने सपना भी नहीं देखा था।",
+       "सीख यही है। ईमानदारी से शायद तुरंत फ़ायदा न मिले, पर वो भरोसा मिलता है जो पैसे से नहीं ख़रीदा जा सकता। और कहानियों के लिए फ़ॉलो कीजिए।"],
+      ["A GOLD WATCH ON A BENCH", "HIS FATHER'S WORDS", "HE HANDED IT IN", "TRUST ARRIVED", "HONESTY PAYS"],
+      ["gold wrist watch on a park bench", "empty park bench in autumn close up", "hand giving a watch across a desk", "handshake between two businessmen close up", "sunrise over a city skyline calm"]),
+    S("sabr", "Sabr Ka Phal", "SABR", "green", "He worked quietly while others laughed, and the end told the story.", "SABR KA PHAL",
+      "sabr ka phal hindi kahani", "HindiKahani",
+      ["He started his small work alone, while the others laughed.",
+       "Weeks passed. The laughter grew louder, but he kept going, quietly.",
+       "Slowly, his work took shape, though almost nobody noticed.",
+       "Then one day it was done, and the same people stood in silence, clapping.",
+       "The lesson: patience is a quiet strength. People laugh at the start and clap at the end. " + C],
+      ["उसने अपना छोटा सा काम अकेले शुरू किया, और लोग हँसते रहे।",
+       "हफ़्ते बीते। हँसी और तेज़ हुई, पर वो चुपचाप लगा रहा।",
+       "धीरे-धीरे उसका काम आकार लेने लगा, पर किसी ने ध्यान नहीं दिया।",
+       "फिर एक दिन काम पूरा हुआ। वही लोग चुप खड़े थे, और ताली बजा रहे थे।",
+       "सीख यही है। सब्र एक चुप ताक़त है। शुरू में लोग हँसते हैं, और आख़िर में ताली बजाते हैं। और कहानियों के लिए फ़ॉलो कीजिए।"],
+      ["HE STARTED ALONE", "THEY KEPT LAUGHING", "SLOW AND STEADY", "THEN THEY CLAPPED", "PATIENCE WINS"],
+      ["hands working on a wooden craft table", "clock ticking on a wall close up", "calendar pages turning close up", "hands applauding close up", "sunrise over a green field"]),
+    S("shukriya", "Shukriya Ka Din", "SHUKRIYA", "orange", "A broken scooter, a long walk, and a lesson about what we already have.", "SHUKRIYA KA DIN",
+      "shukriya ki kahani hindi", "HindiKahani",
+      ["He complained every morning: a small house, an old scooter, a tight month.",
+       "One day the scooter broke down, and he had to walk to work.",
+       "On the road he saw a man pulling a heavy cart, working hard, and still smiling.",
+       "He stood still for a long moment. Then he walked on, quietly.",
+       "The lesson: next to what we want we feel poor, and next to what others lack we are rich. Say thank you today. " + C],
+      ["वो हर सुबह शिकायत करता। छोटा सा घर, पुराना स्कूटर, और हर महीने की तंगी।",
+       "एक दिन स्कूटर ख़राब हो गया, और उसे पैदल काम पर जाना पड़ा।",
+       "रास्ते में उसने एक आदमी को देखा। भारी ठेला खींचता हुआ, और फिर भी मुस्कुराता हुआ।",
+       "वो कुछ देर वहीं खड़ा रहा। फिर चुपचाप आगे बढ़ गया।",
+       "सीख यही है। जो चाहिए, उसके सामने हम ग़रीब लगते हैं, और जो औरों के पास नहीं, उसके सामने अमीर। आज शुक्रिया कहिए। और कहानियों के लिए फ़ॉलो कीजिए।"],
+      ["SMALL HOUSE. OLD SCOOTER.", "IT BROKE DOWN", "A SMILE ON THE ROAD", "HE WENT QUIET", "SAY THANK YOU"],
+      ["old scooter parked outside a small house", "hands trying to start a scooter", "man pulling a loaded handcart on a road", "walking feet on a city road morning", "sunrise through a window warm light"]),
+    S("rishte", "Ek Vakya Ki Doori", "RISHTE", "blue", "Two brothers, years of silence, and one sentence that ended it.", "EK SENTENCE KA FARQ",
+      "bhai bhai ki kahani hindi", "HindiKahani",
+      ["Two brothers stopped talking over a small quarrel about a plot of land.",
+       "Years passed. Each waited for the other to speak first.",
+       "In their mother's old house, one of them found a faded photo of the two as little boys.",
+       "He picked up the phone and said just one sentence: I miss you.",
+       "The lesson: pride is a lonely seat. One kind sentence can mend years. Say it first. " + C],
+      ["दो भाइयों ने ज़मीन के एक छोटे से झगड़े पर बात करना बंद कर दिया।",
+       "साल बीत गए। दोनों इंतज़ार करते रहे कि पहले दूसरा बोले।",
+       "माँ के पुराने घर में एक भाई को बचपन की धुँधली तस्वीर मिली। दोनों छोटे बच्चे, हँसते हुए।",
+       "उसने फ़ोन उठाया और बस इतना कहा, भैया, आपकी याद आती है।",
+       "सीख यही है। अहंकार की कुर्सी बहुत अकेली होती है। एक प्यार भरा वाक्य सालों का फ़ासला मिटा देता है। पहले आप कह दीजिए। और कहानियों के लिए फ़ॉलो कीजिए।"],
+      ["A SMALL QUARREL", "YEARS OF SILENCE", "THE OLD PHOTO", "ONE SENTENCE", "SAY IT FIRST"],
+      ["old faded photograph on a table", "two empty chairs facing each other", "hands holding a faded childhood photo", "hand picking up a mobile phone", "sunset over a village road"]),
+    S("waqt", "Papa Ka Waqt", "WAQT", "purple", "A father who gave everything except time, and the evening he changed.", "WAQT HI SABSE BADA",
+      "papa ki kahani hindi", "HindiKahani",
+      ["A father worked day and night, so his child could have everything.",
+       "He gave his son toys, clothes, and a big school. He did not give him time.",
+       "One evening the boy said, can we just sit together once?",
+       "That night the father put his phone away and listened to every word.",
+       "The lesson: children remember time, not toys. Give them one hour today. " + C],
+      ["एक पिता दिन-रात काम करता रहा, ताकि उसके बेटे को सब कुछ मिले।",
+       "उसने बेटे को खिलौने दिए, कपड़े दिए, बड़ा स्कूल दिया। बस वक़्त नहीं दिया।",
+       "एक शाम बेटे ने कहा, पापा, बस एक बार मेरे साथ बैठ जाओ।",
+       "उस रात पिता ने फ़ोन किनारे रखा, और बेटे की हर बात सुनी।",
+       "सीख यही है। बच्चे खिलौने नहीं, वक़्त याद रखते हैं। आज एक घंटा दीजिए। और कहानियों के लिए फ़ॉलो कीजिए।"],
+      ["WORK DAY AND NIGHT", "TOYS BUT NO TIME", "JUST SIT WITH ME", "PHONE AWAY", "GIVE ONE HOUR"],
+      ["office desk late at night with a lamp", "toys scattered on a floor close up", "a small child's hand on a table", "hand putting a mobile phone down on a table", "tea cups on a table at home in the evening"]),
+]
+
+if __name__ == "__main__":
+    ok = []
+    for s in STORIES:
+        good, why = L.validate(s)
+        print(("OK  " if good else "FAIL"), s["key"], why)
+        if good:
+            ok.append(s)
+    L.save(ok)
+    print(f"saved {len(ok)} stories to {L.LIFE_FILE}")

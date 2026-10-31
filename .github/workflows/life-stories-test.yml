@@ -7,14 +7,10 @@ name: "Life stories test (manual, never uploads)"
 on:
   workflow_dispatch:
     inputs:
-      count:
-        description: "How many stories to write (render the first RENDER of them)"
+      stories:
+        description: "Space-separated story keys from _data/life_extra.json (life_maa life_imaandari life_sabr life_shukriya life_rishte life_waqt)"
         required: false
-        default: "3"
-      render:
-        description: "How many to render as videos"
-        required: false
-        default: "2"
+        default: "life_maa life_imaandari"
 
 permissions:
   contents: read
@@ -44,19 +40,11 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install -r requirements.txt
-      - name: Write the stories (saved only inside this job)
-        run: python life_stories.py --n "${{ github.event.inputs.count || '3' }}" --save --print
-      - name: Render the first stories (dry, both editions)
+      - name: Render the hand-written Hindi stories (dry, Hindi edition only, never uploads)
         run: |
-          python - <<'PYEOF'
-          import os, json, subprocess
-          keys = [s["key"] for s in json.load(open("_data/life_extra.json", encoding="utf-8"))["stories"]]
-          n = int(os.environ.get("RENDER", "2"))
-          for k in keys[:n]:
-              subprocess.run(["python", "story_real.py", "--run", "--mode", "dry", "--story", k, "--out", "output/life"], check=False)
-          PYEOF
-        env:
-          RENDER: ${{ github.event.inputs.render || '2' }}
+          for k in ${{ github.event.inputs.stories || 'life_maa life_imaandari' }}; do
+            python story_real.py --life --mode dry --story "$k" --out output/life
+          done
       - uses: actions/upload-artifact@v4
         with:
           name: life-preview
@@ -64,6 +52,5 @@ jobs:
             output/life/*.mp4
             output/life/*_thumb.jpg
             output/life/*_meta*.json
-            _data/life_extra.json
           retention-days: 7
           if-no-files-found: ignore
