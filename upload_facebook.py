@@ -99,6 +99,8 @@ CONTENT_MODE                  = os.environ.get("CONTENT_MODE", "market").lower()
 HOLIDAY_NAME                  = os.environ.get("HOLIDAY_NAME", "")
 OUTPUT_DIR                    = Path("output")
 GRAPH_BASE                    = "https://graph.facebook.com/v21.0"
+IG_TAGS_CASE  = "#BreakoutStocks #StockMarketIndia #ShareMarketHindi #ChartPattern #SwingTrading #TradingHindi #LearnTrading #Nifty #Reels"
+IG_TAGS_STORY = "#TradingPsychology #StockMarketIndia #TraderLife #TradingMistakes #RiskManagement #LearnTrading #ShareMarket #FinanceReels #Reels"
 MAX_RETRIES                   = 3
 RETRY_DELAY                   = 10
 
@@ -670,7 +672,7 @@ def main():
         if INSTAGRAM_BUSINESS_ACCOUNT_ID:
             try:
                 upload_reel_to_instagram(INSTAGRAM_BUSINESS_ACCOUNT_ID, video_path,
-                                         caption + "\n#Reels #InstagramReels", page_token)
+                                         caption + "\n\n" + (IG_TAGS_CASE if prefix == "case" else IG_TAGS_STORY), page_token)
             except Exception as e:
                 print(f"  ⚠️ Instagram story upload failed (fail-open): {e}")
         return
