@@ -52,7 +52,94 @@ TOPICS = {
     },
 }
 
+def _more_topics():
+    T = TOPICS
+    T["wifi_slow"] = {
+        "title": "WiFi Slow Kyun Chalta Hai?", "yt_title": "WiFi Slow Kyun Chalta Hai? Asli Reason #shorts", "tag": "ROZ KI TECH",
+        "thumb": ("WIFI SLOW", "KYUN?"), "thumb_long": "WIFI KABHI KABHI ITNA SLOW KYUN HO JATA HAI? ASLI REASON", "thumb_hot": "SLOW",
+        "tags": ["wifi slow kyun chalta hai", "wifi speed kaise badhaye", "router problem hinglish", "tech explained hinglish", "shorts"],
+        "lines": [
+            "आपका WiFi कभी-कभी इतना स्लो क्यों हो जाता है? पता है असली वजह?",
+            "WiFi एक रेडियो सिग्नल है, और दीवारें, ख़ासकर मोटी दीवारें, उसे कमज़ोर कर देती हैं। जैसे दीवार के पीछे से कोई आवाज़ दे, तो आवाज़ धीमी पहुँचती है, वैसे ही।",
+            "दूसरी वजह भीड़ है। जितने ज़्यादा फ़ोन, टीवी और लैपटॉप जुड़ेंगे, स्पीड उतनों में बँट जाएगी, जैसे एक पाइप से कई नल चलाओ।",
+            "और पड़ोसियों के WiFi भी टकरा सकते हैं, ख़ासकर टू पॉइंट फ़ोर गीगाहर्ट्ज़ पर। फ़ाइव गीगाहर्ट्ज़ तेज़ है, पर दीवार पार करने में कमज़ोर।",
+            "तो राउटर खुली, ऊँची जगह रखो, और पास में हो तो फ़ाइव गीगाहर्ट्ज़ चुनो। सीधी बात, दीवार और भीड़ स्पीड खाते हैं। अगली बार, राउटर की लाइट का मतलब।",
+        ],
+        "caps": ["WIFI SLOW KYUN?", "DEEVAR SIGNAL KHATI HAI", "BHEED = SPEED KAM", "PADOSI KA WIFI BHI", "DEEVAR + BHEED = SLOW"],
+        "scenes": [{"type": "card", "lines": ["WIFI SLOW?", "ASLI WAJAH"], "color": "red"},
+                   {"type": "bars2", "rows": [("SIGNAL: KHULI JAGAH", 0.95, "green"), ("SIGNAL: MOTI DEEVAR KE PAAR", 0.35, "red")]},
+                   {"type": "bars2", "rows": [("SPEED: 1 DEVICE", 0.95, "green"), ("SPEED: BAHUT DEVICE", 0.3, "red")]},
+                   {"type": "bars2", "rows": [("2.4 GHZ: DOOR TAK, BHEED", 0.6, "orange"), ("5 GHZ: TEZ, DEEVAR MEIN KAMZOR", 0.85, "blue")]},
+                   {"type": "tips", "items": ["ROUTER KHULI, UNCHI JAGAH", "PAAS MEIN 5 GHZ CHUNO", "BEKAAR DEVICE HATAO"]}],
+        "queries": [["wifi router close up", "wifi router on shelf"], ["brick wall close up", "concrete wall texture"],
+                    ["smartphones on table", "many devices laptop phone table"], ["router blinking lights", "router antennas close up"],
+                    ["router on shelf living room", "hand holding smartphone"]]}
+    T["laptop_hang"] = {
+        "title": "Laptop Hang Kyun Hota Hai?", "yt_title": "Laptop Hang Kyun Hota Hai? Asli Wajah #shorts", "tag": "ROZ KI TECH",
+        "thumb": ("LAPTOP HANG", "KYUN?"), "thumb_long": "LAPTOP BAAR BAAR HANG KYUN HOTA HAI? ASLI REASON", "thumb_hot": "HANG",
+        "tags": ["laptop hang kyun hota hai", "laptop slow problem", "computer slow hinglish", "tech explained hinglish", "shorts"],
+        "lines": [
+            "आपका लैपटॉप बार-बार हैंग क्यों हो जाता है? चलो, वजह समझते हैं।",
+            "लैपटॉप में RAM एक छोटी मेज़ की तरह है, जिस पर चल रहे सारे ऐप्स का काम रखा जाता है। मेज़ भर जाए, तो सब कुछ धीमा हो जाता है।",
+            "जब RAM कम पड़ती है, तो सिस्टम काम को हार्ड डिस्क पर रखने लगता है, और हार्ड डिस्क, ख़ासकर पुरानी वाली, RAM से बहुत धीमी होती है। बस यहीं से हैंग शुरू होता है।",
+            "ऊपर से बैकग्राउंड में चलते ऐप्स और ब्राउज़र के ढेर सारे टैब भी RAM खा जाते हैं।",
+            "तो बेकार टैब बंद करो, स्टार्टअप ऐप्स कम करो, और हो सके तो हार्ड डिस्क की जगह SSD लगवाओ। सीधी बात, RAM की मेज़ भरी तो लैपटॉप हाँफता है। अगली बार बताऊँगा, कंप्यूटर ऑन क्यों नहीं होता।",
+        ],
+        "caps": ["LAPTOP HANG KYUN?", "RAM = CHHOTI MEZ", "RAM KAM = DISK PAR KAAM", "TAB + APPS = RAM KHATAM", "TAB BAND KARO, SSD LAGAO"],
+        "scenes": [{"type": "card", "lines": ["LAPTOP HANG?", "ASLI WAJAH"], "color": "red"},
+                   {"type": "bars2", "rows": [("RAM: KHALI", 0.2, "green"), ("RAM: BHARI HUI", 0.95, "red")]},
+                   {"type": "bars2", "rows": [("RAM SPEED", 0.95, "green"), ("HARD DISK SPEED", 0.2, "red")]},
+                   {"type": "bars2", "rows": [("BROWSER TABS", 0.9, "orange"), ("BACKGROUND APPS", 0.7, "orange")]},
+                   {"type": "tips", "items": ["BEKAAR TAB BAND KARO", "STARTUP APPS KAM KARO", "HARD DISK KI JAGAH SSD"]}],
+        "queries": [["laptop screen loading close up", "hands typing laptop"], ["computer memory ram close up", "ram module close up"],
+                    ["hard disk drive close up", "computer hard drive"], ["browser tabs laptop screen", "laptop screen browsing"],
+                    ["ssd computer close up", "laptop on desk"]]}
+    T["pc_no_start"] = {
+        "title": "Computer On Kyun Nahi Hota?", "yt_title": "Computer On Nahi Ho Raha? Pehle Ye 3 Cheez Check Karo #shorts", "tag": "ROZ KI TECH",
+        "thumb": ("PC ON NAHI", "KYUN?"), "thumb_long": "COMPUTER ON NAHI HO RAHA? PEHLE YE 3 CHEEZ CHECK KARO", "thumb_hot": "NAHI",
+        "tags": ["computer on nahi ho raha", "pc not turning on hinglish", "computer problem solution", "tech explained hinglish", "shorts"],
+        "lines": [
+            "आपका कंप्यूटर ऑन क्यों नहीं हो रहा? पहले ये तीन चीज़ें चेक करो।",
+            "पहली, बिजली। सॉकेट, एक्सटेंशन बोर्ड और केबल, तीनों में बिजली पहुँच रही है या नहीं, किसी दूसरे उपकरण को लगाकर देखो।",
+            "दूसरी, कई बार कंप्यूटर चालू होता है, पर स्क्रीन पर कुछ नहीं दिखता। तब मॉनिटर की केबल और इनपुट सेटिंग देखो।",
+            "तीसरी, अगर कंप्यूटर चालू होकर तुरंत बंद हो जाए, या बीप की आवाज़ आए, तो अंदर कोई पार्ट ढीला या ख़राब हो सकता है। इसे ख़ुद खोलने की जगह किसी टेक्नीशियन को दिखाओ।",
+            "तो पहले बिजली, फिर स्क्रीन, फिर टेक्नीशियन। सीधी बात, पहले आसान चीज़ें चेक करो। अगली बार बताऊँगा, फ़ोन की बैटरी जल्दी क्यों ख़त्म होती है।",
+        ],
+        "caps": ["PC ON NAHI HO RAHA?", "1. BIJLI CHECK KARO", "2. SCREEN / MONITOR CABLE", "3. BEEP? TECHNICIAN BULAO", "PEHLE AASAAN CHEEZ"],
+        "scenes": [{"type": "card", "lines": ["PC ON NAHI?", "3 CHEEZ CHECK"], "color": "gold"},
+                   {"type": "tips", "items": ["SOCKET MEIN BIJLI?", "EXTENSION BOARD OK?", "KEBAL OK?"]},
+                   {"type": "tips", "items": ["MONITOR KEBAL TIGHT?", "INPUT SETTING SAHI?", "SCREEN ON HAI?"]},
+                   {"type": "tips", "items": ["BEEP AAYE TO RUKO", "KHUD MAT KHOLO", "TECHNICIAN KO DIKHAO"]},
+                   {"type": "card", "lines": ["BIJLI, SCREEN,", "TECHNICIAN"], "color": "green"}],
+        "queries": [["power socket plug close up", "extension cord socket"], ["power socket plug close up", "electric plug wall"],
+                    ["computer monitor cable close up", "monitor on desk"], ["technician repairing computer", "computer repair hands"],
+                    ["desktop computer on desk", "computer setup desk"]]}
+    T["mixer_hot"] = {
+        "title": "Mixer Garam Kyun Hota Hai?", "yt_title": "Mixer Grinder Garam Kyun Hota Hai? Asli Wajah #shorts", "tag": "ROZ KI TECH",
+        "thumb": ("MIXER HOT", "KYUN?"), "thumb_long": "MIXER CHALATE CHALATE ITNA GARAM KYUN HO JATA HAI?", "thumb_hot": "GARAM",
+        "tags": ["mixer garam kyun hota hai", "mixer grinder heating", "kitchen tips hinglish", "tech explained hinglish", "shorts"],
+        "lines": [
+            "मिक्सर चलाते-चलाते इतना गरम क्यों हो जाता है?",
+            "मिक्सर के अंदर एक मोटर घूमती है, और मोटर में बिजली चलती है तो गरमी बनती है, ठीक वैसे ही जैसे फ़ोन की चिप में बनी थी।",
+            "जब आप भारी चीज़ें, जैसे सूखे मसाले या मोटा आटा, ज़्यादा देर पीसते हो, तो मोटर पर लोड बढ़ जाता है, और गरमी भी।",
+            "इसीलिए ज़्यादातर मिक्सर में हवा आने-जाने के छेद होते हैं। अगर वो बंद हों, तो मोटर और जल्दी गरम होती है।",
+            "तो थोड़ा-थोड़ा पीसो, बीच में ब्रेक दो, और जार में ज़्यादा सामान मत भरो। अगर जलने की गंध आए, तो तुरंत बंद करके बिजली निकालो। सीधी बात, ज़्यादा लोड, ज़्यादा गरमी।",
+        ],
+        "caps": ["MIXER GARAM KYUN?", "MOTOR = GARMI", "ZYADA LOAD = ZYADA GARMI", "HAWA KE CHHED BAND = GARMI", "THODA PEESO, BREAK DO"],
+        "scenes": [{"type": "card", "lines": ["MIXER GARAM?", "ASLI WAJAH"], "color": "orange"},
+                   {"type": "bars2", "rows": [("MOTOR KA KAAM", 0.6, "blue"), ("GARMI", 0.5, "orange")]},
+                   {"type": "bars2", "rows": [("HALKA PEESNA: GARMI", 0.3, "green"), ("BHARI PEESNA: GARMI", 0.95, "red")]},
+                   {"type": "bars2", "rows": [("HAWA KE CHHED KHULE", 0.3, "green"), ("HAWA KE CHHED BAND", 0.9, "red")]},
+                   {"type": "tips", "items": ["THODA THODA PEESO", "BEECH MEIN BREAK DO", "JAR ZYADA MAT BHARO"]}],
+        "queries": [["mixer grinder kitchen", "kitchen mixer running"], ["electric motor close up", "motor machine close up"],
+                    ["grinding spices", "spices in bowl close up"], ["kitchen appliance close up", "mixer grinder jar"],
+                    ["kitchen counter", "hands cooking close up"]]}
+
+
 _FONT_CACHE = {}
+
+
+_more_topics()
 
 
 def font(sz):
@@ -263,6 +350,33 @@ def sc_tips(d, t, dur, tips):
         d.text((x + 70, y), s, font=font(38), fill=WHITE + (255,), anchor="mm")
 
 
+def sc_card(d, t, dur, spec):
+    """Big hook card: 1-3 short lines on a translucent panel (no numbers)."""
+    k = ease(t / 0.5)
+    lines = spec["lines"]
+    col = {"red": RED, "gold": GOLD, "green": GREEN, "blue": BLUE, "orange": ORANGE}.get(spec.get("color", "gold"), GOLD)
+    hgt = 130 * len(lines) + 90
+    y0 = 760 - hgt / 2
+    d.rounded_rectangle((70, y0, 1010, y0 + hgt), radius=44, fill=(10, 14, 32, int(210 * k)), outline=col + (int(255 * k),), width=6)
+    for i, ln in enumerate(lines):
+        text_c(d, (540, y0 + 90 + i * 130), ln, font(96), fill=col if i == len(lines) - 1 else WHITE, width=5)
+
+
+def sc_bars2(d, t, dur, spec):
+    """Qualitative bars (no numbers): rows of (label, fill 0..1, colour). They fill one after another."""
+    rows = spec["rows"]
+    d.rounded_rectangle((60, 470, 1020, 470 + 170 + 220 * len(rows)), radius=44, fill=(10, 14, 32, 205))
+    x0, x1 = 120, 960
+    for i, (label, fill, cname) in enumerate(rows):
+        y = 620 + i * 230
+        k = ease((t - 0.3 - i * 0.5) / max(dur * 0.55, 0.1)) * fill
+        col = {"red": RED, "blue": BLUE, "green": GREEN, "orange": ORANGE, "gold": GOLD}.get(cname, BLUE)
+        text_c(d, (540, y - 82), label, font(50), fill=WHITE, width=3)
+        d.rounded_rectangle((x0, y - 36, x1, y + 36), radius=36, fill=(255, 255, 255, 30), outline=(255, 255, 255, 90), width=3)
+        if k > 0.01:
+            d.rounded_rectangle((x0 + 5, y - 31, x0 + 5 + (x1 - x0 - 10) * k, y + 31), radius=31, fill=col + (255,))
+
+
 PAINTERS = {"thermo": sc_thermo, "chip": sc_chip, "bars": sc_bars, "battery": sc_battery}
 
 
@@ -285,7 +399,15 @@ def frame_fn(topic, idx, n, dur, base=None):
         d.rounded_rectangle((44, 52, 44 + 330, 52 + 66), radius=33, fill=(10, 14, 32, 215), outline=accent + (255,), width=3)
         d.text((44 + 165, 52 + 33), topic["tag"], font=font(36), fill=WHITE + (255,), anchor="mm")
         # scene body
-        if kind == "tips":
+        if isinstance(kind, dict):
+            ty = kind["type"]
+            if ty == "card":
+                sc_card(d, t, dur, kind)
+            elif ty == "bars2":
+                sc_bars2(d, t, dur, kind)
+            elif ty == "tips":
+                sc_tips(d, t, dur, kind["items"])
+        elif kind == "tips":
             sc_tips(d, t, dur, topic["tips"])
         else:
             PAINTERS[kind](d, t, dur, real)
