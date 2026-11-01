@@ -32,6 +32,8 @@ TOPICS = {
         "title": "Phone Hot Kyun Hota Hai?",
         "yt_title": "Phone Hot Kyun Hota Hai? Asli Reason #shorts",
         "thumb": ("PHONE HOT", "KYUN?"),
+        "thumb_long": "CHARGING MEIN PHONE ITNA GARAM KYUN HOTA HAI? ASLI REASON",
+        "thumb_hot": "GARAM",
         "tag": "HOW IT WORKS",
         "tags": ["phone hot kyun hota hai", "phone heating problem", "mobile heat hinglish", "tech explained hinglish", "how it works hinglish", "shorts"],
         "lines": [
@@ -421,6 +423,44 @@ def real_thumbnail(frame, topic, path):
     im.save(path, quality=93)
 
 
+def wrap_lines(d, s, f, maxw):
+    words, lines, cur = s.split(), [], ""
+    for w_ in words:
+        t = (cur + " " + w_).strip()
+        if d.textlength(t, font=f) <= maxw or not cur:
+            cur = t
+        else:
+            lines.append(cur)
+            cur = w_
+    if cur:
+        lines.append(cur)
+    return lines
+
+
+def long_thumbnail(frame, topic, path):
+    """Variant B (owner 2026-11-01: a colourful image with a LONG sentence also works, readers spend time on it):
+    very saturated real photo, a full question in 3 stacked lines on dark bars, key word highlighted."""
+    from PIL import ImageEnhance
+    im = Image.fromarray(frame).convert("RGB")
+    im = im.crop((0, 380, W, 380 + int(W * 9 / 16))).resize((1280, 720), Image.LANCZOS)
+    im = ImageEnhance.Color(im).enhance(1.7)
+    im = ImageEnhance.Contrast(im).enhance(1.15)
+    im = ImageEnhance.Brightness(im).enhance(1.08)
+    d = ImageDraw.Draw(im, "RGBA")
+    sentence = topic.get("thumb_long", topic["title"].upper())
+    f = font(78)
+    lines = wrap_lines(d, sentence, f, 1120)[:3]
+    y = 80
+    hot = topic.get("thumb_hot", "")
+    for ln in lines:
+        w_ = d.textlength(ln, font=f)
+        d.rounded_rectangle((640 - w_ / 2 - 28, y - 6, 640 + w_ / 2 + 28, y + 100), radius=22, fill=(8, 10, 24, 215))
+        col = RED if (hot and hot in ln) else WHITE
+        d.text((640, y + 48), ln, font=f, fill=col + (255,) if col != WHITE else GOLD + (255,), anchor="mm")
+        y += 118
+    im.save(path, quality=93)
+
+
 def build(key, out_dir, real=False, cache_dir='bank_tech'):
     from moviepy.editor import VideoClip, AudioFileClip, CompositeAudioClip, concatenate_videoclips
     from moviepy.audio.AudioClip import AudioArrayClip
@@ -477,6 +517,8 @@ def build(key, out_dir, real=False, cache_dir='bank_tech'):
     try:
         if thumb_frame is not None:
             real_thumbnail(thumb_frame, topic, thumb)
+            long_thumbnail(thumb_frame, topic, out_dir / f"{key}_thumb_long.jpg")
+            Image.fromarray(thumb_frame).save(out_dir / f"{key}_thumbframe.png")
             raise StopIteration
         fr = Image.fromarray(frame_fn(topic, 0, n, 6.0)(5.0)).convert("RGB")
         crop = fr.crop((0, 380, W, 380 + int(W * 9 / 16))).resize((1280, 720))

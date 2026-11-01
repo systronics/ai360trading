@@ -42,7 +42,8 @@ jobs:
           name: tech-preview
           path: |
             output/tech/*_tech.mp4
-            output/tech/*_thumb.jpg
+            output/tech/*_thumb*.jpg
+            output/tech/*_thumbframe.png
             output/tech/*_meta.json
           retention-days: 7
           if-no-files-found: ignore
