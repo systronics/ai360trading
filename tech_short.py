@@ -339,8 +339,8 @@ def gemini_voice(text, path, idx):
         body = {"contents": [{"parts": [{"text": f"{style} {text}"}]}],
                 "generationConfig": {"responseModalities": ["AUDIO"],
                                      "speechConfig": {"voiceConfig": {"prebuiltVoiceConfig": {"voiceName": voice}}}}}
-        for attempt in range(3):
-            wait = 31 - (time.time() - _GEM["last"])
+        for attempt in range(5):
+            wait = 40 - (time.time() - _GEM["last"])
             if wait > 0:
                 time.sleep(wait)
             _GEM["last"] = time.time()
@@ -355,8 +355,9 @@ def gemini_voice(text, path, idx):
                     w.setframerate(24000)
                     w.writeframes(pcm)
                 return wav
-            print(f"[TECH] gemini tts {r.status_code} (attempt {attempt + 1})")
-            time.sleep(20)
+            print(f"[TECH] gemini tts {r.status_code} (attempt {attempt + 1}): {r.text[:160]!r}")
+            ra = r.headers.get("Retry-After", "")
+            time.sleep(min(90, float(ra) + 2) if ra.replace(".", "").isdigit() else 70)
     except Exception as e:
         print(f"[TECH] gemini tts failed, using Edge voice: {str(e)[:100]}")
     return None
