@@ -300,6 +300,18 @@ def normalize_voice(src):
         subprocess.run([ff, "-y", "-i", str(src), "-af", "loudnorm=I=-16:TP=-1.5:LRA=5,alimiter=limit=0.89", "-ar", "44100", "-ac", "2", str(dst)],
                        check=True, capture_output=True, timeout=120)
         if dst.exists() and dst.stat().st_size > 1000:
+            try:   # short clips: single-pass loudnorm can miss the target by a few LU, so measure and trim the gain
+                import re
+                m = subprocess.run([ff, "-i", str(dst), "-af", "ebur128", "-f", "null", "-"], capture_output=True, text=True, timeout=120).stderr
+                got = float(re.findall(r"I:\s+(-?[\d.]+) LUFS", m)[-1])
+                if abs(got + 16.0) > 0.7:
+                    d2 = Path(str(src)).with_suffix(".norm2.wav")
+                    subprocess.run([ff, "-y", "-i", str(dst), "-af", f"volume={-16.0 - got:.2f}dB,alimiter=limit=0.89", str(d2)],
+                                   check=True, capture_output=True, timeout=120)
+                    if d2.exists() and d2.stat().st_size > 1000:
+                        return d2
+            except Exception:
+                pass
             return dst
     except Exception as e:
         print(f"[REAL] loudness normalise skipped (fail-open): {str(e)[:100]}")
