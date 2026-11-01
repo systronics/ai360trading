@@ -381,6 +381,13 @@ def sc_tips(d, t, dur, tips):
         d.text((x + 70, y), s, font=font(38), fill=WHITE + (255,), anchor="mm")
 
 
+def fit_font(d, s, maxw, start, lo=44):
+    sz = start
+    while sz > lo and d.textlength(s, font=font(sz)) > maxw:
+        sz -= 4
+    return font(sz)
+
+
 def sc_card(d, t, dur, spec):
     """Big hook card: 1-3 short lines on a translucent panel (no numbers)."""
     k = ease(t / 0.5)
@@ -390,7 +397,7 @@ def sc_card(d, t, dur, spec):
     y0 = 760 - hgt / 2
     d.rounded_rectangle((70, y0, 1010, y0 + hgt), radius=44, fill=(10, 14, 32, int(210 * k)), outline=col + (int(255 * k),), width=6)
     for i, ln in enumerate(lines):
-        text_c(d, (540, y0 + 90 + i * 130), ln, font(96), fill=col if i == len(lines) - 1 else WHITE, width=5)
+        text_c(d, (540, y0 + 90 + i * 130), ln, fit_font(d, ln, 840, 96), fill=col if i == len(lines) - 1 else WHITE, width=5)
 
 
 def sc_bars2(d, t, dur, spec):
@@ -445,9 +452,10 @@ def frame_fn(topic, idx, n, dur, base=None):
         # caption (safe zone above platform buttons), fade-in + tiny rise
         a = ease(t / 0.35)
         yy = H - 520 - (1 - a) * 24
+        cf = fit_font(d, cap, 980, 62, 34)
         for dx, dy in ((4, 4), (-3, 3), (3, -3)):
-            d.text((W / 2 + dx, yy + dy), cap, font=font(62), fill=(0, 0, 0, int(255 * a)), anchor="mm")
-        d.text((W / 2, yy), cap, font=font(62), fill=WHITE + (int(255 * a),), anchor="mm")
+            d.text((W / 2 + dx, yy + dy), cap, font=cf, fill=(0, 0, 0, int(255 * a)), anchor="mm")
+        d.text((W / 2, yy), cap, font=cf, fill=WHITE + (int(255 * a),), anchor="mm")
         d.rectangle((W / 2 - 130, yy + 62, W / 2 + 130, yy + 70), fill=accent + (int(255 * a),))
         # progress segments
         seg = (W - 160) / n
