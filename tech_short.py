@@ -31,7 +31,7 @@ TOPICS = {
     "phone_heat": {
         "title": "Phone Hot Kyun Hota Hai?",
         "yt_title": "Phone Hot Kyun Hota Hai? Asli Reason #shorts",
-        "thumb": ("PHONE HOT", "KYUN?"),
+        "thumb": ("PHONE HOT", "KYUN?"), "thumb_hi": "फोन गर्म क्यों होता है?", "thumb_sub": "ASLI WAJAH + 3 TIPS",
         "thumb_long": "CHARGING MEIN PHONE ITNA GARAM KYUN HOTA HAI? ASLI REASON",
         "thumb_hot": "GARAM",
         "tag": "HOW IT WORKS",
@@ -56,7 +56,7 @@ def _more_topics():
     T = TOPICS
     T["wifi_slow"] = {
         "title": "WiFi Slow Kyun Chalta Hai?", "yt_title": "WiFi Slow Kyun Chalta Hai? Asli Reason #shorts", "tag": "ROZ KI TECH",
-        "thumb": ("WIFI SLOW", "KYUN?"), "thumb_long": "WIFI KABHI KABHI ITNA SLOW KYUN HO JATA HAI? ASLI REASON", "thumb_hot": "SLOW",
+        "thumb": ("WIFI SLOW", "KYUN?"), "thumb_hi": "WiFi स्लो क्यों चलता है?", "thumb_sub": "ASLI WAJAH + FIX", "thumb_long": "WIFI KABHI KABHI ITNA SLOW KYUN HO JATA HAI? ASLI REASON", "thumb_hot": "SLOW",
         "tags": ["wifi slow kyun chalta hai", "wifi speed kaise badhaye", "router problem hinglish", "tech explained hinglish", "shorts"],
         "lines": [
             "आपका WiFi कभी-कभी इतना स्लो क्यों हो जाता है? पता है असली वजह?",
@@ -76,7 +76,7 @@ def _more_topics():
                     ["router on shelf living room", "hand holding smartphone"]]}
     T["laptop_hang"] = {
         "title": "Laptop Hang Kyun Hota Hai?", "yt_title": "Laptop Hang Kyun Hota Hai? Asli Wajah #shorts", "tag": "ROZ KI TECH",
-        "thumb": ("LAPTOP HANG", "KYUN?"), "thumb_long": "LAPTOP BAAR BAAR HANG KYUN HOTA HAI? ASLI REASON", "thumb_hot": "HANG",
+        "thumb": ("LAPTOP HANG", "KYUN?"), "thumb_hi": "लैपटॉप हैंग क्यों होता है?", "thumb_sub": "ASLI WAJAH + FIX", "thumb_long": "LAPTOP BAAR BAAR HANG KYUN HOTA HAI? ASLI REASON", "thumb_hot": "HANG",
         "tags": ["laptop hang kyun hota hai", "laptop slow problem", "computer slow hinglish", "tech explained hinglish", "shorts"],
         "lines": [
             "आपका लैपटॉप बार-बार हैंग क्यों हो जाता है? चलो, वजह समझते हैं।",
@@ -96,7 +96,7 @@ def _more_topics():
                     ["ssd computer close up", "laptop on desk"]]}
     T["pc_no_start"] = {
         "title": "Computer On Kyun Nahi Hota?", "yt_title": "Computer On Nahi Ho Raha? Pehle Ye 3 Cheez Check Karo #shorts", "tag": "ROZ KI TECH",
-        "thumb": ("PC ON NAHI", "KYUN?"), "thumb_long": "COMPUTER ON NAHI HO RAHA? PEHLE YE 3 CHEEZ CHECK KARO", "thumb_hot": "NAHI",
+        "thumb": ("PC ON NAHI", "KYUN?"), "thumb_hi": "कंप्यूटर ऑन नहीं हो रहा?", "thumb_sub": "PEHLE YE 3 CHEEZ CHECK", "thumb_long": "COMPUTER ON NAHI HO RAHA? PEHLE YE 3 CHEEZ CHECK KARO", "thumb_hot": "NAHI",
         "tags": ["computer on nahi ho raha", "pc not turning on hinglish", "computer problem solution", "tech explained hinglish", "shorts"],
         "lines": [
             "आपका कंप्यूटर ऑन क्यों नहीं हो रहा? पहले ये तीन चीज़ें चेक करो।",
@@ -116,7 +116,7 @@ def _more_topics():
                     ["desktop computer on desk", "computer setup desk"]]}
     T["mixer_hot"] = {
         "title": "Mixer Garam Kyun Hota Hai?", "yt_title": "Mixer Grinder Garam Kyun Hota Hai? Asli Wajah #shorts", "tag": "ROZ KI TECH",
-        "thumb": ("MIXER HOT", "KYUN?"), "thumb_long": "MIXER CHALATE CHALATE ITNA GARAM KYUN HO JATA HAI?", "thumb_hot": "GARAM",
+        "thumb": ("MIXER HOT", "KYUN?"), "thumb_hi": "मिक्सर गर्म क्यों होता है?", "thumb_sub": "ASLI WAJAH + FIX", "thumb_long": "MIXER CHALATE CHALATE ITNA GARAM KYUN HO JATA HAI?", "thumb_hot": "GARAM",
         "tags": ["mixer garam kyun hota hai", "mixer grinder heating", "kitchen tips hinglish", "tech explained hinglish", "shorts"],
         "lines": [
             "मिक्सर चलाते-चलाते इतना गरम क्यों हो जाता है?",
@@ -531,6 +531,80 @@ def pick_thumb_frame(base, dur):
     return best
 
 
+_DEVA = ["/usr/share/fonts/truetype/noto/NotoSansDevanagari-Bold.ttf", "/usr/share/fonts/truetype/noto/NotoSansDevanagariUI-Bold.ttf",
+         "/usr/share/fonts/opentype/noto/NotoSansDevanagari-Bold.ttf", "/usr/share/fonts/truetype/lohit-devanagari/Lohit-Devanagari.ttf",
+         "C:/Windows/Fonts/NirmalaB.ttf", "C:/Windows/Fonts/mangalb.ttf"]
+
+
+def deva_font(sz):
+    from PIL import ImageFont
+    for p_ in _DEVA:
+        if os.path.exists(p_):
+            return ImageFont.truetype(p_, sz)
+    return None
+
+
+def _flame(d, cx, cy, s):
+    d.polygon([(cx, cy - s * 1.5), (cx + s * 0.7, cy - s * 0.3), (cx + s * 0.45, cy + s * 0.6), (cx, cy + s * 0.75),
+               (cx - s * 0.45, cy + s * 0.6), (cx - s * 0.7, cy - s * 0.3)], fill=ORANGE + (255,))
+    d.polygon([(cx, cy - s * 0.6), (cx + s * 0.3, cy + s * 0.2), (cx, cy + s * 0.55), (cx - s * 0.3, cy + s * 0.2)], fill=GOLD + (255,))
+
+
+def _thermo_icon(d, cx, cy, s):
+    d.rounded_rectangle((cx - s * 0.2, cy - s, cx + s * 0.2, cy + s * 0.6), radius=int(s * 0.2), fill=(255, 255, 255, 255), outline=(40, 40, 40, 255), width=4)
+    d.ellipse((cx - s * 0.42, cy + s * 0.35, cx + s * 0.42, cy + s * 1.19), fill=RED + (255,), outline=(40, 40, 40, 255), width=4)
+    d.rounded_rectangle((cx - s * 0.1, cy - s * 0.2, cx + s * 0.1, cy + s * 0.7), radius=int(s * 0.1), fill=RED + (255,))
+
+
+def pattern_thumbnail(frame, topic, path):
+    """Pattern from the top phone-heating videos (screenshots 2026-11-01): red banner with a big Devanagari question, yellow Hinglish
+    strip, real phone photo with a heat (warm) side and a cool (blue) side, thermometer + flame icons. Honest strip text, no '100% solution'."""
+    from PIL import ImageEnhance
+    hi = topic.get("thumb_hi")
+    f_hi = deva_font(104) if hi else None
+    if not hi or f_hi is None:
+        return real_thumbnail(frame, topic, path)
+    im = Image.fromarray(frame).convert("RGB")
+    im = im.crop((0, 380, W, 380 + int(W * 9 / 16))).resize((1280, 720), Image.LANCZOS)
+    im = ImageEnhance.Color(im).enhance(1.5)
+    im = ImageEnhance.Contrast(im).enhance(1.2)
+    heat = Image.new("RGBA", (1280, 720), (0, 0, 0, 0))
+    hd = ImageDraw.Draw(heat)
+    for x in range(1280):   # warm on the left, cool on the right
+        k = x / 1280
+        hd.line([(x, 0), (x, 720)], fill=(255, 80, 20, int(120 * (1 - k) ** 1.5)) if k < 0.5 else (30, 140, 255, int(110 * (k - 0.5) * 2)))
+    im = Image.alpha_composite(im.convert("RGBA"), heat).convert("RGB")
+    d = ImageDraw.Draw(im, "RGBA")
+    # red banner with the Devanagari question
+    d.rectangle((0, 0, 1280, 250), fill=(200, 20, 25, 255))
+    d.rectangle((0, 250, 1280, 262), fill=GOLD + (255,))
+    words = hi.split()
+    lines, cur = [], ""
+    for w_ in words:
+        t = (cur + " " + w_).strip()
+        if d.textlength(t, font=f_hi) <= 1180 or not cur:
+            cur = t
+        else:
+            lines.append(cur)
+            cur = w_
+    lines.append(cur)
+    lines = lines[:2]
+    y = 125 if len(lines) == 1 else 78
+    for ln in lines:
+        text_c(d, (640, y), ln, f_hi, fill=WHITE, outline=(60, 0, 0), width=4)
+        y += 120
+    # icons
+    _flame(d, 150, 480, 70)
+    _thermo_icon(d, 1130, 470, 80)
+    # yellow strip
+    sub = topic.get("thumb_sub", "ASLI WAJAH + FIX")
+    f_s = font(84)
+    w2 = d.textlength(sub, font=f_s) + 80
+    d.rounded_rectangle((640 - w2 / 2, 560, 640 + w2 / 2, 680), radius=26, fill=(10, 10, 10, 235), outline=GOLD + (255,), width=6)
+    d.text((640, 620), sub, font=f_s, fill=GOLD + (255,), anchor="mm")
+    im.save(path, quality=93)
+
+
 def real_thumbnail(frame, topic, path):
     """1280x720 click-thumbnail from a REAL footage frame. One focal point: huge 2-line hook on a warm, vignetted real photo
     (no extra badges/arrows). Text stays in the centre 70% so crops never cut it."""
@@ -655,6 +729,7 @@ def build(key, out_dir, real=False, cache_dir='bank_tech'):
     try:
         if thumb_frame is not None:
             real_thumbnail(thumb_frame, topic, thumb)
+            pattern_thumbnail(thumb_frame, topic, out_dir / f"{key}_thumb_pattern.jpg")
             long_thumbnail(thumb_frame, topic, out_dir / f"{key}_thumb_long.jpg")
             Image.fromarray(thumb_frame).save(out_dir / f"{key}_thumbframe.png")
             raise StopIteration
