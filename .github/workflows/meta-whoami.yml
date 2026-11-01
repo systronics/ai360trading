@@ -1,0 +1,38 @@
+name: "Meta who-am-I (manual, read-only)"
+
+# 2026-11-01: prints WHICH Facebook profile our META_ACCESS_TOKEN belongs to and the NAMES + IDs of the Pages/Instagram accounts it can manage.
+# Never prints the token. Used to tell the owner which profile the automation depends on (and to find the new Page/Instagram IDs).
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  whoami:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: List profile, pages and instagram accounts (names/ids only)
+        run: |
+          python - <<'PYEOF'
+          import os, requests
+          t = os.environ.get("META_ACCESS_TOKEN", "")
+          g = "https://graph.facebook.com/v21.0"
+          def get(path, **p):
+              p["access_token"] = t
+              r = requests.get(f"{g}/{path}", params=p, timeout=30)
+              return r.status_code, r.json()
+          s, me = get("me", fields="id,name")
+          print("PROFILE:", me.get("name"), me.get("id") if s == 200 else me)
+          s, pages = get("me/accounts", fields="id,name,instagram_business_account{id,username}", limit=100)
+          if s != 200:
+              print("PAGES error:", pages.get("error", {}).get("message"))
+          for p in pages.get("data", []):
+              ig = p.get("instagram_business_account") or {}
+              print("PAGE:", p.get("name"), p.get("id"), "| IG:", ig.get("username"), ig.get("id"))
+          PYEOF
