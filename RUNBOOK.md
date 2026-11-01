@@ -98,6 +98,15 @@ The alert tells you the issue title. Find it below.
 - Token refresh attempts (1st & 15th monthly).
 - Weekly health check + problem alerts (this runbook).
 
+## F&O buildup + Sector_Board (informational only, added 2026-11-01)
+- **What it is:** every evening (Mon-Fri ~20:00 IST) the `Bhavcopy Cache Refresh` workflow also runs `fetch_fo_buildup.py`. It fills 5 new columns at the END of the Nifty200 tab (`Fut_Price_Chg_%`, `Fut_OI_Chg_%`, `Buildup`, `Buildup_Streak`, `Buildup_Date`), rebuilds the `Sector_Board` tab, and logs each signal in `BuildupWatch` (forward 1/3/5-day returns are filled in later). It is **not** read by the trading bot, AppScript, any gate or any alert.
+- **It only PRINTS until you switch it on:** GitHub, Settings, Secrets and variables, Actions, **Variables**, New variable `FO_BUILDUP_MODE` = `write`. Remove it (or set anything else) to go back to print-only.
+- **Run it by hand:** GitHub, Actions, "Bhavcopy Cache Refresh", Run workflow. Optional: type a date (e.g. 2026-10-30) in `fo_date`, and `yes` in `fo_write` to write.
+- **See the evidence so far:** on your PC, in the repo folder: `python fetch_fo_buildup.py --report` (average forward return and share of winners for each label, read from `BuildupWatch`).
+- **Telegram summary:** built but OFF. To turn on: change `SEND_TELEGRAM_SUMMARY = False` to `True` in `fetch_fo_buildup.py` (needs Claude/a developer, then commit). It sends one message to the Basic channel only, text only.
+- **If the columns show an old date:** the day's NSE file was not published yet (or the run was delayed). The next run fixes it; nothing is lost. If it stays old for 2+ trading days, open the failed step in the workflow log and tell Claude.
+- **Never** use these columns for entries/option alerts until `BuildupWatch` has at least 3-4 weeks of scored rows AND you have approved it (see CLAUDE.md, NEVER CHANGE).
+
 ## Money & cost
 - **₹0/month forever** — everything uses free tiers (public GitHub repo = free).
 - **Paper trading only** — no real money is at risk in the current phase.

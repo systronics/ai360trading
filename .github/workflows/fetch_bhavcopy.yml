@@ -15,6 +15,15 @@ on:
   schedule:
     - cron: "30 14 * * 1-5"
   workflow_dispatch:
+    inputs:
+      fo_date:
+        description: "Optional: run the F&O buildup for this date (YYYY-MM-DD), e.g. 2026-10-30"
+        required: false
+        default: ""
+      fo_write:
+        description: "yes = write the F&O buildup columns now (default follows repo variable FO_BUILDUP_MODE)"
+        required: false
+        default: ""
 
 jobs:
   fetch-bhavcopy:
@@ -42,6 +51,22 @@ jobs:
           TELEGRAM_BOT_TOKEN:       ${{ secrets.TELEGRAM_BOT_TOKEN }}
           CHAT_ID_BASIC:            ${{ secrets.CHAT_ID_BASIC }}
         run: python fetch_bhavcopy.py
+
+      # 2026-11-01 owner task: F&O buildup columns + Sector_Board (INFORMATIONAL ONLY, never read by any gate/alert).
+      # Dry-run (prints only) until the owner sets repo variable FO_BUILDUP_MODE=write. continue-on-error: it must never affect the step above.
+      - name: F&O buildup (Nifty200 columns + Sector_Board + BuildupWatch)
+        continue-on-error: true
+        env:
+          GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
+          TELEGRAM_BOT_TOKEN:       ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID_BASIC:            ${{ secrets.CHAT_ID_BASIC }}
+          FO_DATE:  ${{ github.event.inputs.fo_date || '' }}
+          FO_WRITE: ${{ github.event.inputs.fo_write || vars.FO_BUILDUP_MODE || '' }}
+        run: |
+          ARGS=""
+          if [ -n "$FO_DATE" ]; then ARGS="$ARGS --date $FO_DATE"; fi
+          if [ "$FO_WRITE" = "write" ] || [ "$FO_WRITE" = "yes" ]; then ARGS="$ARGS --write"; fi
+          python fetch_fo_buildup.py $ARGS
 
       - name: Notify Telegram on failure
         if: failure()
