@@ -22,6 +22,8 @@ from PIL import Image, ImageDraw
 import emotion_story as E
 
 W, H, FPS = 1080, 1920, 24
+CHANNEL_HANDLE = os.environ.get("TECH_HANDLE", "")   # e.g. "@YourChannel"; empty until the owner has the new channel
+SPOKEN_CTA = " फ़ॉलो ज़रूर करना।"
 BG_TOP, BG_BOT = (10, 14, 32), (22, 30, 64)
 WHITE, GOLD, MUTED = (255, 255, 255), (255, 200, 50), (170, 180, 205)
 RED, ORANGE, BLUE, GREEN, CYAN = (255, 80, 70), (255, 150, 40), (90, 160, 255), (0, 210, 120), (70, 220, 240)
@@ -372,13 +374,17 @@ def sc_battery(d, t, dur, real=False):
 
 
 def sc_tips(d, t, dur, tips):
+    """Action steps: gold header, then numbered steps that slide in one by one (reads like a to-do, not like answer options)."""
+    k0 = ease(t / 0.4)
+    text_c(d, (540, 520), "AB YE KARO", font(84), fill=GOLD, width=6)
     for i, s in enumerate(tips):
-        k = ease((t - 0.6 - i * 1.1) / 0.5)
-        y = 640 + i * 250
-        x = lerp(1300, 540, k)
-        d.rounded_rectangle((x - 450, y - 90, x + 450, y + 90), radius=36, fill=(18, 24, 50, 235), outline=GREEN + (255,), width=6)
-        d.line([(x - 410, y), (x - 375, y + 32), (x - 315, y - 32)], fill=GREEN + (255,), width=14, joint="curve")
-        d.text((x + 70, y), s, font=font(38), fill=WHITE + (255,), anchor="mm")
+        k = ease((t - 0.6 - i * 1.0) / 0.5)
+        y = 700 + i * 170
+        x = lerp(1300, 0, k)
+        d.rounded_rectangle((70 + x, y - 70, 1010 + x, y + 70), radius=30, fill=(10, 14, 32, 220))
+        d.ellipse((95 + x, y - 48, 191 + x, y + 48), fill=GOLD + (255,))
+        d.text((143 + x, y), str(i + 1), font=font(70), fill=(10, 10, 20, 255), anchor="mm")
+        d.text((225 + x, y), s, font=fit_font(d, s, 740, 52, 34), fill=WHITE + (255,), anchor="lm")
 
 
 def fit_font(d, s, maxw, start, lo=44):
@@ -457,6 +463,15 @@ def frame_fn(topic, idx, n, dur, base=None):
             d.text((W / 2 + dx, yy + dy), cap, font=cf, fill=(0, 0, 0, int(255 * a)), anchor="mm")
         d.text((W / 2, yy), cap, font=cf, fill=WHITE + (int(255 * a),), anchor="mm")
         d.rectangle((W / 2 - 130, yy + 62, W / 2 + 130, yy + 70), fill=accent + (int(255 * a),))
+        if idx == n - 1 and dur > 4.0:
+            ck = ease((t - (dur - 3.4)) / 0.4)
+            if ck > 0:
+                handle = CHANNEL_HANDLE
+                lab = "FOLLOW KARO   |   LIKE   |   SHARE"
+                d.rounded_rectangle((60, 1160, 1020, 1160 + (170 if handle else 110)), radius=34, fill=(200, 25, 30, int(240 * ck)), outline=WHITE + (int(255 * ck),), width=5)
+                d.text((540, 1160 + 55), lab, font=fit_font(d, lab, 880, 56, 34), fill=WHITE + (int(255 * ck),), anchor="mm")
+                if handle:
+                    d.text((540, 1160 + 128), handle, font=fit_font(d, handle, 880, 46, 30), fill=GOLD + (int(255 * ck),), anchor="mm")
         # progress segments
         seg = (W - 160) / n
         for i in range(n):
@@ -806,6 +821,8 @@ def build(key, out_dir, real=False, cache_dir='bank_tech'):
     n = len(topic["lines"])
     scenes, used, thumb_frame = [], set(), None
     for i, line in enumerate(topic["lines"]):
+        if i == n - 1 and SPOKEN_CTA.strip() not in line:
+            line = line.rstrip() + SPOKEN_CTA
         ap = out_dir / f"{key}_{i}.mp3"
         # fast, energetic delivery; slightly lower pitch on the hook for weight
         rate, pitch = ("+26%", "+2Hz") if i == 0 else (("+20%", "+0Hz") if i < 4 else ("+18%", "+0Hz"))
