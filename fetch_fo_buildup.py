@@ -304,7 +304,7 @@ def _add_formatting(sh, ws, col_idx, mapping, title):
 
 
 # ───────────────────────────── BuildupWatch (observation-only evidence) ─────────────────────────────
-# Every label in FOUR is logged once per (date, symbol); 1/3/5-trading-day forward returns are filled in later from yfinance.
+# Every label in FOUR plus Neutral (the baseline to compare against) is logged once per (date, symbol); 1/3/5-trading-day forward returns are filled in later from yfinance.
 # It reads/writes ONLY its own tab: never AlertLog/History/BotMemory, never an alert, never any gate. Same doctrine as ShadowLedger.
 
 WATCH_TAB = "BuildupWatch"
@@ -322,19 +322,21 @@ def fwd_ret(dates, closes, sig_date, n):
     return round((closes[i + n] / closes[i] - 1) * 100.0, 2)
 
 
-def watch_append(sh, updates, tdate):
+def watch_append(sh, info, tdate):
     try:
         try:
             ws = sh.worksheet(WATCH_TAB)
         except Exception:
             ws = sh.add_worksheet(WATCH_TAB, rows=2000, cols=len(WATCH_HEAD))
-            ws.update("A1", [WATCH_HEAD])
-        have = {(r[0], r[1]) for r in ws.get_all_values()[1:] if len(r) > 1}
-        new = [[tdate, sym, v[2], v[3], v[0], v[1], "", "", ""] for _, v, sym in updates if v[2] in FOUR and (tdate, sym) not in have]
+            ws.update(range_name="A1", values=[WATCH_HEAD])
+        existing = ws.get_all_values()
+        have = {(r[0], r[1]) for r in existing[1:] if len(r) > 1}
+        new = [[tdate, sym, v[2], v[3], v[0], v[1], "", "", ""] for sym, v in info.items() if v[2] in FOUR + (NEUTRAL,) and (tdate, sym) not in have]
         if new:
-            if ws.row_count < len(have) + len(new) + 5:
+            start = len(existing) + 1   # explicit next row (append_rows could overwrite earlier rows: 2 rows went missing on 2026-11-01)
+            if ws.row_count < start + len(new) + 5:
                 ws.add_rows(len(new) + 500)
-            ws.append_rows(new, value_input_option="USER_ENTERED")
+            ws.update(range_name=f"A{start}", values=new, value_input_option="USER_ENTERED")
         print(f"[WATCH] logged {len(new)} new rows in {WATCH_TAB}")
     except Exception as e:
         print(f"[WATCH] log skipped (fail-open): {str(e)[:120]}")
@@ -376,7 +378,7 @@ def watch_report(sh):
     ws = sh.worksheet(WATCH_TAB)
     rows = [r + [""] * (9 - len(r)) for r in ws.get_all_values()[1:] if r and r[0]]
     print(f"[REPORT] {len(rows)} logged signals")
-    for lab in FOUR + ("ALL",):
+    for lab in FOUR + (NEUTRAL, "ALL"):
         sel = [r for r in rows if lab == "ALL" or r[2] == lab]
         line = f"  {lab:15} n={len(sel):4}"
         for j, nm in ((6, "1d"), (7, "3d"), (8, "5d")):
@@ -521,7 +523,7 @@ def main(argv=None):
         head = ["Sector", "Stocks", "1D_%", "1W_%", "1M_%", "Long_Buildup", "Short_Covering", "Short_Buildup", "Long_Unwinding",
                 "Bull_Ratio", "Mood", "Updated"]
         bw.clear()
-        bw.update("A1", [head] + board, value_input_option="USER_ENTERED")
+        bw.update(range_name="A1", values=[head] + board, value_input_option="USER_ENTERED")
         print(f"[BOARD] {BOARD_TAB} rebuilt with {len(board)} sectors")
         _add_formatting(sh, bw, 10, {"Strong": (0.80, 0.94, 0.80), "Weak": (0.96, 0.78, 0.78), "Mixed": (1.0, 0.95, 0.70)}, "Mood")
     except Exception as e:
@@ -529,11 +531,49 @@ def main(argv=None):
 
     _add_formatting(sh, ws, cols[H_LABEL], {LONG_B: (0.72, 0.90, 0.72), SHORT_C: (0.90, 0.96, 0.70), SHORT_B: (0.96, 0.70, 0.70),
                                               LONG_U: (0.99, 0.82, 0.62)}, "Buildup")
-    watch_append(sh, updates, tdate)
+    refresh_trade_premiums(sh, rows, tdate)
+    watch_append(sh, info, tdate)
     watch_score(sh)
     if (SEND_TELEGRAM_SUMMARY or target in ("premium", "basic")) and "--tg-test" not in argv:
         _telegram(info, board, tdate, target or "basic", open_trades(sh))
     return 0
+
+
+def refresh_trade_premiums(sh, bhav_rows, tdate):
+    """Fill Current_Premium (last traded price), NSE_Close_Settle and Premium_Date of every OPEN row in the owner's MyOptionTrades tab from
+    the EOD STO rows of the bhavcopy, so the owner never has to type a price. Fail-open, touches only those three cells per row."""
+    try:
+        ws = sh.worksheet("MyOptionTrades")
+        v = ws.get_all_values()
+        hd = [x.strip() for x in v[0]]
+        extra = [n for n in ("NSE_Close_Settle", "Premium_Date") if n not in hd]
+        if extra:
+            if len(hd) + len(extra) > ws.col_count:
+                ws.add_cols(len(hd) + len(extra) - ws.col_count)
+            for n in extra:
+                hd.append(n)
+                ws.update_cell(1, len(hd), n)
+        col = lambda n: hd.index(n)
+        body = []
+        for i, r in enumerate(v[1:], start=2):
+            g = lambda n: (r[col(n)] if n in hd and len(r) > col(n) else "").strip()
+            if not g("Symbol") or g("Exit_Date"):
+                continue
+            strike, typ, exp = _f(g("Strike")), g("Type").upper(), g("Expiry")
+            hit = [x for x in bhav_rows if (x.get("FinInstrmTp") or "").strip() == "STO" and (x.get("TckrSymb") or "").strip() == g("Symbol")
+                   and (x.get("OptnTp") or "").strip() == typ and (x.get("XpryDt") or "").strip() == exp and _f(x.get("StrkPric")) == strike]
+            if not hit:
+                print(f"[TRADES] {g('Symbol')} {g('Strike')} {typ} {exp}: not found in today's option rows")
+                continue
+            x = hit[0]
+            for name, val in (("Current_Premium", _f(x.get("LastPric")) or _f(x.get("ClsPric"))), ("NSE_Close_Settle", _f(x.get("ClsPric"))), ("Premium_Date", tdate)):
+                if val is not None:
+                    body.append({"range": f"{_a1_col(col(name) + 1)}{i}", "values": [[val]]})
+        if body:
+            ws.batch_update(body, value_input_option="USER_ENTERED")
+        print(f"[TRADES] premiums refreshed for {len(body) // 3} open trade(s)")
+    except Exception as e:
+        print(f"[TRADES] premium refresh skipped (fail-open): {str(e)[:100]}")
 
 
 def open_trades(sh):
@@ -546,7 +586,7 @@ def open_trades(sh):
         for r in v[1:]:
             g = lambda n: (r[hd.index(n)] if n in hd and len(r) > hd.index(n) else "").strip()
             if g("Symbol") and not g("Exit_Date"):
-                out.append((g("Symbol"), g("Strike"), g("Type"), g("Expiry"), _f(g("Lot_Size")), _f(g("Entry_Premium")), _f(g("Current_Premium")), g("Date_In")))
+                out.append((g("Symbol"), g("Strike"), g("Type"), g("Expiry"), _f(g("Lot_Size")), _f(g("Entry_Premium")), _f(g("Current_Premium")), g("Date_In"), _f(g("NSE_Close_Settle"))))
         return out
     except Exception as e:
         print(f"[TRADES] skipped: {str(e)[:80]}")
@@ -570,17 +610,19 @@ def _telegram(info, board, tdate, target="basic", trades=None):
             lines += ["", "Mazboot sectors: " + ", ".join(f"{b[0]} ({b[9]}%)" for b in strong)]
         if trades and target == "premium":
             lines += ["", "<b>Tumhare khule option trade:</b>"]
-            for sym, strike, typ, exp, lot, ent, cur, din in trades:
+            for sym, strike, typ, exp, lot, ent, cur, din, nse_close in trades:
                 lab = info.get(sym)
                 bu = f"{lab[2]} ({lab[3]} din)" if lab else "F&amp;O data nahi"
-                pl = f", abhi P/L {((cur - ent) * lot):+,.0f} Rs" if (cur and ent and lot) else ""
+                pl = f", last price {cur} par P/L {((cur - ent) * lot):+,.0f} Rs" if (cur and ent and lot) else ""
+                if nse_close and ent and lot:
+                    pl += f" (NSE close {nse_close} par {((nse_close - ent) * lot):+,.0f} Rs)"
                 held = ""
                 try:
                     held = f", {(date.fromisoformat(tdate) - date.fromisoformat(din)).days} din se"
                 except ValueError:
                     pass
                 lines.append(f"- {sym} {strike} {typ} ({exp}): entry {ent}{pl}{held}. Aaj ka buildup: {bu}.")
-            lines.append("(Current premium tumhare MyOptionTrades tab ke hisaab se; update karna tumhare haath mein.)")
+            lines.append("(Premium roz F&amp;O file se apne aap bharta hai; asli exit bhaav us waqt ka bid/ask hoga.)")
         lines += ["", "Sirf jaankari. Entry, SL, target nahi. Option premium ka P/L stock se alag hota hai (strike, expiry, time decay).",
                   "Informational only, not a trade signal."]
         tok = os.environ.get("TELEGRAM_BOT_TOKEN", "")

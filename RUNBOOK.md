@@ -103,7 +103,8 @@ The alert tells you the issue title. Find it below.
 - **It only PRINTS until you switch it on:** GitHub, Settings, Secrets and variables, Actions, **Variables**, New variable `FO_BUILDUP_MODE` = `write`. Remove it (or set anything else) to go back to print-only.
 - **Run it by hand:** GitHub, Actions, "Bhavcopy Cache Refresh", Run workflow. Optional: type a date (e.g. 2026-10-30) in `fo_date`, and `yes` in `fo_write` to write.
 - **See the evidence so far:** on your PC, in the repo folder: `python fetch_fo_buildup.py --report` (average forward return and share of winners for each label, read from `BuildupWatch`).
-- **Telegram summary:** built but OFF. To turn on: change `SEND_TELEGRAM_SUMMARY = False` to `True` in `fetch_fo_buildup.py` (needs Claude/a developer, then commit). It sends one message to the Basic channel only, text only.
+- **Your own option trades:** the tab `MyOptionTrades` holds one row per open trade (Date_In, Symbol, Type, Strike, Expiry, Lot_Size, Entry_Premium; the rest fills itself every evening). When you sell, type only Exit_Date and Exit_Premium. If typing is hard, tell Claude the details in chat and ask to add/close the row.
+- **Telegram summary:** `FO_TELEGRAM=premium` (repo variable) sends it to the Premium channel; remove the variable to stop. (It was OFF by default in the code.) To turn on: change `SEND_TELEGRAM_SUMMARY = False` to `True` in `fetch_fo_buildup.py` (needs Claude/a developer, then commit). It sends one message to the Basic channel only, text only.
 - **If the columns show an old date:** the day's NSE file was not published yet (or the run was delayed). The next run fixes it; nothing is lost. If it stays old for 2+ trading days, open the failed step in the workflow log and tell Claude.
 - **Never** use these columns for entries/option alerts until `BuildupWatch` has at least 3-4 weeks of scored rows AND you have approved it (see CLAUDE.md, NEVER CHANGE).
 
