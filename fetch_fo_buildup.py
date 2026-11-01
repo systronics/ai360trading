@@ -491,7 +491,7 @@ def main(argv=None):
     if "--tg-test" in argv and target not in ("premium", "basic"):
         target = "premium"
     if "--tg-test" in argv:
-        _telegram(info, board, tdate, target)
+        _telegram(info, board, tdate, target, open_trades(sh))
 
     if not write:
         print("\n[DRY-RUN] nothing written. Re-run with --write to update the sheet.")
@@ -532,11 +532,28 @@ def main(argv=None):
     watch_append(sh, updates, tdate)
     watch_score(sh)
     if (SEND_TELEGRAM_SUMMARY or target in ("premium", "basic")) and "--tg-test" not in argv:
-        _telegram(info, board, tdate, target or "basic")
+        _telegram(info, board, tdate, target or "basic", open_trades(sh))
     return 0
 
 
-def _telegram(info, board, tdate, target="basic"):
+def open_trades(sh):
+    """Open rows of the owner's own MyOptionTrades tab (no Exit_Date): [(symbol, strike, type, expiry, lot, entry, current, date_in)]. [] if the tab is missing."""
+    try:
+        ws = sh.worksheet("MyOptionTrades")
+        v = ws.get_all_values()
+        hd = [x.strip() for x in v[0]]
+        out = []
+        for r in v[1:]:
+            g = lambda n: (r[hd.index(n)] if n in hd and len(r) > hd.index(n) else "").strip()
+            if g("Symbol") and not g("Exit_Date"):
+                out.append((g("Symbol"), g("Strike"), g("Type"), g("Expiry"), _f(g("Lot_Size")), _f(g("Entry_Premium")), _f(g("Current_Premium")), g("Date_In")))
+        return out
+    except Exception as e:
+        print(f"[TRADES] skipped: {str(e)[:80]}")
+        return []
+
+
+def _telegram(info, board, tdate, target="basic", trades=None):
     """One EOD text message (Premium or Basic channel). Informational, NO entry/SL/target. Never raises."""
     try:
         from urllib.parse import urlencode
@@ -551,6 +568,19 @@ def _telegram(info, board, tdate, target="basic"):
         strong = [b for b in board if "Strong" in str(b[10])][:3]
         if strong:
             lines += ["", "Mazboot sectors: " + ", ".join(f"{b[0]} ({b[9]}%)" for b in strong)]
+        if trades and target == "premium":
+            lines += ["", "<b>Tumhare khule option trade:</b>"]
+            for sym, strike, typ, exp, lot, ent, cur, din in trades:
+                lab = info.get(sym)
+                bu = f"{lab[2]} ({lab[3]} din)" if lab else "F&amp;O data nahi"
+                pl = f", abhi P/L {((cur - ent) * lot):+,.0f} Rs" if (cur and ent and lot) else ""
+                held = ""
+                try:
+                    held = f", {(date.fromisoformat(tdate) - date.fromisoformat(din)).days} din se"
+                except ValueError:
+                    pass
+                lines.append(f"- {sym} {strike} {typ} ({exp}): entry {ent}{pl}{held}. Aaj ka buildup: {bu}.")
+            lines.append("(Current premium tumhare MyOptionTrades tab ke hisaab se; update karna tumhare haath mein.)")
         lines += ["", "Sirf jaankari. Entry, SL, target nahi. Option premium ka P/L stock se alag hota hai (strike, expiry, time decay).",
                   "Informational only, not a trade signal."]
         tok = os.environ.get("TELEGRAM_BOT_TOKEN", "")
