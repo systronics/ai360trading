@@ -42,6 +42,7 @@ jobs:
       CHANNEL: ${{ github.event.inputs.channel || 'tech' }}
       YOUTUBE_CREDENTIALS: ${{ secrets.YOUTUBE_CREDENTIALS }}
       PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+      PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       YOUTUBE_CREDENTIALS_TECH: ${{ secrets.YOUTUBE_CREDENTIALS_TECH }}
       META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}

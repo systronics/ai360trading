@@ -781,6 +781,41 @@ def long_thumbnail(frame, topic, path):
     im.save(path, quality=93)
 
 
+def pixabay_footage(query, key, cache_dir, used, need_seconds, tries=3):
+    """Second free footage source (Pixabay Content License). Returns [Path]; [] when no key / no result. Never raises."""
+    import requests
+    if not key:
+        return []
+    out, total = [], 0.0
+    try:
+        r = requests.get("https://pixabay.com/api/videos/", params={"key": key, "q": query, "per_page": 20, "safesearch": "true"}, timeout=30)
+        r.raise_for_status()
+        for v in r.json().get("hits", []):
+            vid = "px%s" % v.get("id")
+            if vid in used or v.get("duration", 0) < 3:
+                continue
+            sizes = v.get("videos", {})
+            f = sizes.get("large") or sizes.get("medium") or {}
+            if not f.get("url") or f.get("width", 0) < 720:
+                continue
+            p = Path(cache_dir) / f"{vid}.mp4"
+            if not (p.exists() and p.stat().st_size > 50000):
+                with requests.get(f["url"], stream=True, timeout=120) as rr:
+                    rr.raise_for_status()
+                    with open(p, "wb") as fh:
+                        for chunk in rr.iter_content(1 << 20):
+                            fh.write(chunk)
+            used.add(vid)
+            out.append(p)
+            total += min(2.8, float(v.get("duration", 4)))
+            if total >= need_seconds or len(out) >= tries:
+                break
+    except Exception as e:
+        print(f"[TECH] pixabay skipped: {str(e)[:100]}")
+        return []
+    return out
+
+
 def thumbs_only(key, out_dir, cache_dir='bank_tech'):
     """Fast path: only the click thumbnails (no voice/video), from the topic's thumb_queries (else the first scene's queries)."""
     import story_real as SR
@@ -849,6 +884,12 @@ def build(key, out_dir, real=False, cache_dir='bank_tech'):
                 paths = SR.get_footage(q, pk, cache_dir, used, dur)
                 if paths:
                     break
+            if not paths:   # nothing on Pexels for this scene: try Pixabay (needs PIXABAY_API_KEY)
+                for q in topic["queries"][i]:
+                    paths = pixabay_footage(q, os.environ.get("PIXABAY_API_KEY", ""), cache_dir, used, dur)
+                    if paths:
+                        print(f"[TECH] scene {i + 1}: footage from Pixabay for {q!r}")
+                        break
             if not paths:
                 raise RuntimeError(f"no footage for scene {i + 1}")
             sc = SR.scene_video(paths, dur, np.zeros((H, W, 3), np.uint8), np.zeros((H, W), np.float32), zoom_out=(i % 2 == 1))
