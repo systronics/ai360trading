@@ -15,6 +15,7 @@ jobs:
     timeout-minutes: 5
     env:
       YOUTUBE_CREDENTIALS: ${{ secrets.YOUTUBE_CREDENTIALS }}
+      YOUTUBE_CREDENTIALS_TECH: ${{ secrets.YOUTUBE_CREDENTIALS_TECH }}
     steps:
       - uses: actions/checkout@v4
       - run: pip install google-api-python-client google-auth
@@ -22,13 +23,17 @@ jobs:
         run: |
           python - <<'PYEOF'
           import os, json
-          raw = json.loads(os.environ["YOUTUBE_CREDENTIALS"])
-          cid = raw.get("client_id", "")
-          print("PROJECT_NUMBER:", cid.split("-")[0])
           from google.oauth2.credentials import Credentials
           from googleapiclient.discovery import build
-          yt = build("youtube", "v3", credentials=Credentials.from_authorized_user_info(raw))
-          r = yt.channels().list(part="snippet", mine=True).execute()
-          for c in r.get("items", []):
-              print("CHANNEL:", c["snippet"]["title"], c["id"])
+          for env in ("YOUTUBE_CREDENTIALS", "YOUTUBE_CREDENTIALS_TECH"):
+              v = os.environ.get(env, "")
+              if not v:
+                  print(env, "NOT SET")
+                  continue
+              raw = json.loads(v)
+              print(env, "PROJECT_NUMBER:", raw.get("client_id", "").split("-")[0])
+              yt = build("youtube", "v3", credentials=Credentials.from_authorized_user_info(raw))
+              r = yt.channels().list(part="snippet,statistics", mine=True).execute()
+              for c in r.get("items", []):
+                  print(env, "CHANNEL:", c["snippet"]["title"], c["id"], "videos:", c["statistics"].get("videoCount"))
           PYEOF
