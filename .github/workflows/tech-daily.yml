@@ -14,6 +14,12 @@ on:
         default: "dry"
         type: choice
         options: [dry, private-test, scheduled]
+      channel:
+        description: "tech = AI360 Technology (default) | trading = ONE sach-check Short to the AI360 Trading channel"
+        required: false
+        default: "tech"
+        type: choice
+        options: [tech, trading]
       topic:
         description: "Optional topic key (phone_heat, wifi_slow, laptop_hang, pc_no_start, mixer_hot, news_72h)"
         required: false
@@ -33,6 +39,8 @@ jobs:
     env:
       MODE: ${{ github.event.inputs.mode || vars.TECH_MODE || 'dry' }}
       TOPIC: ${{ github.event.inputs.topic || '' }}
+      CHANNEL: ${{ github.event.inputs.channel || 'tech' }}
+      YOUTUBE_CREDENTIALS: ${{ secrets.YOUTUBE_CREDENTIALS }}
       PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       YOUTUBE_CREDENTIALS_TECH: ${{ secrets.YOUTUBE_CREDENTIALS_TECH }}
@@ -60,9 +68,9 @@ jobs:
       - name: Build (and upload when scheduled)
         run: |
           if [ -n "$TOPIC" ]; then
-            python tech_daily.py --run --mode "$MODE" --topic "$TOPIC" --out output/tech
+            python tech_daily.py --run --mode "$MODE" --channel "$CHANNEL" --topic "$TOPIC" --out output/tech
           else
-            python tech_daily.py --run --mode "$MODE" --out output/tech
+            python tech_daily.py --run --mode "$MODE" --channel "$CHANNEL" --out output/tech
           fi
       - name: Keep the preview (dry / test runs)
         if: ${{ env.MODE != 'scheduled' }}
@@ -89,7 +97,7 @@ jobs:
         run: |
           git config --local user.email "admin@ai360trading.in"
           git config --local user.name "AI360-Automation"
-          git add _data/tech_done.json || true
+          git add _data/tech_done.json _data/tech_trading_done.json || true
           git diff --cached --quiet || git commit -m "AI360 Technology Short scheduled: $(date +'%Y-%m-%d') (done-list)"
           git pull --rebase origin master || true
           git push origin master || true
