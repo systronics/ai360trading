@@ -1,0 +1,29 @@
+name: "Voice test (manual, never uploads)"
+
+# 2026-11-01: tests Gemini's free TTS with emotion/style prompts for the tech Shorts; wav files as an artifact only.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  voice:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install requests
+      - run: python gemini_tts_test.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: voice-preview
+          path: output/voice/*.wav
+          retention-days: 7
+          if-no-files-found: ignore

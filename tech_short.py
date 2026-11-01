@@ -31,7 +31,7 @@ TOPICS = {
     "phone_heat": {
         "title": "Phone Hot Kyun Hota Hai?",
         "yt_title": "Phone Hot Kyun Hota Hai? Asli Reason #shorts",
-        "thumb": "PHONE HOT KYUN?",
+        "thumb": ("PHONE HOT", "KYUN?"),
         "tag": "HOW IT WORKS",
         "tags": ["phone hot kyun hota hai", "phone heating problem", "mobile heat hinglish", "tech explained hinglish", "how it works hinglish", "shorts"],
         "lines": [
@@ -318,21 +318,51 @@ def whoosh(dur_s=0.4, sr=44100):
     return (out * 0.35).astype(np.float32)
 
 
+def pick_thumb_frame(base, dur):
+    """Pick the most usable frame: mid brightness, not blown out, plenty of detail."""
+    best, best_s = None, -1e9
+    for t in (0.4, 1.0, 1.6, 2.2, 2.8, 3.4):
+        try:
+            fr = np.asarray(base(min(t, max(dur - 0.1, 0.0))))
+        except Exception:
+            continue
+        g = fr.mean(axis=2)
+        blown = float((g > 235).mean())
+        dark = float((g < 25).mean())
+        detail = float(np.abs(np.diff(g[::4, ::4], axis=1)).mean())
+        s = detail - 80 * blown - 40 * dark - abs(float(g.mean()) - 120) * 0.15
+        if s > best_s:
+            best, best_s = fr, s
+    return best
+
+
 def real_thumbnail(frame, topic, path):
-    """1280x720 click-thumbnail from a REAL footage frame: bright, saturated, huge hook text, red temperature badge."""
-    from PIL import ImageEnhance
+    """1280x720 click-thumbnail from a REAL footage frame. One focal point: huge 2-line hook on a warm, vignetted real photo
+    (no extra badges/arrows). Text stays in the centre 70% so crops never cut it."""
+    from PIL import ImageEnhance, ImageFilter
     im = Image.fromarray(frame).convert("RGB")
-    im = im.crop((0, 420, W, 420 + int(W * 9 / 16))).resize((1280, 720), Image.LANCZOS)
-    im = ImageEnhance.Color(im).enhance(1.3)
-    im = ImageEnhance.Contrast(im).enhance(1.12)
-    im = ImageEnhance.Brightness(im).enhance(1.05)
+    im = im.crop((0, 380, W, 380 + int(W * 9 / 16))).resize((1280, 720), Image.LANCZOS)
+    im = ImageEnhance.Color(im).enhance(1.35)
+    im = ImageEnhance.Contrast(im).enhance(1.18)
+    # warm "heat" tint rising from the bottom, vignette at the edges
+    heat = Image.new("RGBA", (1280, 720), (0, 0, 0, 0))
+    hd = ImageDraw.Draw(heat)
+    for y in range(720):
+        hd.line([(0, y), (1280, y)], fill=(255, 70, 20, int(110 * (y / 720) ** 1.6)))
+    im = Image.alpha_composite(im.convert("RGBA"), heat)
+    vg = Image.new("L", (1280, 720), 0)
+    vd = ImageDraw.Draw(vg)
+    vd.ellipse((-260, -200, 1540, 920), fill=255)
+    vg = vg.filter(ImageFilter.GaussianBlur(120))
+    dark = Image.new("RGBA", (1280, 720), (0, 0, 0, 150))
+    im = Image.composite(im, Image.alpha_composite(im, dark), vg).convert("RGB")
     d = ImageDraw.Draw(im, "RGBA")
-    for y in range(0, 260):   # dark fade at the top so the text pops
-        d.line([(0, y), (1280, y)], fill=(0, 0, 0, int(190 * (1 - y / 260))))
-    text_c(d, (640, 105), topic["thumb"], font(118), fill=GOLD, width=8)
-    d.rounded_rectangle((70, 470, 520, 660), radius=36, fill=(220, 30, 30, 235), outline=WHITE + (255,), width=6)
-    text_c(d, (295, 565), topic.get("thumb_badge", "46°C"), font(130), fill=WHITE, outline=(90, 0, 0), width=5)
-    d.polygon([(560, 565), (640, 520), (640, 545), (720, 545), (720, 585), (640, 585), (640, 610)], fill=GOLD + (255,))
+    l1, l2 = topic["thumb"] if isinstance(topic["thumb"], (list, tuple)) else (topic["thumb"], "")
+    text_c(d, (640, 250), l1, font(200), fill=GOLD, width=10)
+    if l2:
+        w = d.textlength(l2, font=font(190)) + 90
+        d.rounded_rectangle((640 - w / 2, 405, 640 + w / 2, 640), radius=40, fill=(225, 25, 25, 255), outline=WHITE + (255,), width=8)
+        text_c(d, (640, 523), l2, font(190), fill=WHITE, outline=(80, 0, 0), width=8)
     im.save(path, quality=93)
 
 
@@ -370,7 +400,7 @@ def build(key, out_dir, real=False, cache_dir='bank_tech'):
             sc = SR.scene_video(paths, dur, np.zeros((H, W, 3), np.uint8), np.zeros((H, W), np.float32), zoom_out=(i % 2 == 1))
             base = sc.plain.get_frame
             if i == 0:
-                thumb_frame = np.asarray(base(1.5))
+                thumb_frame = pick_thumb_frame(base, dur)
         clip = VideoClip(frame_fn(topic, i, n, dur, base), duration=dur).set_fps(FPS)
         bed = SM.ambient(dur, mood="calm")
         rms = float(np.sqrt(np.mean(np.square(bed)))) or 1e-6
