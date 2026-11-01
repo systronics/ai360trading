@@ -824,7 +824,7 @@ def build(key, out_dir, real=False, cache_dir='bank_tech'):
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     n = len(topic["lines"])
-    scenes, used, thumb_frame = [], set(), None
+    scenes, used, thumb_frame, thumbs_done = [], set(), None, False
     for i, line in enumerate(topic["lines"]):
         if i == n - 1 and SPOKEN_CTA.strip() not in line:
             line = line.rstrip() + SPOKEN_CTA
@@ -868,7 +868,7 @@ def build(key, out_dir, real=False, cache_dir='bank_tech'):
     if real and topic.get("thumb_queries"):
         try:
             thumbs_only(key, out_dir, cache_dir)
-            thumb_frame = None   # thumbnails already written
+            thumb_frame, thumbs_done = None, True   # thumbnails already written
         except Exception as e:
             print(f"[TECH] thumb_queries failed, using scene frame: {str(e)[:80]}")
     final = concatenate_videoclips(scenes, method="compose")
@@ -877,6 +877,8 @@ def build(key, out_dir, real=False, cache_dir='bank_tech'):
     # thumbnail: hot-phone frame, big hook text
     thumb = out_dir / f"{key}_thumb.jpg"
     try:
+        if thumbs_done:
+            raise StopIteration
         if thumb_frame is not None:
             real_thumbnail(thumb_frame, topic, thumb)
             pattern_thumbnail(thumb_frame, topic, out_dir / f"{key}_thumb_pattern.jpg")

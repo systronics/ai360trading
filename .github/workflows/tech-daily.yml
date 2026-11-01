@@ -1,0 +1,111 @@
+name: "AI360 Technology daily Short"
+
+# 2026-11-01: daily Hinglish tech Short for the NEW YouTube channel / Facebook Page / Instagram (NOT the trading channel).
+# STAYS DRY until the owner sets repo variable TECH_MODE=scheduled. Manual runs: pick mode below.
+# Needs (scheduled): secrets YOUTUBE_CREDENTIALS_TECH, FACEBOOK_PAGE_ID_TECH, INSTAGRAM_ID_TECH (+ existing META_ACCESS_TOKEN,
+# PEXELS_API_KEY, GEMINI_API_KEY). The cron line is added only after those secrets exist and the owner says go.
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "dry | private-test | scheduled"
+        required: false
+        default: "dry"
+        type: choice
+        options: [dry, private-test, scheduled]
+      topic:
+        description: "Optional topic key (phone_heat, wifi_slow, laptop_hang, pc_no_start, mixer_hot, news_72h)"
+        required: false
+        default: ""
+
+concurrency:
+  group: tech-daily
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  tech:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      MODE: ${{ github.event.inputs.mode || vars.TECH_MODE || 'dry' }}
+      TOPIC: ${{ github.event.inputs.topic || '' }}
+      PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      YOUTUBE_CREDENTIALS_TECH: ${{ secrets.YOUTUBE_CREDENTIALS_TECH }}
+      META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
+      FACEBOOK_PAGE_ID_TECH: ${{ secrets.FACEBOOK_PAGE_ID_TECH }}
+      INSTAGRAM_ID_TECH: ${{ secrets.INSTAGRAM_ID_TECH }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      CHAT_ID_BASIC: ${{ secrets.CHAT_ID_BASIC }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: master
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+      - name: System dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends ffmpeg fonts-dejavu fonts-liberation fonts-freefont-ttf fonts-noto-core
+      - name: Python dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Build (and upload when scheduled)
+        run: |
+          if [ -n "$TOPIC" ]; then
+            python tech_daily.py --run --mode "$MODE" --topic "$TOPIC" --out output/tech
+          else
+            python tech_daily.py --run --mode "$MODE" --out output/tech
+          fi
+      - name: Keep the preview (dry / test runs)
+        if: ${{ env.MODE != 'scheduled' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: tech-daily-preview
+          path: |
+            output/tech/*_tech.mp4
+            output/tech/*_thumb*.jpg
+            output/tech/*_meta.json
+          retention-days: 7
+          if-no-files-found: ignore
+      - name: Post the same Short to the new Facebook Page + Instagram (only when a new topic was scheduled)
+        if: ${{ env.MODE == 'scheduled' }}
+        continue-on-error: true
+        run: |
+          if git status --porcelain _data/tech_done.json | grep -q .; then
+            python upload_facebook.py --meta-prefix tech
+          else
+            echo 'no new tech Short this run, skipping Facebook/Instagram'
+          fi
+      - name: Record what was scheduled
+        if: ${{ env.MODE == 'scheduled' }}
+        run: |
+          git config --local user.email "admin@ai360trading.in"
+          git config --local user.name "AI360-Automation"
+          git add _data/tech_done.json || true
+          git diff --cached --quiet || git commit -m "AI360 Technology Short scheduled: $(date +'%Y-%m-%d') (done-list)"
+          git pull --rebase origin master || true
+          git push origin master || true
+      - name: Notify Telegram on failure
+        if: failure()
+        continue-on-error: true
+        env:
+          WF_NAME: "${{ github.workflow }}"
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          python - <<'PYEOF'
+          import os, json
+          from urllib.request import Request, urlopen
+          tok, chat = os.environ.get('TELEGRAM_BOT_TOKEN',''), os.environ.get('CHAT_ID_BASIC','')
+          if tok and chat:
+              msg = f"Workflow failed: {os.environ['WF_NAME']}\n{os.environ['RUN_URL']}"
+              req = Request(f"https://api.telegram.org/bot{tok}/sendMessage", data=json.dumps({"chat_id": chat, "text": msg}).encode(), headers={"Content-Type": "application/json"})
+              urlopen(req, timeout=20)
+          PYEOF

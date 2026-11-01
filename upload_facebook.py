@@ -489,6 +489,10 @@ def resolve_meta_and_video(prefix: str):
         # 2026-10-30: Hindi edition first (the Page audience is 97% India), English edition as fallback
         meta_patterns  = ["story/*_meta_hi.json", "story/*_meta.json"]
         video_patterns = ["story/*_story_hi.mp4", "story/*_story.mp4"]
+    elif prefix == "tech":
+        # 2026-11-01: AI360 Technology Short (tech_daily.py) -> the NEW Page + NEW Instagram only
+        meta_patterns  = ["tech/*_meta.json"]
+        video_patterns = ["tech/*_tech.mp4"]
     elif prefix == "life":
         # 2026-10-31: Hindi life/moral story (story_real.py --life), Facebook + Instagram only, never YouTube
         meta_patterns  = ["life/*_meta_hi.json"]
@@ -650,6 +654,26 @@ def main():
 
     # ── Story Short (Pixar-style, evergreen) → Facebook Page Reel ONLY ─────────
     # No Group post, no RSS share, no Instagram here: one clean reel per story.
+    if prefix == "tech":
+        pid = os.environ.get("FACEBOOK_PAGE_ID_TECH", "")
+        igid = os.environ.get("INSTAGRAM_ID_TECH", "")
+        if not pid:
+            print("tech: FACEBOOK_PAGE_ID_TECH not set, skipping (never falls back to the trading Page)")
+            return
+        if not (video_path and video_path.exists()):
+            print("tech: video not found, skipping")
+            return
+        page_token = get_page_token(pid, META_ACCESS_TOKEN)
+        caption = meta.get("caption") or meta.get("title", "")
+        print(f"Tech reel: {video_path.name}")
+        upload_reel_to_page(pid, "AI360 Technology", video_path, caption, page_token)
+        if igid:
+            try:
+                upload_reel_to_instagram(igid, video_path, caption, page_token)
+            except Exception as e:
+                print(f"  Instagram tech upload failed (fail-open): {e}")
+        return
+
     if prefix == "life":
         if not (FACEBOOK_PAGE_ID and video_path and video_path.exists()):
             print("life story: page id or video missing, skipping")
