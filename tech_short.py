@@ -136,6 +136,37 @@ def _more_topics():
                     ["kitchen counter", "hands cooking close up"]]}
 
 
+def _news_topics():
+    TOPICS["news_72h"] = {
+        "title": "72 Ghante Ka Rashan: Sach Kya Hai?", "yt_title": "72 Ghante Ka Rashan: WW3 Ya Sirf Preparedness? Sach Kya Hai #shorts",
+        "tag": "TRENDING SACH",
+        "thumb": ("72 GHANTE", "SACH KYA?"), "thumb_hi": "72 घंटे का राशन? WW3?", "thumb_sub": "SACH KYA HAI? DEKHO",
+        "thumb_long": "72 GHANTE KA RASHAN: KYA SACH MEIN WW3 AA RAHA HAI? SACH JAANO", "thumb_hot": "SACH",
+        "tags": ["72 ghante ka rashan", "ww3 sach kya hai", "emergency kit uk", "be ready campaign", "news explained hinglish", "shorts"],
+        "lines": [
+            "सोशल मीडिया पर चल रहा है कि कई देश 72 घंटे का राशन रखने को कह रहे हैं। क्या सच में तीसरा विश्व युद्ध आने वाला है?",
+            "सीधा जवाब, ऐसा कोई सबूत नहीं मिला। हुआ यह कि ब्रिटेन की सरकार ने अक्टूबर में Be Ready नाम का अभियान शुरू किया, जिसमें लोगों से कहा गया कि बिजली, पानी या इंटरनेट बंद हो जाए, तो कम से कम तीन दिन का सामान घर पर रखें।",
+            "वजह क्या है? साइबर हमले, तूफ़ान और बाढ़ जैसी मौसम की मार, और सप्लाई का रुक जाना। बड़ी आपदा में मदद पहुँचने में कई बार दो-तीन दिन लग जाते हैं, इसीलिए तीन दिन का नियम चलता है, और यह कोई नई बात नहीं है।",
+            "और वायरल पोस्ट में जो सत्रह देशों की बात हो रही है, वो मुझे किसी भरोसेमंद रिपोर्ट में नहीं मिली। घबराकर सारा सामान ख़रीदने की ज़रूरत नहीं है।",
+            "हाँ, बाढ़ और भूकंप वाले इलाक़ों में तीन दिन का पानी, सूखा खाना, टॉर्च, पावर बैंक, थोड़ा कैश और ज़रूरी दवाइयाँ रखना समझदारी है। डरना नहीं है, बस तैयार रहना है।",
+        ],
+        "caps": ["WW3 AA RAHA HAI?", "UK KA BE READY CAMPAIGN", "3 DIN KA NIYAM, NAYA NAHI", "17 DESHON KI BAAT: CONFIRM NAHI", "DARNA NAHI, TAIYAAR RAHNA"],
+        "scenes": [{"type": "card", "lines": ["72 GHANTE KA", "RASHAN: SACH?"], "color": "red"},
+                   {"type": "card", "lines": ["UK: BE READY", "3 DIN KA SAMAAN"], "color": "gold"},
+                   {"type": "bars2", "rows": [("CYBER HAMLE / BIJLI BAND", 0.7, "orange"), ("TOOFAN / BAADH", 0.8, "blue"), ("SUPPLY RUKNA", 0.6, "gold")]},
+                   {"type": "card", "lines": ["17 DESHON KI BAAT", "KAHIN CONFIRM NAHI"], "color": "red"},
+                   {"type": "tips", "items": ["PAANI + SOOKHA KHANA", "TORCH + POWER BANK", "CASH + DAWAIYAN"]}],
+        "queries": [["emergency supplies kit", "canned food water bottles shelf"], ["power outage city night", "candle light darkness"],
+                    ["storm flood street", "server room close up"], ["reading news on smartphone", "scrolling smartphone hand"],
+                    ["flashlight power bank first aid kit", "emergency kit backpack"]],
+        "desc_extra": ("Sources checked: UK government 'Be Ready' campaign coverage (Oct 2026), EU preparedness strategy (Mar 2025). "
+                       "The '17 countries' claim could not be confirmed in reliable reports. This is a fact-check style explainer, not advice or a prediction."),
+    }
+
+
+_news_topics()
+
+
 _FONT_CACHE = {}
 
 
@@ -746,7 +777,7 @@ def build(key, out_dir, real=False, cache_dir='bank_tech'):
         thumb = None
     NL = chr(10)
     meta = {"title": topic["yt_title"], "tags": topic["tags"], "duration_s": round(final.duration, 1),
-            "description": (topic["title"] + NL + NL + "Simple Hinglish explainer. This is an educational explainer. The voice is a synthetic (AI) voice; "
+            "description": (topic["title"] + NL + NL + (topic.get("desc_extra", "") + NL + NL if topic.get("desc_extra") else "") + "Simple Hinglish explainer. This is an educational explainer. The voice is a synthetic (AI) voice; "
                             "diagrams are simplified illustrations." + NL + NL + "#TechExplained #HowItWorks #Hindi")}
     (out_dir / f"{key}_meta.json").write_text(json.dumps(meta, indent=1, ensure_ascii=False), encoding="utf-8")
     print(f"[TECH:{key}] done: {mp4} ({meta['duration_s']}s)")
