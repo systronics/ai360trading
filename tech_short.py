@@ -358,7 +358,7 @@ def real_thumbnail(frame, topic, path):
     im = Image.composite(im, Image.alpha_composite(im, dark), vg).convert("RGB")
     d = ImageDraw.Draw(im, "RGBA")
     l1, l2 = topic["thumb"] if isinstance(topic["thumb"], (list, tuple)) else (topic["thumb"], "")
-    text_c(d, (640, 250), l1, font(200), fill=GOLD, width=10)
+    text_c(d, (640, 250), l1, font(165), fill=GOLD, width=9)
     if l2:
         w = d.textlength(l2, font=font(190)) + 90
         d.rounded_rectangle((640 - w / 2, 405, 640 + w / 2, 640), radius=40, fill=(225, 25, 25, 255), outline=WHITE + (255,), width=8)
