@@ -305,6 +305,61 @@ def frame_fn(topic, idx, n, dur, base=None):
     return mk
 
 
+GEMINI_STYLES = [
+    ("Puck", "Say this like an energetic, curious young Indian YouTuber hooking viewers in the first seconds, fast and punchy, with real surprise on the key word:"),
+    ("Charon", "Say this like a friendly teacher explaining to a friend, warm, clear, lively, slight smile, natural Hinglish pacing, stress on the analogy words:"),
+    ("Charon", "Say this with rising energy, like building momentum, each phrase a little stronger than the last, friendly and clear:"),
+    ("Charon", "Say this like a friend pointing out something that surprises people, clear, lively, matter-of-fact with a little emphasis:"),
+    ("Charon", "Say this like a confident, reassuring friend giving three quick tips, firm and upbeat, ending with a curious teaser for the next video:"),
+]
+_GEM = {"model": None, "last": 0.0}
+
+
+def gemini_voice(text, path, idx):
+    """Emotional free Gemini TTS (Puck hook, Charon explain). Returns the wav path, or None to fall back to Edge TTS.
+    Free tier is about 2 requests/minute, so calls are spaced."""
+    import time
+    import base64
+    import wave
+    import requests
+    key = os.environ.get("GEMINI_API_KEY", "")
+    if not key:
+        return None
+    try:
+        if _GEM["model"] is None:
+            r = requests.get("https://generativelanguage.googleapis.com/v1beta/models", params={"key": key, "pageSize": 200}, timeout=30)
+            names = [m["name"].split("/")[-1] for m in r.json().get("models", []) if "tts" in m["name"].lower()]
+            names = sorted(names, key=lambda n: ("3.1" in n, "flash" in n, "preview" not in n), reverse=True)
+            _GEM["model"] = names[0] if names else ""
+        if not _GEM["model"]:
+            return None
+        voice, style = GEMINI_STYLES[min(idx, len(GEMINI_STYLES) - 1)]
+        body = {"contents": [{"parts": [{"text": f"{style} {text}"}]}],
+                "generationConfig": {"responseModalities": ["AUDIO"],
+                                     "speechConfig": {"voiceConfig": {"prebuiltVoiceConfig": {"voiceName": voice}}}}}
+        for attempt in range(3):
+            wait = 31 - (time.time() - _GEM["last"])
+            if wait > 0:
+                time.sleep(wait)
+            _GEM["last"] = time.time()
+            r = requests.post(f"https://generativelanguage.googleapis.com/v1beta/models/{_GEM['model']}:generateContent",
+                              params={"key": key}, json=body, timeout=120)
+            if r.status_code == 200:
+                pcm = base64.b64decode(r.json()["candidates"][0]["content"]["parts"][0]["inlineData"]["data"])
+                wav = Path(str(path)).with_suffix(".wav")
+                with wave.open(str(wav), "wb") as w:
+                    w.setnchannels(1)
+                    w.setsampwidth(2)
+                    w.setframerate(24000)
+                    w.writeframes(pcm)
+                return wav
+            print(f"[TECH] gemini tts {r.status_code} (attempt {attempt + 1})")
+            time.sleep(20)
+    except Exception as e:
+        print(f"[TECH] gemini tts failed, using Edge voice: {str(e)[:100]}")
+    return None
+
+
 def whoosh(dur_s=0.4, sr=44100):
     n = int(dur_s * sr)
     rnd = np.random.RandomState(7)
@@ -358,11 +413,11 @@ def real_thumbnail(frame, topic, path):
     im = Image.composite(im, Image.alpha_composite(im, dark), vg).convert("RGB")
     d = ImageDraw.Draw(im, "RGBA")
     l1, l2 = topic["thumb"] if isinstance(topic["thumb"], (list, tuple)) else (topic["thumb"], "")
-    text_c(d, (640, 250), l1, font(165), fill=GOLD, width=9)
+    text_c(d, (640, 215), l1, font(118), fill=GOLD, width=7)
     if l2:
-        w = d.textlength(l2, font=font(190)) + 90
-        d.rounded_rectangle((640 - w / 2, 405, 640 + w / 2, 640), radius=40, fill=(225, 25, 25, 255), outline=WHITE + (255,), width=8)
-        text_c(d, (640, 523), l2, font(190), fill=WHITE, outline=(80, 0, 0), width=8)
+        w = d.textlength(l2, font=font(128)) + 80
+        d.rounded_rectangle((640 - w / 2, 330, 640 + w / 2, 490), radius=34, fill=(225, 25, 25, 255), outline=WHITE + (255,), width=6)
+        text_c(d, (640, 410), l2, font(128), fill=WHITE, outline=(80, 0, 0), width=6)
     im.save(path, quality=93)
 
 
@@ -380,8 +435,11 @@ def build(key, out_dir, real=False, cache_dir='bank_tech'):
         ap = out_dir / f"{key}_{i}.mp3"
         # fast, energetic delivery; slightly lower pitch on the hook for weight
         rate, pitch = ("+26%", "+2Hz") if i == 0 else (("+20%", "+0Hz") if i < 4 else ("+18%", "+0Hz"))
-        E.make_voice(line, ap, rate, pitch)
-        voice = AudioFileClip(str(normalize_voice(ap)))
+        gv = gemini_voice(line, ap, i)
+        if gv is None:
+            E.make_voice(line, ap, rate, pitch)
+            gv = ap
+        voice = AudioFileClip(str(normalize_voice(gv)))
         dur = voice.duration + 0.35
         base = None
         if real:
