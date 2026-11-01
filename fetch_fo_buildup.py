@@ -426,7 +426,7 @@ def main(argv=None):
         j = cols[name]
         return r[j] if (j is not None and len(r) > j) else ""
 
-    labels, stocks, ret1d, updates = {}, [], {}, []
+    labels, stocks, ret1d, updates, info = {}, [], {}, [], {}
     unmatched, fo_tag_missing = [], []
     for i, r in enumerate(all_vals[1:], start=2):
         if len(r) <= sym_c or not r[sym_c].strip():
@@ -454,10 +454,16 @@ def main(argv=None):
         prev_label, prev_date, prev_streak = cell(r, H_LABEL), cell(r, H_DATE), cell(r, H_STREAK)
         if label == NO_FO:
             streak = "" if prev_date != tdate else None
+            info[sym] = (price_c, oi_c, label, "")
             if prev_date == tdate:
                 continue
         else:
             streak = next_streak(prev_label, prev_date, prev_streak, label, tdate, holidays)
+            try:
+                eff = streak if streak is not None else int(float(prev_streak))
+            except (TypeError, ValueError):
+                eff = 1
+            info[sym] = (price_c, oi_c, label, eff)
         if streak is None:
             continue   # same/older date: idempotent
         updates.append((i, [price_c, oi_c, label, streak, tdate], sym))
@@ -480,6 +486,12 @@ def main(argv=None):
     print(f"\n[BOARD] {len(board)} sectors")
     for b in board[:6]:
         print("  ", b)
+
+    target = os.environ.get("FO_TELEGRAM", "").strip().lower()
+    if "--tg-test" in argv and target not in ("premium", "basic"):
+        target = "premium"
+    if "--tg-test" in argv:
+        _telegram(info, board, tdate, target)
 
     if not write:
         print("\n[DRY-RUN] nothing written. Re-run with --write to update the sheet.")
@@ -519,27 +531,38 @@ def main(argv=None):
                                               LONG_U: (0.99, 0.82, 0.62)}, "Buildup")
     watch_append(sh, updates, tdate)
     watch_score(sh)
-    if SEND_TELEGRAM_SUMMARY:
-        _telegram(updates, board)
+    if (SEND_TELEGRAM_SUMMARY or target in ("premium", "basic")) and "--tg-test" not in argv:
+        _telegram(info, board, tdate, target or "basic")
     return 0
 
 
-def _telegram(updates, board):
-    """OFF by default. One evening message to the Basic channel only. Informational text, no entry/SL/target."""
+def _telegram(info, board, tdate, target="basic"):
+    """One EOD text message (Premium or Basic channel). Informational, NO entry/SL/target. Never raises."""
     try:
         from urllib.parse import urlencode
-        top = [(s, v) for _, v, s in updates if v[2] == LONG_B and isinstance(v[3], int) and v[3] >= 2]
-        top.sort(key=lambda x: -x[1][3])
-        lines = ["<b>Futures buildup (EOD)</b>"]
-        lines += [f"{s}: Long Buildup, {v[3]} din" for s, v in top[:5]] or ["Koi Long Buildup (2+ din) nahi."]
-        lines += ["", "Top sectors:"] + [f"{b[0]}: Bull {b[9]}%" for b in board[:3]]
-        lines += ["", "Informational only — not a trade signal."]
-        tok, chat = os.environ.get("TELEGRAM_BOT_TOKEN", ""), os.environ.get("CHAT_ID_BASIC", "")
+        bull = [(s, v) for s, v in info.items() if v[2] in (LONG_B, SHORT_C)]
+        bull.sort(key=lambda x: (x[1][2] != LONG_B, -(x[1][3] if isinstance(x[1][3], int) else 0), -(x[1][0] if isinstance(x[1][0], (int, float)) else 0)))
+        lines = [f"<b>F&amp;O buildup (EOD {tdate})</b>", "Owner test, signal nahi.", ""]
+        lines.append("<b>Bullish buildup, sirf WATCH ke liye:</b>")
+        for s, v in bull[:6]:
+            lines.append(f"- {s}: {v[2]} ({v[3]} din), fut {v[0]:+.1f}%, OI {v[1]:+.1f}%")
+        if not bull:
+            lines.append("- Aaj koi nahi.")
+        strong = [b for b in board if "Strong" in str(b[10])][:3]
+        if strong:
+            lines += ["", "Mazboot sectors: " + ", ".join(f"{b[0]} ({b[9]}%)" for b in strong)]
+        lines += ["", "Sirf jaankari. Entry, SL, target nahi. Option premium ka P/L stock se alag hota hai (strike, expiry, time decay).",
+                  "Informational only, not a trade signal."]
+        tok = os.environ.get("TELEGRAM_BOT_TOKEN", "")
+        chat = os.environ.get("CHAT_ID_PREMIUM" if target == "premium" else "CHAT_ID_BASIC", "")
         if tok and chat:
             urlopen(Request(f"https://api.telegram.org/bot{tok}/sendMessage",
                             data=urlencode({"chat_id": chat, "text": "\n".join(lines), "parse_mode": "HTML"}).encode()), timeout=20)
+            print(f"[TG] summary sent to {target}")
+        else:
+            print(f"[TG] skipped: token/chat id for {target} not set")
     except Exception as e:
-        print(f"[TG] skipped: {e}")
+        print(f"[TG] skipped: {str(e)[:100]}")
 
 
 if __name__ == "__main__":

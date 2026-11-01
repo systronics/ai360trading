@@ -20,6 +20,10 @@ on:
         description: "Optional: run the F&O buildup for this date (YYYY-MM-DD), e.g. 2026-10-30"
         required: false
         default: ""
+      fo_tg:
+        description: "yes = also send the F&O summary to the Premium channel now (test)"
+        required: false
+        default: ""
       fo_write:
         description: "yes = write the F&O buildup columns now (default follows repo variable FO_BUILDUP_MODE)"
         required: false
@@ -60,12 +64,16 @@ jobs:
           GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
           TELEGRAM_BOT_TOKEN:       ${{ secrets.TELEGRAM_BOT_TOKEN }}
           CHAT_ID_BASIC:            ${{ secrets.CHAT_ID_BASIC }}
+          CHAT_ID_PREMIUM:          ${{ secrets.CHAT_ID_PREMIUM }}
+          FO_TELEGRAM: ${{ vars.FO_TELEGRAM || '' }}
+          FO_TG: ${{ github.event.inputs.fo_tg || '' }}
           FO_DATE:  ${{ github.event.inputs.fo_date || '' }}
           FO_WRITE: ${{ github.event.inputs.fo_write || vars.FO_BUILDUP_MODE || '' }}
         run: |
           ARGS=""
           if [ -n "$FO_DATE" ]; then ARGS="$ARGS --date $FO_DATE"; fi
           if [ "$FO_WRITE" = "write" ] || [ "$FO_WRITE" = "yes" ]; then ARGS="$ARGS --write"; fi
+          if [ "$FO_TG" = "yes" ]; then ARGS="$ARGS --tg-test"; fi
           python fetch_fo_buildup.py $ARGS
 
       - name: Notify Telegram on failure
