@@ -349,6 +349,15 @@ def gemini_voice(text, path, idx):
                               params={"key": key}, json=body, timeout=120)
             if r.status_code == 200:
                 pcm = base64.b64decode(r.json()["candidates"][0]["content"]["parts"][0]["inlineData"]["data"])
+                secs = len(pcm) / 48000.0
+                max_secs = len(text.split()) / 2.4 * 1.7 + 1.5   # normal pace is ~2.5 words/s; far longer means the model read the style note or crawled
+                if secs > max_secs:
+                    print(f"[TECH] gemini audio too long on {_GEM['model']}: {secs:.1f}s > {max_secs:.1f}s, rotating model")
+                    ms = _GEM.get("models", [])
+                    if len(ms) > 1:
+                        _GEM["model"] = ms[(ms.index(_GEM["model"]) + 1) % len(ms)]
+                        continue
+                    return None
                 wav = Path(str(path)).with_suffix(".wav")
                 with wave.open(str(wav), "wb") as w:
                     w.setnchannels(1)
