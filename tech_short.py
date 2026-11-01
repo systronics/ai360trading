@@ -331,16 +331,17 @@ def gemini_voice(text, path, idx):
         if _GEM["model"] is None:
             r = requests.get("https://generativelanguage.googleapis.com/v1beta/models", params={"key": key, "pageSize": 200}, timeout=30)
             names = [m["name"].split("/")[-1] for m in r.json().get("models", []) if "tts" in m["name"].lower()]
-            names = sorted(names, key=lambda n: ("3.1" in n, "flash" in n, "preview" not in n), reverse=True)
-            _GEM["model"] = names[0] if names else ""
+            _GEM["models"] = sorted(names, key=lambda n: ("3.1" in n, "flash" in n, "lite" not in n, "preview" not in n), reverse=True)
+            _GEM["model"] = _GEM["models"][0] if _GEM["models"] else ""
+            print("[TECH] gemini tts models:", _GEM["models"])
         if not _GEM["model"]:
             return None
         voice, style = GEMINI_STYLES[min(idx, len(GEMINI_STYLES) - 1)]
         body = {"contents": [{"parts": [{"text": f"{style} {text}"}]}],
                 "generationConfig": {"responseModalities": ["AUDIO"],
                                      "speechConfig": {"voiceConfig": {"prebuiltVoiceConfig": {"voiceName": voice}}}}}
-        for attempt in range(5):
-            wait = 40 - (time.time() - _GEM["last"])
+        for attempt in range(7):
+            wait = 25 - (time.time() - _GEM["last"])
             if wait > 0:
                 time.sleep(wait)
             _GEM["last"] = time.time()
@@ -355,7 +356,12 @@ def gemini_voice(text, path, idx):
                     w.setframerate(24000)
                     w.writeframes(pcm)
                 return wav
-            print(f"[TECH] gemini tts {r.status_code} (attempt {attempt + 1}): {r.text[:160]!r}")
+            print(f"[TECH] gemini tts {r.status_code} on {_GEM['model']} (attempt {attempt + 1})")
+            if r.status_code == 429 and len(_GEM.get("models", [])) > 1:
+                # each model has its own free quota: rotate to the next one
+                ms = _GEM["models"]
+                _GEM["model"] = ms[(ms.index(_GEM["model"]) + 1) % len(ms)]
+                continue
             ra = r.headers.get("Retry-After", "")
             time.sleep(min(90, float(ra) + 2) if ra.replace(".", "").isdigit() else 70)
     except Exception as e:
