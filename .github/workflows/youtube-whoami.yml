@@ -1,0 +1,34 @@
+name: "YouTube who-am-I (manual, read-only)"
+
+# 2026-11-01: prints which Google Cloud PROJECT NUMBER our YOUTUBE_CREDENTIALS client belongs to (the number before the first dash of the
+# client_id, which is not secret) and the title of the channel that token controls. Never prints the token or client secret.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  whoami:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      YOUTUBE_CREDENTIALS: ${{ secrets.YOUTUBE_CREDENTIALS }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install google-api-python-client google-auth
+      - name: Project number and channel title
+        run: |
+          python - <<'PYEOF'
+          import os, json
+          raw = json.loads(os.environ["YOUTUBE_CREDENTIALS"])
+          cid = raw.get("client_id", "")
+          print("PROJECT_NUMBER:", cid.split("-")[0])
+          from google.oauth2.credentials import Credentials
+          from googleapiclient.discovery import build
+          yt = build("youtube", "v3", credentials=Credentials.from_authorized_user_info(raw))
+          r = yt.channels().list(part="snippet", mine=True).execute()
+          for c in r.get("items", []):
+              print("CHANNEL:", c["snippet"]["title"], c["id"])
+          PYEOF
