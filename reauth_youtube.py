@@ -71,6 +71,7 @@ SCOPES = [
 
 SECRET_NAME = {
     "main": "YOUTUBE_CREDENTIALS",
+    "tech": "YOUTUBE_CREDENTIALS_TECH",   # 2026-11-01: the new AI360 Tech channel
 }
 
 
@@ -88,6 +89,10 @@ def load_current_token(args) -> dict:
         data = json.loads(raw)
     except Exception as e:
         sys.exit(f"[ERROR] That wasn't valid JSON: {e}")
+    # also accept the file downloaded from Google Cloud Console (OAuth client, Desktop app): {"installed": {...}} or {"web": {...}}
+    for k in ("installed", "web"):
+        if isinstance(data.get(k), dict):
+            data = data[k]
     cid = data.get("client_id")
     csec = data.get("client_secret")
     if not cid or not csec:
@@ -98,10 +103,12 @@ def load_current_token(args) -> dict:
 
 def main():
     ap = argparse.ArgumentParser(description="Re-auth a YouTube token with force-ssl")
-    ap.add_argument("--which", choices=["main"], default="main",
+    ap.add_argument("--which", choices=["main", "tech"], default="main",
                     help="which channel/token to re-auth")
     ap.add_argument("--in", dest="infile", default="",
                     help="path to your current token JSON (optional; else paste)")
+    ap.add_argument("--set-secret", action="store_true",
+                    help="after sign-in, store the new token straight into the GitHub secret with the gh CLI (never printed)")
     args = ap.parse_args()
 
     try:
@@ -150,6 +157,16 @@ def main():
     # py/clear-text-logging-sensitive-data, 2026-08-12: this tool is manual/
     # local-only so it was never a live production exposure, but printing a
     # real token to stdout is still avoidable here at zero cost, so fixed).
+    if args.set_secret:
+        import subprocess
+        try:
+            with open(out_path, "rb") as fh:
+                subprocess.run(["gh", "secret", "set", SECRET_NAME[args.which]], stdin=fh, check=True)
+            print(f"[SECRET] {SECRET_NAME[args.which]} updated in GitHub (value not shown).")
+            out_path.unlink(missing_ok=True)
+            return
+        except Exception as e:
+            print(f"[!] could not set the secret automatically ({e}); copy it by hand below.")
     print(f"\n[SAVED] New token saved to: {out_path}")
     print(f"[COPY] Open that file, copy the WHOLE JSON, paste it into GitHub secret  ->  {SECRET_NAME[args.which]}")
     print("   (GitHub > Settings > Secrets and variables > Actions > Update)")
