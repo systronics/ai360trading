@@ -318,6 +318,24 @@ def whoosh(dur_s=0.4, sr=44100):
     return (out * 0.35).astype(np.float32)
 
 
+def real_thumbnail(frame, topic, path):
+    """1280x720 click-thumbnail from a REAL footage frame: bright, saturated, huge hook text, red temperature badge."""
+    from PIL import ImageEnhance
+    im = Image.fromarray(frame).convert("RGB")
+    im = im.crop((0, 420, W, 420 + int(W * 9 / 16))).resize((1280, 720), Image.LANCZOS)
+    im = ImageEnhance.Color(im).enhance(1.3)
+    im = ImageEnhance.Contrast(im).enhance(1.12)
+    im = ImageEnhance.Brightness(im).enhance(1.05)
+    d = ImageDraw.Draw(im, "RGBA")
+    for y in range(0, 260):   # dark fade at the top so the text pops
+        d.line([(0, y), (1280, y)], fill=(0, 0, 0, int(190 * (1 - y / 260))))
+    text_c(d, (640, 105), topic["thumb"], font(118), fill=GOLD, width=8)
+    d.rounded_rectangle((70, 470, 520, 660), radius=36, fill=(220, 30, 30, 235), outline=WHITE + (255,), width=6)
+    text_c(d, (295, 565), topic.get("thumb_badge", "46°C"), font(130), fill=WHITE, outline=(90, 0, 0), width=5)
+    d.polygon([(560, 565), (640, 520), (640, 545), (720, 545), (720, 585), (640, 585), (640, 610)], fill=GOLD + (255,))
+    im.save(path, quality=93)
+
+
 def build(key, out_dir, real=False, cache_dir='bank_tech'):
     from moviepy.editor import VideoClip, AudioFileClip, CompositeAudioClip, concatenate_videoclips
     from moviepy.audio.AudioClip import AudioArrayClip
@@ -327,7 +345,7 @@ def build(key, out_dir, real=False, cache_dir='bank_tech'):
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     n = len(topic["lines"])
-    scenes, used = [], set()
+    scenes, used, thumb_frame = [], set(), None
     for i, line in enumerate(topic["lines"]):
         ap = out_dir / f"{key}_{i}.mp3"
         # fast, energetic delivery; slightly lower pitch on the hook for weight
@@ -351,6 +369,8 @@ def build(key, out_dir, real=False, cache_dir='bank_tech'):
                 raise RuntimeError(f"no footage for scene {i + 1}")
             sc = SR.scene_video(paths, dur, np.zeros((H, W, 3), np.uint8), np.zeros((H, W), np.float32), zoom_out=(i % 2 == 1))
             base = sc.plain.get_frame
+            if i == 0:
+                thumb_frame = np.asarray(base(1.5))
         clip = VideoClip(frame_fn(topic, i, n, dur, base), duration=dur).set_fps(FPS)
         bed = SM.ambient(dur, mood="calm")
         rms = float(np.sqrt(np.mean(np.square(bed)))) or 1e-6
@@ -367,12 +387,17 @@ def build(key, out_dir, real=False, cache_dir='bank_tech'):
     # thumbnail: hot-phone frame, big hook text
     thumb = out_dir / f"{key}_thumb.jpg"
     try:
+        if thumb_frame is not None:
+            real_thumbnail(thumb_frame, topic, thumb)
+            raise StopIteration
         fr = Image.fromarray(frame_fn(topic, 0, n, 6.0)(5.0)).convert("RGB")
         crop = fr.crop((0, 380, W, 380 + int(W * 9 / 16))).resize((1280, 720))
         d = ImageDraw.Draw(crop, "RGBA")
         d.rectangle((0, 0, 1280, 720), fill=(0, 0, 0, 60))
         text_c(d, (640, 110), topic["thumb"], font(110), fill=GOLD, width=6)
         crop.save(thumb, quality=92)
+    except StopIteration:
+        pass
     except Exception as e:
         print(f"[TECH] thumbnail skipped: {e}")
         thumb = None
