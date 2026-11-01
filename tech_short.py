@@ -139,7 +139,7 @@ def _more_topics():
 def _news_topics():
     TOPICS["news_72h"] = {
         "title": "72 Ghante Ka Rashan: Sach Kya Hai?", "yt_title": "72 Ghante Ka Rashan: WW3 Ya Sirf Preparedness? Sach Kya Hai #shorts",
-        "tag": "TRENDING SACH", "icons": "alarm", "thumb_scene": 4,
+        "tag": "TRENDING SACH", "icons": "alarm", "thumb_scene": 4, "thumb_queries": ["canned food shelf", "water bottles stack", "emergency kit supplies", "flashlight on table"],
         "thumb": ("72 GHANTE", "SACH KYA?"), "thumb_hi": "72 घंटे का राशन? WW3?", "thumb_sub": "SACH KYA HAI? DEKHO",
         "thumb_long": "72 GHANTE KA RASHAN: KYA SACH MEIN WW3 AA RAHA HAI? SACH JAANO", "thumb_hot": "SACH",
         "tags": ["72 ghante ka rashan", "ww3 sach kya hai", "emergency kit uk", "be ready campaign", "news explained hinglish", "shorts"],
@@ -755,6 +755,40 @@ def long_thumbnail(frame, topic, path):
     im.save(path, quality=93)
 
 
+def thumbs_only(key, out_dir, cache_dir='bank_tech'):
+    """Fast path: only the click thumbnails (no voice/video), from the topic's thumb_queries (else the first scene's queries)."""
+    import story_real as SR
+    topic = TOPICS[key]
+    out_dir = Path(out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    Path(cache_dir).mkdir(parents=True, exist_ok=True)
+    pk = os.environ.get("PEXELS_API_KEY", "")
+    best, best_s = None, -1e9
+    used = set()
+    for q in topic.get("thumb_queries") or topic["queries"][topic.get("thumb_scene", 0)]:
+        try:
+            paths = SR.get_footage(q, pk, cache_dir, used, 6.0, tries=2)
+            if not paths:
+                continue
+            sc = SR.scene_video(paths, 6.0, np.zeros((H, W, 3), np.uint8), np.zeros((H, W), np.float32))
+            fr = pick_thumb_frame(sc.plain.get_frame, 6.0)
+            if fr is None:
+                continue
+            g = fr.mean(axis=2)
+            s = float(np.abs(np.diff(g[::4, ::4], axis=1)).mean()) - 80 * float((g > 235).mean()) - 40 * float((g < 25).mean())
+            if s > best_s:
+                best, best_s = fr, s
+        except Exception as e:
+            print(f"[TECH] thumb query {q!r} skipped: {str(e)[:80]}")
+    if best is None:
+        raise RuntimeError("no thumbnail frame")
+    Image.fromarray(best).save(out_dir / f"{key}_thumbframe.png")
+    real_thumbnail(best, topic, out_dir / f"{key}_thumb.jpg")
+    long_thumbnail(best, topic, out_dir / f"{key}_thumb_long.jpg")
+    pattern_thumbnail(best, topic, out_dir / f"{key}_thumb_pattern.jpg")
+    print("[TECH] thumbnails done")
+
+
 def build(key, out_dir, real=False, cache_dir='bank_tech'):
     from moviepy.editor import VideoClip, AudioFileClip, CompositeAudioClip, concatenate_videoclips
     from moviepy.audio.AudioClip import AudioArrayClip
@@ -803,6 +837,12 @@ def build(key, out_dir, real=False, cache_dir='bank_tech'):
         clip = clip.set_audio(CompositeAudioClip([bed, w, voice.set_start(0.05)]).set_duration(dur))
         scenes.append(clip)
         print(f"[TECH:{key}] scene {i + 1}/{n} ok ({dur:.1f}s)")
+    if real and topic.get("thumb_queries"):
+        try:
+            thumbs_only(key, out_dir, cache_dir)
+            thumb_frame = None   # thumbnails already written
+        except Exception as e:
+            print(f"[TECH] thumb_queries failed, using scene frame: {str(e)[:80]}")
     final = concatenate_videoclips(scenes, method="compose")
     mp4 = out_dir / f"{key}_tech.mp4"
     final.write_videofile(str(mp4), fps=FPS, codec="libx264", audio_codec="aac", preset="medium", logger=None)
@@ -840,8 +880,11 @@ if __name__ == "__main__":
     ap.add_argument("--sample", default=None)
     ap.add_argument("--out", default="output/tech")
     ap.add_argument("--real", action="store_true")
+    ap.add_argument("--thumbs-only", action="store_true")
     a = ap.parse_args()
-    if a.sample:
+    if a.sample and a.thumbs_only:
+        thumbs_only(a.sample, a.out)
+    elif a.sample:
         build(a.sample, a.out, real=a.real)
     else:
         print("usage: python tech_short.py --sample phone_heat")
