@@ -35,4 +35,9 @@ jobs:
           for p in pages.get("data", []):
               ig = p.get("instagram_business_account") or {}
               print("PAGE:", p.get("name"), p.get("id"), "| IG:", ig.get("username"), ig.get("id"))
+          for pid in ("1467822963074192",):
+              s2, d2 = get(pid, fields="id,name,instagram_business_account{id,username},connected_instagram_account{id,username}")
+              print("DIRECT:", s2, d2 if s2 != 200 else {k: d2.get(k) for k in ("id", "name", "instagram_business_account", "connected_instagram_account")})
+          s3, perms = get("me/permissions")
+          print("PERMS:", [x["permission"] for x in perms.get("data", []) if x.get("status") == "granted"] if s3 == 200 else perms)
           PYEOF
