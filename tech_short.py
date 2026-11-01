@@ -139,7 +139,7 @@ def _more_topics():
 def _news_topics():
     TOPICS["news_72h"] = {
         "title": "72 Ghante Ka Rashan: Sach Kya Hai?", "yt_title": "72 Ghante Ka Rashan: WW3 Ya Sirf Preparedness? Sach Kya Hai #shorts",
-        "tag": "TRENDING SACH", "icons": "alarm", "thumb_scene": 4, "thumb_queries": ["canned food shelf", "water bottles stack", "emergency kit supplies", "flashlight on table"],
+        "tag": "TRENDING SACH", "icons": "alarm", "thumb_scene": 4, "thumb_crop": (420, 420, 1080, 791), "thumb_queries": ["canned food shelf", "water bottles stack", "emergency kit supplies", "flashlight on table"],
         "thumb": ("72 GHANTE", "SACH KYA?"), "thumb_hi": "72 घंटे का राशन? WW3?", "thumb_sub": "SACH KYA HAI? DEKHO",
         "thumb_long": "72 GHANTE KA RASHAN: KYA SACH MEIN WW3 AA RAHA HAI? SACH JAANO", "thumb_hot": "SACH",
         "tags": ["72 ghante ka rashan", "ww3 sach kya hai", "emergency kit uk", "be ready campaign", "news explained hinglish", "shorts"],
@@ -583,6 +583,12 @@ def deva_font(sz):
     return None
 
 
+def _crop169(im, topic):
+    """16:9 thumbnail crop. Topics can set thumb_crop=(x0,y0,x1,y1) to keep people out of frame (zoom into the objects)."""
+    box = topic.get("thumb_crop") or (0, 380, W, 380 + int(W * 9 / 16))
+    return im.crop(box).resize((1280, 720), Image.LANCZOS)
+
+
 def _runs(s):
     """Split a string into (is_devanagari, text) runs so each run uses a font that has its glyphs."""
     out = []
@@ -643,7 +649,7 @@ def pattern_thumbnail(frame, topic, path):
     if not hi or f_hi is None:
         return real_thumbnail(frame, topic, path)
     im = Image.fromarray(frame).convert("RGB")
-    im = im.crop((0, 380, W, 380 + int(W * 9 / 16))).resize((1280, 720), Image.LANCZOS)
+    im = _crop169(im, topic)
     im = ImageEnhance.Color(im).enhance(1.5)
     im = ImageEnhance.Contrast(im).enhance(1.2)
     heat = Image.new("RGBA", (1280, 720), (0, 0, 0, 0))
@@ -692,7 +698,7 @@ def real_thumbnail(frame, topic, path):
     (no extra badges/arrows). Text stays in the centre 70% so crops never cut it."""
     from PIL import ImageEnhance, ImageFilter
     im = Image.fromarray(frame).convert("RGB")
-    im = im.crop((0, 380, W, 380 + int(W * 9 / 16))).resize((1280, 720), Image.LANCZOS)
+    im = _crop169(im, topic)
     im = ImageEnhance.Color(im).enhance(1.35)
     im = ImageEnhance.Contrast(im).enhance(1.18)
     # warm "heat" tint rising from the bottom, vignette at the edges
@@ -736,7 +742,7 @@ def long_thumbnail(frame, topic, path):
     very saturated real photo, a full question in 3 stacked lines on dark bars, key word highlighted."""
     from PIL import ImageEnhance
     im = Image.fromarray(frame).convert("RGB")
-    im = im.crop((0, 380, W, 380 + int(W * 9 / 16))).resize((1280, 720), Image.LANCZOS)
+    im = _crop169(im, topic)
     im = ImageEnhance.Color(im).enhance(1.7)
     im = ImageEnhance.Contrast(im).enhance(1.15)
     im = ImageEnhance.Brightness(im).enhance(1.08)
