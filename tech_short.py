@@ -41,7 +41,7 @@ TOPICS = {
             "चार्जिंग में भी यही होता है। बैटरी में करंट भरते टाइम थोड़ा करंट हीट बनकर निकल जाता है, और फ़ास्ट चार्जर में यह और ज़्यादा होता है।",
             "तो धूप में चार्ज मत करो, मोटा कवर निकाल दो, और चार्जिंग के टाइम हैवी गेम मत खेलो। सीधी बात, हीट मतलब करंट की धक्का-मुक्की। अगले वीडियो में बताऊँगा, बैटरी जल्दी क्यों ख़त्म होती है।",
         ],
-        "caps": ["PHONE HOT KYUN HOTA HAI?", "CURRENT + FRICTION = HEAT", "ZYADA KAAM = ZYADA HEAT", "CHARGING MEIN BHI HEAT", "SEEDHI BAAT: HEAT = FRICTION"],
+        "caps": ["PHONE HOT KYUN HOTA HAI?", "CURRENT + FRICTION = HEAT", "ZYADA KAAM = ZYADA HEAT", "CHARGING MEIN BHI HEAT", "HEAT = FRICTION"],
         "scenes": ["thermo", "chip", "bars", "battery", "tips"],
         "queries": [["hand holding smartphone close up", "smartphone screen hand"], ["circuit board macro close up", "electronic circuit board"],
                     ["hands playing mobile game", "gaming on smartphone close up"], ["charging smartphone cable close up", "phone charger plug socket"],
@@ -257,8 +257,8 @@ def sc_tips(d, t, dur, tips):
         y = 640 + i * 250
         x = lerp(1300, 540, k)
         d.rounded_rectangle((x - 450, y - 90, x + 450, y + 90), radius=36, fill=(18, 24, 50, 235), outline=GREEN + (255,), width=6)
-        d.line([(x - 400, y), (x - 360, y + 38), (x - 285, y - 38)], fill=GREEN + (255,), width=14, joint="curve")
-        d.text((x + 55, y), s, font=font(40), fill=WHITE + (255,), anchor="mm")
+        d.line([(x - 410, y), (x - 375, y + 32), (x - 315, y - 32)], fill=GREEN + (255,), width=14, joint="curve")
+        d.text((x + 70, y), s, font=font(38), fill=WHITE + (255,), anchor="mm")
 
 
 PAINTERS = {"thermo": sc_thermo, "chip": sc_chip, "bars": sc_bars, "battery": sc_battery}
