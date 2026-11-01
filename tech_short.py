@@ -139,16 +139,16 @@ def _more_topics():
 def _news_topics():
     TOPICS["news_72h"] = {
         "title": "72 Ghante Ka Rashan: Sach Kya Hai?", "yt_title": "72 Ghante Ka Rashan: WW3 Ya Sirf Preparedness? Sach Kya Hai #shorts",
-        "tag": "TRENDING SACH",
+        "tag": "TRENDING SACH", "icons": "alarm", "thumb_scene": 4,
         "thumb": ("72 GHANTE", "SACH KYA?"), "thumb_hi": "72 घंटे का राशन? WW3?", "thumb_sub": "SACH KYA HAI? DEKHO",
         "thumb_long": "72 GHANTE KA RASHAN: KYA SACH MEIN WW3 AA RAHA HAI? SACH JAANO", "thumb_hot": "SACH",
         "tags": ["72 ghante ka rashan", "ww3 sach kya hai", "emergency kit uk", "be ready campaign", "news explained hinglish", "shorts"],
         "lines": [
             "सोशल मीडिया पर चल रहा है कि कई देश 72 घंटे का राशन रखने को कह रहे हैं। क्या तीसरा विश्व युद्ध आने वाला है?",
-            "सीधा जवाब, ऐसा कोई सबूत नहीं मिला। ब्रिटेन की सरकार ने अक्टूबर में Be Ready अभियान शुरू किया, कि बिजली, पानी या इंटरनेट बंद हो जाए, तो तीन दिन का सामान घर पर रखें।",
-            "वजह है साइबर हमले, तूफ़ान और बाढ़ जैसी मौसम की मार, और सप्लाई का रुकना। मदद पहुँचने में दो-तीन दिन लग सकते हैं, इसीलिए तीन दिन का नियम है। यह नई बात नहीं।",
-            "और वायरल पोस्ट की सत्रह देशों वाली बात मुझे किसी भरोसेमंद रिपोर्ट में नहीं मिली। घबराकर सामान जमा करने की ज़रूरत नहीं।",
-            "हाँ, बाढ़ और भूकंप वाले इलाक़ों में तीन दिन का पानी, सूखा खाना, टॉर्च, पावर बैंक, कैश और दवाइयाँ रखना समझदारी है। डरना नहीं, तैयार रहना है।",
+            "सीधा जवाब, कोई सबूत नहीं मिला। ब्रिटेन की सरकार ने अक्टूबर में Be Ready अभियान शुरू किया: बिजली, पानी या इंटरनेट बंद हो, तो तीन दिन का सामान रखें।",
+            "वजह साइबर हमले, तूफ़ान, बाढ़ और सप्लाई का रुकना है। मदद पहुँचने में दो-तीन दिन लग सकते हैं, इसीलिए तीन दिन का नियम है। यह नया नहीं।",
+            "वायरल पोस्ट की सत्रह देशों वाली बात मुझे किसी भरोसेमंद रिपोर्ट में नहीं मिली। घबराने की ज़रूरत नहीं।",
+            "हाँ, बाढ़-भूकंप वाले इलाक़ों में तीन दिन का पानी, सूखा खाना, टॉर्च, पावर बैंक, कैश और दवाइयाँ रखना समझदारी है। डरो नहीं, तैयार रहो।",
         ],
         "caps": ["WW3 AA RAHA HAI?", "UK KA BE READY CAMPAIGN", "3 DIN KA NIYAM, NAYA NAHI", "17 DESHON KI BAAT: CONFIRM NAHI", "DARNA NAHI, TAIYAAR RAHNA"],
         "scenes": [{"type": "card", "lines": ["72 GHANTE KA", "RASHAN: SACH?"], "color": "red"},
@@ -503,7 +503,7 @@ def gemini_voice(text, path, idx):
             if r.status_code == 200:
                 pcm = base64.b64decode(r.json()["candidates"][0]["content"]["parts"][0]["inlineData"]["data"])
                 secs = len(pcm) / 48000.0
-                max_secs = len(text.split()) / 2.4 * 1.7 + 1.5   # normal pace is ~2.5 words/s; far longer means the model read the style note or crawled
+                max_secs = len(text.split()) / 2.4 * 1.35 + 1.2   # normal pace is ~2.5 words/s; far longer means the model read the style note or crawled
                 if secs > max_secs:
                     print(f"[TECH] gemini audio too long on {_GEM['model']}: {secs:.1f}s > {max_secs:.1f}s, rotating model")
                     ms = _GEM.get("models", [])
@@ -575,6 +575,45 @@ def deva_font(sz):
     return None
 
 
+def _runs(s):
+    """Split a string into (is_devanagari, text) runs so each run uses a font that has its glyphs."""
+    out = []
+    for ch in s:
+        dev = "\u0900" <= ch <= "\u097f"
+        if ch == " " and out:
+            dev = out[-1][0]
+        if out and out[-1][0] == dev:
+            out[-1][1] += ch
+        else:
+            out.append([dev, ch])
+    return out
+
+
+def mixed_width(d, s, size):
+    fd, fl = deva_font(size), font(size)
+    return sum(d.textlength(t, font=(fd if dev else fl)) for dev, t in _runs(s))
+
+
+def mixed_text(d, cx, cy, s, size, fill=WHITE, outline=(0, 0, 0), width=4):
+    fd, fl = deva_font(size), font(size)
+    runs = _runs(s)
+    total = sum(d.textlength(t, font=(fd if dev else fl)) for dev, t in runs)
+    x = cx - total / 2
+    for dev, t in runs:
+        f = fd if dev else fl
+        for dx in range(-width, width + 1, 2):
+            for dy in range(-width, width + 1, 2):
+                d.text((x + dx, cy + dy), t, font=f, fill=outline + (255,), anchor="lm")
+        d.text((x, cy), t, font=f, fill=fill + (255,), anchor="lm")
+        x += d.textlength(t, font=f)
+
+
+def _alarm(d, cx, cy, s):
+    d.polygon([(cx, cy - s), (cx + s * 1.05, cy + s * 0.8), (cx - s * 1.05, cy + s * 0.8)], fill=RED + (255,), outline=WHITE + (255,))
+    d.rectangle((cx - s * 0.09, cy - s * 0.4, cx + s * 0.09, cy + s * 0.25), fill=WHITE + (255,))
+    d.ellipse((cx - s * 0.11, cy + s * 0.38, cx + s * 0.11, cy + s * 0.6), fill=WHITE + (255,))
+
+
 def _flame(d, cx, cy, s):
     d.polygon([(cx, cy - s * 1.5), (cx + s * 0.7, cy - s * 0.3), (cx + s * 0.45, cy + s * 0.6), (cx, cy + s * 0.75),
                (cx - s * 0.45, cy + s * 0.6), (cx - s * 0.7, cy - s * 0.3)], fill=ORANGE + (255,))
@@ -613,7 +652,7 @@ def pattern_thumbnail(frame, topic, path):
     lines, cur = [], ""
     for w_ in words:
         t = (cur + " " + w_).strip()
-        if d.textlength(t, font=f_hi) <= 1180 or not cur:
+        if mixed_width(d, t, 104) <= 1180 or not cur:
             cur = t
         else:
             lines.append(cur)
@@ -622,11 +661,15 @@ def pattern_thumbnail(frame, topic, path):
     lines = lines[:2]
     y = 125 if len(lines) == 1 else 78
     for ln in lines:
-        text_c(d, (640, y), ln, f_hi, fill=WHITE, outline=(60, 0, 0), width=4)
+        mixed_text(d, 640, y, ln, 104, fill=WHITE, outline=(60, 0, 0), width=4)
         y += 120
     # icons
-    _flame(d, 150, 480, 70)
-    _thermo_icon(d, 1130, 470, 80)
+    if topic.get("icons") == "alarm":
+        _alarm(d, 150, 450, 80)
+        _alarm(d, 1130, 450, 80)
+    else:
+        _flame(d, 150, 480, 70)
+        _thermo_icon(d, 1130, 470, 80)
     # yellow strip
     sub = topic.get("thumb_sub", "ASLI WAJAH + FIX")
     f_s = font(84)
@@ -740,7 +783,7 @@ def build(key, out_dir, real=False, cache_dir='bank_tech'):
                 raise RuntimeError(f"no footage for scene {i + 1}")
             sc = SR.scene_video(paths, dur, np.zeros((H, W, 3), np.uint8), np.zeros((H, W), np.float32), zoom_out=(i % 2 == 1))
             base = sc.plain.get_frame
-            if i == 0:
+            if i == topic.get("thumb_scene", 0):
                 thumb_frame = pick_thumb_frame(base, dur)
         clip = VideoClip(frame_fn(topic, i, n, dur, base), duration=dur).set_fps(FPS)
         bed = SM.ambient(dur, mood="calm")
