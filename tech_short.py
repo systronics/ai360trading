@@ -428,12 +428,17 @@ def frame_fn(topic, idx, n, dur, base=None):
     """Returns make_frame(t) for scene idx."""
     kind = topic["scenes"][idx]
     real = base is not None
+    last_good = []
     cap = topic["caps"][idx]
     accent = GOLD
 
     def mk(t):
         if real:
             fr = np.asarray(base(min(t, max(dur - 0.05, 0.0))), dtype=np.float32)
+            if float(fr.mean()) < 4.0 and last_good:   # footage ran out (black): hold the last good frame instead
+                fr = last_good[0]
+            else:
+                last_good[:] = [fr]
             shade = np.linspace(0.62, 0.34, H, dtype=np.float32)[:, None, None]
             im = Image.fromarray(np.clip(fr * shade, 0, 255).astype(np.uint8))
         else:
