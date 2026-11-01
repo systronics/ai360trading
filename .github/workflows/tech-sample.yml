@@ -1,0 +1,47 @@
+name: "Tech Short sample (manual, never uploads)"
+
+# 2026-11-01: builds ONE Hindi/Hinglish tech explainer Short with REAL Pexels footage + HUD overlays, as a downloadable artifact only.
+# Uploads NOTHING, posts NOTHING. The tech channel/page do not exist yet; wiring is a separate owner-approved step.
+
+on:
+  workflow_dispatch:
+    inputs:
+      topic:
+        description: "Topic key in tech_short.TOPICS"
+        required: false
+        default: "phone_heat"
+
+permissions:
+  contents: read
+
+jobs:
+  tech:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+      - name: System dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends ffmpeg fonts-dejavu fonts-liberation fonts-freefont-ttf
+      - name: Python dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Build the sample (real footage)
+        run: python tech_short.py --sample "${{ github.event.inputs.topic || 'phone_heat' }}" --real --out output/tech
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tech-preview
+          path: |
+            output/tech/*_tech.mp4
+            output/tech/*_thumb.jpg
+            output/tech/*_meta.json
+          retention-days: 7
+          if-no-files-found: ignore

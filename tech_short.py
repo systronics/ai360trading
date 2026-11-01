@@ -29,21 +29,24 @@ RED, ORANGE, BLUE, GREEN, CYAN = (255, 80, 70), (255, 150, 40), (90, 160, 255), 
 # ───────────────────────────── topics (hand-written, facts checked) ───────────────────────────────
 TOPICS = {
     "phone_heat": {
-        "title": "Phone Garam Kyun Hota Hai?",
-        "yt_title": "Phone Garam Kyun Hota Hai? Andar Ki Asli Wajah #shorts",
-        "thumb": "PHONE GARAM KYUN?",
+        "title": "Phone Hot Kyun Hota Hai?",
+        "yt_title": "Phone Hot Kyun Hota Hai? Asli Reason #shorts",
+        "thumb": "PHONE HOT KYUN?",
         "tag": "HOW IT WORKS",
-        "tags": ["phone garam kyun hota hai", "phone heating problem", "mobile heat hindi", "tech explained hindi", "how it works hindi", "shorts"],
+        "tags": ["phone hot kyun hota hai", "phone heating problem", "mobile heat hinglish", "tech explained hinglish", "how it works hinglish", "shorts"],
         "lines": [
-            "आपका फ़ोन गरम क्यों हो जाता है? अंदर देखते हैं।",
-            "फ़ोन की चिप में बिजली पतली तारों से गुज़रती है, और तारें उसे थोड़ा रोकती हैं। जैसे भीड़ भरी गली में धक्का-मुक्की होती है, वैसे ही बिजली रगड़ खाती है, और वही रगड़ गरमी बन जाती है।",
-            "जब आप गेम खेलते हैं, तो चिप बहुत तेज़ काम करती है। ज़्यादा काम, ज़्यादा बिजली, ज़्यादा रगड़, और ज़्यादा गरमी।",
-            "चार्जिंग में भी यही होता है। बैटरी में बिजली भरते वक़्त कुछ बिजली गरमी बन जाती है, और तेज़ चार्जर में ज़्यादा।",
-            "इसलिए धूप में चार्ज मत कीजिए, मोटा कवर हटाइए, और चार्जिंग में भारी गेम मत खेलिए। निचोड़ यह कि गरमी बिजली की रगड़ है। अगली बार: बैटरी जल्दी ख़त्म क्यों होती है?",
+            "आपका फ़ोन चार्ज करते टाइम इतना हॉट क्यों हो जाता है? चलो, अंदर देखते हैं।",
+            "फ़ोन की चिप के अंदर करंट बहुत पतले वायर से गुज़रता है, और वायर करंट को थोड़ा रोकते हैं। जैसे भीड़ वाली गली में धक्का-मुक्की होती है ना, वैसे ही करंट में फ़्रिक्शन होता है, और वही फ़्रिक्शन हीट बन जाता है।",
+            "अब गेम खेलते हो तो चिप फ़ुल स्पीड पर चलती है। ज़्यादा काम, ज़्यादा करंट, ज़्यादा फ़्रिक्शन, मतलब ज़्यादा हीट।",
+            "चार्जिंग में भी यही होता है। बैटरी में करंट भरते टाइम थोड़ा करंट हीट बनकर निकल जाता है, और फ़ास्ट चार्जर में यह और ज़्यादा होता है।",
+            "तो धूप में चार्ज मत करो, मोटा कवर निकाल दो, और चार्जिंग के टाइम हैवी गेम मत खेलो। सीधी बात, हीट मतलब करंट की धक्का-मुक्की। अगले वीडियो में बताऊँगा, बैटरी जल्दी क्यों ख़त्म होती है।",
         ],
-        "caps": ["PHONE GARAM KYUN?", "BIJLI KI RAGAD = GARMI", "ZYADA KAAM = ZYADA GARMI", "CHARGING MEIN BHI GARMI", "RAGAD HI GARMI HAI"],
+        "caps": ["PHONE HOT KYUN HOTA HAI?", "CURRENT + FRICTION = HEAT", "ZYADA KAAM = ZYADA HEAT", "CHARGING MEIN BHI HEAT", "SEEDHI BAAT: HEAT = FRICTION"],
         "scenes": ["thermo", "chip", "bars", "battery", "tips"],
-        "tips": ["DHOOP MEIN CHARGE NAHI", "MOTA COVER HATAO", "CHARGING + GAME NAHI"],
+        "queries": [["hand holding smartphone close up", "smartphone screen hand"], ["circuit board macro close up", "electronic circuit board"],
+                    ["hands playing mobile game", "gaming on smartphone close up"], ["charging smartphone cable close up", "phone charger plug socket"],
+                    ["smartphone on wooden table", "sunlight on desk window"]],
+        "tips": ["DHOOP MEIN CHARGE MAT KARO", "COVER NIKAAL DO", "CHARGING + GAME MAT KHELO"],
     },
 }
 
@@ -118,11 +121,20 @@ def waves(d, cx, base_y, width, t, heat, color=ORANGE, n=4):
 
 # ───────────────────────────── scene painters: (d, t, dur) ───────────────────────────────
 
-def sc_thermo(d, t, dur):
+def sc_thermo(d, t, dur, real=False):
     k = ease(t / max(dur * 0.85, 0.1))
     temp = lerp(31, 46, k)
     col = mix(BLUE, RED, k)
     cx, cy = 540, 880
+    if real:
+        d.rounded_rectangle((90, 560, 790, 960), radius=40, fill=(10, 14, 32, 205), outline=col + (255,), width=6)
+        text_c(d, (440, 740), f"{temp:.0f}°C", font(210), fill=WHITE, width=5)
+        text_c(d, (440, 900), "PHONE TEMPERATURE", font(40), fill=MUTED, width=2)
+        tx, ty0, ty1 = 900, 560, 960
+        d.rounded_rectangle((tx - 22, ty0, tx + 22, ty1), radius=22, fill=(255, 255, 255, 60), outline=WHITE + (220,), width=4)
+        fh = (ty1 - ty0 - 10) * k
+        d.rounded_rectangle((tx - 13, ty1 - 8 - fh, tx + 13, ty1 - 8), radius=13, fill=col + (255,))
+        return
     glow(d, cx, cy, 340, col, 0.6 + k)
     d.rounded_rectangle((cx - 200, cy - 340, cx + 200, cy + 340), radius=56, fill=(18, 22, 44, 255), outline=col + (255,), width=10)
     d.rounded_rectangle((cx - 170, cy - 300, cx + 170, cy + 300), radius=30, fill=mix((20, 40, 90), (120, 20, 20), k) + (255,))
@@ -138,10 +150,28 @@ def sc_thermo(d, t, dur):
     d.ellipse((tx - 42, ty1 - 20, tx + 42, ty1 + 64), fill=col + (255,))
 
 
-def sc_chip(d, t, dur):
+def sc_chip(d, t, dur, real=False):
     k = ease(t / max(dur * 0.9, 0.1))
     cx, cy, s = 540, 900, 190
     heat = 0.25 + 0.75 * k
+    if real:
+        d.rectangle((0, 0, W, H), fill=(255, 90, 20, int(70 * k)))
+        for ri in range(6):
+            y = 640 + ri * 80
+            d.line([(30, y), (W - 30, y)], fill=(255, 255, 255, 50), width=4)
+            for j in range(8):
+                p = ((t * 0.5 + j / 8 + ri * 0.11) % 1.0)
+                x = lerp(30, W - 30, p)
+                d.ellipse((x - 12, y - 12, x + 12, y + 12), fill=GOLD + (255,))
+        rnd = np.random.RandomState(int(t * 12) % 997)
+        for _ in range(int(6 + 40 * k)):
+            x, y = rnd.uniform(300, 780), rnd.uniform(600, 1100)
+            d.ellipse((x - 6, y - 6, x + 6, y + 6), fill=ORANGE + (235,))
+        d.rounded_rectangle((60, 520, 330, 590), radius=30, fill=(10, 14, 32, 215), outline=GOLD + (255,), width=3)
+        d.text((195, 555), "CURRENT", font=font(40), fill=GOLD + (255,), anchor="mm")
+        d.rounded_rectangle((200, 1160, 880, 1250), radius=40, fill=(10, 14, 32, 220), outline=ORANGE + (255,), width=4)
+        d.text((540, 1205), "FRICTION  =  HEAT", font=font(52), fill=ORANGE + (255,), anchor="mm")
+        return
     glow(d, cx, cy, 260, ORANGE, heat * 1.4)
     d.rounded_rectangle((cx - s, cy - s, cx + s, cy + s), radius=30, fill=(25, 30, 56, 255), outline=mix(CYAN, ORANGE, k) + (255,), width=8)
     d.rounded_rectangle((cx - 90, cy - 90, cx + 90, cy + 90), radius=18, fill=mix((30, 60, 90), (150, 60, 20), k) + (255,))
@@ -168,19 +198,23 @@ def sc_chip(d, t, dur):
         x, y = cx + math.cos(a) * rr, cy + math.sin(a) * rr
         d.ellipse((x - 5, y - 5, x + 5, y + 5), fill=ORANGE + (230,))
     waves(d, cx, cy - s - 60, 300, t, heat, n=5)
-    text_c(d, (170, cy - 170), "BIJLI", font(54), fill=GOLD, width=3)
-    text_c(d, (540, cy + s + 150), "RAGAD  =  GARMI", font(64), fill=ORANGE, width=3)
+    text_c(d, (170, cy - 170), "CURRENT", font(54), fill=GOLD, width=3)
+    text_c(d, (540, cy + s + 150), "FRICTION  =  HEAT", font(64), fill=ORANGE, width=3)
 
 
-def sc_bars(d, t, dur):
+def sc_bars(d, t, dur, real=False):
     k1 = ease(t / max(dur * 0.8, 0.1))
     k2 = ease((t - 0.35) / max(dur * 0.8, 0.1))
     x0, x1 = 120, 960
-    for y, label, k, col in ((620, "KAAM  (GAME)", k1, BLUE), (900, "GARMI", k2, RED)):
+    if real:
+        d.rounded_rectangle((60, 470, 1020, 1060), radius=44, fill=(10, 14, 32, 205))
+    for y, label, k, col in ((620, "WORK  (GAME)", k1, BLUE), (900, "HEAT", k2, RED)):
         text_c(d, (540, y - 80), label, font(60), fill=WHITE, width=3)
         d.rounded_rectangle((x0, y - 38, x1, y + 38), radius=38, fill=(255, 255, 255, 30), outline=(255, 255, 255, 90), width=3)
         d.rounded_rectangle((x0 + 5, y - 33, x0 + 5 + (x1 - x0 - 10) * k, y + 33), radius=33, fill=col + (255,))
         text_c(d, (x1 - 10, y - 80), f"{int(k * 100)}%", font(48), fill=MUTED, width=2)
+    if real:
+        return
     # flame
     fx, fy, fs = 540, 1215, 70 + 80 * k2
     flick = math.sin(t * 9) * 8
@@ -189,10 +223,19 @@ def sc_bars(d, t, dur):
     d.polygon([(fx, fy - fs * 0.6), (fx + fs * 0.3, fy + fs * 0.2), (fx, fy + fs * 0.55), (fx - fs * 0.3, fy + fs * 0.2)], fill=GOLD + (255,))
 
 
-def sc_battery(d, t, dur):
+def sc_battery(d, t, dur, real=False):
     k = ease(t / max(dur * 0.9, 0.1))
     cx, cy = 540, 900
     heat = 0.2 + 0.8 * k
+    if real:
+        cy = 700
+        d.rounded_rectangle((90, 470, 990, 1010), radius=44, fill=(10, 14, 32, 205))
+        d.rounded_rectangle((cx - 230, cy - 120, cx + 230, cy + 120), radius=34, fill=(18, 22, 44, 255), outline=WHITE + (255,), width=9)
+        d.rounded_rectangle((cx + 230, cy - 45, cx + 270, cy + 45), radius=10, fill=WHITE + (255,))
+        d.rounded_rectangle((cx - 218, cy - 108, cx - 218 + 440 * k, cy + 108), radius=24, fill=mix(GREEN, ORANGE, k) + (255,))
+        text_c(d, (cx, cy), f"{int(k * 100)}%", font(100), fill=WHITE, width=4)
+        text_c(d, (cx, cy + 210), "FAST CHARGER = ZYADA HEAT", font(46), fill=ORANGE, width=3)
+        return
     glow(d, cx, cy, 300, mix(GREEN, ORANGE, k), 0.8)
     d.rounded_rectangle((cx - 230, cy - 130, cx + 230, cy + 130), radius=34, fill=(18, 22, 44, 255), outline=WHITE + (255,), width=9)
     d.rounded_rectangle((cx + 230, cy - 45, cx + 270, cy + 45), radius=10, fill=WHITE + (255,))
@@ -205,7 +248,7 @@ def sc_battery(d, t, dur):
     d.polygon([(bx + 20 * s, by - 90 * s), (bx - 55 * s, by + 15 * s), (bx - 5 * s, by + 15 * s), (bx - 25 * s, by + 95 * s),
                (bx + 55 * s, by - 20 * s), (bx + 5 * s, by - 20 * s)], fill=GOLD + (255,))
     waves(d, cx, cy - 150, 380, t, heat, n=5)
-    text_c(d, (cx, cy + 270), "TEZ CHARGER = ZYADA GARMI", font(50), fill=ORANGE, width=3)
+    text_c(d, (cx, cy + 270), "FAST CHARGER = ZYADA HEAT", font(50), fill=ORANGE, width=3)
 
 
 def sc_tips(d, t, dur, tips):
@@ -215,20 +258,26 @@ def sc_tips(d, t, dur, tips):
         x = lerp(1300, 540, k)
         d.rounded_rectangle((x - 450, y - 90, x + 450, y + 90), radius=36, fill=(18, 24, 50, 235), outline=GREEN + (255,), width=6)
         d.line([(x - 400, y), (x - 360, y + 38), (x - 285, y - 38)], fill=GREEN + (255,), width=14, joint="curve")
-        d.text((x + 40, y), s, font=font(46), fill=WHITE + (255,), anchor="mm")
+        d.text((x + 55, y), s, font=font(40), fill=WHITE + (255,), anchor="mm")
 
 
 PAINTERS = {"thermo": sc_thermo, "chip": sc_chip, "bars": sc_bars, "battery": sc_battery}
 
 
-def frame_fn(topic, idx, n, dur):
+def frame_fn(topic, idx, n, dur, base=None):
     """Returns make_frame(t) for scene idx."""
     kind = topic["scenes"][idx]
+    real = base is not None
     cap = topic["caps"][idx]
     accent = GOLD
 
     def mk(t):
-        im = background()
+        if real:
+            fr = np.asarray(base(min(t, max(dur - 0.05, 0.0))), dtype=np.float32)
+            shade = np.linspace(0.62, 0.34, H, dtype=np.float32)[:, None, None]
+            im = Image.fromarray(np.clip(fr * shade, 0, 255).astype(np.uint8))
+        else:
+            im = background()
         d = ImageDraw.Draw(im, "RGBA")
         # top chips
         d.rounded_rectangle((44, 52, 44 + 330, 52 + 66), radius=33, fill=(10, 14, 32, 215), outline=accent + (255,), width=3)
@@ -237,13 +286,13 @@ def frame_fn(topic, idx, n, dur):
         if kind == "tips":
             sc_tips(d, t, dur, topic["tips"])
         else:
-            PAINTERS[kind](d, t, dur)
+            PAINTERS[kind](d, t, dur, real)
         # caption (safe zone above platform buttons), fade-in + tiny rise
         a = ease(t / 0.35)
         yy = H - 520 - (1 - a) * 24
         for dx, dy in ((4, 4), (-3, 3), (3, -3)):
-            d.text((W / 2 + dx, yy + dy), cap, font=font(70), fill=(0, 0, 0, int(255 * a)), anchor="mm")
-        d.text((W / 2, yy), cap, font=font(70), fill=WHITE + (int(255 * a),), anchor="mm")
+            d.text((W / 2 + dx, yy + dy), cap, font=font(62), fill=(0, 0, 0, int(255 * a)), anchor="mm")
+        d.text((W / 2, yy), cap, font=font(62), fill=WHITE + (int(255 * a),), anchor="mm")
         d.rectangle((W / 2 - 130, yy + 62, W / 2 + 130, yy + 70), fill=accent + (int(255 * a),))
         # progress segments
         seg = (W - 160) / n
@@ -269,7 +318,7 @@ def whoosh(dur_s=0.4, sr=44100):
     return (out * 0.35).astype(np.float32)
 
 
-def build(key, out_dir):
+def build(key, out_dir, real=False, cache_dir='bank_tech'):
     from moviepy.editor import VideoClip, AudioFileClip, CompositeAudioClip, concatenate_videoclips
     from moviepy.audio.AudioClip import AudioArrayClip
     from story_real import normalize_voice
@@ -278,7 +327,7 @@ def build(key, out_dir):
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     n = len(topic["lines"])
-    scenes = []
+    scenes, used = [], set()
     for i, line in enumerate(topic["lines"]):
         ap = out_dir / f"{key}_{i}.mp3"
         # fast, energetic delivery; slightly lower pitch on the hook for weight
@@ -286,7 +335,23 @@ def build(key, out_dir):
         E.make_voice(line, ap, rate, pitch)
         voice = AudioFileClip(str(normalize_voice(ap)))
         dur = voice.duration + 0.35
-        clip = VideoClip(frame_fn(topic, i, n, dur), duration=dur).set_fps(FPS)
+        base = None
+        if real:
+            import story_real as SR
+            pk = os.environ.get("PEXELS_API_KEY", "")
+            if not pk:
+                raise RuntimeError("PEXELS_API_KEY missing (real mode runs in CI)")
+            Path(cache_dir).mkdir(parents=True, exist_ok=True)
+            paths = []
+            for q in topic["queries"][i]:
+                paths = SR.get_footage(q, pk, cache_dir, used, dur)
+                if paths:
+                    break
+            if not paths:
+                raise RuntimeError(f"no footage for scene {i + 1}")
+            sc = SR.scene_video(paths, dur, np.zeros((H, W, 3), np.uint8), np.zeros((H, W), np.float32), zoom_out=(i % 2 == 1))
+            base = sc.plain.get_frame
+        clip = VideoClip(frame_fn(topic, i, n, dur, base), duration=dur).set_fps(FPS)
         bed = SM.ambient(dur, mood="calm")
         rms = float(np.sqrt(np.mean(np.square(bed)))) or 1e-6
         bed = np.clip(bed * (0.02 / rms), -1, 1)
@@ -313,7 +378,7 @@ def build(key, out_dir):
         thumb = None
     NL = chr(10)
     meta = {"title": topic["yt_title"], "tags": topic["tags"], "duration_s": round(final.duration, 1),
-            "description": (topic["title"] + NL + NL + "Fixed analogy, simple Hindi. This is an educational explainer. The voice is a synthetic (AI) voice; "
+            "description": (topic["title"] + NL + NL + "Simple Hinglish explainer. This is an educational explainer. The voice is a synthetic (AI) voice; "
                             "diagrams are simplified illustrations." + NL + NL + "#TechExplained #HowItWorks #Hindi")}
     (out_dir / f"{key}_meta.json").write_text(json.dumps(meta, indent=1, ensure_ascii=False), encoding="utf-8")
     print(f"[TECH:{key}] done: {mp4} ({meta['duration_s']}s)")
@@ -324,8 +389,9 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--sample", default=None)
     ap.add_argument("--out", default="output/tech")
+    ap.add_argument("--real", action="store_true")
     a = ap.parse_args()
     if a.sample:
-        build(a.sample, a.out)
+        build(a.sample, a.out, real=a.real)
     else:
         print("usage: python tech_short.py --sample phone_heat")
