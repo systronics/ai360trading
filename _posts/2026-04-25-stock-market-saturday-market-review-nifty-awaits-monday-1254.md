@@ -6,7 +6,7 @@ author: "Amit Kumar"
 pillar: "stock-market"
 content_mode: "weekend"
 permalink: /stock-market/saturday-market-review-nifty-awaits-monday-1254/
-excerpt: "Saturday Market Review: NIFTY Awaits Monday Open After Weekly 1.3% Slump Amid Global Gains — Stock Market for April 25, 2026. Insights on stock market basics for US, UK, India and Brazil investors."
+excerpt: "Reviewing NIFTY's 1.3% weekly slump on April 25, 2026, amidst global gains, and lessons from the biggest stock market crashes in history for investors."
 description: "Reviewing NIFTY's 1.3% weekly slump on April 25, 2026, amidst global gains, and lessons from the biggest stock market crashes in history for investors."
 keywords: "stock market basics, how to invest, index fund, S&P 500, NIFTY, how to invest in stocks USA, best index fund 2026, how to invest in share market India, Nifty 50 beginner guide"
 categories: [Stock-Market]

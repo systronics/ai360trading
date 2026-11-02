@@ -6,7 +6,7 @@ author: "Amit Kumar"
 pillar: "gold"
 content_mode: "market"
 permalink: /gold/decoding-golds-enduring-value-fear-levels-1134/
-excerpt: "Decoding Gold's Enduring Value As Fear Levels Hit 29 Globally — Gold and Commodities for August 11, 2026. Insights on gold price today for US, UK, India and Brazil investors."
+excerpt: "Gold prices surge 1.58% to 4,430.5 as fear levels hit 29 globally on August 11, 2026, amid rising USD and geopolitical tensions. | Gold and Commodities August 11,"
 description: "Gold prices surge 1.58% to 4,430.5 as fear levels hit 29 globally on August 11, 2026, amid rising USD and geopolitical tensions. | Gold and Commodities August 11,"
 keywords: "gold price today, gold rate, gold vs stocks, MCX gold, silver price, gold price today, gold forecast 2026, gold price GBP today, gold ETF UK, gold price today India, gold rate today, DAX Germany 2026, global markets"
 categories: [Gold-Commodities]
@@ -27,7 +27,7 @@ gold_level: "4,430.5 + 1.58%"
     {
       "@type": "Article",
       "headline": "Decoding Gold's Enduring Value As Fear Levels Hit 29 Globally",
-      "description": "Gold prices surge 1.58% to 4,430.5 as fear levels hit 29 globally on August 11, 2026, amid rising USD and geopolitical tensions. | Gold & Commodities August 11,",
+      "description": "Gold prices surge 1.58% to 4,430.5 as fear levels hit 29 globally on August 11, 2026, amid rising USD and geopolitical tensions. | Gold and Commodities August 11,",
       "datePublished": "2026-08-11",
       "dateModified": "2026-08-11",
       "author": {

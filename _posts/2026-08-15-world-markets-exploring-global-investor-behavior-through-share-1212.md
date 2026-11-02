@@ -6,7 +6,7 @@ author: "Amit Kumar"
 pillar: "world-markets"
 content_mode: "weekend"
 permalink: /world-markets/exploring-global-investor-behavior-through-share-1212/
-excerpt: "Exploring Global Investor Behavior Through Share Market Trends — World Markets for August 15, 2026. Insights on global markets for US, UK, India and Brazil investors."
+excerpt: "Understanding global markets and share market trends to make informed investment decisions, August 2026. | World Markets August 15, 2026."
 description: "Understanding global markets and share market trends to make informed investment decisions, August 2026. | World Markets August 15, 2026."
 keywords: "global markets, Dow Jones, Nasdaq, crude oil price, world market news, global markets today, Dow Jones outlook, global markets UK, FTSE vs global markets, global markets impact on nifty, dow jones nifty correlation, DAX Germany 2026, global markets"
 categories: [World-Markets]

@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "stock-market"
 content_mode: "market"
 permalink: /stock-market/234078-niftys-red-flag-share-market-1509/
-excerpt: "23,407.8 Is NIFTY's Red Flag — Share Market Today Trends — Stock Market for June 01, 2026. Insights on SandP 500 for US, UK, India and Brazil investors."
-description: "NIFTY 50 at 23,407.8, SandP 500 forecast today 2026, share market trends, and global market analysis on June 01, 2026. | Stock Market June 01, 2026."
+excerpt: "NIFTY 50 at 23,407.8, S&P 500 forecast today 2026, share market trends, and global market analysis on June 01, 2026. | Stock Market June 01, 2026."
+description: "NIFTY 50 at 23,407.8, S&P 500 forecast today 2026, share market trends, and global market analysis on June 01, 2026. | Stock Market June 01, 2026."
 keywords: "S&P 500, NIFTY, NASDAQ, SENSEX, IBOVESPA, stock market today, stock market today, S&P 500 forecast, FTSE 100 today, UK stock market, nifty analysis today, trading signals India, DAX Germany 2026, global markets"
 categories: [Stock-Market]
 tags: [stock-market]

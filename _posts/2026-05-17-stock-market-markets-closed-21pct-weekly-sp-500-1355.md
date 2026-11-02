@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "stock-market"
 content_mode: "weekend"
 permalink: /stock-market/markets-closed-21pct-weekly-sp-500-1355/
-excerpt: "Markets Closed: 2.1% Weekly SandP 500 Momentum Sets Stage for Monday Trading — Stock Market for May 17, 2026. Insights on stock market basics for US, UK, India and Brazil investors."
-description: "2.1% Weekly SandP 500 Momentum, May 17, 2026, Stock Market Education, NIFTY, and SandP 500 Await Monday Open | Stock Market May 17, 2026."
+excerpt: "2.1% Weekly S&P 500 Momentum, May 17, 2026, Stock Market Education, NIFTY, and S&P 500 Await Monday Open | Stock Market May 17, 2026."
+description: "2.1% Weekly S&P 500 Momentum, May 17, 2026, Stock Market Education, NIFTY, and S&P 500 Await Monday Open | Stock Market May 17, 2026."
 keywords: "stock market basics, how to invest, index fund, S&P 500, NIFTY, how to invest in stocks USA, best index fund 2026, how to invest in share market India, Nifty 50 beginner guide"
 categories: [Stock-Market]
 tags: [stock-market]

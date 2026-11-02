@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "personal-finance"
 content_mode: "market"
 permalink: /personal-finance/share-market-today-reveals-about-your-1443/
-excerpt: "What Share Market Today Reveals About Your Monthly SIP Investments — Personal Finance for June 29, 2026. Insights on term life insurance for US, UK, India and Brazil investors."
-description: "Share market today reveals 0.38% decline in NIFTY 50 on June 29, 2026, impacting monthly SIP investments, with SandP 500 at 7,354.02 and US 10Y Yield at 4.37."
+excerpt: "Share market today reveals 0.38% decline in NIFTY 50 on June 29, 2026, impacting monthly SIP investments, with S&P 500 at 7,354.02 and US 10Y Yield at 4.37."
+description: "Share market today reveals 0.38% decline in NIFTY 50 on June 29, 2026, impacting monthly SIP investments, with S&P 500 at 7,354.02 and US 10Y Yield at 4.37."
 keywords: "term life insurance, best investment 2026, retirement planning, tax saving, personal finance, best term life insurance USA 2026, 401k investing 2026, best ISA 2026 UK, UK pension 2026, best term insurance India 2026, SIP investment returns, DAX Germany 2026, global markets"
 categories: [Personal-Finance]
 tags: [personal-finance]

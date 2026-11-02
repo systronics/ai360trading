@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "gold"
 content_mode: "holiday"
 permalink: /gold/much-gold-should-be-your-portfolio-1637/
-excerpt: "How Much Gold Should Be in Your Portfolio? The Real Answer — Gold and Commodities for October 02, 2026. Insights on gold investment 2026 for US, UK, India and Brazil investors."
-description: "How Much Gold Should Be in Your Portfolio? The Real Answer | Gold and Commodities — October 02, 2026. Insights for US, UK, India and Brazil investors."
+excerpt: "Photo by Rafael Minguet Delgado on Pexels The market is sending signals — are you listening?"
+description: "Photo by Rafael Minguet Delgado on Pexels The market is sending signals — are you listening?"
 keywords: "gold investment 2026, gold vs stocks, digital gold, sovereign gold bond, gold investment 2026, gold vs S&P 500, gold investment UK 2026, gold ETF UK, gold investment India 2026, sovereign gold bond vs physical, DAX Germany 2026, global markets"
 categories: [Gold-Commodities]
 tags: [gold]
@@ -27,7 +27,7 @@ gold_level: "N/A"
     {
       "@type": "Article",
       "headline": "How Much Gold Should Be in Your Portfolio? The Real Answer",
-      "description": "How Much Gold Should Be in Your Portfolio? The Real Answer | Gold & Commodities \u2014 October 02, 2026. Insights for US, UK, India and Brazil investors.",
+      "description": "Photo by Rafael Minguet Delgado on Pexels The market is sending signals \u2014 are you listening?",
       "datePublished": "2026-10-02",
       "dateModified": "2026-10-02",
       "author": {

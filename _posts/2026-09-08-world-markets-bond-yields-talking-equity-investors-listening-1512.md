@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "world-markets"
 content_mode: "market"
 permalink: /world-markets/bond-yields-talking-equity-investors-listening-1512/
-excerpt: "Bond Yields Are Talking — Are Equity Investors Listening? — World Markets for September 08, 2026. Insights on global markets today for US, UK, India and Brazil investors."
-description: "Bond Yields Are Talking — Are Equity Investors Listening? | World Markets — September 08, 2026. Insights for US, UK, India and Brazil investors."
+excerpt: "Photo by Rômulo Queiroz on Pexels Smart money is moving. Here's what you need to know."
+description: "Photo by Rômulo Queiroz on Pexels Smart money is moving. Here's what you need to know."
 keywords: "global markets today, Dow Jones today, Nasdaq today, crude oil price, world markets, global markets today, Dow Jones today, global markets today UK, FTSE global markets, global markets today impact nifty, dow jones today, DAX Germany 2026, global markets"
 categories: [World-Markets]
 tags: [world-markets]
@@ -27,7 +27,7 @@ gold_level: "4,440.3 - 0.81%"
     {
       "@type": "Article",
       "headline": "Bond Yields Are Talking \u2014 Are Equity Investors Listening?",
-      "description": "Bond Yields Are Talking \u2014 Are Equity Investors Listening? | World Markets \u2014 September 08, 2026. Insights for US, UK, India and Brazil investors.",
+      "description": "Photo by R\u00f4mulo Queiroz on Pexels Smart money is moving. Here's what you need to know.",
       "datePublished": "2026-09-08",
       "dateModified": "2026-09-08",
       "author": {

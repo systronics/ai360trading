@@ -6,7 +6,7 @@ author: "Amit Kumar"
 pillar: "bitcoin"
 content_mode: "market"
 permalink: /bitcoin/can-bitcoin-break-64000-today-amid-1319/
-excerpt: "Can Bitcoin Break 64,000 Today Amid Global Fear Levels — Bitcoin and Crypto for August 05, 2026. Insights on Bitcoin for US, UK, India and Brazil investors."
+excerpt: "Bitcoin price struggles to break 64,000 on August 05, 2026, as global fear levels rise, with the Crypto Fear and Greed Index at 27, indicating fear."
 description: "Bitcoin price struggles to break 64,000 on August 05, 2026, as global fear levels rise, with the Crypto Fear and Greed Index at 27, indicating fear."
 keywords: "Bitcoin, Ethereum, crypto market today, BTC price, cryptocurrency, bitcoin price today, crypto market today, bitcoin price GBP, crypto UK today, bitcoin price INR today, crypto India today, DAX Germany 2026, global markets"
 categories: [Bitcoin-Crypto]

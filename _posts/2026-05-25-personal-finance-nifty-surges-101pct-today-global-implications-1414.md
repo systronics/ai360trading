@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "personal-finance"
 content_mode: "market"
 permalink: /personal-finance/nifty-surges-101pct-today-global-implications-1414/
-excerpt: "NIFTY Surges 1.01% Today: Global Implications for Rs.10,000 Monthly Investments — Personal Finance for May 25, 2026. Insights on term life insurance for US, UK, India and Brazil investors."
-description: "NIFTY surges 1.01% on May 25, 2026, with global implications for Rs.10,000 monthly investments, amidst a 0.54% rise in SandP 500 and 0.28% in NASDAQ."
+excerpt: "NIFTY surges 1.01% on May 25, 2026, with global implications for Rs.10,000 monthly investments, amidst a 0.54% rise in S&P 500 and 0.28% in NASDAQ."
+description: "NIFTY surges 1.01% on May 25, 2026, with global implications for Rs.10,000 monthly investments, amidst a 0.54% rise in S&P 500 and 0.28% in NASDAQ."
 keywords: "term life insurance, best investment 2026, retirement planning, tax saving, personal finance, best term life insurance USA 2026, 401k investing 2026, best ISA 2026 UK, UK pension 2026, best term insurance India 2026, SIP investment returns, DAX Germany 2026, global markets"
 categories: [Personal-Finance]
 tags: [personal-finance]

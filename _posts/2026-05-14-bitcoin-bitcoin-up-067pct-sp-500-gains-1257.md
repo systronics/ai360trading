@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "bitcoin"
 content_mode: "market"
 permalink: /bitcoin/bitcoin-up-067pct-sp-500-gains-1257/
-excerpt: "Bitcoin Up 0.67% as SandP 500 Gains 0.42% Amid Fear Levels at 34 Today Worldwide — Bitcoin and Crypto for May 14, 2026. Insights on Bitcoin for US, UK, India and Brazil investors."
-description: "Bitcoin rises 0.67% to $79,811 on May 14, 2026, as SandP 500 gains 0.42% amid fear levels at 34, indicating a cautious market sentiment."
+excerpt: "Bitcoin rises 0.67% to $79,811 on May 14, 2026, as S&P 500 gains 0.42% amid fear levels at 34, indicating a cautious market sentiment."
+description: "Bitcoin rises 0.67% to $79,811 on May 14, 2026, as S&P 500 gains 0.42% amid fear levels at 34, indicating a cautious market sentiment."
 keywords: "Bitcoin, Ethereum, crypto market today, BTC price, cryptocurrency, bitcoin price today, crypto market today, bitcoin price INR today, crypto India today"
 categories: [Bitcoin-Crypto]
 tags: [bitcoin]

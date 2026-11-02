@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "world-markets"
 content_mode: "holiday"
 permalink: /world-markets/dow-jones-matters-indian-traders-link-1637/
-excerpt: "Why the Dow Jones Matters to Indian Traders — The Link Explained — World Markets for October 02, 2026. Insights on global markets for US, UK, India and Brazil investors."
-description: "Why the Dow Jones Matters to Indian Traders — The Link Explained | World Markets — October 02, 2026. Insights for US, UK, India and Brazil investors."
+excerpt: "Photo by Rafael Minguet Delgado on Pexels The market is sending signals — are you listening?"
+description: "Photo by Rafael Minguet Delgado on Pexels The market is sending signals — are you listening?"
 keywords: "global markets, Dow Jones, Nasdaq, crude oil price, world market news, global markets today, Dow Jones outlook, global markets UK, FTSE vs global markets, global markets impact on nifty, dow jones nifty correlation, DAX Germany 2026, global markets"
 categories: [World-Markets]
 tags: [world-markets]
@@ -27,7 +27,7 @@ gold_level: "N/A"
     {
       "@type": "Article",
       "headline": "Why the Dow Jones Matters to Indian Traders \u2014 The Link Explained",
-      "description": "Why the Dow Jones Matters to Indian Traders \u2014 The Link Explained | World Markets \u2014 October 02, 2026. Insights for US, UK, India and Brazil investors.",
+      "description": "Photo by Rafael Minguet Delgado on Pexels The market is sending signals \u2014 are you listening?",
       "datePublished": "2026-10-02",
       "dateModified": "2026-10-02",
       "author": {

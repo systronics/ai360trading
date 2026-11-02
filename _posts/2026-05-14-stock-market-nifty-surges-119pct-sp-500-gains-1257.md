@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "stock-market"
 content_mode: "market"
 permalink: /stock-market/nifty-surges-119pct-sp-500-gains-1257/
-excerpt: "NIFTY Surges 1.19% as SandP 500 Gains 0.42% Amid Bitcoin's 0.67% Rise Today — Stock Market for May 14, 2026. Insights on SandP 500 for US, UK, India and Brazil investors."
-description: "NIFTY surges 1.19% and SandP 500 gains 0.42% on May 14, 2026, as Bitcoin rises 0.67% amid market volatility. | Stock Market May 14, 2026."
+excerpt: "NIFTY surges 1.19% and S&P 500 gains 0.42% on May 14, 2026, as Bitcoin rises 0.67% amid market volatility. | Stock Market May 14, 2026."
+description: "NIFTY surges 1.19% and S&P 500 gains 0.42% on May 14, 2026, as Bitcoin rises 0.67% amid market volatility. | Stock Market May 14, 2026."
 keywords: "S&P 500, NIFTY, NASDAQ, SENSEX, IBOVESPA, stock market today, stock market today, S&P 500 forecast, nifty analysis today, trading signals India"
 categories: [Stock-Market]
 tags: [stock-market]

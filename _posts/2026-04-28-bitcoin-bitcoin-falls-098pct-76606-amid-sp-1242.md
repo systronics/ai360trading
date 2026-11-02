@@ -1,13 +1,13 @@
 ---
 layout: post
-title: "Bitcoin Falls 0.98% to 76,606 Amid SandP 500's 0.92% Gain and Fear Levels"
+title: "Bitcoin Falls 0.98% to 76,606 Amid S&P 500's 0.92% Gain and Fear Levels"
 date: 2026-04-28
 author: "Amit Kumar"
 pillar: "bitcoin"
 content_mode: "market"
 permalink: /bitcoin/bitcoin-falls-098pct-76606-amid-sp-1242/
-excerpt: "Bitcoin Falls 0.98% to 76,606 Amid SandP 500's 0.92% Gain and Fear Levels — Bitcoin and Crypto for April 28, 2026. Insights on Bitcoin for US, UK, India and Brazil investors."
-description: "Bitcoin falls 0.98% to 76,606 on April 28, 2026, as SandP 500 gains 0.92% and fear levels persist, impacting crypto markets and investor sentiment."
+excerpt: "Bitcoin falls 0.98% to 76,606 on April 28, 2026, as S&P 500 gains 0.92% and fear levels persist, impacting crypto markets and investor sentiment."
+description: "Bitcoin falls 0.98% to 76,606 on April 28, 2026, as S&P 500 gains 0.92% and fear levels persist, impacting crypto markets and investor sentiment."
 keywords: "Bitcoin, Ethereum, crypto market today, BTC price, cryptocurrency, bitcoin price today, crypto market today, bitcoin price INR today, crypto India today"
 categories: [Bitcoin-Crypto]
 tags: [bitcoin]

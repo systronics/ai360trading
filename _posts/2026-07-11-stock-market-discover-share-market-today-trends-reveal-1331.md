@@ -6,7 +6,7 @@ author: "Amit Kumar"
 pillar: "stock-market"
 content_mode: "weekend"
 permalink: /stock-market/discover-share-market-today-trends-reveal-1331/
-excerpt: "Discover Share Market Today Trends That Reveal Investor Sentiment Shifts Globally — Stock Market for July 11, 2026. Insights on stock market basics for US, UK, India and Brazil investors."
+excerpt: "Learn how to invest in stock market for beginners 2026, understanding share market trends and investor sentiment shifts globally as of July 11, 2026."
 description: "Learn how to invest in stock market for beginners 2026, understanding share market trends and investor sentiment shifts globally as of July 11, 2026."
 keywords: "stock market basics, how to invest, index fund, S&P 500, NIFTY, how to invest in stocks USA, best index fund 2026, how to invest UK 2026, FTSE 100 beginner guide, how to invest in share market India, Nifty 50 beginner guide, DAX Germany 2026, global markets"
 categories: [Stock-Market]

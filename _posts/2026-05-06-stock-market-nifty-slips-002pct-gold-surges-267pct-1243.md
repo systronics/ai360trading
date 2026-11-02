@@ -6,7 +6,7 @@ author: "Amit Kumar"
 pillar: "stock-market"
 content_mode: "market"
 permalink: /stock-market/nifty-slips-002pct-gold-surges-267pct-1243/
-excerpt: "NIFTY Slips 0.02% as Gold Surges 2.67% Amid Fear Levels at 46 Today — Stock Market for May 06, 2026. Insights on SandP 500 for US, UK, India and Brazil investors."
+excerpt: "NIFTY slips 0.02% as Gold surges 2.67% amid fear levels at 46 on May 06, 2026, defying expectations of a bullish market. | Stock Market May 06, 2026."
 description: "NIFTY slips 0.02% as Gold surges 2.67% amid fear levels at 46 on May 06, 2026, defying expectations of a bullish market. | Stock Market May 06, 2026."
 keywords: "S&P 500, NIFTY, NASDAQ, SENSEX, IBOVESPA, stock market today, stock market today, S&P 500 forecast, nifty analysis today, trading signals India"
 categories: [Stock-Market]

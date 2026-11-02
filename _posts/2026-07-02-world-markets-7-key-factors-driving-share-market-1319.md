@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "world-markets"
 content_mode: "market"
 permalink: /world-markets/7-key-factors-driving-share-market-1319/
-excerpt: "7 Key Factors Driving Share Market Today Trends Globally — World Markets for July 02, 2026. Insights on global markets today for US, UK, India and Brazil investors."
-description: "Global share market trends driven by 7 key factors on July 02, 2026, with NIFTY 50 at 24,149.75, SandP 500 at 7,483.23, and Dow Jones at 52,305.24."
+excerpt: "Global share market trends driven by 7 key factors on July 02, 2026, with NIFTY 50 at 24,149.75, S&P 500 at 7,483.23, and Dow Jones at 52,305.24."
+description: "Global share market trends driven by 7 key factors on July 02, 2026, with NIFTY 50 at 24,149.75, S&P 500 at 7,483.23, and Dow Jones at 52,305.24."
 keywords: "global markets today, Dow Jones today, Nasdaq today, crude oil price, world markets, global markets today, Dow Jones today, global markets today UK, FTSE global markets, global markets today impact nifty, dow jones today, DAX Germany 2026, global markets"
 categories: [World-Markets]
 tags: [world-markets]

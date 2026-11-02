@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "world-markets"
 content_mode: "weekend"
 permalink: /world-markets/geopolitics-markets-separating-noise-signal-1738/
-excerpt: "Geopolitics and Markets — Separating Noise From Signal — World Markets for October 10, 2026. Insights on global markets for US, UK, India and Brazil investors."
-description: "Geopolitics and Markets — Separating Noise From Signal | World Markets — October 10, 2026. Insights for US, UK, India and Brazil investors."
+excerpt: "Photo by RDNE Stock project on Pexels The market is sending signals — are you listening?"
+description: "Photo by RDNE Stock project on Pexels The market is sending signals — are you listening?"
 keywords: "global markets, Dow Jones, Nasdaq, crude oil price, world market news, global markets today, Dow Jones outlook, global markets UK, FTSE vs global markets, global markets impact on nifty, dow jones nifty correlation, DAX Germany 2026, global markets"
 categories: [World-Markets]
 tags: [world-markets]
@@ -27,7 +27,7 @@ gold_level: "N/A"
     {
       "@type": "Article",
       "headline": "Geopolitics and Markets \u2014 Separating Noise From Signal",
-      "description": "Geopolitics and Markets \u2014 Separating Noise From Signal | World Markets \u2014 October 10, 2026. Insights for US, UK, India and Brazil investors.",
+      "description": "Photo by RDNE Stock project on Pexels The market is sending signals \u2014 are you listening?",
       "datePublished": "2026-10-10",
       "dateModified": "2026-10-10",
       "author": {

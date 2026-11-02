@@ -6,7 +6,7 @@ author: "Amit Kumar"
 pillar: "stock-market"
 content_mode: "market"
 permalink: /stock-market/fear-grips-share-market-india-gold-1314/
-excerpt: "Fear Grips Share Market India As Gold Surges 3% Today — Stock Market for July 03, 2026. Insights on SandP 500 for US, UK, India and Brazil investors."
+excerpt: "Fear grips share market India as gold surges 3% today, July 03, 2026, with NIFTY 50 at 24,324.9 and SENSEX at 78,033.14. | Stock Market July 03, 2026."
 description: "Fear grips share market India as gold surges 3% today, July 03, 2026, with NIFTY 50 at 24,324.9 and SENSEX at 78,033.14. | Stock Market July 03, 2026."
 keywords: "S&P 500, NIFTY, NASDAQ, SENSEX, IBOVESPA, stock market today, stock market today, S&P 500 forecast, FTSE 100 today, UK stock market, nifty analysis today, trading signals India, DAX Germany 2026, global markets"
 categories: [Stock-Market]

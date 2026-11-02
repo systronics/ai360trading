@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "personal-finance"
 content_mode: "market"
 permalink: /personal-finance/fear-grips-investors-nifty-falls-below-1509/
-excerpt: "Fear Grips Investors as NIFTY Falls Below 23,500 Today — Personal Finance for June 01, 2026. Insights on term life insurance for US, UK, India and Brazil investors."
-description: "NIFTY falls 0.59% to 23,407.8 on June 01, 2026, as fear grips investors, with the SandP 500 gaining 0.79% to 7,580.06, and the USD/INR exchange rate at 95.0."
+excerpt: "NIFTY falls 0.59% to 23,407.8 on June 01, 2026, as fear grips investors, with the S&P 500 gaining 0.79% to 7,580.06, and the USD/INR exchange rate at 95.0."
+description: "NIFTY falls 0.59% to 23,407.8 on June 01, 2026, as fear grips investors, with the S&P 500 gaining 0.79% to 7,580.06, and the USD/INR exchange rate at 95.0."
 keywords: "term life insurance, best investment 2026, retirement planning, tax saving, personal finance, best term life insurance USA 2026, 401k investing 2026, best ISA 2026 UK, UK pension 2026, best term insurance India 2026, SIP investment returns, DAX Germany 2026, global markets"
 categories: [Personal-Finance]
 tags: [personal-finance]

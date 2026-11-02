@@ -6,7 +6,7 @@ author: "Amit Kumar"
 pillar: "mutual-funds"
 content_mode: "market"
 permalink: /mutual-funds/rebalancing-your-sip-portfolio-amid-extreme-1442/
-excerpt: "Rebalancing Your SIP Portfolio Amid Extreme Fear Levels Now — Mutual Funds and SIP for June 03, 2026. Insights on best mutual funds 2026 for US, UK, India and Brazil investors."
+excerpt: "Rebalance your SIP portfolio as NIFTY 50 falls to 23,439.85 on June 03, 2026, amid extreme fear levels and rising India VIX to 16.62."
 description: "Rebalance your SIP portfolio as NIFTY 50 falls to 23,439.85 on June 03, 2026, amid extreme fear levels and rising India VIX to 16.62."
 keywords: "best mutual funds 2026, SIP returns, index fund, ELSS, NFO today, best index funds 2026, mutual fund performance 2026, best funds UK 2026, ISA fund performance, best mutual funds 2026 India, SIP returns today, DAX Germany 2026, global markets"
 categories: [Mutual-Funds]

@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "bitcoin"
 content_mode: "market"
 permalink: /bitcoin/bitcoin-gains-027pct-sp-500-falls-1330/
-excerpt: "Bitcoin Gains 0.27% as SandP 500 Falls 1.31% Amid Extreme Fear Levels Today — Bitcoin and Crypto for May 19, 2026. Insights on Bitcoin for US, UK, India and Brazil investors."
-description: "Bitcoin gains 0.27% as SandP 500 falls 1.31% on May 19, 2026, amid extreme fear levels, signaling a potential turning point in the crypto market."
+excerpt: "Bitcoin gains 0.27% as S&P 500 falls 1.31% on May 19, 2026, amid extreme fear levels, signaling a potential turning point in the crypto market."
+description: "Bitcoin gains 0.27% as S&P 500 falls 1.31% on May 19, 2026, amid extreme fear levels, signaling a potential turning point in the crypto market."
 keywords: "Bitcoin, Ethereum, crypto market today, BTC price, cryptocurrency, bitcoin price today, crypto market today, bitcoin price INR today, crypto India today"
 categories: [Bitcoin-Crypto]
 tags: [bitcoin]

@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "personal-finance"
 content_mode: "market"
 permalink: /personal-finance/best-term-life-insurance-us-uk-1538/
-excerpt: "Best Term Life Insurance — US, UK and India Complete Guide — Personal Finance for September 01, 2026. Insights on term life insurance for US, UK, India and Brazil investors."
-description: "Best Term Life Insurance — US, UK and India Complete Guide | Personal Finance — September 01, 2026. Insights for US, UK, India and Brazil investors."
+excerpt: "Photo by https://kaboompics.com/ on Pexels The market is sending signals — are you listening?"
+description: "Photo by https://kaboompics.com/ on Pexels The market is sending signals — are you listening?"
 keywords: "term life insurance, best investment 2026, retirement planning, tax saving, personal finance, best term life insurance USA 2026, 401k investing 2026, best ISA 2026 UK, UK pension 2026, best term insurance India 2026, SIP investment returns, DAX Germany 2026, global markets"
 categories: [Personal-Finance]
 tags: [personal-finance]
@@ -27,7 +27,7 @@ gold_level: "4,417.2 - 0.31%"
     {
       "@type": "Article",
       "headline": "Best Term Life Insurance \u2014 US, UK and India Complete Guide",
-      "description": "Best Term Life Insurance \u2014 US, UK and India Complete Guide | Personal Finance \u2014 September 01, 2026. Insights for US, UK, India and Brazil investors.",
+      "description": "Photo by https://kaboompics.com/ on Pexels The market is sending signals \u2014 are you listening?",
       "datePublished": "2026-09-01",
       "dateModified": "2026-09-01",
       "author": {

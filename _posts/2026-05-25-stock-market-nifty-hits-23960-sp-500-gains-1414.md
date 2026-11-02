@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "stock-market"
 content_mode: "market"
 permalink: /stock-market/nifty-hits-23960-sp-500-gains-1414/
-excerpt: "NIFTY Hits 23,960 as SandP 500 Gains 0.54% Amid Cautious Trading Sentiment — Stock Market for May 25, 2026. Insights on SandP 500 for US, UK, India and Brazil investors."
-description: "NIFTY 50 touches 23,960.0, up 1.01%, and SandP 500 gains 0.54% on May 25, 2026, as cautious trading sentiment prevails. | Stock Market May 25, 2026."
+excerpt: "NIFTY 50 touches 23,960.0, up 1.01%, and S&P 500 gains 0.54% on May 25, 2026, as cautious trading sentiment prevails. | Stock Market May 25, 2026."
+description: "NIFTY 50 touches 23,960.0, up 1.01%, and S&P 500 gains 0.54% on May 25, 2026, as cautious trading sentiment prevails. | Stock Market May 25, 2026."
 keywords: "S&P 500, NIFTY, NASDAQ, SENSEX, IBOVESPA, stock market today, stock market today, S&P 500 forecast, FTSE 100 today, UK stock market, nifty analysis today, trading signals India, DAX Germany 2026, global markets"
 categories: [Stock-Market]
 tags: [stock-market]

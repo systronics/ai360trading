@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "bitcoin"
 content_mode: "market"
 permalink: /bitcoin/bitcoin-drops-065pct-sp-500-falls-1400/
-excerpt: "Bitcoin Drops 0.65% as SandP 500 Falls 0.48% Amid Fear Levels at 28 Today — Bitcoin and Crypto for May 18, 2026. Insights on Bitcoin for US, UK, India and Brazil investors."
-description: "Bitcoin price drops 0.65% to $76,924.24 on May 18, 2026, as SandP 500 falls 0.48% and fear levels reach 28, sparking concerns about crypto market stability."
+excerpt: "Bitcoin price drops 0.65% to $76,924.24 on May 18, 2026, as S&P 500 falls 0.48% and fear levels reach 28, sparking concerns about crypto market stability."
+description: "Bitcoin price drops 0.65% to $76,924.24 on May 18, 2026, as S&P 500 falls 0.48% and fear levels reach 28, sparking concerns about crypto market stability."
 keywords: "Bitcoin, Ethereum, crypto market today, BTC price, cryptocurrency, bitcoin price today, crypto market today, bitcoin price INR today, crypto India today"
 categories: [Bitcoin-Crypto]
 tags: [bitcoin]

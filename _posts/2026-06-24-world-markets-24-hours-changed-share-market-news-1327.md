@@ -6,7 +6,7 @@ author: "Amit Kumar"
 pillar: "world-markets"
 content_mode: "market"
 permalink: /world-markets/24-hours-changed-share-market-news-1327/
-excerpt: "24 Hours That Changed Share Market News Today Forever — World Markets for June 24, 2026. Insights on global markets today for US, UK, India and Brazil investors."
+excerpt: "Global markets plummet as Dow, Nasdaq, and dollar index fluctuate, impacting Nifty and emerging markets on June 24, 2026. | World Markets June 24, 2026."
 description: "Global markets plummet as Dow, Nasdaq, and dollar index fluctuate, impacting Nifty and emerging markets on June 24, 2026. | World Markets June 24, 2026."
 keywords: "global markets today, Dow Jones today, Nasdaq today, crude oil price, world markets, global markets today, Dow Jones today, global markets today UK, FTSE global markets, global markets today impact nifty, dow jones today, DAX Germany 2026, global markets"
 categories: [World-Markets]

@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "ipo"
 content_mode: "market"
 permalink: /ipo/decoding-share-market-today-smarter-ipo-1612/
-excerpt: "Decoding Share Market Today For Smarter IPO Investments — IPO Watch for June 15, 2026. Insights on upcoming IPO 2026 for US, UK, India and Brazil investors."
-description: "Decode share market today for smarter IPO investments with a 14.35% drop in India VIX and a 2.26% surge in SandP 500 on June 15, 2026."
+excerpt: "Decode share market today for smarter IPO investments with a 14.35% drop in India VIX and a 2.26% surge in S&P 500 on June 15, 2026."
+description: "Decode share market today for smarter IPO investments with a 14.35% drop in India VIX and a 2.26% surge in S&P 500 on June 15, 2026."
 keywords: "upcoming IPO 2026, IPO this week, IPO GMP today, new IPO, IPO allotment, upcoming IPO 2026, biggest IPOs 2026, upcoming IPO UK 2026, London IPO 2026, upcoming IPO this week, IPO GMP today, DAX Germany 2026, global markets"
 categories: [IPO]
 tags: [ipo]

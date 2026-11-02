@@ -6,7 +6,7 @@ author: "Amit Kumar"
 pillar: "gold"
 content_mode: "weekend"
 permalink: /gold/revisiting-golds-role-your-portfolio-today-1452/
-excerpt: "Revisiting Gold's Role in Your Portfolio Today as Share Market News Unfolds — Gold and Commodities for June 20, 2026. Insights on gold investment 2026 for US, UK, India and Brazil investors."
+excerpt: "Revisiting gold's role in your portfolio today, June 20, 2026, with a focus on gold investment 2026 and gold vs stocks vs FD honest comparison."
 description: "Revisiting gold's role in your portfolio today, June 20, 2026, with a focus on gold investment 2026 and gold vs stocks vs FD honest comparison."
 keywords: "gold investment 2026, gold vs stocks, digital gold, sovereign gold bond, gold investment 2026, gold vs S&P 500, gold investment UK 2026, gold ETF UK, gold investment India 2026, sovereign gold bond vs physical, DAX Germany 2026, global markets"
 categories: [Gold-Commodities]

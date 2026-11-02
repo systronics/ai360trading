@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "bitcoin"
 content_mode: "market"
 permalink: /bitcoin/sp-500-surges-099pct-bitcoin-holds-1345/
-excerpt: "SandP 500 Surges 0.99% as Bitcoin Holds Steady at 75,807.89 Today — Bitcoin and Crypto for May 27, 2026. Insights on Bitcoin for US, UK, India and Brazil investors."
-description: "SandP 500 surges 0.99% as Bitcoin holds steady at 75,807.89 on May 27, 2026, with Fear and Greed Index at 25, indicating extreme fear."
+excerpt: "S&P 500 surges 0.99% as Bitcoin holds steady at 75,807.89 on May 27, 2026, with Fear and Greed Index at 25, indicating extreme fear."
+description: "S&P 500 surges 0.99% as Bitcoin holds steady at 75,807.89 on May 27, 2026, with Fear and Greed Index at 25, indicating extreme fear."
 keywords: "Bitcoin, Ethereum, crypto market today, BTC price, cryptocurrency, bitcoin price today, crypto market today, bitcoin price GBP, crypto UK today, bitcoin price INR today, crypto India today, DAX Germany 2026, global markets"
 categories: [Bitcoin-Crypto]
 tags: [bitcoin]

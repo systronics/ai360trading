@@ -6,7 +6,7 @@ author: "Amit Kumar"
 pillar: "personal-finance"
 content_mode: "market"
 permalink: /personal-finance/nifty-50-crash-sign-pull-money-1617/
-excerpt: "Is the Nifty 50 Crash a Sign to Pull Money Out? — Personal Finance for October 19, 2026. Insights on term life insurance for US, UK, India and Brazil investors."
+excerpt: "Nifty 50 slipped 1.11% on Oct 19 2026; see what it means for term insurance, tax hacks, retirement and credit scores across US, UK, India and Brazil."
 description: "Nifty 50 slipped 1.11% on Oct 19 2026; see what it means for term insurance, tax hacks, retirement and credit scores across US, UK, India and Brazil."
 keywords: "term life insurance, best investment 2026, retirement planning, tax saving, personal finance, best term life insurance USA 2026, 401k investing 2026, best ISA 2026 UK, UK pension 2026, best term insurance India 2026, SIP investment returns, DAX Germany 2026, global markets"
 categories: [Personal-Finance]
@@ -27,7 +27,7 @@ gold_level: "4,187.7 + 0.16%"
     {
       "@type": "Article",
       "headline": "Is the Nifty 50 Crash a Sign to Pull Money Out?",
-      "description": "Nifty 50 slipped 1.11% on Oct\u202f19\u202f2026; see what it means for term insurance, tax hacks, retirement and credit scores across US, UK, India & Brazil.",
+      "description": "Nifty 50 slipped 1.11% on Oct\u202f19\u202f2026; see what it means for term insurance, tax hacks, retirement and credit scores across US, UK, India and Brazil.",
       "datePublished": "2026-10-19",
       "dateModified": "2026-10-19",
       "author": {

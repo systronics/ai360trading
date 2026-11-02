@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "bitcoin"
 content_mode: "weekend"
 permalink: /bitcoin/bitcoin-sees-214pct-weekly-gain-amid-1335/
-excerpt: "Bitcoin Sees 2.14% Weekly Gain Amid Global Market Closures Today May 3 — Bitcoin and Crypto for May 03, 2026. Insights on Bitcoin explained for US, UK, India and Brazil investors."
-description: "Bitcoin Sees 2.14% Weekly Gain Amid Global Market Closures Today May 3 | Bitcoin and Crypto — May 03, 2026. Insights for US, UK, India and Brazil investors"
+excerpt: "As we witness Bitcoin's 2.14% weekly gain amidst global market closures on May 3, 2026."
+description: "As we witness Bitcoin's 2.14% weekly gain amidst global market closures on May 3, 2026."
 keywords: "Bitcoin explained, how to buy crypto safely, crypto beginner guide 2026, how to buy bitcoin USA 2026, crypto investing guide, how to buy bitcoin India 2026, crypto tax India"
 categories: [Bitcoin-Crypto]
 tags: [bitcoin]
@@ -27,7 +27,7 @@ gold_level: "N/A"
     {
       "@type": "Article",
       "headline": "Bitcoin Sees 2.14% Weekly Gain Amid Global Market Closures Today May 3",
-      "description": "Bitcoin Sees 2.14% Weekly Gain Amid Global Market Closures Today May 3 | Bitcoin and Crypto \u2014 May 03, 2026. Insights for US, UK, India and Brazil investors",
+      "description": "As we witness Bitcoin's 2.14% weekly gain amidst global market closures on May 3, 2026.",
       "datePublished": "2026-05-03",
       "dateModified": "2026-05-03",
       "author": {

@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "stock-market"
 content_mode: "market"
 permalink: /stock-market/nifty-holds-23800-sp-500-surges-1327/
-excerpt: "NIFTY Holds 23,800 as SandP 500 Surges 1.25% Amid Bitcoin's 0.25% Drop Today — Stock Market for May 22, 2026. Insights on SandP 500 for US, UK, India and Brazil investors."
-description: "NIFTY 50 at 23,811.7, SandP 500 surges 1.25% to 7,445.72 on May 22, 2026, as Bitcoin drops 0.25% to 77,348.01. | Stock Market May 22, 2026."
+excerpt: "NIFTY 50 at 23,811.7, S&P 500 surges 1.25% to 7,445.72 on May 22, 2026, as Bitcoin drops 0.25% to 77,348.01. | Stock Market May 22, 2026."
+description: "NIFTY 50 at 23,811.7, S&P 500 surges 1.25% to 7,445.72 on May 22, 2026, as Bitcoin drops 0.25% to 77,348.01. | Stock Market May 22, 2026."
 keywords: "S&P 500, NIFTY, NASDAQ, SENSEX, IBOVESPA, stock market today, stock market today, S&P 500 forecast, nifty analysis today, trading signals India"
 categories: [Stock-Market]
 tags: [stock-market]

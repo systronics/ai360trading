@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "personal-finance"
 content_mode: "weekend"
 permalink: /personal-finance/saturday-review-107pct-weekly-sp-500-1339/
-excerpt: "Saturday Review: 1.07% Weekly SandP 500 Gains Impact Global Term Plans Now — Personal Finance for May 16, 2026. Insights on personal finance tips 2026 for US, UK, India and Brazil investors."
-description: "Saturday Review: 1.07% Weekly SandP 500 Gains Impact Global Term Plans Now | Personal Finance — May 16, 2026. Insights for US, UK, India and Brazil investors"
+excerpt: "As we review the 1.07% weekly S&P 500 gains impact on global term plans, a question on many minds is how to handle stock market crash anxiety in India."
+description: "As we review the 1.07% weekly S&P 500 gains impact on global term plans, a question on many minds is how to handle stock market crash anxiety in India."
 keywords: "personal finance tips 2026, how to save money, emergency fund, term life insurance, best savings account USA 2026, 401k guide, how to save money India 2026, best term insurance India"
 categories: [Personal-Finance]
 tags: [personal-finance]
@@ -27,7 +27,7 @@ gold_level: "N/A"
     {
       "@type": "Article",
       "headline": "Saturday Review: 1.07% Weekly S&P 500 Gains Impact Global Term Plans Now",
-      "description": "Saturday Review: 1.07% Weekly S&P 500 Gains Impact Global Term Plans Now | Personal Finance \u2014 May 16, 2026. Insights for US, UK, India and Brazil investors",
+      "description": "As we review the 1.07% weekly S&P 500 gains impact on global term plans, a question on many minds is how to handle stock market crash anxiety in India.",
       "datePublished": "2026-05-16",
       "dateModified": "2026-05-16",
       "author": {

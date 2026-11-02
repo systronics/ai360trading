@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "personal-finance"
 content_mode: "weekend"
 permalink: /personal-finance/tax-saving-investments-india-us-uk-1751/
-excerpt: "Tax Saving Investments — India, US and UK 2026 — Personal Finance for October 11, 2026. Insights on personal finance tips 2026 for US, UK, India and Brazil investors."
-description: "Tax Saving Investments — India, US and UK 2026 | Personal Finance — October 11, 2026. Insights for US, UK, India and Brazil investors."
+excerpt: "Photo by https://kaboompics.com/ on Pexels Smart money is moving. Here's what you need to know."
+description: "Photo by https://kaboompics.com/ on Pexels Smart money is moving. Here's what you need to know."
 keywords: "personal finance tips 2026, how to save money, emergency fund, term life insurance, best savings account USA 2026, 401k guide, best ISA 2026, UK pension guide, how to save money India 2026, best term insurance India, DAX Germany 2026, global markets"
 categories: [Personal-Finance]
 tags: [personal-finance]
@@ -27,7 +27,7 @@ gold_level: "N/A"
     {
       "@type": "Article",
       "headline": "Tax Saving Investments \u2014 India, US and UK 2026",
-      "description": "Tax Saving Investments \u2014 India, US and UK 2026 | Personal Finance \u2014 October 11, 2026. Insights for US, UK, India and Brazil investors.",
+      "description": "Photo by https://kaboompics.com/ on Pexels Smart money is moving. Here's what you need to know.",
       "datePublished": "2026-10-11",
       "dateModified": "2026-10-11",
       "author": {

@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "stock-market"
 content_mode: "market"
 permalink: /stock-market/24000-nifty-ceiling-tests-investor-resolve-1443/
-excerpt: "24,000 NIFTY Ceiling Tests Investor Resolve Today — Stock Market for June 29, 2026. Insights on SandP 500 for US, UK, India and Brazil investors."
-description: "NIFTY 50 levels and SandP 500 forecast today, June 29, 2026, amidst extreme fear and uncertainty in global markets. | Stock Market June 29, 2026."
+excerpt: "NIFTY 50 levels and S&P 500 forecast today, June 29, 2026, amidst extreme fear and uncertainty in global markets. | Stock Market June 29, 2026."
+description: "NIFTY 50 levels and S&P 500 forecast today, June 29, 2026, amidst extreme fear and uncertainty in global markets. | Stock Market June 29, 2026."
 keywords: "S&P 500, NIFTY, NASDAQ, SENSEX, IBOVESPA, stock market today, stock market today, S&P 500 forecast, FTSE 100 today, UK stock market, nifty analysis today, trading signals India, DAX Germany 2026, global markets"
 categories: [Stock-Market]
 tags: [stock-market]

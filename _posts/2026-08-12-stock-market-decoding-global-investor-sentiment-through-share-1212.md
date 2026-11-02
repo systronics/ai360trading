@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "stock-market"
 content_mode: "market"
 permalink: /stock-market/decoding-global-investor-sentiment-through-share-1212/
-excerpt: "Decoding Global Investor Sentiment Through Share Market News Today Trends — Stock Market for August 12, 2026. Insights on SandP 500 for US, UK, India and Brazil investors."
-description: "NIFTY 50 at 24,271.85, SandP 500 at 7,728.2, and IBOVESPA at 167,874.64 on August 12, 2026, as global investor sentiment shifts amid fear levels at 27."
+excerpt: "NIFTY 50 at 24,271.85, S&P 500 at 7,728.2, and IBOVESPA at 167,874.64 on August 12, 2026, as global investor sentiment shifts amid fear levels at 27."
+description: "NIFTY 50 at 24,271.85, S&P 500 at 7,728.2, and IBOVESPA at 167,874.64 on August 12, 2026, as global investor sentiment shifts amid fear levels at 27."
 keywords: "S&P 500, NIFTY, NASDAQ, SENSEX, IBOVESPA, stock market today, stock market today, S&P 500 forecast, FTSE 100 today, UK stock market, nifty analysis today, trading signals India, DAX Germany 2026, global markets"
 categories: [Stock-Market]
 tags: [stock-market]

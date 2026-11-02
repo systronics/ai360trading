@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "stock-market"
 content_mode: "market"
 permalink: /stock-market/nifty-drops-003pct-sp-500-falls-1400/
-excerpt: "NIFTY Drops 0.03% as SandP 500 Falls 0.48% Amid Fear Levels at 28 Today — Stock Market for May 18, 2026. Insights on SandP 500 for US, UK, India and Brazil investors."
-description: "SandP 500 drops 0.48% and NIFTY 50 falls 0.03% on May 18, 2026, with fear levels at 28, indicating a cautious market. | Stock Market May 18, 2026."
+excerpt: "S&P 500 drops 0.48% and NIFTY 50 falls 0.03% on May 18, 2026, with fear levels at 28, indicating a cautious market. | Stock Market May 18, 2026."
+description: "S&P 500 drops 0.48% and NIFTY 50 falls 0.03% on May 18, 2026, with fear levels at 28, indicating a cautious market. | Stock Market May 18, 2026."
 keywords: "S&P 500, NIFTY, NASDAQ, SENSEX, IBOVESPA, stock market today, stock market today, S&P 500 forecast, nifty analysis today, trading signals India"
 categories: [Stock-Market]
 tags: [stock-market]

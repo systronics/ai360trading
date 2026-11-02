@@ -6,7 +6,7 @@ author: "Amit Kumar"
 pillar: "personal-finance"
 content_mode: "market"
 permalink: /personal-finance/nifty-falls-073pct-bitcoin-rises-214pct-1147/
-excerpt: "NIFTY Falls 0.73%, Bitcoin Rises 2.14%, Impact on Global Investor Portfolios Today — Personal Finance for April 22, 2026. Insights on term life insurance for US, UK, India and Brazil investors."
+excerpt: "NIFTY falls 0.73%, Bitcoin rises 2.14% on April 22, 2026, affecting global investor portfolios, term insurance, and retirement planning."
 description: "NIFTY falls 0.73%, Bitcoin rises 2.14% on April 22, 2026, affecting global investor portfolios, term insurance, and retirement planning."
 keywords: "term life insurance, best investment 2026, retirement planning, tax saving, personal finance, best term life insurance USA 2026, 401k investing 2026, best term insurance India 2026, SIP investment returns"
 categories: [Personal-Finance]

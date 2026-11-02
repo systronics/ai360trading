@@ -1,13 +1,13 @@
 ---
 layout: post
-title: "NIFTY Falls 0.73% as Bitcoin Surges 2.14% Amid SandP 500's 0.87% Drop Today"
+title: "NIFTY Falls 0.73% as Bitcoin Surges 2.14% Amid S&P 500's 0.87% Drop Today"
 date: 2026-04-22
 author: "Amit Kumar"
 pillar: "stock-market"
 content_mode: "market"
 permalink: /stock-market/nifty-falls-073pct-bitcoin-surges-214pct-1147/
-excerpt: "NIFTY Falls 0.73% as Bitcoin Surges 2.14% Amid SandP 500's 0.87% Drop Today — Stock Market for April 22, 2026. Insights on SandP 500 for US, UK, India and Brazil investors."
-description: "NIFTY Falls 0.73% as Bitcoin Surges 2.14% Amid SandP 500's 0.87% Drop Today | Stock Market — April 22, 2026. Insights for US, UK, India and Brazil investors."
+excerpt: "As the NIFTY falls 0.73% to 24,396.75 and Bitcoin surges 2.14% to $77,978.0, the S&P 500's 0.87% drop to 7,064.01 today, April 22, 2026."
+description: "As the NIFTY falls 0.73% to 24,396.75 and Bitcoin surges 2.14% to $77,978.0, the S&P 500's 0.87% drop to 7,064.01 today, April 22, 2026."
 keywords: "S&P 500, NIFTY, NASDAQ, SENSEX, IBOVESPA, stock market today, stock market today, S&P 500 forecast, nifty analysis today, trading signals India"
 categories: [Stock-Market]
 tags: [stock-market]
@@ -27,7 +27,7 @@ gold_level: "4,781.2 + 1.76%"
     {
       "@type": "Article",
       "headline": "NIFTY Falls 0.73% as Bitcoin Surges 2.14% Amid S&P 500's 0.87% Drop Today",
-      "description": "NIFTY Falls 0.73% as Bitcoin Surges 2.14% Amid S&P 500's 0.87% Drop Today | Stock Market \u2014 April 22, 2026. Insights for US, UK, India and Brazil investors.",
+      "description": "As the NIFTY falls 0.73% to 24,396.75 and Bitcoin surges 2.14% to $77,978.0, the S&P 500's 0.87% drop to 7,064.01 today, April 22, 2026.",
       "datePublished": "2026-04-22",
       "dateModified": "2026-04-22",
       "author": {

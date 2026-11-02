@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "bitcoin"
 content_mode: "market"
 permalink: /bitcoin/bitcoin-surges-058pct-amid-sp-500s-1329/
-excerpt: "Bitcoin Surges 0.58% Amid SandP 500's 0.74% Drop and Fear Levels at 27 Today — Bitcoin and Crypto for May 20, 2026. Insights on Bitcoin for US, UK, India and Brazil investors."
-description: "Bitcoin surges 0.58% on May 20, 2026, as SandP 500 drops 0.74% and fear levels hit 27, signaling a potential trend reversal in the crypto market."
+excerpt: "Bitcoin surges 0.58% on May 20, 2026, as S&P 500 drops 0.74% and fear levels hit 27, signaling a potential trend reversal in the crypto market."
+description: "Bitcoin surges 0.58% on May 20, 2026, as S&P 500 drops 0.74% and fear levels hit 27, signaling a potential trend reversal in the crypto market."
 keywords: "Bitcoin, Ethereum, crypto market today, BTC price, cryptocurrency, bitcoin price today, crypto market today, bitcoin price INR today, crypto India today"
 categories: [Bitcoin-Crypto]
 tags: [bitcoin]

@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "personal-finance"
 content_mode: "market"
 permalink: /personal-finance/nifty-gains-039pct-today-impact-rs10000-1330/
-excerpt: "NIFTY Gains 0.39% Today: Impact on Rs.10,000 Investments in SandP 500 and Bitcoin — Personal Finance for May 19, 2026. Insights on term life insurance for US, UK, India and Brazil investors."
-description: "NIFTY gains 0.39% on May 19, 2026, impacting Rs.10,000 investments in SandP 500 and Bitcoin, as global markets react to economic shifts."
+excerpt: "NIFTY gains 0.39% on May 19, 2026, impacting Rs.10,000 investments in S&P 500 and Bitcoin, as global markets react to economic shifts."
+description: "NIFTY gains 0.39% on May 19, 2026, impacting Rs.10,000 investments in S&P 500 and Bitcoin, as global markets react to economic shifts."
 keywords: "term life insurance, best investment 2026, retirement planning, tax saving, personal finance, best term life insurance USA 2026, 401k investing 2026, best term insurance India 2026, SIP investment returns"
 categories: [Personal-Finance]
 tags: [personal-finance]

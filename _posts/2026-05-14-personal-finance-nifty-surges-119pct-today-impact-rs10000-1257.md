@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "personal-finance"
 content_mode: "market"
 permalink: /personal-finance/nifty-surges-119pct-today-impact-rs10000-1257/
-excerpt: "NIFTY Surges 1.19% Today: Impact on Rs.10,000 Monthly Investments in SandP 500 — Personal Finance for May 14, 2026. Insights on term life insurance for US, UK, India and Brazil investors."
-description: "NIFTY Surges 1.19% Today: Impact on Rs.10,000 Monthly Investments in SandP 500 | Personal Finance — May 14, 2026. Insights for US, UK, India and Brazil inves"
+excerpt: "The single biggest force affecting personal finances or markets today is the surge in global stock markets."
+description: "The single biggest force affecting personal finances or markets today is the surge in global stock markets."
 keywords: "term life insurance, best investment 2026, retirement planning, tax saving, personal finance, best term life insurance USA 2026, 401k investing 2026, best term insurance India 2026, SIP investment returns"
 categories: [Personal-Finance]
 tags: [personal-finance]
@@ -27,7 +27,7 @@ gold_level: "4,704.9 + 0.15%"
     {
       "@type": "Article",
       "headline": "NIFTY Surges 1.19% Today: Impact on Rs.10,000 Monthly Investments in S&P 500",
-      "description": "NIFTY Surges 1.19% Today: Impact on Rs.10,000 Monthly Investments in S&P 500 | Personal Finance \u2014 May 14, 2026. Insights for US, UK, India and Brazil inves",
+      "description": "The single biggest force affecting personal finances or markets today is the surge in global stock markets.",
       "datePublished": "2026-05-14",
       "dateModified": "2026-05-14",
       "author": {

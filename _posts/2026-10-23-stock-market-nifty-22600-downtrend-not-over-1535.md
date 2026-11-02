@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "stock-market"
 content_mode: "market"
 permalink: /stock-market/nifty-22600-downtrend-not-over-1535/
-excerpt: "NIFTY at 22,600: Why the Downtrend Is Not Over — Stock Market for October 23, 2026. Insights on SandP 500 for US, UK, India and Brazil investors."
-description: "NIFTY at 22,600: Why the Downtrend Is Not Over | Stock Market — October 23, 2026. Insights for US, UK, India and Brazil investors."
+excerpt: "Why 90 percent of traders lose money real reasons 2026? The answer lies in the same force: an over‑reliance on momentum without accounting for."
+description: "Why 90 percent of traders lose money real reasons 2026? The answer lies in the same force: an over‑reliance on momentum without accounting for."
 keywords: "S&P 500, NIFTY, NASDAQ, SENSEX, IBOVESPA, stock market today, stock market today, S&P 500 forecast, FTSE 100 today, UK stock market, nifty analysis today, trading signals India, DAX Germany 2026, global markets"
 categories: [Stock-Market]
 tags: [stock-market]
@@ -27,7 +27,7 @@ gold_level: "4,036.1 - 0.6%"
     {
       "@type": "Article",
       "headline": "NIFTY at 22,600: Why the Downtrend Is Not Over",
-      "description": "NIFTY at 22,600: Why the Downtrend Is Not Over | Stock Market \u2014 October 23, 2026. Insights for US, UK, India and Brazil investors.",
+      "description": "Why 90 percent of traders lose money real reasons 2026? The answer lies in the same force: an over\u2011reliance on momentum without accounting for.",
       "datePublished": "2026-10-23",
       "dateModified": "2026-10-23",
       "author": {

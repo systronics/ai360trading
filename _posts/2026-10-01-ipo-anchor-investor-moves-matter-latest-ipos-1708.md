@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "ipo"
 content_mode: "market"
 permalink: /ipo/anchor-investor-moves-matter-latest-ipos-1708/
-excerpt: "Why Anchor Investor Moves Matter in the Latest IPOs — IPO Watch for October 01, 2026. Insights on upcoming IPO 2026 for US, UK, India and Brazil investors."
-description: "Why Anchor Investor Moves Matter in the Latest IPOs | IPO Watch — October 01, 2026. Insights for US, UK, India and Brazil investors."
+excerpt: "Photo by Raphael Loquellano on Pexels Smart money is moving. Here's what you need to know."
+description: "Photo by Raphael Loquellano on Pexels Smart money is moving. Here's what you need to know."
 keywords: "upcoming IPO 2026, IPO this week, IPO GMP today, new IPO, IPO allotment, upcoming IPO 2026, biggest IPOs 2026, upcoming IPO UK 2026, London IPO 2026, upcoming IPO this week, IPO GMP today, DAX Germany 2026, global markets"
 categories: [IPO]
 tags: [ipo]
@@ -27,7 +27,7 @@ gold_level: "4,202.8 + 0.38%"
     {
       "@type": "Article",
       "headline": "Why Anchor Investor Moves Matter in the Latest IPOs",
-      "description": "Why Anchor Investor Moves Matter in the Latest IPOs | IPO Watch \u2014 October 01, 2026. Insights for US, UK, India and Brazil investors.",
+      "description": "Photo by Raphael Loquellano on Pexels Smart money is moving. Here's what you need to know.",
       "datePublished": "2026-10-01",
       "dateModified": "2026-10-01",
       "author": {

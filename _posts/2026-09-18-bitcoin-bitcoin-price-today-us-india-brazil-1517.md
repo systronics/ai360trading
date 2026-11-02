@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "bitcoin"
 content_mode: "market"
 permalink: /bitcoin/bitcoin-price-today-us-india-brazil-1517/
-excerpt: "Bitcoin Price Today — US, India and Brazil Perspective — Bitcoin and Crypto for September 18, 2026. Insights on Bitcoin for US, UK, India and Brazil investors."
-description: "Bitcoin Price Today — US, India and Brazil Perspective | Bitcoin and Crypto — September 18, 2026. Insights for US, UK, India and Brazil investors."
+excerpt: "Photo by Rafael Minguet Delgado on Pexels Smart money is moving. Here's what you need to know."
+description: "Photo by Rafael Minguet Delgado on Pexels Smart money is moving. Here's what you need to know."
 keywords: "Bitcoin, Ethereum, crypto market today, BTC price, cryptocurrency, bitcoin price today, crypto market today, bitcoin price GBP, crypto UK today, bitcoin price INR today, crypto India today, DAX Germany 2026, global markets"
 categories: [Bitcoin-Crypto]
 tags: [bitcoin]
@@ -27,7 +27,7 @@ gold_level: "4,425.4 + 0.58%"
     {
       "@type": "Article",
       "headline": "Bitcoin Price Today \u2014 US, India and Brazil Perspective",
-      "description": "Bitcoin Price Today \u2014 US, India and Brazil Perspective | Bitcoin and Crypto \u2014 September 18, 2026. Insights for US, UK, India and Brazil investors.",
+      "description": "Photo by Rafael Minguet Delgado on Pexels Smart money is moving. Here's what you need to know.",
       "datePublished": "2026-09-18",
       "dateModified": "2026-09-18",
       "author": {

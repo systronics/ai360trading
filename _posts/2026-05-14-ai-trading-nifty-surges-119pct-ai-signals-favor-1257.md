@@ -6,7 +6,7 @@ author: "Amit Kumar"
 pillar: "ai-trading"
 content_mode: "market"
 permalink: /ai-trading/nifty-surges-119pct-ai-signals-favor-1257/
-excerpt: "NIFTY Surges 1.19% as AI Signals Favor 79,811 Bitcoin Level Today — AI and Trading Technology for May 14, 2026. Insights on AI trading 2026 for US, UK, India and Brazil investors."
+excerpt: "NIFTY surges 1.19% as AI signals favor 79,811 Bitcoin level today, May 14, 2026, amid global market volatility. | AI and Trading Technology May 14, 2026."
 description: "NIFTY surges 1.19% as AI signals favor 79,811 Bitcoin level today, May 14, 2026, amid global market volatility. | AI and Trading Technology May 14, 2026."
 keywords: "AI trading 2026, algorithmic trading, fintech, AI stock market, trading technology, AI stock trading 2026, best AI trading algorithm, algo trading India NSE, AI trading bot India"
 categories: [AI-Trading]

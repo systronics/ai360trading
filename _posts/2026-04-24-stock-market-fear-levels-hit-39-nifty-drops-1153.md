@@ -1,13 +1,13 @@
 ---
 layout: post
-title: "Fear Levels Hit 39 as NIFTY Drops 1.13% Amid SandP 500's 0.63% Gain Today"
+title: "Fear Levels Hit 39 as NIFTY Drops 1.13% Amid S&P 500's 0.63% Gain Today"
 date: 2026-04-24
 author: "Amit Kumar"
 pillar: "stock-market"
 content_mode: "market"
 permalink: /stock-market/fear-levels-hit-39-nifty-drops-1153/
-excerpt: "Fear Levels Hit 39 as NIFTY Drops 1.13% Amid SandP 500's 0.63% Gain Today — Stock Market for April 24, 2026. Insights on SandP 500 for US, UK, India and Brazil investors."
-description: "Fear levels at 39 as NIFTY drops 1.13% on April 24, 2026, despite SandP 500's 0.63% gain, indicating a potential shift in market sentiment."
+excerpt: "Fear levels at 39 as NIFTY drops 1.13% on April 24, 2026, despite S&P 500's 0.63% gain, indicating a potential shift in market sentiment."
+description: "Fear levels at 39 as NIFTY drops 1.13% on April 24, 2026, despite S&P 500's 0.63% gain, indicating a potential shift in market sentiment."
 keywords: "S&P 500, NIFTY, NASDAQ, SENSEX, IBOVESPA, stock market today, stock market today, S&P 500 forecast, nifty analysis today, trading signals India"
 categories: [Stock-Market]
 tags: [stock-market]

@@ -6,7 +6,7 @@ author: "Amit Kumar"
 pillar: "bitcoin"
 content_mode: "market"
 permalink: /bitcoin/23-signals-bitcoin-buyers-waiting-today-1342/
-excerpt: "23 Signals Bitcoin Buyers Are Waiting For Today — Bitcoin and Crypto for May 29, 2026. Insights on Bitcoin for US, UK, India and Brazil investors."
+excerpt: "Bitcoin buyers wait for 23 signals today, May 29, 2026, as Crypto Fear and Greed Index hits 23, indicating extreme fear, with Bitcoin price at 73,597.96."
 description: "Bitcoin buyers wait for 23 signals today, May 29, 2026, as Crypto Fear and Greed Index hits 23, indicating extreme fear, with Bitcoin price at 73,597.96."
 keywords: "Bitcoin, Ethereum, crypto market today, BTC price, cryptocurrency, bitcoin price today, crypto market today, bitcoin price GBP, crypto UK today, bitcoin price INR today, crypto India today, DAX Germany 2026, global markets"
 categories: [Bitcoin-Crypto]

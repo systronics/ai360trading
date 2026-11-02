@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "mutual-funds"
 content_mode: "market"
 permalink: /mutual-funds/sip-lump-sum-market-numbers-say-1513/
-excerpt: "SIP vs Lump Sum in This Market — What the Numbers Say — Mutual Funds and SIP for September 11, 2026. Insights on best mutual funds 2026 for US, UK, India and Brazil investors."
-description: "SIP vs Lump Sum in This Market — What the Numbers Say | Mutual Funds and SIP — September 11, 2026. Insights for US, UK, India and Brazil investors."
+excerpt: "Photo by Rafael Minguet Delgado on Pexels The market is sending signals — are you listening?"
+description: "Photo by Rafael Minguet Delgado on Pexels The market is sending signals — are you listening?"
 keywords: "best mutual funds 2026, SIP returns, index fund, ELSS, NFO today, best index funds 2026, mutual fund performance 2026, best funds UK 2026, ISA fund performance, best mutual funds 2026 India, SIP returns today, DAX Germany 2026, global markets"
 categories: [Mutual-Funds]
 tags: [mutual-funds]
@@ -27,7 +27,7 @@ gold_level: "4,385.6 + 0.48%"
     {
       "@type": "Article",
       "headline": "SIP vs Lump Sum in This Market \u2014 What the Numbers Say",
-      "description": "SIP vs Lump Sum in This Market \u2014 What the Numbers Say | Mutual Funds & SIP \u2014 September 11, 2026. Insights for US, UK, India and Brazil investors.",
+      "description": "Photo by Rafael Minguet Delgado on Pexels The market is sending signals \u2014 are you listening?",
       "datePublished": "2026-09-11",
       "dateModified": "2026-09-11",
       "author": {

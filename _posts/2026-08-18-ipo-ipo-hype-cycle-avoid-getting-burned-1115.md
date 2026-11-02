@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "ipo"
 content_mode: "market"
 permalink: /ipo/ipo-hype-cycle-avoid-getting-burned-1115/
-excerpt: "The IPO Hype Cycle — How to Avoid Getting Burned — IPO Watch for August 18, 2026. Insights on upcoming IPO 2026 for US, UK, India and Brazil investors."
-description: "The IPO Hype Cycle — How to Avoid Getting Burned | IPO Watch — August 18, 2026. Insights for US, UK, India and Brazil investors."
+excerpt: "Photo by AlphaTradeZone on Pexels Smart money is moving. Here's what you need to know."
+description: "Photo by AlphaTradeZone on Pexels Smart money is moving. Here's what you need to know."
 keywords: "upcoming IPO 2026, IPO this week, IPO GMP today, new IPO, IPO allotment, upcoming IPO 2026, biggest IPOs 2026, upcoming IPO UK 2026, London IPO 2026, upcoming IPO this week, IPO GMP today, DAX Germany 2026, global markets"
 categories: [IPO]
 tags: [ipo]
@@ -27,7 +27,7 @@ gold_level: "4,444.7 + 0.61%"
     {
       "@type": "Article",
       "headline": "The IPO Hype Cycle \u2014 How to Avoid Getting Burned",
-      "description": "The IPO Hype Cycle \u2014 How to Avoid Getting Burned | IPO Watch \u2014 August 18, 2026. Insights for US, UK, India and Brazil investors.",
+      "description": "Photo by AlphaTradeZone on Pexels Smart money is moving. Here's what you need to know.",
       "datePublished": "2026-08-18",
       "dateModified": "2026-08-18",
       "author": {

@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "world-markets"
 content_mode: "market"
 permalink: /world-markets/global-risk-signal-flashing-right-now-1712/
-excerpt: "The Global Risk Signal Flashing Right Now — World Markets for September 28, 2026. Insights on global markets today for US, UK, India and Brazil investors."
-description: "The Global Risk Signal Flashing Right Now | World Markets — September 28, 2026. Insights for US, UK, India and Brazil investors."
+excerpt: "Photo by Jakub Zerdzicki on Pexels The market is sending signals — are you listening?"
+description: "Photo by Jakub Zerdzicki on Pexels The market is sending signals — are you listening?"
 keywords: "global markets today, Dow Jones today, Nasdaq today, crude oil price, world markets, global markets today, Dow Jones today, global markets today UK, FTSE global markets, global markets today impact nifty, dow jones today, DAX Germany 2026, global markets"
 categories: [World-Markets]
 tags: [world-markets]
@@ -27,7 +27,7 @@ gold_level: "4,185.2 - 3.15%"
     {
       "@type": "Article",
       "headline": "The Global Risk Signal Flashing Right Now",
-      "description": "The Global Risk Signal Flashing Right Now | World Markets \u2014 September 28, 2026. Insights for US, UK, India and Brazil investors.",
+      "description": "Photo by Jakub Zerdzicki on Pexels The market is sending signals \u2014 are you listening?",
       "datePublished": "2026-09-28",
       "dateModified": "2026-09-28",
       "author": {

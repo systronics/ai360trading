@@ -1,13 +1,13 @@
 ---
 layout: post
-title: "NIFTY Down 0.96% as SandP 500 Gains 0.46% Amid Bitcoin's 1.72% Drop Today"
+title: "NIFTY Down 0.96% as S&P 500 Gains 0.46% Amid Bitcoin's 1.72% Drop Today"
 date: 2026-05-11
 author: "Amit Kumar"
 pillar: "stock-market"
 content_mode: "market"
 permalink: /stock-market/nifty-down-096pct-sp-500-gains-1329/
-excerpt: "NIFTY Down 0.96% as SandP 500 Gains 0.46% Amid Bitcoin's 1.72% Drop Today — Stock Market for May 11, 2026. Insights on SandP 500 for US, UK, India and Brazil investors."
-description: "NIFTY Down 0.96% as SandP 500 Gains 0.46% Amid Bitcoin's 1.72% Drop Today | Stock Market — May 11, 2026. Insights for US, UK, India and Brazil investors."
+excerpt: "As I write this on May 11, 2026, the NIFTY 50 is down 0.96% at 23,943.9, while the S&P 500 is up 0.46% at 7,398.93, and Bitcoin has dropped 1.72% to 80."
+description: "As I write this on May 11, 2026, the NIFTY 50 is down 0.96% at 23,943.9, while the S&P 500 is up 0.46% at 7,398.93, and Bitcoin has dropped 1.72% to 80."
 keywords: "S&P 500, NIFTY, NASDAQ, SENSEX, IBOVESPA, stock market today, stock market today, S&P 500 forecast, nifty analysis today, trading signals India"
 categories: [Stock-Market]
 tags: [stock-market]
@@ -27,7 +27,7 @@ gold_level: "4,677.1 - 1.13%"
     {
       "@type": "Article",
       "headline": "NIFTY Down 0.96% as S&P 500 Gains 0.46% Amid Bitcoin's 1.72% Drop Today",
-      "description": "NIFTY Down 0.96% as S&P 500 Gains 0.46% Amid Bitcoin's 1.72% Drop Today | Stock Market \u2014 May 11, 2026. Insights for US, UK, India and Brazil investors.",
+      "description": "As I write this on May 11, 2026, the NIFTY 50 is down 0.96% at 23,943.9, while the S&P 500 is up 0.46% at 7,398.93, and Bitcoin has dropped 1.72% to 80.",
       "datePublished": "2026-05-11",
       "dateModified": "2026-05-11",
       "author": {
@@ -100,6 +100,6 @@ Here are some quick answers to frequently asked questions:
 * **How to trade Bitcoin using technical analysis India?** To trade Bitcoin using technical analysis in India, you can start by opening a free account at [Zerodha](https://zerodha.com/open-account/), which offers a range of trading tools and resources. From there, you can use technical indicators such as the RSI and moving averages to identify potential trading opportunities.
 * **What is the NIFTY 50 prediction today?** Based on the current market trends and technical analysis, my prediction for the NIFTY 50 today is that it will face resistance at the 24,000 level and potentially drop to the 23,500 level. However, this is just a prediction, and traders and investors should do their own research and analysis before making any decisions.
 
-For more information on global markets, you can check out our previous articles, such as [Global Markets Pause: 2.1% Weekly SandP 500 Momentum Ahead of Monday Trading](/stock-market/global-markets-pause-21pct-weekly-sp-1342/) and [NIFTY Awaits Monday Open Amid 2.1% Weekly SandP 500 Momentum Boost Overseas](/stock-market/nifty-awaits-monday-open-amid-21pct-1331/).
+For more information on global markets, you can check out our previous articles, such as [Global Markets Pause: 2.1% Weekly S&P 500 Momentum Ahead of Monday Trading](/stock-market/global-markets-pause-21pct-weekly-sp-1342/) and [NIFTY Awaits Monday Open Amid 2.1% Weekly S&P 500 Momentum Boost Overseas](/stock-market/nifty-awaits-monday-open-amid-21pct-1331/).
 
 May 11, 2026 | Educational content only. Not SEBI registered investment advice.

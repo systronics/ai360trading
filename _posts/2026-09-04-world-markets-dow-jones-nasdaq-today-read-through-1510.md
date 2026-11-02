@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "world-markets"
 content_mode: "market"
 permalink: /world-markets/dow-jones-nasdaq-today-read-through-1510/
-excerpt: "Dow Jones and Nasdaq Today — The Read-Through for NIFTY — World Markets for September 04, 2026. Insights on global markets today for US, UK, India and Brazil investors."
-description: "Dow Jones and Nasdaq Today — The Read-Through for NIFTY | World Markets — September 04, 2026. Insights for US, UK, India and Brazil investors."
+excerpt: "Photo by Alesia Kozik on Pexels Smart money is moving. Here's what you need to know."
+description: "Photo by Alesia Kozik on Pexels Smart money is moving. Here's what you need to know."
 keywords: "global markets today, Dow Jones today, Nasdaq today, crude oil price, world markets, global markets today, Dow Jones today, global markets today UK, FTSE global markets, global markets today impact nifty, dow jones today, DAX Germany 2026, global markets"
 categories: [World-Markets]
 tags: [world-markets]
@@ -27,7 +27,7 @@ gold_level: "4,513.4 + 0.48%"
     {
       "@type": "Article",
       "headline": "Dow Jones and Nasdaq Today \u2014 The Read-Through for NIFTY",
-      "description": "Dow Jones and Nasdaq Today \u2014 The Read-Through for NIFTY | World Markets \u2014 September 04, 2026. Insights for US, UK, India and Brazil investors.",
+      "description": "Photo by Alesia Kozik on Pexels Smart money is moving. Here's what you need to know.",
       "datePublished": "2026-09-04",
       "dateModified": "2026-09-04",
       "author": {

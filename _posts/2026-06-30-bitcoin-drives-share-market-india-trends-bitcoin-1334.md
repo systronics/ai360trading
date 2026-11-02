@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "bitcoin"
 content_mode: "market"
 permalink: /bitcoin/drives-share-market-india-trends-bitcoin-1334/
-excerpt: "What Drives Share Market India Trends As Bitcoin Falls 1.17% Today — Bitcoin and Crypto for June 30, 2026. Insights on Bitcoin for US, UK, India and Brazil investors."
-description: "What Drives Share Market India Trends As Bitcoin Falls 1.17% Today | Bitcoin and Crypto — June 30, 2026. Insights for US, UK, India and Brazil investors."
+excerpt: "Looking at the technical levels, Bitcoin is currently trading below its 50-day moving average of $61,231, which is a bearish sign."
+description: "Looking at the technical levels, Bitcoin is currently trading below its 50-day moving average of $61,231, which is a bearish sign."
 keywords: "Bitcoin, Ethereum, crypto market today, BTC price, cryptocurrency, bitcoin price today, crypto market today, bitcoin price GBP, crypto UK today, bitcoin price INR today, crypto India today, DAX Germany 2026, global markets"
 categories: [Bitcoin-Crypto]
 tags: [bitcoin]
@@ -27,7 +27,7 @@ gold_level: "4,043.9 + 0.54%"
     {
       "@type": "Article",
       "headline": "What Drives Share Market India Trends As Bitcoin Falls 1.17% Today",
-      "description": "What Drives Share Market India Trends As Bitcoin Falls 1.17% Today | Bitcoin and Crypto \u2014 June 30, 2026. Insights for US, UK, India and Brazil investors.",
+      "description": "Looking at the technical levels, Bitcoin is currently trading below its 50-day moving average of $61,231, which is a bearish sign.",
       "datePublished": "2026-06-30",
       "dateModified": "2026-06-30",
       "author": {

@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "ai-trading"
 content_mode: "market"
 permalink: /ai-trading/fear-hits-23-can-ai-signals-1342/
-excerpt: "Fear Hits 23: Can AI Signals Rescue Your Portfolio Today — AI and Trading Technology for May 29, 2026. Insights on AI trading 2026 for US, UK, India and Brazil investors."
-description: "Fear hits 23 on May 29, 2026, as AI signals rescue portfolios with 0.59% SandP 500 gain, 0.98% NASDAQ surge, and 0.08% Bitcoin rise."
+excerpt: "Fear hits 23 on May 29, 2026, as AI signals rescue portfolios with 0.59% S&P 500 gain, 0.98% NASDAQ surge, and 0.08% Bitcoin rise."
+description: "Fear hits 23 on May 29, 2026, as AI signals rescue portfolios with 0.59% S&P 500 gain, 0.98% NASDAQ surge, and 0.08% Bitcoin rise."
 keywords: "AI trading 2026, algorithmic trading, fintech, AI stock market, trading technology, AI stock trading 2026, best AI trading algorithm, AI trading UK 2026, algorithmic trading London, algo trading India NSE, AI trading bot India, DAX Germany 2026, global markets"
 categories: [AI-Trading]
 tags: [ai-trading]

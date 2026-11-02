@@ -6,7 +6,7 @@ author: "Amit Kumar"
 pillar: "world-markets"
 content_mode: "market"
 permalink: /world-markets/global-investors-watching-share-market-news-1407/
-excerpt: "Why Global Investors Are Watching Share Market News Today Closely Now — World Markets for June 04, 2026. Insights on global markets today for US, UK, India and Brazil investors."
+excerpt: "Global markets explained: Dow Nasdaq dollar impact on Nifty, June 04, 2026, as US 10Y Yield surges to 4.49% and DXY touches 99.43."
 description: "Global markets explained: Dow Nasdaq dollar impact on Nifty, June 04, 2026, as US 10Y Yield surges to 4.49% and DXY touches 99.43."
 keywords: "global markets today, Dow Jones today, Nasdaq today, crude oil price, world markets, global markets today, Dow Jones today, global markets today UK, FTSE global markets, global markets today impact nifty, dow jones today, DAX Germany 2026, global markets"
 categories: [World-Markets]

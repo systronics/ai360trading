@@ -6,7 +6,7 @@ author: "Amit Kumar"
 pillar: "mutual-funds"
 content_mode: "market"
 permalink: /mutual-funds/revealing-share-market-indias-top-performing-1404/
-excerpt: "Revealing Share Market India's Top Performing SIP Categories Now — Mutual Funds and SIP for July 01, 2026. Insights on best mutual funds 2026 for US, UK, India and Brazil investors."
+excerpt: "Revealing Share Market India's Top Performing SIP Categories Now, July 01, 2026, with NIFTY 50 at 24,025.95 and SENSEX at 77,002.66."
 description: "Revealing Share Market India's Top Performing SIP Categories Now, July 01, 2026, with NIFTY 50 at 24,025.95 and SENSEX at 77,002.66."
 keywords: "best mutual funds 2026, SIP returns, index fund, ELSS, NFO today, best index funds 2026, mutual fund performance 2026, best funds UK 2026, ISA fund performance, best mutual funds 2026 India, SIP returns today, DAX Germany 2026, global markets"
 categories: [Mutual-Funds]

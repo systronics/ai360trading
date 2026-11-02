@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "mutual-funds"
 content_mode: "market"
 permalink: /mutual-funds/elss-tax-saving-2026-funds-worth-1748/
-excerpt: "ELSS Tax Saving 2026 — The Funds Worth Your SIP — Mutual Funds and SIP for October 05, 2026. Insights on best mutual funds 2026 for US, UK, India and Brazil investors."
-description: "ELSS Tax Saving 2026 — The Funds Worth Your SIP | Mutual Funds and SIP — October 05, 2026. Insights for US, UK, India and Brazil investors."
+excerpt: "Photo by RDNE Stock project on Pexels The market is sending signals — are you listening?"
+description: "Photo by RDNE Stock project on Pexels The market is sending signals — are you listening?"
 keywords: "best mutual funds 2026, SIP returns, index fund, ELSS, NFO today, best index funds 2026, mutual fund performance 2026, best funds UK 2026, ISA fund performance, best mutual funds 2026 India, SIP returns today, DAX Germany 2026, global markets"
 categories: [Mutual-Funds]
 tags: [mutual-funds]
@@ -27,7 +27,7 @@ gold_level: "4,185.6 + 0.56%"
     {
       "@type": "Article",
       "headline": "ELSS Tax Saving 2026 \u2014 The Funds Worth Your SIP",
-      "description": "ELSS Tax Saving 2026 \u2014 The Funds Worth Your SIP | Mutual Funds & SIP \u2014 October 05, 2026. Insights for US, UK, India and Brazil investors.",
+      "description": "Photo by RDNE Stock project on Pexels The market is sending signals \u2014 are you listening?",
       "datePublished": "2026-10-05",
       "dateModified": "2026-10-05",
       "author": {

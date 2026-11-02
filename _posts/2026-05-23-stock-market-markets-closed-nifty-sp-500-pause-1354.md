@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "stock-market"
 content_mode: "weekend"
 permalink: /stock-market/markets-closed-nifty-sp-500-pause-1354/
-excerpt: "Markets Closed: NIFTY, SandP 500 Pause Ahead of Monday Amid 2.1% Weekly Global Momentum — Stock Market for May 23, 2026. Insights on stock market basics for US, UK, India and Brazil investors."
-description: "Markets closed on May 23, 2026, with NIFTY and SandP 500 poised for Monday trading, following a 2.1% weekly global momentum. | Stock Market May 23, 2026."
+excerpt: "Markets closed on May 23, 2026, with NIFTY and S&P 500 poised for Monday trading, following a 2.1% weekly global momentum. | Stock Market May 23, 2026."
+description: "Markets closed on May 23, 2026, with NIFTY and S&P 500 poised for Monday trading, following a 2.1% weekly global momentum. | Stock Market May 23, 2026."
 keywords: "stock market basics, how to invest, index fund, S&P 500, NIFTY, how to invest in stocks USA, best index fund 2026, how to invest UK 2026, FTSE 100 beginner guide, how to invest in share market India, Nifty 50 beginner guide, DAX Germany 2026, global markets"
 categories: [Stock-Market]
 tags: [stock-market]

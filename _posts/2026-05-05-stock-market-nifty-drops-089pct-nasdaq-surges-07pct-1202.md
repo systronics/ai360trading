@@ -6,7 +6,7 @@ author: "Amit Kumar"
 pillar: "stock-market"
 content_mode: "market"
 permalink: /stock-market/nifty-drops-089pct-nasdaq-surges-07pct-1202/
-excerpt: "NIFTY Drops 0.89% as NASDAQ Surges 0.7% Amid Neutral Fear Levels Today — Stock Market for May 05, 2026. Insights on SandP 500 for US, UK, India and Brazil investors."
+excerpt: "NIFTY drops 0.89% on May 05, 2026, as NASDAQ surges 0.7% amid neutral fear levels, impacting global markets and investor decisions."
 description: "NIFTY drops 0.89% on May 05, 2026, as NASDAQ surges 0.7% amid neutral fear levels, impacting global markets and investor decisions."
 keywords: "S&P 500, NIFTY, NASDAQ, SENSEX, IBOVESPA, stock market today, stock market today, S&P 500 forecast, nifty analysis today, trading signals India"
 categories: [Stock-Market]
@@ -114,6 +114,6 @@ For instance, to find strong support resistance levels for the NIFTY 50, traders
 2. **Why do support and resistance levels fail sometimes?** Support and resistance levels can fail due to various factors, including changes in market sentiment, unexpected news events, and shifts in global economic trends.
 3. **How to find strong support resistance levels Nifty 50?** To find strong support resistance levels for the NIFTY 50, traders can use a combination of technical indicators, such as the RSI and Bollinger Bands, and analyze the market structure to identify the key levels.
 
-For more information on how to trade the NIFTY, readers can visit our previous articles, such as [NIFTY Holds 24,093 Amid SandP 500's 1.32% Surge and Bitcoin's 1.65% Gain Today](/stock-market/nifty-holds-24093-amid-sp-500s-1300/) and [Global Markets Pause Amid 2.1% Weekly SandP 500 Momentum Ahead of Monday Open](/stock-market/global-markets-pause-amid-21pct-weekly-1335/).
+For more information on how to trade the NIFTY, readers can visit our previous articles, such as [NIFTY Holds 24,093 Amid S&P 500's 1.32% Surge and Bitcoin's 1.65% Gain Today](/stock-market/nifty-holds-24093-amid-sp-500s-1300/) and [Global Markets Pause Amid 2.1% Weekly S&P 500 Momentum Ahead of Monday Open](/stock-market/global-markets-pause-amid-21pct-weekly-1335/).
 
 *May 05, 2026 | Educational content only. Not SEBI registered investment advice.*

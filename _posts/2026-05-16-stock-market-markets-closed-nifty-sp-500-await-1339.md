@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "stock-market"
 content_mode: "weekend"
 permalink: /stock-market/markets-closed-nifty-sp-500-await-1339/
-excerpt: "Markets Closed: NIFTY, SandP 500 Await Monday Open Amid 2.1% Weekly Momentum — Stock Market for May 16, 2026. Insights on stock market basics for US, UK, India and Brazil investors."
-description: "Markets Closed: NIFTY, SandP 500 Await Monday Open Amid 2.1% Weekly Momentum | Stock Market — May 16, 2026. Insights for US, UK, India and Brazil investors."
+excerpt: "As markets closed on May 16, 2026, with NIFTY and S&P 500 awaiting Monday open amid 2.1% weekly momentum."
+description: "As markets closed on May 16, 2026, with NIFTY and S&P 500 awaiting Monday open amid 2.1% weekly momentum."
 keywords: "stock market basics, how to invest, index fund, S&P 500, NIFTY, how to invest in stocks USA, best index fund 2026, how to invest in share market India, Nifty 50 beginner guide"
 categories: [Stock-Market]
 tags: [stock-market]
@@ -27,7 +27,7 @@ gold_level: "N/A"
     {
       "@type": "Article",
       "headline": "Markets Closed: NIFTY, S&P 500 Await Monday Open Amid 2.1% Weekly Momentum",
-      "description": "Markets Closed: NIFTY, S&P 500 Await Monday Open Amid 2.1% Weekly Momentum | Stock Market \u2014 May 16, 2026. Insights for US, UK, India and Brazil investors.",
+      "description": "As markets closed on May 16, 2026, with NIFTY and S&P 500 awaiting Monday open amid 2.1% weekly momentum.",
       "datePublished": "2026-05-16",
       "dateModified": "2026-05-16",
       "author": {

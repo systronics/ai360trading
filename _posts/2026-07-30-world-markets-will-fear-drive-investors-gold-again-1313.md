@@ -6,7 +6,7 @@ author: "Amit Kumar"
 pillar: "world-markets"
 content_mode: "market"
 permalink: /world-markets/will-fear-drive-investors-gold-again-1313/
-excerpt: "Will Fear Drive Investors To Gold Again This Week — World Markets for July 30, 2026. Insights on global markets today for US, UK, India and Brazil investors."
+excerpt: "Global markets analysis on July 30, 2026, reveals fear driving investors to gold as Dow, Nasdaq, and DXY fluctuate. | World Markets July 30, 2026."
 description: "Global markets analysis on July 30, 2026, reveals fear driving investors to gold as Dow, Nasdaq, and DXY fluctuate. | World Markets July 30, 2026."
 keywords: "global markets today, Dow Jones today, Nasdaq today, crude oil price, world markets, global markets today, Dow Jones today, global markets today UK, FTSE global markets, global markets today impact nifty, dow jones today, DAX Germany 2026, global markets"
 categories: [World-Markets]

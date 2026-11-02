@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "personal-finance"
 content_mode: "weekend"
 permalink: /personal-finance/market-closure-review-107pct-weekly-sp-1355/
-excerpt: "Market Closure Review: 1.07% Weekly SandP 500 Gains Affect Global Investors' Term Plans — Personal Finance for May 17, 2026. Insights on personal finance tips 2026 for US, UK, India and Brazil investors"
-description: "1.07% weekly SandP 500 gains as of May 17, 2026, impact global term insurance plans and investment strategies. | Personal Finance May 17, 2026."
+excerpt: "1.07% weekly S&P 500 gains as of May 17, 2026, impact global term insurance plans and investment strategies. | Personal Finance May 17, 2026."
+description: "1.07% weekly S&P 500 gains as of May 17, 2026, impact global term insurance plans and investment strategies. | Personal Finance May 17, 2026."
 keywords: "personal finance tips 2026, how to save money, emergency fund, term life insurance, best savings account USA 2026, 401k guide, how to save money India 2026, best term insurance India"
 categories: [Personal-Finance]
 tags: [personal-finance]

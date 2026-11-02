@@ -6,7 +6,7 @@ author: "Amit Kumar"
 pillar: "ai-trading"
 content_mode: "market"
 permalink: /ai-trading/nifty-drops-096pct-amid-158pct-nasdaq-1329/
-excerpt: "NIFTY Drops 0.96% Amid 1.58% NASDAQ Surge: AI Signals Respond Today — AI and Trading Technology for May 11, 2026. Insights on AI trading 2026 for US, UK, India and Brazil investors."
+excerpt: "NIFTY drops 0.96% as NASDAQ surges 1.58% on May 11, 2026 - AI trading signals respond to market volatility. | AI and Trading Technology May 11, 2026."
 description: "NIFTY drops 0.96% as NASDAQ surges 1.58% on May 11, 2026 - AI trading signals respond to market volatility. | AI and Trading Technology May 11, 2026."
 keywords: "AI trading 2026, algorithmic trading, fintech, AI stock market, trading technology, AI stock trading 2026, best AI trading algorithm, algo trading India NSE, AI trading bot India"
 categories: [AI-Trading]

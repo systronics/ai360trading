@@ -6,7 +6,7 @@ author: "Amit Kumar"
 pillar: "bitcoin"
 content_mode: "market"
 permalink: /bitcoin/will-63717-bitcoin-level-decide-global-1216/
-excerpt: "Will 63,717 Bitcoin Level Decide Global Investor Sentiment Now — Bitcoin and Crypto for August 13, 2026. Insights on Bitcoin for US, UK, India and Brazil investors."
+excerpt: "Bitcoin price at 63,717 on August 13, 2026, as crypto markets await CPI report and regulatory clarity, impacting Ethereum and altcoin season."
 description: "Bitcoin price at 63,717 on August 13, 2026, as crypto markets await CPI report and regulatory clarity, impacting Ethereum and altcoin season."
 keywords: "Bitcoin, Ethereum, crypto market today, BTC price, cryptocurrency, bitcoin price today, crypto market today, bitcoin price GBP, crypto UK today, bitcoin price INR today, crypto India today, DAX Germany 2026, global markets"
 categories: [Bitcoin-Crypto]

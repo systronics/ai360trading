@@ -6,7 +6,7 @@ author: "Amit Kumar"
 pillar: "gold"
 content_mode: "market"
 permalink: /gold/decoding-golds-resilience-today-share-market-1319/
-excerpt: "Decoding Gold's Resilience Today as Share Market India Trends Higher — Gold and Commodities for July 02, 2026. Insights on gold price today for US, UK, India and Brazil investors."
+excerpt: "Gold prices surge 0.35% to $4,082.4 on July 02, 2026, as USD/INR hits 95.22, sparking debate on gold investment 2026 gold vs stocks vs FD honest comparison."
 description: "Gold prices surge 0.35% to $4,082.4 on July 02, 2026, as USD/INR hits 95.22, sparking debate on gold investment 2026 gold vs stocks vs FD honest comparison."
 keywords: "gold price today, gold rate, gold vs stocks, MCX gold, silver price, gold price today, gold forecast 2026, gold price GBP today, gold ETF UK, gold price today India, gold rate today, DAX Germany 2026, global markets"
 categories: [Gold-Commodities]

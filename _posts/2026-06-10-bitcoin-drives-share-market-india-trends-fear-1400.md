@@ -6,7 +6,7 @@ author: "Amit Kumar"
 pillar: "bitcoin"
 content_mode: "market"
 permalink: /bitcoin/drives-share-market-india-trends-fear-1400/
-excerpt: "What Drives Share Market India Trends As Fear Hits 9 Today — Bitcoin and Crypto for June 10, 2026. Insights on Bitcoin for US, UK, India and Brazil investors."
+excerpt: "Share Market India trends see 0.47% NIFTY rise as Bitcoin fear hits 9 on June 10, 2026, amid global crypto volatility. | Bitcoin and Crypto June 10, 2026."
 description: "Share Market India trends see 0.47% NIFTY rise as Bitcoin fear hits 9 on June 10, 2026, amid global crypto volatility. | Bitcoin and Crypto June 10, 2026."
 keywords: "Bitcoin, Ethereum, crypto market today, BTC price, cryptocurrency, bitcoin price today, crypto market today, bitcoin price GBP, crypto UK today, bitcoin price INR today, crypto India today, DAX Germany 2026, global markets"
 categories: [Bitcoin-Crypto]

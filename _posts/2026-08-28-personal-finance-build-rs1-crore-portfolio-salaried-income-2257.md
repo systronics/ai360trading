@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "personal-finance"
 content_mode: "market"
 permalink: /personal-finance/build-rs1-crore-portfolio-salaried-income-2257/
-excerpt: "How to Build a Rs.1 Crore Portfolio on a Salaried Income — Personal Finance for August 28, 2026. Insights on term life insurance for US, UK, India and Brazil investors."
-description: "How to Build a Rs.1 Crore Portfolio on a Salaried Income | Personal Finance — August 28, 2026. Insights for US, UK, India and Brazil investors."
+excerpt: "Photo by Ravi Roshan on Pexels Smart money is moving. Here's what you need to know."
+description: "Photo by Ravi Roshan on Pexels Smart money is moving. Here's what you need to know."
 keywords: "term life insurance, best investment 2026, retirement planning, tax saving, personal finance, best term life insurance USA 2026, 401k investing 2026, best ISA 2026 UK, UK pension 2026, best term insurance India 2026, SIP investment returns, DAX Germany 2026, global markets"
 categories: [Personal-Finance]
 tags: [personal-finance]
@@ -27,7 +27,7 @@ gold_level: "4,528.1 - 1.77%"
     {
       "@type": "Article",
       "headline": "How to Build a Rs.1 Crore Portfolio on a Salaried Income",
-      "description": "How to Build a Rs.1 Crore Portfolio on a Salaried Income | Personal Finance \u2014 August 28, 2026. Insights for US, UK, India and Brazil investors.",
+      "description": "Photo by Ravi Roshan on Pexels Smart money is moving. Here's what you need to know.",
       "datePublished": "2026-08-28",
       "dateModified": "2026-08-28",
       "author": {

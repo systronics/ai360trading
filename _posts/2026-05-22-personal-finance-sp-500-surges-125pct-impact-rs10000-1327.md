@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "personal-finance"
 content_mode: "market"
 permalink: /personal-finance/sp-500-surges-125pct-impact-rs10000-1327/
-excerpt: "SandP 500 Surges 1.25%: Impact on Rs.10,000 Monthly Investments in NIFTY Today — Personal Finance for May 22, 2026. Insights on term life insurance for US, UK, India and Brazil investors."
-description: "SandP 500 surges 1.25% on May 22, 2026, impacting Rs.10,000 monthly investments in NIFTY, with NIFTY 50 at 23,811.7 and SandP 500 at 7,445.72."
+excerpt: "S&P 500 surges 1.25% on May 22, 2026, impacting Rs.10,000 monthly investments in NIFTY, with NIFTY 50 at 23,811.7 and S&P 500 at 7,445.72."
+description: "S&P 500 surges 1.25% on May 22, 2026, impacting Rs.10,000 monthly investments in NIFTY, with NIFTY 50 at 23,811.7 and S&P 500 at 7,445.72."
 keywords: "term life insurance, best investment 2026, retirement planning, tax saving, personal finance, best term life insurance USA 2026, 401k investing 2026, best term insurance India 2026, SIP investment returns"
 categories: [Personal-Finance]
 tags: [personal-finance]

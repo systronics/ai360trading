@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "stock-market"
 content_mode: "weekend"
 permalink: /stock-market/deciphering-share-market-trends-reveal-global-1228/
-excerpt: "Deciphering Share Market Trends That Reveal Global Investor Sentiment Shifts Today — Stock Market for August 08, 2026. Insights on stock market basics for US, UK, India and Brazil investors."
-description: "Deciphering Share Market Trends That Reveal Global Investor Sentiment Shifts Today | Stock Market — August 08, 2026. Insights for US, UK, India and Brazil"
+excerpt: "Photo by Alesia Kozik on Pexels If you're searching for how to invest in the stock market for beginners in 2026."
+description: "Photo by Alesia Kozik on Pexels If you're searching for how to invest in the stock market for beginners in 2026."
 keywords: "stock market basics, how to invest, index fund, S&P 500, NIFTY, how to invest in stocks USA, best index fund 2026, how to invest UK 2026, FTSE 100 beginner guide, how to invest in share market India, Nifty 50 beginner guide, DAX Germany 2026, global markets"
 categories: [Stock-Market]
 tags: [stock-market]
@@ -27,7 +27,7 @@ gold_level: "N/A"
     {
       "@type": "Article",
       "headline": "Deciphering Share Market Trends That Reveal Global Investor Sentiment Shifts Today",
-      "description": "Deciphering Share Market Trends That Reveal Global Investor Sentiment Shifts Today | Stock Market \u2014 August 08, 2026. Insights for US, UK, India and Brazil",
+      "description": "Photo by Alesia Kozik on Pexels If you're searching for how to invest in the stock market for beginners in 2026.",
       "datePublished": "2026-08-08",
       "dateModified": "2026-08-08",
       "author": {

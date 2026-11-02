@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "personal-finance"
 content_mode: "weekend"
 permalink: /personal-finance/personal-finance-complete-guide-us-uk-1543/
-excerpt: "Personal Finance Complete Guide — US, UK, India and Brazil — Personal Finance for September 05, 2026. Insights on personal finance tips 2026 for US, UK, India and Brazil investors."
-description: "Personal Finance Complete Guide — US, UK, India and Brazil | Personal Finance — September 05, 2026. Insights for US, UK, India and Brazil investors."
+excerpt: "Photo by https://kaboompics.com/ on Pexels Smart money is moving. Here's what you need to know."
+description: "Photo by https://kaboompics.com/ on Pexels Smart money is moving. Here's what you need to know."
 keywords: "personal finance tips 2026, how to save money, emergency fund, term life insurance, best savings account USA 2026, 401k guide, best ISA 2026, UK pension guide, how to save money India 2026, best term insurance India, DAX Germany 2026, global markets"
 categories: [Personal-Finance]
 tags: [personal-finance]
@@ -27,7 +27,7 @@ gold_level: "N/A"
     {
       "@type": "Article",
       "headline": "Personal Finance Complete Guide \u2014 US, UK, India and Brazil",
-      "description": "Personal Finance Complete Guide \u2014 US, UK, India and Brazil | Personal Finance \u2014 September 05, 2026. Insights for US, UK, India and Brazil investors.",
+      "description": "Photo by https://kaboompics.com/ on Pexels Smart money is moving. Here's what you need to know.",
       "datePublished": "2026-09-05",
       "dateModified": "2026-09-05",
       "author": {

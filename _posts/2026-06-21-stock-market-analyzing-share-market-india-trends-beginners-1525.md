@@ -6,7 +6,7 @@ author: "Amit Kumar"
 pillar: "stock-market"
 content_mode: "weekend"
 permalink: /stock-market/analyzing-share-market-india-trends-beginners-1525/
-excerpt: "Analyzing Share Market India Trends For Beginners And Experts Alike Today — Stock Market for June 21, 2026. Insights on stock market basics for US, UK, India and Brazil investors."
+excerpt: "Learn share market India trends for beginners and experts, understand global stock markets, and start investing with small amounts, as of June 21, 2026."
 description: "Learn share market India trends for beginners and experts, understand global stock markets, and start investing with small amounts, as of June 21, 2026."
 keywords: "stock market basics, how to invest, index fund, S&P 500, NIFTY, how to invest in stocks USA, best index fund 2026, how to invest UK 2026, FTSE 100 beginner guide, how to invest in share market India, Nifty 50 beginner guide, DAX Germany 2026, global markets"
 categories: [Stock-Market]

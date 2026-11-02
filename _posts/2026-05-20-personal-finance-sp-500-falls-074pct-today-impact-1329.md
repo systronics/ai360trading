@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "personal-finance"
 content_mode: "market"
 permalink: /personal-finance/sp-500-falls-074pct-today-impact-1329/
-excerpt: "SandP 500 Falls 0.74% Today: Impact on Rs.10,000 Monthly Investments in Bitcoin — Personal Finance for May 20, 2026. Insights on term life insurance for US, UK, India and Brazil investors."
-description: "SandP 500 falls 0.74% today, May 20, 2026, impacting Rs.10,000 monthly investments in Bitcoin, amid global market volatility and rising US 10Y Yield."
+excerpt: "S&P 500 falls 0.74% today, May 20, 2026, impacting Rs.10,000 monthly investments in Bitcoin, amid global market volatility and rising US 10Y Yield."
+description: "S&P 500 falls 0.74% today, May 20, 2026, impacting Rs.10,000 monthly investments in Bitcoin, amid global market volatility and rising US 10Y Yield."
 keywords: "term life insurance, best investment 2026, retirement planning, tax saving, personal finance, best term life insurance USA 2026, 401k investing 2026, best term insurance India 2026, SIP investment returns"
 categories: [Personal-Finance]
 tags: [personal-finance]

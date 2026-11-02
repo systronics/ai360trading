@@ -1,13 +1,13 @@
 ---
 layout: post
-title: "NIFTY Hits 24,298.35 as AI Signals Eye SandP 500's 0.37% Drop Amid Fear Levels"
+title: "NIFTY Hits 24,298.35 as AI Signals Eye S&P 500's 0.37% Drop Amid Fear Levels"
 date: 2026-04-29
 author: "Amit Kumar"
 pillar: "ai-trading"
 content_mode: "market"
 permalink: /ai-trading/nifty-hits-2429835-ai-signals-eye-1212/
-excerpt: "NIFTY Hits 24,298.35 as AI Signals Eye SandP 500's 0.37% Drop Amid Fear Levels — AI and Trading Technology for April 29, 2026. Insights on AI trading 2026 for US, UK, India and Brazil investors."
-description: "NIFTY hits 24,298.35, AI signals eye SandP 500's 0.37% drop amid fear levels on April 29, 2026, as global markets weigh AI growth worries."
+excerpt: "NIFTY hits 24,298.35, AI signals eye S&P 500's 0.37% drop amid fear levels on April 29, 2026, as global markets weigh AI growth worries."
+description: "NIFTY hits 24,298.35, AI signals eye S&P 500's 0.37% drop amid fear levels on April 29, 2026, as global markets weigh AI growth worries."
 keywords: "AI trading 2026, algorithmic trading, fintech, AI stock market, trading technology, AI stock trading 2026, best AI trading algorithm, algo trading India NSE, AI trading bot India"
 categories: [AI-Trading]
 tags: [ai-trading]

@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "stock-market"
 content_mode: "weekend"
 permalink: /stock-market/stock-market-basics-everything-beginner-needs-1649/
-excerpt: "Stock Market Basics — Everything a Beginner Needs to Know Right Now — Stock Market for October 03, 2026. Insights on stock market basics for US, UK, India and Brazil investors."
-description: "Stock Market Basics — Everything a Beginner Needs to Know Right Now | Stock Market — October 03, 2026. Insights for US, UK, India and Brazil investors."
+excerpt: "Photo by AlphaTradeZone on Pexels Smart money is moving. Here's what you need to know."
+description: "Photo by AlphaTradeZone on Pexels Smart money is moving. Here's what you need to know."
 keywords: "stock market basics, how to invest, index fund, S&P 500, NIFTY, how to invest in stocks USA, best index fund 2026, how to invest UK 2026, FTSE 100 beginner guide, how to invest in share market India, Nifty 50 beginner guide, DAX Germany 2026, global markets"
 categories: [Stock-Market]
 tags: [stock-market]
@@ -27,7 +27,7 @@ gold_level: "N/A"
     {
       "@type": "Article",
       "headline": "Stock Market Basics \u2014 Everything a Beginner Needs to Know Right Now",
-      "description": "Stock Market Basics \u2014 Everything a Beginner Needs to Know Right Now | Stock Market \u2014 October 03, 2026. Insights for US, UK, India and Brazil investors.",
+      "description": "Photo by AlphaTradeZone on Pexels Smart money is moving. Here's what you need to know.",
       "datePublished": "2026-10-03",
       "dateModified": "2026-10-03",
       "author": {

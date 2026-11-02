@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "gold"
 content_mode: "market"
 permalink: /gold/fear-drives-share-market-today-gold-1327/
-excerpt: "Fear Drives Share Market Today: Is Gold Still a Safe Haven? — Gold and Commodities for July 10, 2026. Insights on gold price today for US, UK, India and Brazil investors."
-description: "Gold prices down 0.42% at $4,113.2 on July 10, 2026, as fear drives share market today, with NIFTY 50 up 0.88% and SandP 500 up 0.53%."
+excerpt: "Gold prices down 0.42% at $4,113.2 on July 10, 2026, as fear drives share market today, with NIFTY 50 up 0.88% and S&P 500 up 0.53%."
+description: "Gold prices down 0.42% at $4,113.2 on July 10, 2026, as fear drives share market today, with NIFTY 50 up 0.88% and S&P 500 up 0.53%."
 keywords: "gold price today, gold rate, gold vs stocks, MCX gold, silver price, gold price today, gold forecast 2026, gold price GBP today, gold ETF UK, gold price today India, gold rate today, DAX Germany 2026, global markets"
 categories: [Gold-Commodities]
 tags: [gold]

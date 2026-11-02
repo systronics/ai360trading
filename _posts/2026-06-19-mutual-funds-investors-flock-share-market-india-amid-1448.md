@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "mutual-funds"
 content_mode: "market"
 permalink: /mutual-funds/investors-flock-share-market-india-amid-1448/
-excerpt: "Investors Flock to Share Market India Amid Extreme Fear Levels Today — Mutual Funds and SIP for June 19, 2026. Insights on best mutual funds 2026 for US, UK, India and Brazil investors."
-description: "Investors Flock to Share Market India Amid Extreme Fear Levels Today | Mutual Funds and SIP — June 19, 2026. Insights for US, UK, India and Brazil investors."
+excerpt: "Photo by Aedrian Salazar on Pexels As investors flock to the share market India amid extreme fear levels today."
+description: "Photo by Aedrian Salazar on Pexels As investors flock to the share market India amid extreme fear levels today."
 keywords: "best mutual funds 2026, SIP returns, index fund, ELSS, NFO today, best index funds 2026, mutual fund performance 2026, best funds UK 2026, ISA fund performance, best mutual funds 2026 India, SIP returns today, DAX Germany 2026, global markets"
 categories: [Mutual-Funds]
 tags: [mutual-funds]
@@ -27,7 +27,7 @@ gold_level: "4,184.4 - 4.0%"
     {
       "@type": "Article",
       "headline": "Investors Flock to Share Market India Amid Extreme Fear Levels Today",
-      "description": "Investors Flock to Share Market India Amid Extreme Fear Levels Today | Mutual Funds & SIP \u2014 June 19, 2026. Insights for US, UK, India and Brazil investors.",
+      "description": "Photo by Aedrian Salazar on Pexels As investors flock to the share market India amid extreme fear levels today.",
       "datePublished": "2026-06-19",
       "dateModified": "2026-06-19",
       "author": {

@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "world-markets"
 content_mode: "market"
 permalink: /world-markets/india-watches-share-market-news-today-1415/
-excerpt: "India Watches Share Market News Today As Global Fear Spikes — World Markets for June 12, 2026. Insights on global markets today for US, UK, India and Brazil investors."
-description: "India watches share market news today as global fear spikes, June 12, 2026, with NIFTY 50 up 1.59% and SandP 500 rising 0.1%. | World Markets June 12, 2026."
+excerpt: "India watches share market news today as global fear spikes, June 12, 2026, with NIFTY 50 up 1.59% and S&P 500 rising 0.1%. | World Markets June 12, 2026."
+description: "India watches share market news today as global fear spikes, June 12, 2026, with NIFTY 50 up 1.59% and S&P 500 rising 0.1%. | World Markets June 12, 2026."
 keywords: "global markets today, Dow Jones today, Nasdaq today, crude oil price, world markets, global markets today, Dow Jones today, global markets today UK, FTSE global markets, global markets today impact nifty, dow jones today, DAX Germany 2026, global markets"
 categories: [World-Markets]
 tags: [world-markets]

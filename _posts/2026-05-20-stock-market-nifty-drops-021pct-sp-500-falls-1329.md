@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "stock-market"
 content_mode: "market"
 permalink: /stock-market/nifty-drops-021pct-sp-500-falls-1329/
-excerpt: "NIFTY Drops 0.21% as SandP 500 Falls 0.74% Amid Rising Bitcoin Price — Stock Market for May 20, 2026. Insights on SandP 500 for US, UK, India and Brazil investors."
-description: "NIFTY Drops 0.21% as SandP 500 Falls 0.74% Amid Rising Bitcoin Price | Stock Market — May 20, 2026. Insights for US, UK, India and Brazil investors."
+excerpt: "The single biggest force affecting personal finances or markets today is the decline of the NIFTY 50 by 0.21% to 23,567.4 and the S&P 500 by 0.74% to 7."
+description: "The single biggest force affecting personal finances or markets today is the decline of the NIFTY 50 by 0.21% to 23,567.4 and the S&P 500 by 0.74% to 7."
 keywords: "S&P 500, NIFTY, NASDAQ, SENSEX, IBOVESPA, stock market today, stock market today, S&P 500 forecast, nifty analysis today, trading signals India"
 categories: [Stock-Market]
 tags: [stock-market]
@@ -27,7 +27,7 @@ gold_level: "4,480.1 - 0.58%"
     {
       "@type": "Article",
       "headline": "NIFTY Drops 0.21% as S&P 500 Falls 0.74% Amid Rising Bitcoin Price",
-      "description": "NIFTY Drops 0.21% as S&P 500 Falls 0.74% Amid Rising Bitcoin Price | Stock Market \u2014 May 20, 2026. Insights for US, UK, India and Brazil investors.",
+      "description": "The single biggest force affecting personal finances or markets today is the decline of the NIFTY 50 by 0.21% to 23,567.4 and the S&P 500 by 0.74% to 7.",
       "datePublished": "2026-05-20",
       "dateModified": "2026-05-20",
       "author": {

@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "bitcoin"
 content_mode: "market"
 permalink: /bitcoin/bitcoin-rises-05pct-nifty-hits-23556-1305/
-excerpt: "Bitcoin Rises 0.5% as NIFTY Hits 23,556 and SandP 500 Edges Up 0.03% Today — Bitcoin and Crypto for May 13, 2026. Insights on Bitcoin for US, UK, India and Brazil investors."
-description: "Bitcoin rises 0.5% to $80,879, NIFTY at 23,556, SandP 500 up 0.03% on May 13, 2026, as crypto market analysis shows potential for further growth."
+excerpt: "Bitcoin rises 0.5% to $80,879, NIFTY at 23,556, S&P 500 up 0.03% on May 13, 2026, as crypto market analysis shows potential for further growth."
+description: "Bitcoin rises 0.5% to $80,879, NIFTY at 23,556, S&P 500 up 0.03% on May 13, 2026, as crypto market analysis shows potential for further growth."
 keywords: "Bitcoin, Ethereum, crypto market today, BTC price, cryptocurrency, bitcoin price today, crypto market today, bitcoin price INR today, crypto India today"
 categories: [Bitcoin-Crypto]
 tags: [bitcoin]
@@ -102,6 +102,6 @@ A: The Bitcoin technical analysis how to read crypto charts 2026 beginners invol
 ### Q: What is the current Bitcoin price, and how does it relate to the NIFTY 50 index and the S&P 500?
 A: The current Bitcoin price is $80,879, which is testing the resistance level of $81,000. The NIFTY 50 index is up 0.76% at 23,556.45, while the S&P 500 is up 0.03% at 7,400.96, indicating a positive sentiment in the global markets. As seen in the past, during the 2013 Bitcoin rally, the price of Bitcoin increased significantly, with a return of over 5,000% in just a few months. Similarly, in May 2020, the price of Bitcoin increased by over 50% in just a few weeks, indicating the potential for significant growth in the crypto market.
 
-For more information on Bitcoin price trends, you can visit our previous articles, such as [Bitcoin Falls 0.86% as S&P 500 Rises 1.03% Amid Neutral Fear Levels at 49 Today](/bitcoin/bitcoin-falls-086pct-sp-500-rises-1251/), [Bitcoin Drops 1.72% as SandP 500 Rises 0.46% Amid Neutral Fear Levels Today](/bitcoin/bitcoin-drops-172pct-sp-500-rises-1329/), and [Bitcoin Stabilizes Near 78,000 Ahead of Monday's Global Market Reopening Worldwide Today](/bitcoin/bitcoin-stabilizes-near-78000-ahead-mondays-1342/).
+For more information on Bitcoin price trends, you can visit our previous articles, such as [Bitcoin Falls 0.86% as S&P 500 Rises 1.03% Amid Neutral Fear Levels at 49 Today](/bitcoin/bitcoin-falls-086pct-sp-500-rises-1251/), [Bitcoin Drops 1.72% as S&P 500 Rises 0.46% Amid Neutral Fear Levels Today](/bitcoin/bitcoin-drops-172pct-sp-500-rises-1329/), and [Bitcoin Stabilizes Near 78,000 Ahead of Monday's Global Market Reopening Worldwide Today](/bitcoin/bitcoin-stabilizes-near-78000-ahead-mondays-1342/).
 
 *May 13, 2026 | Educational content only. Not SEBI registered investment advice.*

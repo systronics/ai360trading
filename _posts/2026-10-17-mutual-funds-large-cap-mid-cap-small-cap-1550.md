@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "mutual-funds"
 content_mode: "weekend"
 permalink: /mutual-funds/large-cap-mid-cap-small-cap-1550/
-excerpt: "Large Cap vs Mid Cap vs Small Cap Funds — Which Suits You? — Mutual Funds and SIP for October 17, 2026. Insights on best mutual funds 2026 for US, UK, India and Brazil investors."
-description: "Large Cap vs Mid Cap vs Small Cap Funds — Which Suits You? | Mutual Funds and SIP — October 17, 2026. Insights for US, UK, India and Brazil investors."
+excerpt: "Photo by RDNE Stock project on Pexels The market is sending signals — are you listening?"
+description: "Photo by RDNE Stock project on Pexels The market is sending signals — are you listening?"
 keywords: "best mutual funds 2026, SIP investment, index fund vs mutual fund, ELSS tax saving, best index funds 2026, mutual fund vs ETF, best funds UK 2026, ISA index fund, best mutual funds 2026 India, SIP vs lump sum, DAX Germany 2026, global markets"
 categories: [Mutual-Funds]
 tags: [mutual-funds]
@@ -27,7 +27,7 @@ gold_level: "N/A"
     {
       "@type": "Article",
       "headline": "Large Cap vs Mid Cap vs Small Cap Funds \u2014 Which Suits You?",
-      "description": "Large Cap vs Mid Cap vs Small Cap Funds \u2014 Which Suits You? | Mutual Funds & SIP \u2014 October 17, 2026. Insights for US, UK, India and Brazil investors.",
+      "description": "Photo by RDNE Stock project on Pexels The market is sending signals \u2014 are you listening?",
       "datePublished": "2026-10-17",
       "dateModified": "2026-10-17",
       "author": {

@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "stock-market"
 content_mode: "weekend"
 permalink: /stock-market/markets-await-monday-open-amid-43-1403/
-excerpt: "Markets Await Monday Open Amid 43 Fear Levels and 0.67% Bitcoin Rise — Stock Market for May 24, 2026. Insights on stock market basics for US, UK, India and Brazil investors."
-description: "Markets Await Monday Open Amid 43 Fear Levels and 0.67% Bitcoin Rise, May 24, 2026, NIFTY and SandP 500 Analysis | Stock Market May 24, 2026."
+excerpt: "Markets Await Monday Open Amid 43 Fear Levels and 0.67% Bitcoin Rise, May 24, 2026, NIFTY and S&P 500 Analysis | Stock Market May 24, 2026."
+description: "Markets Await Monday Open Amid 43 Fear Levels and 0.67% Bitcoin Rise, May 24, 2026, NIFTY and S&P 500 Analysis | Stock Market May 24, 2026."
 keywords: "stock market basics, how to invest, index fund, S&P 500, NIFTY, how to invest in stocks USA, best index fund 2026, how to invest UK 2026, FTSE 100 beginner guide, how to invest in share market India, Nifty 50 beginner guide, DAX Germany 2026, global markets"
 categories: [Stock-Market]
 tags: [stock-market]

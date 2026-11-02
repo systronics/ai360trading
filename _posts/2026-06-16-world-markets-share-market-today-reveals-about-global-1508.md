@@ -6,7 +6,7 @@ author: "Amit Kumar"
 pillar: "world-markets"
 content_mode: "market"
 permalink: /world-markets/share-market-today-reveals-about-global-1508/
-excerpt: "What Share Market Today Reveals About Global Investor Sentiment — World Markets for June 16, 2026. Insights on global markets today for US, UK, India and Brazil investors."
+excerpt: "Global markets explained: Dow, Nasdaq, and dollar impact on Nifty, June 16, 2026, with US 10Y Yield at 4.47% and India VIX at 13.36."
 description: "Global markets explained: Dow, Nasdaq, and dollar impact on Nifty, June 16, 2026, with US 10Y Yield at 4.47% and India VIX at 13.36."
 keywords: "global markets today, Dow Jones today, Nasdaq today, crude oil price, world markets, global markets today, Dow Jones today, global markets today UK, FTSE global markets, global markets today impact nifty, dow jones today, DAX Germany 2026, global markets"
 categories: [World-Markets]

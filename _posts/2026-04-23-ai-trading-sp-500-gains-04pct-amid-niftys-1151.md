@@ -1,13 +1,13 @@
 ---
 layout: post
-title: "SandP 500 Gains 0.4% Amid NIFTY's 0.75% Drop: AI Trading Insights Today"
+title: "S&P 500 Gains 0.4% Amid NIFTY's 0.75% Drop: AI Trading Insights Today"
 date: 2026-04-23
 author: "Amit Kumar"
 pillar: "ai-trading"
 content_mode: "market"
 permalink: /ai-trading/sp-500-gains-04pct-amid-niftys-1151/
-excerpt: "SandP 500 Gains 0.4% Amid NIFTY's 0.75% Drop: AI Trading Insights Today — AI and Trading Technology for April 23, 2026. Insights on AI trading 2026 for US, UK, India and Brazil investors."
-description: "SandP 500 gains 0.4% as NIFTY drops 0.75% on April 23, 2026 - AI trading insights for better decisions today. | AI and Trading Technology April 23, 2026."
+excerpt: "S&P 500 gains 0.4% as NIFTY drops 0.75% on April 23, 2026 - AI trading insights for better decisions today. | AI and Trading Technology April 23, 2026."
+description: "S&P 500 gains 0.4% as NIFTY drops 0.75% on April 23, 2026 - AI trading insights for better decisions today. | AI and Trading Technology April 23, 2026."
 keywords: "AI trading 2026, algorithmic trading, fintech, AI stock market, trading technology, AI stock trading 2026, best AI trading algorithm, algo trading India NSE, AI trading bot India"
 categories: [AI-Trading]
 tags: [ai-trading]

@@ -1,13 +1,13 @@
 ---
 layout: post
-title: "NIFTY Hits 24,093, SandP 500 Surges 1.32%, Impact on Global Investor Portfolios"
+title: "NIFTY Hits 24,093, S&P 500 Surges 1.32%, Impact on Global Investor Portfolios"
 date: 2026-05-04
 author: "Amit Kumar"
 pillar: "personal-finance"
 content_mode: "market"
 permalink: /personal-finance/nifty-hits-24093-sp-500-surges-1300/
-excerpt: "NIFTY Hits 24,093, SandP 500 Surges 1.32%, Impact on Global Investor Portfolios — Personal Finance for May 04, 2026. Insights on term life insurance for US, UK, India and Brazil investors."
-description: "NIFTY at 24,093, SandP 500 surges 1.32% on May 04, 2026, amidst global market volatility, impacting investor portfolios. | Personal Finance May 04, 2026."
+excerpt: "NIFTY at 24,093, S&P 500 surges 1.32% on May 04, 2026, amidst global market volatility, impacting investor portfolios. | Personal Finance May 04, 2026."
+description: "NIFTY at 24,093, S&P 500 surges 1.32% on May 04, 2026, amidst global market volatility, impacting investor portfolios. | Personal Finance May 04, 2026."
 keywords: "term life insurance, best investment 2026, retirement planning, tax saving, personal finance, best term life insurance USA 2026, 401k investing 2026, best term insurance India 2026, SIP investment returns"
 categories: [Personal-Finance]
 tags: [personal-finance]
@@ -99,6 +99,6 @@ FAQs:
 * What is the impact of the NIFTY hitting 24,093 and the S&P 500 surging 1.32% on global investor portfolios?
 * How can I compare term life insurance rates across countries, and what are the best options for Indian, US, and UK residents?
 * What are the best investment options for Indian residents, considering the current market conditions and the NIFTY's 0.4% gain on May 04, 2026? 
-You can read more about the impact of market volatility on investor plans at [Sundays Without Market Volatility: 0.53% Weekly SandP 500 Gains Impact Investor Plans](/personal-finance/sundays-without-market-volatility-053pct-weekly-1335/), [Saturday Term Insurance Review: 1.25% SandP 500 Gains Influence Global Investor Decisions](/personal-finance/saturday-term-insurance-review-125pct-sp-1320/), and [Friday Market Wrap: NIFTY Stalls, SandP 500 Sees 0.53% Weekly Gain Amid Bitcoin Stability](/personal-finance/friday-market-wrap-nifty-stalls-sp-1241/).
+You can read more about the impact of market volatility on investor plans at [Sundays Without Market Volatility: 0.53% Weekly S&P 500 Gains Impact Investor Plans](/personal-finance/sundays-without-market-volatility-053pct-weekly-1335/), [Saturday Term Insurance Review: 1.25% S&P 500 Gains Influence Global Investor Decisions](/personal-finance/saturday-term-insurance-review-125pct-sp-1320/), and [Friday Market Wrap: NIFTY Stalls, S&P 500 Sees 0.53% Weekly Gain Amid Bitcoin Stability](/personal-finance/friday-market-wrap-nifty-stalls-sp-1241/).
 
 *May 04, 2026 | Educational content only. Not SEBI registered investment advice.*

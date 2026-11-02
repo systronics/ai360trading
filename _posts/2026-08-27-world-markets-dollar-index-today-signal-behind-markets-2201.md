@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "world-markets"
 content_mode: "market"
 permalink: /world-markets/dollar-index-today-signal-behind-markets-2201/
-excerpt: "Dollar Index Today — The Signal Behind the Markets — World Markets for August 27, 2026. Insights on global markets today for US, UK, India and Brazil investors."
-description: "Dollar Index Today — The Signal Behind the Markets | World Markets — August 27, 2026. Insights for US, UK, India and Brazil investors."
+excerpt: "Photo by Jenny Gregg on Pexels Smart money is moving. Here's what you need to know."
+description: "Photo by Jenny Gregg on Pexels Smart money is moving. Here's what you need to know."
 keywords: "global markets today, Dow Jones today, Nasdaq today, crude oil price, world markets, global markets today, Dow Jones today, global markets today UK, FTSE global markets, global markets today impact nifty, dow jones today, DAX Germany 2026, global markets"
 categories: [World-Markets]
 tags: [world-markets]
@@ -27,7 +27,7 @@ gold_level: "4,659.7 + 1.34%"
     {
       "@type": "Article",
       "headline": "Dollar Index Today \u2014 The Signal Behind the Markets",
-      "description": "Dollar Index Today \u2014 The Signal Behind the Markets | World Markets \u2014 August 27, 2026. Insights for US, UK, India and Brazil investors.",
+      "description": "Photo by Jenny Gregg on Pexels Smart money is moving. Here's what you need to know.",
       "datePublished": "2026-08-27",
       "dateModified": "2026-08-27",
       "author": {

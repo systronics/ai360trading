@@ -6,7 +6,7 @@ author: "Amit Kumar"
 pillar: "mutual-funds"
 content_mode: "market"
 permalink: /mutual-funds/revealing-indias-top-performing-mutual-funds-1319/
-excerpt: "Revealing India's Top Performing Mutual Funds Beating Volatility Now — Mutual Funds and SIP for August 06, 2026. Insights on best mutual funds 2026 for US, UK, India and Brazil investors."
+excerpt: "India's top performing mutual funds beating volatility now, with SIP and lump sum strategies, as of August 06, 2026, NIFTY 50 at 24,649.05."
 description: "India's top performing mutual funds beating volatility now, with SIP and lump sum strategies, as of August 06, 2026, NIFTY 50 at 24,649.05."
 keywords: "best mutual funds 2026, SIP returns, index fund, ELSS, NFO today, best index funds 2026, mutual fund performance 2026, best funds UK 2026, ISA fund performance, best mutual funds 2026 India, SIP returns today, DAX Germany 2026, global markets"
 categories: [Mutual-Funds]

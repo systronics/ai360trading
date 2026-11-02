@@ -6,7 +6,7 @@ author: "Amit Kumar"
 pillar: "personal-finance"
 content_mode: "market"
 permalink: /personal-finance/nifty-stalls-24028-gold-surges-267pct-1243/
-excerpt: "NIFTY Stalls at 24,028, Gold Surges 2.67%, Impact on Investor SIP Plans Today — Personal Finance for May 06, 2026. Insights on term life insurance for US, UK, India and Brazil investors."
+excerpt: "NIFTY stalls at 24,028, Gold surges 2.67% on May 06, 2026, amid fears of global market volatility, impacting investor SIP plans. | Personal Finance May 06, 2026"
 description: "NIFTY stalls at 24,028, Gold surges 2.67% on May 06, 2026, amid fears of global market volatility, impacting investor SIP plans. | Personal Finance May 06, 2026"
 keywords: "term life insurance, best investment 2026, retirement planning, tax saving, personal finance, best term life insurance USA 2026, 401k investing 2026, best term insurance India 2026, SIP investment returns"
 categories: [Personal-Finance]

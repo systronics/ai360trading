@@ -6,7 +6,7 @@ author: "Amit Kumar"
 pillar: "world-markets"
 content_mode: "market"
 permalink: /world-markets/fear-drives-investors-safe-havens-bitcoin-1413/
-excerpt: "Fear Drives Investors To Safe Havens As Bitcoin Drops 1.81% — World Markets for August 03, 2026. Insights on global markets today for US, UK, India and Brazil investors."
+excerpt: "Global markets explained: Dow, Nasdaq, dollar impact on Nifty, August 03, 2026, with DXY at 99.81 and Bitcoin dropping 1.81%. | World Markets August 03, 2026."
 description: "Global markets explained: Dow, Nasdaq, dollar impact on Nifty, August 03, 2026, with DXY at 99.81 and Bitcoin dropping 1.81%. | World Markets August 03, 2026."
 keywords: "global markets today, Dow Jones today, Nasdaq today, crude oil price, world markets, global markets today, Dow Jones today, global markets today UK, FTSE global markets, global markets today impact nifty, dow jones today, DAX Germany 2026, global markets"
 categories: [World-Markets]

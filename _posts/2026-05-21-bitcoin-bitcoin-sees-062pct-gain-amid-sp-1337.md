@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "bitcoin"
 content_mode: "market"
 permalink: /bitcoin/bitcoin-sees-062pct-gain-amid-sp-1337/
-excerpt: "Bitcoin Sees 0.62% Gain Amid SandP 500's 0.4% Rise and Fear Levels at 29 Today — Bitcoin and Crypto for May 21, 2026. Insights on Bitcoin for US, UK, India and Brazil investors."
-description: "Bitcoin gains 0.62% on May 21, 2026, as SandP 500 rises 0.4% and fear levels stand at 29, signaling a potential trend reversal. | Bitcoin and Crypto May 21, 2026."
+excerpt: "Bitcoin gains 0.62% on May 21, 2026, as S&P 500 rises 0.4% and fear levels stand at 29, signaling a potential trend reversal. | Bitcoin and Crypto May 21, 2026."
+description: "Bitcoin gains 0.62% on May 21, 2026, as S&P 500 rises 0.4% and fear levels stand at 29, signaling a potential trend reversal. | Bitcoin and Crypto May 21, 2026."
 keywords: "Bitcoin, Ethereum, crypto market today, BTC price, cryptocurrency, bitcoin price today, crypto market today, bitcoin price INR today, crypto India today"
 categories: [Bitcoin-Crypto]
 tags: [bitcoin]

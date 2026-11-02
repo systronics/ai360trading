@@ -6,7 +6,7 @@ author: "Amit Kumar"
 pillar: "world-markets"
 content_mode: "market"
 permalink: /world-markets/us-stocks-rally-while-india-lags-1542/
-excerpt: "US Stocks Rally While India Lags — What It Signals — World Markets for October 22, 2026. Insights on global markets today for US, UK, India and Brazil investors."
+excerpt: "On Oct 22 2026 US stocks rally while India lags; Dow, Nasdaq, Dollar impact Nifty, oil, yields and emerging‑vs‑developed dynamics explained."
 description: "On Oct 22 2026 US stocks rally while India lags; Dow, Nasdaq, Dollar impact Nifty, oil, yields and emerging‑vs‑developed dynamics explained."
 keywords: "global markets today, Dow Jones today, Nasdaq today, crude oil price, world markets, global markets today, Dow Jones today, global markets today UK, FTSE global markets, global markets today impact nifty, dow jones today, DAX Germany 2026, global markets"
 categories: [World-Markets]

@@ -6,7 +6,7 @@ author: "Amit Kumar"
 pillar: "bitcoin"
 content_mode: "market"
 permalink: /bitcoin/tracking-share-market-today-trends-through-1312/
-excerpt: "Tracking Share Market Today Trends Through Bitcoin's 65,348 Level — Bitcoin and Crypto for July 24, 2026. Insights on Bitcoin for US, UK, India and Brazil investors."
+excerpt: "Bitcoin price at 65,348 on July 24, 2026, as share market trends signal caution, despite consensus views on crypto market recovery."
 description: "Bitcoin price at 65,348 on July 24, 2026, as share market trends signal caution, despite consensus views on crypto market recovery."
 keywords: "Bitcoin, Ethereum, crypto market today, BTC price, cryptocurrency, bitcoin price today, crypto market today, bitcoin price GBP, crypto UK today, bitcoin price INR today, crypto India today, DAX Germany 2026, global markets"
 categories: [Bitcoin-Crypto]

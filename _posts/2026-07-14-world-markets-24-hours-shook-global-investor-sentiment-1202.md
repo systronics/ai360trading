@@ -6,7 +6,7 @@ author: "Amit Kumar"
 pillar: "world-markets"
 content_mode: "market"
 permalink: /world-markets/24-hours-shook-global-investor-sentiment-1202/
-excerpt: "24 Hours That Shook Global Investor Sentiment And Nifty Fifty — World Markets for July 14, 2026. Insights on global markets today for US, UK, India and Brazil investors."
+excerpt: "Global markets shaken as Nifty Fifty and US Dow face uncertainty on July 14, 2026, amidst rising crude oil prices and geopolitical tensions."
 description: "Global markets shaken as Nifty Fifty and US Dow face uncertainty on July 14, 2026, amidst rising crude oil prices and geopolitical tensions."
 keywords: "global markets today, Dow Jones today, Nasdaq today, crude oil price, world markets, global markets today, Dow Jones today, global markets today UK, FTSE global markets, global markets today impact nifty, dow jones today, DAX Germany 2026, global markets"
 categories: [World-Markets]

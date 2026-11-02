@@ -6,7 +6,7 @@ author: "Amit Kumar"
 pillar: "bitcoin"
 content_mode: "market"
 permalink: /bitcoin/unlocking-share-market-today-trends-through-1549/
-excerpt: "Unlocking Share Market Today Trends Through Bitcoin's 1.41% Surge — Bitcoin and Crypto for June 22, 2026. Insights on Bitcoin for US, UK, India and Brazil investors."
+excerpt: "Bitcoin surges 1.41% to $64,128.42 on June 22, 2026, as share market today trends reflect global economic shifts. | Bitcoin and Crypto June 22, 2026."
 description: "Bitcoin surges 1.41% to $64,128.42 on June 22, 2026, as share market today trends reflect global economic shifts. | Bitcoin and Crypto June 22, 2026."
 keywords: "Bitcoin, Ethereum, crypto market today, BTC price, cryptocurrency, bitcoin price today, crypto market today, bitcoin price GBP, crypto UK today, bitcoin price INR today, crypto India today, DAX Germany 2026, global markets"
 categories: [Bitcoin-Crypto]

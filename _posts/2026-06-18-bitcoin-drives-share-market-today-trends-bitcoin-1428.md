@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "bitcoin"
 content_mode: "market"
 permalink: /bitcoin/drives-share-market-today-trends-bitcoin-1428/
-excerpt: "What Drives Share Market Today Trends As Bitcoin Falls 0.17% Globally — Bitcoin and Crypto for June 18, 2026. Insights on Bitcoin for US, UK, India and Brazil investors."
-description: "Bitcoin falls 0.17% globally on June 18, 2026, as share market today trends show mixed signals, with NIFTY 50 at 24,086.6 and SandP 500 at 7,420.1."
+excerpt: "Bitcoin falls 0.17% globally on June 18, 2026, as share market today trends show mixed signals, with NIFTY 50 at 24,086.6 and S&P 500 at 7,420.1."
+description: "Bitcoin falls 0.17% globally on June 18, 2026, as share market today trends show mixed signals, with NIFTY 50 at 24,086.6 and S&P 500 at 7,420.1."
 keywords: "Bitcoin, Ethereum, crypto market today, BTC price, cryptocurrency, bitcoin price today, crypto market today, bitcoin price GBP, crypto UK today, bitcoin price INR today, crypto India today, DAX Germany 2026, global markets"
 categories: [Bitcoin-Crypto]
 tags: [bitcoin]

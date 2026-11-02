@@ -6,7 +6,7 @@ author: "Amit Kumar"
 pillar: "stock-market"
 content_mode: "market"
 permalink: /stock-market/24181-nifty-level-triggers-extreme-fear-1328/
-excerpt: "24,181 NIFTY Level Triggers Extreme Fear Among Global Investors Today — Stock Market for June 25, 2026. Insights on SandP 500 for US, UK, India and Brazil investors."
+excerpt: "NIFTY at 24,181 triggers extreme fear among investors on June 25, 2026, as global markets face uncertainty. | Stock Market June 25, 2026."
 description: "NIFTY at 24,181 triggers extreme fear among investors on June 25, 2026, as global markets face uncertainty. | Stock Market June 25, 2026."
 keywords: "S&P 500, NIFTY, NASDAQ, SENSEX, IBOVESPA, stock market today, stock market today, S&P 500 forecast, FTSE 100 today, UK stock market, nifty analysis today, trading signals India, DAX Germany 2026, global markets"
 categories: [Stock-Market]

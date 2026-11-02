@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "mutual-funds"
 content_mode: "market"
 permalink: /mutual-funds/rebalance-your-mutual-fund-portfolio-year-1535/
-excerpt: "How to Rebalance Your Mutual Fund Portfolio This Year — Mutual Funds and SIP for September 15, 2026. Insights on best mutual funds 2026 for US, UK, India and Brazil investors."
-description: "How to Rebalance Your Mutual Fund Portfolio This Year | Mutual Funds and SIP — September 15, 2026. Insights for US, UK, India and Brazil investors."
+excerpt: "Photo by Alex Luna on Pexels Smart money is moving. Here's what you need to know."
+description: "Photo by Alex Luna on Pexels Smart money is moving. Here's what you need to know."
 keywords: "best mutual funds 2026, SIP returns, index fund, ELSS, NFO today, best index funds 2026, mutual fund performance 2026, best funds UK 2026, ISA fund performance, best mutual funds 2026 India, SIP returns today, DAX Germany 2026, global markets"
 categories: [Mutual-Funds]
 tags: [mutual-funds]
@@ -27,7 +27,7 @@ gold_level: "4,310.3 - 0.96%"
     {
       "@type": "Article",
       "headline": "How to Rebalance Your Mutual Fund Portfolio This Year",
-      "description": "How to Rebalance Your Mutual Fund Portfolio This Year | Mutual Funds & SIP \u2014 September 15, 2026. Insights for US, UK, India and Brazil investors.",
+      "description": "Photo by Alex Luna on Pexels Smart money is moving. Here's what you need to know.",
       "datePublished": "2026-09-15",
       "dateModified": "2026-09-15",
       "author": {

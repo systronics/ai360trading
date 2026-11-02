@@ -6,7 +6,7 @@ author: "Amit Kumar"
 pillar: "bitcoin"
 content_mode: "weekend"
 permalink: /bitcoin/saturday-market-pause-bitcoin-holds-near-1354/
-excerpt: "Saturday Market Pause: Bitcoin Holds Near 78,000 Ahead of Monday Reopening Globally Today — Bitcoin and Crypto for May 23, 2026. Insights on Bitcoin explained for US, UK, India and Brazil investors."
+excerpt: "Saturday Market Pause: Bitcoin Holds Near 78,000 Ahead of Monday Reopening Globally Today, May 23, 2026, Crypto Education | Bitcoin and Crypto May 23, 2026."
 description: "Saturday Market Pause: Bitcoin Holds Near 78,000 Ahead of Monday Reopening Globally Today, May 23, 2026, Crypto Education | Bitcoin and Crypto May 23, 2026."
 keywords: "Bitcoin explained, how to buy crypto safely, crypto beginner guide 2026, how to buy bitcoin USA 2026, crypto investing guide, how to buy bitcoin UK 2026, crypto regulation UK, how to buy bitcoin India 2026, crypto tax India, DAX Germany 2026, global markets"
 categories: [Bitcoin-Crypto]

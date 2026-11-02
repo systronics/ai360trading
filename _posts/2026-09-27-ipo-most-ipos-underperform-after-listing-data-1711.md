@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "ipo"
 content_mode: "weekend"
 permalink: /ipo/most-ipos-underperform-after-listing-data-1711/
-excerpt: "Why Most IPOs Underperform After Listing — The Data — IPO Watch for September 27, 2026. Insights on upcoming IPO 2026 for US, UK, India and Brazil investors."
-description: "Why Most IPOs Underperform After Listing — The Data | IPO Watch — September 27, 2026. Insights for US, UK, India and Brazil investors."
+excerpt: "Photo by Rafael Minguet Delgado on Pexels The market is sending signals — are you listening?"
+description: "Photo by Rafael Minguet Delgado on Pexels The market is sending signals — are you listening?"
 keywords: "upcoming IPO 2026, how to apply for IPO, IPO GMP, should I apply IPO, upcoming IPO 2026 USA, how to buy IPO stock, upcoming IPO UK 2026, how to invest in IPO UK, upcoming IPO 2026 India, how to apply IPO online, DAX Germany 2026, global markets"
 categories: [IPO]
 tags: [ipo]
@@ -27,7 +27,7 @@ gold_level: "N/A"
     {
       "@type": "Article",
       "headline": "Why Most IPOs Underperform After Listing \u2014 The Data",
-      "description": "Why Most IPOs Underperform After Listing \u2014 The Data | IPO Watch \u2014 September 27, 2026. Insights for US, UK, India and Brazil investors.",
+      "description": "Photo by Rafael Minguet Delgado on Pexels The market is sending signals \u2014 are you listening?",
       "datePublished": "2026-09-27",
       "dateModified": "2026-09-27",
       "author": {

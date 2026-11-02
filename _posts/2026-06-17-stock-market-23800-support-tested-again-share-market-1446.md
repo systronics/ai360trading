@@ -6,7 +6,7 @@ author: "Amit Kumar"
 pillar: "stock-market"
 content_mode: "market"
 permalink: /stock-market/23800-support-tested-again-share-market-1446/
-excerpt: "23,800 Support Tested Again in Share Market Today Trends — Stock Market for June 17, 2026. Insights on SandP 500 for US, UK, India and Brazil investors."
+excerpt: "Share market today trends test 23,800 support on June 17, 2026, as FII DII data indicates Indian market direction. | Stock Market June 17, 2026."
 description: "Share market today trends test 23,800 support on June 17, 2026, as FII DII data indicates Indian market direction. | Stock Market June 17, 2026."
 keywords: "S&P 500, NIFTY, NASDAQ, SENSEX, IBOVESPA, stock market today, stock market today, S&P 500 forecast, FTSE 100 today, UK stock market, nifty analysis today, trading signals India, DAX Germany 2026, global markets"
 categories: [Stock-Market]

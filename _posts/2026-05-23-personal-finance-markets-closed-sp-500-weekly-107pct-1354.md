@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "personal-finance"
 content_mode: "weekend"
 permalink: /personal-finance/markets-closed-sp-500-weekly-107pct-1354/
-excerpt: "Markets Closed: SandP 500 Weekly 1.07% Gain Impacts Rs.10,000 Term Insurance Plans Globally — Personal Finance for May 23, 2026. Insights on personal finance tips 2026 for US, UK, India and Brazil inves"
-description: "SandP 500 weekly 1.07% gain on May 23, 2026, impacts Rs.10,000 term insurance plans globally, affecting investors in US, UK, Brazil, and India."
+excerpt: "Markets Closed: S&P 500 Weekly 1.07% Gain Impacts Rs.10,000 Term Insurance Plans Globally — Personal Finance for May 23, 2026. Insights on personal finance tips 2026 for US, UK, India and Brazil inves"
+description: "S&P 500 weekly 1.07% gain on May 23, 2026, impacts Rs.10,000 term insurance plans globally, affecting investors in US, UK, Brazil, and India."
 keywords: "personal finance tips 2026, how to save money, emergency fund, term life insurance, best savings account USA 2026, 401k guide, best ISA 2026, UK pension guide, how to save money India 2026, best term insurance India, DAX Germany 2026, global markets"
 categories: [Personal-Finance]
 tags: [personal-finance]

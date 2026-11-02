@@ -1,13 +1,13 @@
 ---
 layout: post
-title: "Fear Levels Hit 26 as NIFTY Surges 1.26% Amid SandP 500's 0.37% Drop Today"
+title: "Fear Levels Hit 26 as NIFTY Surges 1.26% Amid S&P 500's 0.37% Drop Today"
 date: 2026-04-29
 author: "Amit Kumar"
 pillar: "stock-market"
 content_mode: "market"
 permalink: /stock-market/fear-levels-hit-26-nifty-surges-1212/
-excerpt: "Fear Levels Hit 26 as NIFTY Surges 1.26% Amid SandP 500's 0.37% Drop Today — Stock Market for April 29, 2026. Insights on SandP 500 for US, UK, India and Brazil investors."
-description: "NIFTY surges 1.26% as fear levels hit 26 on April 29, 2026, while SandP 500 drops 0.37%, affecting global markets and investor sentiment."
+excerpt: "NIFTY surges 1.26% as fear levels hit 26 on April 29, 2026, while S&P 500 drops 0.37%, affecting global markets and investor sentiment."
+description: "NIFTY surges 1.26% as fear levels hit 26 on April 29, 2026, while S&P 500 drops 0.37%, affecting global markets and investor sentiment."
 keywords: "S&P 500, NIFTY, NASDAQ, SENSEX, IBOVESPA, stock market today, stock market today, S&P 500 forecast, nifty analysis today, trading signals India"
 categories: [Stock-Market]
 tags: [stock-market]

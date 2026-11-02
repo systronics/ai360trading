@@ -6,7 +6,7 @@ author: "Amit Kumar"
 pillar: "ipo"
 content_mode: "market"
 permalink: /ipo/decoding-share-market-india-trends-make-1404/
-excerpt: "Decoding Share Market India Trends to Make Informed IPO Choices Today — IPO Watch for July 01, 2026. Insights on upcoming IPO 2026 for US, UK, India and Brazil investors."
+excerpt: "Decoding Share Market India Trends to Make Informed IPO Choices Today, July 01, 2026, NIFTY 50: 24,025.95, SENSEX: 77,002.66. | IPO Watch July 01, 2026."
 description: "Decoding Share Market India Trends to Make Informed IPO Choices Today, July 01, 2026, NIFTY 50: 24,025.95, SENSEX: 77,002.66. | IPO Watch July 01, 2026."
 keywords: "upcoming IPO 2026, IPO this week, IPO GMP today, new IPO, IPO allotment, upcoming IPO 2026, biggest IPOs 2026, upcoming IPO UK 2026, London IPO 2026, upcoming IPO this week, IPO GMP today, DAX Germany 2026, global markets"
 categories: [IPO]

@@ -6,7 +6,7 @@ author: "Amit Kumar"
 pillar: "mutual-funds"
 content_mode: "weekend"
 permalink: /mutual-funds/check-your-mutual-fund-expense-ratio-1629/
-excerpt: "Check Your Mutual Fund Expense Ratio Before Your Next SIP — Mutual Funds and SIP for October 25, 2026. Insights on best mutual funds 2026 for US, UK, India and Brazil investors."
+excerpt: "A timeless guide on picking low‑cost mutual funds, SIP vs lump‑sum, and risk control – best mutual funds and SIP guide India 2026 honest no hype."
 description: "A timeless guide on picking low‑cost mutual funds, SIP vs lump‑sum, and risk control – best mutual funds and SIP guide India 2026 honest no hype."
 keywords: "best mutual funds 2026, SIP investment, index fund vs mutual fund, ELSS tax saving, best index funds 2026, mutual fund vs ETF, best funds UK 2026, ISA index fund, best mutual funds 2026 India, SIP vs lump sum, DAX Germany 2026, global markets"
 categories: [Mutual-Funds]

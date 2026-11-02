@@ -6,7 +6,7 @@ author: "Amit Kumar"
 pillar: "bitcoin"
 content_mode: "weekend"
 permalink: /bitcoin/bitcoin-holds-78212-amid-global-caution-1320/
-excerpt: "Bitcoin Holds 78,212 Amid Global Caution on Saturday Market Pause Worldwide Today — Bitcoin and Crypto for May 02, 2026. Insights on Bitcoin explained for US, UK, India and Brazil investors."
+excerpt: "Bitcoin holds at 78,212 on Saturday, May 02, 2026, amid global caution, sparking fear and greed index debates in India, USA, and worldwide."
 description: "Bitcoin holds at 78,212 on Saturday, May 02, 2026, amid global caution, sparking fear and greed index debates in India, USA, and worldwide."
 keywords: "Bitcoin explained, how to buy crypto safely, crypto beginner guide 2026, how to buy bitcoin USA 2026, crypto investing guide, how to buy bitcoin India 2026, crypto tax India"
 categories: [Bitcoin-Crypto]

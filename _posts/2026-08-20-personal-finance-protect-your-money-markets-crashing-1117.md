@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "personal-finance"
 content_mode: "market"
 permalink: /personal-finance/protect-your-money-markets-crashing-1117/
-excerpt: "How to Protect Your Money When Markets Are Crashing — Personal Finance for August 20, 2026. Insights on term life insurance for US, UK, India and Brazil investors."
-description: "How to Protect Your Money When Markets Are Crashing | Personal Finance — August 20, 2026. Insights for US, UK, India and Brazil investors."
+excerpt: "Photo by Jakub Zerdzicki on Pexels Smart money is moving. Here's what you need to know."
+description: "Photo by Jakub Zerdzicki on Pexels Smart money is moving. Here's what you need to know."
 keywords: "term life insurance, best investment 2026, retirement planning, tax saving, personal finance, best term life insurance USA 2026, 401k investing 2026, best ISA 2026 UK, UK pension 2026, best term insurance India 2026, SIP investment returns, DAX Germany 2026, global markets"
 categories: [Personal-Finance]
 tags: [personal-finance]
@@ -27,7 +27,7 @@ gold_level: "4,538.2 + 1.09%"
     {
       "@type": "Article",
       "headline": "How to Protect Your Money When Markets Are Crashing",
-      "description": "How to Protect Your Money When Markets Are Crashing | Personal Finance \u2014 August 20, 2026. Insights for US, UK, India and Brazil investors.",
+      "description": "Photo by Jakub Zerdzicki on Pexels Smart money is moving. Here's what you need to know.",
       "datePublished": "2026-08-20",
       "dateModified": "2026-08-20",
       "author": {

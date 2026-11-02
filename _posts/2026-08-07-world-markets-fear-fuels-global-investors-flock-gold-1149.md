@@ -6,7 +6,7 @@ author: "Amit Kumar"
 pillar: "world-markets"
 content_mode: "market"
 permalink: /world-markets/fear-fuels-global-investors-flock-gold-1149/
-excerpt: "Fear Fuels Global Investors To Flock To Gold As It Surges 2.35% — World Markets for August 07, 2026. Insights on global markets today for US, UK, India and Brazil investors."
+excerpt: "Fear Fuels Global Investors To Flock To Gold As It Surges 2.35% on August 07, 2026, amid global market volatility. | World Markets August 07, 2026."
 description: "Fear Fuels Global Investors To Flock To Gold As It Surges 2.35% on August 07, 2026, amid global market volatility. | World Markets August 07, 2026."
 keywords: "global markets today, Dow Jones today, Nasdaq today, crude oil price, world markets, global markets today, Dow Jones today, global markets today UK, FTSE global markets, global markets today impact nifty, dow jones today, DAX Germany 2026, global markets"
 categories: [World-Markets]

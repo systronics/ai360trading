@@ -6,7 +6,7 @@ author: "Amit Kumar"
 pillar: "bitcoin"
 content_mode: "market"
 permalink: /bitcoin/fear-grips-investors-bitcoin-falls-097pct-1309/
-excerpt: "Fear Grips Investors as Bitcoin Falls 0.97% Today Amid Global Uncertainty — Bitcoin and Crypto for July 20, 2026. Insights on Bitcoin for US, UK, India and Brazil investors."
+excerpt: "Bitcoin falls 0.97% today, July 20, 2026, as fear grips investors amidst global uncertainty, with BTC price at 64,066.42 and Fear and Greed Index at 29."
 description: "Bitcoin falls 0.97% today, July 20, 2026, as fear grips investors amidst global uncertainty, with BTC price at 64,066.42 and Fear and Greed Index at 29."
 keywords: "Bitcoin, Ethereum, crypto market today, BTC price, cryptocurrency, bitcoin price today, crypto market today, bitcoin price GBP, crypto UK today, bitcoin price INR today, crypto India today, DAX Germany 2026, global markets"
 categories: [Bitcoin-Crypto]

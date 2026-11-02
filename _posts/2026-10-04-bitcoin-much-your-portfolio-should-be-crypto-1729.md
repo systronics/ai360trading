@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "bitcoin"
 content_mode: "weekend"
 permalink: /bitcoin/much-your-portfolio-should-be-crypto-1729/
-excerpt: "How Much of Your Portfolio Should Be in Crypto? The Answer May Surprise You — Bitcoin and Crypto for October 04, 2026. Insights on Bitcoin explained for US, UK, India and Brazil investors."
-description: "How Much of Your Portfolio Should Be in Crypto? The Answer May Surprise You | Bitcoin and Crypto — October 04, 2026. Insights for US, UK, India and Brazil"
+excerpt: "Photo by Rafael Minguet Delgado on Pexels The market is sending signals — are you listening?"
+description: "Photo by Rafael Minguet Delgado on Pexels The market is sending signals — are you listening?"
 keywords: "Bitcoin explained, how to buy crypto safely, crypto beginner guide 2026, how to buy bitcoin USA 2026, crypto investing guide, how to buy bitcoin UK 2026, crypto regulation UK, how to buy bitcoin India 2026, crypto tax India, DAX Germany 2026, global markets"
 categories: [Bitcoin-Crypto]
 tags: [bitcoin]
@@ -27,7 +27,7 @@ gold_level: "N/A"
     {
       "@type": "Article",
       "headline": "How Much of Your Portfolio Should Be in Crypto? The Answer May Surprise You",
-      "description": "How Much of Your Portfolio Should Be in Crypto? The Answer May Surprise You | Bitcoin and Crypto \u2014 October 04, 2026. Insights for US, UK, India and Brazil",
+      "description": "Photo by Rafael Minguet Delgado on Pexels The market is sending signals \u2014 are you listening?",
       "datePublished": "2026-10-04",
       "dateModified": "2026-10-04",
       "author": {

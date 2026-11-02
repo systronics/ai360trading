@@ -6,7 +6,7 @@ author: "Amit Kumar"
 pillar: "stock-market"
 content_mode: "weekend"
 permalink: /stock-market/discover-24000-crucial-niftys-next-move-1401/
-excerpt: "Discover Why 24,000 is Crucial for NIFTY's Next Move — Stock Market for May 30, 2026. Insights on stock market basics for US, UK, India and Brazil investors."
+excerpt: "Uncover the timeless investing principles that beat the market, leveraging compound interest and index fund investing, as of May 30, 2026."
 description: "Uncover the timeless investing principles that beat the market, leveraging compound interest and index fund investing, as of May 30, 2026."
 keywords: "stock market basics, how to invest, index fund, S&P 500, NIFTY, how to invest in stocks USA, best index fund 2026, how to invest UK 2026, FTSE 100 beginner guide, how to invest in share market India, Nifty 50 beginner guide, DAX Germany 2026, global markets"
 categories: [Stock-Market]

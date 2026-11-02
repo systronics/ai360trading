@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "world-markets"
 content_mode: "market"
 permalink: /world-markets/fear-grips-share-market-today-global-1415/
-excerpt: "Fear Grips Share Market Today As Global Investors Dump Stocks — World Markets for July 06, 2026. Insights on global markets today for US, UK, India and Brazil investors."
-description: "Fear grips share market today, July 06, 2026, as global investors dump stocks, with NIFTY 50 at 24,400.75 and SandP 500 at 7,483.24."
+excerpt: "Fear grips share market today, July 06, 2026, as global investors dump stocks, with NIFTY 50 at 24,400.75 and S&P 500 at 7,483.24."
+description: "Fear grips share market today, July 06, 2026, as global investors dump stocks, with NIFTY 50 at 24,400.75 and S&P 500 at 7,483.24."
 keywords: "global markets today, Dow Jones today, Nasdaq today, crude oil price, world markets, global markets today, Dow Jones today, global markets today UK, FTSE global markets, global markets today impact nifty, dow jones today, DAX Germany 2026, global markets"
 categories: [World-Markets]
 tags: [world-markets]

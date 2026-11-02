@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "gold"
 content_mode: "market"
 permalink: /gold/does-gold-still-shine-share-market-1415/
-excerpt: "Does Gold Still Shine in Share Market India Today AmidExtreme Fear — Gold and Commodities for June 12, 2026. Insights on gold price today for US, UK, India and Brazil investors."
-description: "Does Gold Still Shine in Share Market India Today AmidExtreme Fear | Gold and Commodities — June 12, 2026. Insights for US, UK, India and Brazil investors."
+excerpt: "Photo by Lukas Blazek on Pexels I'm watching the gold market closely today, as gold prices have surged 3.61% to $4,238.1."
+description: "Photo by Lukas Blazek on Pexels I'm watching the gold market closely today, as gold prices have surged 3.61% to $4,238.1."
 keywords: "gold price today, gold rate, gold vs stocks, MCX gold, silver price, gold price today, gold forecast 2026, gold price GBP today, gold ETF UK, gold price today India, gold rate today, DAX Germany 2026, global markets"
 categories: [Gold-Commodities]
 tags: [gold]
@@ -27,7 +27,7 @@ gold_level: "4,238.1 + 3.61%"
     {
       "@type": "Article",
       "headline": "Does Gold Still Shine in Share Market India Today AmidExtreme Fear",
-      "description": "Does Gold Still Shine in Share Market India Today AmidExtreme Fear | Gold & Commodities \u2014 June 12, 2026. Insights for US, UK, India and Brazil investors.",
+      "description": "Photo by Lukas Blazek on Pexels I'm watching the gold market closely today, as gold prices have surged 3.61% to $4,238.1.",
       "datePublished": "2026-06-12",
       "dateModified": "2026-06-12",
       "author": {

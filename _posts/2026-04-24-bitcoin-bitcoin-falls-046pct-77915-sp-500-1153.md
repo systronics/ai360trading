@@ -1,13 +1,13 @@
 ---
 layout: post
-title: "Bitcoin Falls 0.46% to 77,915 as SandP 500 Rises 0.63% Amid Fear Levels"
+title: "Bitcoin Falls 0.46% to 77,915 as S&P 500 Rises 0.63% Amid Fear Levels"
 date: 2026-04-24
 author: "Amit Kumar"
 pillar: "bitcoin"
 content_mode: "market"
 permalink: /bitcoin/bitcoin-falls-046pct-77915-sp-500-1153/
-excerpt: "Bitcoin Falls 0.46% to 77,915 as SandP 500 Rises 0.63% Amid Fear Levels — Bitcoin and Crypto for April 24, 2026. Insights on Bitcoin for US, UK, India and Brazil investors."
-description: "Bitcoin falls 0.46% to 77,915 on April 24, 2026, as SandP 500 rises 0.63% amid fear levels, defying consensus views on crypto market trends."
+excerpt: "Bitcoin falls 0.46% to 77,915 on April 24, 2026, as S&P 500 rises 0.63% amid fear levels, defying consensus views on crypto market trends."
+description: "Bitcoin falls 0.46% to 77,915 on April 24, 2026, as S&P 500 rises 0.63% amid fear levels, defying consensus views on crypto market trends."
 keywords: "Bitcoin, Ethereum, crypto market today, BTC price, cryptocurrency, bitcoin price today, crypto market today, bitcoin price INR today, crypto India today"
 categories: [Bitcoin-Crypto]
 tags: [bitcoin]

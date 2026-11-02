@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "ipo"
 content_mode: "weekend"
 permalink: /ipo/mainboard-sme-ipo-beginners-must-know-1702/
-excerpt: "Mainboard vs SME IPO — What Beginners Must Know — IPO Watch for August 30, 2026. Insights on upcoming IPO 2026 for US, UK, India and Brazil investors."
-description: "Mainboard vs SME IPO — What Beginners Must Know | IPO Watch — August 30, 2026. Insights for US, UK, India and Brazil investors."
+excerpt: "Photo by Hanna Pad on Pexels Smart money is moving. Here's what you need to know."
+description: "Photo by Hanna Pad on Pexels Smart money is moving. Here's what you need to know."
 keywords: "upcoming IPO 2026, how to apply for IPO, IPO GMP, should I apply IPO, upcoming IPO 2026 USA, how to buy IPO stock, upcoming IPO UK 2026, how to invest in IPO UK, upcoming IPO 2026 India, how to apply IPO online, DAX Germany 2026, global markets"
 categories: [IPO]
 tags: [ipo]
@@ -27,7 +27,7 @@ gold_level: "N/A"
     {
       "@type": "Article",
       "headline": "Mainboard vs SME IPO \u2014 What Beginners Must Know",
-      "description": "Mainboard vs SME IPO \u2014 What Beginners Must Know | IPO Watch \u2014 August 30, 2026. Insights for US, UK, India and Brazil investors.",
+      "description": "Photo by Hanna Pad on Pexels Smart money is moving. Here's what you need to know.",
       "datePublished": "2026-08-30",
       "dateModified": "2026-08-30",
       "author": {

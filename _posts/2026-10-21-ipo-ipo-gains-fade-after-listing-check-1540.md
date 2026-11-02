@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "ipo"
 content_mode: "market"
 permalink: /ipo/ipo-gains-fade-after-listing-check-1540/
-excerpt: "IPO Gains Fade After Listing? Check This Data First — IPO Watch for October 21, 2026. Insights on upcoming IPO 2026 for US, UK, India and Brazil investors."
-description: "IPO Gains Fade After Listing? Check This Data First | IPO Watch — October 21, 2026. Insights for US, UK, India and Brazil investors."
+excerpt: "The market’s greed index sits at 63, so the bias is clearly bullish, yet the India VIX is up 6.3% to 15.7, signaling nervousness."
+description: "The market’s greed index sits at 63, so the bias is clearly bullish, yet the India VIX is up 6.3% to 15.7, signaling nervousness."
 keywords: "upcoming IPO 2026, IPO this week, IPO GMP today, new IPO, IPO allotment, upcoming IPO 2026, biggest IPOs 2026, upcoming IPO UK 2026, London IPO 2026, upcoming IPO this week, IPO GMP today, DAX Germany 2026, global markets"
 categories: [IPO]
 tags: [ipo]
@@ -27,7 +27,7 @@ gold_level: "4,136.4 - 0.15%"
     {
       "@type": "Article",
       "headline": "IPO Gains Fade After Listing? Check This Data First",
-      "description": "IPO Gains Fade After Listing? Check This Data First | IPO Watch \u2014 October 21, 2026. Insights for US, UK, India and Brazil investors.",
+      "description": "The market\u2019s greed index sits at 63, so the bias is clearly bullish, yet the India VIX is up 6.3% to 15.7, signaling nervousness.",
       "datePublished": "2026-10-21",
       "dateModified": "2026-10-21",
       "author": {

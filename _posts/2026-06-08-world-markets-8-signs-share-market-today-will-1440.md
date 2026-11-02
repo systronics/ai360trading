@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "world-markets"
 content_mode: "market"
 permalink: /world-markets/8-signs-share-market-today-will-1440/
-excerpt: "8 Signs Share Market Today Will Impact Your Portfolio — World Markets for June 08, 2026. Insights on global markets today for US, UK, India and Brazil investors."
-description: "Share market today, June 08, 2026, shows extreme fear with NIFTY 50 at 23,156.1 ▼ 0.9% and SandP 500 at 7,383.74 ▼ 2.25%. | World Markets June 08, 2026."
+excerpt: "Share market today, June 08, 2026, shows extreme fear with NIFTY 50 at 23,156.1 ▼ 0.9% and S&P 500 at 7,383.74 ▼ 2.25%. | World Markets June 08, 2026."
+description: "Share market today, June 08, 2026, shows extreme fear with NIFTY 50 at 23,156.1 ▼ 0.9% and S&P 500 at 7,383.74 ▼ 2.25%. | World Markets June 08, 2026."
 keywords: "global markets today, Dow Jones today, Nasdaq today, crude oil price, world markets, global markets today, Dow Jones today, global markets today UK, FTSE global markets, global markets today impact nifty, dow jones today, DAX Germany 2026, global markets"
 categories: [World-Markets]
 tags: [world-markets]

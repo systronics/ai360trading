@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "ai-trading"
 content_mode: "market"
 permalink: /ai-trading/fear-28-ai-flags-125pct-sp-1327/
-excerpt: "Fear at 28: AI Flags 1.25% SandP 500 Gain Outpacing NIFTY's 0.66% Rise Today — AI and Trading Technology for May 22, 2026. Insights on AI trading 2026 for US, UK, India and Brazil investors."
-description: "Fear at 28, AI flags 1.25% SandP 500 gain outpacing NIFTY's 0.66% rise today, May 22, 2026, as markets react to global cues. | AI and Trading Technology May 22, 2"
+excerpt: "Fear at 28, AI flags 1.25% S&P 500 gain outpacing NIFTY's 0.66% rise today, May 22, 2026, as markets react to global cues. | AI and Trading Technology May 22, 2"
+description: "Fear at 28, AI flags 1.25% S&P 500 gain outpacing NIFTY's 0.66% rise today, May 22, 2026, as markets react to global cues. | AI and Trading Technology May 22, 2"
 keywords: "AI trading 2026, algorithmic trading, fintech, AI stock market, trading technology, AI stock trading 2026, best AI trading algorithm, algo trading India NSE, AI trading bot India"
 categories: [AI-Trading]
 tags: [ai-trading]

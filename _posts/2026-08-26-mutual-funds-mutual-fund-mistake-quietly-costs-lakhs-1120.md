@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "mutual-funds"
 content_mode: "holiday"
 permalink: /mutual-funds/mutual-fund-mistake-quietly-costs-lakhs-1120/
-excerpt: "The Mutual Fund Mistake That Quietly Costs You Lakhs — Mutual Funds and SIP for August 26, 2026. Insights on best mutual funds 2026 for US, UK, India and Brazil investors."
-description: "The Mutual Fund Mistake That Quietly Costs You Lakhs | Mutual Funds and SIP — August 26, 2026. Insights for US, UK, India and Brazil investors."
+excerpt: "Photo by Rafael Minguet Delgado on Pexels The market is sending signals — are you listening?"
+description: "Photo by Rafael Minguet Delgado on Pexels The market is sending signals — are you listening?"
 keywords: "best mutual funds 2026, SIP investment, index fund vs mutual fund, ELSS tax saving, best index funds 2026, mutual fund vs ETF, best funds UK 2026, ISA index fund, best mutual funds 2026 India, SIP vs lump sum, DAX Germany 2026, global markets"
 categories: [Mutual-Funds]
 tags: [mutual-funds]
@@ -27,7 +27,7 @@ gold_level: "N/A"
     {
       "@type": "Article",
       "headline": "The Mutual Fund Mistake That Quietly Costs You Lakhs",
-      "description": "The Mutual Fund Mistake That Quietly Costs You Lakhs | Mutual Funds & SIP \u2014 August 26, 2026. Insights for US, UK, India and Brazil investors.",
+      "description": "Photo by Rafael Minguet Delgado on Pexels The market is sending signals \u2014 are you listening?",
       "datePublished": "2026-08-26",
       "dateModified": "2026-08-26",
       "author": {

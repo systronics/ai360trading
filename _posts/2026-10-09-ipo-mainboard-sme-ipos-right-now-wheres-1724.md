@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "ipo"
 content_mode: "market"
 permalink: /ipo/mainboard-sme-ipos-right-now-wheres-1724/
-excerpt: "Mainboard vs SME IPOs Right Now — Where's the Risk? — IPO Watch for October 09, 2026. Insights on upcoming IPO 2026 for US, UK, India and Brazil investors."
-description: "Mainboard vs SME IPOs Right Now — Where's the Risk? | IPO Watch — October 09, 2026. Insights for US, UK, India and Brazil investors."
+excerpt: "Photo by Jenny Gregg on Pexels Smart money is moving. Here's what you need to know."
+description: "Photo by Jenny Gregg on Pexels Smart money is moving. Here's what you need to know."
 keywords: "upcoming IPO 2026, IPO this week, IPO GMP today, new IPO, IPO allotment, upcoming IPO 2026, biggest IPOs 2026, upcoming IPO UK 2026, London IPO 2026, upcoming IPO this week, IPO GMP today, DAX Germany 2026, global markets"
 categories: [IPO]
 tags: [ipo]
@@ -27,7 +27,7 @@ gold_level: "4,207.0 + 1.2%"
     {
       "@type": "Article",
       "headline": "Mainboard vs SME IPOs Right Now \u2014 Where's the Risk?",
-      "description": "Mainboard vs SME IPOs Right Now \u2014 Where's the Risk? | IPO Watch \u2014 October 09, 2026. Insights for US, UK, India and Brazil investors.",
+      "description": "Photo by Jenny Gregg on Pexels Smart money is moving. Here's what you need to know.",
       "datePublished": "2026-10-09",
       "dateModified": "2026-10-09",
       "author": {

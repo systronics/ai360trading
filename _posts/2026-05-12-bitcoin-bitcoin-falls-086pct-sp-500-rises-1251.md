@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "bitcoin"
 content_mode: "market"
 permalink: /bitcoin/bitcoin-falls-086pct-sp-500-rises-1251/
-excerpt: "Bitcoin Falls 0.86% as SandP 500 Rises 1.03% Amid Neutral Fear Levels at 49 Today — Bitcoin and Crypto for May 12, 2026. Insights on Bitcoin for US, UK, India and Brazil investors."
-description: "Bitcoin falls 0.86% as SandP 500 rises 1.03% on May 12, 2026, with neutral fear levels at 49, signaling a potential shift in market sentiment."
+excerpt: "Bitcoin falls 0.86% as S&P 500 rises 1.03% on May 12, 2026, with neutral fear levels at 49, signaling a potential shift in market sentiment."
+description: "Bitcoin falls 0.86% as S&P 500 rises 1.03% on May 12, 2026, with neutral fear levels at 49, signaling a potential shift in market sentiment."
 keywords: "Bitcoin, Ethereum, crypto market today, BTC price, cryptocurrency, bitcoin price today, crypto market today, bitcoin price INR today, crypto India today"
 categories: [Bitcoin-Crypto]
 tags: [bitcoin]

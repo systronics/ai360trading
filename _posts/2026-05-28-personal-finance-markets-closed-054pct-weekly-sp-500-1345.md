@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "personal-finance"
 content_mode: "holiday"
 permalink: /personal-finance/markets-closed-054pct-weekly-sp-500-1345/
-excerpt: "Markets Closed: 0.54% Weekly SandP 500 Gain Impacts Rs.10,000 NIFTY Investors Globally — Personal Finance for May 28, 2026. Insights on personal finance tips 2026 for US, UK, India and Brazil investors."
-description: "Markets Closed: 0.54% Weekly SandP 500 Gain Impacts Rs.10,000 NIFTY Investors Globally | Personal Finance — May 28, 2026. Insights for US, UK, India and Braz"
+excerpt: "Markets Closed: 0.54% Weekly S&P 500 Gain Impacts Rs.10,000 NIFTY Investors Globally — Personal Finance for May 28, 2026. Insights on personal finance tips 2026 for US, UK, India and Brazil investors."
+description: "Markets Closed: 0.54% Weekly S&P 500 Gain Impacts Rs.10,000 NIFTY Investors Globally | Personal Finance — May 28, 2026. Insights for US, UK, India and Braz"
 keywords: "personal finance tips 2026, how to save money, emergency fund, term life insurance, best savings account USA 2026, 401k guide, best ISA 2026, UK pension guide, how to save money India 2026, best term insurance India, DAX Germany 2026, global markets"
 categories: [Personal-Finance]
 tags: [personal-finance]

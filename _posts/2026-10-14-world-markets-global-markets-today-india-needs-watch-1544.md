@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "world-markets"
 content_mode: "market"
 permalink: /world-markets/global-markets-today-india-needs-watch-1544/
-excerpt: "Global Markets Today — What India Needs to Watch — World Markets for October 14, 2026. Insights on global markets today for US, UK, India and Brazil investors."
-description: "Global Markets Today — What India Needs to Watch | World Markets — October 14, 2026. Insights for US, UK, India and Brazil investors."
+excerpt: "Photo by Whittington on Pexels The market is sending signals — are you listening?"
+description: "Photo by Whittington on Pexels The market is sending signals — are you listening?"
 keywords: "global markets today, Dow Jones today, Nasdaq today, crude oil price, world markets, global markets today, Dow Jones today, global markets today UK, FTSE global markets, global markets today impact nifty, dow jones today, DAX Germany 2026, global markets"
 categories: [World-Markets]
 tags: [world-markets]
@@ -27,7 +27,7 @@ gold_level: "4,163.6 - 0.33%"
     {
       "@type": "Article",
       "headline": "Global Markets Today \u2014 What India Needs to Watch",
-      "description": "Global Markets Today \u2014 What India Needs to Watch | World Markets \u2014 October 14, 2026. Insights for US, UK, India and Brazil investors.",
+      "description": "Photo by Whittington on Pexels The market is sending signals \u2014 are you listening?",
       "datePublished": "2026-10-14",
       "dateModified": "2026-10-14",
       "author": {

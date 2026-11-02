@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "bitcoin"
 content_mode: "market"
 permalink: /bitcoin/bitcoin-slips-032pct-sp-500-surges-1309/
-excerpt: "Bitcoin Slips 0.32% as SandP 500 Surges 1.35% Amid Fear Levels at 43 Today — Bitcoin and Crypto for May 15, 2026. Insights on Bitcoin for US, UK, India and Brazil investors."
-description: "Bitcoin Slips 0.32% as SandP 500 Surges 1.35% Amid Fear Levels at 43 Today | Bitcoin and Crypto — May 15, 2026. Insights for US, UK, India and Brazil investo"
+excerpt: "As I analyze the market data on May 15, 2026, I notice that Bitcoin has slipped 0.32% to 80,792.64, while the S&P 500 has surged 1.35% to 7,501.24."
+description: "As I analyze the market data on May 15, 2026, I notice that Bitcoin has slipped 0.32% to 80,792.64, while the S&P 500 has surged 1.35% to 7,501.24."
 keywords: "Bitcoin, Ethereum, crypto market today, BTC price, cryptocurrency, bitcoin price today, crypto market today, bitcoin price INR today, crypto India today"
 categories: [Bitcoin-Crypto]
 tags: [bitcoin]
@@ -27,7 +27,7 @@ gold_level: "4,587.1 - 1.95%"
     {
       "@type": "Article",
       "headline": "Bitcoin Slips 0.32% as S&P 500 Surges 1.35% Amid Fear Levels at 43 Today",
-      "description": "Bitcoin Slips 0.32% as S&P 500 Surges 1.35% Amid Fear Levels at 43 Today | Bitcoin and Crypto \u2014 May 15, 2026. Insights for US, UK, India and Brazil investo",
+      "description": "As I analyze the market data on May 15, 2026, I notice that Bitcoin has slipped 0.32% to 80,792.64, while the S&P 500 has surged 1.35% to 7,501.24.",
       "datePublished": "2026-05-15",
       "dateModified": "2026-05-15",
       "author": {

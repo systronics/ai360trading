@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "world-markets"
 content_mode: "market"
 permalink: /world-markets/world-markets-shrugged-off-todays-news-1732/
-excerpt: "Why World Markets Shrugged Off Today's News — World Markets for October 06, 2026. Insights on global markets today for US, UK, India and Brazil investors."
-description: "Why World Markets Shrugged Off Today's News | World Markets — October 06, 2026. Insights for US, UK, India and Brazil investors."
+excerpt: "Photo by AlphaTradeZone on Pexels The market is sending signals — are you listening?"
+description: "Photo by AlphaTradeZone on Pexels The market is sending signals — are you listening?"
 keywords: "global markets today, Dow Jones today, Nasdaq today, crude oil price, world markets, global markets today, Dow Jones today, global markets today UK, FTSE global markets, global markets today impact nifty, dow jones today, DAX Germany 2026, global markets"
 categories: [World-Markets]
 tags: [world-markets]
@@ -27,7 +27,7 @@ gold_level: "4,201.8 + 1.08%"
     {
       "@type": "Article",
       "headline": "Why World Markets Shrugged Off Today's News",
-      "description": "Why World Markets Shrugged Off Today's News | World Markets \u2014 October 06, 2026. Insights for US, UK, India and Brazil investors.",
+      "description": "Photo by AlphaTradeZone on Pexels The market is sending signals \u2014 are you listening?",
       "datePublished": "2026-10-06",
       "dateModified": "2026-10-06",
       "author": {

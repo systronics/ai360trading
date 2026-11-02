@@ -6,7 +6,7 @@ author: "Amit Kumar"
 pillar: "bitcoin"
 content_mode: "weekend"
 permalink: /bitcoin/bitcoin-holds-near-78000-global-markets-1355/
-excerpt: "Bitcoin Holds Near 78,000 As Global Markets Prepare For Monday Reopening — Bitcoin and Crypto for May 17, 2026. Insights on Bitcoin explained for US, UK, India and Brazil investors."
+excerpt: "Bitcoin holds near 78,000 as global markets prepare for Monday reopening on May 17, 2026, with investors eyeing crypto stability. | Bitcoin and Crypto May 17, 2"
 description: "Bitcoin holds near 78,000 as global markets prepare for Monday reopening on May 17, 2026, with investors eyeing crypto stability. | Bitcoin and Crypto May 17, 2"
 keywords: "Bitcoin explained, how to buy crypto safely, crypto beginner guide 2026, how to buy bitcoin USA 2026, crypto investing guide, how to buy bitcoin India 2026, crypto tax India"
 categories: [Bitcoin-Crypto]

@@ -1,13 +1,13 @@
 ---
 layout: post
-title: "Bitcoin Edges Up 0.02% to 78,212 as SandP 500 Rises 0.4% Amid Fear Levels"
+title: "Bitcoin Edges Up 0.02% to 78,212 as S&P 500 Rises 0.4% Amid Fear Levels"
 date: 2026-04-23
 author: "Amit Kumar"
 pillar: "bitcoin"
 content_mode: "market"
 permalink: /bitcoin/bitcoin-edges-up-002pct-78212-sp-1151/
-excerpt: "Bitcoin Edges Up 0.02% to 78,212 as SandP 500 Rises 0.4% Amid Fear Levels — Bitcoin and Crypto for April 23, 2026. Insights on Bitcoin for US, UK, India and Brazil investors."
-description: "Bitcoin price action trading strategy without indicators sees 0.02% gain to 78,212 on April 23, 2026, as SandP 500 rises 0.4% amid fear levels."
+excerpt: "Bitcoin price action trading strategy without indicators sees 0.02% gain to 78,212 on April 23, 2026, as S&P 500 rises 0.4% amid fear levels."
+description: "Bitcoin price action trading strategy without indicators sees 0.02% gain to 78,212 on April 23, 2026, as S&P 500 rises 0.4% amid fear levels."
 keywords: "Bitcoin, Ethereum, crypto market today, BTC price, cryptocurrency, bitcoin price today, crypto market today, bitcoin price INR today, crypto India today"
 categories: [Bitcoin-Crypto]
 tags: [bitcoin]

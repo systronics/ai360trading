@@ -1,13 +1,13 @@
 ---
 layout: post
-title: "Bitcoin Drops 1.72% as SandP 500 Rises 0.46% Amid Neutral Fear Levels Today"
+title: "Bitcoin Drops 1.72% as S&P 500 Rises 0.46% Amid Neutral Fear Levels Today"
 date: 2026-05-11
 author: "Amit Kumar"
 pillar: "bitcoin"
 content_mode: "market"
 permalink: /bitcoin/bitcoin-drops-172pct-sp-500-rises-1329/
-excerpt: "Bitcoin Drops 1.72% as SandP 500 Rises 0.46% Amid Neutral Fear Levels Today — Bitcoin and Crypto for May 11, 2026. Insights on Bitcoin for US, UK, India and Brazil investors."
-description: "Bitcoin price drops 1.72% to $80,725.18 as SandP 500 rises 0.46% on May 11, 2026, amid neutral fear levels. | Bitcoin and Crypto May 11, 2026."
+excerpt: "Bitcoin price drops 1.72% to $80,725.18 as S&P 500 rises 0.46% on May 11, 2026, amid neutral fear levels. | Bitcoin and Crypto May 11, 2026."
+description: "Bitcoin price drops 1.72% to $80,725.18 as S&P 500 rises 0.46% on May 11, 2026, amid neutral fear levels. | Bitcoin and Crypto May 11, 2026."
 keywords: "Bitcoin, Ethereum, crypto market today, BTC price, cryptocurrency, bitcoin price today, crypto market today, bitcoin price INR today, crypto India today"
 categories: [Bitcoin-Crypto]
 tags: [bitcoin]

@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "stock-market"
 content_mode: "market"
 permalink: /stock-market/drives-share-market-today-amid-extreme-1335/
-excerpt: "What Drives Share Market Today Amid Extreme Fear Levels Globally — Stock Market for June 09, 2026. Insights on SandP 500 for US, UK, India and Brazil investors."
-description: "Share market today analysis on June 09, 2026, reveals extreme fear levels globally, with NIFTY at 23,198.5 and SandP 500 at 7,405.73."
+excerpt: "Share market today analysis on June 09, 2026, reveals extreme fear levels globally, with NIFTY at 23,198.5 and S&P 500 at 7,405.73."
+description: "Share market today analysis on June 09, 2026, reveals extreme fear levels globally, with NIFTY at 23,198.5 and S&P 500 at 7,405.73."
 keywords: "S&P 500, NIFTY, NASDAQ, SENSEX, IBOVESPA, stock market today, stock market today, S&P 500 forecast, FTSE 100 today, UK stock market, nifty analysis today, trading signals India, DAX Germany 2026, global markets"
 categories: [Stock-Market]
 tags: [stock-market]

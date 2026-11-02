@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "stock-market"
 content_mode: "weekend"
 permalink: /stock-market/share-market-today-myths-cost-beginners-1652/
-excerpt: "Why Share Market Today Myths Cost Beginners More Than Late Entries — Stock Market for October 31, 2026. Insights on stock market basics for US, UK, India and Brazil investors."
-description: "Why Share Market Today Myths Cost Beginners More Than Late Entries | Stock Market — October 31, 2026. Insights for US, UK, India and Brazil investors."
+excerpt: "I dug into the data that matter: total returns of broad market indices versus a basket of hand‑picked winners over 20‑year stretches."
+description: "I dug into the data that matter: total returns of broad market indices versus a basket of hand‑picked winners over 20‑year stretches."
 keywords: "stock market basics, how to invest, index fund, S&P 500, NIFTY, how to invest in stocks USA, best index fund 2026, how to invest UK 2026, FTSE 100 beginner guide, how to invest in share market India, Nifty 50 beginner guide, DAX Germany 2026, global markets"
 categories: [Stock-Market]
 tags: [stock-market]
@@ -28,7 +28,7 @@ image: /public/image/articles/2026-10-31-share-market-today-myths-cost-beginners
     {
       "@type": "Article",
       "headline": "Why Share Market Today Myths Cost Beginners More Than Late Entries",
-      "description": "Why Share Market Today Myths Cost Beginners More Than Late Entries | Stock Market \u2014 October 31, 2026. Insights for US, UK, India and Brazil investors.",
+      "description": "I dug into the data that matter: total returns of broad market indices versus a basket of hand\u2011picked winners over 20\u2011year stretches.",
       "datePublished": "2026-10-31",
       "dateModified": "2026-10-31",
       "author": {

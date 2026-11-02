@@ -6,7 +6,7 @@ author: "Amit Kumar"
 pillar: "gold"
 content_mode: "market"
 permalink: /gold/28-indicates-fear-gold-still-safe-1413/
-excerpt: "28 Indicates Fear But Is Gold Still A Safe Haven Now — Gold and Commodities for August 03, 2026. Insights on gold price today for US, UK, India and Brazil investors."
+excerpt: "Gold prices rise 0.12% to $4,111.8 on August 03, 2026, as fear levels hit 28, but is gold still a safe haven now? | Gold and Commodities August 03, 2026."
 description: "Gold prices rise 0.12% to $4,111.8 on August 03, 2026, as fear levels hit 28, but is gold still a safe haven now? | Gold and Commodities August 03, 2026."
 keywords: "gold price today, gold rate, gold vs stocks, MCX gold, silver price, gold price today, gold forecast 2026, gold price GBP today, gold ETF UK, gold price today India, gold rate today, DAX Germany 2026, global markets"
 categories: [Gold-Commodities]
@@ -27,7 +27,7 @@ gold_level: "4,111.8 + 0.12%"
     {
       "@type": "Article",
       "headline": "28 Indicates Fear But Is Gold Still A Safe Haven Now",
-      "description": "Gold prices rise 0.12% to $4,111.8 on August 03, 2026, as fear levels hit 28, but is gold still a safe haven now? | Gold & Commodities August 03, 2026.",
+      "description": "Gold prices rise 0.12% to $4,111.8 on August 03, 2026, as fear levels hit 28, but is gold still a safe haven now? | Gold and Commodities August 03, 2026.",
       "datePublished": "2026-08-03",
       "dateModified": "2026-08-03",
       "author": {

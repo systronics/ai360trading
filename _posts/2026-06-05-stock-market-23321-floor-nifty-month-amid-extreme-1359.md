@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "stock-market"
 content_mode: "market"
 permalink: /stock-market/23321-floor-nifty-month-amid-extreme-1359/
-excerpt: "Is 23,321 The Floor For NIFTY This Month Amid Extreme Fear — Stock Market for June 05, 2026. Insights on SandP 500 for US, UK, India and Brazil investors."
-description: "Is 23,321 The Floor For NIFTY This Month Amid Extreme Fear | Stock Market — June 05, 2026. Insights for US, UK, India and Brazil investors."
+excerpt: "Photo by Burak The Weekender on Pexels The consensus view right now is that 23,321 is the floor for NIFTY this month."
+description: "Photo by Burak The Weekender on Pexels The consensus view right now is that 23,321 is the floor for NIFTY this month."
 keywords: "S&P 500, NIFTY, NASDAQ, SENSEX, IBOVESPA, stock market today, stock market today, S&P 500 forecast, FTSE 100 today, UK stock market, nifty analysis today, trading signals India, DAX Germany 2026, global markets"
 categories: [Stock-Market]
 tags: [stock-market]
@@ -27,7 +27,7 @@ gold_level: "4,489.3 + 0.3%"
     {
       "@type": "Article",
       "headline": "Is 23,321 The Floor For NIFTY This Month Amid Extreme Fear",
-      "description": "Is 23,321 The Floor For NIFTY This Month Amid Extreme Fear | Stock Market \u2014 June 05, 2026. Insights for US, UK, India and Brazil investors.",
+      "description": "Photo by Burak The Weekender on Pexels The consensus view right now is that 23,321 is the floor for NIFTY this month.",
       "datePublished": "2026-06-05",
       "dateModified": "2026-06-05",
       "author": {

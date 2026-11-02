@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "stock-market"
 content_mode: "market"
 permalink: /stock-market/fear-levels-impact-23831-nifty-support-1315/
-excerpt: "Fear Levels Impact 23,831 NIFTY Support Today Amid Global Volatility — Stock Market for July 23, 2026. Insights on SandP 500 for US, UK, India and Brazil investors."
-description: "NIFTY 50 at 23,831.9, SandP 500 at 7,498.96, and NASDAQ at 25,690.9 as of July 23, 2026, amidst global volatility and fear levels surging to 31."
+excerpt: "NIFTY 50 at 23,831.9, S&P 500 at 7,498.96, and NASDAQ at 25,690.9 as of July 23, 2026, amidst global volatility and fear levels surging to 31."
+description: "NIFTY 50 at 23,831.9, S&P 500 at 7,498.96, and NASDAQ at 25,690.9 as of July 23, 2026, amidst global volatility and fear levels surging to 31."
 keywords: "S&P 500, NIFTY, NASDAQ, SENSEX, IBOVESPA, stock market today, stock market today, S&P 500 forecast, FTSE 100 today, UK stock market, nifty analysis today, trading signals India, DAX Germany 2026, global markets"
 categories: [Stock-Market]
 tags: [stock-market]

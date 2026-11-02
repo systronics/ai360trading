@@ -6,7 +6,7 @@ author: "Amit Kumar"
 pillar: "ai-trading"
 content_mode: "market"
 permalink: /ai-trading/fear-spikes-28-ai-signals-favor-1400/
-excerpt: "Fear Spikes to 28: AI Signals Favor 0.5% NASDAQ Rebound Over NIFTY Today — AI and Trading Technology for May 18, 2026. Insights on AI trading 2026 for US, UK, India and Brazil investors."
+excerpt: "Fear spikes to 28 on May 18, 2026, as AI signals favor 0.5% NASDAQ rebound over NIFTY today, defying consensus views on market trends."
 description: "Fear spikes to 28 on May 18, 2026, as AI signals favor 0.5% NASDAQ rebound over NIFTY today, defying consensus views on market trends."
 keywords: "AI trading 2026, algorithmic trading, fintech, AI stock market, trading technology, AI stock trading 2026, best AI trading algorithm, algo trading India NSE, AI trading bot India"
 categories: [AI-Trading]

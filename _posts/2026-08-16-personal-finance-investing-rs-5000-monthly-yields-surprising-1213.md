@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "personal-finance"
 content_mode: "weekend"
 permalink: /personal-finance/investing-rs-5000-monthly-yields-surprising-1213/
-excerpt: "Investing Rs 5000 Monthly Yields Surprising Results in Share Market Nepal — Personal Finance for August 16, 2026. Insights on personal finance tips 2026 for US, UK, India and Brazil investors."
-description: "Investing Rs 5000 Monthly Yields Surprising Results in Share Market Nepal | Personal Finance — August 16, 2026. Insights for US, UK, India and Brazil inves"
+excerpt: "Photo by https://kaboompics.com/ on Pexels Investing Rs 5000 monthly in the share market can yield surprising results."
+description: "Photo by https://kaboompics.com/ on Pexels Investing Rs 5000 monthly in the share market can yield surprising results."
 keywords: "personal finance tips 2026, how to save money, emergency fund, term life insurance, best savings account USA 2026, 401k guide, best ISA 2026, UK pension guide, how to save money India 2026, best term insurance India, DAX Germany 2026, global markets"
 categories: [Personal-Finance]
 tags: [personal-finance]
@@ -27,7 +27,7 @@ gold_level: "N/A"
     {
       "@type": "Article",
       "headline": "Investing Rs 5000 Monthly Yields Surprising Results in Share Market Nepal",
-      "description": "Investing Rs 5000 Monthly Yields Surprising Results in Share Market Nepal | Personal Finance \u2014 August 16, 2026. Insights for US, UK, India and Brazil inves",
+      "description": "Photo by https://kaboompics.com/ on Pexels Investing Rs 5000 monthly in the share market can yield surprising results.",
       "datePublished": "2026-08-16",
       "dateModified": "2026-08-16",
       "author": {

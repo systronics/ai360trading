@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "stock-market"
 content_mode: "market"
 permalink: /stock-market/nifty-surges-039pct-sp-500-drops-1330/
-excerpt: "NIFTY Surges 0.39% as SandP 500 Drops 1.31% Amid Extreme Fear Levels Today — Stock Market for May 19, 2026. Insights on SandP 500 for US, UK, India and Brazil investors."
-description: "NIFTY surges 0.39% as SandP 500 drops 1.31% on May 19, 2026, amid extreme fear levels, with the India VIX down 5.86% and the US 10Y Yield up 0.65%."
+excerpt: "NIFTY surges 0.39% as S&P 500 drops 1.31% on May 19, 2026, amid extreme fear levels, with the India VIX down 5.86% and the US 10Y Yield up 0.65%."
+description: "NIFTY surges 0.39% as S&P 500 drops 1.31% on May 19, 2026, amid extreme fear levels, with the India VIX down 5.86% and the US 10Y Yield up 0.65%."
 keywords: "S&P 500, NIFTY, NASDAQ, SENSEX, IBOVESPA, stock market today, stock market today, S&P 500 forecast, nifty analysis today, trading signals India"
 categories: [Stock-Market]
 tags: [stock-market]

@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "stock-market"
 content_mode: "market"
 permalink: /stock-market/sp-500-surges-054pct-nifty-drops-1335/
-excerpt: "SandP 500 Surges 0.54% as NIFTY Drops 0.2% Amid 76,625 Bitcoin Price — Stock Market for May 26, 2026. Insights on SandP 500 for US, UK, India and Brazil investors."
-description: "SandP 500 surges 0.54% to 7,473.47 on May 26, 2026, as NIFTY drops 0.2% to 23,983.45 and Bitcoin price stands at 76,625.16. | Stock Market May 26, 2026."
+excerpt: "S&P 500 surges 0.54% to 7,473.47 on May 26, 2026, as NIFTY drops 0.2% to 23,983.45 and Bitcoin price stands at 76,625.16. | Stock Market May 26, 2026."
+description: "S&P 500 surges 0.54% to 7,473.47 on May 26, 2026, as NIFTY drops 0.2% to 23,983.45 and Bitcoin price stands at 76,625.16. | Stock Market May 26, 2026."
 keywords: "S&P 500, NIFTY, NASDAQ, SENSEX, IBOVESPA, stock market today, stock market today, S&P 500 forecast, FTSE 100 today, UK stock market, nifty analysis today, trading signals India, DAX Germany 2026, global markets"
 categories: [Stock-Market]
 tags: [stock-market]

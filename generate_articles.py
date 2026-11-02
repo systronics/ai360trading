@@ -1821,11 +1821,23 @@ End with:
         # LLM artifact straight into the page's meta tag + JSON-LD.
         meta_description = clean_ai_title(meta_description)
 
+        # 2026-11-02: if the AI gave no usable META_DESCRIPTION the old fallback was the SAME generic sentence on every page; use the article's own first paragraph.
+        if "Brazil investor" in meta_description:
+            try:
+                import seo_desc
+                _d = seo_desc.from_body(content, article_title)
+                if _d:
+                    meta_description = clean_ai_title(_d)
+            except Exception:
+                pass
+
         _primary_kw     = pillar['primary_keywords'][0]
         article_excerpt = (
             f"{article_title} — {pillar['name']} for {date_display}. "
             f"Insights on {_primary_kw} for US, UK, India and Brazil investors."
         )[:200]
+        if "Brazil investor" not in meta_description:
+            article_excerpt = meta_description  # 2026-11-02: page-specific excerpt, not the generic sentence
 
         schema_json = generate_schema(article_title, meta_description, pillar, chosen_slug)
 

@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "personal-finance"
 content_mode: "market"
 permalink: /personal-finance/nifty-falls-003pct-impact-rs10000-investments-1400/
-excerpt: "NIFTY Falls 0.03%: Impact on Rs.10,000 Investments in SandP 500 and Bitcoin Today — Personal Finance for May 18, 2026. Insights on term life insurance for US, UK, India and Brazil investors."
-description: "NIFTY Falls 0.03%: Impact on Rs.10,000 Investments in SandP 500 and Bitcoin Today | Personal Finance — May 18, 2026. Insights for US, UK, India and Brazil in"
+excerpt: "Most people believe that the recent 0.03% fall in NIFTY and the decline in S&P 500 will have a significant negative impact on their Rs.10."
+description: "Most people believe that the recent 0.03% fall in NIFTY and the decline in S&P 500 will have a significant negative impact on their Rs.10."
 keywords: "term life insurance, best investment 2026, retirement planning, tax saving, personal finance, best term life insurance USA 2026, 401k investing 2026, best term insurance India 2026, SIP investment returns"
 categories: [Personal-Finance]
 tags: [personal-finance]
@@ -27,7 +27,7 @@ gold_level: "4,549.5 - 0.27%"
     {
       "@type": "Article",
       "headline": "NIFTY Falls 0.03%: Impact on Rs.10,000 Investments in S&P 500 and Bitcoin Today",
-      "description": "NIFTY Falls 0.03%: Impact on Rs.10,000 Investments in S&P 500 and Bitcoin Today | Personal Finance \u2014 May 18, 2026. Insights for US, UK, India and Brazil in",
+      "description": "Most people believe that the recent 0.03% fall in NIFTY and the decline in S&P 500 will have a significant negative impact on their Rs.10.",
       "datePublished": "2026-05-18",
       "dateModified": "2026-05-18",
       "author": {

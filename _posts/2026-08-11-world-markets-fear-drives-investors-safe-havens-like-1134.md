@@ -6,7 +6,7 @@ author: "Amit Kumar"
 pillar: "world-markets"
 content_mode: "market"
 permalink: /world-markets/fear-drives-investors-safe-havens-like-1134/
-excerpt: "Fear Drives Investors To Safe Havens Like Gold As It Surges 1.58% — World Markets for August 11, 2026. Insights on global markets today for US, UK, India and Brazil investors."
+excerpt: "Global markets see fear-driven surge in gold, up 1.58% on August 11, 2026, as investors seek safe havens. | World Markets August 11, 2026."
 description: "Global markets see fear-driven surge in gold, up 1.58% on August 11, 2026, as investors seek safe havens. | World Markets August 11, 2026."
 keywords: "global markets today, Dow Jones today, Nasdaq today, crude oil price, world markets, global markets today, Dow Jones today, global markets today UK, FTSE global markets, global markets today impact nifty, dow jones today, DAX Germany 2026, global markets"
 categories: [World-Markets]

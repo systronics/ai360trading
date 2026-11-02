@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "world-markets"
 content_mode: "weekend"
 permalink: /world-markets/world-markets-sometimes-ignore-bad-news-1215/
-excerpt: "Why World Markets Sometimes Ignore Bad News — World Markets for August 23, 2026. Insights on global markets for US, UK, India and Brazil investors."
-description: "Why World Markets Sometimes Ignore Bad News | World Markets — August 23, 2026. Insights for US, UK, India and Brazil investors."
+excerpt: "Photo by Rafael Minguet Delgado on Pexels The market is sending signals — are you listening?"
+description: "Photo by Rafael Minguet Delgado on Pexels The market is sending signals — are you listening?"
 keywords: "global markets, Dow Jones, Nasdaq, crude oil price, world market news, global markets today, Dow Jones outlook, global markets UK, FTSE vs global markets, global markets impact on nifty, dow jones nifty correlation, DAX Germany 2026, global markets"
 categories: [World-Markets]
 tags: [world-markets]
@@ -27,7 +27,7 @@ gold_level: "N/A"
     {
       "@type": "Article",
       "headline": "Why World Markets Sometimes Ignore Bad News",
-      "description": "Why World Markets Sometimes Ignore Bad News | World Markets \u2014 August 23, 2026. Insights for US, UK, India and Brazil investors.",
+      "description": "Photo by Rafael Minguet Delgado on Pexels The market is sending signals \u2014 are you listening?",
       "datePublished": "2026-08-23",
       "dateModified": "2026-08-23",
       "author": {

@@ -1,13 +1,13 @@
 ---
 layout: post
-title: "NIFTY Down 0.75%, SandP 500 Up 0.4% Today: Impact on Global Investor SIPs"
+title: "NIFTY Down 0.75%, S&P 500 Up 0.4% Today: Impact on Global Investor SIPs"
 date: 2026-04-23
 author: "Amit Kumar"
 pillar: "personal-finance"
 content_mode: "market"
 permalink: /personal-finance/nifty-down-075pct-sp-500-up-1151/
-excerpt: "NIFTY Down 0.75%, SandP 500 Up 0.4% Today: Impact on Global Investor SIPs — Personal Finance for April 23, 2026. Insights on term life insurance for US, UK, India and Brazil investors."
-description: "NIFTY Down 0.75%, SandP 500 Up 0.4% Today: Impact on Global Investor SIPs | Personal Finance — April 23, 2026. Insights for US, UK, India and Brazil investor"
+excerpt: "As the NIFTY falls 0.75% and the S&P 500 rises 0.4% today, April 23, 2026."
+description: "As the NIFTY falls 0.75% and the S&P 500 rises 0.4% today, April 23, 2026."
 keywords: "term life insurance, best investment 2026, retirement planning, tax saving, personal finance, best term life insurance USA 2026, 401k investing 2026, best term insurance India 2026, SIP investment returns"
 categories: [Personal-Finance]
 tags: [personal-finance]
@@ -27,7 +27,7 @@ gold_level: "4,730.8 - 0.04%"
     {
       "@type": "Article",
       "headline": "NIFTY Down 0.75%, S&P 500 Up 0.4% Today: Impact on Global Investor SIPs",
-      "description": "NIFTY Down 0.75%, S&P 500 Up 0.4% Today: Impact on Global Investor SIPs | Personal Finance \u2014 April 23, 2026. Insights for US, UK, India and Brazil investor",
+      "description": "As the NIFTY falls 0.75% and the S&P 500 rises 0.4% today, April 23, 2026.",
       "datePublished": "2026-04-23",
       "dateModified": "2026-04-23",
       "author": {

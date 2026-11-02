@@ -6,7 +6,7 @@ author: "Amit Kumar"
 pillar: "gold"
 content_mode: "weekend"
 permalink: /gold/boosting-your-portfolio-does-gold-still-1421/
-excerpt: "Boosting Your Portfolio: Does Gold Still Shine in Share Market India? — Gold and Commodities for May 31, 2026. Insights on gold investment 2026 for US, UK, India and Brazil investors."
+excerpt: "Discover the benefits of gold investment in 2026, comparing gold vs stocks vs FD returns, and learn how to invest in gold in India, on May 31, 2026."
 description: "Discover the benefits of gold investment in 2026, comparing gold vs stocks vs FD returns, and learn how to invest in gold in India, on May 31, 2026."
 keywords: "gold investment 2026, gold vs stocks, digital gold, sovereign gold bond, gold investment 2026, gold vs S&P 500, gold investment UK 2026, gold ETF UK, gold investment India 2026, sovereign gold bond vs physical, DAX Germany 2026, global markets"
 categories: [Gold-Commodities]

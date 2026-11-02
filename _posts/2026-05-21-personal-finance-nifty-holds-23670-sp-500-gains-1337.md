@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "personal-finance"
 content_mode: "market"
 permalink: /personal-finance/nifty-holds-23670-sp-500-gains-1337/
-excerpt: "NIFTY Holds 23,670, SandP 500 Gains 0.4%: Impact on Rs.10,000 Monthly Investments — Personal Finance for May 21, 2026. Insights on term life insurance for US, UK, India and Brazil investors."
-description: "NIFTY holds 23,670, SandP 500 gains 0.4% on May 21, 2026, impacting Rs.10,000 monthly investments in India, US, UK, and Brazil. | Personal Finance May 21, 2026."
+excerpt: "NIFTY holds 23,670, S&P 500 gains 0.4% on May 21, 2026, impacting Rs.10,000 monthly investments in India, US, UK, and Brazil. | Personal Finance May 21, 2026."
+description: "NIFTY holds 23,670, S&P 500 gains 0.4% on May 21, 2026, impacting Rs.10,000 monthly investments in India, US, UK, and Brazil. | Personal Finance May 21, 2026."
 keywords: "term life insurance, best investment 2026, retirement planning, tax saving, personal finance, best term life insurance USA 2026, 401k investing 2026, best term insurance India 2026, SIP investment returns"
 categories: [Personal-Finance]
 tags: [personal-finance]

@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "mutual-funds"
 content_mode: "market"
 permalink: /mutual-funds/small-cap-funds-still-worth-it-1115/
-excerpt: "Are Small Cap Funds Still Worth It in 2026? — Mutual Funds and SIP for August 18, 2026. Insights on best mutual funds 2026 for US, UK, India and Brazil investors."
-description: "Are Small Cap Funds Still Worth It in 2026? | Mutual Funds and SIP — August 18, 2026. Insights for US, UK, India and Brazil investors."
+excerpt: "Photo by Nataliya Vaitkevich on Pexels The market is sending signals — are you listening?"
+description: "Photo by Nataliya Vaitkevich on Pexels The market is sending signals — are you listening?"
 keywords: "best mutual funds 2026, SIP returns, index fund, ELSS, NFO today, best index funds 2026, mutual fund performance 2026, best funds UK 2026, ISA fund performance, best mutual funds 2026 India, SIP returns today, DAX Germany 2026, global markets"
 categories: [Mutual-Funds]
 tags: [mutual-funds]
@@ -27,7 +27,7 @@ gold_level: "4,444.7 + 0.61%"
     {
       "@type": "Article",
       "headline": "Are Small Cap Funds Still Worth It in 2026?",
-      "description": "Are Small Cap Funds Still Worth It in 2026? | Mutual Funds & SIP \u2014 August 18, 2026. Insights for US, UK, India and Brazil investors.",
+      "description": "Photo by Nataliya Vaitkevich on Pexels The market is sending signals \u2014 are you listening?",
       "datePublished": "2026-08-18",
       "dateModified": "2026-08-18",
       "author": {

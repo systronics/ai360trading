@@ -6,7 +6,7 @@ author: "Amit Kumar"
 pillar: "personal-finance"
 content_mode: "weekend"
 permalink: /personal-finance/boosting-term-insurance-rs500-monthly-investments-1401/
-excerpt: "Boosting Term Insurance with Just Rs.500 Monthly Investments Globally — Personal Finance for May 30, 2026. Insights on personal finance tips 2026 for US, UK, India and Brazil investors."
+excerpt: "Boost term insurance with Rs.500 monthly, comparing US, UK, India, and Brazil, on May 30, 2026, for global investment insights. | Personal Finance May 30, 2026."
 description: "Boost term insurance with Rs.500 monthly, comparing US, UK, India, and Brazil, on May 30, 2026, for global investment insights. | Personal Finance May 30, 2026."
 keywords: "personal finance tips 2026, how to save money, emergency fund, term life insurance, best savings account USA 2026, 401k guide, best ISA 2026, UK pension guide, how to save money India 2026, best term insurance India, DAX Germany 2026, global markets"
 categories: [Personal-Finance]

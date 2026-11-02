@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "world-markets"
 content_mode: "weekend"
 permalink: /world-markets/exploring-share-market-news-today-through-1452/
-excerpt: "Exploring Share Market News Today Through Global Investor Behavior — World Markets for June 20, 2026. Insights on global markets for US, UK, India and Brazil investors."
-description: "Exploring Share Market News Today Through Global Investor Behavior | World Markets — June 20, 2026. Insights for US, UK, India and Brazil investors."
+excerpt: "Photo by Max Bonda on Pexels What does share market news today reveal about global investor behavior?"
+description: "Photo by Max Bonda on Pexels What does share market news today reveal about global investor behavior?"
 keywords: "global markets, Dow Jones, Nasdaq, crude oil price, world market news, global markets today, Dow Jones outlook, global markets UK, FTSE vs global markets, global markets impact on nifty, dow jones nifty correlation, DAX Germany 2026, global markets"
 categories: [World-Markets]
 tags: [world-markets]
@@ -27,7 +27,7 @@ gold_level: "N/A"
     {
       "@type": "Article",
       "headline": "Exploring Share Market News Today Through Global Investor Behavior",
-      "description": "Exploring Share Market News Today Through Global Investor Behavior | World Markets \u2014 June 20, 2026. Insights for US, UK, India and Brazil investors.",
+      "description": "Photo by Max Bonda on Pexels What does share market news today reveal about global investor behavior?",
       "datePublished": "2026-06-20",
       "dateModified": "2026-06-20",
       "author": {

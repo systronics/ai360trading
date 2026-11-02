@@ -6,7 +6,7 @@ author: "Amit Kumar"
 pillar: "ipo"
 content_mode: "market"
 permalink: /ipo/deciphering-ipo-trends-behind-11pct-nifty-1330/
-excerpt: "Deciphering IPO Trends Behind 1.1% NIFTY Surge This Week — IPO Watch for July 29, 2026. Insights on upcoming IPO 2026 for US, UK, India and Brazil investors."
+excerpt: "NIFTY 50 surges 1.1% on July 29, 2026, amid strong IPO pipeline, with key trends and analysis for informed decisions. | IPO Watch July 29, 2026."
 description: "NIFTY 50 surges 1.1% on July 29, 2026, amid strong IPO pipeline, with key trends and analysis for informed decisions. | IPO Watch July 29, 2026."
 keywords: "upcoming IPO 2026, IPO this week, IPO GMP today, new IPO, IPO allotment, upcoming IPO 2026, biggest IPOs 2026, upcoming IPO UK 2026, London IPO 2026, upcoming IPO this week, IPO GMP today, DAX Germany 2026, global markets"
 categories: [IPO]

@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "gold"
 content_mode: "market"
 permalink: /gold/much-gold-belongs-your-portfolio-right-1117/
-excerpt: "How Much Gold Belongs in Your Portfolio Right Now — Gold and Commodities for August 19, 2026. Insights on gold price today for US, UK, India and Brazil investors."
-description: "How Much Gold Belongs in Your Portfolio Right Now | Gold and Commodities — August 19, 2026. Insights for US, UK, India and Brazil investors."
+excerpt: "Photo by Colwyn Davis on Pexels Smart money is moving. Here's what you need to know."
+description: "Photo by Colwyn Davis on Pexels Smart money is moving. Here's what you need to know."
 keywords: "gold price today, gold rate, gold vs stocks, MCX gold, silver price, gold price today, gold forecast 2026, gold price GBP today, gold ETF UK, gold price today India, gold rate today, DAX Germany 2026, global markets"
 categories: [Gold-Commodities]
 tags: [gold]
@@ -27,7 +27,7 @@ gold_level: "4,392.9 + 0.62%"
     {
       "@type": "Article",
       "headline": "How Much Gold Belongs in Your Portfolio Right Now",
-      "description": "How Much Gold Belongs in Your Portfolio Right Now | Gold & Commodities \u2014 August 19, 2026. Insights for US, UK, India and Brazil investors.",
+      "description": "Photo by Colwyn Davis on Pexels Smart money is moving. Here's what you need to know.",
       "datePublished": "2026-08-19",
       "dateModified": "2026-08-19",
       "author": {

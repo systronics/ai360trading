@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "personal-finance"
 content_mode: "market"
 permalink: /personal-finance/10-investing-lessons-todays-share-market-1335/
-excerpt: "10 Investing Lessons From Today's Share Market News — Personal Finance for June 09, 2026. Insights on term life insurance for US, UK, India and Brazil investors."
-description: "Discover 10 investing lessons from today's share market news, June 09, 2026, with expert analysis and actionable advice for US, UK, India, and Brazil investors."
+excerpt: "Photo by El Jundi on Pexels Today's share market news, particularly the S&P 500's 2.35% drop and the NIFTY 50's 0.33% gain."
+description: "Photo by El Jundi on Pexels Today's share market news, particularly the S&P 500's 2.35% drop and the NIFTY 50's 0.33% gain."
 keywords: "term life insurance, best investment 2026, retirement planning, tax saving, personal finance, best term life insurance USA 2026, 401k investing 2026, best ISA 2026 UK, UK pension 2026, best term insurance India 2026, SIP investment returns, DAX Germany 2026, global markets"
 categories: [Personal-Finance]
 tags: [personal-finance]
@@ -27,7 +27,7 @@ gold_level: "4,351.2 + 0.35%"
     {
       "@type": "Article",
       "headline": "10 Investing Lessons From Today's Share Market News",
-      "description": "Discover 10 investing lessons from today's share market news, June 09, 2026, with expert analysis and actionable advice for US, UK, India, and Brazil investors.",
+      "description": "Photo by El Jundi on Pexels Today's share market news, particularly the S&P 500's 2.35% drop and the NIFTY 50's 0.33% gain.",
       "datePublished": "2026-06-09",
       "dateModified": "2026-06-09",
       "author": {

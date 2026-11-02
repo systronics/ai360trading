@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "personal-finance"
 content_mode: "market"
 permalink: /personal-finance/lic-hdfc-icici-term-insurance-honest-1718/
-excerpt: "LIC vs HDFC vs ICICI Term Insurance — Honest Comparison — Personal Finance for October 07, 2026. Insights on term life insurance for US, UK, India and Brazil investors."
-description: "LIC vs HDFC vs ICICI Term Insurance — Honest Comparison | Personal Finance — October 07, 2026. Insights for US, UK, India and Brazil investors."
+excerpt: "Photo by https://kaboompics.com/ on Pexels Smart money is moving. Here's what you need to know."
+description: "Photo by https://kaboompics.com/ on Pexels Smart money is moving. Here's what you need to know."
 keywords: "term life insurance, best investment 2026, retirement planning, tax saving, personal finance, best term life insurance USA 2026, 401k investing 2026, best ISA 2026 UK, UK pension 2026, best term insurance India 2026, SIP investment returns, DAX Germany 2026, global markets"
 categories: [Personal-Finance]
 tags: [personal-finance]
@@ -27,7 +27,7 @@ gold_level: "4,146.3 - 0.97%"
     {
       "@type": "Article",
       "headline": "LIC vs HDFC vs ICICI Term Insurance \u2014 Honest Comparison",
-      "description": "LIC vs HDFC vs ICICI Term Insurance \u2014 Honest Comparison | Personal Finance \u2014 October 07, 2026. Insights for US, UK, India and Brazil investors.",
+      "description": "Photo by https://kaboompics.com/ on Pexels Smart money is moving. Here's what you need to know.",
       "datePublished": "2026-10-07",
       "dateModified": "2026-10-07",
       "author": {

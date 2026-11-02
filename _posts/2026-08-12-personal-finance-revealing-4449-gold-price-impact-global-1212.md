@@ -6,7 +6,7 @@ author: "Amit Kumar"
 pillar: "personal-finance"
 content_mode: "market"
 permalink: /personal-finance/revealing-4449-gold-price-impact-global-1212/
-excerpt: "Revealing 4,449 Gold Price Impact on Global Investor Sentiment Today — Personal Finance for August 12, 2026. Insights on term life insurance for US, UK, India and Brazil investors."
+excerpt: "Gold price at $4,449.4, impacting investor sentiment on August 12, 2026, as global markets react to economic uncertainty. | Personal Finance August 12, 2026."
 description: "Gold price at $4,449.4, impacting investor sentiment on August 12, 2026, as global markets react to economic uncertainty. | Personal Finance August 12, 2026."
 keywords: "term life insurance, best investment 2026, retirement planning, tax saving, personal finance, best term life insurance USA 2026, 401k investing 2026, best ISA 2026 UK, UK pension 2026, best term insurance India 2026, SIP investment returns, DAX Germany 2026, global markets"
 categories: [Personal-Finance]

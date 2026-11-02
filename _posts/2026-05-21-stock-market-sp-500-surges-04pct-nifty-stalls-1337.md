@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "stock-market"
 content_mode: "market"
 permalink: /stock-market/sp-500-surges-04pct-nifty-stalls-1337/
-excerpt: "SandP 500 Surges 0.4% as NIFTY Stalls Near 23,670 Amid Rising Bitcoin Prices — Stock Market for May 21, 2026. Insights on SandP 500 for US, UK, India and Brazil investors."
-description: "SandP 500 surges 0.4% on May 21, 2026, as NIFTY stalls near 23,670, and Bitcoin prices rise, indicating a potential bull run in the stock market."
+excerpt: "S&P 500 surges 0.4% on May 21, 2026, as NIFTY stalls near 23,670, and Bitcoin prices rise, indicating a potential bull run in the stock market."
+description: "S&P 500 surges 0.4% on May 21, 2026, as NIFTY stalls near 23,670, and Bitcoin prices rise, indicating a potential bull run in the stock market."
 keywords: "S&P 500, NIFTY, NASDAQ, SENSEX, IBOVESPA, stock market today, stock market today, S&P 500 forecast, nifty analysis today, trading signals India"
 categories: [Stock-Market]
 tags: [stock-market]

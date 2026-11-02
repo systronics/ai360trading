@@ -6,7 +6,7 @@ author: "Amit Kumar"
 pillar: "gold"
 content_mode: "market"
 permalink: /gold/decoding-golds-118pct-drop-share-market-1440/
-excerpt: "Decoding Gold's 1.18% Drop in Share Market Today Amid Extreme Fear — Gold and Commodities for June 08, 2026. Insights on gold price today for US, UK, India and Brazil investors."
+excerpt: "Gold drops 1.18% on June 08, 2026, amid extreme fear levels, sparking concerns about its potential impact on share market India and global economy."
 description: "Gold drops 1.18% on June 08, 2026, amid extreme fear levels, sparking concerns about its potential impact on share market India and global economy."
 keywords: "gold price today, gold rate, gold vs stocks, MCX gold, silver price, gold price today, gold forecast 2026, gold price GBP today, gold ETF UK, gold price today India, gold rate today, DAX Germany 2026, global markets"
 categories: [Gold-Commodities]

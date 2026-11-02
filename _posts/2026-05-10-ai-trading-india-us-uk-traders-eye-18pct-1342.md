@@ -1,13 +1,13 @@
 ---
 layout: post
-title: "India, US, UK Traders Eye 1.8% Weekly SandP 500 Gain Amid AI Trading Signals"
+title: "India, US, UK Traders Eye 1.8% Weekly S&P 500 Gain Amid AI Trading Signals"
 date: 2026-05-10
 author: "Amit Kumar"
 pillar: "ai-trading"
 content_mode: "weekend"
 permalink: /ai-trading/india-us-uk-traders-eye-18pct-1342/
-excerpt: "India, US, UK Traders Eye 1.8% Weekly SandP 500 Gain Amid AI Trading Signals — AI and Trading Technology for May 10, 2026. Insights on AI trading tools 2026 for US, UK, India and Brazil investors."
-description: "Discover how India, US, UK traders use AI trading signals for 1.8% weekly SandP 500 gain, May 10, 2026. | AI and Trading Technology May 10, 2026."
+excerpt: "Discover how India, US, UK traders use AI trading signals for 1.8% weekly S&P 500 gain, May 10, 2026. | AI and Trading Technology May 10, 2026."
+description: "Discover how India, US, UK traders use AI trading signals for 1.8% weekly S&P 500 gain, May 10, 2026. | AI and Trading Technology May 10, 2026."
 keywords: "AI trading tools 2026, free trading tools, algorithmic trading beginner, fintech 2026, best free AI trading tools USA 2026, AI stock screener free, free AI trading tools India 2026, best stock screener India free"
 categories: [AI-Trading]
 tags: [ai-trading]

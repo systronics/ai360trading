@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "bitcoin"
 content_mode: "market"
 permalink: /bitcoin/fear-levels-34-bitcoin-down-085pct-1335/
-excerpt: "Fear Levels at 34: Bitcoin Down 0.85% as SandP 500 Gains 0.54% Today — Bitcoin and Crypto for May 26, 2026. Insights on Bitcoin for US, UK, India and Brazil investors."
-description: "Bitcoin down 0.85% as Fear levels at 34, SandP 500 gains 0.54% on May 26, 2026, amid institutional buying and regulatory news. | Bitcoin and Crypto May 26, 2026."
+excerpt: "Bitcoin down 0.85% as Fear levels at 34, S&P 500 gains 0.54% on May 26, 2026, amid institutional buying and regulatory news. | Bitcoin and Crypto May 26, 2026."
+description: "Bitcoin down 0.85% as Fear levels at 34, S&P 500 gains 0.54% on May 26, 2026, amid institutional buying and regulatory news. | Bitcoin and Crypto May 26, 2026."
 keywords: "Bitcoin, Ethereum, crypto market today, BTC price, cryptocurrency, bitcoin price today, crypto market today, bitcoin price GBP, crypto UK today, bitcoin price INR today, crypto India today, DAX Germany 2026, global markets"
 categories: [Bitcoin-Crypto]
 tags: [bitcoin]

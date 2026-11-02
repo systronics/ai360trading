@@ -1,13 +1,13 @@
 ---
 layout: post
-title: "Bitcoin Surges 1.65% as SandP 500 Gains 1.32% Amid Fear Levels at 40 Today"
+title: "Bitcoin Surges 1.65% as S&P 500 Gains 1.32% Amid Fear Levels at 40 Today"
 date: 2026-05-04
 author: "Amit Kumar"
 pillar: "bitcoin"
 content_mode: "market"
 permalink: /bitcoin/bitcoin-surges-165pct-sp-500-gains-1300/
-excerpt: "Bitcoin Surges 1.65% as SandP 500 Gains 1.32% Amid Fear Levels at 40 Today — Bitcoin and Crypto for May 04, 2026. Insights on Bitcoin for US, UK, India and Brazil investors."
-description: "Bitcoin surges 1.65% to $79,834 as SandP 500 gains 1.32% on May 04, 2026, amid fear levels at 40, with institutional buying driving market confidence."
+excerpt: "Bitcoin surges 1.65% to $79,834 as S&P 500 gains 1.32% on May 04, 2026, amid fear levels at 40, with institutional buying driving market confidence."
+description: "Bitcoin surges 1.65% to $79,834 as S&P 500 gains 1.32% on May 04, 2026, amid fear levels at 40, with institutional buying driving market confidence."
 keywords: "Bitcoin, Ethereum, crypto market today, BTC price, cryptocurrency, bitcoin price today, crypto market today, bitcoin price INR today, crypto India today"
 categories: [Bitcoin-Crypto]
 tags: [bitcoin]

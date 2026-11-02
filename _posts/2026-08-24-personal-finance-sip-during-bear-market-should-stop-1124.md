@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "personal-finance"
 content_mode: "market"
 permalink: /personal-finance/sip-during-bear-market-should-stop-1124/
-excerpt: "SIP During a Bear Market — Should You Stop, Pause or Double Up? — Personal Finance for August 24, 2026. Insights on term life insurance for US, UK, India and Brazil investors."
-description: "SIP During a Bear Market — Should You Stop, Pause or Double Up? | Personal Finance — August 24, 2026. Insights for US, UK, India and Brazil investors."
+excerpt: "Photo by RDNE Stock project on Pexels The market is sending signals — are you listening?"
+description: "Photo by RDNE Stock project on Pexels The market is sending signals — are you listening?"
 keywords: "term life insurance, best investment 2026, retirement planning, tax saving, personal finance, best term life insurance USA 2026, 401k investing 2026, best ISA 2026 UK, UK pension 2026, best term insurance India 2026, SIP investment returns, DAX Germany 2026, global markets"
 categories: [Personal-Finance]
 tags: [personal-finance]
@@ -27,7 +27,7 @@ gold_level: "4,690.7 + 0.22%"
     {
       "@type": "Article",
       "headline": "SIP During a Bear Market \u2014 Should You Stop, Pause or Double Up?",
-      "description": "SIP During a Bear Market \u2014 Should You Stop, Pause or Double Up? | Personal Finance \u2014 August 24, 2026. Insights for US, UK, India and Brazil investors.",
+      "description": "Photo by RDNE Stock project on Pexels The market is sending signals \u2014 are you listening?",
       "datePublished": "2026-08-24",
       "dateModified": "2026-08-24",
       "author": {

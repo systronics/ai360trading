@@ -6,7 +6,7 @@ author: "Amit Kumar"
 pillar: "ai-trading"
 content_mode: "market"
 permalink: /ai-trading/ai-flags-138pct-nasdaq-surge-outpacing-1345/
-excerpt: "AI Flags 1.38% NASDAQ Surge Outpacing NIFTY's 0.11% Drop Today Globally — AI and Trading Technology for May 27, 2026. Insights on AI trading 2026 for US, UK, India and Brazil investors."
+excerpt: "AI flags 1.38% NASDAQ surge outpacing NIFTY's 0.11% drop today globally on May 27, 2026, as Nvidia, Microsoft, and Google lead AI fintech stocks."
 description: "AI flags 1.38% NASDAQ surge outpacing NIFTY's 0.11% drop today globally on May 27, 2026, as Nvidia, Microsoft, and Google lead AI fintech stocks."
 keywords: "AI trading 2026, algorithmic trading, fintech, AI stock market, trading technology, AI stock trading 2026, best AI trading algorithm, AI trading UK 2026, algorithmic trading London, algo trading India NSE, AI trading bot India, DAX Germany 2026, global markets"
 categories: [AI-Trading]

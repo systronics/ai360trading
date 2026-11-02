@@ -6,7 +6,7 @@ author: "Amit Kumar"
 pillar: "world-markets"
 content_mode: "market"
 permalink: /world-markets/fear-drives-investors-gold-it-surges-1313/
-excerpt: "Fear Drives Investors To Gold As It Surges 1.28% Today — World Markets for July 22, 2026. Insights on global markets today for US, UK, India and Brazil investors."
+excerpt: "Global markets explained: Dow Nasdaq dollar impact on Nifty 2026 as fear drives investors to gold, surging 1.28% today, July 22, 2026."
 description: "Global markets explained: Dow Nasdaq dollar impact on Nifty 2026 as fear drives investors to gold, surging 1.28% today, July 22, 2026."
 keywords: "global markets today, Dow Jones today, Nasdaq today, crude oil price, world markets, global markets today, Dow Jones today, global markets today UK, FTSE global markets, global markets today impact nifty, dow jones today, DAX Germany 2026, global markets"
 categories: [World-Markets]

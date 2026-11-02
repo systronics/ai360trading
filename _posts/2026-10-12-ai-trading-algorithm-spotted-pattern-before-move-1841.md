@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "ai-trading"
 content_mode: "market"
 permalink: /ai-trading/algorithm-spotted-pattern-before-move-1841/
-excerpt: "The Algorithm Spotted This Pattern Before the Move — AI and Trading Technology for October 12, 2026. Insights on AI trading 2026 for US, UK, India and Brazil investors."
-description: "The Algorithm Spotted This Pattern Before the Move | AI and Trading Technology — October 12, 2026. Insights for US, UK, India and Brazil investors."
+excerpt: "Photo by Tiger Lily on Pexels The market is sending signals — are you listening?"
+description: "Photo by Tiger Lily on Pexels The market is sending signals — are you listening?"
 keywords: "AI trading 2026, algorithmic trading, fintech, AI stock market, trading technology, AI stock trading 2026, best AI trading algorithm, AI trading UK 2026, algorithmic trading London, algo trading India NSE, AI trading bot India, DAX Germany 2026, global markets"
 categories: [AI-Trading]
 tags: [ai-trading]
@@ -27,7 +27,7 @@ gold_level: "4,187.9 - 0.67%"
     {
       "@type": "Article",
       "headline": "The Algorithm Spotted This Pattern Before the Move",
-      "description": "The Algorithm Spotted This Pattern Before the Move | AI and Trading Technology \u2014 October 12, 2026. Insights for US, UK, India and Brazil investors.",
+      "description": "Photo by Tiger Lily on Pexels The market is sending signals \u2014 are you listening?",
       "datePublished": "2026-10-12",
       "dateModified": "2026-10-12",
       "author": {

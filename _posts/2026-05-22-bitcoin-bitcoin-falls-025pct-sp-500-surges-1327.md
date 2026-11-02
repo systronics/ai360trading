@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "bitcoin"
 content_mode: "market"
 permalink: /bitcoin/bitcoin-falls-025pct-sp-500-surges-1327/
-excerpt: "Bitcoin Falls 0.25% as SandP 500 Surges 1.25% Amid Fear Levels at 28 Today Globally — Bitcoin and Crypto for May 22, 2026. Insights on Bitcoin for US, UK, India and Brazil investors."
-description: "Bitcoin Falls 0.25% as SandP 500 Surges 1.25% Amid Fear Levels at 28 Today Globally | Bitcoin and Crypto — May 22, 2026. Insights for US, UK, India and Brazi"
+excerpt: "As Bitcoin falls 0.25% to 77,348.01 and the S&P 500 surges 1.25% to 7,445.72 amid fear levels at 28 today globally."
+description: "As Bitcoin falls 0.25% to 77,348.01 and the S&P 500 surges 1.25% to 7,445.72 amid fear levels at 28 today globally."
 keywords: "Bitcoin, Ethereum, crypto market today, BTC price, cryptocurrency, bitcoin price today, crypto market today, bitcoin price INR today, crypto India today"
 categories: [Bitcoin-Crypto]
 tags: [bitcoin]
@@ -27,7 +27,7 @@ gold_level: "4,519.1 - 0.46%"
     {
       "@type": "Article",
       "headline": "Bitcoin Falls 0.25% as S&P 500 Surges 1.25% Amid Fear Levels at 28 Today Globally",
-      "description": "Bitcoin Falls 0.25% as S&P 500 Surges 1.25% Amid Fear Levels at 28 Today Globally | Bitcoin and Crypto \u2014 May 22, 2026. Insights for US, UK, India and Brazi",
+      "description": "As Bitcoin falls 0.25% to 77,348.01 and the S&P 500 surges 1.25% to 7,445.72 amid fear levels at 28 today globally.",
       "datePublished": "2026-05-22",
       "dateModified": "2026-05-22",
       "author": {

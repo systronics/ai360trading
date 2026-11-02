@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "ipo"
 content_mode: "weekend"
 permalink: /ipo/read-ipo-prospectus-without-falling-asleep-1214/
-excerpt: "How to Read an IPO Prospectus Without Falling Asleep — IPO Watch for August 22, 2026. Insights on upcoming IPO 2026 for US, UK, India and Brazil investors."
-description: "How to Read an IPO Prospectus Without Falling Asleep | IPO Watch — August 22, 2026. Insights for US, UK, India and Brazil investors."
+excerpt: "Photo by Barbara Olsen on Pexels Smart money is moving. Here's what you need to know."
+description: "Photo by Barbara Olsen on Pexels Smart money is moving. Here's what you need to know."
 keywords: "upcoming IPO 2026, how to apply for IPO, IPO GMP, should I apply IPO, upcoming IPO 2026 USA, how to buy IPO stock, upcoming IPO UK 2026, how to invest in IPO UK, upcoming IPO 2026 India, how to apply IPO online, DAX Germany 2026, global markets"
 categories: [IPO]
 tags: [ipo]
@@ -27,7 +27,7 @@ gold_level: "N/A"
     {
       "@type": "Article",
       "headline": "How to Read an IPO Prospectus Without Falling Asleep",
-      "description": "How to Read an IPO Prospectus Without Falling Asleep | IPO Watch \u2014 August 22, 2026. Insights for US, UK, India and Brazil investors.",
+      "description": "Photo by Barbara Olsen on Pexels Smart money is moving. Here's what you need to know.",
       "datePublished": "2026-08-22",
       "dateModified": "2026-08-22",
       "author": {

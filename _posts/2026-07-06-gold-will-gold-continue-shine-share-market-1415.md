@@ -6,7 +6,7 @@ author: "Amit Kumar"
 pillar: "gold"
 content_mode: "market"
 permalink: /gold/will-gold-continue-shine-share-market-1415/
-excerpt: "Will Gold Continue to Shine in Share Market India Today — Gold and Commodities for July 06, 2026. Insights on gold price today for US, UK, India and Brazil investors."
+excerpt: "Gold prices surge 0.99% to $4,166.4 on July 06, 2026, as investors seek safe-haven assets amid extreme fear levels in share market India."
 description: "Gold prices surge 0.99% to $4,166.4 on July 06, 2026, as investors seek safe-haven assets amid extreme fear levels in share market India."
 keywords: "gold price today, gold rate, gold vs stocks, MCX gold, silver price, gold price today, gold forecast 2026, gold price GBP today, gold ETF UK, gold price today India, gold rate today, DAX Germany 2026, global markets"
 categories: [Gold-Commodities]

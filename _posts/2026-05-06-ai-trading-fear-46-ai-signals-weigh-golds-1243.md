@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "ai-trading"
 content_mode: "market"
 permalink: /ai-trading/fear-46-ai-signals-weigh-golds-1243/
-excerpt: "Fear at 46: AI Signals Weigh Gold's 2.67% Surge Amid NIFTY's 0.02% Drop Today — AI and Trading Technology for May 06, 2026. Insights on AI trading 2026 for US, UK, India and Brazil investors."
-description: "NIFTY at 24,028.55, SandP 500 at 7,259.22, and Bitcoin at 80,937.36 on May 06, 2026, as AI signals weigh gold's 2.67% surge amid fear levels at 46."
+excerpt: "NIFTY at 24,028.55, S&P 500 at 7,259.22, and Bitcoin at 80,937.36 on May 06, 2026, as AI signals weigh gold's 2.67% surge amid fear levels at 46."
+description: "NIFTY at 24,028.55, S&P 500 at 7,259.22, and Bitcoin at 80,937.36 on May 06, 2026, as AI signals weigh gold's 2.67% surge amid fear levels at 46."
 keywords: "AI trading 2026, algorithmic trading, fintech, AI stock market, trading technology, AI stock trading 2026, best AI trading algorithm, algo trading India NSE, AI trading bot India"
 categories: [AI-Trading]
 tags: [ai-trading]

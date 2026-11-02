@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "stock-market"
 content_mode: "holiday"
 permalink: /stock-market/nifty-holds-near-24000-global-markets-1345/
-excerpt: "NIFTY Holds Near 24,000 as Global Markets Await Monday Open Amid 0.25% Bitcoin Stability — Stock Market for May 28, 2026. Insights on stock market basics for US, UK, India and Brazil investors."
-description: "NIFTY Holds Near 24,000 as Global Markets Await Monday Open Amid 0.25% Bitcoin Stability | Stock Market — May 28, 2026. Insights for US, UK, India and Braz"
+excerpt: "As the NIFTY holds near 24,000 and global markets await Monday's open amid 0.25% Bitcoin stability."
+description: "As the NIFTY holds near 24,000 and global markets await Monday's open amid 0.25% Bitcoin stability."
 keywords: "stock market basics, how to invest, index fund, S&P 500, NIFTY, how to invest in stocks USA, best index fund 2026, how to invest UK 2026, FTSE 100 beginner guide, how to invest in share market India, Nifty 50 beginner guide, DAX Germany 2026, global markets"
 categories: [Stock-Market]
 tags: [stock-market]
@@ -27,7 +27,7 @@ gold_level: "N/A"
     {
       "@type": "Article",
       "headline": "NIFTY Holds Near 24,000 as Global Markets Await Monday Open Amid 0.25% Bitcoin Stability",
-      "description": "NIFTY Holds Near 24,000 as Global Markets Await Monday Open Amid 0.25% Bitcoin Stability | Stock Market \u2014 May 28, 2026. Insights for US, UK, India and Braz",
+      "description": "As the NIFTY holds near 24,000 and global markets await Monday's open amid 0.25% Bitcoin stability.",
       "datePublished": "2026-05-28",
       "dateModified": "2026-05-28",
       "author": {

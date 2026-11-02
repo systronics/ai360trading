@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "stock-market"
 content_mode: "market"
 permalink: /stock-market/drives-stock-market-today-trends-globally-1318/
-excerpt: "What Drives Stock Market Today Trends Globally Amid Extreme Fear Levels — Stock Market for August 04, 2026. Insights on SandP 500 for US, UK, India and Brazil investors."
-description: "Stock market trends globally show extreme fear levels on August 04, 2026, with NIFTY 50 at 24,484.8 and SandP 500 at 7,600.5. | Stock Market August 04, 2026."
+excerpt: "Stock market trends globally show extreme fear levels on August 04, 2026, with NIFTY 50 at 24,484.8 and S&P 500 at 7,600.5. | Stock Market August 04, 2026."
+description: "Stock market trends globally show extreme fear levels on August 04, 2026, with NIFTY 50 at 24,484.8 and S&P 500 at 7,600.5. | Stock Market August 04, 2026."
 keywords: "S&P 500, NIFTY, NASDAQ, SENSEX, IBOVESPA, stock market today, stock market today, S&P 500 forecast, FTSE 100 today, UK stock market, nifty analysis today, trading signals India, DAX Germany 2026, global markets"
 categories: [Stock-Market]
 tags: [stock-market]

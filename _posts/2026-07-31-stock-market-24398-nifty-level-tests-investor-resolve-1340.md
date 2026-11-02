@@ -6,7 +6,7 @@ author: "Amit Kumar"
 pillar: "stock-market"
 content_mode: "market"
 permalink: /stock-market/24398-nifty-level-tests-investor-resolve-1340/
-excerpt: "24,398 NIFTY Level Tests Investor Resolve Today Amid Extreme Fear — Stock Market for July 31, 2026. Insights on SandP 500 for US, UK, India and Brazil investors."
+excerpt: "NIFTY 50 at 24,398.7 on July 31, 2026, tests investor resolve amid extreme fear levels and global market volatility. | Stock Market July 31, 2026."
 description: "NIFTY 50 at 24,398.7 on July 31, 2026, tests investor resolve amid extreme fear levels and global market volatility. | Stock Market July 31, 2026."
 keywords: "S&P 500, NIFTY, NASDAQ, SENSEX, IBOVESPA, stock market today, stock market today, S&P 500 forecast, FTSE 100 today, UK stock market, nifty analysis today, trading signals India, DAX Germany 2026, global markets"
 categories: [Stock-Market]

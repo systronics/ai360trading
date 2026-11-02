@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "stock-market"
 content_mode: "market"
 permalink: /stock-market/sector-rotation-happening-here-money-going-2257/
-excerpt: "Sector Rotation Is Happening — Here Is Where Money Is Going — Stock Market for August 28, 2026. Insights on SandP 500 for US, UK, India and Brazil investors."
-description: "Sector Rotation Is Happening — Here Is Where Money Is Going | Stock Market — August 28, 2026. Insights for US, UK, India and Brazil investors."
+excerpt: "Photo by AlphaTradeZone on Pexels The market is sending signals — are you listening?"
+description: "Photo by AlphaTradeZone on Pexels The market is sending signals — are you listening?"
 keywords: "S&P 500, NIFTY, NASDAQ, SENSEX, IBOVESPA, stock market today, stock market today, S&P 500 forecast, FTSE 100 today, UK stock market, nifty analysis today, trading signals India, DAX Germany 2026, global markets"
 categories: [Stock-Market]
 tags: [stock-market]
@@ -27,7 +27,7 @@ gold_level: "4,528.1 - 1.77%"
     {
       "@type": "Article",
       "headline": "Sector Rotation Is Happening \u2014 Here Is Where Money Is Going",
-      "description": "Sector Rotation Is Happening \u2014 Here Is Where Money Is Going | Stock Market \u2014 August 28, 2026. Insights for US, UK, India and Brazil investors.",
+      "description": "Photo by AlphaTradeZone on Pexels The market is sending signals \u2014 are you listening?",
       "datePublished": "2026-08-28",
       "dateModified": "2026-08-28",
       "author": {

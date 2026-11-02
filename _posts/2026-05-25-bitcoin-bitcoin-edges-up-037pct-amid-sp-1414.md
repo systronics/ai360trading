@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "bitcoin"
 content_mode: "market"
 permalink: /bitcoin/bitcoin-edges-up-037pct-amid-sp-1414/
-excerpt: "Bitcoin Edges Up 0.37% Amid SandP 500's 0.54% Gain and Fear at 30 Today — Bitcoin and Crypto for May 25, 2026. Insights on Bitcoin for US, UK, India and Brazil investors."
-description: "Bitcoin up 0.37% as SandP 500 gains 0.54% on May 25, 2026, with Fear and Greed Index at 30, indicating fear in the market. | Bitcoin and Crypto May 25, 2026."
+excerpt: "Bitcoin up 0.37% as S&P 500 gains 0.54% on May 25, 2026, with Fear and Greed Index at 30, indicating fear in the market. | Bitcoin and Crypto May 25, 2026."
+description: "Bitcoin up 0.37% as S&P 500 gains 0.54% on May 25, 2026, with Fear and Greed Index at 30, indicating fear in the market. | Bitcoin and Crypto May 25, 2026."
 keywords: "Bitcoin, Ethereum, crypto market today, BTC price, cryptocurrency, bitcoin price today, crypto market today, bitcoin price GBP, crypto UK today, bitcoin price INR today, crypto India today, DAX Germany 2026, global markets"
 categories: [Bitcoin-Crypto]
 tags: [bitcoin]

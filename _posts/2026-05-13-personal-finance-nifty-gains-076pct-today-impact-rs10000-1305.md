@@ -6,8 +6,8 @@ author: "Amit Kumar"
 pillar: "personal-finance"
 content_mode: "market"
 permalink: /personal-finance/nifty-gains-076pct-today-impact-rs10000-1305/
-excerpt: "NIFTY Gains 0.76% Today: Impact on Rs.10,000 Monthly SIP Investments Worldwide — Personal Finance for May 13, 2026. Insights on term life insurance for US, UK, India and Brazil investors."
-description: "NIFTY Gains 0.76% Today: Impact on Rs.10,000 Monthly SIP Investments Worldwide | Personal Finance — May 13, 2026. Insights for US, UK, India and Brazil inv"
+excerpt: "I'm watching the NIFTY 50, which has gained 0.76% today, reaching 23,556.45, and the S&P 500, which is up 0.03% at 7,400.96."
+description: "I'm watching the NIFTY 50, which has gained 0.76% today, reaching 23,556.45, and the S&P 500, which is up 0.03% at 7,400.96."
 keywords: "term life insurance, best investment 2026, retirement planning, tax saving, personal finance, best term life insurance USA 2026, 401k investing 2026, best term insurance India 2026, SIP investment returns"
 categories: [Personal-Finance]
 tags: [personal-finance]
@@ -27,7 +27,7 @@ gold_level: "4,713.8 + 0.77%"
     {
       "@type": "Article",
       "headline": "NIFTY Gains 0.76% Today: Impact on Rs.10,000 Monthly SIP Investments Worldwide",
-      "description": "NIFTY Gains 0.76% Today: Impact on Rs.10,000 Monthly SIP Investments Worldwide | Personal Finance \u2014 May 13, 2026. Insights for US, UK, India and Brazil inv",
+      "description": "I'm watching the NIFTY 50, which has gained 0.76% today, reaching 23,556.45, and the S&P 500, which is up 0.03% at 7,400.96.",
       "datePublished": "2026-05-13",
       "dateModified": "2026-05-13",
       "author": {
@@ -103,6 +103,6 @@ A: The NIFTY 50 gain of 0.76% today can positively impact Rs.10,000 monthly SIP 
 Q: How to compare term life insurance plans in the US, UK, and India?
 A: Investors can compare term life insurance plans in the US at [Policygenius](https://www.policygenius.com/), in the UK at [CompareTheMarket](https://www.comparethemarket.com/), and in India at [PolicyBazaar](https://www.policybazaar.com/), to find the best option for their needs.
 
-For more information on the impact of the S&P 500 on global term insurance buying strategies, readers can refer to [S&P 500 Surges 1.03% Today: Impact on Global Term Insurance Buying Strategies](/personal-finance/sp-500-surges-103pct-today-impact-1251/). Additionally, readers can refer to [NIFTY Down 0.96%, SandP 500 Up 0.46% Today: Impact on Term Insurance Buying Decisions](/personal-finance/nifty-down-096pct-sp-500-up-1329/) for more insights on the impact of market fluctuations on term insurance buying decisions.
+For more information on the impact of the S&P 500 on global term insurance buying strategies, readers can refer to [S&P 500 Surges 1.03% Today: Impact on Global Term Insurance Buying Strategies](/personal-finance/sp-500-surges-103pct-today-impact-1251/). Additionally, readers can refer to [NIFTY Down 0.96%, S&P 500 Up 0.46% Today: Impact on Term Insurance Buying Decisions](/personal-finance/nifty-down-096pct-sp-500-up-1329/) for more insights on the impact of market fluctuations on term insurance buying decisions.
 
 *May 13, 2026 | Educational content only. Not SEBI registered investment advice.*

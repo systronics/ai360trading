@@ -6,7 +6,7 @@ author: "Amit Kumar"
 pillar: "bitcoin"
 content_mode: "market"
 permalink: /bitcoin/bitcoin-inches-up-001pct-gold-surges-1243/
-excerpt: "Bitcoin Inches Up 0.01% as Gold Surges 2.67% Amid Fear Levels at 46 Today — Bitcoin and Crypto for May 06, 2026. Insights on Bitcoin for US, UK, India and Brazil investors."
+excerpt: "Bitcoin inches up 0.01% as gold surges 2.67% on May 06, 2026, amid fear levels at 46, signaling a potential shift in investor sentiment."
 description: "Bitcoin inches up 0.01% as gold surges 2.67% on May 06, 2026, amid fear levels at 46, signaling a potential shift in investor sentiment."
 keywords: "Bitcoin, Ethereum, crypto market today, BTC price, cryptocurrency, bitcoin price today, crypto market today, bitcoin price INR today, crypto India today"
 categories: [Bitcoin-Crypto]
