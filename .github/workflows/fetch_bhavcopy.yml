@@ -80,6 +80,7 @@ jobs:
       # Idempotent; continue-on-error so it can never affect the steps above. Yahoo may not have the day yet -> it then skips (fail-open).
       - name: Gate Audit (observation only)
         continue-on-error: true
+        timeout-minutes: 6
         env:
           GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
         run: python gate_audit.py --write

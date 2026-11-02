@@ -36,7 +36,7 @@ HEAD = ["Date", "Symbol", "In_N200", "FO", "Close", "Day_%", "Gap_%", "RS35", "R
         "Down_52wH_%", "Range_20D_%", "CH50_5D", "VolRatio", "Buildup", "Nifty_Day_%", "G_RS", "G_Trend", "G_RSI", "G_Leader",
         "Ret_1d_%", "Ret_3d_%", "Ret_5d_%", "Ret_10d_%"]
 FWD = {"Ret_1d_%": 1, "Ret_3d_%": 3, "Ret_5d_%": 5, "Ret_10d_%": 10}
-KEEP_DAYS = 400   # rows older than this are pruned (the sheet stays well under Google's cell limit)
+KEEP_DAYS = 250   # rows older than this are pruned (the sheet stays well under Google's cell limit)
 
 
 # ───────────────────────────── pure logic (unit-tested) ─────────────────────────────
