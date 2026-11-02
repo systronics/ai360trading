@@ -28,6 +28,47 @@ def formula(cond, sort_col=11):
             'ARRAYFORMULA(IFERROR(VLOOKUP(CHOOSECOLS(n,1),Nifty200!$A$3:$AU$202,47,FALSE),"")))),"Abhi koi stock is filter mein nahi")')
 
 
+def rgb(h):
+    return {"red": int(h[0:2], 16) / 255, "green": int(h[2:4], 16) / 255, "blue": int(h[4:6], 16) / 255}
+
+
+def colour(sh, ws, starts):
+    """Section bands + conditional colours (green = good/strong, red = weak/avoid). Old rules are deleted first so a rebuild never stacks duplicates."""
+    meta = [x for x in sh.fetch_sheet_metadata()["sheets"] if x["properties"]["sheetId"] == ws.id][0]
+    reqs = [{"deleteConditionalFormatRule": {"sheetId": ws.id, "index": 0}} for _ in meta.get("conditionalFormats", [])]
+    band = ["1F5FA8", "1E8449", "B9770E"]
+    for (r0, _), b in zip(starts, band):
+        reqs.append({"repeatCell": {"range": {"sheetId": ws.id, "startRowIndex": r0 - 1, "endRowIndex": r0, "startColumnIndex": 0, "endColumnIndex": 15},
+                                    "cell": {"userEnteredFormat": {"backgroundColor": rgb(b), "textFormat": {"bold": True, "fontSize": 12, "foregroundColor": rgb("FFFFFF")}}},
+                                    "fields": "userEnteredFormat(backgroundColor,textFormat)"}})
+    def rule(c0, c1, kind, val, bg, fg="000000", rows=None):
+        cond = {"type": kind}
+        if val is not None:
+            cond["values"] = [{"userEnteredValue": val}]
+        for r0, r1 in rows or [(a + 3, a + 23) for a, _ in starts]:
+            reqs.append({"addConditionalFormatRule": {"index": 0, "rule": {
+                "ranges": [{"sheetId": ws.id, "startRowIndex": r0, "endRowIndex": r1, "startColumnIndex": c0, "endColumnIndex": c1}],
+                "booleanRule": {"condition": cond, "format": {"backgroundColor": rgb(bg), "textFormat": {"foregroundColor": rgb(fg), "bold": True}}}}}})
+    rule(3, 4, "NUMBER_GREATER", "0", "C8F0D2", "0B6B2A")      # %Chg up
+    rule(3, 4, "NUMBER_LESS", "0", "F8CDCD", "A32020")         # %Chg down
+    rule(4, 5, "NUMBER_GREATER_THAN_EQ", "5", "C8F0D2", "0B6B2A")   # RS strong
+    rule(4, 5, "NUMBER_LESS", "0", "F8CDCD", "A32020")         # RS weak
+    rule(5, 6, "NUMBER_GREATER_THAN_EQ", "50", "C8F0D2", "0B6B2A")  # volume 1.5x+
+    rule(5, 6, "NUMBER_LESS", "-30", "F8CDCD", "A32020")       # volume dry
+    rule(7, 8, "TEXT_CONTAINS", "BREAKOUT CONFIRMED", "C8F0D2", "0B6B2A")
+    rule(7, 8, "TEXT_CONTAINS", "BREAKOUT ALERT", "FFF1B8", "7A5A00")
+    rule(7, 8, "TEXT_CONTAINS", "Near Breakout", "FFF1B8", "7A5A00")
+    rule(12, 13, "TEXT_CONTAINS", "RETEST", "D6E6FA", "1F5FA8")
+    rule(12, 13, "TEXT_CONTAINS", "extended", "FDE3C4", "9A5200")
+    rule(13, 14, "TEXT_EQ", "YES", "EFEFEF", "333333")
+    rule(13, 14, "TEXT_EQ", "N50", "EFEFEF", "333333")
+    rule(14, 15, "TEXT_EQ", "Long Buildup", "A5E3B5", "0B6B2A")
+    rule(14, 15, "TEXT_EQ", "Short Covering", "D6F2DD", "1E8449")
+    rule(14, 15, "TEXT_EQ", "Short Buildup", "F5B7B1", "A32020")
+    rule(14, 15, "TEXT_EQ", "Long Unwinding", "FDE3C4", "9A5200")
+    sh.batch_update({"requests": reqs})
+
+
 def main():
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
     raw = os.environ.get("GCP_SERVICE_ACCOUNT_JSON", "").strip() or open("service_account.json").read()
@@ -44,9 +85,10 @@ def main():
     for title, note, cond, *sc in SECTIONS:
         ws.update(range_name=f"A{row}", values=[[title], [note], HEAD])
         ws.update(range_name=f"A{row + 3}", values=[[formula(cond, *sc)]], value_input_option="USER_ENTERED")
-        ws.format(f"A{row}", {"textFormat": {"bold": True, "fontSize": 12}})
         ws.format(f"A{row + 2}:O{row + 2}", {"textFormat": {"bold": True}, "backgroundColor": {"red": 0.88, "green": 0.92, "blue": 0.98}})
         row += 26
+    starts = [(4 + 26 * i, 0) for i in range(len(SECTIONS))]
+    colour(sh, ws, starts)
     ws.format("A1", {"textFormat": {"bold": True, "fontSize": 13}})
     ws.freeze(rows=2)
     print("Research tab ready")
