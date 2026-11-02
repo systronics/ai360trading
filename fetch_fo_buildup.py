@@ -560,7 +560,7 @@ def refresh_trade_premiums(sh, bhav_rows, tdate):
             if not g("Symbol") or g("Exit_Date"):
                 continue
             strike, typ, exp = _f(g("Strike")), g("Type").upper(), g("Expiry")
-            hit = [x for x in bhav_rows if (x.get("FinInstrmTp") or "").strip() == "STO" and (x.get("TckrSymb") or "").strip() == g("Symbol")
+            hit = [x for x in bhav_rows if (x.get("FinInstrmTp") or "").strip() in ("STO", "IDO") and (x.get("TckrSymb") or "").strip() == g("Symbol")
                    and (x.get("OptnTp") or "").strip() == typ and (x.get("XpryDt") or "").strip() == exp and _f(x.get("StrkPric")) == strike]
             if not hit:
                 print(f"[TRADES] {g('Symbol')} {g('Strike')} {typ} {exp}: not found in today's option rows")
@@ -612,7 +612,7 @@ def _telegram(info, board, tdate, target="basic", trades=None):
             lines += ["", "<b>Tumhare khule option trade:</b>"]
             for sym, strike, typ, exp, lot, ent, cur, din, nse_close in trades:
                 lab = info.get(sym)
-                bu = f"{lab[2]} ({lab[3]} din)" if lab else "F&amp;O data nahi"
+                bu = f"{lab[2]} ({lab[3]} din)" if lab else ""
                 pl = f", last price {cur} par P/L {((cur - ent) * lot):+,.0f} Rs" if (cur and ent and lot) else ""
                 if nse_close and ent and lot:
                     pl += f" (NSE close {nse_close} par {((nse_close - ent) * lot):+,.0f} Rs)"
@@ -621,7 +621,7 @@ def _telegram(info, board, tdate, target="basic", trades=None):
                     held = f", {(date.fromisoformat(tdate) - date.fromisoformat(din)).days} din se"
                 except ValueError:
                     pass
-                lines.append(f"- {sym} {strike} {typ} ({exp}): entry {ent}{pl}{held}. Aaj ka buildup: {bu}.")
+                lines.append(f"- {sym} {strike} {typ} ({exp}): entry {ent}{pl}{held}. " + (f" Aaj ka buildup: {bu}." if bu else ""))
             lines.append("(Premium roz F&amp;O file se apne aap bharta hai; asli exit bhaav us waqt ka bid/ask hoga.)")
         lines += ["", "Sirf jaankari. Entry, SL, target nahi. Option premium ka P/L stock se alag hota hai (strike, expiry, time decay).",
                   "Informational only, not a trade signal."]
