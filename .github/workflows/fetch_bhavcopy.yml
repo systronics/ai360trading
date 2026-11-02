@@ -76,6 +76,14 @@ jobs:
           if [ "$FO_TG" = "yes" ]; then ARGS="$ARGS --tg-test"; fi
           python fetch_fo_buildup.py $ARGS
 
+      # 2026-11-02: Gate Audit (research log of every Nifty200+F&O stock vs our gates + forward returns). OBSERVATION ONLY, never read by any gate/alert.
+      # Idempotent; continue-on-error so it can never affect the steps above. Yahoo may not have the day yet -> it then skips (fail-open).
+      - name: Gate Audit (observation only)
+        continue-on-error: true
+        env:
+          GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
+        run: python gate_audit.py --write
+
       - name: Notify Telegram on failure
         if: failure()
         env:
