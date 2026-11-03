@@ -18,7 +18,7 @@ import datetime as dt
 from pathlib import Path
 
 DONE_FILE = Path("_data/tech_done.json")
-TOPIC_ORDER = ["phone_heat", "wifi_slow", "laptop_hang", "pc_no_start", "mixer_hot"]   # 2026-11-03: news_72h removed (already sent to the trading channel; tone to be fixed first)
+TOPIC_ORDER = ["phone_heat", "otp_scam", "wifi_slow", "deleted_data_recover", "charge_overnight", "laptop_hang", "phone_wet", "hdd_click", "public_wifi", "pc_no_start", "fast_charging", "mixer_hot", "storage_full", "force_close_apps", "clear_cache", "laptop_plugged", "ssd_vs_hdd"]   # 2026-11-03: old + curiosity-first mix (tech_topics2); news_72h stays out
 PUBLISH_UTC = (13, 0)   # 18:30 IST
 CTA_FILE = Path("_data/tech_cta.txt")   # the owner's own lines for descriptions (service number/link); optional
 DEFAULT_CTA = "PC ya data ki problem? Google par 'ai360services Haridwar' search karo."
