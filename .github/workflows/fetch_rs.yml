@@ -91,6 +91,14 @@ jobs:
           git pull --rebase origin master || true
           git push origin master || true
 
+      # 2026-11-03: Result Run-up list + paper tracker (observation only, never read by any gate/alert; fail-open).
+      - name: Result run-up list (informational)
+        continue-on-error: true
+        timeout-minutes: 6
+        env:
+          GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
+        run: python result_runup.py --write
+
       - name: Notify Telegram on failure
         if: failure()
         env:
