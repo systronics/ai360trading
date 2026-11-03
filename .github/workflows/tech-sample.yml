@@ -35,7 +35,7 @@ jobs:
       - name: System dependencies
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y --no-install-recommends ffmpeg fonts-dejavu fonts-liberation fonts-freefont-ttf fonts-noto-core
+          sudo apt-get install -y --no-install-recommends ffmpeg fonts-dejavu fonts-liberation fonts-freefont-ttf fonts-noto-core libfribidi0 libraqm0
       - name: Python dependencies
         run: |
           pip install --upgrade pip

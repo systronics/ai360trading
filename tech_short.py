@@ -173,6 +173,11 @@ _FONT_CACHE = {}
 
 
 _more_topics()
+try:   # 2026-11-03: twelve curiosity-first topics (see tech_topics2.py); fail-open
+    import tech_topics2 as _X2
+    _X2.register(TOPICS)
+except Exception as _e:
+    print(f"[TECH] extra topics not loaded: {str(_e)[:80]}")
 
 
 def font(sz):
@@ -498,7 +503,29 @@ GEMINI_STYLES = [
 _GEM = {"model": None, "last": 0.0}
 
 
-def gemini_voice(text, path, idx):
+# 2026-11-03 (owner: "awaaz par bhi mehnat karo"): the delivery now follows the topic's mood. 'serious' = scam/safety/emergency (calm, trustworthy, no fake surprise),
+# 'myth' = curious myth-buster, 'explain' = the original friendly teacher. Each kind has its own five scene styles and Edge-voice fallback pace.
+VOICE_KINDS = {
+    "serious": [
+        ("Kore", "Say this like a calm, serious, trustworthy friend giving an important warning, steady and clear, a little slower, no exaggerated surprise, firm on the key words:"),
+        ("Charon", "Say this like a calm older brother explaining a risk, clear and steady, serious but warm, pausing slightly before the key rule:"),
+        ("Charon", "Say this firmly and clearly, like giving a rule to remember, each word crisp, no hype:"),
+        ("Charon", "Say this with quiet urgency, like warning someone just in time, clear and controlled:"),
+        ("Kore", "Say this like a reassuring but firm friend giving the final safe steps, confident, calm, ending with a gentle teaser for tomorrow:"),
+    ],
+    "myth": [
+        ("Puck", "Say this like a curious young Indian YouTuber challenging a popular belief, playful, raising the question with a smile and a slight dramatic pause on the key word:"),
+        ("Charon", "Say this like a friend busting a myth, lively, a little amused, clear and natural:"),
+        ("Charon", "Say this like revealing the surprising half of the truth, curious, building interest, clear:"),
+        ("Charon", "Say this matter-of-fact with a little emphasis, like listing what actually causes the problem:"),
+        ("Charon", "Say this like a confident, upbeat friend giving the practical fix, short and sure, ending with a curious teaser for tomorrow:"),
+    ],
+}
+EDGE_PACE = {"serious": [("+14%", "-2Hz"), ("+12%", "-2Hz"), ("+10%", "-2Hz"), ("+12%", "-2Hz"), ("+10%", "-2Hz")],
+             "myth": [("+24%", "+3Hz"), ("+20%", "+0Hz"), ("+20%", "+0Hz"), ("+18%", "+0Hz"), ("+18%", "+0Hz")]}
+
+
+def gemini_voice(text, path, idx, kind="explain"):
     """Emotional free Gemini TTS (Puck hook, Charon explain). Returns the wav path, or None to fall back to Edge TTS.
     Free tier is about 2 requests/minute, so calls are spaced."""
     import time
@@ -517,7 +544,8 @@ def gemini_voice(text, path, idx):
             print("[TECH] gemini tts models:", _GEM["models"])
         if not _GEM["model"]:
             return None
-        voice, style = GEMINI_STYLES[min(idx, len(GEMINI_STYLES) - 1)]
+        _styles = VOICE_KINDS.get(kind, GEMINI_STYLES)
+        voice, style = _styles[min(idx, len(_styles) - 1)]
         body = {"contents": [{"parts": [{"text": f"{style} {text}"}]}],
                 "generationConfig": {"responseModalities": ["AUDIO"],
                                      "speechConfig": {"voiceConfig": {"prebuiltVoiceConfig": {"voiceName": voice}}}}}
@@ -660,6 +688,60 @@ def _thermo_icon(d, cx, cy, s):
     d.rounded_rectangle((cx - s * 0.1, cy - s * 0.2, cx + s * 0.1, cy + s * 0.7), radius=int(s * 0.1), fill=RED + (255,))
 
 
+TINTS = {   # (left glow, right glow, banner colour)
+    "red": ((255, 40, 40), (255, 150, 40), (185, 15, 25)),
+    "blue": ((40, 120, 255), (0, 210, 230), (20, 70, 190)),
+    "green": ((0, 200, 110), (80, 170, 255), (0, 125, 70)),
+    "purple": ((150, 80, 255), (255, 80, 170), (95, 35, 170)),
+    "orange": ((255, 150, 30), (255, 60, 60), (205, 90, 10)),
+}
+HEAT_TINT = ((255, 80, 20), (30, 140, 255), (200, 20, 25))
+
+
+def _icon(d, kind, cx, cy, s):
+    """Simple flat icons for the thumbnail corners (no emoji: Pillow fonts have none)."""
+    f = font(int(s * 1.5))
+    if kind == "warn":
+        d.polygon([(cx, cy - s), (cx + s * 1.1, cy + s * 0.8), (cx - s * 1.1, cy + s * 0.8)], fill=GOLD + (255,), outline=(0, 0, 0, 255))
+        d.text((cx, cy + s * 0.25), "!", font=f, fill=(0, 0, 0, 255), anchor="mm")
+    elif kind == "lock":
+        d.arc((cx - s * 0.5, cy - s * 1.1, cx + s * 0.5, cy), 180, 360, fill=WHITE + (255,), width=int(s * 0.22))
+        d.rounded_rectangle((cx - s * 0.8, cy - s * 0.2, cx + s * 0.8, cy + s * 0.9), radius=int(s * 0.2), fill=GOLD + (255,), outline=(0, 0, 0, 255), width=4)
+    elif kind == "battery":
+        d.rounded_rectangle((cx - s * 1.1, cy - s * 0.55, cx + s * 1.0, cy + s * 0.55), radius=int(s * 0.18), outline=WHITE + (255,), width=int(s * 0.14))
+        d.rectangle((cx + s * 1.0, cy - s * 0.2, cx + s * 1.25, cy + s * 0.2), fill=WHITE + (255,))
+        d.rounded_rectangle((cx - s * 0.9, cy - s * 0.35, cx + s * 0.2, cy + s * 0.35), radius=int(s * 0.1), fill=GREEN + (255,))
+    elif kind == "wifi":
+        for r in (0.5, 0.95, 1.4):
+            d.arc((cx - s * r, cy - s * r + s * 0.4, cx + s * r, cy + s * r + s * 0.4), 225, 315, fill=WHITE + (255,), width=int(s * 0.2))
+        d.ellipse((cx - s * 0.14, cy + s * 0.32, cx + s * 0.14, cy + s * 0.6), fill=WHITE + (255,))
+    elif kind == "disk":
+        d.ellipse((cx - s, cy - s, cx + s, cy + s), fill=(190, 195, 205, 255), outline=(0, 0, 0, 255), width=5)
+        d.ellipse((cx - s * 0.35, cy - s * 0.35, cx + s * 0.35, cy + s * 0.35), fill=(60, 65, 80, 255))
+        d.line([(cx + s * 0.9, cy + s * 0.9), (cx + s * 0.1, cy + s * 0.1)], fill=RED + (255,), width=int(s * 0.16))
+    elif kind == "drop":
+        d.polygon([(cx, cy - s * 1.1), (cx + s * 0.75, cy + s * 0.2), (cx - s * 0.75, cy + s * 0.2)], fill=CYAN + (255,))
+        d.ellipse((cx - s * 0.75, cy - s * 0.2, cx + s * 0.75, cy + s * 1.0), fill=CYAN + (255,), outline=(0, 0, 0, 255), width=4)
+    elif kind == "speed":
+        d.polygon([(cx + s * 0.2, cy - s * 1.1), (cx - s * 0.7, cy + s * 0.15), (cx - s * 0.05, cy + s * 0.15), (cx - s * 0.3, cy + s * 1.1),
+                   (cx + s * 0.8, cy - s * 0.25), (cx + s * 0.1, cy - s * 0.25)], fill=GOLD + (255,), outline=(0, 0, 0, 255))
+    else:   # "qm"
+        d.ellipse((cx - s, cy - s, cx + s, cy + s), fill=RED + (255,), outline=WHITE + (255,), width=6)
+        d.text((cx, cy + s * 0.05), "?", font=f, fill=WHITE + (255,), anchor="mm")
+
+
+def _sticker(im, text, tint=None):
+    """Tilted 'MYTH? / SCAM ALERT / SACH?' sticker, the classic click-driver."""
+    f = font(60)
+    tmp = Image.new("RGBA", (640, 140), (0, 0, 0, 0))
+    td = ImageDraw.Draw(tmp)
+    w = int(td.textlength(text, font=f)) + 64
+    td.rounded_rectangle((4, 4, w, 108), radius=22, fill=(255, 235, 60, 255), outline=(0, 0, 0, 255), width=6)
+    td.text((w / 2 + 2, 56), text, font=f, fill=(15, 15, 15, 255), anchor="mm")
+    tmp = tmp.crop((0, 0, w + 8, 114)).rotate(7, expand=True, resample=Image.BICUBIC)
+    im.paste(tmp, (36, 276), tmp)
+
+
 def pattern_thumbnail(frame, topic, path):
     """Pattern from the top phone-heating videos (screenshots 2026-11-01): red banner with a big Devanagari question, yellow Hinglish
     strip, real phone photo with a heat (warm) side and a cool (blue) side, thermometer + flame icons. Honest strip text, no '100% solution'."""
@@ -674,13 +756,14 @@ def pattern_thumbnail(frame, topic, path):
     im = ImageEnhance.Contrast(im).enhance(1.2)
     heat = Image.new("RGBA", (1280, 720), (0, 0, 0, 0))
     hd = ImageDraw.Draw(heat)
-    for x in range(1280):   # warm on the left, cool on the right
+    _tl, _tr, _tb = TINTS.get(topic.get("tint"), HEAT_TINT)
+    for x in range(1280):   # one colour on the left, another on the right (default: warm / cool)
         k = x / 1280
-        hd.line([(x, 0), (x, 720)], fill=(255, 80, 20, int(120 * (1 - k) ** 1.5)) if k < 0.5 else (30, 140, 255, int(110 * (k - 0.5) * 2)))
+        hd.line([(x, 0), (x, 720)], fill=_tl + (int(120 * (1 - k) ** 1.5),) if k < 0.5 else _tr + (int(110 * (k - 0.5) * 2),))
     im = Image.alpha_composite(im.convert("RGBA"), heat).convert("RGB")
     d = ImageDraw.Draw(im, "RGBA")
     # red banner with the Devanagari question
-    d.rectangle((0, 0, 1280, 250), fill=(200, 20, 25, 255))
+    d.rectangle((0, 0, 1280, 250), fill=_tb + (255,))
     d.rectangle((0, 250, 1280, 262), fill=GOLD + (255,))
     words = hi.split()
     lines, cur = [], ""
@@ -698,7 +781,12 @@ def pattern_thumbnail(frame, topic, path):
         mixed_text(d, 640, y, ln, 104, fill=WHITE, outline=(60, 0, 0), width=4)
         y += 120
     # icons
-    if topic.get("icons") == "alarm":
+    if topic.get("icon"):
+        _icon(d, topic["icon"], 150, 470, 84)
+        _icon(d, topic["icon"], 1130, 470, 84)
+        if topic.get("badge"):
+            _sticker(im, topic["badge"], topic.get("tint"))
+    elif topic.get("icons") == "alarm":
         _alarm(d, 150, 450, 80)
         _alarm(d, 1130, 450, 80)
     else:
@@ -866,7 +954,10 @@ def build(key, out_dir, real=False, cache_dir='bank_tech'):
         ap = out_dir / f"{key}_{i}.mp3"
         # fast, energetic delivery; slightly lower pitch on the hook for weight
         rate, pitch = ("+26%", "+2Hz") if i == 0 else (("+20%", "+0Hz") if i < 4 else ("+18%", "+0Hz"))
-        gv = gemini_voice(line, ap, i)
+        _kind = topic.get("kind", "explain")
+        if _kind in EDGE_PACE:
+            rate, pitch = EDGE_PACE[_kind][min(i, 4)]
+        gv = gemini_voice(line, ap, i, _kind)
         if gv is None:
             E.make_voice(line, ap, rate, pitch)
             gv = ap
