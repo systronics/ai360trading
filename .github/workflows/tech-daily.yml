@@ -6,6 +6,8 @@ name: "AI360 Technology daily Short"
 # PEXELS_API_KEY, GEMINI_API_KEY). The cron line is added only after those secrets exist and the owner says go.
 
 on:
+  schedule:
+    - cron: "47 5 * * *"     # 2026-11-03 owner 'go': 05:47 UTC (11:17 IST). Builds + uploads PRIVATE with publishAt 18:30 IST, so a late GitHub start does not matter. Runs only when repo variable TECH_MODE=scheduled, else dry.
   workflow_dispatch:
     inputs:
       mode:
