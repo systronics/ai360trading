@@ -259,8 +259,27 @@ TOPICS2 = {
 }
 
 
+# 2026-11-03: thumbnail photos must be FACELESS close-ups (Pexels licence: no identifiable person in a worried/negative thumbnail; CI preview of deleted_data_recover showed a worried face).
+THUMB_QUERIES = {
+    "otp_scam": ["smartphone screen notification close up", "phone lock screen close up"],
+    "deleted_data_recover": ["hard drive close up", "usb flash drive close up", "computer files screen close up"],
+    "charge_overnight": ["phone charging on bedside table", "smartphone charging cable close up"],
+    "phone_wet": ["water drops on phone screen", "smartphone in water splash close up"],
+    "hdd_click": ["hard disk drive close up", "hard drive platter close up"],
+    "public_wifi": ["wifi icon smartphone close up", "smartphone settings wifi"],
+    "fast_charging": ["fast charger plug close up", "usb c cable close up"],
+    "storage_full": ["smartphone storage screen", "phone settings storage close up"],
+    "force_close_apps": ["smartphone recent apps swipe", "apps icons smartphone screen"],
+    "clear_cache": ["smartphone app settings close up", "phone settings clear data"],
+    "laptop_plugged": ["laptop charging cable close up", "laptop battery icon close up"],
+    "ssd_vs_hdd": ["ssd computer close up", "solid state drive macro"],
+}
+
+
 def register(topics):
     """Add the topics to tech_short.TOPICS (never overwrites an existing key)."""
     for k, v in TOPICS2.items():
+        if k in THUMB_QUERIES:
+            v.setdefault("thumb_queries", THUMB_QUERIES[k])
         topics.setdefault(k, v)
     return topics
