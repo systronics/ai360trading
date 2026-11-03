@@ -152,7 +152,7 @@ def _download(universe):
     return daily
 
 
-def _row(r, labels, last_date):
+def _row(r, labels, last_date):   # last_date = the F&O file's date: the buildup label is only valid for that exact day
     def num(x, nd=2):
         return "" if pd.isna(x) else round(float(x), nd)
     lab = labels.get(r.Symbol, "") if r.Date == last_date else ""
@@ -170,7 +170,7 @@ def _fwd_values(r):
 def main(argv=None):
     argv = argv if argv is not None else sys.argv[1:]
     write = "--write" in argv
-    back = int(argv[argv.index("--backfill") + 1]) if "--backfill" in argv else 0
+    back = int(argv[argv.index("--backfill") + 1]) if "--backfill" in argv else 2   # default: re-check the last 3 trading days (idempotent), so a Yahoo lag self-heals
     sh = _connect()
     if "--report" in argv:
         return report(sh)
@@ -183,11 +183,14 @@ def main(argv=None):
         print("[YF] benchmark missing, nothing written (fail-open)")
         return 0
     a = build_frames({s: daily[s] for s in universe if s in daily}, [s for s in universe if s in daily], bench["Close"], fo, n200)
+    # never log an unfinished session: before 16:00 IST today's Yahoo bar is partial (market still open / not yet final)
+    _now = datetime.now(IST)
+    _cut = pd.Timestamp(_now.date()) if _now.hour >= 16 else pd.Timestamp(_now.date()) - pd.Timedelta(days=1)
+    a = a[a.Date <= _cut]
     dates = sorted(a.Date.unique())
     last = pd.Timestamp(dates[-1])
     if tdate and pd.Timestamp(tdate) > last:
-        print(f"[YF] prices only up to {last.date()} while the F&O file is for {tdate}: Yahoo not updated yet, try later (fail-open)")
-        return 0
+        print(f"[YF] prices only up to {last.date()} while the F&O file is for {tdate}: Yahoo lags; logging what exists (the next run fills the rest)")
     pick = dates[-(back + 1):] if back else [last]
     sel = a[a.Date.isin(pick)]
     print(f"[ROWS] {len(sel)} rows for {len(pick)} trading day(s), last day {last.date()}")
@@ -208,7 +211,7 @@ def main(argv=None):
             key = (r.Date.strftime("%Y-%m-%d"), r.Symbol)
             if key in have:
                 continue
-            fresh.append(_row(r, labels, last) + _fwd_values(sel.loc[(sel.Date == r.Date) & (sel.Symbol == r.Symbol)].iloc[0]))
+            fresh.append(_row(r, labels, pd.Timestamp(tdate) if tdate else last) + _fwd_values(sel.loc[(sel.Date == r.Date) & (sel.Symbol == r.Symbol)].iloc[0]))
         print(f"[NEW] {len(fresh)} rows not yet in {TAB}")
         if not write:
             for r in fresh[:5]:
