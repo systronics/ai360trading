@@ -18,5 +18,15 @@
       "video": "p3gBCIlQF6Q",
       "publish_at": "2026-11-01T13:30:00+00:00"
     }
+  },
+  "rs01": {
+    "us-en": {
+      "video": "tpNGpiGl2AA",
+      "publish_at": "2026-11-07T14:00:00+00:00"
+    },
+    "in-hi": {
+      "video": "h0otYEHRn34",
+      "publish_at": "2026-11-08T13:30:00+00:00"
+    }
   }
 }
