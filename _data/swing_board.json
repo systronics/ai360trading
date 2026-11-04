@@ -1,5 +1,5 @@
 {
-  "generated_at": "04 November 2026, 04:10 PM IST",
+  "generated_at": "04 November 2026, 11:44 PM IST",
   "setups": [
     {
       "symbol": "TECHM",
@@ -18,10 +18,18 @@
       "days_in_trade": "8"
     },
     {
-      "symbol": "INDHOTEL",
+      "symbol": "NYKAA",
       "trade_type": "📊 Options Alert",
-      "strategy": "🎯 RETEST BUY",
-      "stage": "🎯 RETEST | 🚀 BREAKOUT CONFIRMED",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "LAURUSLABS",
+      "trade_type": "📊 Options Alert",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
