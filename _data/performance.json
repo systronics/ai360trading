@@ -1,12 +1,12 @@
 {
-  "as_of": "October 28, 2026",
-  "total": 84,
-  "wins": 38,
-  "losses": 46,
-  "win_rate": 45,
-  "net_pnl_rs": 2817,
-  "avg_win_pct": 2.3,
-  "avg_loss_pct": -1.5,
+  "as_of": "November 04, 2026",
+  "total": 92,
+  "wins": 40,
+  "losses": 52,
+  "win_rate": 43,
+  "net_pnl_rs": 2532,
+  "avg_win_pct": 2.2,
+  "avg_loss_pct": -1.4,
   "best": {
     "sym": "CUMMINSIND",
     "pct": 10.13
@@ -17,22 +17,22 @@
   },
   "recent": [
     {
-      "sym": "BANKINDIA",
-      "exit_date": "2026-10-28",
-      "pct": 0.52,
+      "sym": "GROWW",
+      "exit_date": "2026-11-04",
+      "pct": 0.0,
+      "is_win": false
+    },
+    {
+      "sym": "JIOFIN",
+      "exit_date": "2026-11-04",
+      "pct": 0.48,
       "is_win": true
     },
     {
-      "sym": "HCLTECH",
-      "exit_date": "2026-10-28",
-      "pct": 1.76,
-      "is_win": true
-    },
-    {
-      "sym": "JUBLFOOD",
-      "exit_date": "2026-10-27",
-      "pct": 1.14,
-      "is_win": true
+      "sym": "COALINDIA",
+      "exit_date": "2026-11-04",
+      "pct": 0.0,
+      "is_win": false
     }
   ],
   "since": "2026-05-13",
@@ -47,11 +47,11 @@
     },
     {
       "name": "Intraday (cash)",
-      "trades": 45,
-      "win_rate": 42,
-      "avg_win_pct": 1.4,
-      "avg_loss_pct": -1.2,
-      "net_pnl_rs": -366
+      "trades": 53,
+      "win_rate": 40,
+      "avg_win_pct": 1.3,
+      "avg_loss_pct": -1.1,
+      "net_pnl_rs": -651
     },
     {
       "name": "Options alerts",
