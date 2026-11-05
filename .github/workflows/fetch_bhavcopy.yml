@@ -85,6 +85,14 @@ jobs:
           GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
         run: python gate_audit.py --write
 
+      # 2026-11-05: daily top-gainers record (what we knew the evening before, was it a leader / laggard bounce / result, did the system take it). Observation only.
+      - name: Gainers log (observation only)
+        continue-on-error: true
+        timeout-minutes: 6
+        env:
+          GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
+        run: python gainers_log.py --write
+
       - name: Notify Telegram on failure
         if: failure()
         env:
