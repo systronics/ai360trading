@@ -179,6 +179,13 @@ def run(mode, out_dir, topic=None):
             print(f"[TECH] PRIVATE TEST uploaded: https://youtu.be/{vid} (not announced, not marked done)")
             return 0
         when = next_publish()
+        # 2026-11-05: GitHub delays this cron by hours, so two runs can land before the same 18:30 IST slot; never schedule two Shorts for the same day.
+        try:
+            _last = max(dt.datetime.fromisoformat(d["publish_at"]) for d in done if d.get("publish_at"))
+            while when <= _last + dt.timedelta(hours=12):
+                when += dt.timedelta(days=1)
+        except Exception:
+            pass
         vid = youtube_upload(str(mp4), meta["title"], desc, tags, thumb_s, when)
         print(f"[TECH] scheduled {vid} for {when.isoformat()}")
         done.append({"topic": key, "video": vid, "publish_at": when.isoformat()})
