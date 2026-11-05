@@ -1,14 +1,6 @@
 {
-  "generated_at": "05 November 2026, 09:40 AM IST",
+  "generated_at": "05 November 2026, 10:10 AM IST",
   "setups": [
-    {
-      "symbol": "TECHM",
-      "trade_type": "📈 Positional",
-      "strategy": "➖ HOLD",
-      "stage": "📉 CORR.END | 🔄 Building Momentum",
-      "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "21"
-    },
     {
       "symbol": "KOTAKBANK",
       "trade_type": "🔄 Swing",
@@ -42,6 +34,22 @@
       "days_in_trade": "0"
     },
     {
+      "symbol": "NYKAA",
+      "trade_type": "📊 Options Alert",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
+      "status": "✅ TRADED (PAPER)",
+      "days_in_trade": "0"
+    },
+    {
+      "symbol": "TECHM",
+      "trade_type": "📊 Options Alert",
+      "strategy": "🎯 RETEST BUY",
+      "stage": "🎯 RETEST | 🚀 BREAKOUT CONFIRMED",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
       "symbol": "INDHOTEL",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
@@ -58,10 +66,26 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "NYKAA",
-      "trade_type": "📊 Options Alert",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
+      "symbol": "ASHOKLEY",
+      "trade_type": "🔥 Cash Intraday",
+      "strategy": "CASH",
+      "stage": "🔥 CASH | +8.8% | Vol 148%",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "HINDPETRO",
+      "trade_type": "🔥 Cash Intraday",
+      "strategy": "CASH",
+      "stage": "🔥 CASH | +5.7% | Vol 18%",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "TMPV",
+      "trade_type": "🔥 Cash Intraday",
+      "strategy": "CASH",
+      "stage": "🔥 CASH | +4.6% | Vol -28%",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
