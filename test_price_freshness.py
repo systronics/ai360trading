@@ -19,3 +19,12 @@ def test_judge_ok_and_stale():
 def test_judge_unknown_when_data_missing():
     assert P.judge([None] * 12, None)[0] == "UNKNOWN"
     assert P.judge([0.1] * 5 + [None] * 7, 0.1)[0] == "UNKNOWN"
+
+
+def test_median_age():
+    from datetime import datetime, timedelta
+    import pytz
+    now = datetime(2026, 11, 6, 10, 0, tzinfo=pytz.timezone("Asia/Kolkata"))
+    assert round(P.median_age_min([now - timedelta(minutes=2), now - timedelta(minutes=4), now - timedelta(minutes=30)], now)) == 4
+    assert round(P.median_age_min([now - timedelta(minutes=16), now - timedelta(minutes=14)], now)) == 15
+    assert P.median_age_min([], now) is None

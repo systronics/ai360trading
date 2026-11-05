@@ -29,6 +29,22 @@ def pct_diff(sheet, live):
     return abs(sheet / live - 1) * 100.0
 
 
+def median_age_min(stamps, now):
+    """Median age in minutes of the latest Yahoo 1-minute bars (pure; tz-aware datetimes). None when nothing usable.
+    2026-11-05 (owner: 'I want data without delay'): the sheet-vs-Yahoo check cannot see a delay that Yahoo itself has, so the age of Yahoo's own latest bar is measured too."""
+    ages = []
+    for t in stamps:
+        try:
+            ages.append((now - t).total_seconds() / 60.0)
+        except Exception:
+            continue
+    if not ages:
+        return None
+    ages.sort()
+    m = len(ages) // 2
+    return ages[m] if len(ages) % 2 else (ages[m - 1] + ages[m]) / 2.0
+
+
 def judge(diffs, nifty_diff):
     """diffs: list of % differences for the stock sample (None = unavailable). Returns (state, bad_count, usable_count)."""
     ok = [d for d in diffs if d is not None]
@@ -90,15 +106,20 @@ def main(argv=None):
     ok_sent = False
     try:
         sheet = _sheet_cmp()
-        diffs, rows = [], []
+        diffs, rows, stamps = [], [], []
         for s in SAMPLE:
             live, ts = _yahoo_last(s)
+            if ts is not None:
+                stamps.append(ts)
             d = pct_diff(sheet.get(s), live)
             diffs.append(d)
             rows.append((s, sheet.get(s), live, d))
         nl, _ = _yahoo_last("NIFTY50")
         nd = pct_diff(sheet.get("NIFTY50"), nl)
         state, bad, usable = judge(diffs, nd)
+        age = median_age_min(stamps, now)
+        age_txt = "n/a" if age is None else f"{age:.0f} min"
+        print(f"[FRESH] Yahoo's own latest 1-minute bar is about {age_txt} old (median of the sample)")
         print(f"[FRESH] {hm} IST state={state} bad={bad}/{usable} nifty_diff={None if nd is None else round(nd, 2)}%")
         for s, a, b, d in rows:
             print(f"   {s:11} sheet {a} live {None if b is None else round(b, 2)} diff {None if d is None else round(d, 2)}%")
@@ -110,7 +131,10 @@ def main(argv=None):
                       "Signals, entries and exits may use old prices right now. <i>System notice, not a trade signal.</i>")
         elif state == "OK" and hm >= "09:28" and "--no-ok" not in argv:   # first good check of the day (the loop then passes --no-ok)
             ok_sent = True
-            _telegram(f"✅ <b>Price check {hm} IST</b>: {usable - bad} of {usable} sample stocks match the live price (NIFTY diff {nd:.2f}%). Feed is live.")
+            delayed = age is not None and age > 10
+            _telegram(f"✅ <b>Price check {hm} IST</b>: {usable - bad} of {usable} sample stocks match the Yahoo price (NIFTY diff {nd:.2f}%). Our sheet is in step with Yahoo.\n"
+                      + (f"⏱ <b>But Yahoo's own data is about {age_txt} old</b> - that is a delayed source, so every signal is that late too." if delayed
+                         else f"⏱ Yahoo data age about {age_txt}" + (" (fresh)." if age is not None else ".")))
     except Exception as e:
         print(f"[FRESH] skipped (fail-open): {str(e)[:120]}")
     return 10 if ok_sent else 0
