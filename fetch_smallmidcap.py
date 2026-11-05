@@ -618,7 +618,7 @@ def send_digest(picks: list, bhav_date: str):
     lines = [
         f"💎 <b>SMALL/MID CAP MOMENTUM PICKS — {bhav_date}</b>",
         f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
-        f"<i>Highly selective scan — outside Nifty200, institutional buying confirmed.</i>",
+        f"<i>Highly selective scan — outside Nifty200, high delivery % and volume (a screen, not a confirmation or a recommendation).</i>",
         "",
     ]
     for rank, p in enumerate(picks, start=1):
