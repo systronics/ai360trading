@@ -69,6 +69,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      actions: write
     # < GitHub's 6h hard limit. The bash loop self-exits at the IST end time
     # well before this; timeout-minutes is only a runaway backstop.
     timeout-minutes: 235
@@ -146,3 +147,18 @@ jobs:
             fi
           done
           echo "[SESSION] reached ${END} IST after ${TICKS} tick(s) — done"
+
+      - name: Chain the next session (keeps this running until 15:50 IST)
+        if: success()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          export TZ=Asia/Kolkata
+          if [ "$(date +%u)" -le 5 ] && [ "$(date +%H:%M)" \< "15:40" ]; then
+            LIM=$(( $(date +%s) + 215 * 60 )); E15=$(date -d "today 15:50" +%s)
+            [ "$LIM" -gt "$E15" ] && LIM=$E15
+            NEXT_END=$(date -d "@$LIM" +%H:%M)
+            gh workflow run swing_board_session.yml -f end_time="$NEXT_END" || echo "[CHAIN] dispatch failed (the schedule backups still exist)"
+            echo "[CHAIN] successor dispatched, ends $NEXT_END IST"
+          fi

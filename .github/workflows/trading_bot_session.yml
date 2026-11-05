@@ -86,9 +86,23 @@ jobs:
     # < GitHub's 6h hard limit. The bash loop self-exits at the IST end time
     # well before this; timeout-minutes is only a runaway backstop (355 = just under GitHub's 360-min cap; the loop self-stops at 340 min, see MAX_RUN_MIN).
     timeout-minutes: 355
+    permissions:
+      contents: read
+      actions: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Kick the price feed + swing-board sessions (this bot start is the one reliable trigger)
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          export TZ=Asia/Kolkata
+          if [ "$(date +%u)" -le 5 ] && [ "$(date +%H)" -lt 11 ]; then
+            gh workflow run fetch_live_prices_session.yml -f end_time=12:15 || echo "[KICK] price feed dispatch failed"
+            gh workflow run swing_board_session.yml -f end_time=12:15 || echo "[KICK] swing board dispatch failed"
+          fi
 
       - name: Setup Python 3.11
         uses: actions/setup-python@v5
@@ -144,3 +158,18 @@ jobs:
             fi
           done
           echo "[SESSION] reached ${END} IST after ${TICKS} tick(s) — done"
+
+      - name: Chain the next session (keeps this running until 15:50 IST)
+        if: success()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          export TZ=Asia/Kolkata
+          if [ "$(date +%u)" -le 5 ] && [ "$(date +%H:%M)" \< "15:40" ]; then
+            LIM=$(( $(date +%s) + 330 * 60 )); E15=$(date -d "today 15:50" +%s)
+            [ "$LIM" -gt "$E15" ] && LIM=$E15
+            NEXT_END=$(date -d "@$LIM" +%H:%M)
+            gh workflow run trading_bot_session.yml -f end_time="$NEXT_END" || echo "[CHAIN] dispatch failed (the schedule backups still exist)"
+            echo "[CHAIN] successor dispatched, ends $NEXT_END IST"
+          fi
