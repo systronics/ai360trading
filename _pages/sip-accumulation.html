@@ -70,6 +70,8 @@ canonical: https://ai360trading.in/sip-accumulation/
 
   <div class="sgp-bar"><b>Free:</b> the full list below. &nbsp;|&nbsp; <b>Advance / Premium members get:</b> exact entry, stop-loss, target and live trade updates for our swing signals in Telegram &nbsp;🔒 <a href="/membership/">See the plans →</a></div>
 
+  <div class="sgp-bar">📅 <a href="/market-events/">Results, dividends and bonus/split dates for these stocks →</a></div>
+
   {% if sl.counts %}
   <div class="sgp-stats">
     <div class="sgp-stats-title">📊 The list today <span class="sgp-stats-sub">{{ sl.generated_at }}</span></div>
@@ -91,7 +93,7 @@ canonical: https://ai360trading.in/sip-accumulation/
   {% if sl.sip and sl.sip.size > 0 %}
   <div class="sgp-table-wrap">
     <table class="sgp-table">
-      <thead><tr><th>Stock</th><th>What to do</th><th class="hide-sm">Sector</th><th>Price ₹</th><th>52w drop</th><th>20d range</th><th>Support ₹</th><th>Sector</th></tr></thead>
+      <thead><tr><th>Stock</th><th>What to do</th><th class="hide-sm">Sector</th><th>Price ₹</th><th>52w drop</th><th>20d range</th><th>Support ₹</th><th>Div yield</th><th>Sector</th></tr></thead>
       <tbody>
       {% for s in sl.sip %}
         <tr>
@@ -102,6 +104,7 @@ canonical: https://ai360trading.in/sip-accumulation/
           <td class="num sgp-red">{{ s.down_from_high | abs }}%</td>
           <td class="num">{{ s.base_range }}%</td>
           <td class="num">{{ s.support }}</td>
+          <td class="num{% if s.div_yield >= 2.5 %} sgp-grn{% endif %}">{% if s.div_yield %}{{ s.div_yield }}%{% else %}–{% endif %}</td>
           <td class="num">{% if s.sector_trend == "TAILWIND" %}<span class="sgp-grn">● Rising</span>{% else %}<span class="sgp-red">● Weak</span>{% endif %}</td>
         </tr>
       {% endfor %}
@@ -112,6 +115,8 @@ canonical: https://ai360trading.in/sip-accumulation/
   {% else %}
   <div class="sgp-table-wrap"><div class="sgp-empty">No stocks currently meet the accumulation conditions. Check back after the next market day.</div></div>
   {% endif %}
+
+  <div class="sgp-note"><b>About the Div yield column:</b> it is the dividends paid in the last 12 months divided by today's price. In our 5-year test of stocks in this kind of zone (25% or more below the 52-week high, calm 20-day range), those yielding 2.5% or more did better over the next 60 days (about +4.3%) than those yielding 0.5 to 2.5% (about +0.6 to +1.5%), in both halves of the data. Stocks that pay no dividend also did well, the sample is a small group of mostly large state-owned names, and today's index members look better than they were, so treat it as a description of the past, not a rule or a signal.</div>
 
   <h2>How people use a list like this</h2>
   <ul>

@@ -30,8 +30,8 @@ Usage:  python publish_signal_lists.py          (writes _data/signal_lists.json)
         python publish_signal_lists.py --dry    (prints, writes nothing)
 """
 
-import os, sys, json
-from datetime import datetime
+import os, sys, json, re
+from datetime import datetime, timedelta
 import pytz
 
 IST        = pytz.timezone("Asia/Kolkata")
@@ -76,6 +76,56 @@ def _market_trend():
     except Exception as ex:
         print(f"[SIGNALS] market trend skipped: {ex}")
         return None
+
+
+def _serial_to_date(x):
+    """Google Sheets date serial (days since 1899-12-30) -> date; None when not a number."""
+    try:
+        return (datetime(1899, 12, 30) + timedelta(days=int(float(x)))).date()
+    except Exception:
+        return None
+
+
+def _events(ws, today):
+    """v1.1 (2026-11-05): a news-style events block for /market-events/: results due in the next 10 days (BotMemory EARNINGS_<SYM>_<date>, fed by fetch_earnings.py),
+    ex-dividend dates of the last 30 days and bonus/split dates of the last 120 days (trailing columns from fetch_dividends.py). Descriptive only, no advice.
+    Returns (events dict, {symbol: dividend yield %}); ({}, {}) on any problem (fail-open)."""
+    try:
+        sp = ws.spreadsheet
+        n = sp.worksheet("Nifty200").get_all_values(value_render_option="UNFORMATTED_VALUE")
+        h = n[0]
+        ix = {k: h.index(k) for k in ("Div_Yield_%_TTM", "Last_Div_Date", "Last_Bonus_Split_Date", "Last_Bonus_Split_Ratio", "SECTOR")}
+        yld, sector, div_rows, bon_rows = {}, {}, [], []
+        for r in n[2:]:
+            sym = str(r[0]).replace("NSE:", "").strip()
+            if not sym:
+                continue
+            sector[sym] = str(r[ix["SECTOR"]])
+            y = _f(r[ix["Div_Yield_%_TTM"]])
+            if y is not None:
+                yld[sym] = round(y, 2)
+            d = _serial_to_date(r[ix["Last_Div_Date"]])
+            if d and 0 <= (today - d).days <= 30 and y is not None:
+                div_rows.append({"symbol": sym, "sector": sector[sym], "date": d.isoformat(), "date_label": d.strftime("%d %b %Y"), "yield": round(y, 2)})
+            b = _serial_to_date(r[ix["Last_Bonus_Split_Date"]])
+            ratio = _f(r[ix["Last_Bonus_Split_Ratio"]])
+            if b and ratio and 0 <= (today - b).days <= 120:
+                bon_rows.append({"symbol": sym, "sector": sector[sym], "date": b.isoformat(), "date_label": b.strftime("%d %b %Y"), "ratio": ("%g" % ratio)})
+        res_rows = []
+        for r in sp.worksheet("BotMemory").get_all_values():
+            m = re.match(r"EARNINGS_(.+)_(\d{4}-\d{2}-\d{2})$", r[0] if r else "")
+            if not m or m.group(1) not in sector:
+                continue
+            d = datetime.strptime(m.group(2), "%Y-%m-%d").date()
+            if 0 <= (d - today).days <= 10:
+                res_rows.append({"symbol": m.group(1), "sector": sector[m.group(1)], "date": d.isoformat(), "date_label": d.strftime("%a %d %b"), "days_left": (d - today).days})
+        res_rows.sort(key=lambda x: (x["date"], x["symbol"]))
+        div_rows.sort(key=lambda x: (x["date"], x["symbol"]), reverse=True)
+        bon_rows.sort(key=lambda x: (x["date"], x["symbol"]), reverse=True)
+        return {"results": res_rows[:25], "dividends": div_rows[:20], "bonus_split": bon_rows[:15]}, yld
+    except Exception as ex:
+        print(f"[SIGNALS] events skipped (fail-open): {ex}")
+        return {}, {}
 
 
 def build():
@@ -131,7 +181,12 @@ def build():
             x.pop("_k", None)
 
     now = datetime.now(IST)
+    events, yld = _events(ws, now.date())
+    for x in sip:
+        if x["symbol"] in yld:
+            x["div_yield"] = yld[x["symbol"]]
     return {
+        "events": events,
         "generated_at": now.strftime("%d %B %Y, %I:%M %p IST"),
         "market": _market_trend(),
         "sip": sip, "breakout": brk,

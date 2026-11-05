@@ -1,0 +1,95 @@
+---
+layout: default
+title: "Market Events — Results, Dividends, Bonus and Split | AI360Trading"
+description: "Upcoming quarterly results and recent dividend ex-dates, bonus and split announcements for Nifty 200 stocks. Corporate events move prices, so know them before you trade. Updated every trading day."
+permalink: /market-events/
+canonical: https://ai360trading.in/market-events/
+---
+
+<style>
+  .mev { max-width: 1000px; margin: 0 auto; padding: 0 12px 20px; }
+  .mev-hero { text-align: center; margin-bottom: 20px; padding: 28px 20px; background: linear-gradient(135deg, #eef4ff 0%, #f0f7ff 100%); border-radius: 12px; }
+  .mev-hero h1 { margin: 0 0 8px 0; color: #1e293b; font-size: 26px; font-weight: 900; }
+  .mev-hero p { font-size: 14px; color: #64748b; margin: 0 auto; max-width: 660px; line-height: 1.6; }
+  .mev h2 { font-size: 18px; font-weight: 900; color: #0f172a; margin: 26px 0 6px; }
+  .mev-sub { font-size: 13px; color: #64748b; margin: 0 0 10px; line-height: 1.6; }
+  .mev-wrap { width: 100%; overflow-x: auto; border-radius: 12px; border: 1px solid #e1e8ed; background: #fff; box-shadow: 0 8px 24px rgba(0,0,0,0.06); -webkit-overflow-scrolling: touch; }
+  table.mev-t { width: 100%; border-collapse: collapse; font-size: 13.5px; background: #fff; margin: 0; border: none; }
+  table.mev-t th { background: #0f172a; color: #e2e8f0; text-align: left; padding: 10px 12px; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap; border: none; }
+  table.mev-t td { padding: 9px 12px; border: none; border-bottom: 1px solid #eef2f7; color: #1e293b; background: transparent; }
+  table.mev-t tbody tr:nth-child(even) td { background: #f8fafc; }
+  table.mev-t td.sym { font-weight: 800; color: #0f172a; white-space: nowrap; }
+  table.mev-t td.num { white-space: nowrap; }
+  .mev-grn { color: #16a34a; font-weight: 700; }
+  .mev-empty { padding: 18px; text-align: center; color: #64748b; font-size: 13.5px; }
+  .mev-key { background: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid #0088cc; border-radius: 10px; padding: 12px 16px; margin: 0 0 6px; font-size: 13.5px; color: #334155; line-height: 1.7; }
+  .mev-key b { color: #0f172a; }
+  .mev-note { background: #fffbeb; border: 1px solid #fde68a; border-radius: 12px; padding: 14px 18px; margin: 18px 0; font-size: 13.5px; color: #78350f; line-height: 1.7; }
+  .mev-disc { margin-top: 24px; padding: 14px 18px; background: #fff5f5; border: 1px solid #fed7d7; border-radius: 8px; font-size: 12.5px; color: #744210; line-height: 1.7; }
+  .mev-live { color: #16a34a; font-weight: bold; font-size: 12.5px; margin-top: 10px; }
+</style>
+
+{% assign sl = site.data.signal_lists %}
+{% assign ev = sl.events %}
+<div class="mev">
+
+  <div class="mev-hero">
+    <h1>Market Events</h1>
+    <p>Quarterly results, dividends, bonus issues and splits for Nifty 200 stocks. These events move prices (sometimes a lot), so it helps to know them before you look at a chart.</p>
+    <div class="mev-live">UPDATED EVERY TRADING DAY{% if sl.generated_at %} · {{ sl.generated_at }}{% endif %}</div>
+  </div>
+
+  <div class="mev-key"><b>What each event does to the price:</b>
+    <b>Results</b> can move a stock several percent either way, often more than any other event, and the direction is not known in advance. <b>Dividend</b>: on the ex-date the price simply drops by about the dividend (median dividend is under 0.5% of the price), nothing hidden. <b>Bonus / split</b>: the price falls overnight by the ratio (a 2-for-1 halves it) but your holding grows by the same ratio, so there is no real loss.</div>
+
+  <h2>Results due in the next 10 days</h2>
+  <p class="mev-sub">Dates come from company announcements picked up by our data feed; companies can change them, so confirm on the exchange website.</p>
+  {% if ev.results and ev.results.size > 0 %}
+  <div class="mev-wrap"><table class="mev-t">
+    <thead><tr><th>Date</th><th>Stock</th><th>Sector</th><th>Days left</th></tr></thead>
+    <tbody>
+    {% for r in ev.results %}
+      <tr><td class="num">{{ r.date_label }}</td><td class="sym">{{ r.symbol }}</td><td>{{ r.sector }}</td><td class="num">{{ r.days_left }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  {% else %}
+  <div class="mev-wrap"><div class="mev-empty">No results dates in our feed for the next 10 days.</div></div>
+  {% endif %}
+
+  <h2>Recent ex-dividend dates (last 30 days)</h2>
+  <p class="mev-sub">A look back, not a calendar of upcoming dividends. "Yield" is the dividends paid in the last 12 months divided by the current price.</p>
+  {% if ev.dividends and ev.dividends.size > 0 %}
+  <div class="mev-wrap"><table class="mev-t">
+    <thead><tr><th>Ex-date</th><th>Stock</th><th>Sector</th><th>12-month yield</th></tr></thead>
+    <tbody>
+    {% for d in ev.dividends %}
+      <tr><td class="num">{{ d.date_label }}</td><td class="sym">{{ d.symbol }}</td><td>{{ d.sector }}</td><td class="num{% if d.yield >= 2.5 %} mev-grn{% endif %}">{{ d.yield }}%</td></tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  {% else %}
+  <div class="mev-wrap"><div class="mev-empty">No ex-dividend dates in the last 30 days in our feed.</div></div>
+  {% endif %}
+
+  <h2>Recent bonus issues and splits (last 4 months)</h2>
+  <p class="mev-sub">Bonus issues and stock splits look the same in our data source, so they are shown together. The price adjusts by the ratio on the ex-date.</p>
+  {% if ev.bonus_split and ev.bonus_split.size > 0 %}
+  <div class="mev-wrap"><table class="mev-t">
+    <thead><tr><th>Ex-date</th><th>Stock</th><th>Sector</th><th>Ratio</th></tr></thead>
+    <tbody>
+    {% for b in ev.bonus_split %}
+      <tr><td class="num">{{ b.date_label }}</td><td class="sym">{{ b.symbol }}</td><td>{{ b.sector }}</td><td class="num">{{ b.ratio }}-for-1</td></tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  {% else %}
+  <div class="mev-wrap"><div class="mev-empty">No bonus or split in the last 4 months in our feed.</div></div>
+  {% endif %}
+
+  <div class="mev-note"><b>Honest note:</b> knowing an event date is not a trading signal. In our own tests, buying the day after a bonus or split did not beat the market on average, and a dividend ex-date carries no hidden information. The one pattern we are still tracking is the few days <i>before</i> a result for stocks above their 50-day average, on a small sample, so we only watch it on paper.</div>
+
+  <div class="mev-disc"><b>Disclaimer:</b> AI360Trading is not registered with SEBI. This page is general educational information, not investment advice or a recommendation to buy or sell. Always confirm corporate actions on the NSE or BSE website. Data can be late or wrong.</div>
+
+  <p class="mev-sub" style="margin-top:16px;">See also: <a href="/sip-accumulation/">SIP accumulation list</a> · <a href="/breakout-signals/">Breakout signals</a></p>
+</div>

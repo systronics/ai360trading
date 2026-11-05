@@ -1,5 +1,278 @@
 {
-  "generated_at": "05 November 2026, 08:48 PM IST",
+  "events": {
+    "results": [
+      {
+        "symbol": "ASTRAL",
+        "sector": "Capital Goods",
+        "date": "2026-11-05",
+        "date_label": "Thu 05 Nov",
+        "days_left": 0
+      },
+      {
+        "symbol": "BHARATFORG",
+        "sector": "Automobile and Auto Components",
+        "date": "2026-11-05",
+        "date_label": "Thu 05 Nov",
+        "days_left": 0
+      },
+      {
+        "symbol": "BHARTIARTL",
+        "sector": "Telecommunication",
+        "date": "2026-11-05",
+        "date_label": "Thu 05 Nov",
+        "days_left": 0
+      },
+      {
+        "symbol": "BRITANNIA",
+        "sector": "Fast Moving Consumer Goods",
+        "date": "2026-11-05",
+        "date_label": "Thu 05 Nov",
+        "days_left": 0
+      },
+      {
+        "symbol": "FORTIS",
+        "sector": "Healthcare",
+        "date": "2026-11-05",
+        "date_label": "Thu 05 Nov",
+        "days_left": 0
+      },
+      {
+        "symbol": "GLENMARK",
+        "sector": "Healthcare",
+        "date": "2026-11-05",
+        "date_label": "Thu 05 Nov",
+        "days_left": 0
+      },
+      {
+        "symbol": "GODFRYPHLP",
+        "sector": "Fast Moving Consumer Goods",
+        "date": "2026-11-05",
+        "date_label": "Thu 05 Nov",
+        "days_left": 0
+      },
+      {
+        "symbol": "LGEINDIA",
+        "sector": "Consumer Durables",
+        "date": "2026-11-05",
+        "date_label": "Thu 05 Nov",
+        "days_left": 0
+      },
+      {
+        "symbol": "M&M",
+        "sector": "Automobile and Auto Components",
+        "date": "2026-11-05",
+        "date_label": "Thu 05 Nov",
+        "days_left": 0
+      },
+      {
+        "symbol": "MOTHERSON",
+        "sector": "Automobile and Auto Components",
+        "date": "2026-11-05",
+        "date_label": "Thu 05 Nov",
+        "days_left": 0
+      },
+      {
+        "symbol": "MPHASIS",
+        "sector": "Information Technology",
+        "date": "2026-11-05",
+        "date_label": "Thu 05 Nov",
+        "days_left": 0
+      },
+      {
+        "symbol": "ONGC",
+        "sector": "Oil Gas & Consumable Fuels",
+        "date": "2026-11-05",
+        "date_label": "Thu 05 Nov",
+        "days_left": 0
+      },
+      {
+        "symbol": "PRESTIGE",
+        "sector": "Realty",
+        "date": "2026-11-05",
+        "date_label": "Thu 05 Nov",
+        "days_left": 0
+      },
+      {
+        "symbol": "TIINDIA",
+        "sector": "Automobile and Auto Components",
+        "date": "2026-11-05",
+        "date_label": "Thu 05 Nov",
+        "days_left": 0
+      },
+      {
+        "symbol": "TITAN",
+        "sector": "Consumer Durables",
+        "date": "2026-11-05",
+        "date_label": "Thu 05 Nov",
+        "days_left": 0
+      },
+      {
+        "symbol": "BOSCHLTD",
+        "sector": "Automobile and Auto Components",
+        "date": "2026-11-06",
+        "date_label": "Fri 06 Nov",
+        "days_left": 1
+      },
+      {
+        "symbol": "COROMANDEL",
+        "sector": "Chemicals",
+        "date": "2026-11-06",
+        "date_label": "Fri 06 Nov",
+        "days_left": 1
+      },
+      {
+        "symbol": "HINDALCO",
+        "sector": "Metals & Mining",
+        "date": "2026-11-06",
+        "date_label": "Fri 06 Nov",
+        "days_left": 1
+      },
+      {
+        "symbol": "JUBLFOOD",
+        "sector": "Consumer Services",
+        "date": "2026-11-06",
+        "date_label": "Fri 06 Nov",
+        "days_left": 1
+      },
+      {
+        "symbol": "SIEMENS",
+        "sector": "Capital Goods",
+        "date": "2026-11-06",
+        "date_label": "Fri 06 Nov",
+        "days_left": 1
+      },
+      {
+        "symbol": "VOLTAS",
+        "sector": "Consumer Durables",
+        "date": "2026-11-06",
+        "date_label": "Fri 06 Nov",
+        "days_left": 1
+      },
+      {
+        "symbol": "DIVISLAB",
+        "sector": "Healthcare",
+        "date": "2026-11-07",
+        "date_label": "Sat 07 Nov",
+        "days_left": 2
+      },
+      {
+        "symbol": "TATASTEEL",
+        "sector": "Metals & Mining",
+        "date": "2026-11-07",
+        "date_label": "Sat 07 Nov",
+        "days_left": 2
+      },
+      {
+        "symbol": "COCHINSHIP",
+        "sector": "Capital Goods",
+        "date": "2026-11-10",
+        "date_label": "Tue 10 Nov",
+        "days_left": 5
+      },
+      {
+        "symbol": "KALYANKJIL",
+        "sector": "Consumer Durables",
+        "date": "2026-11-10",
+        "date_label": "Tue 10 Nov",
+        "days_left": 5
+      }
+    ],
+    "dividends": [
+      {
+        "symbol": "SUPREMEIND",
+        "sector": "Capital Goods",
+        "date": "2026-10-30",
+        "date_label": "30 Oct 2026",
+        "yield": 1.52
+      },
+      {
+        "symbol": "RECLTD",
+        "sector": "Financial Services",
+        "date": "2026-10-30",
+        "date_label": "30 Oct 2026",
+        "yield": 5.99
+      },
+      {
+        "symbol": "SHRIRAMFIN",
+        "sector": "Financial Services",
+        "date": "2026-10-29",
+        "date_label": "29 Oct 2026",
+        "yield": 2.1
+      },
+      {
+        "symbol": "TECHM",
+        "sector": "Information Technology",
+        "date": "2026-10-23",
+        "date_label": "23 Oct 2026",
+        "yield": 2.85
+      },
+      {
+        "symbol": "OBEROIRLTY",
+        "sector": "Realty",
+        "date": "2026-10-23",
+        "date_label": "23 Oct 2026",
+        "yield": 0.49
+      },
+      {
+        "symbol": "LTM",
+        "sector": "Information Technology",
+        "date": "2026-10-23",
+        "date_label": "23 Oct 2026",
+        "yield": 1.84
+      },
+      {
+        "symbol": "IRFC",
+        "sector": "Financial Services",
+        "date": "2026-10-23",
+        "date_label": "23 Oct 2026",
+        "yield": 3.0
+      },
+      {
+        "symbol": "ICICIGI",
+        "sector": "Financial Services",
+        "date": "2026-10-23",
+        "date_label": "23 Oct 2026",
+        "yield": 0.89
+      },
+      {
+        "symbol": "360ONE",
+        "sector": "Financial Services",
+        "date": "2026-10-23",
+        "date_label": "23 Oct 2026",
+        "yield": 1.37
+      },
+      {
+        "symbol": "ICICIAMC",
+        "sector": "Financial Services",
+        "date": "2026-10-21",
+        "date_label": "21 Oct 2026",
+        "yield": 2.11
+      },
+      {
+        "symbol": "HCLTECH",
+        "sector": "Information Technology",
+        "date": "2026-10-16",
+        "date_label": "16 Oct 2026",
+        "yield": 4.2
+      },
+      {
+        "symbol": "VEDL",
+        "sector": "Metals & Mining",
+        "date": "2026-10-14",
+        "date_label": "14 Oct 2026",
+        "yield": 6.73
+      },
+      {
+        "symbol": "TCS",
+        "sector": "Information Technology",
+        "date": "2026-10-14",
+        "date_label": "14 Oct 2026",
+        "yield": 4.48
+      }
+    ],
+    "bonus_split": []
+  },
+  "generated_at": "05 November 2026, 09:47 PM IST",
   "market": {
     "up": true,
     "close": 24537,
@@ -14,7 +287,8 @@
       "down_from_high": -25.1,
       "base_range": 7.2,
       "support": 223.05,
-      "sector_trend": "HEADWIND"
+      "sector_trend": "HEADWIND",
+      "div_yield": 5.88
     },
     {
       "symbol": "IRCTC",
@@ -23,7 +297,8 @@
       "down_from_high": -36.5,
       "base_range": 9.5,
       "support": 448.0,
-      "sector_trend": "HEADWIND"
+      "sector_trend": "HEADWIND",
+      "div_yield": 2.06
     },
     {
       "symbol": "IRFC",
@@ -32,7 +307,8 @@
       "down_from_high": -41.6,
       "base_range": 10.1,
       "support": 78.16,
-      "sector_trend": "HEADWIND"
+      "sector_trend": "HEADWIND",
+      "div_yield": 3.0
     },
     {
       "symbol": "IREDA",
@@ -41,7 +317,8 @@
       "down_from_high": -28.2,
       "base_range": 10.3,
       "support": 109.06,
-      "sector_trend": "HEADWIND"
+      "sector_trend": "HEADWIND",
+      "div_yield": 1.36
     },
     {
       "symbol": "HDFCLIFE",
@@ -50,7 +327,8 @@
       "down_from_high": -31.0,
       "base_range": 10.6,
       "support": 533.3,
-      "sector_trend": "HEADWIND"
+      "sector_trend": "HEADWIND",
+      "div_yield": 0.4
     },
     {
       "symbol": "NMDC",
@@ -59,7 +337,8 @@
       "down_from_high": -27.7,
       "base_range": 10.8,
       "support": 70.1,
-      "sector_trend": "HEADWIND"
+      "sector_trend": "HEADWIND",
+      "div_yield": 5.2
     },
     {
       "symbol": "ITC",
@@ -68,7 +347,8 @@
       "down_from_high": -32.5,
       "base_range": 11.2,
       "support": 265.0,
-      "sector_trend": "HEADWIND"
+      "sector_trend": "HEADWIND",
+      "div_yield": 5.46
     },
     {
       "symbol": "LTM",
@@ -77,7 +357,8 @@
       "down_from_high": -31.7,
       "base_range": 11.5,
       "support": 3936.0,
-      "sector_trend": "HEADWIND"
+      "sector_trend": "HEADWIND",
+      "div_yield": 1.84
     },
     {
       "symbol": "PFC",
@@ -86,7 +367,8 @@
       "down_from_high": -32.3,
       "base_range": 11.9,
       "support": 313.35,
-      "sector_trend": "HEADWIND"
+      "sector_trend": "HEADWIND",
+      "div_yield": 5.98
     },
     {
       "symbol": "ATGL",
@@ -95,7 +377,8 @@
       "down_from_high": -32.4,
       "base_range": 11.9,
       "support": 576.4,
-      "sector_trend": "HEADWIND"
+      "sector_trend": "HEADWIND",
+      "div_yield": 0.05
     },
     {
       "symbol": "NATIONALUM",
@@ -104,7 +387,8 @@
       "down_from_high": -25.9,
       "base_range": 12.2,
       "support": 309.9,
-      "sector_trend": "HEADWIND"
+      "sector_trend": "HEADWIND",
+      "div_yield": 3.66
     },
     {
       "symbol": "SBICARD",
@@ -113,7 +397,8 @@
       "down_from_high": -35.7,
       "base_range": 12.3,
       "support": 547.65,
-      "sector_trend": "HEADWIND"
+      "sector_trend": "HEADWIND",
+      "div_yield": 0.48
     },
     {
       "symbol": "HDFCBANK",
@@ -122,7 +407,8 @@
       "down_from_high": -25.3,
       "base_range": 12.3,
       "support": 715.1,
-      "sector_trend": "HEADWIND"
+      "sector_trend": "HEADWIND",
+      "div_yield": 1.88
     },
     {
       "symbol": "RVNL",
@@ -131,7 +417,8 @@
       "down_from_high": -51.7,
       "base_range": 12.5,
       "support": 186.9,
-      "sector_trend": "HEADWIND"
+      "sector_trend": "HEADWIND",
+      "div_yield": 0.95
     },
     {
       "symbol": "JIOFIN",
@@ -140,7 +427,8 @@
       "down_from_high": -27.5,
       "base_range": 12.6,
       "support": 224.84,
-      "sector_trend": "HEADWIND"
+      "sector_trend": "HEADWIND",
+      "div_yield": 0.29
     }
   ],
   "breakout": [
