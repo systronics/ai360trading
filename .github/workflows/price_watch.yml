@@ -1,7 +1,7 @@
 name: "Price freshness watchdog (market hours, warns the owner)"
 
-# 2026-11-05: compares the sheet's CMP with Yahoo's live price every 20 min between 09:25 and 15:30 IST and sends a Telegram warning to the PREMIUM
-# channel (owner only) when the feed is stale, plus one 'feed is live' confirmation after 09:45. Read-only: never writes the sheet, signals or trades.
+# 2026-11-05: compares the sheet's CMP with Yahoo's live price every 10 min between 09:25 and 15:30 IST and sends a Telegram warning to the PREMIUM
+# channel (owner only) when the feed is stale, plus ONE "feed is live" message on the first good check from 09:28. Read-only: never writes the sheet, signals or trades.
 # Why: on 2, 3 and 4 Nov the live-price session only started at ~15:14 IST, so CMP was yesterday's close all day and nobody noticed
 # ('workflow success' does not prove the DATA is fresh). Started by the trading-bot session's kick step (workflow_dispatch, not delayed) and it chains
 # its own successor like the other session loops. Fail-open, continue-on-error everywhere.
@@ -17,6 +17,10 @@ on:
         description: "Loop end time, IST HH:MM"
         required: false
         default: "15:35"
+      ok_sent:
+        description: "yes = the daily feed-live message was already sent (set by the chain)"
+        required: false
+        default: "no"
 
 jobs:
   watch:
@@ -41,13 +45,18 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           CHAT_ID_PREMIUM: ${{ secrets.CHAT_ID_PREMIUM }}
           END_TIME: ${{ github.event.inputs.end_time }}
+          OK_SENT: ${{ github.event.inputs.ok_sent }}
         run: |
           export TZ=Asia/Kolkata
           END="${END_TIME:-15:35}"
           echo "[WATCH] start $(date '+%F %T') until ${END} IST"
+          FLAG=""
+          [ "$OK_SENT" = "yes" ] && FLAG="--no-ok"
           while [ "$(date +%H:%M)" \< "$END" ]; do
-            python -u price_freshness.py || echo "[WATCH] check exited non-zero, continuing"
-            if [ "$(date +%H:%M)" \< "$END" ]; then sleep 1200; fi
+            rc=0
+            python -u price_freshness.py $FLAG || rc=$?
+            [ "$rc" -eq 10 ] && FLAG="--no-ok"
+            if [ "$(date +%H:%M)" \< "$END" ]; then sleep 600; fi
           done
           echo "[WATCH] reached ${END}"
       - name: Chain the next watch session
@@ -61,6 +70,6 @@ jobs:
             LIM=$(( $(date +%s) + 215 * 60 )); E=$(date -d "today 15:35" +%s)
             [ "$LIM" -gt "$E" ] && LIM=$E
             NEXT_END=$(date -d "@$LIM" +%H:%M)
-            gh workflow run price_watch.yml -f end_time="$NEXT_END" || echo "[CHAIN] dispatch failed"
+            gh workflow run price_watch.yml -f end_time="$NEXT_END" -f ok_sent=yes || echo "[CHAIN] dispatch failed"
             echo "[CHAIN] successor dispatched, ends $NEXT_END IST"
           fi

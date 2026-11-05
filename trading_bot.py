@@ -671,7 +671,7 @@ except Exception as _e:
     _EQ_AVAILABLE = False
 
 IST       = pytz.timezone('Asia/Kolkata')
-VERSION   = "v15.40"   # v15.40 (2026-11-03): CASH regime gate (NIFTY above 50-EMA) - see CASH_REGIME_GATE. single source for the run banner + test messages (were stale at v15.16 before v15.23; was stuck at v15.28 in this constant through the v15.29 RSI dip-tolerance release — banner text only, no logic was affected). v15.32 (2026-07-28): TSL-UPDATE spam fix — see calc_new_tsl() comparison guard below. v15.33 (2026-07-30): loss re-entry cooldown split to 1 trading day (was sharing the 5-day target-hit cooldown) — see set_loss_cooldown() below. v15.34 (2026-07-30): re-entry cooldown scoped by trade family (OPTION/CASH/STOCK no longer cross-block each other) — see _cooldown_family() below. v15.35 (2026-08-05): Cash Intraday force-exit shifted 3:00 PM -> ~3:10 PM after a full 10-trade History review (7W/3L, all exits via this clock, never target/SL) showed the trailing stop already protects gains and the cutoff was never updated for NSE's 15:30->15:40 close move — see CASH_FORCE_EXIT_HOUR below. Entry criteria deliberately untouched (sample too small to recalibrate).
+VERSION   = "v15.41"   # v15.41 (2026-11-05): CASH rows need a live-hours scan (CASH_REQUIRE_LIVE_SCAN). v15.40 (2026-11-03): CASH regime gate (NIFTY above 50-EMA) - see CASH_REGIME_GATE. single source for the run banner + test messages (were stale at v15.16 before v15.23; was stuck at v15.28 in this constant through the v15.29 RSI dip-tolerance release — banner text only, no logic was affected). v15.32 (2026-07-28): TSL-UPDATE spam fix — see calc_new_tsl() comparison guard below. v15.33 (2026-07-30): loss re-entry cooldown split to 1 trading day (was sharing the 5-day target-hit cooldown) — see set_loss_cooldown() below. v15.34 (2026-07-30): re-entry cooldown scoped by trade family (OPTION/CASH/STOCK no longer cross-block each other) — see _cooldown_family() below. v15.35 (2026-08-05): Cash Intraday force-exit shifted 3:00 PM -> ~3:10 PM after a full 10-trade History review (7W/3L, all exits via this clock, never target/SL) showed the trailing stop already protects gains and the cutoff was never updated for NSE's 15:30->15:40 close move — see CASH_FORCE_EXIT_HOUR below. Entry criteria deliberately untouched (sample too small to recalibrate).
 TG_TOKEN  = os.environ.get('TELEGRAM_BOT_TOKEN')
 
 CHAT_BASIC   = os.environ.get('CHAT_ID_BASIC')
@@ -819,6 +819,13 @@ TSL_PARAMS = {
 # (leaders after the day: Nifty above 50-EMA +0.82% / 5d, below about +0.2%). Small sample -> fail-open (data trouble = old behaviour) and
 # one switch to turn it off. Applies to CASH Intraday only; swing/positional/option rules are untouched.
 CASH_REGIME_GATE = True
+# v15.41 (2026-11-05): a CASH row may only be promoted when the scanner built it DURING market hours (row time today and >= 09:20 IST).
+# Evidence: the 07:48 pre-market scan lists 'WATCHLIST CASH +6.9%' / 'CASH +6.4% Vol 365%' rows that are YESTERDAY's movers; the bot's first tick at 09:16 entered
+# BEL (-0.89%) and EXIDEIND (-2.63%) from them on 5 Nov. A 59-day / 222-stock test of buying a strong-close mover at the next open (R1: day >= +4%, volume >= 2x, close in top 20%):
+# 3,080 trades, net -0.38% after costs, negative in both halves. appscript rewrites every candidate row with the scan time each 5 minutes, so a live row appears within minutes
+# of 09:20; unparseable time = fail-open. One switch to turn it off.
+CASH_REQUIRE_LIVE_SCAN = True
+CASH_LIVE_SCAN_FROM = (9, 20)
 CASH_ENTRY_WINDOW_END  = (13, 30)  # v15.30: was 10:30 — appscript.gs v15.30 already extended its own
                                     # CONFIG.CASH_ENTRY_WINDOW 10:30→13:30 (scan side, catches 4%+ gap/
                                     # catalyst movers that build their move after 10:30) but this promotion-
@@ -1260,6 +1267,17 @@ def check_nifty_direction(nifty_pct: float, is_bullish: bool) -> tuple:
     if nifty_pct < threshold:
         return False, f"Nifty {nifty_pct:+.2f}% < {threshold:+.2f}% — {'wait for recovery' if is_bullish else 'must be green in bearish'}"
     return True, f"Nifty {nifty_pct:+.2f}% — {'green' if nifty_pct > 0 else 'flat'} ✅"
+
+
+def _cash_row_is_live(sig, now):
+    """v15.41: True when the AlertLog row's signal time is today and at/after CASH_LIVE_SCAN_FROM (a live-hours scan built it). Unparseable = True (fail-open)."""
+    try:
+        t = datetime.strptime(str(sig).strip()[:19], "%Y-%m-%d %H:%M:%S")
+        if t.date() != now.date():
+            return False
+        return (t.hour, t.minute) >= CASH_LIVE_SCAN_FROM
+    except Exception:
+        return True
 
 
 _NIFTY_EMA50_CACHE = {"t": 0.0, "v": None}
@@ -2465,6 +2483,11 @@ def step_a_enter_trades(log_sheet, nifty_sheet, bm_sheet, mem, now, is_bullish, 
 
         key  = sym_key(sym)
         cash = is_cash_trade(ttype)
+
+        # ── v15.41: cash rows must come from a live-hours scan (not yesterday's data) ──
+        if cash and CASH_REQUIRE_LIVE_SCAN and not _cash_row_is_live(row[C_SIGNAL_TIME], now):
+            print(f"[STEP A] {sym}: cash row built {str(row[C_SIGNAL_TIME])[:16]} (before the live scan) - skip until the 09:20+ scan refreshes it")
+            continue
 
         # ── Cash intraday: separate daily cap check ───────────────────────────
         if cash:

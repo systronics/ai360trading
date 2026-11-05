@@ -22,3 +22,15 @@ def test_ema_above_dip_then_recovery():
 
 def test_switch_exists():
     assert T.CASH_REGIME_GATE is True
+
+
+def test_cash_row_is_live():
+    from datetime import datetime
+    import pytz
+    now = datetime(2026, 11, 6, 9, 30, tzinfo=pytz.timezone("Asia/Kolkata"))
+    assert T._cash_row_is_live("2026-11-06 09:25:10", now) is True
+    assert T._cash_row_is_live("2026-11-06 09:20:00", now) is True
+    assert T._cash_row_is_live("2026-11-06 07:48:32", now) is False      # pre-market scan = yesterday's data
+    assert T._cash_row_is_live("2026-11-05 14:00:00", now) is False      # yesterday
+    assert T._cash_row_is_live("not a time", now) is True                # fail-open
+    assert T.CASH_REQUIRE_LIVE_SCAN is True

@@ -87,6 +87,7 @@ def main(argv=None):
     if "--force" not in argv and not (now.weekday() < 5 and "09:25" <= hm <= "15:30"):
         print(f"[FRESH] {hm} IST is outside market hours, nothing to check")
         return 0
+    ok_sent = False
     try:
         sheet = _sheet_cmp()
         diffs, rows = [], []
@@ -107,11 +108,12 @@ def main(argv=None):
             worst = ", ".join(f"{s} {d:.1f}%" for s, a, b, d in sorted(rows, key=lambda r: -(r[3] or 0))[:3] if d is not None)
             _telegram(f"⚠️ <b>PRICE FEED CHECK {hm} IST</b>\nSheet prices look OLD: {bad} of {usable} sample stocks differ from live by more than {STOCK_TOL_PCT}% ({worst}).\n"
                       "Signals, entries and exits may use old prices right now. <i>System notice, not a trade signal.</i>")
-        elif state == "OK" and hm >= "09:45" and (now.hour < 11):
+        elif state == "OK" and hm >= "09:28" and "--no-ok" not in argv:   # first good check of the day (the loop then passes --no-ok)
+            ok_sent = True
             _telegram(f"✅ <b>Price check {hm} IST</b>: {usable - bad} of {usable} sample stocks match the live price (NIFTY diff {nd:.2f}%). Feed is live.")
     except Exception as e:
         print(f"[FRESH] skipped (fail-open): {str(e)[:120]}")
-    return 0
+    return 10 if ok_sent else 0
 
 
 if __name__ == "__main__":
