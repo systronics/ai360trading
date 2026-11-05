@@ -1,0 +1,49 @@
+name: "Pinned rules messages (manual)"
+
+# 2026-11-05: sends the ONE 'rules + kaise trade kare' message per Telegram channel (pinned_rules.py).
+#   preview = all three go to the PREMIUM channel only (owner review), nothing pinned
+#   post    = each text goes to its own channel, pinned when 'pin' = yes (the bot must be channel admin with the Pin messages right)
+# Run 'post' ONCE per channel: a second run would send a duplicate.
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "preview | post"
+        required: true
+        default: "preview"
+        type: choice
+        options: [preview, post]
+      pin:
+        description: "pin the posted messages (post only)"
+        required: false
+        default: "yes"
+        type: choice
+        options: ["yes", "no"]
+
+permissions:
+  contents: read
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Send
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID_BASIC: ${{ secrets.CHAT_ID_BASIC }}
+          CHAT_ID_ADVANCE: ${{ secrets.CHAT_ID_ADVANCE }}
+          CHAT_ID_PREMIUM: ${{ secrets.CHAT_ID_PREMIUM }}
+          ACTION: ${{ github.event.inputs.action }}
+          PIN: ${{ github.event.inputs.pin }}
+        run: |
+          if [ "$ACTION" = "post" ]; then
+            if [ "$PIN" = "yes" ]; then python pinned_rules.py --post --pin; else python pinned_rules.py --post; fi
+          else
+            python pinned_rules.py --preview
+          fi
