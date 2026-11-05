@@ -1,5 +1,5 @@
 {
-  "generated_at": "05 November 2026, 09:10 AM IST",
+  "generated_at": "05 November 2026, 09:40 AM IST",
   "setups": [
     {
       "symbol": "TECHM",
@@ -18,7 +18,31 @@
       "days_in_trade": "9"
     },
     {
-      "symbol": "NYKAA",
+      "symbol": "BEL",
+      "trade_type": "🔥 Cash Intraday",
+      "strategy": "CASH",
+      "stage": "🔥 CASH | +4.7% | Vol 315%",
+      "status": "✅ TRADED (PAPER)",
+      "days_in_trade": "0"
+    },
+    {
+      "symbol": "EXIDEIND",
+      "trade_type": "🔥 Cash Intraday",
+      "strategy": "CASH",
+      "stage": "🔥 CASH | +6.4% | Vol 365%",
+      "status": "✅ TRADED (PAPER)",
+      "days_in_trade": "0"
+    },
+    {
+      "symbol": "BSE",
+      "trade_type": "📈 Positional",
+      "strategy": "➖ HOLD",
+      "stage": "🚀 MOMENTUM BREAKOUT | 🔁 Correction Base",
+      "status": "✅ TRADED (PAPER)",
+      "days_in_trade": "0"
+    },
+    {
+      "symbol": "INDHOTEL",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
@@ -34,58 +58,10 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "LAURUSLABS",
+      "symbol": "NYKAA",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "INOXWIND",
-      "trade_type": "🔥 Cash Intraday",
-      "strategy": "CASH",
-      "stage": "🔥 WATCHLIST CASH | +6.9% | Inox Wind",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "MOIL",
-      "trade_type": "🔥 Cash Intraday",
-      "strategy": "CASH",
-      "stage": "🔥 WATCHLIST CASH | +6.9% | MOIL",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "ZEEL",
-      "trade_type": "🔥 Cash Intraday",
-      "strategy": "CASH",
-      "stage": "🔥 WATCHLIST CASH | +10.6% | Zee Entertainment",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "BEL",
-      "trade_type": "🔥 Cash Intraday",
-      "strategy": "CASH",
-      "stage": "🔥 CASH | +4.7% | Vol 315%",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "EXIDEIND",
-      "trade_type": "🔥 Cash Intraday",
-      "strategy": "CASH",
-      "stage": "🔥 CASH | +6.4% | Vol 365%",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "HUDCO",
-      "trade_type": "🔥 Cash Intraday",
-      "strategy": "CASH",
-      "stage": "🔥 CASH | +6.2% | Vol 253%",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
