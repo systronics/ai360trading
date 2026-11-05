@@ -671,7 +671,7 @@ except Exception as _e:
     _EQ_AVAILABLE = False
 
 IST       = pytz.timezone('Asia/Kolkata')
-VERSION   = "v15.41"   # v15.41 (2026-11-05): CASH rows need a live-hours scan (CASH_REQUIRE_LIVE_SCAN). v15.40 (2026-11-03): CASH regime gate (NIFTY above 50-EMA) - see CASH_REGIME_GATE. single source for the run banner + test messages (were stale at v15.16 before v15.23; was stuck at v15.28 in this constant through the v15.29 RSI dip-tolerance release — banner text only, no logic was affected). v15.32 (2026-07-28): TSL-UPDATE spam fix — see calc_new_tsl() comparison guard below. v15.33 (2026-07-30): loss re-entry cooldown split to 1 trading day (was sharing the 5-day target-hit cooldown) — see set_loss_cooldown() below. v15.34 (2026-07-30): re-entry cooldown scoped by trade family (OPTION/CASH/STOCK no longer cross-block each other) — see _cooldown_family() below. v15.35 (2026-08-05): Cash Intraday force-exit shifted 3:00 PM -> ~3:10 PM after a full 10-trade History review (7W/3L, all exits via this clock, never target/SL) showed the trailing stop already protects gains and the cutoff was never updated for NSE's 15:30->15:40 close move — see CASH_FORCE_EXIT_HOUR below. Entry criteria deliberately untouched (sample too small to recalibrate).
+VERSION   = "v15.42"   # v15.42 (2026-11-05): bonus/split guard for open trades (CORP_ACTION_GUARD). v15.41 (2026-11-05): CASH rows need a live-hours scan (CASH_REQUIRE_LIVE_SCAN). v15.40 (2026-11-03): CASH regime gate (NIFTY above 50-EMA) - see CASH_REGIME_GATE. single source for the run banner + test messages (were stale at v15.16 before v15.23; was stuck at v15.28 in this constant through the v15.29 RSI dip-tolerance release — banner text only, no logic was affected). v15.32 (2026-07-28): TSL-UPDATE spam fix — see calc_new_tsl() comparison guard below. v15.33 (2026-07-30): loss re-entry cooldown split to 1 trading day (was sharing the 5-day target-hit cooldown) — see set_loss_cooldown() below. v15.34 (2026-07-30): re-entry cooldown scoped by trade family (OPTION/CASH/STOCK no longer cross-block each other) — see _cooldown_family() below. v15.35 (2026-08-05): Cash Intraday force-exit shifted 3:00 PM -> ~3:10 PM after a full 10-trade History review (7W/3L, all exits via this clock, never target/SL) showed the trailing stop already protects gains and the cutoff was never updated for NSE's 15:30->15:40 close move — see CASH_FORCE_EXIT_HOUR below. Entry criteria deliberately untouched (sample too small to recalibrate).
 TG_TOKEN  = os.environ.get('TELEGRAM_BOT_TOKEN')
 
 CHAT_BASIC   = os.environ.get('CHAT_ID_BASIC')
@@ -954,6 +954,93 @@ def price_sanity(sym,cp,ent):
     if cp > ent*4: print(f"[WARN] {sym}: LTP too high"); return False
     if cp < ent*0.1: print(f"[WARN] {sym}: LTP too low"); return False
     return True
+
+CORP_ACTION_GUARD = True   # v15.42 (2026-11-05): bonus/split on an OPEN trade is adjusted, not booked as a loss
+
+
+def _split_matches(ent, cp, ratio):
+    """True when the price fall from entry looks like a 1:ratio bonus/split (price about ent/ratio, +-15% for the normal move)."""
+    if ratio <= 1.0 or cp <= 0 or ent <= 0:
+        return False
+    return abs(ent / cp - ratio) / ratio <= 0.15
+
+
+def detect_split(sym, ent, cp, ent_time, now, splits=None):
+    """v15.42: a bonus/split moves the price down overnight by its ratio (2:1 = -50%, 5:1 = -80%) with NO real loss, but an open paper trade would hit
+    its stop. Returns the ratio (>1) when yfinance lists a split/bonus whose ex-date is AFTER the entry date and within the last 7 days and the price
+    fall matches it; else 0.0 (fail-open: any problem = 0.0 = old behaviour). The price pre-filter keeps yfinance calls to the rare row that fell > 20%."""
+    try:
+        if cp <= 0 or ent <= 0 or cp >= ent * 0.80:
+            return 0.0
+        if splits is None:
+            import yfinance as yf
+            splits = yf.Ticker(str(sym).replace("NSE:", "").strip() + ".NS").splits
+        if splits is None or len(splits) == 0:
+            return 0.0
+        ent_d = datetime.strptime(str(ent_time).strip()[:10], "%Y-%m-%d").date()
+        for d, r in splits.items():
+            dd = d.date() if hasattr(d, "date") else d
+            if dd > ent_d and 0 <= (now.date() - dd).days <= 7 and _split_matches(ent, cp, float(r)):
+                return float(r)
+    except Exception as e:
+        print(f"[CORP-ACTION] {sym}: check failed ({str(e)[:60]}) - fail open")
+    return 0.0
+
+
+def _rescale_mem(mem, key, ratio):
+    """Divide the stored paisa values (trailing SL, max price, last price, ATR) of one trade by the split ratio."""
+    out = []
+    for part in mem.split(","):
+        done = False
+        for px in (f"{key}_TSL_", f"{key}_MAX_", f"{key}_LP_", f"{key}_ATR_"):
+            if part.startswith(px):
+                try:
+                    out.append(f"{px}{int(round(int(part[len(px):]) / ratio))}")
+                    done = True
+                except Exception:
+                    pass
+                break
+        if not done and part.strip():
+            out.append(part)
+    return ",".join(out)
+
+
+def _col_letter(idx0):
+    n, out = idx0 + 1, ""
+    while n > 0:
+        n, r = divmod(n - 1, 26)
+        out = chr(65 + r) + out
+    return out
+
+
+def apply_split_adjust(log_sheet, i, sym, key, mem, ent, sl, tgt, qty, ratio):
+    """v15.42: rescale entry / SL / target / TSL / qty of the open row by the split ratio (price / ratio, shares x ratio => same rupee risk and P/L)."""
+    ent2, sl2, tgt2 = round(ent / ratio, 2), round(sl / ratio, 2), round(tgt / ratio, 2)
+    qty2 = round(qty * ratio) if qty > 0 else qty
+    mem = _rescale_mem(mem, key, ratio)
+    try:
+        cur_tsl = get_tsl(mem, key)
+        data = [{"range": f"{_col_letter(C_ENTRY_PRICE)}{i}", "values": [[ent2]]}, {"range": f"{_col_letter(C_INITIAL_SL)}{i}", "values": [[sl2]]},
+                {"range": f"{_col_letter(C_TARGET)}{i}", "values": [[tgt2]]}]
+        if cur_tsl > 0:
+            data.append({"range": f"{_col_letter(C_TRAIL_SL)}{i}", "values": [[round(cur_tsl, 2)]]})
+        if qty > 0:
+            data.append({"range": f"{_col_letter(C_QTY)}{i}", "values": [[qty2]]})
+        log_sheet.batch_update(data, value_input_option="USER_ENTERED")
+    except Exception as e:
+        print(f"[CORP-ACTION] {sym}: sheet update failed ({str(e)[:80]})")
+    try:
+        send_advance_and_premium(
+            f"\u26a0\ufe0f <b>CORPORATE ACTION — {sym.replace('NSE:', '')}</b>\n"
+            f"Bonus/split {ratio:g}:1 ho gaya, price apne aap {ratio:g} guna kam dikh raha hai (asli nuksaan nahi).\n"
+            f"Hamare paper trade ko adjust kiya: Entry \u20b9{ent:.2f}\u2192\u20b9{ent2:.2f}, SL \u20b9{sl:.2f}\u2192\u20b9{sl2:.2f}, Target \u20b9{tgt:.2f}\u2192\u20b9{tgt2:.2f}. Koi loss book nahi hua.\n"
+            f"Aapki apni holding broker par apne aap adjust hoti hai."
+            + ALERT_DISCLAIMER)
+    except Exception as e:
+        print(f"[CORP-ACTION] {sym}: telegram failed ({str(e)[:60]})")
+    print(f"[CORP-ACTION] {sym}: {ratio:g}:1 split/bonus adjusted ent {ent}->{ent2} sl {sl}->{sl2} tgt {tgt}->{tgt2} qty {qty}->{qty2}")
+    return mem, ent2, sl2, tgt2, qty2
+
 
 def trading_days_since(date_str, now):
     # v15.23: NSE holidays no longer count as trading days (RECD cooldown was
@@ -2664,8 +2751,12 @@ def step_b_monitor_trades(log_sheet, hist_sheet, nifty_sheet, mem, now, is_bulli
         opt_stk = str(row[C_OPT_STRIKE]).strip()
         opt_exp = str(row[C_OPT_EXPIRY]).strip()
 
-        if not price_sanity(sym, cp, ent): continue
         key    = sym_key(sym)
+        if CORP_ACTION_GUARD:   # v15.42: an overnight bonus/split is not a loss
+            _split_r = detect_split(sym, ent, cp, ent_time, now)
+            if _split_r > 0:
+                mem, ent, sl, tgt, qty = apply_split_adjust(log_sheet, i, sym, key, mem, ent, sl, tgt, qty, _split_r)
+        if not price_sanity(sym, cp, ent): continue
         atr    = get_atr_from_mem(mem, key)
         if atr <= 0: atr = _read_atr_from_nifty200(nifty_sheet, sym)
         if atr <= 0 and sl > 0 and ent > 0: atr = (ent - sl) / 2.0
