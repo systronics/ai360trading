@@ -18,7 +18,7 @@ import datetime as dt
 
 TAB = "GainersLog"
 HEAD = ["Date", "Rank", "Symbol", "Day_%", "Gap_%", "Prev_RS35", "Prev_Above_50DMA", "Prev_RSI14", "G_RS", "G_Trend", "G_RSI", "G_Leader", "Category",
-        "Result_Within_5d", "Prev_Buildup", "Taken_By_System", "Universe_Avg_Day_%"]
+        "Result_Within_5d", "Prev_Buildup", "Taken_By_System", "Universe_Avg_Day_%", "Sector", "Sector_Avg_Day_%"]
 TOP_N = 15
 
 
@@ -82,12 +82,19 @@ def _taken(sh):
     return out
 
 
-def build_rows(ga_rows, day, prev_day, events, taken):
+def build_rows(ga_rows, day, prev_day, events, taken, sectors=None):
     today = [r for r in ga_rows if r["Date"] == day]
     prev = {r["Symbol"]: r for r in ga_rows if r["Date"] == prev_day}
     avg = [_f(r["Day_%"]) for r in today if _f(r["Day_%"]) is not None]
     uavg = round(sum(avg) / len(avg), 2) if avg else ""
     d0 = dt.date.fromisoformat(day)
+    sectors = sectors or {}
+    sec_moves = {}
+    for r in today:      # average day move of each sector's stocks (Nifty200 members only) - shows whether the gainers cluster in one sector
+        sc = sectors.get(r["Symbol"])
+        v = _f(r.get("Day_%"))
+        if sc and v is not None:
+            sec_moves.setdefault(sc, []).append(v)
     out = []
     for rank, r in enumerate(top_gainers(today, day), start=1):
         s = r["Symbol"]
@@ -96,7 +103,8 @@ def build_rows(ga_rows, day, prev_day, events, taken):
         cat = categorize(rs, p.get("Above_50DMA"), p.get("G_Leader")) if p else "NO-PRIOR-DATA"
         was = "Y" if any(a <= day <= b or a == day for a, b in taken.get(s, [])) else "N"
         out.append([day, rank, s, r["Day_%"], r.get("Gap_%", ""), p.get("RS35", ""), p.get("Above_50DMA", ""), p.get("RSI14", ""), p.get("G_RS", ""), p.get("G_Trend", ""),
-                    p.get("G_RSI", ""), p.get("G_Leader", ""), cat, "Y" if result_near(events, s, d0) else "N", p.get("Buildup", ""), was, uavg])
+                    p.get("G_RSI", ""), p.get("G_Leader", ""), cat, "Y" if result_near(events, s, d0) else "N", p.get("Buildup", ""), was, uavg,
+                    sectors.get(s, ""), round(sum(sec_moves[sectors[s]]) / len(sec_moves[sectors[s]]), 2) if sectors.get(s) in sec_moves else ""])
     return out
 
 
@@ -116,6 +124,11 @@ def main(argv=None):
         pick = dates[-n:]
     events, taken = _events(sh), _taken(sh)
     try:
+        nv = sh.worksheet("Nifty200").get_all_values()
+        sectors = {r[0].replace("NSE:", "").strip(): r[1] for r in nv[2:] if r and r[0] and len(r) > 1 and r[1]}
+    except Exception:
+        sectors = {}
+    try:
         ws = sh.worksheet(TAB)
     except Exception:
         if "--write" not in argv:
@@ -133,7 +146,7 @@ def main(argv=None):
         if i < 1:
             print(f"[GAINERS] {day}: no earlier day in GateAudit, skipped")
             continue
-        for r in build_rows(ga, day, dates[i - 1], events, taken):
+        for r in build_rows(ga, day, dates[i - 1], events, taken, sectors):
             if (r[0], r[2]) not in have:
                 fresh.append(r)
     print(f"[GAINERS] {len(fresh)} new rows for {pick}")
@@ -164,6 +177,13 @@ def report(sh):
         for r in rows:
             cnt[r[ix[key]]] = cnt.get(r[ix[key]], 0) + 1
         print(f"  by {label}: " + ", ".join(f"{k or '-'} {c} ({c * 100 // n}%)" for k, c in sorted(cnt.items(), key=lambda kv: -kv[1])))
+    if "Sector" in ix:
+        top = {}
+        for r in rows:
+            if r[ix["Sector"]]:
+                top[r[ix["Sector"]]] = top.get(r[ix["Sector"]], 0) + 1
+        tot = sum(top.values()) or 1
+        print("  top-gainer rows by sector: " + ", ".join(f"{k} {c} ({c * 100 // tot}%)" for k, c in sorted(top.items(), key=lambda kv: -kv[1])[:6]))
     return 0
 
 
