@@ -1,5 +1,5 @@
 {
-  "generated_at": "05 November 2026, 10:10 AM IST",
+  "generated_at": "05 November 2026, 03:19 PM IST",
   "setups": [
     {
       "symbol": "KOTAKBANK",
@@ -8,22 +8,6 @@
       "stage": "⚡ BREAKOUT ALERT",
       "status": "✅ TRADED (PAPER)",
       "days_in_trade": "9"
-    },
-    {
-      "symbol": "BEL",
-      "trade_type": "🔥 Cash Intraday",
-      "strategy": "CASH",
-      "stage": "🔥 CASH | +4.7% | Vol 315%",
-      "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "0"
-    },
-    {
-      "symbol": "EXIDEIND",
-      "trade_type": "🔥 Cash Intraday",
-      "strategy": "CASH",
-      "stage": "🔥 CASH | +6.4% | Vol 365%",
-      "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "0"
     },
     {
       "symbol": "BSE",
@@ -58,34 +42,18 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "PERSISTENT",
-      "trade_type": "🔄 Swing",
+      "symbol": "LAURUSLABS",
+      "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
-      "stage": "📦 BASE ENTRY | 📈 Near Breakout",
+      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
     {
-      "symbol": "ASHOKLEY",
-      "trade_type": "🔥 Cash Intraday",
-      "strategy": "CASH",
-      "stage": "🔥 CASH | +8.8% | Vol 148%",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "HINDPETRO",
-      "trade_type": "🔥 Cash Intraday",
-      "strategy": "CASH",
-      "stage": "🔥 CASH | +5.7% | Vol 18%",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "TMPV",
-      "trade_type": "🔥 Cash Intraday",
-      "strategy": "CASH",
-      "stage": "🔥 CASH | +4.6% | Vol -28%",
+      "symbol": "COFORGE",
+      "trade_type": "📊 Options Alert",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
