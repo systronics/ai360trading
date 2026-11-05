@@ -7,7 +7,7 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
 BS = "BottomScanner!"
-HEAD = ["Symbol", "Sector", "CMP", "%Chg", "RS", "Vol vs Avg %", "Master", "Stage", "Prev Day High", "Prev Day Low", "Support", "Resistance", "Retest", "F&O?", "Buildup"]
+HEAD = ["Symbol", "Sector", "CMP", "%Chg", "RS", "Vol vs Avg %", "Master", "Stage", "Prev Day High", "Prev Day Low", "Support", "Resistance", "Retest", "F&O?", "Buildup", "Div Yield %"]
 SECTIONS = [
     ("1) INTRADAY / kal subah 15-min chart par dekho",
      "Retest buy zone ya support par (RS>=5). Dekho: prev-day high ke upar 15m close + volume; Support toote to chhodo.",
@@ -25,7 +25,8 @@ def formula(cond, sort_col=11):
     return ('=IFERROR(LET(d,SORT(FILTER(BottomScanner!$A$3:$AL$202,' + cond + '),' + str(sort_col) + ',FALSE),n,ARRAY_CONSTRAIN(d,20,38),'
             'HSTACK(CHOOSECOLS(n,1,2,3,4,9,10,11,12,13,14,17,19,22),'
             'ARRAYFORMULA(IFERROR(VLOOKUP(CHOOSECOLS(n,1),Nifty200!$A$3:$AU$202,36,FALSE),"")),'
-            'ARRAYFORMULA(IFERROR(VLOOKUP(CHOOSECOLS(n,1),Nifty200!$A$3:$AU$202,47,FALSE),"")))),"Abhi koi stock is filter mein nahi")')
+            'ARRAYFORMULA(IFERROR(VLOOKUP(CHOOSECOLS(n,1),Nifty200!$A$3:$AU$202,47,FALSE),"")),'
+            'ARRAYFORMULA(IFERROR(VLOOKUP(CHOOSECOLS(n,1),Nifty200!$A$3:$AU$202,41,FALSE),"")))),"Abhi koi stock is filter mein nahi")')
 
 
 def rgb(h):
@@ -38,7 +39,7 @@ def colour(sh, ws, starts):
     reqs = [{"deleteConditionalFormatRule": {"sheetId": ws.id, "index": 0}} for _ in meta.get("conditionalFormats", [])]
     band = ["1F5FA8", "1E8449", "B9770E"]
     for (r0, _), b in zip(starts, band):
-        reqs.append({"repeatCell": {"range": {"sheetId": ws.id, "startRowIndex": r0 - 1, "endRowIndex": r0, "startColumnIndex": 0, "endColumnIndex": 15},
+        reqs.append({"repeatCell": {"range": {"sheetId": ws.id, "startRowIndex": r0 - 1, "endRowIndex": r0, "startColumnIndex": 0, "endColumnIndex": 16},
                                     "cell": {"userEnteredFormat": {"backgroundColor": rgb(b), "textFormat": {"bold": True, "fontSize": 12, "foregroundColor": rgb("FFFFFF")}}},
                                     "fields": "userEnteredFormat(backgroundColor,textFormat)"}})
     def rule(c0, c1, kind, val, bg, fg="000000", rows=None):
@@ -66,6 +67,7 @@ def colour(sh, ws, starts):
     rule(14, 15, "TEXT_EQ", "Short Covering", "D6F2DD", "1E8449")
     rule(14, 15, "TEXT_EQ", "Short Buildup", "F5B7B1", "A32020")
     rule(14, 15, "TEXT_EQ", "Long Unwinding", "FDE3C4", "9A5200")
+    rule(15, 16, "NUMBER_GREATER_THAN_EQ", "2.5", "C8F0D2", "0B6B2A")   # high trailing dividend yield (informational: SIP-zone stocks with >= 2.5% did better in the 5y test)
     sh.batch_update({"requests": reqs})
 
 
@@ -85,7 +87,7 @@ def main():
     for title, note, cond, *sc in SECTIONS:
         ws.update(range_name=f"A{row}", values=[[title], [note], HEAD])
         ws.update(range_name=f"A{row + 3}", values=[[formula(cond, *sc)]], value_input_option="USER_ENTERED")
-        ws.format(f"A{row + 2}:O{row + 2}", {"textFormat": {"bold": True}, "backgroundColor": {"red": 0.88, "green": 0.92, "blue": 0.98}})
+        ws.format(f"A{row + 2}:P{row + 2}", {"textFormat": {"bold": True}, "backgroundColor": {"red": 0.88, "green": 0.92, "blue": 0.98}})
         row += 26
     starts = [(4 + 26 * i, 0) for i in range(len(SECTIONS))]
     colour(sh, ws, starts)
