@@ -608,7 +608,7 @@ const OPTIONS_CONFIG = {
 
 // ── CONFIG ────────────────────────────────────────────────────────────────────
 const CONFIG = {
-  VERSION       : "v15.37",  // single source for ALL subscriber-facing version stamps (was hardcoded per-message and went stale at v15.17)
+  VERSION       : "v15.38",  // single source for ALL subscriber-facing version stamps (was hardcoded per-message and went stale at v15.17)
   get TELEGRAM_BOT_TOKEN() { return PropertiesService.getScriptProperties().getProperty('TELEGRAM_BOT_TOKEN') || ""; },
   get CHAT_ID_BASIC()      { return PropertiesService.getScriptProperties().getProperty('CHAT_ID_BASIC')      || ""; },
   get CHAT_ID_ADVANCE()    { return PropertiesService.getScriptProperties().getProperty('CHAT_ID_ADVANCE')    || ""; },
@@ -1178,38 +1178,23 @@ function _sendOptionsAlertPremium(sym, cmp, optSignal, stage, sl, target, rr, bm
   const _hhmmOpt   = parseInt(Utilities.formatDate(new Date(), CONFIG.IST_ZONE, "HHmm"), 10);
   const isLiveOpt  = (_hhmmOpt >= 915 && _hhmmOpt <= 1540);   // v15.34 (2026-08-03): NSE extended F&O close 15:30->15:40, effective today
   const confirmRule = isLiveOpt ? "" :
-    `\n━━ ⚠️ SUBAH CONFIRM KARE (night scan — kal ke close ka data) ━━\n` +
-    `✅ Tabhi kharide jab stock 9:30 ke baad ₹${cmp.toFixed(2)} ke UPAR trade kare\n` +
-    `❌ Red khule ya kal ke close se neeche ho → skip (setup stale hai)\n` +
-    `❌ Subah ka regime message BEARISH bole → skip`;
+    `⚠️ Night scan (kal ka close): subah 9:30 ke baad ₹${cmp.toFixed(2)} ke UPAR ho tabhi; red khule ya BEARISH regime = skip\n`;
 
+  // v15.38 (2026-11-05, owner: messages too long): rules / 'kaise trade kare' / TradingView live in ONE pinned message per channel
+  // (pinned_rules.py); this alert keeps only the data.
+  const _when   = isBase ? "9:30-12:00" : "9:30-9:45";
+  const _extra  = [optSignal.liqNote || "",
+                   optSignal.sectorTrend === "TAILWIND" ? "Sector TAILWIND ✅" : (optSignal.sectorTrend === "HEADWIND" ? "Sector HEADWIND ⚠️" : "")].filter(x => x).join(" | ");
   const msg =
     `${typeLabel} — <b>PREMIUM</b>\n` +
-    `━━━━━━━━━━━━━━━━━━━━\n` +
-    `🎯 <b>Stock:</b> ${sym.replace("NSE:","")}\n` +
-    `💰 <b>CMP:</b> ₹${cmp.toFixed(2)}\n` +
-    `📋 <b>Stage:</b> ${stage}\n\n` +
-    `━━ OPTION (sirf INTRADAY / 1-2 din) ━━\n` +
-    `🎰 <b>Buy:</b> ${optSignal.strike}\n` +
-    `📅 <b>Expiry:</b> ${optSignal.expiryStr} (current — yahi volume hai)\n` +
-    `⏳ <b>Theta Risk:</b> ${optSignal.thetaRisk}\n` +
-    `📊 <b>VIX Status:</b> ${optSignal.message}\n` +
-    (optSignal.liqNote ? `💧 <b>Chain:</b> ${optSignal.liqNote}\n` : "") +
-    // v15.30: market (regime) + stock (breakout) direction already got this
-    // candidate here — this is the 3rd leg (sector), surfaced not enforced.
-    (optSignal.sectorTrend === "TAILWIND" ? `🧭 <b>Sector:</b> TAILWIND ✅ — market+sector+stock sab same direction\n` :
-     optSignal.sectorTrend === "HEADWIND" ? `🧭 <b>Sector:</b> HEADWIND ⚠️ — stock alag chal raha apne sector se, extra caution\n` : "") +
-    `\n` +
-    `━━ STOCK TRADE (CASH/MTF) ━━\n` +
-    `🛑 <b>SL:</b> ₹${sl}\n` +
-    `🎯 <b>Target:</b> ₹${target}\n` +
-    `📈 <b>RR:</b> ${rr}\n` +
-    `✅ Entry valid jab tak STOCK price SL ke upar hai\n\n` +
-    `📺 <b>TradingView check:</b> stock ke liye DAILY chart, option ki timing ke liye 15m\n\n` +
-    `━━ RULES ━━\n` +
-    `${entryRule}\n${holdRule}\n` +
-    `❌ Option me average down kabhi nahi\n` +
-    `${confirmRule}${tradeNote}\n\n` +
+    `🎯 <b>${sym.replace("NSE:","")}</b> | CMP ₹${cmp.toFixed(2)} | ${stage}\n` +
+    `🎰 <b>Buy ${optSignal.strike}</b> | Exp ${optSignal.expiryStr}\n` +
+    `⏳ Theta ${optSignal.thetaRisk} | ${optSignal.message}\n` +
+    `🛑 Stock SL ₹${sl} | 🎯 T ₹${target} | RR ${rr}\n` +
+    (_extra ? `💧 ${_extra}\n` : "") +
+    `🕘 Kab: ${_when} | Hold max 1-2 din | SL ke upar hi valid\n` +
+    `${confirmRule}` +
+    `📌 Rules + kaise trade kare: pinned message\n` +
     `<i>Educational only. Not SEBI advice. ${CONFIG.VERSION}</i>`;
 
   _sendTelegramPremium(msg);
@@ -2297,12 +2282,7 @@ function _runScanner(startRow, endRow) {
       // night-scan list now tells the subscriber HOW each type is traded and
       // which TradingView chart to check.
       if (finalWaiting.length > 0) {
-        regimeMsg +=
-          `\n📖 <b>Kaise trade kare:</b>\n` +
-          `• BASE/BREAKOUT = 2-4 hafte ka stock trade → CASH ya MTF me kharide\n` +
-          `• Option sirf INTRADAY / max 1-2 din ke liye (current expiry)\n` +
-          `• Entry valid jab tak price SL ke upar hai — agle din bhi le sakte ho\n` +
-          `📺 TradingView: DAILY chart dekhe (Cash/MOM alert ho to 15m)\n`;
+        regimeMsg += `\n📌 Kaise trade kare: pinned message dekhein\n`;
       }
       // v15.24: bullish scanner-done message now carries the version stamp too
       // (bearish header + option/test footers already did — CONFIG.VERSION

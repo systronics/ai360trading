@@ -27,7 +27,8 @@ Poore signals (Entry, SL, Target) Advance/Premium me aate hain.
 4️⃣ Ek trade me capital ka 1-2% se zyada risk nahi.
 5️⃣ Entry tab tak valid jab tak price SL ke upar hai.
 
-<i>Is message ko pin rakha hai, baar baar nahi aayega.</i>"""
+<i>AI360Trading SEBI registered nahi hai. Ye educational analysis hai, investment advice nahi. Apni research aur apna risk.
+Is message ko pin rakha hai, baar baar nahi aayega.</i>"""
 
 ADVANCE = """📌 <b>ADVANCE — rules (ek baar padhein)</b>
 
@@ -44,7 +45,8 @@ ADVANCE = """📌 <b>ADVANCE — rules (ek baar padhein)</b>
 <b>Raat ka scan</b> "kal ke close ka data" hota hai: subah 9:30 ke baad confirm karo, red khule to skip.
 
 Risk: ek trade me capital ka 1-2% se zyada nahi. Educational only, SEBI advice nahi.
-<i>Pinned: baar baar nahi aayega.</i>"""
+<i>AI360Trading SEBI registered nahi hai. Ye educational analysis hai, investment advice nahi. Apni research aur apna risk.
+Pinned: baar baar nahi aayega.</i>"""
 
 PREMIUM = """📌 <b>PREMIUM — rules (ek baar padhein)</b>
 
@@ -62,7 +64,8 @@ Long Buildup = futures price + OI dono badhe. Short Covering = price badhe, OI g
 Short Buildup / Long Unwinding = kamzor, avoid. Option ka P/L stock se alag hota hai (strike, expiry, theta).
 
 Educational only, SEBI advice nahi.
-<i>Pinned: baar baar nahi aayega.</i>"""
+<i>AI360Trading SEBI registered nahi hai. Ye educational analysis hai, investment advice nahi. Apni research aur apna risk.
+Pinned: baar baar nahi aayega.</i>"""
 
 TEXTS = {"basic": BASIC, "advance": ADVANCE, "premium": PREMIUM}
 

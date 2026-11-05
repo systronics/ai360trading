@@ -2219,9 +2219,8 @@ def ce_candidate_flag(cp, atr, stage, is_bullish, rank=99,
 # registered, so each alert is framed as educational analysis, not personalised
 # advice. (The options alert already carries this; the cash-entry alerts did not.)
 ALERT_DISCLAIMER = (
-    "\n\n<i>📚 Educational analysis only — AI360Trading is NOT SEBI registered. "
-    "Not investment advice. Do your own research and manage your own risk.</i>"
-)
+    "\n<i>📚 Educational only — not SEBI registered, not advice. Full note: pinned message.</i>"
+)  # 2026-11-05: was 2 lines on every alert; the full text lives in the pinned message of each channel
 
 def _late_alert_line(ttype, cp):
     """2026-10-19 owner decision: free infrastructure is not instant (price file 5 min + scanner + bot tick),
@@ -2269,7 +2268,7 @@ def build_entry_advance(sym, cp, stage, sl, tgt, rr, ttype, atr, rank, capital, 
         f"SL: ₹{sl:.2f} (Risk: ₹{int((cp-sl)*qty)})\n"
         f"Target: ₹{tgt:.2f} (Reward: ₹{int((tgt-cp)*qty)})\n"
         f"RR: {rr} | Priority: {rank}\n{filters}\n"
-        f"{_trade_style_lines(ttype, cp)}\n{_late_alert_line(ttype, cp)}"
+        f"✅ Entry valid jab tak price SL ke upar hai\n{_late_alert_line(ttype, cp)}📌 Rules + kaise trade kare: pinned message"
     )
 
 def build_entry_premium(sym, cp, stage, sl, tgt, rr, ttype, atr, rank, capital, is_bullish,
