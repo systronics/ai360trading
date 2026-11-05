@@ -1,5 +1,5 @@
 {
-  "generated_at": "05 November 2026, 04:20 PM IST",
+  "generated_at": "05 November 2026, 11:47 PM IST",
   "setups": [
     {
       "symbol": "KOTAKBANK",
@@ -26,7 +26,7 @@
       "days_in_trade": "0"
     },
     {
-      "symbol": "TECHM",
+      "symbol": "ETERNAL",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
@@ -34,9 +34,9 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "INDHOTEL",
+      "symbol": "TECHM",
       "trade_type": "📊 Options Alert",
-      "strategy": "➖ HOLD",
+      "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
@@ -46,14 +46,6 @@
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "COFORGE",
-      "trade_type": "📊 Options Alert",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
