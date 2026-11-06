@@ -17,6 +17,6 @@ if exist "%MEM%" xcopy /Y /E /I /Q "%MEM%" "%BK%\pc\memory" >nul
 cd /d "%BK%"
 git add -A
 git diff --cached --quiet && (echo nothing changed & exit /b 0)
-git commit -q -m "pc notes backup %DATE% %TIME%"
-git push -q
+git commit -q -m "pc notes backup %DATE% %TIME%" || (echo COMMIT FAILED & exit /b 1)
+git push -q || (echo PUSH FAILED & exit /b 1)
 echo backup pushed

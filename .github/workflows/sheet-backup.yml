@@ -1,8 +1,8 @@
 name: Sheet backup (daily, to the private backup repo)
 # 2026-11-06: owner asked for an automatic cloud backup. Needs the PRIVATE repo systronics/ai360trading-backup (owner creates it) and the existing GH_TOKEN secret with access to it.
 on:
-  # schedule:   # enable after the private repo exists (see SESSION.md)
-  #   - cron: '41 15 * * 1-6'     # ~21:11 IST Mon-Sat, after the evening data jobs (GitHub may delay it)
+  schedule:
+    - cron: '41 15 * * 1-6'     # ~21:11 IST Mon-Sat, after the evening data jobs (GitHub may delay it)
   workflow_dispatch:
 permissions:
   contents: read
