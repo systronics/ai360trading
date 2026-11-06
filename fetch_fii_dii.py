@@ -88,7 +88,7 @@ def _tg(chat_id: str, msg: str):
     try:
         r = requests.post(
             f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage",
-            json={"chat_id": chat_id, "text": msg, "parse_mode": "HTML"},
+            json={"chat_id": chat_id, "text": msg, "parse_mode": "HTML", "disable_web_page_preview": True},
             timeout=12,
         )
         if not r.ok:

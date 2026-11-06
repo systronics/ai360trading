@@ -875,7 +875,7 @@ def _send_one(chat_id, msg):
     try:
         r = requests.post(
             f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage",
-            json={"chat_id": chat_id, "text": msg, "parse_mode": "HTML"},
+            json={"chat_id": chat_id, "text": msg, "parse_mode": "HTML", "disable_web_page_preview": True},   # 2026-11-06: the membership link card (big image) under every message made the channel look long
             timeout=15
         )
         if r.status_code != 200:
@@ -2522,9 +2522,7 @@ def build_entry_basic(sym, cp, stage, pct_chg, ref_sheet=None):
         f"🚨 <b>SIGNAL ALERT — {name}</b>\n"
         f"Entry: ₹{cp:.2f} | {stage}\n\n"
         f"{_proof_line(ref_sheet)}"
-        f"🔒 SL and Target shared with Advance/Premium members only\n\n"
-        f"📈 <b>Join Advance @ ₹699/month</b> — get full entry details\n"
-        f"📱 ai360trading.in/membership"
+        f"🔒 SL, Target: Advance ₹699/month → ai360trading.in/membership"
     )
 
 
@@ -3201,9 +3199,7 @@ def send_good_morning(log_sheet, mem, is_bullish, nifty_cmp, nifty_dma, nifty_pc
         f"{watchlist_line}\n"
         f"💼 Active trades: {traded}/{MAX_TRADES}\n\n"
         f"{_proof_line(log_sheet)}"
-        f"🔒 Entry price, SL and Target sent to Advance/Premium only\n"
-        f"📈 <b>Join Advance @ ₹699/month</b>\n"
-        f"📱 ai360trading.in/membership"
+        f"🔒 Entry, SL, Target: Advance ₹699/month → ai360trading.in/membership"
     )
     send_advance_and_premium(msg_adv); send_basic(msg_basic)
     print(f"[GM] Sent — {waiting} waiting, {traded} active")
@@ -3274,10 +3270,7 @@ def send_midday_pulse(log_sheet, mem, now, is_bullish):
             f"📊 <b>Mid-Day Update — {now.strftime('%d %b %I:%M %p')}</b>\n"
             f"Active trades: {len(open_trades)}\n"
             f"{'💰' if total_pnl>=0 else '📉'} Unrealised P/L: ₹{total_pnl:+.0f}\n\n"
-            f"{_proof_line(log_sheet)}"
-            f"🔒 TSL updates and trade details → Advance/Premium\n"
-            f"📈 <b>Join Advance @ ₹699/month</b>\n"
-            f"📱 ai360trading.in/membership"
+            f"🔒 TSL updates, trade details: Advance ₹699/month → ai360trading.in/membership"
         )
         send_advance_and_premium(msg); send_basic(basic_md)
         print(f"[MIDDAY] {len(open_trades)} trades, ₹{total_pnl:+.0f}")
@@ -3350,10 +3343,7 @@ def send_market_close_summary(log_sheet, hist_sheet, mem, now, is_bullish, nifty
             f"Today: {wins}✅ {losses}❌ | {pnl_emoji} Realised: ₹{today_pnl:+.0f}\n"
             f"Holding overnight: {len(open_list)} trade(s)\n"
             + (f"⚠️ Weekend gap risk — manage open trades before close\n\n" if (is_friday and open_list) else "\n")
-            + f"{_proof_line(hist_sheet)}"
-            + f"📊 Full report and overnight TSL alerts sent to Advance/Premium\n"
-            f"📈 <b>Join Advance @ ₹699/month</b>\n"
-            f"📱 ai360trading.in/membership"
+            + f"🔒 Full report, overnight TSL: Advance ₹699/month → ai360trading.in/membership"
         )
         send_advance_and_premium(msg_adv); send_basic(msg_basic)
         print(f"[CLOSE] {wins}W {losses}L, {len(open_list)} overnight")
