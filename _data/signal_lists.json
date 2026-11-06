@@ -2,179 +2,179 @@
   "events": {
     "results": [
       {
-        "symbol": "ASTRAL",
-        "sector": "Capital Goods",
-        "date": "2026-11-05",
-        "date_label": "Thu 05 Nov",
-        "days_left": 0
-      },
-      {
-        "symbol": "BHARATFORG",
-        "sector": "Automobile and Auto Components",
-        "date": "2026-11-05",
-        "date_label": "Thu 05 Nov",
-        "days_left": 0
-      },
-      {
-        "symbol": "BHARTIARTL",
-        "sector": "Telecommunication",
-        "date": "2026-11-05",
-        "date_label": "Thu 05 Nov",
-        "days_left": 0
-      },
-      {
-        "symbol": "BRITANNIA",
-        "sector": "Fast Moving Consumer Goods",
-        "date": "2026-11-05",
-        "date_label": "Thu 05 Nov",
-        "days_left": 0
-      },
-      {
-        "symbol": "FORTIS",
-        "sector": "Healthcare",
-        "date": "2026-11-05",
-        "date_label": "Thu 05 Nov",
-        "days_left": 0
-      },
-      {
-        "symbol": "GLENMARK",
-        "sector": "Healthcare",
-        "date": "2026-11-05",
-        "date_label": "Thu 05 Nov",
-        "days_left": 0
-      },
-      {
-        "symbol": "GODFRYPHLP",
-        "sector": "Fast Moving Consumer Goods",
-        "date": "2026-11-05",
-        "date_label": "Thu 05 Nov",
-        "days_left": 0
-      },
-      {
-        "symbol": "LGEINDIA",
-        "sector": "Consumer Durables",
-        "date": "2026-11-05",
-        "date_label": "Thu 05 Nov",
-        "days_left": 0
-      },
-      {
-        "symbol": "M&M",
-        "sector": "Automobile and Auto Components",
-        "date": "2026-11-05",
-        "date_label": "Thu 05 Nov",
-        "days_left": 0
-      },
-      {
-        "symbol": "MOTHERSON",
-        "sector": "Automobile and Auto Components",
-        "date": "2026-11-05",
-        "date_label": "Thu 05 Nov",
-        "days_left": 0
-      },
-      {
-        "symbol": "MPHASIS",
-        "sector": "Information Technology",
-        "date": "2026-11-05",
-        "date_label": "Thu 05 Nov",
-        "days_left": 0
-      },
-      {
-        "symbol": "ONGC",
-        "sector": "Oil Gas & Consumable Fuels",
-        "date": "2026-11-05",
-        "date_label": "Thu 05 Nov",
-        "days_left": 0
-      },
-      {
-        "symbol": "PRESTIGE",
-        "sector": "Realty",
-        "date": "2026-11-05",
-        "date_label": "Thu 05 Nov",
-        "days_left": 0
-      },
-      {
-        "symbol": "TIINDIA",
-        "sector": "Automobile and Auto Components",
-        "date": "2026-11-05",
-        "date_label": "Thu 05 Nov",
-        "days_left": 0
-      },
-      {
-        "symbol": "TITAN",
-        "sector": "Consumer Durables",
-        "date": "2026-11-05",
-        "date_label": "Thu 05 Nov",
-        "days_left": 0
-      },
-      {
         "symbol": "BOSCHLTD",
         "sector": "Automobile and Auto Components",
         "date": "2026-11-06",
         "date_label": "Fri 06 Nov",
-        "days_left": 1
+        "days_left": 0
       },
       {
         "symbol": "COROMANDEL",
         "sector": "Chemicals",
         "date": "2026-11-06",
         "date_label": "Fri 06 Nov",
-        "days_left": 1
+        "days_left": 0
       },
       {
         "symbol": "HINDALCO",
         "sector": "Metals & Mining",
         "date": "2026-11-06",
         "date_label": "Fri 06 Nov",
-        "days_left": 1
+        "days_left": 0
       },
       {
         "symbol": "JUBLFOOD",
         "sector": "Consumer Services",
         "date": "2026-11-06",
         "date_label": "Fri 06 Nov",
-        "days_left": 1
+        "days_left": 0
       },
       {
         "symbol": "SIEMENS",
         "sector": "Capital Goods",
         "date": "2026-11-06",
         "date_label": "Fri 06 Nov",
-        "days_left": 1
+        "days_left": 0
       },
       {
         "symbol": "VOLTAS",
         "sector": "Consumer Durables",
         "date": "2026-11-06",
         "date_label": "Fri 06 Nov",
-        "days_left": 1
+        "days_left": 0
       },
       {
         "symbol": "DIVISLAB",
         "sector": "Healthcare",
         "date": "2026-11-07",
         "date_label": "Sat 07 Nov",
-        "days_left": 2
+        "days_left": 1
       },
       {
         "symbol": "TATASTEEL",
         "sector": "Metals & Mining",
         "date": "2026-11-07",
         "date_label": "Sat 07 Nov",
-        "days_left": 2
+        "days_left": 1
       },
       {
         "symbol": "COCHINSHIP",
         "sector": "Capital Goods",
         "date": "2026-11-10",
         "date_label": "Tue 10 Nov",
-        "days_left": 5
+        "days_left": 4
       },
       {
         "symbol": "KALYANKJIL",
         "sector": "Consumer Durables",
         "date": "2026-11-10",
         "date_label": "Tue 10 Nov",
+        "days_left": 4
+      },
+      {
+        "symbol": "MRF",
+        "sector": "Automobile and Auto Components",
+        "date": "2026-11-10",
+        "date_label": "Tue 10 Nov",
+        "days_left": 4
+      },
+      {
+        "symbol": "TATAPOWER",
+        "sector": "Power",
+        "date": "2026-11-11",
+        "date_label": "Wed 11 Nov",
         "days_left": 5
+      },
+      {
+        "symbol": "ALKEM",
+        "sector": "Healthcare",
+        "date": "2026-11-12",
+        "date_label": "Thu 12 Nov",
+        "days_left": 6
+      },
+      {
+        "symbol": "BDL",
+        "sector": "Capital Goods",
+        "date": "2026-11-12",
+        "date_label": "Thu 12 Nov",
+        "days_left": 6
+      },
+      {
+        "symbol": "HAL",
+        "sector": "Capital Goods",
+        "date": "2026-11-12",
+        "date_label": "Thu 12 Nov",
+        "days_left": 6
+      },
+      {
+        "symbol": "IDEA",
+        "sector": "Telecommunication",
+        "date": "2026-11-12",
+        "date_label": "Thu 12 Nov",
+        "days_left": 6
+      },
+      {
+        "symbol": "IRCTC",
+        "sector": "Consumer Services",
+        "date": "2026-11-12",
+        "date_label": "Thu 12 Nov",
+        "days_left": 6
+      },
+      {
+        "symbol": "NMDC",
+        "sector": "Metals & Mining",
+        "date": "2026-11-12",
+        "date_label": "Thu 12 Nov",
+        "days_left": 6
+      },
+      {
+        "symbol": "OIL",
+        "sector": "Oil Gas & Consumable Fuels",
+        "date": "2026-11-12",
+        "date_label": "Thu 12 Nov",
+        "days_left": 6
+      },
+      {
+        "symbol": "PAGEIND",
+        "sector": "Textiles",
+        "date": "2026-11-12",
+        "date_label": "Thu 12 Nov",
+        "days_left": 6
+      },
+      {
+        "symbol": "POWERINDIA",
+        "sector": "Capital Goods",
+        "date": "2026-11-12",
+        "date_label": "Thu 12 Nov",
+        "days_left": 6
+      },
+      {
+        "symbol": "ABB",
+        "sector": "Capital Goods",
+        "date": "2026-11-13",
+        "date_label": "Fri 13 Nov",
+        "days_left": 7
+      },
+      {
+        "symbol": "GRASIM",
+        "sector": "Construction Materials",
+        "date": "2026-11-13",
+        "date_label": "Fri 13 Nov",
+        "days_left": 7
+      },
+      {
+        "symbol": "RVNL",
+        "sector": "Construction",
+        "date": "2026-11-13",
+        "date_label": "Fri 13 Nov",
+        "days_left": 7
+      },
+      {
+        "symbol": "TMPV",
+        "sector": "Automobile and Auto Components",
+        "date": "2026-11-13",
+        "date_label": "Fri 13 Nov",
+        "days_left": 7
       }
     ],
     "dividends": [
@@ -272,28 +272,18 @@
     ],
     "bonus_split": []
   },
-  "generated_at": "05 November 2026, 09:47 PM IST",
+  "generated_at": "06 November 2026, 04:20 PM IST",
   "market": {
     "up": true,
-    "close": 24537,
-    "ema50": 23277,
+    "close": 25030,
+    "ema50": 23346,
     "label": "NIFTY is above its 50-day average"
   },
   "sip": [
     {
-      "symbol": "ONGC",
-      "sector": "Oil Gas & Consumable Fuels",
-      "cmp": 230.2,
-      "down_from_high": -25.1,
-      "base_range": 7.2,
-      "support": 223.05,
-      "sector_trend": "HEADWIND",
-      "div_yield": 5.88
-    },
-    {
       "symbol": "IRCTC",
       "sector": "Consumer Services",
-      "cmp": 458.0,
+      "cmp": 457.95,
       "down_from_high": -36.5,
       "base_range": 9.5,
       "support": 448.0,
@@ -303,118 +293,108 @@
     {
       "symbol": "IRFC",
       "sector": "Financial Services",
-      "cmp": 80.13,
-      "down_from_high": -41.6,
-      "base_range": 10.1,
+      "cmp": 80.43,
+      "down_from_high": -41.4,
+      "base_range": 10.0,
       "support": 78.16,
       "sector_trend": "HEADWIND",
       "div_yield": 3.0
     },
     {
-      "symbol": "IREDA",
-      "sector": "Financial Services",
-      "cmp": 110.15,
-      "down_from_high": -28.2,
-      "base_range": 10.3,
-      "support": 109.06,
-      "sector_trend": "HEADWIND",
-      "div_yield": 1.36
-    },
-    {
-      "symbol": "HDFCLIFE",
-      "sector": "Financial Services",
-      "cmp": 543.8,
-      "down_from_high": -31.0,
-      "base_range": 10.6,
-      "support": 533.3,
-      "sector_trend": "HEADWIND",
-      "div_yield": 0.4
-    },
-    {
       "symbol": "NMDC",
       "sector": "Metals & Mining",
-      "cmp": 70.45,
-      "down_from_high": -27.7,
-      "base_range": 10.8,
+      "cmp": 70.4,
+      "down_from_high": -27.8,
+      "base_range": 10.2,
       "support": 70.1,
       "sector_trend": "HEADWIND",
       "div_yield": 5.2
     },
     {
+      "symbol": "HDFCLIFE",
+      "sector": "Financial Services",
+      "cmp": 565.3,
+      "down_from_high": -28.3,
+      "base_range": 10.2,
+      "support": 533.3,
+      "sector_trend": "HEADWIND",
+      "div_yield": 0.4
+    },
+    {
       "symbol": "ITC",
       "sector": "Fast Moving Consumer Goods",
-      "cmp": 278.85,
-      "down_from_high": -32.5,
-      "base_range": 11.2,
+      "cmp": 282.5,
+      "down_from_high": -31.6,
+      "base_range": 11.0,
       "support": 265.0,
       "sector_trend": "HEADWIND",
       "div_yield": 5.46
     },
     {
-      "symbol": "LTM",
-      "sector": "Information Technology",
-      "cmp": 4393.0,
-      "down_from_high": -31.7,
-      "base_range": 11.5,
-      "support": 3936.0,
-      "sector_trend": "HEADWIND",
-      "div_yield": 1.84
-    },
-    {
       "symbol": "PFC",
       "sector": "Financial Services",
-      "cmp": 329.4,
-      "down_from_high": -32.3,
+      "cmp": 326.7,
+      "down_from_high": -32.9,
       "base_range": 11.9,
       "support": 313.35,
       "sector_trend": "HEADWIND",
       "div_yield": 5.98
     },
     {
+      "symbol": "IREDA",
+      "sector": "Financial Services",
+      "cmp": 111.65,
+      "down_from_high": -27.2,
+      "base_range": 12.0,
+      "support": 109.06,
+      "sector_trend": "HEADWIND",
+      "div_yield": 1.36
+    },
+    {
       "symbol": "ATGL",
       "sector": "Oil Gas & Consumable Fuels",
-      "cmp": 581.0,
-      "down_from_high": -32.4,
-      "base_range": 11.9,
-      "support": 576.4,
+      "cmp": 576.65,
+      "down_from_high": -32.9,
+      "base_range": 12.0,
+      "support": 572.05,
       "sector_trend": "HEADWIND",
       "div_yield": 0.05
     },
     {
-      "symbol": "NATIONALUM",
-      "sector": "Metals & Mining",
-      "cmp": 329.95,
-      "down_from_high": -25.9,
-      "base_range": 12.2,
-      "support": 309.9,
-      "sector_trend": "HEADWIND",
-      "div_yield": 3.66
-    },
-    {
       "symbol": "SBICARD",
       "sector": "Financial Services",
-      "cmp": 582.7,
-      "down_from_high": -35.7,
+      "cmp": 585.0,
+      "down_from_high": -35.5,
       "base_range": 12.3,
       "support": 547.65,
       "sector_trend": "HEADWIND",
       "div_yield": 0.48
     },
     {
-      "symbol": "HDFCBANK",
-      "sector": "Financial Services",
-      "cmp": 760.0,
-      "down_from_high": -25.3,
+      "symbol": "NATIONALUM",
+      "sector": "Metals & Mining",
+      "cmp": 325.75,
+      "down_from_high": -26.8,
       "base_range": 12.3,
-      "support": 715.1,
+      "support": 309.9,
       "sector_trend": "HEADWIND",
-      "div_yield": 1.88
+      "div_yield": 3.66
+    },
+    {
+      "symbol": "HAVELLS",
+      "sector": "Consumer Durables",
+      "cmp": 1125.4,
+      "down_from_high": -25.7,
+      "base_range": 12.4,
+      "support": 1081.1,
+      "sector_trend": "HEADWIND",
+      "div_yield": 0.99
     },
     {
       "symbol": "RVNL",
       "sector": "Construction",
-      "cmp": 193.69,
-      "down_from_high": -51.7,
+      "cmp": 193.34,
+      "down_from_high": -51.8,
       "base_range": 12.5,
       "support": 186.9,
       "sector_trend": "HEADWIND",
@@ -423,168 +403,188 @@
     {
       "symbol": "JIOFIN",
       "sector": "Financial Services",
-      "cmp": 229.62,
-      "down_from_high": -27.5,
-      "base_range": 12.6,
+      "cmp": 231.2,
+      "down_from_high": -27.0,
+      "base_range": 12.5,
       "support": 224.84,
       "sector_trend": "HEADWIND",
       "div_yield": 0.29
+    },
+    {
+      "symbol": "UPL",
+      "sector": "Chemicals",
+      "cmp": 534.9,
+      "down_from_high": -34.1,
+      "base_range": 12.7,
+      "support": 504.65,
+      "sector_trend": "HEADWIND",
+      "div_yield": 1.17
+    },
+    {
+      "symbol": "TMPV",
+      "sector": "Automobile and Auto Components",
+      "cmp": 292.0,
+      "down_from_high": -29.4,
+      "base_range": 12.8,
+      "support": 273.0,
+      "sector_trend": "HEADWIND",
+      "div_yield": 1.13
     }
   ],
   "breakout": [
     {
+      "symbol": "BSE",
+      "sector": "Financial Services",
+      "cmp": 3800.0,
+      "signal": "50-day closing-high breakout",
+      "level": 3790.0,
+      "rs": 13.9,
+      "volume": 5.0,
+      "sector_trend": "HEADWIND"
+    },
+    {
       "symbol": "TATAELXSI",
       "sector": "Information Technology",
-      "cmp": 3925.0,
+      "cmp": 3855.0,
       "signal": "50-day closing-high breakout",
-      "level": 3850.1,
-      "rs": 17.8,
-      "volume": -32.0,
+      "level": 3920.0,
+      "rs": 13.8,
+      "volume": -53.0,
       "sector_trend": "HEADWIND"
     },
     {
       "symbol": "WIPRO",
       "sector": "Information Technology",
-      "cmp": 198.31,
+      "cmp": 198.0,
       "signal": "50-day closing-high breakout",
-      "level": 198.31,
-      "rs": 15.6,
-      "volume": -49.0,
+      "level": 198.4,
+      "rs": 13.4,
+      "volume": -35.0,
       "sector_trend": "HEADWIND"
-    },
-    {
-      "symbol": "BSE",
-      "sector": "Financial Services",
-      "cmp": 3790.0,
-      "signal": "50-day closing-high breakout",
-      "level": 3665.7,
-      "rs": 15.5,
-      "volume": 168.0,
-      "sector_trend": "HEADWIND"
-    },
-    {
-      "symbol": "GROWW",
-      "sector": "Financial Services",
-      "cmp": 222.35,
-      "signal": "50-day closing-high breakout",
-      "level": 207.23,
-      "rs": 15.4,
-      "volume": 189.0,
-      "sector_trend": "TAILWIND"
     },
     {
       "symbol": "INDHOTEL",
       "sector": "Consumer Services",
-      "cmp": 875.0,
+      "cmp": 888.0,
       "signal": "50-day closing-high breakout",
-      "level": 849.0,
+      "level": 875.0,
       "rs": 12.9,
-      "volume": -0.0,
-      "sector_trend": "TAILWIND"
-    },
-    {
-      "symbol": "TRENT",
-      "sector": "Consumer Services",
-      "cmp": 3055.0,
-      "signal": "50-day closing-high breakout",
-      "level": 3060.0,
-      "rs": 9.5,
-      "volume": -7.0,
+      "volume": 27.0,
       "sector_trend": "TAILWIND"
     },
     {
       "symbol": "BHARTIARTL",
       "sector": "Telecommunication",
-      "cmp": 2056.9,
+      "cmp": 2107.2,
       "signal": "50-day closing-high breakout",
       "level": 2067.6,
-      "rs": 9.2,
-      "volume": -4.0,
-      "sector_trend": "HEADWIND"
-    },
-    {
-      "symbol": "PATANJALI",
-      "sector": "Fast Moving Consumer Goods",
-      "cmp": 410.7,
-      "signal": "50-day closing-high breakout",
-      "level": 409.45,
-      "rs": 6.7,
-      "volume": 220.0,
-      "sector_trend": "HEADWIND"
-    },
-    {
-      "symbol": "BOSCHLTD",
-      "sector": "Automobile and Auto Components",
-      "cmp": 52475.0,
-      "signal": "50-day closing-high breakout",
-      "level": 50925.0,
-      "rs": 6.5,
-      "volume": 87.0,
-      "sector_trend": "TAILWIND"
-    },
-    {
-      "symbol": "PNB",
-      "sector": "Financial Services",
-      "cmp": 126.1,
-      "signal": "50-day closing-high breakout",
-      "level": 123.9,
-      "rs": 6.2,
-      "volume": 41.0,
-      "sector_trend": "HEADWIND"
-    },
-    {
-      "symbol": "HCLTECH",
-      "sector": "Information Technology",
-      "cmp": 1434.5,
-      "signal": "50-day closing-high breakout",
-      "level": 1439.1,
-      "rs": 6.2,
-      "volume": -28.0,
+      "rs": 10.2,
+      "volume": 52.0,
       "sector_trend": "HEADWIND"
     },
     {
       "symbol": "ICICIBANK",
       "sector": "Financial Services",
-      "cmp": 1500.0,
+      "cmp": 1571.2,
       "signal": "50-day closing-high breakout",
-      "level": 1454.0,
-      "rs": 5.5,
-      "volume": 166.0,
-      "sector_trend": "HEADWIND"
+      "level": 1500.0,
+      "rs": 9.1,
+      "volume": 141.0,
+      "sector_trend": "TAILWIND"
     },
     {
-      "symbol": "HDFCAMC",
+      "symbol": "GROWW",
       "sector": "Financial Services",
-      "cmp": 2632.4,
-      "signal": "Trendline breakout",
-      "level": null,
-      "rs": 5.5,
-      "volume": 147.0,
-      "sector_trend": "HEADWIND"
+      "cmp": 215.8,
+      "signal": "50-day closing-high breakout",
+      "level": 223.89,
+      "rs": 8.6,
+      "volume": 198.0,
+      "sector_trend": "TAILWIND"
+    },
+    {
+      "symbol": "TRENT",
+      "sector": "Consumer Services",
+      "cmp": 3070.2,
+      "signal": "50-day closing-high breakout",
+      "level": 3060.0,
+      "rs": 8.5,
+      "volume": -44.0,
+      "sector_trend": "TAILWIND"
     },
     {
       "symbol": "ULTRACEMCO",
       "sector": "Construction Materials",
-      "cmp": 12256.0,
+      "cmp": 12426.0,
       "signal": "50-day closing-high breakout",
-      "level": 11816.0,
-      "rs": 5.5,
-      "volume": 73.0,
+      "level": 12250.0,
+      "rs": 5.4,
+      "volume": 57.0,
+      "sector_trend": "HEADWIND"
+    },
+    {
+      "symbol": "PATANJALI",
+      "sector": "Fast Moving Consumer Goods",
+      "cmp": 411.0,
+      "signal": "50-day closing-high breakout",
+      "level": 410.7,
+      "rs": 5.1,
+      "volume": 14.0,
+      "sector_trend": "HEADWIND"
+    },
+    {
+      "symbol": "HCLTECH",
+      "sector": "Information Technology",
+      "cmp": 1440.0,
+      "signal": "50-day closing-high breakout",
+      "level": 1439.1,
+      "rs": 5.0,
+      "volume": -20.0,
       "sector_trend": "HEADWIND"
     },
     {
       "symbol": "ETERNAL",
       "sector": "Consumer Services",
-      "cmp": 358.3,
+      "cmp": 363.15,
       "signal": "50-day closing-high breakout",
-      "level": 349.45,
-      "rs": 5.2,
-      "volume": 30.0,
+      "level": 358.3,
+      "rs": 4.9,
+      "volume": -11.0,
+      "sector_trend": "TAILWIND"
+    },
+    {
+      "symbol": "PNB",
+      "sector": "Financial Services",
+      "cmp": 126.32,
+      "signal": "50-day closing-high breakout",
+      "level": 126.1,
+      "rs": 4.7,
+      "volume": -7.0,
+      "sector_trend": "HEADWIND"
+    },
+    {
+      "symbol": "M&M",
+      "sector": "Automobile and Auto Components",
+      "cmp": 3287.2,
+      "signal": "Trendline breakout",
+      "level": null,
+      "rs": 4.1,
+      "volume": 169.0,
+      "sector_trend": "HEADWIND"
+    },
+    {
+      "symbol": "MARICO",
+      "sector": "Fast Moving Consumer Goods",
+      "cmp": 897.75,
+      "signal": "50-day closing-high breakout",
+      "level": 890.0,
+      "rs": 4.1,
+      "volume": 3.0,
       "sector_trend": "TAILWIND"
     }
   ],
   "counts": {
-    "sip_total_zone": 28,
-    "breakout_total": 72
+    "sip_total_zone": 29,
+    "breakout_total": 79
   }
 }
