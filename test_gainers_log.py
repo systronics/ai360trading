@@ -27,3 +27,14 @@ def test_top_gainers_and_rows():
     assert [r[2] for r in rows] == ["BBB", "AAA"]
     assert rows[0][12] == "LAGGARD-BOUNCE" and rows[1][12] == "LEADER"
     assert rows[1][15] == "Y" and rows[0][15] == "N"
+
+
+def test_scan_cols():
+    import gainers_log as G
+    scan = {"A": {"Date": "2026-11-06", "First_Status": "GATE 3: RS", "Last_Status": "QUEUED", "Gate_Counts": '{"GATE 3":4}'},
+            "B": {"Date": "2026-11-05", "First_Status": "x", "Last_Status": "y", "Gate_Counts": "{}"}}
+    assert G.scan_cols(scan, "A", "2026-11-06") == ["GATE 3: RS", "QUEUED", '{"GATE 3":4}']
+    assert G.scan_cols(scan, "B", "2026-11-06")[0].startswith("no scan data for this day")
+    assert G.scan_cols(scan, "Z", "2026-11-06")[0].startswith("not in the live scan")
+    assert len(G.HEAD) == 22
+    assert G.scan_cols({}, "A", "2026-11-06")[0] == "scan history not recorded yet"

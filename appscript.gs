@@ -608,7 +608,7 @@ const OPTIONS_CONFIG = {
 
 // ── CONFIG ────────────────────────────────────────────────────────────────────
 const CONFIG = {
-  VERSION       : "v15.39",  // single source for ALL subscriber-facing version stamps (was hardcoded per-message and went stale at v15.17)
+  VERSION       : "v15.40",  // single source for ALL subscriber-facing version stamps (was hardcoded per-message and went stale at v15.17)
   get TELEGRAM_BOT_TOKEN() { return PropertiesService.getScriptProperties().getProperty('TELEGRAM_BOT_TOKEN') || ""; },
   get CHAT_ID_BASIC()      { return PropertiesService.getScriptProperties().getProperty('CHAT_ID_BASIC')      || ""; },
   get CHAT_ID_ADVANCE()    { return PropertiesService.getScriptProperties().getProperty('CHAT_ID_ADVANCE')    || ""; },
@@ -2104,6 +2104,28 @@ function _runScanner(startRow, endRow) {
     _writeScanDiag(ss, nowTime, marketBullish, maxWaitingSlots, diagRows);
   } catch (e) { Logger.log("[DIAG] error (non-fatal): " + e); }
 
+  // v15.40 SCAN REASONS (observation only) — the ScanDiag tab above is overwritten every 5 minutes and only covers the top 5, so "why was today's big gainer not
+  // queued?" could not be answered afterwards (GROWW 5 Nov, Airtel 6 Nov). This keeps ONE row per Nifty200 stock per day: first status, latest status, scan counts and
+  // a count per gate. Market hours only (a pre-market scan must not wipe yesterday's rows before gainers_log.py reads them). Never throws, never touches trade state.
+  try {
+    if (timeStr >= "09:15" && timeStr <= "15:35") {
+      const qS = new Set(finalWaiting.map(row => row[1]));
+      const bS = new Set(batchCands.map(c => c.sym));
+      const cur = [];
+      inputData.slice(1).forEach(r => {
+        const sym = (r[0] || "").toString().trim();
+        if (!sym || sym.includes("NIFTY") || alreadyTraded.has(sym)) return;
+        let status;
+        if (qS.has(sym)) status = "QUEUED";
+        else if (bS.has(sym)) status = "PASSED gates, lost the WAITING slot";
+        else if (skipReasons.has(sym)) status = skipReasons.get(sym);
+        else status = "no gate reason (filtered before the gates)";
+        cur.push([sym, status]);
+      });
+      _writeScanReasons(ss, nowTime, cur);
+    }
+  } catch (e) { Logger.log("[SCANREASONS] error (non-fatal): " + e); }
+
   // MOMENTUM SCAN — v15.24: GATE-3 parity (RS ≥ LATE_ENTRY_MIN_RS, blank RS
   // fail-open), time-fair volume pace (diff-form 200 = 3.0×), 2-per-sector
   // cap and regime slot limit. This path used to queue RS-negative names the
@@ -2366,6 +2388,53 @@ function _writeScanDiag(ss, nowTime, marketBullish, maxWaitingSlots, diagRows) {
   // row 6 behind from a previous run that had more candidates than this one.
   while (grid.length < 5) grid.push(["", "", "", "", "", "", "", "", ""]);
   sheet.getRange(2, 1, 5, 9).setValues(grid.slice(0, 5));
+}
+
+// v15.40 — per-stock daily scan history (see the call site in _runScanner). One row per symbol, overwritten in place, so the tab never grows.
+function _gateTag(status) {
+  const s = String(status || "");
+  const i = s.indexOf(":");
+  return i > 0 ? s.slice(0, i) : s.slice(0, 24);
+}
+
+// Pure function (unit-tested with node): existing = rows [Date, Symbol, First_Status, Last_Status, Last_Time, Scans, Queued_Scans, Gate_Counts_JSON],
+// current = [[symbol, status], ...], today = "YYYY-MM-DD", nowTime = "HH:MM:SS". Returns the new rows, one per current symbol.
+function _scanReasonsMerge(existing, current, today, nowTime) {
+  const byS = {};
+  (existing || []).forEach(r => { if (r && r[1]) byS[String(r[1])] = r; });
+  return current.map(c => {
+    const sym = c[0], status = c[1], tag = _gateTag(status), q = status === "QUEUED" ? 1 : 0;
+    const old = byS[sym];
+    if (!old || String(old[0]) !== today) {
+      const counts = {}; counts[tag] = 1;
+      return [today, sym, status, status, nowTime, 1, q, JSON.stringify(counts)];
+    }
+    let counts = {};
+    try { counts = JSON.parse(old[7] || "{}"); } catch (e) { counts = {}; }
+    counts[tag] = (counts[tag] || 0) + 1;
+    return [today, sym, old[2], status, nowTime, (Number(old[5]) || 0) + 1, (Number(old[6]) || 0) + q, JSON.stringify(counts)];
+  });
+}
+
+function _writeScanReasons(ss, nowTime, current) {
+  let sheet = ss.getSheetByName("ScanReasons");
+  if (!sheet) {
+    sheet = ss.insertSheet("ScanReasons");
+    sheet.getRange(1, 1, 1, 8).setValues([["Date", "Symbol", "First_Status", "Last_Status", "Last_Time", "Scans", "Queued_Scans", "Gate_Counts"]]);
+    sheet.setFrozenRows(1);
+    sheet.getRange(1, 1, 400, 1).setNumberFormat("@");     // keep the date as text, Sheets would turn it into a real date
+    sheet.getRange(1, 5, 400, 1).setNumberFormat("@");
+  }
+  const today = Utilities.formatDate(new Date(), "Asia/Kolkata", "yyyy-MM-dd");
+  const last = sheet.getLastRow();
+  const existing = last >= 2 ? sheet.getRange(2, 1, last - 1, 8).getValues().map(r => {
+    r[0] = (r[0] instanceof Date) ? Utilities.formatDate(r[0], "Asia/Kolkata", "yyyy-MM-dd") : String(r[0]);
+    return r;
+  }) : [];
+  const rows = _scanReasonsMerge(existing, current, today, nowTime);
+  if (!rows.length) return;
+  sheet.getRange(2, 1, rows.length, 8).setValues(rows);
+  if (last - 1 > rows.length) sheet.getRange(2 + rows.length, 1, last - 1 - rows.length, 8).clearContent();
 }
 
 // ══════════════════════════════════════════════════════════════════════════════

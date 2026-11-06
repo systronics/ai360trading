@@ -18,7 +18,8 @@ import datetime as dt
 
 TAB = "GainersLog"
 HEAD = ["Date", "Rank", "Symbol", "Day_%", "Gap_%", "Prev_RS35", "Prev_Above_50DMA", "Prev_RSI14", "G_RS", "G_Trend", "G_RSI", "G_Leader", "Category",
-        "Result_Within_5d", "Prev_Buildup", "Taken_By_System", "Universe_Avg_Day_%", "Sector", "Sector_Avg_Day_%"]
+        "Result_Within_5d", "Prev_Buildup", "Taken_By_System", "Universe_Avg_Day_%", "Sector", "Sector_Avg_Day_%",
+        "Scan_First_Status", "Scan_Last_Status", "Scan_Gate_Counts"]
 TOP_N = 15
 
 
@@ -40,6 +41,19 @@ def categorize(rs, above50, g_leader):
 
 def result_near(events, sym, day, window=5):
     return any(abs((d - day).days) <= window for d in events.get(sym, []))
+
+
+def scan_cols(scan, sym, day):
+    """[first, last, gate counts] from the live scanner's ScanReasons tab for this symbol and day. 'not in scanner' when the stock is outside the Nifty200 scan,
+    'no scan data for this day' when the tab holds another date (it keeps only the latest market day)."""
+    if not scan:
+        return ["scan history not recorded yet", "", ""]
+    r = scan.get(sym)
+    if r is None:
+        return ["not in the live scan (outside Nifty200 or none recorded)", "", ""]
+    if str(r.get("Date", "")) != day:
+        return ["no scan data for this day (tab holds " + str(r.get("Date", "?")) + ")", "", ""]
+    return [r.get("First_Status", ""), r.get("Last_Status", ""), r.get("Gate_Counts", "")]
 
 
 def top_gainers(rows, day, n=TOP_N):
@@ -82,13 +96,14 @@ def _taken(sh):
     return out
 
 
-def build_rows(ga_rows, day, prev_day, events, taken, sectors=None):
+def build_rows(ga_rows, day, prev_day, events, taken, sectors=None, scan=None):
     today = [r for r in ga_rows if r["Date"] == day]
     prev = {r["Symbol"]: r for r in ga_rows if r["Date"] == prev_day}
     avg = [_f(r["Day_%"]) for r in today if _f(r["Day_%"]) is not None]
     uavg = round(sum(avg) / len(avg), 2) if avg else ""
     d0 = dt.date.fromisoformat(day)
     sectors = sectors or {}
+    scan = scan or {}
     sec_moves = {}
     for r in today:      # average day move of each sector's stocks (Nifty200 members only) - shows whether the gainers cluster in one sector
         sc = sectors.get(r["Symbol"])
@@ -104,7 +119,8 @@ def build_rows(ga_rows, day, prev_day, events, taken, sectors=None):
         was = "Y" if any(a <= day <= b or a == day for a, b in taken.get(s, [])) else "N"
         out.append([day, rank, s, r["Day_%"], r.get("Gap_%", ""), p.get("RS35", ""), p.get("Above_50DMA", ""), p.get("RSI14", ""), p.get("G_RS", ""), p.get("G_Trend", ""),
                     p.get("G_RSI", ""), p.get("G_Leader", ""), cat, "Y" if result_near(events, s, d0) else "N", p.get("Buildup", ""), was, uavg,
-                    sectors.get(s, ""), round(sum(sec_moves[sectors[s]]) / len(sec_moves[sectors[s]]), 2) if sectors.get(s) in sec_moves else ""])
+                    sectors.get(s, ""), round(sum(sec_moves[sectors[s]]) / len(sec_moves[sectors[s]]), 2) if sectors.get(s) in sec_moves else "",
+                    *scan_cols(scan, s, day)])
     return out
 
 
@@ -129,6 +145,15 @@ def main(argv=None):
     except Exception:
         sectors = {}
     try:
+        scan = {}
+        sv = sh.worksheet("ScanReasons").get_all_values()
+        sh_ = sv[0]
+        for r in sv[1:]:
+            if len(r) >= 2 and r[1]:
+                scan[r[1].replace("NSE:", "").strip()] = dict(zip(sh_, r))
+    except Exception:
+        scan = {}
+    try:
         ws = sh.worksheet(TAB)
     except Exception:
         if "--write" not in argv:
@@ -136,6 +161,15 @@ def main(argv=None):
         else:
             ws = sh.add_worksheet(TAB, rows=2000, cols=len(HEAD))
             ws.update(range_name="A1", values=[HEAD])
+    if ws is not None and "--write" in argv:
+        try:
+            hdr = ws.row_values(1)
+            if len(hdr) < len(HEAD):
+                if ws.col_count < len(HEAD):
+                    ws.add_cols(len(HEAD) - ws.col_count)
+                ws.update(range_name="A1", values=[HEAD])
+        except Exception as e:
+            print(f"[GAINERS] header update skipped: {e}")
     have = set()
     if ws is not None:
         existing = ws.get_all_values()
@@ -146,7 +180,7 @@ def main(argv=None):
         if i < 1:
             print(f"[GAINERS] {day}: no earlier day in GateAudit, skipped")
             continue
-        for r in build_rows(ga, day, dates[i - 1], events, taken, sectors):
+        for r in build_rows(ga, day, dates[i - 1], events, taken, sectors, scan):
             if (r[0], r[2]) not in have:
                 fresh.append(r)
     print(f"[GAINERS] {len(fresh)} new rows for {pick}")
@@ -168,7 +202,7 @@ def report(sh):
         print("[GAINERS] empty")
         return 0
     h = v[0]
-    ix = {k: h.index(k) for k in HEAD}
+    ix = {k: h.index(k) for k in HEAD if k in h}
     days = sorted({r[0] for r in rows})
     n = len(rows)
     print(f"[GAINERS REPORT] {len(days)} days, {n} top-gainer rows ({days[0]} .. {days[-1]})")
