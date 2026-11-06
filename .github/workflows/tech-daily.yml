@@ -52,6 +52,7 @@ jobs:
       INSTAGRAM_ID_TECH: ${{ secrets.INSTAGRAM_ID_TECH }}
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       CHAT_ID_BASIC: ${{ secrets.CHAT_ID_BASIC }}
+      CHAT_ID_PREMIUM: ${{ secrets.CHAT_ID_PREMIUM }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -114,7 +115,7 @@ jobs:
           python - <<'PYEOF'
           import os, json
           from urllib.request import Request, urlopen
-          tok, chat = os.environ.get('TELEGRAM_BOT_TOKEN',''), os.environ.get('CHAT_ID_BASIC','')
+          tok, chat = os.environ.get('TELEGRAM_BOT_TOKEN',''), (os.environ.get('CHAT_ID_PREMIUM','') or os.environ.get('CHAT_ID_BASIC',''))
           if tok and chat:
               msg = f"Workflow failed: {os.environ['WF_NAME']}\n{os.environ['RUN_URL']}"
               req = Request(f"https://api.telegram.org/bot{tok}/sendMessage", data=json.dumps({"chat_id": chat, "text": msg}).encode(), headers={"Content-Type": "application/json"})

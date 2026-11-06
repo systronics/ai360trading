@@ -585,7 +585,7 @@ def build_story(story_key, out_dir=OUT_DIR):
 def _tg(msg):
     try:
         import requests
-        tok, chat = os.environ.get("TELEGRAM_BOT_TOKEN", ""), os.environ.get("CHAT_ID_BASIC", "")
+        tok, chat = os.environ.get("TELEGRAM_BOT_TOKEN", ""), (os.environ.get("CHAT_ID_PREMIUM", "") or os.environ.get("CHAT_ID_BASIC", ""))   # 2026-11-06: owner notes go to Premium, public links go out via announce_videos.py
         if tok and chat:
             requests.post(f"https://api.telegram.org/bot{tok}/sendMessage",
                           data={"chat_id": chat, "text": msg, "parse_mode": "HTML", "disable_web_page_preview": "false"}, timeout=20)

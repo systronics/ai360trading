@@ -1,0 +1,38 @@
+name: Announce new videos to the Basic channel
+# 2026-11-06 owner: video/Short links go to the Basic Telegram channel, once, when the video is really public. Videos are uploaded private + publishAt, so this checks YouTube's public oEmbed.
+on:
+  schedule:
+    - cron: '43 12-17 * * *'      # hourly 18:13-23:13 IST (publish times are 13:00-14:00 UTC); GitHub may delay it
+  workflow_dispatch:
+    inputs:
+      dry:
+        description: 'dry run (print only)'
+        default: 'false'
+permissions:
+  contents: write
+concurrency:
+  group: announce-videos
+  cancel-in-progress: false
+jobs:
+  announce:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      CHAT_ID_BASIC: ${{ secrets.CHAT_ID_BASIC }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Announce
+        run: python announce_videos.py ${{ github.event.inputs.dry == 'true' && '--dry' || '' }}
+      - name: Record announced ids
+        run: |
+          git config user.name "ai360-bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add _data/announced_videos.json 2>/dev/null || true
+          git diff --cached --quiet && exit 0
+          git commit -m "announced videos"
+          git pull --rebase -q
+          git push -q
