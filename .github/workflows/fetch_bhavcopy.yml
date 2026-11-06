@@ -54,6 +54,7 @@ jobs:
           GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
           TELEGRAM_BOT_TOKEN:       ${{ secrets.TELEGRAM_BOT_TOKEN }}
           CHAT_ID_BASIC:            ${{ secrets.CHAT_ID_BASIC }}
+          CHAT_ID_PREMIUM:            ${{ secrets.CHAT_ID_PREMIUM }}
         run: python fetch_bhavcopy.py
 
       # 2026-11-01 owner task: F&O buildup columns + Sector_Board (INFORMATIONAL ONLY, never read by any gate/alert).
@@ -106,7 +107,7 @@ jobs:
           import os, json
           from urllib.request import Request, urlopen
           token = os.environ.get('TELEGRAM_BOT_TOKEN','')
-          chat  = os.environ.get('CHAT_ID_BASIC','')
+          chat  = (os.environ.get('CHAT_ID_PREMIUM','') or os.environ.get('CHAT_ID_BASIC',''))
           if not token or not chat:
               print('[NOTIFY] Telegram creds missing — skip'); raise SystemExit(0)
           msg = (

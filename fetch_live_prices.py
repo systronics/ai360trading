@@ -54,6 +54,12 @@ GOOGLEFINANCE's failure mode, which goes #N/A and poisons every downstream
 formula immediately. "Stale for one extra 5-minute tick sometimes" beats
 "the whole engine goes to zero for days," which is what actually happened.
 
+v1.2 (2026-11-06): OPTIONAL Upstox source (live_prices_upstox.py, read-only Analytics Token, env UPSTOX_ANALYTICS_TOKEN). UPSTOX_MODE:
+  off    = Yahoo only (the old behaviour)
+  shadow = default when a token exists: Yahoo is still written, Upstox is fetched and COMPARED (differences printed), nothing from Upstox is written
+  live   = Upstox values are written for every symbol Upstox answered; Yahoo is used only for the symbols it did not (and is skipped entirely when none are missing)
+Fail-open both ways: no token / any Upstox problem = exactly the old Yahoo behaviour.
+
 SAFETY / DESIGN (mirrors fetch_rs.py):
   • Finds columns by HEADER NAME — never hardcoded letters.
   • DRY-RUN by default: prints computed values, writes nothing. --write to
@@ -75,7 +81,7 @@ from datetime import datetime
 import pytz
 
 IST         = pytz.timezone("Asia/Kolkata")
-VERSION     = "v1.1"
+VERSION     = "v1.2"
 SHEET_NAME  = "Ai360tradingAlgo"
 NIFTY200    = "Nifty200"
 SYM_HEADER  = "NSE_SYMBOL"
@@ -131,6 +137,14 @@ def main():
         print(f"[FATAL] yfinance unavailable: {e}")
         return 1
 
+    up_token = os.environ.get("UPSTOX_ANALYTICS_TOKEN", "").strip()
+    up_mode = (os.environ.get("UPSTOX_MODE", "") or "shadow").strip().lower()
+    if up_mode not in ("off", "shadow", "live"):
+        up_mode = "shadow"
+    if not up_token:
+        up_mode = "off"
+    print(f"[UPSTOX] mode={up_mode}")
+
     sh = _connect()
     ws = sh.worksheet(NIFTY200)
     header = ws.row_values(1)
@@ -177,81 +191,146 @@ def main():
             continue
         targets.append((i + 2, nse, _yf_symbol(nse)))
 
-    yf_syms = sorted({t[2] for t in targets})
-    print(f"[YF] downloading {len(yf_syms)} symbols, 1-min intraday bars ...")
-
-    try:
-        intraday = yf.download(tickers=yf_syms, period="1d", interval="1m",
-                                group_by="ticker", auto_adjust=False,
-                                progress=False, threads=True)
-        daily = yf.download(tickers=yf_syms, period="5d", interval="1d",
-                             group_by="ticker", auto_adjust=False,
-                             progress=False, threads=True)
-    except Exception as e:
-        print(f"[FATAL] yfinance batch download failed: {e} — writing nothing this tick")
-        return 1
-
-    if intraday is None or len(intraday) == 0:
-        print("[FATAL] empty intraday response — writing nothing this tick")
-        return 1
-
-    def frame(data, sym):
+    up = {}
+    if up_mode != "off":
         try:
-            if len(yf_syms) == 1:
-                return data
-            return data[sym]
-        except Exception:
-            return None
+            import live_prices_upstox as UP
+            instr = UP.load_instruments()
+            sym_to_key = {t[1]: UP.key_for(t[1], instr) for t in targets}
+            sym_to_key = {k: v for k, v in sym_to_key.items() if v}
+            up = UP.fetch_quotes(up_token, sym_to_key)
+            print(f"[UPSTOX] {len(up)} of {len(targets)} symbols answered")
+        except Exception as e:
+            print(f"[UPSTOX] skipped (fail-open): {str(e)[:100]}")
+            up = {}
 
     cmp_updates, pct_updates, vol_updates = [], [], []
+    if up_mode == "live":
+        for sheet_row, nse, _ in targets:
+            q = up.get(nse)
+            if not q:
+                continue
+            cmp_updates.append((sheet_row, q["cmp"]))
+            if q["pct"] is not None:
+                pct_updates.append((sheet_row, q["pct"]))
+            if vol_c is not None and q["vol"] is not None and "NIFTY" not in nse.upper():
+                vol_updates.append((sheet_row, q["vol"]))
+    yf_targets = targets if up_mode != "live" else [t for t in targets if t[1] not in up]
     missing = 0
-    for sheet_row, nse, yf_sym in targets:
-        idf = frame(intraday, yf_sym)
-        ddf = frame(daily, yf_sym)
-        if idf is None:
-            missing += 1
-            continue
-        closes = idf["Close"].dropna() if "Close" in idf else None
-        vols   = idf["Volume"].dropna() if "Volume" in idf else None
-        if closes is None or len(closes) == 0:
-            missing += 1
-            continue
-        ltp = float(closes.iloc[-1])
-        # Anchor %Change to the ACTUAL date of the latest tick, not to
-        # calendar-today. Pre-market (before the 09:15 open) yfinance's "1d"
-        # intraday window still returns yesterday's last bars — so the LTP's
-        # own date is yesterday, and %Change must compare yesterday-vs-the-day-
-        # before (exactly what GOOGLEFINANCE shows pre-market: the last
-        # COMPLETED session's move). Comparing against "today" in that case
-        # self-compares yesterday's price to itself and silently reports ~0%,
-        # masking a real move (caught live: SRF genuinely dropped 8.5% on
-        # 2026-07-23 and pre-market GOOGLEFINANCE correctly still shows that;
-        # naively filtering "< today" instead of "< LTP's own date" reported
-        # a false ~0% here). Once the market is open, the LTP's date IS today
-        # and this is equivalent to the simpler "< today" rule.
-        ltp_date = closes.index[-1].date()
 
-        prev_close = None
-        if ddf is not None and "Close" in ddf:
-            # Don't assume a fixed row position (iloc[-2]) — yfinance sometimes
-            # leaves the most recent daily bar NaN for a symbol (data-provider
-            # lag, seen live: 360ONE's 07-23 bar was NaN while ADANIENSOL's
-            # wasn't, same fetch, same moment) or appends a live-updating "today"
-            # bar once the market opens. Drop NaN AND anything on/after the
-            # LTP's own date, then take whatever the last remaining valid
-            # close is — correct regardless of which symbols happen to be
-            # lagging, and correct both pre-market and intraday.
-            dclose = ddf["Close"].dropna()
-            dclose = dclose[dclose.index.date < ltp_date]
-            if len(dclose) >= 1:
-                prev_close = float(dclose.iloc[-1])
+    def yahoo_values(yf_targets):
+        """The original Yahoo maths (unchanged), for the given targets. Returns (cmp, pct, vol, missing) or None when the whole Yahoo batch failed."""
+        yf_syms = sorted({t[2] for t in yf_targets})
+        print(f"[YF] downloading {len(yf_syms)} symbols, 1-min intraday bars ...")
+        try:
+            intraday = yf.download(tickers=yf_syms, period="1d", interval="1m",
+                                   group_by="ticker", auto_adjust=False,
+                                   progress=False, threads=True)
+            daily = yf.download(tickers=yf_syms, period="5d", interval="1d",
+                                group_by="ticker", auto_adjust=False,
+                                progress=False, threads=True)
+        except Exception as e:
+            print(f"[FATAL] yfinance batch download failed: {e}")
+            return None
+        if intraday is None or len(intraday) == 0:
+            print("[FATAL] empty intraday response")
+            return None
+        def frame(data, sym):
+            try:
+                if len(yf_syms) == 1:
+                    return data
+                return data[sym]
+            except Exception:
+                return None
 
-        cmp_updates.append((sheet_row, round(ltp, 2)))
-        if prev_close and prev_close > 0:
-            pct_updates.append((sheet_row, round((ltp - prev_close) / prev_close * 100, 2)))
+        cmp_u, pct_u, vol_u = [], [], []
+        missing = 0
+        for sheet_row, nse, yf_sym in yf_targets:
+            idf = frame(intraday, yf_sym)
+            ddf = frame(daily, yf_sym)
+            if idf is None:
+                missing += 1
+                continue
+            closes = idf["Close"].dropna() if "Close" in idf else None
+            vols   = idf["Volume"].dropna() if "Volume" in idf else None
+            if closes is None or len(closes) == 0:
+                missing += 1
+                continue
+            ltp = float(closes.iloc[-1])
+            # Anchor %Change to the ACTUAL date of the latest tick, not to
+            # calendar-today. Pre-market (before the 09:15 open) yfinance's "1d"
+            # intraday window still returns yesterday's last bars — so the LTP's
+            # own date is yesterday, and %Change must compare yesterday-vs-the-day-
+            # before (exactly what GOOGLEFINANCE shows pre-market: the last
+            # COMPLETED session's move). Comparing against "today" in that case
+            # self-compares yesterday's price to itself and silently reports ~0%,
+            # masking a real move (caught live: SRF genuinely dropped 8.5% on
+            # 2026-07-23 and pre-market GOOGLEFINANCE correctly still shows that;
+            # naively filtering "< today" instead of "< LTP's own date" reported
+            # a false ~0% here). Once the market is open, the LTP's date IS today
+            # and this is equivalent to the simpler "< today" rule.
+            ltp_date = closes.index[-1].date()
 
-        if vol_c is not None and vols is not None and len(vols) > 0:
-            vol_updates.append((sheet_row, int(vols.sum())))
+            prev_close = None
+            if ddf is not None and "Close" in ddf:
+                # Don't assume a fixed row position (iloc[-2]) — yfinance sometimes
+                # leaves the most recent daily bar NaN for a symbol (data-provider
+                # lag, seen live: 360ONE's 07-23 bar was NaN while ADANIENSOL's
+                # wasn't, same fetch, same moment) or appends a live-updating "today"
+                # bar once the market opens. Drop NaN AND anything on/after the
+                # LTP's own date, then take whatever the last remaining valid
+                # close is — correct regardless of which symbols happen to be
+                # lagging, and correct both pre-market and intraday.
+                dclose = ddf["Close"].dropna()
+                dclose = dclose[dclose.index.date < ltp_date]
+                if len(dclose) >= 1:
+                    prev_close = float(dclose.iloc[-1])
+
+            cmp_u.append((sheet_row, round(ltp, 2)))
+            if prev_close and prev_close > 0:
+                pct_u.append((sheet_row, round((ltp - prev_close) / prev_close * 100, 2)))
+
+            if vol_c is not None and vols is not None and len(vols) > 0:
+                vol_u.append((sheet_row, int(vols.sum())))
+
+        return cmp_u, pct_u, vol_u, missing
+
+    if yf_targets:
+        yv = yahoo_values(yf_targets)
+        if yv is None:
+            if not cmp_updates:
+                print("[FATAL] Yahoo failed and Upstox gave nothing - writing nothing this tick")
+                return 1
+            print("[YF] failed, writing the Upstox values only")
+        else:
+            c_u, p_u, v_u, missing = yv
+            cmp_updates += c_u
+            pct_updates += p_u
+            vol_updates += v_u
+    else:
+        print("[YF] nothing to fetch - Upstox answered every symbol")
+
+    if up_mode == "shadow" and up:
+        # compare only: Upstox is NOT written in this mode
+        ycmp = {t[1]: v for (sr, v) in cmp_updates for t in targets if t[0] == sr}
+        ypct = {t[1]: v for (sr, v) in pct_updates for t in targets if t[0] == sr}
+        yvol = {t[1]: v for (sr, v) in vol_updates for t in targets if t[0] == sr}
+        dc, dp, dv = [], [], []
+        for sym, q in up.items():
+            if sym in ycmp and ycmp[sym] > 0:
+                dc.append((abs(q["cmp"] / ycmp[sym] - 1) * 100, sym))
+            if sym in ypct and q["pct"] is not None:
+                dp.append((abs(q["pct"] - ypct[sym]), sym))
+            if sym in yvol and yvol[sym] > 0 and q["vol"]:
+                dv.append((q["vol"] / yvol[sym], sym))
+        def stat(name, lst, fmt):
+            if lst:
+                v = sorted(x[0] for x in lst)
+                worst = sorted(lst, reverse=True)[:3]
+                print(f"[SHADOW] {name}: n={len(v)} median {fmt(v[len(v) // 2])} p90 {fmt(v[int(len(v) * 0.9)])} worst " + ", ".join(f"{s} {fmt(x)}" for x, s in worst))
+        stat("CMP diff vs Yahoo (%)", dc, lambda x: f"{x:.2f}")
+        stat("%Change diff (pct points)", dp, lambda x: f"{x:.2f}")
+        stat("volume Upstox/Yahoo (ratio)", dv, lambda x: f"{x:.2f}")
 
     print(f"[LIVE] CMP computed {len(cmp_updates)} / {len(targets)} "
           f"({missing} missing from batch, left unchanged)")

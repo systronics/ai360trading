@@ -91,6 +91,8 @@ jobs:
           GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
           MANUAL_END: ${{ github.event.inputs.end_time }}
           TICK_SECONDS: '300'
+          UPSTOX_ANALYTICS_TOKEN: ${{ secrets.UPSTOX_ANALYTICS_TOKEN }}
+          UPSTOX_MODE: ${{ vars.UPSTOX_MODE }}
         run: |
           export TZ=Asia/Kolkata
           # Decide this session's IST end time (same logic as trading_bot_session.yml):
@@ -123,6 +125,7 @@ jobs:
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           CHAT_ID_BASIC:      ${{ secrets.CHAT_ID_BASIC }}
+          CHAT_ID_PREMIUM:      ${{ secrets.CHAT_ID_PREMIUM }}
           WF_NAME:            "${{ github.workflow }}"
           RUN_URL:            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         continue-on-error: true
@@ -131,7 +134,7 @@ jobs:
           import os, json
           from urllib.request import Request, urlopen
           token = os.environ.get('TELEGRAM_BOT_TOKEN','')
-          chat  = os.environ.get('CHAT_ID_BASIC','')
+          chat  = (os.environ.get('CHAT_ID_PREMIUM','') or os.environ.get('CHAT_ID_BASIC',''))
           if not token or not chat:
               print('[NOTIFY] Telegram creds missing — skip'); raise SystemExit(0)
           msg = (
