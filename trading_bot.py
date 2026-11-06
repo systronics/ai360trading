@@ -1992,7 +1992,7 @@ def _read_atr_from_nifty200(nifty_sheet, sym):
     # v15.27: header-name lookup (was hardcoded row[28]) — a future inserted
     # column would otherwise silently corrupt every SL/target/option decision.
     try:
-        c_atr = _find_nifty200_col(nifty_sheet, ["ATR (14)"], subs=["atr14", "atr"])
+        c_atr = _find_nifty200_col(nifty_sheet, ["ATR (14)"], substring_keywords=["atr14", "atr"])
         if c_atr < 0:
             return 0.0
         clean = sym.replace("NSE:","").strip()
@@ -2016,7 +2016,7 @@ def _read_opt_tag_from_nifty200(nifty_sheet, sym):
     a data hiccup. v15.23: served from the per-tick sheet cache.
     v15.27: header-name lookup (was hardcoded row[35])."""
     try:
-        c_opt = _find_nifty200_col(nifty_sheet, ["Options"], subs=["optionseligibility"])
+        c_opt = _find_nifty200_col(nifty_sheet, ["Options"], substring_keywords=["optionseligibility"])
         if c_opt < 0:
             return None
         clean = sym.replace("NSE:","").strip()
