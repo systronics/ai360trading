@@ -1,0 +1,25 @@
+name: Upstox data check (manual, read-only, writes nothing)
+# 2026-11-06: proves the read-only Analytics Token works and compares Upstox prices with Yahoo for all Nifty200 symbols. Dry run: nothing is written to the sheet.
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      UPSTOX_ANALYTICS_TOKEN: ${{ secrets.UPSTOX_ANALYTICS_TOKEN }}
+      GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install gspread==6.2.1 oauth2client==4.1.3 pytz==2026.2 yfinance==1.4.1 pandas==3.0.3 requests
+      - name: Token + mapping check
+        run: python live_prices_upstox.py --check
+      - name: Shadow comparison against Yahoo (dry run)
+        env:
+          UPSTOX_MODE: shadow
+        run: python fetch_live_prices.py
