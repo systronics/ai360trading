@@ -63,7 +63,7 @@ canonical: https://ai360trading.in/breakout-signals/
 
   <div class="sgp-hero">
     <h1>Breakout Signals</h1>
-    <p>Liquid Nifty 200 stocks that just closed above their <b>50-day closing high</b>, or broke a down-trendline, while trading above their 50-day average. The best of the simple breakout rules we tested on 5 years of data.</p>
+    <p>Liquid Nifty 200 stocks that just closed above their <b>50-day closing high</b>. A short <b>Top picks</b> list at the top uses five strict checks; a wider watchlist sits below it. Both come from the simple breakout rules we tested on 5 years of data.</p>
     <a href="https://t.me/{{ site.telegram_username }}" class="sgp-tg" target="_blank" rel="noopener">📣 Free Telegram Alerts</a>
     <div class="sgp-live"><div class="sgp-blink"></div>UPDATED EVERY TRADING DAY{% if sl.generated_at %} · {{ sl.generated_at }}{% endif %}</div>
   </div>
@@ -84,6 +84,34 @@ canonical: https://ai360trading.in/breakout-signals/
 
   {% if sl.market %}
   <div class="sgp-mkt"><span class="{% if sl.market.up %}sgp-grn{% else %}sgp-red{% endif %}">●</span> <span><b>Market today:</b> {{ sl.market.label }} (NIFTY {{ sl.market.close }} vs {{ sl.market.ema50 }}). {% if sl.market.up %}Breakouts did better in our test when the index was above its 50-day average.{% else %}In our test, breakouts were weaker when the index was below its 50-day average, so be selective and keep position sizes small.{% endif %}</span></div>
+  {% endif %}
+
+  {% if sl.market %}
+  <h2 style="margin-top:6px;">⭐ Top picks today <span class="sgp-stats-sub">strict rule · fewer, cleaner setups</span></h2>
+  <div class="sgp-key"><b>A stock is a Top pick only if all five are true:</b> (1) it closed above its 50-day closing high, a fresh breakout; (2) it is in an uptrend, price above its 50- and 200-day averages; (3) today's volume is at least 1.5 times normal; (4) it has beaten NIFTY by 5% or more over the last 5 weeks; (5) NIFTY itself is above its 50-day average.<br><b>Past test</b> (5 years, about 200 stocks, costs included): about <b>+3.6%</b> on average over 20 days, <b>59%</b> of trades won, against +1.1% for a random stock. In 2025-26 the edge was smaller (+1.6% against +0.1%) and 2026 so far is slightly negative, so treat it as a filter, not a promise.</div>
+  {% if sl.top_picks and sl.top_picks.size > 0 %}
+  <div class="sgp-table-wrap">
+    <table class="sgp-table">
+      <thead><tr><th>Stock</th><th>Price ₹</th><th>Level broken ₹</th><th>Volume</th><th>RS vs Nifty</th><th class="hide-sm">Sector</th></tr></thead>
+      <tbody>
+      {% for t in sl.top_picks %}
+        <tr>
+          <td class="sym">{{ t.symbol }}</td>
+          <td class="num">{{ t.close }}</td>
+          <td class="num">{{ t.level }}</td>
+          <td class="num">{{ t.vol_x }}x normal</td>
+          <td class="num sgp-grn">{{ t.rs }}%</td>
+          <td class="sec hide-sm">{{ t.sector }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="sgp-foot">Based on yesterday's closing prices. Do not chase: if a stock has already run more than about 3% above its level, wait for a pullback. Entry, stop-loss and target for our own signals are in the members' Telegram.</div>
+  {% else %}
+  <div class="sgp-table-wrap"><div class="sgp-empty">{% if sl.market.up %}No stock passes all five checks today. That is normal: it means wait.{% else %}NIFTY is below its 50-day average, so we show no Top picks today.{% endif %}</div></div>
+  {% endif %}
+  <h2>Wider watchlist <span class="sgp-stats-sub">looser rule · more false starts</span></h2>
   {% endif %}
 
   <div class="sgp-key"><b>How to read this:</b> these stocks have just broken out. <b>Watch for entry</b> means they are candidates for a swing trade (a few days to weeks), not an instant Buy. Wait for your own entry, set a stop-loss first, and keep the position small.</div>

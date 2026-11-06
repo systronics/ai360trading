@@ -38,8 +38,18 @@ IST        = pytz.timezone("Asia/Kolkata")
 SHEET_NAME = "Ai360tradingAlgo"
 TAB        = "BottomScanner"
 OUT_PATH   = "_data/signal_lists.json"
-SIP_MAX      = 15
+SIP_MAX      = 10
 BREAKOUT_MAX = 15
+TOP_MAX      = 8
+# v1.2 (2026-11-06, owner: 'less and perfect entries, easy to understand'). Evidence (5y, ~200 large stocks, daily bars, entry = next open, 0.25% cost, train<=2024 / test 2025-26):
+#   TOP PICK rule  = 50-day closing-high breakout TODAY + uptrend (close > EMA50 > EMA200) + volume >= 1.5x its 20-day average + RS vs Nifty >= 5 + NIFTY above its 50-EMA
+#                    -> +3.58%/trade after 20 days, 59% win, ~3 signals/day (all breakouts: +1.66%, 55%, 17/day; random stock: +1.14%); test period +1.55% vs +0.12% random; 2026 so far -0.8% (small sample).
+#   Adding 'RSI <= 70' made it WORSE (+1.7%), so it is not used here (the trading bot's own RSI gates are untouched).
+#   SIP list       = 15-35% below the 52-week high BUT still above the 50- and 200-day averages (a dip inside an uptrend), liquid, ranked by dividend yield.
+#                    60-day return +5.8% vs +5.5% for a random stock: no timing edge, but it avoids falling knives. The old rule (>=25% below high + tight base) did WORSE than random (+2.2%).
+TOP_MIN_VOL_X  = 1.5
+TOP_MIN_RS     = 5.0
+TOP_MIN_LIQ_CR = 10.0
 
 
 def _connect():
@@ -76,6 +86,93 @@ def _market_trend():
     except Exception as ex:
         print(f"[SIGNALS] market trend skipped: {ex}")
         return None
+
+
+def top_pick_check(closes, volumes, rs, market_up, min_liq_cr=TOP_MIN_LIQ_CR):
+    """Pure rule check on COMPLETED daily bars (oldest first). Returns a dict of the numbers when every condition holds, else None.
+    Conditions: close > highest close of the prior 50 sessions; close > EMA50 > EMA200; volume >= 1.5x the prior-20-session average; RS >= 5; NIFTY above its 50-EMA; liquid (>= Rs 10 Cr/day)."""
+    try:
+        n = len(closes)
+        if n < 210 or len(volumes) != n or not market_up or rs is None or rs < TOP_MIN_RS:
+            return None
+        c = [float(x) for x in closes]
+        v = [float(x) for x in volumes]
+        lvl = max(c[-51:-1])
+        if not c[-1] > lvl:
+            return None
+
+        def ema(vals, span):
+            k, e = 2.0 / (span + 1), vals[0]
+            for x in vals[1:]:
+                e = x * k + e * (1 - k)
+            return e
+        e50, e200 = ema(c, 50), ema(c, 200)
+        if not (c[-1] > e50 > e200):
+            return None
+        avg20 = sum(v[-21:-1]) / 20.0
+        if avg20 <= 0:
+            return None
+        volx = v[-1] / avg20
+        if volx < TOP_MIN_VOL_X or avg20 * c[-1] / 1e7 < min_liq_cr:
+            return None
+        return {"level": round(lvl, 2), "close": round(c[-1], 2), "vol_x": round(volx, 1), "ext_pct": round((c[-1] / lvl - 1) * 100, 1)}
+    except Exception:
+        return None
+
+
+def _top_picks(rows, market):
+    """Strict daily list. Prefilter on the sheet (RS >= 5, price above EMA50), then confirm each candidate on its own completed daily bars from yfinance.
+    Fail-open: any download problem -> empty list (the page then says so), never an exception."""
+    if not market or not market.get("up"):
+        return []
+    try:
+        import yfinance as yf
+        now = datetime.now(IST)
+        cand = []
+        for r in rows:
+            rs, cmp_, e50 = _f(r.get("RS")), _f(r.get("CMP")), _f(r.get("EMA50"))
+            if rs is not None and rs >= TOP_MIN_RS and cmp_ and e50 and cmp_ > e50:
+                cand.append((str(r["NSE_SYMBOL"]).replace("NSE:", ""), rs, str(r.get("SECTOR", "")), str(r.get("Sector_Trend", ""))))
+        if not cand:
+            return []
+        raw = yf.download([c[0] + ".NS" for c in cand], period="2y", interval="1d", group_by="ticker", auto_adjust=False, progress=False, threads=True)
+        out = []
+        for sym, rs, sector, st in cand:
+            try:
+                df = raw[sym + ".NS"].dropna(subset=["Close", "Volume"])
+                if len(df) and df.index[-1].date() == now.date() and now.hour * 60 + now.minute < 15 * 60 + 45:
+                    df = df.iloc[:-1]             # today's bar is still forming
+                res = top_pick_check(df["Close"].tolist(), df["Volume"].tolist(), rs, True)
+                if res:
+                    res.update({"symbol": sym, "sector": sector, "rs": round(rs, 1), "sector_trend": st})
+                    out.append(res)
+            except Exception:
+                continue
+        out.sort(key=lambda x: -x["rs"])
+        return out[:TOP_MAX]
+    except Exception as ex:
+        print(f"[SIGNALS] top picks skipped (fail-open): {ex}")
+        return []
+
+
+def sip_ok(down, cmp_, dma50, dma200, liq_cr):
+    """SIP candidate: 15-35% below the 52-week high but still above BOTH the 50- and 200-day averages, and liquid."""
+    try:
+        return down is not None and -35 <= down <= -15 and cmp_ > dma50 > 0 and cmp_ > dma200 > 0 and (liq_cr or 0) >= TOP_MIN_LIQ_CR
+    except Exception:
+        return False
+
+
+def _nifty_dmas(ws):
+    """{symbol: (50_DMA, 200_DMA)} from Nifty200 (UNFORMATTED). Empty dict on any problem."""
+    try:
+        n = ws.spreadsheet.worksheet("Nifty200").get_all_values(value_render_option="UNFORMATTED_VALUE")
+        h = n[0]
+        i50, i200 = h.index("50_DMA"), h.index("200_DMA")
+        return {str(r[0]).replace("NSE:", "").strip(): (_f(r[i50]), _f(r[i200])) for r in n[2:] if r and r[0]}
+    except Exception as ex:
+        print(f"[SIGNALS] DMA read skipped: {ex}")
+        return {}
 
 
 def _serial_to_date(x):
@@ -139,22 +236,22 @@ def build():
     def name(r):
         return str(r["NSE_SYMBOL"]).replace("NSE:", "")
 
-    sip = []
+    dmas = _nifty_dmas(ws)
+    sip, sip_total = [], 0
     for r in rows:
-        if str(r.get("SIP_Zone", "")) != "ACCUMULATION ZONE":
+        dd, cmp_, liq = _f(r.get("%down_from_52W_High")), _f(r.get("CMP")), _f(r.get("Liquidity_Cr"))
+        d50, d200 = dmas.get(name(r), (None, None))
+        if cmp_ is None or d50 is None or d200 is None or not sip_ok(dd, cmp_, d50, d200, liq):
             continue
-        dd, base, sup, cmp_ = _f(r.get("%down_from_52W_High")), _f(r.get("Base_Range_20D_%")), _f(r.get("Support_1")), _f(r.get("CMP"))
-        if None in (dd, base, cmp_):
-            continue
+        sip_total += 1
+        base, sup = _f(r.get("Base_Range_20D_%")), _f(r.get("Support_1"))
         sip.append({
             "symbol": name(r), "sector": str(r.get("SECTOR", "")), "cmp": round(cmp_, 2),
-            "down_from_high": round(dd, 1), "base_range": round(base, 1),
+            "down_from_high": round(dd, 1), "base_range": round(base, 1) if base is not None else None,
             "support": round(sup, 2) if sup else None,
             "sector_trend": str(r.get("Sector_Trend", "")),
-            "_k": (base, dd),
         })
-    sip.sort(key=lambda x: x["_k"])          # tightest base first
-    sip = sip[:SIP_MAX]
+    # dividend yield is attached further below; then ranked: highest yield first, then the smallest 20-day range
 
     brk = []
     for r in rows:
@@ -185,12 +282,17 @@ def build():
     for x in sip:
         if x["symbol"] in yld:
             x["div_yield"] = yld[x["symbol"]]
+    sip.sort(key=lambda x: (-(x.get("div_yield") or 0), x["base_range"] if x["base_range"] is not None else 99))
+    sip = sip[:SIP_MAX]
+    market = _market_trend()
+    top = _top_picks(rows, market)
     return {
         "events": events,
         "generated_at": now.strftime("%d %B %Y, %I:%M %p IST"),
-        "market": _market_trend(),
+        "market": market,
+        "top_picks": top,
         "sip": sip, "breakout": brk,
-        "counts": {"sip_total_zone": sum(1 for r in rows if str(r.get("SIP_Zone", "")) == "ACCUMULATION ZONE"),
+        "counts": {"sip_total_zone": sip_total,
                    "breakout_total": sum(1 for r in rows if str(r.get("Breakout_Signal", "")) not in ("", "-"))},
     }
 

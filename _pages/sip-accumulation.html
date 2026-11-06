@@ -62,8 +62,8 @@ canonical: https://ai360trading.in/sip-accumulation/
 <div class="sgp">
 
   <div class="sgp-hero">
-    <h1>SIP Accumulation Zone</h1>
-    <p>Liquid Nifty 200 stocks that have corrected 25% or more and have now stopped falling. A list for <b>staggered, SIP-style buying</b> over months, not a trading signal.</p>
+    <h1>SIP Watchlist: Dips in Uptrends</h1>
+    <p>Liquid Nifty 200 stocks that are <b>15% to 35% below their 52-week high but still above their 50- and 200-day averages</b>: a dip inside an uptrend, not a falling stock. Shown with the highest dividend yield first. A list for <b>staggered, SIP-style buying</b> over months, not a trading signal.</p>
     <a href="https://t.me/{{ site.telegram_username }}" class="sgp-tg" target="_blank" rel="noopener">📣 Free Telegram Alerts</a>
     <div class="sgp-live"><div class="sgp-blink"></div>UPDATED EVERY TRADING DAY{% if sl.generated_at %} · {{ sl.generated_at }}{% endif %}</div>
   </div>
@@ -78,8 +78,8 @@ canonical: https://ai360trading.in/sip-accumulation/
     <div class="sgp-grid">
       <div class="sgp-item"><b>{{ sl.counts.sip_total_zone }}</b><span>Stocks in the zone</span></div>
       <div class="sgp-item"><b>{{ sl.sip.size }}</b><span>Shown below</span></div>
-      <div class="sgp-item"><b>25%+</b><span>Below 52-week high</span></div>
-      <div class="sgp-item"><b>15%</b><span>Max 20-day range</span></div>
+      <div class="sgp-item"><b>15-35%</b><span>Below 52-week high</span></div>
+      <div class="sgp-item"><b>50 &amp; 200</b><span>Price above both averages</span></div>
     </div>
   </div>
   {% endif %}
@@ -111,12 +111,12 @@ canonical: https://ai360trading.in/sip-accumulation/
       </tbody>
     </table>
   </div>
-  <div class="sgp-foot">Showing the {{ sl.sip.size }} tightest bases out of {{ sl.counts.sip_total_zone }} stocks currently in the zone. 52w drop = how far below the 52-week high. 20d range = the high-to-low spread over the last 20 days (smaller means calmer). Support = a recent price floor.</div>
+  <div class="sgp-foot">Showing the {{ sl.sip.size }} highest dividend yields out of {{ sl.counts.sip_total_zone }} stocks that pass the rule today. 52w drop = how far below the 52-week high. 20d range = the high-to-low spread over the last 20 days (smaller means calmer). Support = a recent price floor.</div>
   {% else %}
   <div class="sgp-table-wrap"><div class="sgp-empty">No stocks currently meet the accumulation conditions. Check back after the next market day.</div></div>
   {% endif %}
 
-  <div class="sgp-note"><b>About the Div yield column:</b> it is the dividends paid in the last 12 months divided by today's price. In our 5-year test of stocks in this kind of zone (25% or more below the 52-week high, calm 20-day range), those yielding 2.5% or more did better over the next 60 days (about +4.3%) than those yielding 0.5 to 2.5% (about +0.6 to +1.5%), in both halves of the data. Stocks that pay no dividend also did well, the sample is a small group of mostly large state-owned names, and today's index members look better than they were, so treat it as a description of the past, not a rule or a signal.</div>
+  <div class="sgp-note"><b>About the Div yield column:</b> it is the dividends paid in the last 12 months divided by today's price. In our 5-year test of an earlier version of this list (25% or more below the 52-week high, calm 20-day range), those yielding 2.5% or more did better over the next 60 days (about +4.3%) than those yielding 0.5 to 2.5% (about +0.6 to +1.5%), in both halves of the data. Stocks that pay no dividend also did well, the sample is a small group of mostly large state-owned names, and today's index members look better than they were, so treat it as a description of the past, not a rule or a signal.</div>
 
   <h2>How people use a list like this</h2>
   <ul>
@@ -126,7 +126,7 @@ canonical: https://ai360trading.in/sip-accumulation/
     <li><b>Have an exit rule.</b> Decide in advance what would make you stop adding, such as a broken business story or a price level you will not hold below.</li>
   </ul>
 
-  <div class="sgp-note"><b>Honest note:</b> in our own 5-year test on 194 large stocks, buying after a big drop did <b>not</b> beat buying at random, and stocks can keep falling for months. This list is about disciplined, staggered accumulation of liquid stocks near support. It is not a promise that these prices are the bottom.</div>
+  <div class="sgp-note"><b>Honest note:</b> in our own 5-year test on about 200 large stocks, buying a dip inside an uptrend (the rule used here) returned about the same over the next 60 days as buying a random stock (+5.8% against +5.5%). It gave no timing edge. Our earlier rule, a deep fall with a calm base, did worse than random (+2.2%), so we replaced it. What this rule does is keep you away from stocks that are still in a downtrend. It is not a promise that these prices are the bottom.</div>
 
   {% if perf.by_type %}
   {% assign sw = perf.by_type | first %}
