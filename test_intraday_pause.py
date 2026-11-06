@@ -59,3 +59,7 @@ def test_state_fail_open_and_switch():
         assert T.intraday_pause_state(FakeLog([H] + [row("-5%")] * 5), "2026-11-06")[0] is False
     finally:
         T.INTRADAY_PAUSE = True
+
+
+def test_room_veto_is_observation_only_by_default():
+    assert T.ROOM_VETO_ENFORCE is False

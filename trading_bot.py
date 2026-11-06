@@ -1361,6 +1361,11 @@ def check_nifty_direction(nifty_pct: float, is_bullish: bool) -> tuple:
 # Swing / positional entries are NEVER paused (their winners - TECHM +12.9%, HCLTECH - come on other days), open trades keep their stop/target/trailing exits,
 # and the pause ends by itself the next day. Only CLOSED trades count (a flat 0.00% time-exit is not a loss). Fail-open: any History read/parse problem = no pause.
 # This is a discipline tool, not a proven edge: we have no evidence that a loss makes the next trade more likely to lose. One switch to turn it off.
+# v15.43 (2026-11-06): the resistance-room veto (v15.17) was silently OFF from 2026-07-20 to 2026-11-06 because the ATR read crashed (subs= typo). When the
+# typo was fixed a full-sheet test showed the veto would now block 122 of 183 stocks (and 17 of the 27 stocks with Master_Score >= 30, including TECHM/INDHOTEL):
+# Pivot_Resistance is usually the day's own high, so any stock a little below today's high is 'under a ceiling'. That is far stricter than the live system has run for
+# 3.5 months, so it is NOT enforced until the owner decides: False = observation mode (logs '[ROOM-OBS] would veto', blocks nothing, i.e. the behaviour of the last 3.5 months).
+ROOM_VETO_ENFORCE = False
 INTRADAY_PAUSE = True
 INTRADAY_PAUSE_LOSSES = 3
 INTRADAY_PAUSE_MIN_LOSS_PCT = 0.5
@@ -1709,8 +1714,10 @@ def check_all_entry_filters(sym, mem, key, is_bullish, now, nifty_pct, today_ent
                 if atr_r > 0:
                     room = eq.target_room(cp, resl, atr_r)
                     if 0 < room < eq.MIN_TARGET_ROOM_ATR:
-                        reasons.append(f"[ROOM] only {room:.2f} ATR to resistance ₹{resl:.2f} < {eq.MIN_TARGET_ROOM_ATR:.1f} — skip (capped by resistance)")
-                        return False, reasons, rsi_val
+                        if ROOM_VETO_ENFORCE:
+                            reasons.append(f"[ROOM] only {room:.2f} ATR to resistance ₹{resl:.2f} < {eq.MIN_TARGET_ROOM_ATR:.1f} — skip (capped by resistance)")
+                            return False, reasons, rsi_val
+                        reasons.append(f"[ROOM-OBS] would veto: only {room:.2f} ATR to resistance ₹{resl:.2f} (observation mode, entry NOT blocked)")
                     reasons.append(f"[ROOM] {room:.2f} ATR runway to ₹{resl:.2f} ✅")
         except Exception as e:
             print(f"[REV/ROOM] check errored for {sym}: {e} — fail open")
@@ -2681,9 +2688,13 @@ def step_a_enter_trades(log_sheet, nifty_sheet, bm_sheet, mem, now, is_bullish, 
                         if _catr > 0:
                             _croom = eq.target_room(cp, _cres, _catr)
                             if 0 < _croom < eq.MIN_TARGET_ROOM_ATR:
-                                allowed = False
-                                filter_reasons.append(
-                                    f"[ROOM] cash: only {_croom:.2f} ATR to resistance ₹{_cres:.2f} — skip (capped)")
+                                if ROOM_VETO_ENFORCE:
+                                    allowed = False
+                                    filter_reasons.append(
+                                        f"[ROOM] cash: only {_croom:.2f} ATR to resistance ₹{_cres:.2f} — skip (capped)")
+                                else:
+                                    filter_reasons.append(
+                                        f"[ROOM-OBS] cash would veto: only {_croom:.2f} ATR to resistance ₹{_cres:.2f} (observation mode, NOT blocked)")
                 except Exception as _ce:
                     print(f"[ROOM] cash check errored for {sym}: {_ce} — fail open")
             # v15.40: CASH only while NIFTY is above its 50-EMA (fail-open when unknown)
