@@ -1,0 +1,39 @@
+name: Sheet backup (daily, to the private backup repo)
+# 2026-11-06: owner asked for an automatic cloud backup. Needs the PRIVATE repo systronics/ai360trading-backup (owner creates it) and the existing GH_TOKEN secret with access to it.
+on:
+  # schedule:   # enable after the private repo exists (see SESSION.md)
+  #   - cron: '41 15 * * 1-6'     # ~21:11 IST Mon-Sat, after the evening data jobs (GitHub may delay it)
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: sheet-backup
+  cancel-in-progress: false
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: systronics/ai360trading-backup
+          token: ${{ secrets.GH_TOKEN }}
+          path: bk
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install gspread oauth2client
+      - name: Export every tab
+        env:
+          GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
+        run: python backup_sheets.py bk/sheets
+      - name: Commit to the private repo
+        run: |
+          cd bk
+          git config user.name "ai360-backup"
+          git config user.email "backup@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet && echo "nothing changed" && exit 0
+          git commit -m "sheet backup $(date -u +%F)"
+          git push
