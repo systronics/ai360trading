@@ -671,7 +671,7 @@ except Exception as _e:
     _EQ_AVAILABLE = False
 
 IST       = pytz.timezone('Asia/Kolkata')
-VERSION   = "v15.42"   # v15.42 (2026-11-05): bonus/split guard for open trades (CORP_ACTION_GUARD). v15.41 (2026-11-05): CASH rows need a live-hours scan (CASH_REQUIRE_LIVE_SCAN). v15.40 (2026-11-03): CASH regime gate (NIFTY above 50-EMA) - see CASH_REGIME_GATE. single source for the run banner + test messages (were stale at v15.16 before v15.23; was stuck at v15.28 in this constant through the v15.29 RSI dip-tolerance release — banner text only, no logic was affected). v15.32 (2026-07-28): TSL-UPDATE spam fix — see calc_new_tsl() comparison guard below. v15.33 (2026-07-30): loss re-entry cooldown split to 1 trading day (was sharing the 5-day target-hit cooldown) — see set_loss_cooldown() below. v15.34 (2026-07-30): re-entry cooldown scoped by trade family (OPTION/CASH/STOCK no longer cross-block each other) — see _cooldown_family() below. v15.35 (2026-08-05): Cash Intraday force-exit shifted 3:00 PM -> ~3:10 PM after a full 10-trade History review (7W/3L, all exits via this clock, never target/SL) showed the trailing stop already protects gains and the cutoff was never updated for NSE's 15:30->15:40 close move — see CASH_FORCE_EXIT_HOUR below. Entry criteria deliberately untouched (sample too small to recalibrate).
+VERSION   = "v15.43"   # v15.43 (2026-11-06): INTRADAY AUTO-PAUSE - 3 closed cash/option losses (<= -0.5%) in a day pause new cash/option entries until tomorrow, swing/positional never paused (see INTRADAY_PAUSE). v15.42 (2026-11-05): bonus/split guard for open trades (CORP_ACTION_GUARD). v15.41 (2026-11-05): CASH rows need a live-hours scan (CASH_REQUIRE_LIVE_SCAN). v15.40 (2026-11-03): CASH regime gate (NIFTY above 50-EMA) - see CASH_REGIME_GATE. single source for the run banner + test messages (were stale at v15.16 before v15.23; was stuck at v15.28 in this constant through the v15.29 RSI dip-tolerance release — banner text only, no logic was affected). v15.32 (2026-07-28): TSL-UPDATE spam fix — see calc_new_tsl() comparison guard below. v15.33 (2026-07-30): loss re-entry cooldown split to 1 trading day (was sharing the 5-day target-hit cooldown) — see set_loss_cooldown() below. v15.34 (2026-07-30): re-entry cooldown scoped by trade family (OPTION/CASH/STOCK no longer cross-block each other) — see _cooldown_family() below. v15.35 (2026-08-05): Cash Intraday force-exit shifted 3:00 PM -> ~3:10 PM after a full 10-trade History review (7W/3L, all exits via this clock, never target/SL) showed the trailing stop already protects gains and the cutoff was never updated for NSE's 15:30->15:40 close move — see CASH_FORCE_EXIT_HOUR below. Entry criteria deliberately untouched (sample too small to recalibrate).
 TG_TOKEN  = os.environ.get('TELEGRAM_BOT_TOKEN')
 
 CHAT_BASIC   = os.environ.get('CHAT_ID_BASIC')
@@ -1354,6 +1354,64 @@ def check_nifty_direction(nifty_pct: float, is_bullish: bool) -> tuple:
     if nifty_pct < threshold:
         return False, f"Nifty {nifty_pct:+.2f}% < {threshold:+.2f}% — {'wait for recovery' if is_bullish else 'must be green in bearish'}"
     return True, f"Nifty {nifty_pct:+.2f}% — {'green' if nifty_pct > 0 else 'flat'} ✅"
+
+
+# ── v15.43 (2026-11-06): INTRADAY AUTO-PAUSE (owner: 'kill switch if possible') ─────────────────────────────────────────────────────────────────────
+# After INTRADAY_PAUSE_LOSSES paper losses of at least INTRADAY_PAUSE_MIN_LOSS_PCT % in ONE day, NEW CASH-intraday and OPTION entries stop for the rest of that day.
+# Swing / positional entries are NEVER paused (their winners - TECHM +12.9%, HCLTECH - come on other days), open trades keep their stop/target/trailing exits,
+# and the pause ends by itself the next day. Only CLOSED trades count (a flat 0.00% time-exit is not a loss). Fail-open: any History read/parse problem = no pause.
+# This is a discipline tool, not a proven edge: we have no evidence that a loss makes the next trade more likely to lose. One switch to turn it off.
+INTRADAY_PAUSE = True
+INTRADAY_PAUSE_LOSSES = 3
+INTRADAY_PAUSE_MIN_LOSS_PCT = 0.5
+
+
+def _pct_num(v):
+    try:
+        return float(str(v).replace("%", "").replace(",", "").strip())
+    except Exception:
+        return None
+
+
+def count_intraday_losses(hist_rows, today_s, min_loss_pct=INTRADAY_PAUSE_MIN_LOSS_PCT):
+    """hist_rows = History sheet values INCLUDING the header row. Returns (losses_today, closed_intraday_today) for CASH + OPTION trades whose Exit Date is today_s.
+    A loss is P/L % <= -min_loss_pct. Pure function (no sheet access)."""
+    if not hist_rows:
+        return 0, 0
+    h = [str(x).strip() for x in hist_rows[0]]
+    try:
+        i_ex, i_pl, i_tt = h.index("Exit Date"), h.index("P/L %"), h.index("Trade Type")
+    except ValueError:
+        return 0, 0
+    losses = closed = 0
+    for r in hist_rows[1:]:
+        if len(r) <= max(i_ex, i_pl, i_tt):
+            continue
+        if str(r[i_ex]).strip()[:10] != today_s:
+            continue
+        tt = r[i_tt]
+        if not (is_cash_trade(tt) or is_option_trade(tt)):
+            continue
+        p = _pct_num(r[i_pl])
+        if p is None:
+            continue
+        closed += 1
+        if p <= -min_loss_pct:
+            losses += 1
+    return losses, closed
+
+
+def intraday_pause_state(log_sheet, today_s):
+    """(active, losses, closed). Fail-open: any error = (False, 0, 0)."""
+    if not INTRADAY_PAUSE:
+        return False, 0, 0
+    try:
+        rows = log_sheet.spreadsheet.worksheet("History").get_all_values()
+        losses, closed = count_intraday_losses(rows, today_s)
+        return losses >= INTRADAY_PAUSE_LOSSES, losses, closed
+    except Exception as e:
+        print(f"[PAUSE] could not read History ({str(e)[:80]}) - fail open, no pause")
+        return False, 0, 0
 
 
 def _cash_row_is_live(sig, now):
@@ -2528,6 +2586,7 @@ def step_a_enter_trades(log_sheet, nifty_sheet, bm_sheet, mem, now, is_bullish, 
             print(f"[RANK] ordering errored: {e} — using sheet order")
             indexed = list(enumerate(rows[1:22], start=2))
 
+    _pause_cache = {"v": None}      # v15.43: History is read at most once per tick, and only if a cash/option candidate exists
     for i, row in indexed:
         row    = pad(row)
         status = str(row[C_STATUS]).upper()
@@ -2570,6 +2629,22 @@ def step_a_enter_trades(log_sheet, nifty_sheet, bm_sheet, mem, now, is_bullish, 
 
         key  = sym_key(sym)
         cash = is_cash_trade(ttype)
+
+        # ── v15.43: intraday auto-pause (CASH + OPTION only, never swing/positional) ──
+        if INTRADAY_PAUSE and (cash or is_option_trade(ttype)):
+            if _pause_cache["v"] is None:
+                _pause_cache["v"] = intraday_pause_state(log_sheet, today_s)
+            _pa, _pl, _pc = _pause_cache["v"]
+            if _pa:
+                print(f"[PAUSE] {sym}: {_pl} intraday losses today (>= {INTRADAY_PAUSE_LOSSES}) - new cash/option entries paused until tomorrow")
+                if not _mem_get(mem, f"{today_s}_PAUSE_MSG"):
+                    mem = _mem_set(mem, f"{today_s}_PAUSE_MSG", "1")
+                    try:
+                        send_premium(f"⏸ <b>AUTO-PAUSE</b>: {_pl} of {_pc} intraday (cash/option) paper trades closed with a loss today. "
+                                     "New cash/option signals are paused for the rest of today. Swing and positional signals and all open trades are unaffected. Resumes tomorrow.")
+                    except Exception:
+                        pass
+                continue
 
         # ── v15.41: cash rows must come from a live-hours scan (not yesterday's data) ──
         if cash and CASH_REQUIRE_LIVE_SCAN and not _cash_row_is_live(row[C_SIGNAL_TIME], now):
