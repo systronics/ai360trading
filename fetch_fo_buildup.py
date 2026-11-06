@@ -599,7 +599,7 @@ def _telegram(info, board, tdate, target="basic", trades=None):
         from urllib.parse import urlencode
         bull = [(s, v) for s, v in info.items() if v[2] in (LONG_B, SHORT_C)]
         bull.sort(key=lambda x: (x[1][2] != LONG_B, -(x[1][3] if isinstance(x[1][3], int) else 0), -(x[1][0] if isinstance(x[1][0], (int, float)) else 0)))
-        lines = [f"<b>F&amp;O buildup (EOD {tdate})</b>", "Owner test, signal nahi.", ""]
+        lines = [f"<b>F&amp;O buildup (EOD {tdate})</b>", "Sirf jaankari, signal nahi.", ""]
         lines.append("<b>Bullish buildup, sirf WATCH ke liye:</b>")
         for s, v in bull[:6]:
             lines.append(f"- {s}: {v[2]} ({v[3]} din), fut {v[0]:+.1f}%, OI {v[1]:+.1f}%")
@@ -623,8 +623,7 @@ def _telegram(info, board, tdate, target="basic", trades=None):
                     pass
                 lines.append(f"- {sym} {strike} {typ} ({exp}): entry {ent}{pl}{held}. " + (f" Aaj ka buildup: {bu}." if bu else ""))
             lines.append("(Premium roz F&amp;O file se apne aap bharta hai; asli exit bhaav us waqt ka bid/ask hoga.)")
-        lines += ["", "Sirf jaankari. Entry, SL, target nahi. Option premium ka P/L stock se alag hota hai (strike, expiry, time decay).",
-                  "Informational only, not a trade signal."]
+        lines += ["", "<i>Entry/SL/target nahi. Option P/L stock se alag hota hai.</i>"]
         tok = os.environ.get("TELEGRAM_BOT_TOKEN", "")
         chat = os.environ.get("CHAT_ID_PREMIUM" if target == "premium" else "CHAT_ID_BASIC", "")
         if tok and chat:

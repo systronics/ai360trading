@@ -336,22 +336,13 @@ def build_advance_msg(d: dict, trend: float, regime: str) -> str:
     elif regime in ("STRONG BUYING", "BUYING"):
         interp.append("✅ Multi-day FII buying — risk-on environment, breakout setups have better odds.")
 
+    # 2026-11-06 (owner: subscribers want signals, education is available elsewhere): compact numbers + ONE verdict line, no explanations.
     return (
-        f"💼 <b>FII / DII FLOW REPORT — {d['date']}</b>\n"
-        f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
-        f"<b>FII Cash Market</b>\n"
-        f"   Buy:   {fmt_cr(d['fii_buy'])}\n"
-        f"   Sell:  {fmt_cr(d['fii_sell'])}\n"
-        f"   Net:   {fmt_cr(d['fii_net'])} {fii_arrow}\n\n"
-        f"<b>DII Cash Market</b>\n"
-        f"   Buy:   {fmt_cr(d['dii_buy'])}\n"
-        f"   Sell:  {fmt_cr(d['dii_sell'])}\n"
-        f"   Net:   {fmt_cr(d['dii_net'])} {dii_arrow}\n\n"
-        f"<b>5-Day FII Trend:</b> {regime}\n"
-        f"   Rolling sum: {fmt_cr(trend)}\n\n"
-        f"<b>Interpretation:</b>\n• " + "\n• ".join(interp) + "\n\n"
-        f"<i>Source: NSE official daily report.\n"
-        f"AI360Trading {VERSION} — fully automated, ₹0/month.</i>"
+        f"💼 <b>FII / DII — {d['date']}</b>\n"
+        f"FII: Buy {fmt_cr(d['fii_buy'])} | Sell {fmt_cr(d['fii_sell'])} | <b>Net {fmt_cr(d['fii_net'])}</b> {fii_arrow}\n"
+        f"DII: Buy {fmt_cr(d['dii_buy'])} | Sell {fmt_cr(d['dii_sell'])} | <b>Net {fmt_cr(d['dii_net'])}</b> {dii_arrow}\n"
+        f"5-day FII: <b>{regime}</b> ({fmt_cr(trend)})\n"
+        f"• {interp[0]}"
     )
 
 

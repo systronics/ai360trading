@@ -3336,17 +3336,13 @@ def send_market_close_summary(log_sheet, hist_sheet, mem, now, is_bullish, nifty
             f"{'📤 Exited Today:' + chr(10) if wins+losses>0 else ''}"
             f"Holding Overnight ({len(open_list)} trades):\n"
             f"{chr(10).join(open_list) if open_list else 'No overnight holds'}\n\n"
-            f"Unrealised: ₹{total_unrl:+.0f}\n✅ Overnight holds monitored via TSL"
+            f"Unrealised: ₹{total_unrl:+.0f}"
         )
         # v15.16: weekend-gap guard block (Friday only, when something is held)
         if is_friday and weekend_advice:
             msg_adv += (
-                f"\n\n⚠️ <b>WEEKEND-GAP GUARD (Friday)</b>\n"
-                f"Markets shut 2 days — a stock can OPEN past your SL on Monday "
-                f"(stops can't fire while shut). Per overnight hold:\n"
+                f"\n\n⚠️ <b>WEEKEND-GAP GUARD</b> (Monday gap SL ke paar khul sakta hai)\n"
                 + "\n".join(weekend_advice)
-                + "\n<i>Rule: book partials on winners, exit laggards. Never carry a "
-                  "losing position over the weekend just to hope.</i>"
             )
         pnl_emoji = "💰" if today_pnl >= 0 else "📉"
         msg_basic = (
