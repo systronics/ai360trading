@@ -16,8 +16,7 @@ if exist "%SRC%\tradingview" xcopy /Y /E /I /Q "%SRC%\tradingview" "%BK%\pc\trad
 if exist "%MEM%" xcopy /Y /E /I /Q "%MEM%" "%BK%\pc\memory" >nul
 cd /d "%BK%"
 git add -A
-git diff --cached --quiet && (echo nothing changed & exit /b 0)
-git commit -q -m "pc notes backup %DATE% %TIME%" || (echo COMMIT FAILED & exit /b 1)
+git diff --cached --quiet || git commit -q -m "pc notes backup %DATE% %TIME%" || (echo COMMIT FAILED & exit /b 1)
 git pull -q --rebase || (echo PULL FAILED & exit /b 1)
 git push -q || (echo PUSH FAILED & exit /b 1)
-echo backup pushed
+echo backup done
