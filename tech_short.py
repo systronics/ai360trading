@@ -501,6 +501,50 @@ GEMINI_STYLES = [
     ("Charon", "Say this like a confident, reassuring friend giving three quick tips, firm and upbeat, ending with a curious teaser for the next video:"),
 ]
 _GEM = {"model": None, "last": 0.0}
+ONE_VOICE = "Charon"
+ONE_STYLE = ("Say this in a natural, calm, conversational tone, like one real person talking to a friend. Steady even pace, normal volume, "
+             "very little emotion, no breathing sounds, no gasps, no sighs, no dramatic pauses:")
+
+
+def trim_breath(wav_path, thresh=0.12, pad_ms=90):
+    """Cut the leading/trailing breath and silence that Gemini TTS puts around every clip (it sounded like a deep breath between lines).
+    Pure numpy on a 16-bit mono wav; keeps pad_ms around the first/last clearly-voiced 20 ms frame; fail-open (leaves the file untouched on any error)."""
+    import wave
+    import numpy as np
+    try:
+        with wave.open(str(wav_path), "rb") as w:
+            sr, n, sw = w.getframerate(), w.getnframes(), w.getsampwidth()
+            raw = w.readframes(n)
+        if sw != 2:
+            return False
+        x = np.frombuffer(raw, dtype=np.int16)
+        if len(x) < sr // 2:
+            return False
+        fr = max(1, int(sr * 0.02))
+        k = len(x) // fr
+        e = np.abs(x[:k * fr].astype(np.float32)).reshape(k, fr).mean(axis=1)
+        peak = float(e.max())
+        if peak <= 0:
+            return False
+        idx = np.where(e > peak * thresh)[0]
+        if not len(idx):
+            return False
+        pad = int(pad_ms / 20)
+        a, b = max(0, idx[0] - pad) * fr, min(k, idx[-1] + 1 + pad) * fr
+        y = x[a:b].copy()
+        f = min(len(y) // 4, int(sr * 0.012))          # 12 ms fades so the cut never clicks
+        if f > 0:
+            y[:f] = (y[:f] * np.linspace(0, 1, f)).astype(np.int16)
+            y[-f:] = (y[-f:] * np.linspace(1, 0, f)).astype(np.int16)
+        with wave.open(str(wav_path), "wb") as w:
+            w.setnchannels(1)
+            w.setsampwidth(2)
+            w.setframerate(sr)
+            w.writeframes(y.tobytes())
+        return True
+    except Exception as ex:
+        print(f"[TECH] trim_breath skipped: {str(ex)[:80]}")
+        return False
 
 
 # 2026-11-03 (owner: "awaaz par bhi mehnat karo"): the delivery now follows the topic's mood. 'serious' = scam/safety/emergency (calm, trustworthy, no fake surprise),
@@ -544,8 +588,10 @@ def gemini_voice(text, path, idx, kind="explain"):
             print("[TECH] gemini tts models:", _GEM["models"])
         if not _GEM["model"]:
             return None
-        _styles = VOICE_KINDS.get(kind, GEMINI_STYLES)
-        voice, style = _styles[min(idx, len(_styles) - 1)]
+        # 2026-11-06 (owner): ONE person for the whole Short. Different voices/moods per scene sounded like different people, with a deep breath and too much
+        # emotion between lines. Same voice + same calm style for every scene; only 'serious' topics are a little slower and firmer.
+        voice = ONE_VOICE
+        style = ONE_STYLE + (" A little slower and firmer." if kind == "serious" else "")
         body = {"contents": [{"parts": [{"text": f"{style} {text}"}]}],
                 "generationConfig": {"responseModalities": ["AUDIO"],
                                      "speechConfig": {"voiceConfig": {"prebuiltVoiceConfig": {"voiceName": voice}}}}}
@@ -573,6 +619,7 @@ def gemini_voice(text, path, idx, kind="explain"):
                     w.setsampwidth(2)
                     w.setframerate(24000)
                     w.writeframes(pcm)
+                trim_breath(wav)
                 return wav
             print(f"[TECH] gemini tts {r.status_code} on {_GEM['model']} (attempt {attempt + 1})")
             if r.status_code == 429 and len(_GEM.get("models", [])) > 1:
