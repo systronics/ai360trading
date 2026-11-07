@@ -57,6 +57,7 @@ jobs:
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           CHAT_ID_BASIC:      ${{ secrets.CHAT_ID_BASIC }}
+          CHAT_ID_PREMIUM:      ${{ secrets.CHAT_ID_PREMIUM }}
           WF_NAME:            "${{ github.workflow }}"
           RUN_URL:            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         continue-on-error: true

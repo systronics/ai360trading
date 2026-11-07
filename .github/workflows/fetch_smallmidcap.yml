@@ -40,7 +40,6 @@ jobs:
           GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
           TELEGRAM_BOT_TOKEN:       ${{ secrets.TELEGRAM_BOT_TOKEN }}
           CHAT_ID_BASIC:            ${{ secrets.CHAT_ID_BASIC }}
-          CHAT_ID_PREMIUM:            ${{ secrets.CHAT_ID_PREMIUM }}
           CHAT_ID_ADVANCE:          ${{ secrets.CHAT_ID_ADVANCE }}
           CHAT_ID_PREMIUM:          ${{ secrets.CHAT_ID_PREMIUM }}
         run: python fetch_smallmidcap.py
@@ -50,6 +49,7 @@ jobs:
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           CHAT_ID_BASIC:      ${{ secrets.CHAT_ID_BASIC }}
+          CHAT_ID_PREMIUM:      ${{ secrets.CHAT_ID_PREMIUM }}
           WF_NAME:            "${{ github.workflow }}"
           RUN_URL:            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         continue-on-error: true
