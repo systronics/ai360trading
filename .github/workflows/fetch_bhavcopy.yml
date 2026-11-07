@@ -94,6 +94,13 @@ jobs:
           GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
         run: python gainers_log.py --write
 
+      - name: Swing shadow tracker (observation only, 2026-11-07)
+        continue-on-error: true
+        timeout-minutes: 8
+        env:
+          GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
+        run: python swing_shadow.py --write
+
       - name: Notify Telegram on failure
         if: failure()
         env:
