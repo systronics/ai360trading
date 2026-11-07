@@ -7,8 +7,8 @@ and records the quality numbers at entry (spread %, theta % of premium, IV) so t
 
 SIGNAL SOURCE: the system's own option alerts - an AlertLog row with Options Signal 'BUY CE' whose Trade Status is TRADED (it already passed every gate). Nothing here creates a signal.
 RULES (all constants below; change only on the owner's word):
-  entries      09:20-11:30 up to MAX_EARLY (5); 14:20-15:15 up to MAX_LATE (1) and only when AlertLog Priority >= LATE_MIN_PRIORITY; no new entry once today's realized loss <= -DAILY_LOSS_STOP (Rs 3,000)
-  size         premium budget PREMIUM_BUDGET (Rs 6,000 = about Rs 1,500 risk at a 25% stop); 1 lot allowed up to 1.5x the budget, else skipped ('too expensive')
+  entries      09:20-11:30 up to MAX_EARLY (5); 14:20-15:15 up to MAX_LATE (1) and only when AlertLog Priority >= LATE_MIN_PRIORITY; no new entry once today's realized loss <= -DAILY_LOSS_STOP (Rs 4,000)
+  size         premium budget PREMIUM_BUDGET (Rs 10,000 = about Rs 2,500 risk at a 25% stop = 2.5% of Rs 1 lakh); total open premium capped at MAX_OPEN_PREMIUM (Rs 30,000); 1 lot allowed up to 1.5x the budget, else skipped ('too expensive')
   liquidity    skipped when the bid-ask spread is wider than MAX_SPREAD_PCT (6%)
   stop         SL_PCT 25% below the entry ask (checked on the BID)
   profit       sell half the quantity at +PARTIAL_AT_PCT (50%, i.e. 1:2), then stop moves to breakeven and trails TRAIL_PCT (25%) below the peak bid; the rest runs until the trail or the time exit
@@ -30,7 +30,8 @@ IST = pytz.timezone("Asia/Kolkata")
 TAB = "OptionPaper"
 HEAD = ["ID", "Date", "Symbol", "Strike", "Expiry", "Key", "LotSize", "Lots", "EntryTime", "EntryAsk", "QtyTotal", "QtyOpen", "SL", "Peak", "PartialDone",
         "Spread_%", "Theta_%", "IV", "Status", "ExitTime", "ExitBid", "Realized_Rs", "Reason", "NextDay_Bid"]
-PREMIUM_BUDGET = 6000.0
+PREMIUM_BUDGET = 10000.0          # 2026-11-07: a lot of most liquid stocks costs Rs 8-12k at the money (the owner's Airtel lots: Rs 9.4k and Rs 12.2k); Rs 6k skipped nearly everything
+MAX_OPEN_PREMIUM = 30000.0       # owner's intraday-option bucket (Rs 20-30k): total premium open at any time
 MAX_BUDGET_MULT = 1.5
 SL_PCT = 25.0
 PARTIAL_AT_PCT = 50.0
@@ -40,7 +41,7 @@ MAX_EARLY, MAX_LATE = 5, 1
 EARLY_FROM, EARLY_TO = "09:20", "11:30"
 LATE_FROM, LATE_TO = "14:20", "15:15"
 LATE_MIN_PRIORITY = 30.0
-DAILY_LOSS_STOP = 3000.0
+DAILY_LOSS_STOP = 4000.0
 TIME_EXIT = "15:15"
 FO_CACHE = os.path.join(tempfile.gettempdir(), "upstox_fo_contracts.json")
 
@@ -284,7 +285,12 @@ def main(argv=None):
             if spread > MAX_SPREAD_PCT:
                 print(f"[PAPER] {sym}: spread {spread:.1f}% > {MAX_SPREAD_PCT}% - skipped (illiquid)")
                 continue
+            open_prem = sum((_f(x[ix["EntryAsk"]]) or 0) * (_f(x[ix["QtyOpen"]]) or 0) for x in rows if x[ix["Status"]] == "OPEN") + sum(nr[9] * nr[10] for nr in new_rows)
             lots = lots_for(q["ask"], lot)
+            if lots >= 1 and open_prem + q["ask"] * lot * lots > MAX_OPEN_PREMIUM:
+                lots = 0
+                print(f"[PAPER] {sym}: open premium {open_prem:.0f} + this lot would pass the Rs {MAX_OPEN_PREMIUM:.0f} bucket - skipped")
+                continue
             if lots < 1:
                 print(f"[PAPER] {sym}: one lot costs {q['ask'] * lot:.0f} > {PREMIUM_BUDGET * MAX_BUDGET_MULT:.0f} - skipped (too expensive)")
                 continue

@@ -6,10 +6,10 @@ def pos(entry=10.0):
 
 
 def test_lots_for():
-    assert P.lots_for(10, 500) == 1            # one lot = 5000 <= budget
-    assert P.lots_for(2, 500) == 6             # 1000 per lot -> 6 lots
-    assert P.lots_for(15, 500) == 1            # 7500 <= 1.5x budget -> still 1 lot
-    assert P.lots_for(25, 500) == 0            # 12500 > 9000 -> too expensive
+    assert P.lots_for(10, 500) == 2            # 5000 per lot -> 2 lots in a 10,000 budget
+    assert P.lots_for(2, 500) == 10            # 1000 per lot -> 10 lots
+    assert P.lots_for(25, 500) == 1            # 12,500 <= 1.5x budget -> still 1 lot
+    assert P.lots_for(35, 500) == 0            # 17,500 > 15,000 -> too expensive
     assert P.lots_for(None, 500) == 0
 
 
@@ -20,8 +20,8 @@ def test_entry_windows_and_limits():
     assert P.entry_allowed("14:30", 0, 0, 0, 35)[0] is True             # perfect late setup
     assert P.entry_allowed("14:30", 0, 0, 0, 20)[0] is False            # not perfect
     assert P.entry_allowed("14:30", 0, 1, 0, 40)[0] is False            # late slot used
-    assert P.entry_allowed("09:30", 0, 0, -3000, 99)[0] is False        # daily loss stop
-    assert P.entry_allowed("09:30", 0, 0, -2999, 99)[0] is True
+    assert P.entry_allowed("09:30", 0, 0, -4000, 99)[0] is False        # daily loss stop
+    assert P.entry_allowed("09:30", 0, 0, -3999, 99)[0] is True
 
 
 def test_stop_loss():
