@@ -112,6 +112,8 @@ jobs:
             TICKS=$((TICKS+1))
             echo "::group::[TICK $TICKS] $(date '+%T') IST"
             python -u fetch_live_prices.py --write || echo "[TICK $TICKS] exited non-zero — continuing"
+            # 2026-11-07: observation-only option-chain snapshot about hourly (every 12th tick of 5 min); never blocks or fails the price feed
+            if [ $((TICKS % 12)) -eq 3 ]; then timeout 170 python -u option_snap.py --write || echo "[SNAP] skipped/failed - continuing"; fi
             echo "::endgroup::"
             # Stop sleeping if the next tick would land past the end time.
             if [ "$(date +%H:%M)" \< "$END" ]; then
