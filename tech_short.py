@@ -444,7 +444,7 @@ def frame_fn(topic, idx, n, dur, base=None):
                 fr = last_good[0]
             else:
                 last_good[:] = [fr]
-            shade = np.linspace(0.62, 0.34, H, dtype=np.float32)[:, None, None]
+            shade = (np.linspace(0.95, 0.55, H, dtype=np.float32) if visual_mode() == "3d" else np.linspace(0.62, 0.34, H, dtype=np.float32))[:, None, None]
             im = Image.fromarray(np.clip(fr * shade, 0, 255).astype(np.uint8))
         else:
             im = background()
@@ -1032,6 +1032,30 @@ def topic_hashtags(topic):
     return " ".join(out)
 
 
+def _compose3d(img):
+    """Square AI render -> 9:16 canvas: a blurred, darkened copy fills the frame, the sharp render is scaled 1.3x the frame width (centre-cropped) and faded into the background at its top and bottom edges,
+    so the object fills the screen instead of sitting in a band with an empty blurred half. Returns a PIL image slightly larger than the frame (room for the camera move)."""
+    from PIL import ImageFilter
+    bw = int(img.width * H / img.height) + 1
+    bg = img.resize((bw, H), Image.LANCZOS)
+    left = max(0, (bw - W) // 2)
+    bg = bg.crop((left, 0, left + W, H)).filter(ImageFilter.GaussianBlur(30))
+    bg = Image.eval(bg, lambda v: int(v * 0.55))
+    fgw = int(W * 1.30)
+    fg = img.resize((fgw, fgw), Image.LANCZOS)
+    l2 = (fgw - W) // 2
+    fg = fg.crop((l2, 0, l2 + W, fgw))
+    y = (H - fgw) // 2 - 90
+    fade = 130
+    mask = np.ones((fgw, W), dtype=np.float32)
+    ramp = np.linspace(0.0, 1.0, fade, dtype=np.float32)[:, None]
+    mask[:fade] *= ramp
+    mask[-fade:] *= ramp[::-1]
+    canvas = bg.copy()
+    canvas.paste(fg, (0, y), Image.fromarray((mask * 255).astype(np.uint8)))
+    return canvas.resize((int(W * 1.15), int(H * 1.15)), Image.LANCZOS)
+
+
 def kenburns_fn(img, dur, zoom_out=False):
     """get_frame(t) for a PIL image (already cover-sized for the 1080x1920 frame): slow zoom 1.00 -> 1.12 (or reverse) with a small pan."""
     arr = np.asarray(img.convert("RGB"))
@@ -1068,7 +1092,7 @@ def scene_base_3d(key, topic, i, dur, cache_dir):
             Path(cache_dir).mkdir(parents=True, exist_ok=True)
             cache.write_bytes(data)
             img = Image.open(cache).convert("RGB")
-        return kenburns_fn(E._cover(img), dur, zoom_out=(i % 2 == 1))
+        return kenburns_fn(_compose3d(img), dur, zoom_out=(i % 2 == 1))
     except Exception as ex:
         print(f"[TECH] 3D scene {i + 1} failed: {str(ex)[:100]}")
         return None
