@@ -1,0 +1,20 @@
+name: Option paper ledger check (manual, writes nothing)
+# 2026-11-07: resolves the system's current option alerts to real contracts and quotes (bid/ask), shows what the paper ledger WOULD do. No write.
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      UPSTOX_ANALYTICS_TOKEN: ${{ secrets.UPSTOX_ANALYTICS_TOKEN }}
+      GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install gspread==6.2.1 oauth2client==4.1.3 pytz==2026.2 requests
+      - run: python option_paper.py --check --force
