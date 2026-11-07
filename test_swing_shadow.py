@@ -37,3 +37,12 @@ def test_post_exit_high():
     assert W.post_exit_high(ds, hi, ds[3], 0) is None
     hi[3 + 11] = 150.0                                          # beyond the 10-session window
     assert W.post_exit_high(ds, hi, ds[3], 100.0) == 10.0
+
+
+def test_weekly_flag_rising_series():
+    import pandas as pd
+    import swing_bt3 as W3
+    idx = pd.bdate_range("2023-01-02", periods=400)
+    c = pd.Series(range(100, 500), index=idx, dtype=float)
+    f = W3.weekly_flag(c)
+    assert bool(f.iloc[-1]) and not bool(f.iloc[2])           # early days have no completed week
