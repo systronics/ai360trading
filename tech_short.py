@@ -178,6 +178,18 @@ try:   # 2026-11-03: twelve curiosity-first topics (see tech_topics2.py); fail-o
     _X2.register(TOPICS)
 except Exception as _e:
     print(f"[TECH] extra topics not loaded: {str(_e)[:80]}")
+try:   # 2026-11-07: four topics from real search data (see tech_topics3.py); fail-open
+    import tech_topics3 as _X3
+    _X3.register(TOPICS)
+except Exception as _e:
+    print(f"[TECH] topics3 not loaded: {str(_e)[:80]}")
+for _t in TOPICS.values():   # 2026-11-07: people type 'kyu' far more than 'kyun' (autocomplete); titles/tags use it, the old spelling stays as a tag
+    try:
+        _t["yt_title"] = _t["yt_title"].replace("Kyun", "Kyu")
+        _alt = [x.replace("kyun", "kyu") for x in _t.get("tags", []) if "kyun" in x]
+        _t["tags"] = list(_t.get("tags", [])) + [x for x in _alt if x not in _t.get("tags", [])]
+    except Exception:
+        pass
 
 
 def font(sz):
@@ -1010,6 +1022,13 @@ OBJ3D = {
     "laptop_plugged": "a laptop plugged into a wall charger with a battery gauge",
     "ssd_vs_hdd": "an SSD chip and a spinning HDD side by side with speed lines",
 }
+
+
+try:
+    import tech_topics3 as _X3b
+    OBJ3D.update(_X3b.OBJ3D)
+except Exception:
+    pass
 
 
 def visual_mode():
