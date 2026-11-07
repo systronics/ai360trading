@@ -54,3 +54,24 @@ def test_stats_and_signals_shape():
     s = S.stats(t)
     assert "win 50.0%" in s and "PF 1.50" in s
     assert S.stats(pd.DataFrame({"pct": [], "days": []})) == "no trades"
+
+
+def test_batch2_exits():
+    o, h, l, c = arrs()
+    l[4] = 93.0                                              # 3 ATR stop = 100 - 6 = 94 -> hit
+    j, px = S.simulate_exit("Y1 WIDE3", o, h, l, c, 0, 2.0)
+    assert j == 4 and px == 94.0
+    j, px = S.simulate_exit("Y2 WIDE4", o, h, l, c, 0, 2.0)  # 4 ATR stop = 92 -> not hit by 93
+    assert j == 19 and px == c[19]
+    j, px = S.simulate_exit("Y4 PCT10", o, h, l, c, 0, 2.0)
+    assert j == 19
+    o2, h2, l2, c2 = arrs()
+    for k in range(1, 6):
+        c2[k] = 100 + 2.5 * k                                # a close >= entry + 2*2 = 104 arms breakeven
+        h2[k] = c2[k]
+        o2[k] = c2[k - 1]
+        l2[k] = c2[k] - 0.5
+    c2[6], o2[6], l2[6], h2[6] = 112.5, 112.5, 112.0, 113.0
+    l2[7], o2[7] = 99.0, 112.0                               # later drop below the entry -> stopped at the trailing stop (>= entry)
+    j, px = S.simulate_exit("Y5 BE-TRAIL", o2, h2, l2, c2, 0, 2.0)
+    assert j == 7 and px >= 100.0

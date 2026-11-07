@@ -16,7 +16,17 @@ PRE-REGISTERED (written before the first run; run once):
     X6 TRAIL          initial stop entry - 2.0 x ATR14; the stop then trails up to (highest high since entry - 2.5 x ATR14), never down; sell on a stop hit, else at the close of day 40
   UNIVERSE: current Nifty200 members (survivorship bias: today's constituents), daily data 2018-2026 from yfinance. TRAIN = signals through 2023, TEST = 2024 onwards.
   DECISION RULE (fixed now): an exit rule is recommended over X1 only if its TEST average % per trade is >= 0.3 points higher than X1's AND its TRAIN average is also higher AND its 10th-percentile trade is not worse than X1's by more than 2 points.
-USAGE: python swing_bt.py --run
+BATCH 2 (pre-registered 2026-11-07 AFTER batch 1 showed that tight stops/targets cut most of the profit; same signal, universe, costs, TRAIN/TEST; run once; X1 and X3 are re-run as baselines):
+    Y1 WIDE3      stop = entry - 3.0 x ATR14, no target, else sell at the close of day 20
+    Y2 WIDE4      stop = entry - 4.0 x ATR14, no target, else sell at the close of day 20
+    Y3 WIDE3-40   stop = entry - 3.0 x ATR14, no target, else sell at the close of day 40
+    Y4 PCT10      fixed stop 10% below the entry, else sell at the close of day 20
+    Y5 BE-TRAIL   stop = entry - 3.0 x ATR14; once a close reaches entry + 2.0 x ATR14 the stop moves to at least the entry and then trails (highest close - 3.0 x ATR14), never down; else sell at the close of day 40
+  DECISION RULE (fixed now). A 20-day variant (Y1, Y2, Y4) is compared with X1, a 40-day variant (Y3, Y5) with X3, on TEST and TRAIN:
+    TAIL-SAVER   = TEST average within 0.3 points of the baseline (or higher) AND TEST 10th-percentile trade at least 1.5 points BETTER than the baseline AND TRAIN shows the same two relations.
+    RETURN-BOOST = TEST average >= baseline + 0.3 AND TEST 10th percentile not worse than the baseline by more than 2 points AND TRAIN average also higher.
+    Anything else = not better.
+USAGE: python swing_bt.py --run        python swing_bt.py --run2
 """
 import json
 import os
@@ -28,6 +38,7 @@ import pandas as pd
 COST_PCT = 0.25
 TRAIN_END = 2023
 VARIANTS = ["X1 HOLD20", "X2 HOLD10", "X3 HOLD40", "X4 ATR2+HOLD20", "X5 LIVE-RULE", "X6 TRAIL"]
+VARIANTS2 = ["X1 HOLD20", "X3 HOLD40", "Y1 WIDE3", "Y2 WIDE4", "Y3 WIDE3-40", "Y4 PCT10", "Y5 BE-TRAIL"]
 
 
 def atr14(h, l, c):
@@ -44,6 +55,22 @@ def simulate_exit(variant, o, h, l, c, i0, atr):
     if variant in ("X1 HOLD20", "X2 HOLD10", "X3 HOLD40"):
         k = {"X1 HOLD20": 20, "X2 HOLD10": 10, "X3 HOLD40": 40}[variant]
         j = last(k)
+        return j, c[j]
+    if variant in ("Y1 WIDE3", "Y2 WIDE4", "Y3 WIDE3-40", "Y4 PCT10", "Y5 BE-TRAIL"):
+        mult = {"Y1 WIDE3": 3.0, "Y2 WIDE4": 4.0, "Y3 WIDE3-40": 3.0, "Y5 BE-TRAIL": 3.0}.get(variant)
+        stop = entry * 0.90 if variant == "Y4 PCT10" else entry - mult * atr
+        horizon = 40 if variant in ("Y3 WIDE3-40", "Y5 BE-TRAIL") else 20
+        hi_close, armed = entry, False
+        for j in range(i0, last(horizon) + 1):
+            if l[j] <= stop:
+                return j, (min(stop, o[j]) if j > i0 else stop)
+            if variant == "Y5 BE-TRAIL":
+                hi_close = max(hi_close, c[j])
+                if c[j] >= entry + 2.0 * atr:
+                    armed = True
+                if armed:
+                    stop = max(stop, entry, hi_close - 3.0 * atr)
+        j = last(horizon)
         return j, c[j]
     stop = entry - 2.0 * atr
     target = entry + 3.8 * atr if variant == "X5 LIVE-RULE" else None
@@ -72,7 +99,8 @@ def signals_for(sym_df, nifty_ok, nifty_r25):
     return sig.fillna(False)
 
 
-def run(data, nifty):
+def run(data, nifty, variants=None):
+    variants = variants or VARIANTS
     nc = nifty["c"]
     nifty_ok = nc > nc.ewm(span=50, adjust=False).mean()
     nifty_r25 = nc / nc.shift(25) - 1
@@ -85,14 +113,14 @@ def run(data, nifty):
         a = atr14(df["h"], df["l"], df["c"])
         idx = df.index
         o, h, l, c = (df[k].to_numpy(dtype=float) for k in ("o", "h", "l", "c"))
-        free_until = {v: -1 for v in VARIANTS}                      # one open trade per stock PER VARIANT
+        free_until = {v: -1 for v in variants}                      # one open trade per stock PER VARIANT
         for t in np.flatnonzero(sig.to_numpy()):
             i0 = t + 1
             if i0 >= len(df) or not np.isfinite(a.iloc[t]) or a.iloc[t] <= 0 or o[i0] <= 0:
                 continue
             if abs(o[i0] / c[t] - 1) > 0.20:                          # split/bonus artefact
                 continue
-            for v in VARIANTS:
+            for v in variants:
                 if i0 <= free_until[v]:
                     continue
                 j, px = simulate_exit(v, o, h, l, c, i0, a.iloc[t])
@@ -130,6 +158,27 @@ def report(tr):
     return "\n".join(lines)
 
 
+def report2(tr):
+    lines, summ = [], {}
+    for v in VARIANTS2:
+        t = tr[tr.variant == v]
+        a, b = t[t.year <= TRAIN_END], t[t.year > TRAIN_END]
+        lines.append(f"{v:12} ALL {stats(t)}")
+        lines.append(f"{'':12} TRAIN {stats(a)}")
+        lines.append(f"{'':12} TEST  {stats(b)}")
+        lines.append(f"{'':12} per year avg % (n): " + " ".join(f"{y}:{g.pct.mean():+.1f}({len(g)})" for y, g in t.groupby("year")))
+        summ[v] = {"tr": a.pct.mean(), "te": b.pct.mean(), "tr10": a.pct.quantile(0.1), "te10": b.pct.quantile(0.1)}
+    pairs = {"Y1 WIDE3": "X1 HOLD20", "Y2 WIDE4": "X1 HOLD20", "Y4 PCT10": "X1 HOLD20", "Y3 WIDE3-40": "X3 HOLD40", "Y5 BE-TRAIL": "X3 HOLD40"}
+    lines.append("\nDECISION (TAIL-SAVER: test avg >= base - 0.3 and test p10 >= base p10 + 1.5, train same; RETURN-BOOST: test avg >= base + 0.3, p10 not worse by > 2, train avg higher):")
+    for v, bname in pairs.items():
+        x, bse = summ[v], summ[bname]
+        tail = x["te"] >= bse["te"] - 0.3 and x["te10"] >= bse["te10"] + 1.5 and x["tr"] >= bse["tr"] - 0.3 and x["tr10"] >= bse["tr10"] + 1.5
+        boost = x["te"] >= bse["te"] + 0.3 and x["te10"] >= bse["te10"] - 2.0 and x["tr"] > bse["tr"]
+        verdict = "TAIL-SAVER" if tail else ("RETURN-BOOST" if boost else "not better")
+        lines.append(f"  {v:12} vs {bname}: test {x['te']:+.2f}% (base {bse['te']:+.2f}), test p10 {x['te10']:+.1f}% (base {bse['te10']:+.1f}), train {x['tr']:+.2f}% (base {bse['tr']:+.2f}), train p10 {x['tr10']:+.1f}% (base {bse['tr10']:+.1f}) -> {verdict}")
+    return "\n".join(lines)
+
+
 def load_data():
     import yfinance as yf
     import gspread
@@ -157,10 +206,16 @@ def load_data():
 
 def main(argv=None):
     argv = argv if argv is not None else sys.argv[1:]
-    if "--run" not in argv:
+    if "--run" not in argv and "--run2" not in argv:
         print(__doc__)
         return 0
     data, nifty = load_data()
+    if "--run2" in argv:
+        print(f"[SWING2] {len(data)} stocks; cost {COST_PCT}% round trip; TRAIN <= {TRAIN_END}\n")
+        t2 = run(data, nifty, VARIANTS2)
+        print(report2(t2))
+        t2.to_csv("swing_bt_trades_batch2.csv", index=False)
+        return 0
     print(f"[SWING] {len(data)} stocks, NIFTY {nifty.index[0].date()} -> {nifty.index[-1].date()}; cost {COST_PCT}% round trip; TRAIN <= {TRAIN_END}\n")
     tr = run(data, nifty)
     print(report(tr))
