@@ -1,0 +1,24 @@
+name: Option snapshot check (manual; dry run unless write=true)
+# 2026-11-07: tries the OptionSnap recorder once (forced, 6 names). write=true really appends to the OptionSnap tab (observation-only tab).
+on:
+  workflow_dispatch:
+    inputs:
+      write:
+        description: 'write rows to the OptionSnap tab'
+        default: 'false'
+permissions:
+  contents: read
+jobs:
+  snap:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      UPSTOX_ANALYTICS_TOKEN: ${{ secrets.UPSTOX_ANALYTICS_TOKEN }}
+      GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install gspread==6.2.1 oauth2client==4.1.3 pytz==2026.2 requests
+      - run: python option_snap.py --force --max 6 ${{ github.event.inputs.write == 'true' && '--write' || '' }}
