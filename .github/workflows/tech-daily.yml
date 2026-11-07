@@ -52,6 +52,9 @@ jobs:
       INSTAGRAM_ID_TECH: ${{ secrets.INSTAGRAM_ID_TECH }}
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       CHAT_ID_BASIC: ${{ secrets.CHAT_ID_BASIC }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      TECH_VISUAL: ${{ vars.TECH_VISUAL }}
       CHAT_ID_PREMIUM: ${{ secrets.CHAT_ID_PREMIUM }}
     steps:
       - uses: actions/checkout@v4

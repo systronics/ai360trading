@@ -18,3 +18,14 @@ def test_topic_hashtags():
     assert T.topic_hashtags({"tags": ["phone hot kyun hota hai", "phone heating problem", "x"]}) == "#PhoneHot #PhoneHeating #TechTips"
     assert T.topic_hashtags({}) == "#TechTips"
     assert T.topic_hashtags({"tags": ["tech explained hinglish", "hinglish tips now"]}) == "#TipsNow #TechTips"
+
+
+def test_extra_tags_reads_real_phrases(tmp_path, monkeypatch):
+    import json
+    import tech_daily as T
+    (tmp_path / "_data").mkdir()
+    (tmp_path / "_data" / "tech_keywords.json").write_text(json.dumps({"phone garam kyun hota hai": {"youtube": ["phone garam kyu hota hai", "फोन गर्म क्यों होता है", "phone garam kyun hota hai"]}}), encoding="utf-8")
+    monkeypatch.chdir(tmp_path)
+    out = T.extra_tags({"tags": ["phone hot kyun hota hai", "phone garam kyun hota hai"]})
+    assert out == ["phone garam kyu hota hai"]          # the Devanagari one is skipped, the duplicate tag is skipped
+    assert T.extra_tags({"tags": ["wifi slow"]}) == []

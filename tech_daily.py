@@ -64,6 +64,29 @@ def cta_line():
         return DEFAULT_CTA
 
 
+def extra_tags(meta, max_new=5, budget=400):
+    """Real search phrases (free autocomplete, _data/tech_keywords.json) whose seed shares two words with the topic's first tag; fail-open -> []. Pure apart from reading the file."""
+    import re
+    try:
+        kw = json.loads(Path("_data/tech_keywords.json").read_text(encoding="utf-8"))
+        base = set(w for w in re.findall(r"[a-z0-9]+", ((meta.get("tags") or [""])[0]).lower()))
+        have = set(t.lower() for t in (meta.get("tags") or []))
+        out, used = [], sum(len(t) for t in (meta.get("tags") or []))
+        for seed, v in kw.items():
+            if len(base & set(re.findall(r"[a-z0-9]+", seed.lower()))) >= 2:
+                for ph in v.get("youtube", [])[:6]:
+                    if ph.lower() in have or not re.search(r"[a-z]", ph.lower()) or len(ph) > 60:
+                        continue
+                    if used + len(ph) > budget or len(out) >= max_new:
+                        return out
+                    out.append(ph)
+                    have.add(ph.lower())
+                    used += len(ph)
+        return out
+    except Exception:
+        return []
+
+
 def youtube_upload(mp4, title, desc, tags, thumb, publish_at=None, cred_env=None):
     from google.oauth2.credentials import Credentials
     from googleapiclient.discovery import build
@@ -172,6 +195,7 @@ def run(mode, out_dir, topic=None):
             print(f"[TECH] DRY RUN, nothing uploaded: {meta['title']} ({meta['duration_s']}s)")
             return 0
         tags = meta.get("tags") or ["tech", "hinglish", "shorts"]
+        tags = list(tags) + extra_tags(meta)
         pat = Path(out_dir) / f"{key}_thumb_pattern.jpg"
         thumb_s = str(pat) if pat.exists() else (str(thumb) if thumb else "")
         if mode == "private-test":
