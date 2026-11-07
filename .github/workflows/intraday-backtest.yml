@@ -1,0 +1,35 @@
+name: Intraday backtest (manual, research only, writes nothing to the sheet)
+# 2026-11-07: downloads real NSE 5-minute candles (Upstox free Analytics Token, cached) and runs the pre-registered rules in intraday_bt.py with costs, TRAIN/TEST split and a random control.
+on:
+  workflow_dispatch:
+    inputs:
+      from_date:
+        description: 'first month to download (YYYY-MM-DD)'
+        default: '2022-04-01'
+permissions:
+  contents: read
+jobs:
+  bt:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      UPSTOX_ANALYTICS_TOKEN: ${{ secrets.UPSTOX_ANALYTICS_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pandas numpy requests pytz
+      - uses: actions/cache@v4
+        with:
+          path: bt_cache
+          key: bt-5m-v1-${{ github.run_id }}
+          restore-keys: bt-5m-v1-
+      - name: Download candles (cached ones are skipped)
+        run: python -u intraday_bt.py --fetch --from ${{ github.event.inputs.from_date }}
+      - name: Run the rules
+        run: python -u intraday_bt.py --run
+      - uses: actions/upload-artifact@v4
+        with:
+          name: backtest-trades
+          path: bt_cache/trades.csv
