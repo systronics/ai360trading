@@ -481,7 +481,7 @@ def _weekly_pnl_report(wb):
         f"🗓 {now_str} | Paper Trading",
         "━━━━━━━━━━━━━━━━━━━━━━━━━━",
         f"\n{pnl_emoji} <b>Net P/L: ₹{total_pnl:+,.0f}</b>",
-        f"✅ Jeet: {wins}  |  ❌ Haar: {losses}  |  Win Rate: {win_rate}%",
+        f"✅ Wins: {wins}  |  ❌ Losses: {losses}  |  Win Rate: {win_rate}%",
     ]
     if best and best[1] > 0:
         b_lines.append(f"🏆 Best trade: <b>{best[0]}</b> ₹{best[1]:+,.0f}")

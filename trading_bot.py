@@ -3463,7 +3463,7 @@ def _send_monthly_pnl(hist_sheet, now):
             f"AI360Trading | Paper Trading\n"
             f"━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
             f"{pnl_emoji} <b>Net P/L: ₹{total_pnl:+,.0f}</b>\n"
-            f"✅ Jeet: {wins}  |  ❌ Haar: {losses}  |  Win Rate: {win_rate}%\n\n"
+            f"✅ Wins: {wins}  |  ❌ Losses: {losses}  |  Win Rate: {win_rate}%\n\n"
             f"📊 Poori monthly report → Advance/Premium members\n"
             f"📈 Upgrade karo ₹699/month → ai360trading.in/membership"
         )
