@@ -120,7 +120,7 @@ def send(msg):
             continue
         try:
             r = requests.post(f"https://api.telegram.org/bot{tok}/sendMessage",
-                              json={"chat_id": chat, "text": msg, "parse_mode": "HTML"}, timeout=20)
+                              json={"chat_id": chat, "text": msg, "parse_mode": "HTML", "disable_web_page_preview": True}, timeout=20)
             print(f"[SCORECARD] {key}: {r.status_code}")
             sent += 1 if r.status_code == 200 else 0
         except Exception as e:
