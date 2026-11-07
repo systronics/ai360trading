@@ -59,3 +59,9 @@ def test_month_chunks():
     from datetime import date
     ch = list(B._month_chunks(date(2022, 4, 10), date(2022, 6, 5)))
     assert ch == [(date(2022, 4, 10), date(2022, 4, 30)), (date(2022, 5, 1), date(2022, 5, 31)), (date(2022, 6, 1), date(2022, 6, 5))]
+
+
+def test_vwap():
+    import numpy as np
+    v = B._vwap(np.array([10.0, 12.0]), np.array([10.0, 12.0]), np.array([10.0, 12.0]), np.array([100.0, 100.0]))
+    assert abs(v[0] - 10.0) < 1e-9 and abs(v[1] - 11.0) < 1e-9

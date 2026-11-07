@@ -17,6 +17,14 @@ PRE-REGISTERED RULES (written BEFORE the first run; no tuning loops - run once, 
 Costs: round trip COST_PCT = 0.10% of price (STT + charges + slippage), expressed in R through the stop distance. If a bar touches both stop and target, the STOP is assumed to hit first (conservative).
 Universe: NIFTY, BANKNIFTY and 30 liquid F&O stocks. Days with a >20% overnight jump are skipped (split/bonus artefacts).
 
+BATCH 2 (pre-registered 2026-11-07 AFTER batch 1 lost everywhere; run ONCE, judged mainly on TEST). Same costs/split. Context filter F (all must hold, all known BEFORE the day):
+  market up = NIFTY's previous close is above its own 50-day average;  stock trend = the stock's previous close is above its 50-day average;  relative strength = the stock's 20-day return is above NIFTY's 20-day return.
+  B1 GAP-GO     F and the day opens 0.5%-3% above the previous close; first 5-min close (09:30-11:00) above the opening-range (first 3 bars) high -> buy next open. Stop = opening-range low. Target 3R.
+  B2 TREND-VWAP F; first bar (10:00-11:30) that closes above VWAP, above the opening-range high and above the day's open -> buy next open. Stop = 1.0 x daily ATR(14). Target 2R.
+  B3 PDH-F      F; first 5-min close above the previous day's high (09:30-14:00) -> buy next open. Stop = 1.0 x daily ATR(14) (wider than batch 1's 0.5). Target 2R.
+  B4 CARRY-F    F and the day closes in the top 20% of its range with volume >= 1.5 x its 20-day average and a close above the previous high -> buy the last bar's close, sell next day's 15:10 close (percent, costs included).
+  BC1 CONTROL   F and a random entry bar (09:30-14:00), stop 1.0 x daily ATR, target 2R (the control for B2/B3).   BC2 CONTROL  F, gap-up day, random entry after the opening range, stop = opening-range low, target 3R (the control for B1).
+  SUCCESS CRITERION (fixed now): a rule shows an edge only if its average R is > 0 AND beats its control by >= 0.05R in BOTH train and test AND it has >= 300 trades in TEST. Anything else = no edge found.
 USAGE: python intraday_bt.py --fetch [--from 2022-04-01]     download/cache candles (needs UPSTOX_ANALYTICS_TOKEN)
        python intraday_bt.py --run                            run the rules on the cached candles and print the tables
 """
@@ -280,6 +288,128 @@ def run_carry(data):
     return pd.DataFrame(out)
 
 
+# ───────────────────────────── batch 2 (context-filtered) ─────────────────────────────
+def _vwap(h, l, c, v):
+    tp = (h + l + c) / 3.0
+    cv = np.cumsum(v)
+    return np.where(cv > 0, np.cumsum(tp * v) / np.where(cv > 0, cv, 1), c)
+
+
+def market_context(data):
+    """{day: (market_up, nifty_r20)} from the NIFTY candles: previous close above the 50-day average, and the 20-day return, both known before the day."""
+    raw = data.get("NIFTY")
+    if raw is None:
+        return {}
+    _, dly = prepare(raw)
+    c = dly.c
+    out = {}
+    pc = c.shift(1)
+    ma = dly.ma50
+    r20 = c.shift(1) / c.shift(21) - 1
+    for dy in dly.index:
+        if np.isfinite(pc[dy]) and np.isfinite(ma[dy]) and np.isfinite(r20[dy]):
+            out[dy] = (bool(pc[dy] > ma[dy]), float(r20[dy]))
+    return out
+
+
+def run_batch2(data, seed=11):
+    mkt = market_context(data)
+    rng = random.Random(seed)
+    trades, carry = [], []
+    for sym, raw in data.items():
+        if sym in ("NIFTY", "BANKNIFTY"):
+            continue
+        df, daily = prepare(raw)
+        daily["r20"] = daily.c.shift(1) / daily.c.shift(21) - 1
+        days = list(daily.index)
+        by_day = {dy: idx for dy, idx in df.groupby("day").indices.items()}
+        for k, dy in enumerate(days):
+            info = daily.loc[dy].to_dict()
+            if dy not in mkt or not np.isfinite(info.get("gap", 0)) or info.get("gap", 0) > 0.20:
+                continue
+            up, nr20 = mkt[dy]
+            if not (up and _ok(info.get("pc")) and _ok(info.get("ma50")) and info["pc"] > info["ma50"] and np.isfinite(info.get("r20", np.nan)) and info["r20"] > nr20):
+                continue                                                   # context filter F
+            sub = df.iloc[by_day[dy]]
+            day = {c: sub[c].to_numpy() for c in ("o", "h", "l", "c", "v", "hm")}
+            o, h, l, c, v, hm = day["o"], day["h"], day["l"], day["c"], day["v"], day["hm"]
+            if len(o) < 20 or hm[0] != "09:15":
+                continue
+            vw = _vwap(h, l, c, v)
+            orh, orl = max(h[:3]), min(l[:3])
+            sigs = {}
+            gap = o[0] / info["pc"] - 1
+            if 0.005 <= gap <= 0.03:
+                for i in range(3, len(o) - 1):
+                    if "09:30" <= hm[i] <= "11:00" and c[i] > orh:
+                        sigs["B1 GAP-GO"] = (i + 1, o[i + 1], orl, 3.0)
+                        break
+                cand = [i for i in range(3, len(o) - 1) if "09:30" <= hm[i] <= "14:00" and o[i + 1] > orl]
+                if cand:
+                    j = rng.choice(cand) + 1
+                    sigs["BC2 CONTROL gap"] = (j, o[j], orl, 3.0)
+            if _ok(info.get("atr")):
+                for i in range(3, len(o) - 1):
+                    if "10:00" <= hm[i] <= "11:30" and c[i] > vw[i] and c[i] > orh and c[i] > o[0]:
+                        sigs["B2 TREND-VWAP"] = (i + 1, o[i + 1], o[i + 1] - info["atr"], 2.0)
+                        break
+                if _ok(info.get("ph")):
+                    for i in range(3, len(o) - 1):
+                        if "09:30" <= hm[i] <= "14:00" and c[i] > info["ph"]:
+                            sigs["B3 PDH-F"] = (i + 1, o[i + 1], o[i + 1] - info["atr"], 2.0)
+                            break
+                cand = [i for i in range(len(o) - 1) if "09:30" <= hm[i] <= "14:00"]
+                if cand:
+                    j = rng.choice(cand) + 1
+                    sigs["BC1 CONTROL"] = (j, o[j], o[j] - info["atr"], 2.0)
+            for name, (i, entry, stop, mult) in sigs.items():
+                res = simulate(o, h, l, c, hm, i, entry, stop, mult)
+                if res:
+                    trades.append({"rule": name, "sym": sym, "day": dy, "year": dy.year, "R": res[0], "stop_pct": (entry - stop) / entry * 100})
+            # B4 carry
+            if k + 1 < len(days) and info["h"] > info["l"] and info.get("avgv20") and info["v"] >= 1.5 * info["avgv20"] and _ok(info.get("ph")) and info["c"] > info["ph"] \
+                    and (info["c"] - info["l"]) / (info["h"] - info["l"]) >= 0.8 and (days[k + 1] - dy).days <= 5:
+                nxt = df.iloc[by_day[days[k + 1]]]
+                ex = nxt[nxt.hm >= EXIT_HM].head(1)
+                if not ex.empty:
+                    carry.append({"rule": "B4 CARRY-F", "sym": sym, "day": dy, "year": dy.year, "pct": (float(ex.c.iloc[0]) / info["c"] - 1) * 100 - COST_PCT})
+    return pd.DataFrame(trades), pd.DataFrame(carry)
+
+
+BATCH2 = ["B1 GAP-GO", "BC2 CONTROL gap", "B2 TREND-VWAP", "B3 PDH-F", "BC1 CONTROL"]
+
+
+def report_batch2(trades, carry):
+    lines = []
+    ctrl = {}
+    for rule in BATCH2:
+        t = trades[trades.rule == rule] if len(trades) else trades
+        if not len(t):
+            lines.append(f"{rule:16} no trades")
+            continue
+        tr, te = t[t.year <= TRAIN_END], t[t.year > TRAIN_END]
+        ctrl[rule] = (tr.R.mean() if len(tr) else np.nan, te.R.mean() if len(te) else np.nan)
+        per_year = " ".join(f"{y}:{g.R.mean():+.2f}({len(g)})" for y, g in t.groupby("year"))
+        lines.append(f"{rule:16} ALL {summarize(t)} | TRAIN {summarize(tr)} | TEST {summarize(te)}")
+        lines.append(f"{'':16} per year avg R (n): {per_year} | median stop {t.stop_pct.median():.2f}%")
+    if len(carry):
+        t = carry
+        lines.append(f"{'B4 CARRY-F':16} ALL {summarize(t, 'pct', '%')} | TRAIN {summarize(t[t.year <= TRAIN_END], 'pct', '%')} | TEST {summarize(t[t.year > TRAIN_END], 'pct', '%')}")
+    # verdict by the pre-registered criterion
+    pairs = {"B1 GAP-GO": "BC2 CONTROL gap", "B2 TREND-VWAP": "BC1 CONTROL", "B3 PDH-F": "BC1 CONTROL"}
+    lines.append("\nVERDICT (edge = avg R > 0 AND beats its control by >= 0.05R in BOTH train and test AND >= 300 TEST trades):")
+    for r, cname in pairs.items():
+        t = trades[trades.rule == r] if len(trades) else trades
+        if not len(t) or r not in ctrl or cname not in ctrl:
+            lines.append(f"  {r}: not enough data")
+            continue
+        tr, te = t[t.year <= TRAIN_END].R.mean(), t[t.year > TRAIN_END].R.mean()
+        n_te = int((t.year > TRAIN_END).sum())
+        ok = tr > 0 and te > 0 and tr - ctrl[cname][0] >= 0.05 and te - ctrl[cname][1] >= 0.05 and n_te >= 300
+        lines.append(f"  {r}: train {tr:+.3f}R (control {ctrl[cname][0]:+.3f}), test {te:+.3f}R (control {ctrl[cname][1]:+.3f}), test trades {n_te} -> {'EDGE FOUND' if ok else 'no edge'}")
+    return "\n".join(lines)
+
+
 # ───────────────────────────── reporting ─────────────────────────────
 def summarize(t, col="R", unit="R"):
     if t is None or not len(t):
@@ -312,6 +442,12 @@ def main(argv=None):
     if "--fetch" in argv:
         start = date.fromisoformat(argv[argv.index("--from") + 1]) if "--from" in argv else date(2022, 4, 1)
         fetch_all(start)
+    if "--run2" in argv:
+        data = load_cached()
+        print(f"[BT2] {len(data)} symbols loaded; cost {COST_PCT}% round trip; TRAIN <= {TRAIN_END}, TEST > {TRAIN_END}\n")
+        t2, c2 = run_batch2(data)
+        print(report_batch2(t2, c2))
+        t2.to_csv(os.path.join(CACHE, "trades_batch2.csv"), index=False)
     if "--run" in argv:
         data = load_cached()
         print(f"[BT] {len(data)} symbols loaded: {', '.join(data)}")

@@ -29,7 +29,11 @@ jobs:
         run: python -u intraday_bt.py --fetch --from ${{ github.event.inputs.from_date }}
       - name: Run the rules
         run: python -u intraday_bt.py --run
+      - name: Run batch 2 (context-filtered, pre-registered)
+        run: python -u intraday_bt.py --run2
       - uses: actions/upload-artifact@v4
         with:
           name: backtest-trades
-          path: bt_cache/trades.csv
+          path: |
+            bt_cache/trades.csv
+            bt_cache/trades_batch2.csv
