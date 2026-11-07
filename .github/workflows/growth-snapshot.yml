@@ -21,6 +21,7 @@ jobs:
     timeout-minutes: 10
     env:
       YOUTUBE_CREDENTIALS: ${{ secrets.YOUTUBE_CREDENTIALS }}
+      YOUTUBE_CREDENTIALS_TECH: ${{ secrets.YOUTUBE_CREDENTIALS_TECH }}
       META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
       FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
       INSTAGRAM_BUSINESS_ACCOUNT_ID: ${{ secrets.INSTAGRAM_BUSINESS_ACCOUNT_ID }}
@@ -42,11 +43,15 @@ jobs:
           pip install -r requirements.txt
       - name: Take the snapshot
         run: python growth_snapshot.py
+      - name: Per-video stats (read-only, fail-open)
+        continue-on-error: true
+        run: python video_stats.py
       - name: Commit the history
         run: |
           git config --local user.email "admin@ai360trading.in"
           git config --local user.name "AI360-Automation"
           git add _data/growth_history.json
+          git add _data/video_stats.json 2>/dev/null || true
           git diff --cached --quiet || git commit -m "Growth snapshot: $(date +'%Y-%m-%d')"
           git pull --rebase origin master || true
           git push origin master || true

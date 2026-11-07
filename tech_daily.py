@@ -64,6 +64,21 @@ def cta_line():
         return DEFAULT_CTA
 
 
+def hashtags_for(meta):
+    """3 hashtags for the YouTube description (YouTube shows the first three above the title): the topic's own first two keywords, then two evergreen discovery tags. Pure."""
+    import re
+    tags = meta.get("tags") or []
+    words = re.findall(r"[A-Za-z0-9]+", tags[0]) if tags else []
+    first = "#" + "".join(w.capitalize() for w in words[:2]) if words else "#TechTips"
+    out = [first, "#TechTips", "#Hinglish"]
+    seen, res = set(), []
+    for h in out:
+        if h.lower() not in seen:
+            seen.add(h.lower())
+            res.append(h)
+    return " ".join(res)
+
+
 def youtube_upload(mp4, title, desc, tags, thumb, publish_at=None, cred_env=None):
     from google.oauth2.credentials import Credentials
     from googleapiclient.discovery import build
@@ -163,7 +178,7 @@ def run(mode, out_dir, topic=None):
         from human_touch import ai_disclosure
         NL = chr(10)
         desc = (meta["description"] + NL + NL + cta_line() + NL + NL + "Follow karo: roz ek nayi tech problem ka solution." + NL + NL +
-                ai_disclosure("hi"))
+                ai_disclosure("hi") + NL + NL + hashtags_for(meta))
         # the same text for the Facebook/Instagram step (it reads this json)
         caption = meta["title"].replace(" #shorts", "") + NL + NL + cta_line() + NL + NL + "#Tech #TechTips #Hinglish #AI360Technology"
         meta.update({"description_full": desc, "caption": caption, "topic": key})
