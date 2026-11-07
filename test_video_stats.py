@@ -13,7 +13,8 @@ def test_summarize_orders_by_views_per_day():
     assert V.summarize([], now) == []
 
 
-def test_hashtags_for():
-    import tech_daily as T
-    assert T.hashtags_for({"tags": ["phone hot kyun hota hai", "x"]}) == "#PhoneHot #TechTips #Hinglish"
-    assert T.hashtags_for({}) == "#TechTips #Hinglish"
+def test_topic_hashtags():
+    import tech_short as T
+    assert T.topic_hashtags({"tags": ["phone hot kyun hota hai", "phone heating problem", "x"]}) == "#PhoneHot #PhoneHeating #TechTips"
+    assert T.topic_hashtags({}) == "#TechTips"
+    assert T.topic_hashtags({"tags": ["tech explained hinglish", "hinglish tips now"]}) == "#TipsNow #TechTips"

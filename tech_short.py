@@ -487,7 +487,7 @@ def frame_fn(topic, idx, n, dur, base=None):
         for i in range(n):
             col = accent + (255,) if i <= idx else (255, 255, 255, 90)
             d.rounded_rectangle((80 + i * seg + 6, H - 330, 80 + (i + 1) * seg - 6, H - 320), radius=5, fill=col)
-        d.text((W / 2, H - 270), "Synthetic AI voice | Educational", font=font(30), fill=(210, 218, 238, 255), anchor="mm")
+        d.text((W / 2, H - 270), ("AI 3D visuals + synthetic voice | Educational" if visual_mode() == "3d" else "Synthetic AI voice | Educational"), font=font(30), fill=(210, 218, 238, 255), anchor="mm")
         return np.array(im)
 
     return mk
@@ -985,6 +985,95 @@ def thumbs_only(key, out_dir, cache_dir='bank_tech'):
     print("[TECH] thumbnails done")
 
 
+# ───────────────────────────── 3D visuals (2026-11-07) ─────────────────────────────
+# Owner: 'improve the video quality, work on 3D real video' (no screen recording available). With TECH_VISUAL=3d every scene is a free AI-generated 3D-RENDER illustration (Cloudflare FLUX via emotion_story._cf_image,
+# CI-only keys) with a slow camera move, instead of loosely-matching stock footage. These are explainer illustrations of objects (phone, router, drive), never news/real events, never people; the description says
+# 'AI-generated 3D illustrations'. A scene whose image fails falls back to stock footage (real mode) so a video is never lost.
+STYLE3D = ("3D render, ultra detailed, soft studio lighting, glossy materials, shallow depth of field, vibrant colours, clean dark gradient background, "
+           "cinematic, 4k, no text, no letters, no logos, no people, no hands")
+OBJ3D = {
+    "phone_heat": "a modern smartphone glowing hot with orange heat waves and a small thermometer",
+    "otp_scam": "a smartphone with a glowing red warning shield and a broken padlock",
+    "wifi_slow": "a white Wi-Fi router with glowing signal rings fading through a brick wall",
+    "deleted_data_recover": "a hard drive and a glowing recycle bin with floating file icons",
+    "charge_overnight": "a smartphone plugged into a charger with a glowing battery icon and a crescent moon",
+    "laptop_hang": "a laptop with a spinning loading wheel and glowing overheated fan",
+    "phone_wet": "a smartphone covered in water droplets on a dark surface",
+    "hdd_click": "an opened hard disk drive with its read arm, dramatic light",
+    "public_wifi": "a laptop on a cafe table with a red open Wi-Fi warning symbol",
+    "pc_no_start": "a desktop PC tower with a red power button and loose cables",
+    "fast_charging": "a fast charger with a glowing lightning-bolt battery",
+    "mixer_hot": "a kitchen mixer grinder with a warm orange heat glow",
+    "storage_full": "a smartphone with an overflowing storage bar and floating photo icons",
+    "force_close_apps": "a smartphone with many floating app cards being swiped away",
+    "clear_cache": "a smartphone with a broom sweeping glowing data crumbs",
+    "laptop_plugged": "a laptop plugged into a wall charger with a battery gauge",
+    "ssd_vs_hdd": "an SSD chip and a spinning HDD side by side with speed lines",
+}
+
+
+def visual_mode():
+    return "3d" if os.environ.get("TECH_VISUAL", "").strip().lower() == "3d" else "footage"
+
+
+def topic_hashtags(topic):
+    """Three hashtags for the description (YouTube shows the first three above the title): the topic's own two keyword pairs + #TechTips. No language tags (owner: #Hinglish is useless). Pure."""
+    import re as _re
+    out = []
+    for t in (topic.get("tags") or [])[:3]:
+        words = [w for w in _re.findall(r"[A-Za-z0-9]+", t) if w.lower() not in ("hinglish", "hindi", "shorts")]
+        if len(words) >= 2:
+            h = "#" + "".join(w.capitalize() for w in words[:2])
+            if h.lower() not in [x.lower() for x in out] and h.lower() not in ("#techexplained", "#hinglish"):
+                out.append(h)
+        if len(out) == 2:
+            break
+    out.append("#TechTips")
+    return " ".join(out)
+
+
+def kenburns_fn(img, dur, zoom_out=False):
+    """get_frame(t) for a PIL image (already cover-sized for the 1080x1920 frame): slow zoom 1.00 -> 1.12 (or reverse) with a small pan."""
+    arr = np.asarray(img.convert("RGB"))
+    h0, w0 = arr.shape[:2]
+
+    def get(t):
+        p = min(max(t / max(dur, 0.1), 0.0), 1.0)
+        z = (1.12 - 0.12 * p) if zoom_out else (1.0 + 0.12 * p)
+        cw, ch = int(W / z), int(H / z)
+        x0 = int((w0 - cw) * (0.5 + 0.08 * (p - 0.5)))
+        y0 = int((h0 - ch) * 0.5)
+        x0, y0 = max(0, min(x0, w0 - cw)), max(0, min(y0, h0 - ch))
+        crop = Image.fromarray(arr[y0:y0 + ch, x0:x0 + cw]).resize((W, H), Image.BILINEAR)
+        return np.asarray(crop)
+    return get
+
+
+def scene_base_3d(key, topic, i, dur, cache_dir):
+    """get_frame for scene i from a free AI 3D-render image, or None when no image service answers (the caller then falls back to stock footage)."""
+    try:
+        cache = Path(cache_dir) / f"{key}_3d_{i}.jpg"
+        if cache.exists() and cache.stat().st_size > 5000:
+            img = Image.open(cache).convert("RGB")
+        else:
+            hint = ""
+            q = (topic.get("queries") or [[]] * (i + 1))[i]
+            if q:
+                hint = ", scene idea: " + str(q[0])
+            prompt = f"{STYLE3D}. {OBJ3D.get(key, topic.get('title', 'a gadget'))}{hint}"
+            seed = 300 + sum(ord(c) for c in key) + i
+            data = E._cf_image(prompt, seed) or E._poll_image(prompt, seed)
+            if not data:
+                return None
+            Path(cache_dir).mkdir(parents=True, exist_ok=True)
+            cache.write_bytes(data)
+            img = Image.open(cache).convert("RGB")
+        return kenburns_fn(E._cover(img), dur, zoom_out=(i % 2 == 1))
+    except Exception as ex:
+        print(f"[TECH] 3D scene {i + 1} failed: {str(ex)[:100]}")
+        return None
+
+
 def build(key, out_dir, real=False, cache_dir='bank_tech'):
     from moviepy.editor import VideoClip, AudioFileClip, CompositeAudioClip, concatenate_videoclips
     from moviepy.audio.AudioClip import AudioArrayClip
@@ -1011,7 +1100,13 @@ def build(key, out_dir, real=False, cache_dir='bank_tech'):
         voice = AudioFileClip(str(normalize_voice(gv)))
         dur = voice.duration + 0.35
         base = None
-        if real:
+        if visual_mode() == "3d":
+            base = scene_base_3d(key, topic, i, dur, cache_dir)
+            if base is not None:
+                print(f"[TECH:{key}] scene {i + 1}: 3D illustration")
+                if i == topic.get("thumb_scene", 0):
+                    thumb_frame = pick_thumb_frame(base, dur)
+        if real and base is None:
             import story_real as SR
             pk = os.environ.get("PEXELS_API_KEY", "")
             if not pk:
@@ -1044,7 +1139,7 @@ def build(key, out_dir, real=False, cache_dir='bank_tech'):
         clip = clip.set_audio(CompositeAudioClip([bed, w, voice.set_start(0.05)]).set_duration(dur))
         scenes.append(clip)
         print(f"[TECH:{key}] scene {i + 1}/{n} ok ({dur:.1f}s)")
-    if real and topic.get("thumb_queries"):
+    if real and topic.get("thumb_queries") and visual_mode() != "3d":
         try:
             thumbs_only(key, out_dir, cache_dir)
             thumb_frame, thumbs_done = None, True   # thumbnails already written
@@ -1078,7 +1173,8 @@ def build(key, out_dir, real=False, cache_dir='bank_tech'):
     NL = chr(10)
     meta = {"title": topic["yt_title"], "tags": topic["tags"], "duration_s": round(final.duration, 1),
             "description": (topic["title"] + NL + NL + (topic.get("desc_extra", "") + NL + NL if topic.get("desc_extra") else "") + "Simple Hinglish explainer. This is an educational explainer. The voice is a synthetic (AI) voice; "
-                            "diagrams are simplified illustrations." + NL + NL + "#TechExplained #HowItWorks #Hindi")}
+                            "diagrams are simplified illustrations." + (NL + "Visuals: AI-generated 3D illustrations." if visual_mode() == "3d" else "") + NL + NL + topic_hashtags(topic)),
+            "visual": visual_mode()}
     (out_dir / f"{key}_meta.json").write_text(json.dumps(meta, indent=1, ensure_ascii=False), encoding="utf-8")
     print(f"[TECH:{key}] done: {mp4} ({meta['duration_s']}s)")
     return mp4, thumb, meta

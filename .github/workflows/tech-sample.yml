@@ -10,6 +10,10 @@ on:
         description: "Topic key in tech_short.TOPICS"
         required: false
         default: "phone_heat"
+      visual:
+        description: "footage = stock footage, 3d = AI 3D-render illustrations (needs the Cloudflare keys)"
+        required: false
+        default: "footage"
       thumbs_only:
         description: "yes = only the thumbnails (fast, no voice/video)"
         required: false
@@ -26,6 +30,9 @@ jobs:
       PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
       PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      TECH_VISUAL: ${{ github.event.inputs.visual }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
