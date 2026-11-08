@@ -23,5 +23,10 @@
   "topic": "charge_overnight",
   "video": "eVwlFz_3RoE",
   "publish_at": "2026-11-08T13:00:00+00:00"
+ },
+ {
+  "topic": "battery_drain",
+  "video": "vn9HR7FxZJw",
+  "publish_at": "2026-11-09T13:00:00+00:00"
  }
 ]
