@@ -921,6 +921,37 @@ def bold_thumbnail(frame, topic, path):
         else:
             d.text((52, y), w_, font=f, fill=(GOLD if i == 0 else WHITE) + (255,), anchor="lm", stroke_width=7, stroke_fill=(0, 0, 0))
         y += lh
+    # --- fun layer: colour glow, starburst with the topic icon, hand-drawn arrow, tilted sticker ---
+    import math
+    _l, _r, _b = TINTS.get(topic.get("tint"), HEAT_TINT)
+    glow = Image.new("RGBA", (1280, 720), (0, 0, 0, 0))
+    gd = ImageDraw.Draw(glow)
+    for x in range(640, 1280):
+        gd.line([(x, 0), (x, 720)], fill=_r + (int(95 * (x - 640) / 640),))
+    im = Image.alpha_composite(im.convert("RGBA"), glow).convert("RGB")
+    d = ImageDraw.Draw(im, "RGBA")
+    cx, cy, R = 1085, 160, 128
+    pts = []
+    for k in range(32):
+        rr = R if k % 2 == 0 else R * 0.72
+        ang = math.pi * 2 * k / 32 - math.pi / 2
+        pts.append((cx + rr * math.cos(ang), cy + rr * math.sin(ang)))
+    d.polygon(pts, fill=(255, 225, 40, 255), outline=(0, 0, 0, 255))
+    d.ellipse((cx - R * 0.62, cy - R * 0.62, cx + R * 0.62, cy + R * 0.62), fill=_b + (255,), outline=WHITE + (255,), width=5)
+    _icon(d, topic.get("icon") or "qm", cx, cy + 4, 52)
+    ax, ay = 700, 640                                  # arrow pointing up-right at the picture
+    d.line([(ax - 150, ay + 30), (ax, ay - 10)], fill=(0, 0, 0, 255), width=30)
+    d.line([(ax - 150, ay + 30), (ax, ay - 10)], fill=WHITE + (255,), width=18)
+    d.polygon([(ax + 60, ay - 30), (ax - 20, ay - 70), (ax - 10, ay + 30)], fill=WHITE + (255,), outline=(0, 0, 0, 255))
+    txt = (topic.get("thumb_sub") or "ASLI WAJAH")[:22]
+    f2 = font(58)
+    tw = int(d.textlength(txt, font=f2)) + 60
+    st = Image.new("RGBA", (tw + 20, 120), (0, 0, 0, 0))
+    sd = ImageDraw.Draw(st)
+    sd.rounded_rectangle((6, 6, tw + 12, 104), radius=22, fill=(255, 235, 60, 255), outline=(0, 0, 0, 255), width=6)
+    sd.text(((tw + 18) / 2, 56), txt, font=f2, fill=(15, 15, 15, 255), anchor="mm")
+    st = st.rotate(-6, expand=True, resample=Image.BICUBIC)
+    im.paste(st, (1280 - st.width - 20, 720 - st.height - 18), st)
     im.save(path, quality=93)
 
 
