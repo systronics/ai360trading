@@ -1,5 +1,5 @@
 {
-  "generated_at": "09 November 2026, 10:10 AM IST",
+  "generated_at": "09 November 2026, 01:03 PM IST",
   "setups": [
     {
       "symbol": "BSE",
@@ -10,12 +10,12 @@
       "days_in_trade": "4"
     },
     {
-      "symbol": "ICICIBANK",
-      "trade_type": "📊 Options Alert",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
+      "symbol": "IREDA",
+      "trade_type": "🔥 Cash Intraday",
+      "strategy": "CASH",
+      "stage": "🔥 CASH | +4.2% | Vol 22%",
+      "status": "✅ TRADED (PAPER)",
+      "days_in_trade": "0"
     },
     {
       "symbol": "INDHOTEL",
@@ -37,7 +37,7 @@
       "symbol": "TECHM",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
