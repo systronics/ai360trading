@@ -1,5 +1,5 @@
 {
-  "generated_at": "09 November 2026, 01:03 PM IST",
+  "generated_at": "09 November 2026, 01:33 PM IST",
   "setups": [
     {
       "symbol": "BSE",
@@ -18,7 +18,7 @@
       "days_in_trade": "0"
     },
     {
-      "symbol": "INDHOTEL",
+      "symbol": "LAURUSLABS",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
@@ -26,7 +26,7 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "LAURUSLABS",
+      "symbol": "INDHOTEL",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
