@@ -1,0 +1,32 @@
+import re
+import tech_topics4 as X
+import tech_topics3, tech_topics2
+
+
+def test_thirty_unique_topics():
+    assert len(X.TOPICS4) == 30 and len(X.ORDER) == 30 and set(X.ORDER) == set(X.TOPICS4)
+
+
+def test_no_clash_with_existing_keys():
+    old = set(tech_topics3.TOPICS3) | set(tech_topics2.TOPICS2 if hasattr(tech_topics2, "TOPICS2") else [])
+    assert not (old & set(X.TOPICS4))
+
+
+def test_structure_and_safety():
+    for k, t in X.TOPICS4.items():
+        assert len(t["lines"]) == 5 and len(t["caps"]) == 5 and len(t["scenes"]) == 5 and len(t["queries"]) == 5, k
+        body = " ".join(t["lines"])
+        assert not re.search(r"\d", body), (k, "digit in narration")
+        words = len(body.split())
+        assert 85 <= words <= 135, (k, words)
+        assert "Kyun" not in t["yt_title"] and t["yt_title"].endswith("#shorts"), k
+        assert len(t["yt_title"]) <= 100, k
+        assert "कल मिलते हैं" in t["lines"][-1], k
+        for ban in ("गारंटी", "100%", "पक्का"):
+            assert ban not in body, (k, ban)
+
+
+def test_register_never_overwrites():
+    d = {"phone_slow": {"keep": 1}}
+    X.register(d)
+    assert d["phone_slow"] == {"keep": 1} and len(d) == 30
