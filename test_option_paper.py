@@ -16,7 +16,8 @@ def test_lots_for():
 def test_entry_windows_and_limits():
     assert P.entry_allowed("09:30", 0, 0, 0, 10) == (True, "")
     assert P.entry_allowed("11:31", 0, 0, 0, 99)[0] is False            # between windows
-    assert P.entry_allowed("10:00", 5, 0, 0, 99)[0] is False            # 5 early entries used
+    assert P.entry_allowed("10:00", 3, 0, 0, 99)[0] is False            # 3 early entries used
+    assert P.entry_allowed("14:30", 2, 1, 0, 99)[0] is False            # 3 trades in total today
     assert P.entry_allowed("14:30", 0, 0, 0, 35)[0] is True             # perfect late setup
     assert P.entry_allowed("14:30", 0, 0, 0, 20)[0] is False            # not perfect
     assert P.entry_allowed("14:30", 0, 1, 0, 40)[0] is False            # late slot used
