@@ -1,6 +1,7 @@
 """
-AI360 CashWatchlist Auto-Refresh — v1.4
+AI360 CashWatchlist Auto-Refresh — v1.5
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+v1.5 (2026-11-09): + IEX, DELHIVERY, UJJIVANSFB from the owner list (append-only seeding adds only missing rows).
 v1.4 (2026-07-28): 2 WRONG NSE TICKERS FIXED (owner: "check the CashWatchlist
   and LTWatchlist tabs for stale entries too"). Live sheet showed UCO Bank and
   Deepak Nitrite both stuck at CMP=0/Change=0/Volume=0 (GOOGLEFINANCE returning
@@ -106,6 +107,11 @@ CURATED_STOCKS = [
     # Special situations
     ("NSE:IDEA",       "Vodafone Idea",             "Telecom",     20),
     ("NSE:DELTACORP",  "Delta Corp",                "Gaming",      20),
+    # 2026-11-09 owner list (stocks outside Nifty200 the scanner never saw); NBCC/INOXWIND were already here.
+    # AMBER (~Rs 6,200) and NAM-INDIA (~Rs 1,070) are above CASH_MAX 500, so they are deliberately NOT added (they would only sit INACTIVE).
+    ("NSE:IEX",        "Indian Energy Exchange",    "Power",       10),
+    ("NSE:DELHIVERY",  "Delhivery",                 "Logistics",   10),
+    ("NSE:UJJIVANSFB", "Ujjivan Small Finance Bank","Pvt Bank",    10),
 ]
 
 # CashWatchlist columns (1-based for gspread)
