@@ -1,14 +1,6 @@
 {
-  "generated_at": "09 November 2026, 09:10 AM IST",
+  "generated_at": "09 November 2026, 09:40 AM IST",
   "setups": [
-    {
-      "symbol": "KOTAKBANK",
-      "trade_type": "🔄 Swing",
-      "strategy": "➖ HOLD",
-      "stage": "⚡ BREAKOUT ALERT",
-      "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "13"
-    },
     {
       "symbol": "BSE",
       "trade_type": "📈 Positional",
@@ -18,12 +10,12 @@
       "days_in_trade": "4"
     },
     {
-      "symbol": "NYKAA",
+      "symbol": "ICICIBANK",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
-      "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "4"
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
     },
     {
       "symbol": "INDHOTEL",
@@ -37,7 +29,7 @@
       "symbol": "TECHM",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
@@ -45,7 +37,7 @@
       "symbol": "LAURUSLABS",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
