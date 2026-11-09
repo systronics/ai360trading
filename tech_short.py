@@ -890,6 +890,40 @@ def real_thumbnail(frame, topic, path):
     im.save(path, quality=93)
 
 
+def bold_thumbnail(frame, topic, path):
+    """Variant C (owner 2026-11-09: 'big 2-4 word hook'): the picture on the right, a dark fade on the left, 2-4 HUGE stacked words with the last one
+    as a red box. Pure text-fit: font shrinks until the widest word fits the left 58%. No numbers, no faces."""
+    from PIL import ImageEnhance
+    im = Image.fromarray(frame).convert("RGB")
+    im = _crop169(im, topic)
+    im = ImageEnhance.Color(im).enhance(1.5)
+    im = ImageEnhance.Contrast(im).enhance(1.15)
+    fade = Image.new("RGBA", (1280, 720), (0, 0, 0, 0))
+    fd = ImageDraw.Draw(fade)
+    for x in range(900):
+        fd.line([(x, 0), (x, 720)], fill=(6, 8, 20, int(238 * (1 - x / 900) ** 0.8)))
+    im = Image.alpha_composite(im.convert("RGBA"), fade).convert("RGB")
+    d = ImageDraw.Draw(im, "RGBA")
+    th = topic.get("thumb", topic.get("title", "TECH"))
+    s = " ".join(th) if isinstance(th, (list, tuple)) else str(th)
+    words = s.upper().replace("KYUN", "KYU").split()[:4] or ["TECH"]
+    size = 170
+    while size > 70 and max(d.textlength(w_, font=font(size)) for w_ in words) > 740:
+        size -= 6
+    f = font(size)
+    lh = int(size * 1.12)
+    y = (720 - lh * len(words)) // 2 + lh // 2
+    for i, w_ in enumerate(words):
+        if i == len(words) - 1 and len(words) > 1:
+            tw = d.textlength(w_, font=f)
+            d.rounded_rectangle((38, y - lh // 2 + 4, 38 + tw + 44, y + lh // 2 - 4), radius=22, fill=(225, 25, 25, 255), outline=WHITE + (255,), width=5)
+            d.text((60, y), w_, font=f, fill=WHITE + (255,), anchor="lm", stroke_width=5, stroke_fill=(70, 0, 0))
+        else:
+            d.text((52, y), w_, font=f, fill=(GOLD if i == 0 else WHITE) + (255,), anchor="lm", stroke_width=7, stroke_fill=(0, 0, 0))
+        y += lh
+    im.save(path, quality=93)
+
+
 def wrap_lines(d, s, f, maxw):
     words, lines, cur = s.split(), [], ""
     for w_ in words:
@@ -1200,6 +1234,10 @@ def build(key, out_dir, real=False, cache_dir='bank_tech'):
             real_thumbnail(thumb_frame, topic, thumb)
             pattern_thumbnail(thumb_frame, topic, out_dir / f"{key}_thumb_pattern.jpg")
             long_thumbnail(thumb_frame, topic, out_dir / f"{key}_thumb_long.jpg")
+            try:
+                bold_thumbnail(thumb_frame, topic, out_dir / f"{key}_thumb_bold.jpg")
+            except Exception as ex:
+                print(f"[TECH] bold thumbnail skipped: {str(ex)[:80]}")
             Image.fromarray(thumb_frame).save(out_dir / f"{key}_thumbframe.png")
             raise StopIteration
         fr = Image.fromarray(frame_fn(topic, 0, n, 6.0)(5.0)).convert("RGB")
