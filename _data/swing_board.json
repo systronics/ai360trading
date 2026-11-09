@@ -1,5 +1,5 @@
 {
-  "generated_at": "06 November 2026, 11:11 PM IST",
+  "generated_at": "09 November 2026, 08:40 AM IST",
   "setups": [
     {
       "symbol": "KOTAKBANK",
@@ -7,7 +7,7 @@
       "strategy": "➖ HOLD",
       "stage": "⚡ BREAKOUT ALERT",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "10"
+      "days_in_trade": "13"
     },
     {
       "symbol": "BSE",
@@ -15,7 +15,7 @@
       "strategy": "➖ HOLD",
       "stage": "🚀 MOMENTUM BREAKOUT | 🔁 Correction Base",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "1"
+      "days_in_trade": "4"
     },
     {
       "symbol": "NYKAA",
@@ -23,7 +23,7 @@
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "1"
+      "days_in_trade": "4"
     },
     {
       "symbol": "INDHOTEL",
