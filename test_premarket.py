@@ -25,8 +25,11 @@ def test_narration_has_no_prediction_and_no_gift_number():
     rows = _r([1, 1, 1, 1, 1])
     rows["NIFTY"] = {"pct": 0.1, "last": 25044.65}
     t = " ".join(PB.narration_parts(rows, "POSITIVE", ["TATAPOWER"], None))
-    assert "GIFT Nifty apne chart" in t and "salah nahi" in t and "TATAPOWER" in t
-    assert "jarur" not in t.lower() and "guarantee" not in t.lower()
+    assert "सलाह नहीं" in t and "गिफ्ट निफ्टी अपने चार्ट" in t                  # honest: GIFT Nifty is not shown, viewers are sent to their own chart
+    assert "ओपनिंग ऊपर" in t                                                  # trend signal, not a list of numbers
+    assert not any(ch.isdigit() for ch in t)                                  # numbers are on screen, never spoken
+    assert "TATAPOWER" not in t                                               # Latin symbols are not read by the Hindi voice; the list is on screen
+    assert "गारंटी" not in t
 
 
 def test_gate():
