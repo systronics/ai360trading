@@ -1192,6 +1192,17 @@ def scene_base_3d(key, topic, i, dur, cache_dir):
         return None
 
 
+def short_hook(line, max_words=10):
+    """2026-11-10 hook test: only 17% of the tech Page's views lasted 3 seconds (296 of 1,692), so for a 5-day test the FIRST spoken line is cut to its opening question/sentence
+    (the 'here are 5 reasons' promise that followed it is dropped). Returns the original line when the first sentence is empty or longer than `max_words`. Pure."""
+    import re as _re
+    m = _re.match(r"^\s*(.+?[?\u0964!])", line, flags=_re.S)
+    if not m:
+        return line
+    first = m.group(1).strip()
+    return first if 2 <= len(first.split()) <= max_words else line
+
+
 def build(key, out_dir, real=False, cache_dir='bank_tech'):
     from moviepy.editor import VideoClip, AudioFileClip, CompositeAudioClip, concatenate_videoclips
     from moviepy.audio.AudioClip import AudioArrayClip
@@ -1201,8 +1212,12 @@ def build(key, out_dir, real=False, cache_dir='bank_tech'):
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     n = len(topic["lines"])
+    _spoken = list(topic["lines"])
+    if os.environ.get("TECH_HOOK_SHORT", "").strip().lower() == "on":   # 2026-11-10 hook test (repo variable TECH_HOOK_SHORT=on); off = unchanged
+        _spoken[0] = short_hook(_spoken[0])
+        print(f"[TECH:{key}] HOOK TEST: first line = {_spoken[0]!r}")
     scenes, used, thumb_frame, thumbs_done = [], set(), None, False
-    for i, line in enumerate(topic["lines"]):
+    for i, line in enumerate(_spoken):
         if i == n - 1 and SPOKEN_CTA.strip() not in line:
             line = line.rstrip() + SPOKEN_CTA
         ap = out_dir / f"{key}_{i}.mp3"

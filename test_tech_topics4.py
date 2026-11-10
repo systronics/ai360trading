@@ -38,3 +38,15 @@ def test_engage_lines_ask_a_question_and_a_follow():
         t = D.engage_lines(kind)
         assert "Comment mein batao" in t and "Follow karo" in t and "\n" in t
     assert "Hinglish" not in D.engage_lines("explain")
+
+
+def test_short_hook_never_empty_and_never_longer():
+    import tech_short as T
+    for k, t in T.TOPICS.items():
+        if "lines" not in t:
+            continue
+        s = T.short_hook(t["lines"][0])
+        assert s.strip() and len(s) <= len(t["lines"][0]), k
+        assert len(s.split()) <= 10 or s == t["lines"][0], k
+    assert T.short_hook("फ़ोन गर्म क्यों होता है? इसकी वजह जानो।") == "फ़ोन गर्म क्यों होता है?"
+    assert T.short_hook("एक दो तीन चार पाँच छह सात आठ नौ दस ग्यारह बारह? बाक़ी।").startswith("एक दो")   # too long -> unchanged

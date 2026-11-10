@@ -55,6 +55,7 @@ jobs:
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       TECH_VISUAL: ${{ vars.TECH_VISUAL }}
+      TECH_HOOK_SHORT: ${{ vars.TECH_HOOK_SHORT }}   # 2026-11-10 5-day hook test (first spoken line = its opening question only); unset/off = unchanged
       CHAT_ID_PREMIUM: ${{ secrets.CHAT_ID_PREMIUM }}
     steps:
       - uses: actions/checkout@v4
