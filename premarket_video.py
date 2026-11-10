@@ -13,7 +13,7 @@ from datetime import date, datetime
 from pathlib import Path
 
 VOICE = "hi-IN-MadhurNeural"
-RATE = "+6%"
+RATE = "+12%"
 PITCH = "+10Hz"
 MAX_SECONDS = 58.0
 
@@ -94,7 +94,7 @@ def build(out_dir, day_arg=None):
     for i, text in enumerate(parts):
         mp3 = tts(text, tmp / f"v{i}.mp3")
         a = AudioFileClip(str(mp3))
-        dur = a.duration + 0.35
+        dur = a.duration + 0.2
         total += dur
         clips.append(VideoClip(push_in(tmp / f"f{i + 1}.jpg", dur), duration=dur).set_audio(a))
     if total > MAX_SECONDS:

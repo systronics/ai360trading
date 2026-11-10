@@ -25,7 +25,7 @@ def test_narration_has_no_prediction_and_no_gift_number():
     rows = _r([1, 1, 1, 1, 1])
     rows["NIFTY"] = {"pct": 0.1, "last": 25044.65}
     t = " ".join(PB.narration_parts(rows, "POSITIVE", ["TATAPOWER"], None))
-    assert "GIFT Nifty apne broker" in t and "salah nahi" in t and "TATAPOWER" in t
+    assert "GIFT Nifty apne chart" in t and "salah nahi" in t and "TATAPOWER" in t
     assert "jarur" not in t.lower() and "guarantee" not in t.lower()
 
 

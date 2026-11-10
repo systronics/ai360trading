@@ -45,7 +45,7 @@ def main(argv=None):
     non_market = False
     try:
         import indian_holidays as H
-        non_market = bool(H.is_non_market_day(now.date()))
+        non_market = bool(H.is_non_market_day())          # takes no argument: it checks today's date in IST itself
     except Exception as e:
         print("[GATE] holiday check failed, continuing:", str(e)[:80])
     try:

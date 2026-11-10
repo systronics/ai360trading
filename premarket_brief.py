@@ -94,7 +94,7 @@ def narration_parts(rows, v, results, day):
     a = "Market khulne se pehle ek minute. " + verdict_txt
     n = rows.get("NIFTY")
     if n:
-        a += f" Nifty pichhle din {n['last']:,.0f} par band hua tha."
+        a += f" Nifty {n['last']:,.0f} par band hua tha."
     b = []
     us = [mv(k) for k in ("NASDAQ", "S&P 500", "DOW") if mv(k)]
     if us:
@@ -110,9 +110,9 @@ def narration_parts(rows, v, results, day):
     if "INDIA VIX" in rows:
         c.append(f"India VIX {rows['INDIA VIX']['last']:.1f}.")
     if results:
-        c.append("Aaj in companies ke results hain: " + ", ".join(results[:5]) + ".")
-    c.append("GIFT Nifty apne broker ya chart par dekh lena.")
-    c.append("Ye sirf jaankari hai, salah nahi. Apna plan apne stop loss ke saath banao.")
+        c.append("Aaj results: " + ", ".join(results[:3]) + ".")
+    c.append("GIFT Nifty apne chart par dekh lena.")
+    c.append("Sirf jaankari hai, salah nahi.")
     return [a, " ".join(b), " ".join(c)]
 
 
