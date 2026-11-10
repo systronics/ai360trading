@@ -28,6 +28,7 @@ redirect_from:
     <ul>
       <li><strong>Google Analytics (G-YR9E0CYRCV):</strong> To analyse global traffic patterns and improve user experience. Data is anonymised and aggregated.</li>
       <li><strong>GitHub Pages:</strong> Our website hosting provider. Standard server logs apply.</li>
+      <li><strong>Brevo (email newsletter):</strong> If you subscribe to AI360 Weekly, your email address is stored with Brevo and used only to send that newsletter. You confirm your subscription by email and can unsubscribe at any time from any email we send.</li>
     </ul>
 
     <h3>Cookies & Ad Personalization</h3>
@@ -39,6 +40,7 @@ redirect_from:
 
     <h3>Affiliate & Referral Disclosure</h3>
     <p>Some links on this website (for example, links to open a demat or trading account, or to broker/exchange platforms) are <strong>affiliate or referral links</strong>. If you sign up or make a purchase through them, AI360Trading may earn a small commission <strong>at no additional cost to you</strong>. We only recommend products and services we believe are genuinely useful, and a referral relationship never changes our honest assessment. This is educational information, not investment advice.</p>
+    <p>As an Amazon Associate I earn from qualifying purchases.</p>
 
     <h3>Data Retention</h3>
     <p>We do not store personal data on our servers. Email correspondence is retained for up to 12 months. Any data collected by third-party services is subject to their respective privacy policies.</p>
