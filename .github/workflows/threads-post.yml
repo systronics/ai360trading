@@ -1,0 +1,50 @@
+name: "Threads auto-post (new website articles)"
+
+# 2026-11-10 owner: 'do threads and pinterest auto'. Posts the newest not-yet-posted article (last 3 days) to Threads once a day (threads_post.py): title + short excerpt + link preview, flagged is_made_with_ai.
+# Needs the OWNER's secrets THREADS_USER_ID and THREADS_ACCESS_TOKEN (steps in CLAUDE.md / the setup note). Until they exist, or while repo variable THREADS_MODE is not 'scheduled', it only PRINTS what it would post.
+# Kill switch: gh variable set THREADS_MODE --body dry
+
+on:
+  schedule:
+    - cron: "37 12 * * *"     # 18:07 IST (GitHub may delay it; nothing depends on the exact minute)
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "dry | scheduled (empty = repo variable THREADS_MODE, default dry)"
+        required: false
+        default: ""
+
+concurrency:
+  group: threads-post
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      THREADS_MODE: ${{ github.event.inputs.mode || vars.THREADS_MODE || 'dry' }}
+      THREADS_USER_ID: ${{ secrets.THREADS_USER_ID }}
+      THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: master
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -q requests
+      - name: Post (or print, in dry mode)
+        run: python threads_post.py --run
+      - name: Record what was posted
+        if: ${{ env.THREADS_MODE == 'scheduled' }}
+        run: |
+          git config --local user.email "admin@ai360trading.in"
+          git config --local user.name "AI360-Automation"
+          if [ -f _data/threads_posted.json ]; then git add _data/threads_posted.json; fi
+          git diff --cached --quiet || git commit -m "Threads: posted $(date +'%Y-%m-%d')"
+          git pull --rebase origin master || true
+          git push origin master || true

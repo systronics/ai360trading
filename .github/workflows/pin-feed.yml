@@ -1,0 +1,44 @@
+name: "Pinterest feed (pinterest.xml + vertical pin images)"
+
+# 2026-11-10 owner: 'do threads and pinterest auto'. Builds https://ai360trading.in/pinterest.xml (RSS 2.0) and one 1000x1500 pin image per evergreen article (pin_feed.py).
+# Pinterest itself pulls the feed once the OWNER has (one time, desktop): created a Pinterest business account, claimed ai360trading.in, and connected this feed to a board
+# (Pinterest > Settings > Bulk create pins > Auto-publish > RSS feed). Nothing here posts to Pinterest, so this workflow is safe to run before that setup.
+
+on:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: pin-feed
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  feed:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: master
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Fonts and Pillow
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends fonts-dejavu
+          pip install -q pillow
+      - name: Build the feed and any missing pin images
+        run: python pin_feed.py
+      - name: Commit changes
+        run: |
+          git config --local user.email "admin@ai360trading.in"
+          git config --local user.name "AI360-Automation"
+          git add pinterest.xml public/image/pins
+          git diff --cached --quiet || git commit -m "Pinterest feed refreshed: $(date +'%Y-%m-%d')"
+          git pull --rebase origin master || true
+          git push origin master || true
