@@ -1,0 +1,32 @@
+name: Option probe (manual, read-only)
+# 2026-11-10: prints the real numbers of ONE option contract (premium, spread, IV, theta, lot, break-even) from the free read-only Upstox token. Writes nothing, sends nothing.
+on:
+  workflow_dispatch:
+    inputs:
+      symbol:
+        description: 'underlying symbol, e.g. COALINDIA'
+        default: 'COALINDIA'
+      strike:
+        description: 'strike, e.g. 400'
+        default: '400'
+      side:
+        description: 'CE or PE'
+        default: 'CE'
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      UPSTOX_ANALYTICS_TOKEN: ${{ secrets.UPSTOX_ANALYTICS_TOKEN }}
+      SYM: ${{ github.event.inputs.symbol }}
+      STRIKE: ${{ github.event.inputs.strike }}
+      SIDE: ${{ github.event.inputs.side }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pytz==2026.2 requests gspread==6.2.1 oauth2client==4.1.3
+      - run: python option_probe.py "$SYM" "$STRIKE" "$SIDE"
