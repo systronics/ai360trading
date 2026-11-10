@@ -187,12 +187,22 @@ def _connect():
     return gspread.authorize(ServiceAccountCredentials.from_json_keyfile_dict(json.loads(raw), scope)).open("Ai360tradingAlgo")
 
 
+def _is_holiday():
+    """2026-11-10: OptionSnap wrote 'live' rows on the Diwali-Balipratipada holiday (stale chain data polluting the evidence tab) because only weekday + clock were checked.
+    indian_holidays.is_non_market_day() takes NO argument (checks today in IST). Fail-open: any problem -> not a holiday, behaviour as before."""
+    try:
+        import indian_holidays as _H
+        return bool(_H.is_non_market_day())
+    except Exception:
+        return False
+
+
 def main(argv=None):
     argv = argv if argv is not None else sys.argv[1:]
     write, check, force = "--write" in argv, "--check" in argv, "--force" in argv
     now = datetime.now(IST)
     hm, today = now.strftime("%H:%M"), now.strftime("%Y-%m-%d")
-    if not force and not (now.weekday() < 5 and "09:15" <= hm <= "15:40"):
+    if not force and (_is_holiday() or not (now.weekday() < 5 and "09:15" <= hm <= "15:40")):
         print(f"[PAPER] {hm} IST outside market hours")
         return 0
     token = os.environ.get("UPSTOX_ANALYTICS_TOKEN", "").strip()
