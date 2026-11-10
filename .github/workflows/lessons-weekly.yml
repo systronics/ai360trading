@@ -48,6 +48,9 @@ jobs:
       MODE: ${{ github.event.inputs.mode || 'scheduled' }}
       EDITION: ${{ github.event.inputs.edition || 'both' }}
       YOUTUBE_CREDENTIALS: ${{ secrets.YOUTUBE_CREDENTIALS }}
+      LESSON_FB: ${{ vars.LESSON_FB }}
+      META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
+      FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
       GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       CHAT_ID_BASIC: ${{ secrets.CHAT_ID_BASIC }}

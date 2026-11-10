@@ -281,6 +281,22 @@ def run(region, lang, mode, out_dir, lesson=None):
             append_to_description(other["video"], f"English edition: https://youtu.be/{vid}")
     done.setdefault(lid, {})[f"{region}-{lang}"] = {"video": vid, "publish_at": when.isoformat()}
     save_done(done)
+    # 2026-11-10: the Hindi edition also goes to the trading Facebook Page as ONE scheduled video (lesson_fb.py: only when repo
+    # variable LESSON_FB=on, once per lesson id, never an immediate post). Fail-open: YouTube is already done above.
+    try:
+        import lesson_fb as _fb
+        if _fb.enabled(region, lang) and not _fb.already_posted(done, lid):
+            from human_touch import ai_disclosure as _ad
+            _foot = "शिक्षा के लिए, निवेश सलाह नहीं। हम SEBI-पंजीकृत सलाहकार नहीं हैं।"
+            _fid = _fb.post_scheduled(mp4, title, _fb.caption(title, L["desc"][lang], _ad(lang), _foot), when)
+            if _fid:
+                done[lid][f"{region}-{lang}"]["fb_video"] = _fid
+                save_done(done)
+                owner_note(f"Hindi lesson {lid} is scheduled on the Facebook Page too (video {_fid}).")
+            else:
+                owner_note(f"Hindi lesson {lid}: Facebook Page scheduling did not happen, nothing was posted there. YouTube is fine.")
+    except Exception as _fe:
+        print(f"[RUNNER] facebook lesson skipped (fail-open): {_fe}")
     link = f"https://youtu.be/{vid}"
     if lang == "hi":
         tg(f"<b>नया लेसन</b>: {title}\nलाइव: {when.strftime('%a %d %b, %H:%M')} UTC\n{link}\n\nTelegram: https://t.me/ai360trading")
