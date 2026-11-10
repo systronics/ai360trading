@@ -29,6 +29,21 @@ def tts(text, path):
     return path
 
 
+def push_in(path, dur, zoom=0.04):
+    """get_frame(t) for a slow 4% push-in on a 1080x1920 picture. Done with numpy + PIL because moviepy 1.0.3's resize() calls Image.ANTIALIAS, which Pillow 10+ removed."""
+    import numpy as np
+    from PIL import Image
+    arr = np.asarray(Image.open(path).convert("RGB"))
+    h, w = arr.shape[:2]
+
+    def get(t):
+        z = 1.0 + zoom * min(max(t / max(dur, 0.1), 0.0), 1.0)
+        cw, ch = int(w / z), int(h / z)
+        x0, y0 = (w - cw) // 2, (h - ch) // 2
+        return np.asarray(Image.fromarray(arr[y0:y0 + ch, x0:x0 + cw]).resize((w, h), Image.BILINEAR))
+    return get
+
+
 def caption(rows, v, results, day):
     tg = "t.me/ai360trading"
     try:
@@ -55,7 +70,7 @@ def caption(rows, v, results, day):
 
 
 def build(out_dir, day_arg=None):
-    from moviepy.editor import AudioFileClip, ImageClip, concatenate_videoclips
+    from moviepy.editor import AudioFileClip, VideoClip, concatenate_videoclips
     import premarket_brief as PB
     today = date.fromisoformat(day_arg) if day_arg else date.today()
     day = PB.next_trading_day(today) if today.weekday() >= 5 else today
@@ -81,12 +96,7 @@ def build(out_dir, day_arg=None):
         a = AudioFileClip(str(mp3))
         dur = a.duration + 0.35
         total += dur
-        img = ImageClip(str(tmp / f"f{i + 1}.jpg")).set_duration(dur)
-        z = lambda t, d=dur: 1.0 + 0.04 * (t / d)          # slow push-in so the picture is not frozen
-        img = img.resize(z).set_position("center")
-        from moviepy.editor import CompositeVideoClip
-        clip = CompositeVideoClip([img], size=(1080, 1920)).set_duration(dur).set_audio(a)
-        clips.append(clip)
+        clips.append(VideoClip(push_in(tmp / f"f{i + 1}.jpg", dur), duration=dur).set_audio(a))
     if total > MAX_SECONDS:
         print(f"[PREMARKET] {total:.1f}s is over {MAX_SECONDS:.0f}s - not building")
         return None

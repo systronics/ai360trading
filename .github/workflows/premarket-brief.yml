@@ -50,7 +50,9 @@ jobs:
           cache: "pip"
       - name: Gate (trading day, before 09:10 IST, not already posted today)
         id: gate
-        run: python premarket_gate.py
+        run: |
+          pip install -q requests pytz
+          python premarket_gate.py
       - name: System dependencies
         if: steps.gate.outputs.run == 'yes'
         run: |
