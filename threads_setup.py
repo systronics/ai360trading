@@ -39,18 +39,30 @@ def set_secret(name, value):
 
 
 def main():
-    short = getpass.getpass("Short-lived Threads token (hidden): ").strip()
-    secret = getpass.getpass("Threads app secret (hidden): ").strip()
-    if not short or not secret:
-        print("Both values are needed. Nothing was changed.")
+    short = getpass.getpass("Threads token from the Meta dashboard (hidden): ").strip()
+    if not short:
+        print("A token is needed. Nothing was changed.")
         return 1
+    secret = ""
     try:
-        long_token, expires = exchange(short, secret)
-        uid, uname = whoami(long_token)
+        # The dashboard's User Token Generator already gives a LONG-lived token: use it as is when it works (v1.1).
+        try:
+            uid, uname = whoami(short)
+            long_token, expires = short, 60 * 86400
+        except Exception:
+            secret = getpass.getpass("Threads app secret (hidden, only needed for a short-lived token): ").strip()
+            if not secret:
+                print("The token did not work as it is and no app secret was given. Nothing was changed.")
+                return 1
+            long_token, expires = exchange(short, secret)
+            uid, uname = whoami(long_token)
         set_secret("THREADS_ACCESS_TOKEN", long_token)
         set_secret("THREADS_USER_ID", uid)
     except Exception as e:
-        print("Stopped:", str(e).replace(short, "***").replace(secret, "***"))
+        msg = str(e).replace(short, "***")
+        if secret:
+            msg = msg.replace(secret, "***")
+        print("Stopped:", msg)
         return 1
     print(f"Done. Threads account @{uname} connected, token valid about {int(expires or 0) // 86400} days (refreshed automatically every 2 weeks).")
     print("Now run:  gh variable set THREADS_MODE --body scheduled")
