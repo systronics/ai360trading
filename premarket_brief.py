@@ -187,13 +187,13 @@ def frame_table(rows, v, day, path):
         for nme in names:
             r = rows.get(nme)
             d.rounded_rectangle((50, y - 38, 1030, y + 38), radius=22, fill=(255, 255, 255, 22))
-            d.text((90, y), nme, font=_font(48), fill=WHITE + (255,), anchor="lm")
+            d.text((90, y), nme, font=_font(44), fill=WHITE + (255,), anchor="lm")
             if r:
                 last = f"{r['last']:,.0f}" if r["last"] >= 1000 else f"{r['last']:,.2f}"
-                d.text((600, y), last, font=_font(44), fill=WHITE + (255,), anchor="rm")
+                d.text((650, y), last, font=_font(42), fill=WHITE + (255,), anchor="rm")
                 up = r["pct"] >= 0
                 c = (GREEN if up else RED) if nme != "INDIA VIX" else (RED if up else GREEN)
-                _tri(d, 700, y, 18, up, c)
+                _tri(d, 740, y, 18, up, c)
                 d.text((960, y), f"{r['pct']:+.2f}%", font=_font(46), fill=c + (255,), anchor="rm")
             else:
                 d.text((960, y), "-", font=_font(46), fill=MUTED + (255,), anchor="rm")
