@@ -1,0 +1,99 @@
+name: "Pre-market brief reel (AI360Trading Facebook + Instagram)"
+
+# 2026-11-10 owner: intraday traders want TODAY's cues before the market opens (US close, crude, Asia, VIX, results today), not a recap.
+# Builds ONE reel (premarket_video.py, ~40 s, Hinglish voice, 3 pictures) and, in scheduled mode, posts it to the trading Facebook Page + trading Instagram.
+# Timing: started by the reliable 08:40 IST bot-session start (trading_bot_session.yml 'kick' step) so it lands before 09:15; a 07:53 IST cron is only a backup (GitHub may delay it).
+# Guards (never post twice, never post late, never on a market holiday): see premarket_gate.py. Mode = repo variable PREMARKET_MODE (default dry = build only, preview artifact).
+# Kill switch: gh variable set PREMARKET_MODE --body dry
+
+on:
+  schedule:
+    - cron: "23 2 * * 1-5"     # 07:53 IST backup
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "dry | scheduled (empty = repo variable PREMARKET_MODE, default dry)"
+        required: false
+        default: ""
+      force:
+        description: "yes = ignore the time / once-a-day guard (manual tests)"
+        required: false
+        default: "no"
+
+concurrency:
+  group: premarket-brief
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  brief:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      MODE: ${{ github.event.inputs.mode || vars.PREMARKET_MODE || 'dry' }}
+      FORCE: ${{ github.event.inputs.force || 'no' }}
+      META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
+      FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
+      INSTAGRAM_BUSINESS_ACCOUNT_ID: ${{ secrets.INSTAGRAM_BUSINESS_ACCOUNT_ID }}
+      GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      CHAT_ID_PREMIUM: ${{ secrets.CHAT_ID_PREMIUM }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: master
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+      - name: Gate (trading day, before 09:10 IST, not already posted today)
+        id: gate
+        run: python premarket_gate.py
+      - name: System dependencies
+        if: steps.gate.outputs.run == 'yes'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends ffmpeg fonts-dejavu fonts-liberation fonts-freefont-ttf
+      - name: Python dependencies
+        if: steps.gate.outputs.run == 'yes'
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Build the reel
+        if: steps.gate.outputs.run == 'yes'
+        run: python premarket_video.py --out output/premarket
+      - name: Keep the preview (dry runs)
+        if: ${{ steps.gate.outputs.run == 'yes' && env.MODE != 'scheduled' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: premarket-preview
+          path: |
+            output/premarket/*_premarket.mp4
+            output/premarket/*_thumb.jpg
+            output/premarket/*_meta.json
+          retention-days: 7
+          if-no-files-found: ignore
+      - name: Post to the trading Facebook Page + Instagram
+        if: ${{ steps.gate.outputs.run == 'yes' && env.MODE == 'scheduled' }}
+        run: |
+          if ls output/premarket/*_premarket.mp4 >/dev/null 2>&1; then
+            python upload_facebook.py --meta-prefix premarket
+            python premarket_gate.py --mark-done
+          else
+            echo 'no reel was built today (not enough data or too long), nothing posted'
+          fi
+      - name: Record that today's brief was posted
+        if: ${{ steps.gate.outputs.run == 'yes' && env.MODE == 'scheduled' }}
+        run: |
+          git config --local user.email "admin@ai360trading.in"
+          git config --local user.name "AI360-Automation"
+          if [ -f _data/premarket_done.json ]; then git add _data/premarket_done.json; fi
+          git diff --cached --quiet || git commit -m "Pre-market brief posted: $(date +'%Y-%m-%d')"
+          git pull --rebase origin master || true
+          git push origin master || true
+      - name: Tell the owner if the build failed
+        if: failure()
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" -d chat_id="${CHAT_ID_PREMIUM}" -d text="Pre-market brief reel failed today (no post). Check the run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" >/dev/null || true

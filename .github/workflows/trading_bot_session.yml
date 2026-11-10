@@ -103,6 +103,7 @@ jobs:
             gh workflow run fetch_live_prices_session.yml -f end_time=12:15 || echo "[KICK] price feed dispatch failed"
             gh workflow run swing_board_session.yml -f end_time=12:15 || echo "[KICK] swing board dispatch failed"
             gh workflow run price_watch.yml -f end_time=12:15 || echo "[KICK] price watch dispatch failed"
+            gh workflow run premarket-brief.yml || echo "[KICK] premarket brief dispatch failed"   # 2026-11-10: the brief has its own once-a-day / before-09:10 / trading-day guard
           fi
 
       - name: Setup Python 3.11

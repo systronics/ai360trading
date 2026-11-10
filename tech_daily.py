@@ -193,7 +193,7 @@ def run(mode, out_dir, topic=None):
         desc = (meta["description"] + NL + NL + cta_line() + NL + NL + "Follow karo: roz ek nayi tech problem ka solution." + NL + NL +
                 ai_disclosure("hi"))
         # the same text for the Facebook/Instagram step (it reads this json)
-        caption = meta["title"].replace(" #shorts", "") + NL + NL + cta_line() + NL + NL + "#Tech #TechTips #Hinglish #AI360Technology"
+        caption = meta["title"].replace(" #shorts", "") + NL + NL + cta_line() + NL + NL + "#Tech #TechTips #AI360Technology"
         meta.update({"description_full": desc, "caption": caption, "topic": key})
         Path(out_dir, f"{key}_meta.json").write_text(json.dumps(meta, indent=1, ensure_ascii=False), encoding="utf-8")
         if mode == "dry":

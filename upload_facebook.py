@@ -489,6 +489,10 @@ def resolve_meta_and_video(prefix: str):
         # 2026-10-30: Hindi edition first (the Page audience is 97% India), English edition as fallback
         meta_patterns  = ["story/*_meta_hi.json", "story/*_meta.json"]
         video_patterns = ["story/*_story_hi.mp4", "story/*_story.mp4"]
+    elif prefix == "premarket":
+        # 2026-11-10: daily 'before the market opens' reel (premarket_video.py) -> the TRADING Page + trading Instagram
+        meta_patterns  = ["premarket/*_premarket_meta.json"]
+        video_patterns = ["premarket/*_premarket.mp4"]
     elif prefix == "tech":
         # 2026-11-01: AI360 Technology Short (tech_daily.py) -> the NEW Page + NEW Instagram only
         meta_patterns  = ["tech/*_meta.json"]
@@ -654,6 +658,22 @@ def main():
 
     # ── Story Short (Pixar-style, evergreen) → Facebook Page Reel ONLY ─────────
     # No Group post, no RSS share, no Instagram here: one clean reel per story.
+    if prefix == "premarket":
+        igid = os.environ.get("INSTAGRAM_BUSINESS_ACCOUNT_ID", "")
+        if not (FACEBOOK_PAGE_ID and video_path and video_path.exists()):
+            print("premarket: page id or video missing, skipping")
+            return
+        page_token = get_page_token(FACEBOOK_PAGE_ID, META_ACCESS_TOKEN)
+        caption = meta.get("caption") or meta.get("title", "")
+        print(f"Pre-market reel: {video_path.name}")
+        upload_reel_to_page(FACEBOOK_PAGE_ID, "AI360Trading Page", video_path, caption, page_token)
+        if igid:
+            try:
+                upload_reel_to_instagram(igid, video_path, caption, page_token)
+            except Exception as e:
+                print(f"  Instagram premarket upload failed (fail-open): {e}")
+        return
+
     if prefix == "tech":
         pid = os.environ.get("FACEBOOK_PAGE_ID_TECH", "")
         igid = os.environ.get("INSTAGRAM_ID_TECH", "")
