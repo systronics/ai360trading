@@ -61,6 +61,17 @@ def next_publish(now=None, at=None):
     return cand
 
 
+def engage_lines(kind):
+    """2026-11-10: the tech Page had 0 comments / 0 shares and 0% follower views (28 days, 1,692 views), so every Facebook/Instagram caption now asks ONE easy question and asks for the follow. Pure."""
+    if kind == "serious":
+        q = "Kya aapke saath ya kisi jaan-pehchan wale ke saath aisa hua hai? Comment mein batao."
+    elif kind == "myth":
+        q = "Aap isse sach maante the ya galat? Comment mein batao."
+    else:
+        q = "Aapke saath ye kab hota hai? Comment mein batao."
+    return q + "\n" + "Roz ki tech problem ka solution chahiye? Page ko Follow karo."
+
+
 def cta_line():
     try:
         t = CTA_FILE.read_text(encoding="utf-8").strip()
@@ -193,7 +204,11 @@ def run(mode, out_dir, topic=None):
         desc = (meta["description"] + NL + NL + cta_line() + NL + NL + "Follow karo: roz ek nayi tech problem ka solution." + NL + NL +
                 ai_disclosure("hi"))
         # the same text for the Facebook/Instagram step (it reads this json)
-        caption = meta["title"].replace(" #shorts", "") + NL + NL + cta_line() + NL + NL + "#Tech #TechTips #AI360Technology"
+        try:
+            _kind = TS.TOPICS.get(key, {}).get("kind", "explain")
+        except Exception:
+            _kind = "explain"
+        caption = meta["title"].replace(" #shorts", "") + NL + NL + engage_lines(_kind).replace("\\n", NL) + NL + NL + cta_line() + NL + NL + "#Tech #TechTips #AI360Technology"
         meta.update({"description_full": desc, "caption": caption, "topic": key})
         Path(out_dir, f"{key}_meta.json").write_text(json.dumps(meta, indent=1, ensure_ascii=False), encoding="utf-8")
         if mode == "dry":

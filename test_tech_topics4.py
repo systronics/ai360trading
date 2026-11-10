@@ -30,3 +30,11 @@ def test_register_never_overwrites():
     d = {"phone_slow": {"keep": 1}}
     X.register(d)
     assert d["phone_slow"] == {"keep": 1} and len(d) == 30
+
+
+def test_engage_lines_ask_a_question_and_a_follow():
+    import tech_daily as D
+    for kind in ("serious", "myth", "explain", "anything"):
+        t = D.engage_lines(kind)
+        assert "Comment mein batao" in t and "Follow karo" in t and "\n" in t
+    assert "Hinglish" not in D.engage_lines("explain")
