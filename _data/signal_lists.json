@@ -6,140 +6,147 @@
         "sector": "Capital Goods",
         "date": "2026-11-10",
         "date_label": "Tue 10 Nov",
-        "days_left": 1
+        "days_left": 0
       },
       {
         "symbol": "KALYANKJIL",
         "sector": "Consumer Durables",
         "date": "2026-11-10",
         "date_label": "Tue 10 Nov",
-        "days_left": 1
+        "days_left": 0
       },
       {
         "symbol": "MRF",
         "sector": "Automobile and Auto Components",
         "date": "2026-11-10",
         "date_label": "Tue 10 Nov",
-        "days_left": 1
+        "days_left": 0
       },
       {
         "symbol": "HINDCOPPER",
         "sector": "Metals & Mining",
         "date": "2026-11-11",
         "date_label": "Wed 11 Nov",
-        "days_left": 2
+        "days_left": 1
       },
       {
         "symbol": "TATAPOWER",
         "sector": "Power",
         "date": "2026-11-11",
         "date_label": "Wed 11 Nov",
-        "days_left": 2
+        "days_left": 1
       },
       {
         "symbol": "ALKEM",
         "sector": "Healthcare",
         "date": "2026-11-12",
         "date_label": "Thu 12 Nov",
-        "days_left": 3
+        "days_left": 2
       },
       {
         "symbol": "BDL",
         "sector": "Capital Goods",
         "date": "2026-11-12",
         "date_label": "Thu 12 Nov",
-        "days_left": 3
+        "days_left": 2
       },
       {
         "symbol": "HAL",
         "sector": "Capital Goods",
         "date": "2026-11-12",
         "date_label": "Thu 12 Nov",
-        "days_left": 3
+        "days_left": 2
       },
       {
         "symbol": "IDEA",
         "sector": "Telecommunication",
         "date": "2026-11-12",
         "date_label": "Thu 12 Nov",
-        "days_left": 3
+        "days_left": 2
       },
       {
         "symbol": "IRCTC",
         "sector": "Consumer Services",
         "date": "2026-11-12",
         "date_label": "Thu 12 Nov",
-        "days_left": 3
+        "days_left": 2
       },
       {
         "symbol": "NMDC",
         "sector": "Metals & Mining",
         "date": "2026-11-12",
         "date_label": "Thu 12 Nov",
-        "days_left": 3
+        "days_left": 2
       },
       {
         "symbol": "OIL",
         "sector": "Oil Gas & Consumable Fuels",
         "date": "2026-11-12",
         "date_label": "Thu 12 Nov",
-        "days_left": 3
+        "days_left": 2
       },
       {
         "symbol": "PAGEIND",
         "sector": "Textiles",
         "date": "2026-11-12",
         "date_label": "Thu 12 Nov",
-        "days_left": 3
+        "days_left": 2
       },
       {
         "symbol": "POWERINDIA",
         "sector": "Capital Goods",
         "date": "2026-11-12",
         "date_label": "Thu 12 Nov",
-        "days_left": 3
+        "days_left": 2
+      },
+      {
+        "symbol": "RVNL",
+        "sector": "Construction",
+        "date": "2026-11-12",
+        "date_label": "Thu 12 Nov",
+        "days_left": 2
       },
       {
         "symbol": "ABB",
         "sector": "Capital Goods",
         "date": "2026-11-13",
         "date_label": "Fri 13 Nov",
-        "days_left": 4
+        "days_left": 3
       },
       {
         "symbol": "EICHERMOT",
         "sector": "Automobile and Auto Components",
         "date": "2026-11-13",
         "date_label": "Fri 13 Nov",
-        "days_left": 4
+        "days_left": 3
       },
       {
         "symbol": "GRASIM",
         "sector": "Construction Materials",
         "date": "2026-11-13",
         "date_label": "Fri 13 Nov",
-        "days_left": 4
+        "days_left": 3
       },
       {
         "symbol": "RVNL",
         "sector": "Construction",
         "date": "2026-11-13",
         "date_label": "Fri 13 Nov",
-        "days_left": 4
+        "days_left": 3
       },
       {
         "symbol": "TMPV",
         "sector": "Automobile and Auto Components",
         "date": "2026-11-13",
         "date_label": "Fri 13 Nov",
-        "days_left": 4
+        "days_left": 3
       },
       {
         "symbol": "ASHOKLEY",
         "sector": "Capital Goods",
         "date": "2026-11-14",
         "date_label": "Sat 14 Nov",
-        "days_left": 5
+        "days_left": 4
       }
     ],
     "dividends": [
@@ -286,7 +293,7 @@
     ],
     "bonus_split": []
   },
-  "generated_at": "09 November 2026, 10:50 PM IST",
+  "generated_at": "10 November 2026, 04:38 PM IST",
   "market": {
     "up": true,
     "close": 25045,
