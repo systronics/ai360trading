@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Top Performing Mutual Funds in India: How to Pick One (SIP vs Lump Sum)"
+title: "Top Performing Mutual Funds in India: How to Pick One"
 date: 2026-06-15
 author: "Amit Kumar"
 pillar: "mutual-funds"
