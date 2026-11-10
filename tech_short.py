@@ -1252,9 +1252,15 @@ def build(key, out_dir, real=False, cache_dir='bank_tech'):
         rms = float(np.sqrt(np.mean(np.square(bed)))) or 1e-6
         bed = np.clip(bed * (0.02 / rms), -1, 1)
         bed = AudioArrayClip(np.stack([bed, bed], axis=1), fps=44100)
-        w = whoosh()
-        w = AudioArrayClip(np.stack([w, w], axis=1), fps=44100).set_start(0)
-        clip = clip.set_audio(CompositeAudioClip([bed, w, voice.set_start(0.05)]).set_duration(dur))
+        try:   # 2026-11-10: soft fades so the quiet bed does not click/pump at every cut
+            bed = bed.audio_fadein(0.3).audio_fadeout(0.3)
+        except Exception:
+            pass
+        parts = [bed, voice.set_start(0.05)]
+        if os.environ.get("TECH_WHOOSH", "").strip().lower() == "on":   # 2026-11-10 owner: the whoosh at every scene change sounded like a deep breath / slide-show sound between sentences -> OFF by default
+            w = whoosh()
+            parts.insert(1, AudioArrayClip(np.stack([w, w], axis=1), fps=44100).set_start(0))
+        clip = clip.set_audio(CompositeAudioClip(parts).set_duration(dur))
         scenes.append(clip)
         print(f"[TECH:{key}] scene {i + 1}/{n} ok ({dur:.1f}s)")
     if real and topic.get("thumb_queries") and visual_mode() != "3d":
