@@ -6,7 +6,7 @@ Rules (all fail-open to RUN except 'already posted' and 'too late', which are th
   * not a trading day (NSE holiday / weekend per indian_holidays.py) -> no
   * after 09:10 IST -> no (a pre-market brief after the open is useless)
   * mode == scheduled and _data/premarket_done.json already has today's date -> no (never post twice)
-  * env FORCE=yes (manual tests) skips the time and once-a-day rules.
+  * env FORCE=yes (manual tests only) skips ALL rules, holiday included.
 """
 import json
 import os
@@ -22,10 +22,10 @@ def ist_now(now_utc=None):
 
 def decide(now_ist, mode, force, done_date, is_non_market_day):
     """(run: bool, why: str). Pure."""
+    if force:                                   # manual test runs only (workflow_dispatch input force=yes) - never set by the schedule or the bot kick
+        return True, "forced"
     if is_non_market_day:
         return False, "not a trading day"
-    if force:
-        return True, "forced"
     if (now_ist.hour, now_ist.minute) > (9, 10):
         return False, "after 09:10 IST (a pre-market brief no longer makes sense)"
     if mode == "scheduled" and done_date == now_ist.date().isoformat():
