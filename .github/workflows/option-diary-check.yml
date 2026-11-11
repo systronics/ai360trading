@@ -1,0 +1,27 @@
+name: Option diary check (manual; dry run unless write=true)
+# 2026-11-11: runs ONE tick of option_diary.py (the owner's option paper diary). The real ticks run inside fetch_live_prices_session.yml's loop; this is for manual testing only.
+on:
+  workflow_dispatch:
+    inputs:
+      write:
+        description: 'write the results into the OptionDiary tab'
+        default: 'false'
+      force:
+        description: 'ignore market hours (test only)'
+        default: 'false'
+permissions:
+  contents: read
+jobs:
+  diary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      UPSTOX_ANALYTICS_TOKEN: ${{ secrets.UPSTOX_ANALYTICS_TOKEN }}
+      GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install gspread==6.2.1 oauth2client==4.1.3 pytz==2026.2 requests
+      - run: python option_diary.py ${{ github.event.inputs.write == 'true' && '--write' || '' }} ${{ github.event.inputs.force == 'true' && '--force' || '' }}

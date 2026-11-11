@@ -114,6 +114,8 @@ jobs:
             python -u fetch_live_prices.py --write || echo "[TICK $TICKS] exited non-zero — continuing"
             # 2026-11-07: realistic PAPER ledger for the owner's intraday option plan (reads the system's own option alerts, quotes bid/ask); paper only, never fails the loop
             timeout 120 python -u option_paper.py --write || echo "[PAPER] skipped/failed - continuing"
+            # 2026-11-11: the owner's option paper DIARY (rows he types in the OptionDiary tab; paper only, observation only); never fails the loop
+            timeout 100 python -u option_diary.py --write || echo "[DIARY] skipped/failed - continuing"
             # 2026-11-07: observation-only option-chain snapshot about hourly (every 12th tick of 5 min); never blocks or fails the price feed
             if [ $((TICKS % 12)) -eq 3 ]; then timeout 170 python -u option_snap.py --write || echo "[SNAP] skipped/failed - continuing"; fi
             echo "::endgroup::"
