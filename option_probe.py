@@ -60,13 +60,19 @@ def main(argv=None):
         return 0
     try:
         import live_prices_upstox as UP
-        ukey = UP.load_instruments().get(sym)
-        r = requests.get("https://assets.upstox.com/market-quote/instruments/exchange/NSE.json.gz", timeout=60)
+        # 2026-11-10 v1.1: index options too (SENSEX is a BSE contract, NIFTY/BANKNIFTY are NSE)
+        INDEX = {"SENSEX": ("BSE_INDEX|SENSEX", "BSE", "BSE_FO"), "NIFTY": ("NSE_INDEX|Nifty 50", "NSE", "NSE_FO"),
+                 "BANKNIFTY": ("NSE_INDEX|Nifty Bank", "NSE", "NSE_FO")}
+        if sym in INDEX:
+            ukey, exch, seg = INDEX[sym]
+        else:
+            ukey, exch, seg = UP.load_instruments().get(sym), "NSE", "NSE_FO"
+        r = requests.get(f"https://assets.upstox.com/market-quote/instruments/exchange/{exch}.json.gz", timeout=60)
         r.raise_for_status()
         data = json.loads(gzip.decompress(r.content).decode("utf-8"))
         lots, exps = {}, set()
         for x in data:
-            if x.get("segment") == "NSE_FO" and x.get("underlying_symbol") == sym and x.get("instrument_type") in ("CE", "PE"):
+            if x.get("segment") == seg and x.get("underlying_symbol") == sym and x.get("instrument_type") in ("CE", "PE"):
                 exps.add(x["expiry"])
                 if S._f(x.get("strike_price")) == strike and x.get("instrument_type") == side:
                     lots[x["expiry"]] = int(x.get("lot_size") or 0) or None
