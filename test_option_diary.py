@@ -52,3 +52,27 @@ def test_stats_group_by_reason_and_ignore_open():
     assert s["ALL"]["n"] == 3 and s["ALL"]["net"] == 700
     assert s["by_reason"]["bottom catch"]["n"] == 2 and s["by_reason"]["bottom catch"]["win_pct"] == 50
     assert s["by_underlying"]["NIFTY"]["n"] == 1
+
+
+def test_atm_and_expiry_rules():
+    assert D.atm_strike([82400.0, 82500.0, 82600.0], 82540.0) == 82500.0
+    assert D.atm_strike([], 100) is None and D.atm_strike([100.0], None) is None
+    c = {("NIFTY", 25400.0, "2026-11-11"): ("a", 75), ("NIFTY", 25400.0, "2026-11-17"): ("b", 75),
+         ("TCS", 2500.0, "2026-11-13"): ("c", 175), ("TCS", 2500.0, "2026-11-24"): ("d", 175), ("TCS", 2500.0, "2026-12-29"): ("e", 175)}
+    assert D.pick_expiry(c, "NIFTY", "2026-11-11", True) == "2026-11-11"          # index: nearest, even the same day
+    assert D.pick_expiry(c, "TCS", "2026-11-11", False) == "2026-11-24"           # stock: skips the one that is only 2 days away (rollover rule)
+    assert D.pick_expiry(c, "TCS", "2026-12-25", False) == "2026-12-29"
+    assert D.pick_expiry(c, "TCS", "2027-01-05", False) is None
+
+
+def test_plan_picks_and_auto_guard():
+    wp = [{"Date": "2026-11-11", "Symbol": "NHPC", "Score": "6", "Option_OK": "YES", "Trigger": "81.38"},
+          {"Date": "2026-11-11", "Symbol": "TRENT", "Score": "5", "Option_OK": "YES", "Trigger": "3133.5"},
+          {"Date": "2026-11-11", "Symbol": "TCS", "Score": "5", "Option_OK": "NO", "Trigger": "2499.9"},
+          {"Date": "2026-11-10", "Symbol": "OLD", "Score": "9", "Option_OK": "YES", "Trigger": "10"},
+          {"Date": "2026-11-11", "Symbol": "HCLTECH", "Score": "5", "Option_OK": "YES", "Trigger": "1432"},
+          {"Date": "2026-11-11", "Symbol": "WIPRO", "Score": "4", "Option_OK": "YES", "Trigger": "199"}]
+    assert D.plan_picks(wp, "2026-11-11") == [("NHPC", 81.38), ("HCLTECH", 1432.0), ("TRENT", 3133.5)]   # best score first, ties by name, max 3, only today, only YES
+    assert D.has_auto_today([{"Reason": "auto: index baseline NIFTY", "Date": "2026-11-11"}], "2026-11-11")
+    assert not D.has_auto_today([{"Reason": "auto: index baseline NIFTY", "Date": "2026-11-10"}], "2026-11-11")
+    assert not D.has_auto_today([{"Reason": "bottom catch", "Date": "2026-11-11"}], "2026-11-11")
