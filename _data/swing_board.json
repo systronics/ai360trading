@@ -1,5 +1,5 @@
 {
-  "generated_at": "11 November 2026, 04:02 PM IST",
+  "generated_at": "11 November 2026, 11:34 PM IST",
   "setups": [
     {
       "symbol": "BSE",
@@ -10,10 +10,18 @@
       "days_in_trade": "6"
     },
     {
-      "symbol": "ICICIBANK",
+      "symbol": "PNB",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "TECHM",
+      "trade_type": "📊 Options Alert",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
@@ -26,10 +34,10 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "TECHM",
+      "symbol": "PHOENIXLTD",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
