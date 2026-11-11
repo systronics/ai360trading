@@ -28,4 +28,11 @@ jobs:
           git config --local user.name "AI360-Automation"
           git add _data/trending.json
           git diff --cached --quiet || git commit -m "🔥 Refresh trending keywords: $(date +'%Y-%m-%d')"
-          git push origin master
+          # 2026-11-11: another workflow often pushes in the same minute, which rejected this push once (red run, retried by hand). Rebase and retry instead of failing.
+          ok=0
+          for i in 1 2 3 4; do
+            if git push origin master; then ok=1; break; fi
+            git pull --rebase origin master || true
+            sleep $((i * 5))
+          done
+          [ "$ok" = "1" ]
