@@ -61,11 +61,11 @@ def lean_score(above50, rs, rsi, buildup, ret5=None):
 
 
 def lean_label(score):
-    return "POSITIVE lean" if score >= 3 else ("WEAK lean" if score <= -1 else "MIXED")
+    return "POSITIVE" if score >= 3 else ("NEGATIVE" if score <= -1 else "MIXED")
 
 
 G, Y, R = "🟢", "🟡", "🔴"       # green / yellow / red dot
-LEAN_DOT = {"POSITIVE lean": G, "MIXED": Y, "WEAK lean": R}
+LEAN_DOT = {"POSITIVE": G, "MIXED": Y, "NEGATIVE": R}
 
 
 def factor_dots(above50, rs, rsi, buildup, ret5):
@@ -80,7 +80,7 @@ def factor_dots(above50, rs, rsi, buildup, ret5):
 
 def when_word(E, today):
     d = (E - today).days
-    return "AAJ" if d == 0 else ("KAL" if d == 1 else f"{E:%a %d-%b}")
+    return "TODAY" if d == 0 else ("TOMORROW" if d == 1 else f"{E:%a %d-%b}")
 
 
 def plan_line(E, today):
@@ -93,8 +93,8 @@ def build_message(items, today):
     """items: dicts sym,k,E,score,why,label,cmp,chg,chart(str),dlv,fo. Pure text, compact, easy Hinglish."""
     if not items:
         return None
-    L = [f"RESULT WATCH | {today:%d-%b}", "(only for knowledge or paper trade - sirf jaankari/paper, result ka prediction nahi)",
-         f"{G} theek  {Y} beech/pata nahi  {R} kamzor"]
+    L = [f"RESULT WATCH | {today:%d-%b}", "(Only for knowledge / paper trade - not a prediction of the result)",
+         f"{G} Positive  {Y} Mixed  {R} Negative"]
     for it in items:
         L.append("")
         L.append(f"{it['sym']} - result {when_word(it['E'], today)} | {LEAN_DOT.get(it['label'], Y)} {it['label']} ({it['score']:+d})")
@@ -102,8 +102,7 @@ def build_message(items, today):
         L.append("  " + it.get("dots", ""))
         if it.get("chart"):
             L.append("  chart: " + it["chart"])
-        L.append("  plan: " + plan_line(it["E"], today))
-    L += ["", "Options in par band (IV girti hai). Sirf cash/swing soch. Result din ka move dono taraf ~7% tak ja sakta hai."]
+    L += ["", "Options are blocked around results (IV crush). Result-day move can be about 7% either way."]
     return "\n".join(L)
 
 
@@ -122,9 +121,9 @@ def chart_line(sym):
         if rt["status"] == "RETEST":
             bits.append(f"RETEST of {rt['level']:g}")
         elif rt["status"] == "EXTENDED":
-            bits.append("breakout ke baad bhaag chuka")
+            bits.append("already ran up after breakout")
         elif rt["status"] == "FAILED":
-            bits.append("breakout fail")
+            bits.append("failed breakout")
         return ", ".join(bits)
     except Exception:
         return ""
@@ -238,7 +237,7 @@ def report(sh):
     v = sh.worksheet(TAB).get_all_values()
     rows = [r for r in v[1:] if len(r) >= 10 and r[9] == "Y" and r[8] != ""]
     print(f"[REPORT] {len(v) - 1} logged, {len(rows)} scored (reaction = close day after result vs close day before)")
-    for lab in ("POSITIVE lean", "MIXED", "WEAK lean"):
+    for lab in ("POSITIVE", "MIXED", "NEGATIVE"):
         x = [float(r[8]) for r in rows if r[4] == lab]
         if x:
             print(f"  {lab}: n={len(x)} avg {sum(x) / len(x):+.2f}% up {sum(1 for t in x if t > 0) * 100 // len(x)}%")

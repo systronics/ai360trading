@@ -4,9 +4,9 @@ import result_watch as W
 
 def test_lean_positive_and_weak():
     s, why = W.lean_score(True, 8, 55, "Long Buildup", 2)
-    assert s == 4 and W.lean_label(s) == "POSITIVE lean"
+    assert s == 4 and W.lean_label(s) == "POSITIVE"
     s2, _ = W.lean_score(False, -3, 75, "Short Buildup", 0)
-    assert s2 <= -3 and W.lean_label(s2) == "WEAK lean"
+    assert s2 <= -3 and W.lean_label(s2) == "NEGATIVE"
 
 
 def test_missing_data_is_mixed():
@@ -20,9 +20,9 @@ def test_already_ran_up_penalised():
 
 
 def test_message_text():
-    it = dict(sym="TCS", k=1, E=dt.date(2026, 11, 13), score=3, why=["50-DMA ke upar"], label="POSITIVE lean", cmp=3200.0, chg=0.4, chart="trend UP", dlv=55.0, fo=True, dots="x")
+    it = dict(sym="TCS", k=1, E=dt.date(2026, 11, 13), score=3, why=["50-DMA ke upar"], label="POSITIVE", cmp=3200.0, chg=0.4, chart="trend UP", dlv=55.0, fo=True, dots="x")
     m = W.build_message([it], dt.date(2026, 11, 12))
-    assert "KAL" in m and "TCS" in m and "prediction nahi" in m and "FII" not in m and "Options" in m
+    assert "TOMORROW" in m and "TCS" in m and "not a prediction" in m and "FII" not in m and "Options" in m and "plan:" not in m
     assert W.build_message([], dt.date(2026, 11, 12)) is None
 
 
@@ -35,7 +35,7 @@ def test_pick_priority_and_cap():
 
 def test_when_word_weekend_result():
     d = dt.date(2026, 11, 13)
-    assert W.when_word(d, d) == "AAJ" and W.when_word(dt.date(2026, 11, 14), d) == "KAL" and "Mon" in W.when_word(dt.date(2026, 11, 16), d)
+    assert W.when_word(d, d) == "TODAY" and W.when_word(dt.date(2026, 11, 14), d) == "TOMORROW" and "Mon" in W.when_word(dt.date(2026, 11, 16), d)
 
 
 def test_dots():
