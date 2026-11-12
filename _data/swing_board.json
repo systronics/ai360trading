@@ -1,5 +1,5 @@
 {
-  "generated_at": "11 November 2026, 11:34 PM IST",
+  "generated_at": "12 November 2026, 08:40 AM IST",
   "setups": [
     {
       "symbol": "BSE",
@@ -7,7 +7,7 @@
       "strategy": "➖ HOLD",
       "stage": "🚀 MOMENTUM BREAKOUT | 🔁 Correction Base",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "6"
+      "days_in_trade": "7"
     },
     {
       "symbol": "PNB",
@@ -46,6 +46,30 @@
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "KALYANKJIL",
+      "trade_type": "⚡ MOM Swing",
+      "strategy": "➖ HOLD",
+      "stage": "⚡ MOMENTUM | +8.6% | Vol 620%",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "RAILTEL",
+      "trade_type": "🔥 Cash Intraday",
+      "strategy": "CASH",
+      "stage": "🔥 WATCHLIST CASH | +4.4% | Railtel Corporation",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "BANKBARODA",
+      "trade_type": "🔥 Cash Intraday",
+      "strategy": "CASH",
+      "stage": "🔥 CASH | +5.8% | Vol 311%",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
