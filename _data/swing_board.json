@@ -1,5 +1,5 @@
 {
-  "generated_at": "12 November 2026, 08:40 AM IST",
+  "generated_at": "12 November 2026, 03:46 PM IST",
   "setups": [
     {
       "symbol": "BSE",
@@ -10,18 +10,10 @@
       "days_in_trade": "7"
     },
     {
-      "symbol": "PNB",
+      "symbol": "UNIONBANK",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "TECHM",
-      "trade_type": "📊 Options Alert",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
@@ -34,9 +26,17 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "PHOENIXLTD",
+      "symbol": "TECHM",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "PHOENIXLTD",
+      "trade_type": "📊 Options Alert",
+      "strategy": "➖ HOLD",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
@@ -50,26 +50,10 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "KALYANKJIL",
-      "trade_type": "⚡ MOM Swing",
+      "symbol": "MARICO",
+      "trade_type": "🔄 Swing",
       "strategy": "➖ HOLD",
-      "stage": "⚡ MOMENTUM | +8.6% | Vol 620%",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "RAILTEL",
-      "trade_type": "🔥 Cash Intraday",
-      "strategy": "CASH",
-      "stage": "🔥 WATCHLIST CASH | +4.4% | Railtel Corporation",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "BANKBARODA",
-      "trade_type": "🔥 Cash Intraday",
-      "strategy": "CASH",
-      "stage": "🔥 CASH | +5.8% | Vol 311%",
+      "stage": "⚡ BREAKOUT ALERT",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
