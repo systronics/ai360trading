@@ -381,5 +381,6 @@ try:
     for _k in _b2.QUEUE:
         if _k not in QUEUE:
             QUEUE.append(_k)
+        LESSON_REGIONS.setdefault(_k, ["us", "in"])   # 2026-11-12: was missing -> pick_lesson raised KeyError 'rm03' for the US English edition (au01 is India-only, so the next lesson was needed)
 except Exception as _e:
     print(f"[LESSON] extra lessons not loaded (fail-open): {_e}")
