@@ -1,0 +1,46 @@
+name: "Result Watch (Premium Telegram, text only, paper)"
+
+# 2026-11-12 owner: name the Nifty200 stocks with a result TODAY / in the next 1-2 trading days, with the public-data lean (trend, RS, RSI,
+# futures buildup, delivery %, chart levels). NOT a prediction (no inside info, no free per-stock FII/DII data). Premium channel only, never the free channels.
+# Mode = repo variable RESULT_WATCH_MODE: dry (default: prints only) | scheduled (sends to PREMIUM + logs the lean in tab ResultLean).
+# Kill switch: gh variable set RESULT_WATCH_MODE --body dry
+# Runs 08:17 IST Mon-Fri (GitHub may delay it; the message says "result AAJ/KAL" so a late run is still right). Once a day (ResultLean log blocks a second send).
+
+on:
+  schedule:
+    - cron: "47 2 * * 1-5"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "dry | scheduled (empty = repo variable RESULT_WATCH_MODE, default dry)"
+        required: false
+        default: ""
+
+concurrency:
+  group: result-watch
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      RESULT_WATCH_MODE: ${{ github.event.inputs.mode || vars.RESULT_WATCH_MODE || 'dry' }}
+      GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      CHAT_ID_PREMIUM: ${{ secrets.CHAT_ID_PREMIUM }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+      - name: Install
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Result Watch
+        run: python result_watch.py
