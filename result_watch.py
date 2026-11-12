@@ -64,6 +64,20 @@ def lean_label(score):
     return "POSITIVE lean" if score >= 3 else ("WEAK lean" if score <= -1 else "MIXED")
 
 
+G, Y, R = "🟢", "🟡", "🔴"       # green / yellow / red dot
+LEAN_DOT = {"POSITIVE lean": G, "MIXED": Y, "WEAK lean": R}
+
+
+def factor_dots(above50, rs, rsi, buildup, ret5):
+    """One compact line of coloured dots (same facts and thresholds as lean_score): green = fine, yellow = in between / unknown, red = weak."""
+    t = Y if above50 is None else (G if above50 else R)
+    r = Y if rs is None else (G if rs >= 5 else (R if rs < 0 else Y))
+    i = Y if rsi is None else (G if 45 <= rsi <= 65 else (R if rsi > 70 else Y))
+    f = G if buildup in POS_BUILD else (R if buildup in NEG_BUILD else Y)
+    m = Y if ret5 is None else (R if ret5 >= 6 else (Y if ret5 >= 4 else G))
+    return f"50DMA{t} RS{r} RSI{i} Fut{f} 5d{m}"
+
+
 def when_word(E, today):
     d = (E - today).days
     return "AAJ" if d == 0 else ("KAL" if d == 1 else f"{E:%a %d-%b}")
@@ -79,17 +93,17 @@ def build_message(items, today):
     """items: dicts sym,k,E,score,why,label,cmp,chg,chart(str),dlv,fo. Pure text, compact, easy Hinglish."""
     if not items:
         return None
-    L = [f"RESULT WATCH | {today:%d-%b}", "(sirf jaankari/paper - result ka prediction nahi)"]
+    L = [f"RESULT WATCH | {today:%d-%b}", "(only for knowledge or paper trade - sirf jaankari/paper, result ka prediction nahi)",
+         f"{G} theek  {Y} beech/pata nahi  {R} kamzor"]
     for it in items:
         L.append("")
-        L.append(f"{it['sym']} - result {when_word(it['E'], today)} | {it['label']} ({it['score']:+d})")
+        L.append(f"{it['sym']} - result {when_word(it['E'], today)} | {LEAN_DOT.get(it['label'], Y)} {it['label']} ({it['score']:+d})")
         L.append(f"  CMP {it['cmp']:g} ({it['chg']:+.1f}%)" + (f" | delivery {it['dlv']:.0f}%" if it.get("dlv") else "") + (" | F&O" if it.get("fo") else ""))
-        L.append("  " + ", ".join(it["why"]) if it["why"] else "  koi saaf signal nahi")
+        L.append("  " + it.get("dots", ""))
         if it.get("chart"):
             L.append("  chart: " + it["chart"])
         L.append("  plan: " + plan_line(it["E"], today))
-    L += ["", "Options in par band (IV girti hai). Sirf cash/swing soch. Result din ka move dono taraf ~7% tak ja sakta hai.",
-          "Hum FII/DII ki asli position ya andar ki khabar nahi jaante; lean = chart + futures buildup ka gintee. Hit-rate ResultLean tab me record ho raha hai."]
+    L += ["", "Options in par band (IV girti hai). Sirf cash/swing soch. Result din ka move dono taraf ~7% tak ja sakta hai."]
     return "\n".join(L)
 
 
@@ -151,7 +165,7 @@ def gather(sh, today, hol):
         above = (x["cmp"] > x["dma"]) if x["dma"] else None
         sc, why = lean_score(above, x["rs"], rsi, x["buildup"], ret5)
         gate = bool(above and x["rs"] is not None and x["rs"] >= 5 and rsi is not None and rsi <= 65)     # our bullish entry gates (above 50-DMA, RS>=5, RSI ok)
-        x.update(score=sc, why=why, label=lean_label(sc), gate=gate)
+        x.update(score=sc, why=why, label=lean_label(sc), gate=gate, dots=factor_dots(above, x["rs"], rsi, x["buildup"], ret5))
         out.append(x)
     return pick(out)
 

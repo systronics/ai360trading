@@ -20,9 +20,9 @@ def test_already_ran_up_penalised():
 
 
 def test_message_text():
-    it = dict(sym="TCS", k=1, E=dt.date(2026, 11, 13), score=3, why=["50-DMA ke upar"], label="POSITIVE lean", cmp=3200.0, chg=0.4, chart="trend UP", dlv=55.0, fo=True)
+    it = dict(sym="TCS", k=1, E=dt.date(2026, 11, 13), score=3, why=["50-DMA ke upar"], label="POSITIVE lean", cmp=3200.0, chg=0.4, chart="trend UP", dlv=55.0, fo=True, dots="x")
     m = W.build_message([it], dt.date(2026, 11, 12))
-    assert "KAL" in m and "TCS" in m and "prediction nahi" in m and "Options" in m
+    assert "KAL" in m and "TCS" in m and "prediction nahi" in m and "FII" not in m and "Options" in m
     assert W.build_message([], dt.date(2026, 11, 12)) is None
 
 
@@ -36,3 +36,9 @@ def test_pick_priority_and_cap():
 def test_when_word_weekend_result():
     d = dt.date(2026, 11, 13)
     assert W.when_word(d, d) == "AAJ" and W.when_word(dt.date(2026, 11, 14), d) == "KAL" and "Mon" in W.when_word(dt.date(2026, 11, 16), d)
+
+
+def test_dots():
+    d = W.factor_dots(False, -11, 63, "Long Buildup", 2)
+    assert d == f"50DMA{W.R} RS{W.R} RSI{W.G} Fut{W.G} 5d{W.G}"
+    assert W.factor_dots(None, None, None, "", None).count(W.Y) == 5
