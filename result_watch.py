@@ -64,12 +64,13 @@ def lean_label(score):
     return "POSITIVE lean" if score >= 3 else ("WEAK lean" if score <= -1 else "MIXED")
 
 
-def when_word(k):
-    return "AAJ" if k == 0 else ("KAL" if k == 1 else f"{k} din baad")
+def when_word(E, today):
+    d = (E - today).days
+    return "AAJ" if d == 0 else ("KAL" if d == 1 else f"{E:%a %d-%b}")
 
 
-def plan_line(k):
-    if k == 0:
+def plan_line(E, today):
+    if E == today:
         return "result aaj: naya entry/hold nahi, reaction kal dekho"
     return "result se pehle ke din ke close tak hi, result ke saath mat raho"
 
@@ -81,12 +82,12 @@ def build_message(items, today):
     L = [f"RESULT WATCH | {today:%d-%b}", "(sirf jaankari/paper - result ka prediction nahi)"]
     for it in items:
         L.append("")
-        L.append(f"{it['sym']} - result {when_word(it['k'])} ({it['E']:%d-%b}) | {it['label']} ({it['score']:+d})")
+        L.append(f"{it['sym']} - result {when_word(it['E'], today)} | {it['label']} ({it['score']:+d})")
         L.append(f"  CMP {it['cmp']:g} ({it['chg']:+.1f}%)" + (f" | delivery {it['dlv']:.0f}%" if it.get("dlv") else "") + (" | F&O" if it.get("fo") else ""))
         L.append("  " + ", ".join(it["why"]) if it["why"] else "  koi saaf signal nahi")
         if it.get("chart"):
             L.append("  chart: " + it["chart"])
-        L.append("  plan: " + plan_line(it["k"]))
+        L.append("  plan: " + plan_line(it["E"], today))
     L += ["", "Options in par band (IV girti hai). Sirf cash/swing soch. Result din ka move dono taraf ~7% tak ja sakta hai.",
           "Hum FII/DII ki asli position ya andar ki khabar nahi jaante; lean = chart + futures buildup ka gintee. Hit-rate ResultLean tab me record ho raha hai."]
     return "\n".join(L)
@@ -149,10 +150,15 @@ def gather(sh, today, hol):
         ret5 = (closes[-1] / closes[-6] - 1) * 100 if len(closes) >= 6 else None
         above = (x["cmp"] > x["dma"]) if x["dma"] else None
         sc, why = lean_score(above, x["rs"], rsi, x["buildup"], ret5)
-        x.update(score=sc, why=why, label=lean_label(sc))
+        gate = bool(above and x["rs"] is not None and x["rs"] >= 5 and rsi is not None and rsi <= 65)     # our bullish entry gates (above 50-DMA, RS>=5, RSI ok)
+        x.update(score=sc, why=why, label=lean_label(sc), gate=gate)
         out.append(x)
-    out.sort(key=lambda z: (z["k"], -z["score"]))
-    return out[:MAX_STOCKS]
+    return pick(out)
+
+
+def pick(items, cap=MAX_STOCKS):
+    """Bullish project: stocks that pass our gates first, then F&O names, then the rest (mixed/negative) by score; at most `cap` in total."""
+    return sorted(items, key=lambda z: (not z.get("gate"), not z.get("fo"), -z["score"], z["k"]))[:cap]
 
 
 def tg_send(text):
@@ -231,6 +237,8 @@ def main(argv=None):
     if "--report" in argv:
         return report(sh)
     today = dt.datetime.now(RU.IST).date()
+    if "--date" in argv and not send:                                    # preview what a given morning's message would look like (dry only)
+        today = dt.date.fromisoformat(argv[argv.index("--date") + 1])
     hol = RU._holidays()
     print(f"[result_watch {VERSION}] {today} mode={'SEND' if send else 'DRY'}")
     if today.weekday() >= 5 or today in hol:
