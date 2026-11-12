@@ -69,9 +69,13 @@ jobs:
           cache: "pip"
 
       - name: Install system dependencies
+        # 2026-11-12: the Wed 11 Nov run hung for the whole 60-minute job limit here (the Azure apt mirror could not be resolved) and the weekly lesson was lost.
+        # Now bounded: 10-minute step limit, short network timeouts, and a failed install no longer kills the job (the runner image already has ffmpeg/fonts for the render).
+        timeout-minutes: 10
+        continue-on-error: true
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y --no-install-recommends ffmpeg fonts-dejavu fonts-liberation fonts-freefont-ttf
+          sudo apt-get -o Acquire::Retries=2 -o Acquire::http::Timeout=20 -o Acquire::https::Timeout=20 update -qq || true
+          sudo apt-get -o Acquire::Retries=2 -o Acquire::http::Timeout=20 -o Acquire::https::Timeout=20 install -y --no-install-recommends ffmpeg fonts-dejavu fonts-liberation fonts-freefont-ttf || echo "apt install failed - continuing with what the runner already has"
 
       - name: Install Python dependencies
         run: |
