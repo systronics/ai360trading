@@ -94,6 +94,13 @@ jobs:
           GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
         run: python gainers_log.py --write
 
+      - name: Signal watch tracker (observation only, 2026-11-12)
+        continue-on-error: true
+        timeout-minutes: 12
+        env:
+          GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
+        run: python signal_watch.py --write
+
       - name: Swing shadow tracker (observation only, 2026-11-07)
         continue-on-error: true
         timeout-minutes: 8
