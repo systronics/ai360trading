@@ -279,6 +279,8 @@ One broken file = zero income that day. Treat every edit as critical.
 
 | **Ads are OFF site-wide (`ads_active: false` in `_config.yml`, 2026-11-13, owner order)** - covers Adsterra slots (32 pages via `_includes/adslot.html`) AND the AdSense auto-ads tag in `_includes/head.html`; one commit (`true`) brings both back | Tiny real traffic (Search Console 28 d: 4 clicks / 1.45K impressions on 25 Oct; GA4 audit mostly bot traffic), no visible earnings, ads slow pages and weaken trust for a trading brand; real income = Telegram membership + broker referrals. Re-enable AdSense only when real traffic is several hundred visits a day. `ads.txt` left as is (harmless) |
 
+| **Facebook/Instagram posting cut back (2026-11-13, owner order):** repo variables `TOPICAL_FB=off` (old Morning reel), `FB_ARTICLE_SHARE=off` (the 'Aaj ke Market Articles' digest step in daily-articles.yml) and `TECH_FB_IG=off` (tech Short -> tech FB Page + Instagram; YouTube stays). Trading Page keeps: pre-market reel (daily, FB+IG), weekly Hindi lesson (scheduled video), Tue/Thu story reel (FB+IG). Switch back with `gh variable set NAME --body on` (or delete the variable). | Trading Page posted 3-5 times a day with 0-2 reactions each (spam signal); tech FB Page and IG have 1 follower each and tech IG uploads kept failing. FB Page name still shows 'Unofficial Amit Kumar' (username ai360trading.official): only the owner can rename it in Facebook (the Graph API cannot) |
+
 ---
 
 ## END OF EVERY SESSION
