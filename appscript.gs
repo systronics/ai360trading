@@ -608,7 +608,7 @@ const OPTIONS_CONFIG = {
 
 // ── CONFIG ────────────────────────────────────────────────────────────────────
 const CONFIG = {
-  VERSION       : "v15.40",  // single source for ALL subscriber-facing version stamps (was hardcoded per-message and went stale at v15.17)
+  VERSION       : "v15.41",  // single source for ALL subscriber-facing version stamps (was hardcoded per-message and went stale at v15.17)
   get TELEGRAM_BOT_TOKEN() { return PropertiesService.getScriptProperties().getProperty('TELEGRAM_BOT_TOKEN') || ""; },
   get CHAT_ID_BASIC()      { return PropertiesService.getScriptProperties().getProperty('CHAT_ID_BASIC')      || ""; },
   get CHAT_ID_ADVANCE()    { return PropertiesService.getScriptProperties().getProperty('CHAT_ID_ADVANCE')    || ""; },
@@ -622,6 +622,8 @@ const CONFIG = {
 
   MAX_TRADES    : 8,
   MAX_WAITING   : 10,
+  MAX_PER_SECTOR: 3,    // v15.41 (owner 2026-11-13): was a hard-coded 2 in GATE 10 and in both WAITING fill loops; PNB + MOTILALOFS passed every gate on 13 Nov but lost the only free Financial Services slot
+  MAX_OPTION_WAITING: 5, // v15.41: Options Alert candidates no longer use a normal WAITING slot, sector slot or capital budget; they have this own small cap (the bot's >=15d option gate often cannot trade them, so they only wasted slots)
   MAX_MOM_SLOTS : 3,
   MIN_PRIORITY  : 15,
   MIN_RR        : 1.8,
@@ -1924,7 +1926,7 @@ function _runScanner(startRow, endRow) {
     if (niftyTradeType.includes("AVOID") || niftyTradeType.includes("NO TRADE")) { skipReasons.set(sym, `GATE 9: Nifty200 Trade_Type = "${niftyTradeType}"`); continue; }
 
     // GATE 10: Sector Concentration
-    if ((sectorCount[sector] || 0) >= 2) { skipReasons.set(sym, `GATE 10: sector "${sector}" already has ${sectorCount[sector]} open trades`); continue; }
+    if ((sectorCount[sector] || 0) >= CONFIG.MAX_PER_SECTOR) { skipReasons.set(sym, `GATE 10: sector "${sector}" already has ${sectorCount[sector]} open trades`); continue; }
 
     const { ttype } = _mapTradeType(niftyTradeType, priority, atr, cmp, volVsAvg, pctChange, smaStr, timeStr, isBreakoutStage);
 
@@ -2027,14 +2029,21 @@ function _runScanner(startRow, endRow) {
   const finalWaiting       = [];
   let totalDeployed        = finalTraded.length * CONFIG.CAPITAL_MED;
 
+  let optWaiting = 0;   // v15.41: Options Alert rows are counted here, NOT against maxWaitingSlots / the sector cap / the capital budget
   for (const c of batchCands) {
-    // v15.6: Use regime-appropriate max waiting slots
-    if (finalWaiting.length >= maxWaitingSlots) break;
+    const isOptRow = (c.row[4] || "").toString().indexOf("Options Alert") >= 0;
+    // v15.6: Use regime-appropriate max waiting slots (v15.41: stock rows only; options have their own cap)
+    if (isOptRow) { if (optWaiting >= CONFIG.MAX_OPTION_WAITING) continue; }
+    else if ((finalWaiting.length - optWaiting) >= maxWaitingSlots) continue;
     const sec = c.sector || "UNKNOWN";
-    if ((waitingSectorCount[sec] || 0) >= 2) continue;
-    if (totalDeployed + c.capital > CONFIG.MAX_DEPLOYED + CONFIG.CAPITAL_HIGH) continue;
-    waitingSectorCount[sec] = (waitingSectorCount[sec] || 0) + 1;
-    totalDeployed += c.capital;
+    if (!isOptRow) {
+      if ((waitingSectorCount[sec] || 0) >= CONFIG.MAX_PER_SECTOR) continue;
+      if (totalDeployed + c.capital > CONFIG.MAX_DEPLOYED + CONFIG.CAPITAL_HIGH) continue;
+      waitingSectorCount[sec] = (waitingSectorCount[sec] || 0) + 1;
+      totalDeployed += c.capital;
+    } else {
+      optWaiting++;
+    }
 
     const key = c.sym.replace(/[:\s]/g, '_');
     _bmSet(ss, bm, `${key}_CAP`,  c.capital.toString(), c.sym, "TRADE");
@@ -2089,7 +2098,7 @@ function _runScanner(startRow, endRow) {
       if (queuedSyms.has(t.sym)) {
         status = "QUEUED"; reason = "—";
       } else if (batchSyms.has(t.sym)) {
-        status = "NOT-QUEUED"; reason = "Passed every per-stock gate — lost the WAITING slot itself (max " + maxWaitingSlots + " slots reached, or hit the final 2-per-sector cap during ranked fill)";
+        status = "NOT-QUEUED"; reason = "Passed every per-stock gate — lost the WAITING slot itself (max " + maxWaitingSlots + " slots reached, or hit the final " + CONFIG.MAX_PER_SECTOR + "-per-sector cap during ranked fill; Options Alert rows no longer take a slot since v15.41)";
       } else if (skipReasons.has(t.sym)) {
         status = "NOT-QUEUED"; reason = skipReasons.get(t.sym);
       } else {
@@ -2172,9 +2181,9 @@ function _runScanner(startRow, endRow) {
     for (const c of momCands) {
       // v15.24: respect the regime slot limit + 2-per-sector cap (was pushed
       // unconditionally after the allocator had already filled the board).
-      if (finalWaiting.length >= maxWaitingSlots) break;
+      if ((finalWaiting.length - optWaiting) >= maxWaitingSlots) break;
       const mSec = c.sector || "UNKNOWN";
-      if ((waitingSectorCount[mSec] || 0) >= 2) continue;
+      if ((waitingSectorCount[mSec] || 0) >= CONFIG.MAX_PER_SECTOR) continue;
       waitingSectorCount[mSec] = (waitingSectorCount[mSec] || 0) + 1;
       const key = c.sym.replace(/[:\s]/g, '_');
       _bmSet(ss, bm, `${key}_CAP`,  CONFIG.CAPITAL_STD.toString(), c.sym, "TRADE");
