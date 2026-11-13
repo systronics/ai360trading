@@ -90,7 +90,7 @@ def parse_args():
 
 # ─── CONFIG ───────────────────────────────────────────────────────────────────
 
-VERSION                       = "v2.10"  # single source for both runtime print() banners below — never hardcode the string again
+VERSION                       = "v2.11"  # single source for both runtime print() banners below — never hardcode the string again
 META_ACCESS_TOKEN             = os.environ.get("META_ACCESS_TOKEN", "")
 FACEBOOK_PAGE_ID              = os.environ.get("FACEBOOK_PAGE_ID", "")
 FACEBOOK_GROUP_ID             = os.environ.get("FACEBOOK_GROUP_ID", "")
@@ -351,10 +351,49 @@ def post_to_group(group_id: str, caption: str, video_url: str, user_token: str) 
     return False
 
 
-# ─── v2.4 FIX: UPLOAD REEL TO INSTAGRAM ──────────────────────────────────────
+# ─── v2.11 (2026-11-13): Instagram upload with 2 safe retries ───────────────────
+# Instagram answered "ProcessingFailedError" (400, retriable:false) for the tech Short on 11, 12 and 13 Nov and for the 13 Nov pre-market
+# reel while the same Facebook upload worked. Retry 1 = same file after 60 s; retry 2 = the file re-encoded IG-safe with ffmpeg
+# (H.264 yuv420p, 30 fps, AAC 44.1 kHz, even size, faststart). NEVER retries after the publish call was made (no duplicate post).
+_IG_STAGE = "pre"
+
+
+def _ig_safe_copy(video_path: Path) -> Path | None:
+    import shutil
+    import subprocess
+    if not shutil.which("ffmpeg"):
+        return None
+    out = Path(video_path).with_name(Path(video_path).stem + "_ig.mp4")
+    cmd = ["ffmpeg", "-y", "-i", str(video_path), "-vf", "scale=trunc(iw/2)*2:trunc(ih/2)*2", "-c:v", "libx264", "-preset", "medium", "-crf", "21",
+           "-pix_fmt", "yuv420p", "-r", "30", "-c:a", "aac", "-b:a", "128k", "-ar", "44100", "-movflags", "+faststart", str(out)]
+    subprocess.run(cmd, check=True, capture_output=True, timeout=300)
+    return out if (out.exists() and out.stat().st_size > 0) else None
+
 
 def upload_reel_to_instagram(ig_account_id: str, video_path: Path,
-                              caption: str, token: str) -> str | None:
+                             caption: str, token: str) -> str | None:
+    out = _upload_reel_to_instagram_once(ig_account_id, video_path, caption, token)
+    if out or not ig_account_id or _IG_STAGE == "publish":
+        return out
+    print("  🔁 Instagram failed before publishing - retry 1 (same file) in 60 s")
+    time.sleep(60)
+    out = _upload_reel_to_instagram_once(ig_account_id, video_path, caption, token)
+    if out or _IG_STAGE == "publish":
+        return out
+    try:
+        fixed = _ig_safe_copy(video_path)
+        if fixed:
+            print("  🔁 Instagram retry 2 - re-encoded IG-safe copy")
+            out = _upload_reel_to_instagram_once(ig_account_id, fixed, caption, token)
+    except Exception as e:                                           # fail-open
+        print(f"  ⚠️ Instagram re-encode retry skipped: {str(e)[:120]}")
+    return out
+
+
+# ─── v2.4 FIX: UPLOAD REEL TO INSTAGRAM ──────────────────────────────────────
+
+def _upload_reel_to_instagram_once(ig_account_id: str, video_path: Path,
+                                  caption: str, token: str) -> str | None:
     """
     Correct Instagram Reels upload using resumable upload protocol.
     Step 1: POST /{ig_id}/media with upload_type=resumable → container_id + upload_url
@@ -366,6 +405,8 @@ def upload_reel_to_instagram(ig_account_id: str, video_path: Path,
         print("  ⚠️ INSTAGRAM_BUSINESS_ACCOUNT_ID not set — skipping Instagram")
         return None
 
+    global _IG_STAGE
+    _IG_STAGE = "pre"
     print(f"\n📸 Uploading Instagram Reel: {video_path.name}")
 
     # Step 1: Create container
@@ -452,6 +493,7 @@ def upload_reel_to_instagram(ig_account_id: str, video_path: Path,
         print(f"  ❌ IG processing timeout after 5 minutes")
         return None
 
+    _IG_STAGE = "publish"
     # Step 4: Publish
     try:
         pub_resp = requests.post(
