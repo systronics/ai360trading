@@ -8,6 +8,7 @@ It logs, once per stock + date + category, what each idea WOULD have flagged, an
   H1_V4          = hourly EMA9>21>50>200 with close>EMA21 turned true during the last session, daily close>EMA50>EMA200, that hourly close above the previous 140 hourly highs
                    (~20 sessions) and daily RS35>=5 (the one 1H variant that beat random in the 2024-26 test; n=236, 7 variants tried - may be luck, hence forward tracking).
 Backtest background (daily/1H, 2018/2024-2026, survivors only): RS>=5 breakouts by RSI: <=65 +2.27%, 65-75 +2.46%, >75 +2.72% (20d); deep discount ex-2020 = no edge; plain 1H EMA alignment = random.
+  SLOT_LOST      = (added 2026-11-13) stock that PASSED every per-stock gate in the live appscript scan but lost the WAITING slot (2-per-sector cap counted with open trades, or slot limit) - read from the ScanReasons tab; measures what the sector/slot cap costs.
 USAGE: python signal_watch.py            dry-run (prints)       python signal_watch.py --write      log + score      python signal_watch.py --report
 """
 import os
@@ -136,7 +137,20 @@ def _dl(symbols, period, interval):
                        group_by="ticker", auto_adjust=False, progress=False, threads=True)
 
 
-def scan(symbols):
+def slot_lost_symbols(sh):
+    """{symbol} that PASSED every per-stock gate in the live scanner but lost the WAITING slot (sector cap / slot limit), from the ScanReasons tab (holds the last scanned day)."""
+    out, day = set(), None
+    try:
+        for r in sh.worksheet("ScanReasons").get_all_values()[1:]:
+            if len(r) > 3 and "lost the WAITING slot" in r[3]:
+                out.add(r[1].replace("NSE:", "").strip())
+                day = r[0]
+    except Exception:
+        pass
+    return out, day
+
+
+def scan(symbols, slot_lost=(), slot_day=None):
     """-> list of (symbol, signal_date, category, close, rsi, rs, volx)."""
     D = _dl(symbols, "2y", "1d")
     nb = D["^NSEI"].dropna(subset=["Close"])
@@ -161,6 +175,8 @@ def scan(symbols):
             daily_ok = c[-1] > e50[-1] > e200[-1]
             avg20 = sum(v[-21:-1]) / 20.0
             volx = round(v[-1] / avg20, 2) if avg20 else None
+            if s in slot_lost and slot_day == dates[-1].isoformat():
+                cats = cats + ["SLOT_LOST"]
             for cat in cats:
                 found.append((s, dates[-1], cat, c[-1], rsi14(c), rs, volx))
             if daily_ok and rs is not None and rs >= 5:
@@ -234,7 +250,7 @@ def log_and_score(sh, found, today, write):
 def report(sh):
     v = sh.worksheet(TAB).get_all_values()
     print(f"[REPORT] {len(v) - 1} rows logged")
-    for cat in ("TOP_PICK", "RSI75_BLOCKED", "DEEP_RECOVERY", "H1_V4"):
+    for cat in ("TOP_PICK", "RSI75_BLOCKED", "DEEP_RECOVERY", "H1_V4", "SLOT_LOST"):
         rows = [r for r in v[1:] if len(r) >= 15 and r[3] == cat]
         out = [f"  {cat:14s} logged {len(rows):3d}"]
         for lab, col in (("R5", 11), ("R10", 12), ("R20", 13)):
@@ -253,7 +269,8 @@ def main(argv=None):
     write = "--write" in argv
     print(f"[signal_watch {VERSION}] {today} mode={'WRITE' if write else 'DRY-RUN'}")
     try:
-        found = scan(_universe(sh))
+        lost, lday = slot_lost_symbols(sh)
+        found = scan(_universe(sh), lost, lday)
         log_and_score(sh, found, today, write)
     except Exception as e:
         print(f"[signal_watch] skipped (fail-open): {str(e)[:160]}")
