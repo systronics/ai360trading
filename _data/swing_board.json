@@ -1,5 +1,5 @@
 {
-  "generated_at": "12 November 2026, 04:16 PM IST",
+  "generated_at": "13 November 2026, 08:40 AM IST",
   "setups": [
     {
       "symbol": "BSE",
@@ -7,10 +7,10 @@
       "strategy": "➖ HOLD",
       "stage": "🚀 MOMENTUM BREAKOUT | 🔁 Correction Base",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "7"
+      "days_in_trade": "8"
     },
     {
-      "symbol": "UNIONBANK",
+      "symbol": "DLF",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
@@ -26,7 +26,7 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "TECHM",
+      "symbol": "PRESTIGE",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
@@ -34,9 +34,9 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "PHOENIXLTD",
+      "symbol": "MOTILALOFS",
       "trade_type": "📊 Options Alert",
-      "strategy": "➖ HOLD",
+      "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
@@ -50,10 +50,18 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "MARICO",
-      "trade_type": "🔄 Swing",
+      "symbol": "KALYANKJIL",
+      "trade_type": "⚡ MOM Swing",
       "strategy": "➖ HOLD",
-      "stage": "⚡ BREAKOUT ALERT",
+      "stage": "⚡ MOMENTUM | +7.1% | Vol 352%",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "ZEEL",
+      "trade_type": "🔥 Cash Intraday",
+      "strategy": "CASH",
+      "stage": "🔥 WATCHLIST CASH | +4.8% | Zee Entertainment",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
