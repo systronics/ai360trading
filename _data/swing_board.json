@@ -1,5 +1,5 @@
 {
-  "generated_at": "13 November 2026, 04:13 PM IST",
+  "generated_at": "13 November 2026, 11:38 PM IST",
   "setups": [
     {
       "symbol": "BSE",
@@ -8,6 +8,22 @@
       "stage": "🚀 MOMENTUM BREAKOUT | 🔁 Correction Base",
       "status": "✅ TRADED (PAPER)",
       "days_in_trade": "8"
+    },
+    {
+      "symbol": "ICICIBANK",
+      "trade_type": "📊 Options Alert",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "INDHOTEL",
+      "trade_type": "📊 Options Alert",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
     },
     {
       "symbol": "UNIONBANK",
@@ -26,26 +42,10 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "INDHOTEL",
+      "symbol": "PNB",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "PHOENIXLTD",
-      "trade_type": "📊 Options Alert",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "LAURUSLABS",
-      "trade_type": "📊 Options Alert",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
