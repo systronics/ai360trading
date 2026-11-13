@@ -92,7 +92,8 @@ jobs:
           retention-days: 7
           if-no-files-found: ignore
       - name: Post the same Short to the new Facebook Page + Instagram (only when a new topic was scheduled)
-        if: ${{ env.MODE == 'scheduled' }}
+        # 2026-11-13 owner: the tech FB Page and Instagram have 1 follower each; YouTube stays the only tech channel. Repo variable TECH_FB_IG=off stops this step; unset/on = post.
+        if: ${{ env.MODE == 'scheduled' && vars.TECH_FB_IG != 'off' }}
         continue-on-error: true
         run: |
           if git status --porcelain _data/tech_done.json | grep -q .; then

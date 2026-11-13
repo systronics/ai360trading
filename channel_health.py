@@ -39,6 +39,8 @@ def facebook(label, page_id, user_tok):
         return
     tok = page_token(page_id, user_tok)
     info = gget(page_id, tok, fields="name,followers_count,fan_count,about,link")
+    more = gget(page_id, tok, fields="username,category,verification_status,is_published,is_community_page,is_unclaimed,has_transitioned_to_new_page_experience,name_with_location_descriptor,rating_count")
+    print("  page details:", {k: v for k, v in more.items() if k != "id"} if not err(more) else "not readable: " + err(more))
     if err(info):
         print("  page read failed:", err(info))
         return
