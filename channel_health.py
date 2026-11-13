@@ -45,6 +45,8 @@ def facebook(label, page_id, user_tok):
         print("  page read failed:", err(info))
         return
     print(f"  {info.get('name')} | followers {info.get('followers_count')} | likes {info.get('fan_count')} | {info.get('link')}")
+    about = gget(page_id, tok, fields="about,description,website,emails,phone,founded,mission,company_overview,impressum,contact_address,single_line_address")
+    print("  ABOUT/contact:", {k: (str(v)[:160]) for k, v in about.items() if k != "id"} if not err(about) else "not readable: " + err(about))
     ins = gget(f"{page_id}/insights", tok, metric="page_impressions_unique,page_post_engagements,page_video_views", period="days_28")
     if err(ins):
         print("  insights not available:", err(ins))
