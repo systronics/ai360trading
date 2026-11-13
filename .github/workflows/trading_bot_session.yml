@@ -141,6 +141,14 @@ jobs:
           else
             END="15:50"
           fi
+          # 2026-11-13: a DELAYED schedule trigger can arrive at night (00:11 IST on 9 Nov): `date +%H` is then 00, so the
+          # 'before noon = morning session' branch looped the whole night until the job timeout (cancelled after 235 min).
+          # Scheduled starts only count inside market hours; manual/chained starts (MANUAL_END set) are untouched.
+          HMN=$((10#$(date +%H%M)))
+          if [ -z "$MANUAL_END" ] && { [ "$HMN" -lt 750 ] || [ "$HMN" -ge 1540 ]; }; then
+            echo "[SESSION] scheduled start outside market hours (${HMN} IST) - ignored"
+            exit 0
+          fi
           # 2026-10-18: clean self-stop before GitHub's 6h job limit. An early start
           # (e.g. cron-job.org at ~08:40 IST for the Good Morning message) with END=15:50
           # would otherwise be force-CANCELLED by the job timeout mid-session. Stopping
@@ -169,7 +177,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           export TZ=Asia/Kolkata
-          if [ "$(date +%u)" -le 5 ] && [ "$(date +%H:%M)" \< "15:40" ]; then
+          if [ "$(date +%u)" -le 5 ] && [ "$(date +%H:%M)" \< "15:40" ] && [ "$(date +%H:%M)" \> "07:50" ]; then
             LIM=$(( $(date +%s) + 330 * 60 )); E15=$(date -d "today 15:50" +%s)
             [ "$LIM" -gt "$E15" ] && LIM=$E15
             NEXT_END=$(date -d "@$LIM" +%H:%M)

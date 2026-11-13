@@ -21,6 +21,7 @@ concurrency:
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
   report:
@@ -28,6 +29,8 @@ jobs:
     timeout-minutes: 25
     env:
       TRACKER_REPORT_MODE: ${{ github.event.inputs.mode || vars.TRACKER_REPORT_MODE || 'dry' }}
+      GITHUB_TOKEN: ${{ github.token }}
+      GITHUB_REPOSITORY: ${{ github.repository }}
       GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       CHAT_ID_PREMIUM: ${{ secrets.CHAT_ID_PREMIUM }}

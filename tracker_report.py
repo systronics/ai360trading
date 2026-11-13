@@ -35,6 +35,47 @@ def run_one(args, timeout=170):
         return [f"(not available: {str(e)[:60]})"]
 
 
+def run_health(days=7):
+    """Read-only GitHub Actions health of the last `days` days: failures and 'cancelled at timeout' runs per workflow (a silent loop crash looks like 'cancelled', not 'failure')."""
+    tok, repo = os.environ.get("GITHUB_TOKEN", ""), os.environ.get("GITHUB_REPOSITORY", "systronics/ai360trading")
+    if not tok:
+        return ["(no token - skipped)"]
+    try:
+        since = (dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=days)).strftime("%Y-%m-%d")
+        bad, total, ok = {}, 0, 0
+        for page in (1, 2, 3, 4, 5):
+            r = requests.get(f"https://api.github.com/repos/{repo}/actions/runs", params={"per_page": 100, "page": page, "created": f">={since}"},
+                             headers={"Authorization": f"Bearer {tok}", "Accept": "application/vnd.github+json"}, timeout=30)
+            runs = (r.json() or {}).get("workflow_runs", [])
+            if not runs:
+                break
+            for x in runs:
+                total += 1
+                c = x.get("conclusion")
+                if c == "success":
+                    ok += 1
+                    continue
+                if c not in ("failure", "timed_out", "cancelled"):
+                    continue
+                name = x.get("name", "?")
+                if name in ("pages-build-deployment", "CodeQL"):
+                    continue
+                try:
+                    a = dt.datetime.fromisoformat(x["run_started_at"].replace("Z", "+00:00"))
+                    b = dt.datetime.fromisoformat(x["updated_at"].replace("Z", "+00:00"))
+                    mins = (b - a).total_seconds() / 60
+                except Exception:
+                    mins = 0
+                key = name + (" (cancelled after >3h = timeout)" if (c == "cancelled" and mins > 180) else (" (cancelled)" if c == "cancelled" else f" ({c})"))
+                bad[key] = bad.get(key, 0) + 1
+        lines = [f"{total} runs in {days} days, {ok} success"]
+        for k, v in sorted(bad.items(), key=lambda kv: -kv[1])[:8]:
+            lines.append(f"  {v}x {k}")
+        return lines
+    except Exception as e:
+        return [f"(not available: {str(e)[:60]})"]
+
+
 def build(today):
     out = [f"TRACKER REPORT | {today:%d-%b-%Y}",
            "Internal research status (paper, not advice). Fewer than 30 scored rows in a group = NO conclusion. "
