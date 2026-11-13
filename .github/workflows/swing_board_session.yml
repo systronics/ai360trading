@@ -128,7 +128,11 @@ jobs:
 
             # Pull first — other automated commits may have landed on
             # master since this job's checkout or the last tick's push.
-            git pull --rebase origin master || echo "[TICK $TICKS] pull --rebase failed — attempting commit anyway"
+            # 2026-11-13: --autostash. publish_swing_board.py rewrites the JSON every tick, so a plain
+            # `pull --rebase` died with "You have unstaged changes" after ONE rejected push and every later
+            # tick failed the same way until the job hit its 235-min timeout (cancelled, no successor
+            # dispatched => a ~3 h gap in the public swing board every morning, 9-13 Nov).
+            git pull --rebase --autostash origin master || echo "[TICK $TICKS] pull --rebase failed — attempting commit anyway"
 
             git add _data/swing_board.json
             if git diff --cached --quiet; then
@@ -136,14 +140,18 @@ jobs:
             else
               git commit -m "📋 Swing board refresh: $(date +'%Y-%m-%d %H:%M') IST"
               if ! git push origin master; then
-                echo "[TICK $TICKS] push failed — will retry via pull+commit next tick"
+                git pull --rebase --autostash origin master && git push origin master                   || echo "[TICK $TICKS] push failed — will retry via pull+commit next tick"
               fi
             fi
             echo "::endgroup::"
 
             # Stop sleeping if the next tick would land past the end time.
+            # 2026-11-13: never sleep past END (the old full 30-min sleep overshot END and the 235-min
+            # job timeout cancelled the run before the loop could finish and chain the successor).
             if [ "$(date +%H:%M)" \< "$END" ]; then
-              sleep "$TICK_SECONDS"
+              NOW_S=$(date +%s); END_S=$(date -d "today $END" +%s); LEFT=$(( END_S - NOW_S ))
+              [ "$LEFT" -gt "$TICK_SECONDS" ] && LEFT=$TICK_SECONDS
+              [ "$LEFT" -gt 0 ] && sleep "$LEFT"
             fi
           done
           echo "[SESSION] reached ${END} IST after ${TICKS} tick(s) — done"
