@@ -1,0 +1,33 @@
+name: "Channel health (manual, read-only)"
+
+# 2026-11-13: prints followers, last posts/videos with their numbers, scheduled items and abnormal flags for both Facebook Pages, both Instagram accounts and both YouTube channels.
+# Changes nothing anywhere, prints no token.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
+      FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
+      FACEBOOK_PAGE_ID_TECH: ${{ secrets.FACEBOOK_PAGE_ID_TECH }}
+      INSTAGRAM_BUSINESS_ACCOUNT_ID: ${{ secrets.INSTAGRAM_BUSINESS_ACCOUNT_ID }}
+      INSTAGRAM_ID_TECH: ${{ secrets.INSTAGRAM_ID_TECH }}
+      YOUTUBE_CREDENTIALS: ${{ secrets.YOUTUBE_CREDENTIALS }}
+      YOUTUBE_CREDENTIALS_TECH: ${{ secrets.YOUTUBE_CREDENTIALS_TECH }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+      - run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+      - run: python channel_health.py
