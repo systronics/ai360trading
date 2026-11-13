@@ -273,6 +273,8 @@ One broken file = zero income that day. Treat every edit as critical.
 
 | **Appscript WAITING queue: sector cap = `CONFIG.MAX_PER_SECTOR` (3) and Options Alert rows live OUTSIDE the normal slot/sector/capital accounting (own cap `MAX_OPTION_WAITING` 5)** (v15.41, owner order 2026-11-13) - do not revert to a hard-coded 2 or let options consume stock slots without evidence | Sector concentration risk is the price: with cap 3 a single sector (e.g. Financial Services) can hold 3 open/waiting names. Review after ~4 weeks of SignalWatch `SLOT_LOST` + History by sector |
 
+| **The 3 session-loop workflows ignore a SCHEDULED (non-manual) start outside 07:50-15:40 IST, and chain a successor only between 07:50 and 15:40** (2026-11-13) - do not remove the `HMN` guard | 9 Nov: a delayed schedule trigger arrived at 00:11 IST, `date +%H` = 00 picked the 'before noon' branch and the loop ran all night until the 235-min timeout (price feed + swing board both cancelled). Also 9-13 Nov swing_board_session was cancelled by its timeout every morning (stuck `git pull --rebase` + sleep overshoot), now fixed with `--autostash` and a capped sleep. The weekly Tracker report now lists 'cancelled after >3h = timeout' runs so this class of silent crash is visible |
+
 ---
 
 ## END OF EVERY SESSION
