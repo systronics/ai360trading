@@ -1,0 +1,45 @@
+name: "Tracker report (weekly, Premium Telegram, text only)"
+
+# 2026-11-13: the owner's Claude plan ends 18 Nov 2026. This sends ONE weekly plain-text summary of every observation tracker
+# (SignalWatch, ResultLean, GainersLog, BuildupWatch, SwingShadow, GateAudit, RunupWatch) so the evidence can be read without any AI.
+# Read-only: runs the existing `--report` modes, writes nothing. Mode = repo variable TRACKER_REPORT_MODE (dry default | scheduled).
+# Kill switch: gh variable set TRACKER_REPORT_MODE --body dry
+
+on:
+  schedule:
+    - cron: "37 5 * * 6"     # Saturday ~11:07 IST (GitHub may delay it)
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "dry | scheduled (empty = repo variable TRACKER_REPORT_MODE, default dry)"
+        required: false
+        default: ""
+
+concurrency:
+  group: tracker-report
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      TRACKER_REPORT_MODE: ${{ github.event.inputs.mode || vars.TRACKER_REPORT_MODE || 'dry' }}
+      GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      CHAT_ID_PREMIUM: ${{ secrets.CHAT_ID_PREMIUM }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+      - name: Install
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Tracker report
+        run: python tracker_report.py
