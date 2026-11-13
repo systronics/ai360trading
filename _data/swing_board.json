@@ -1,5 +1,5 @@
 {
-  "generated_at": "13 November 2026, 08:40 AM IST",
+  "generated_at": "13 November 2026, 03:28 PM IST",
   "setups": [
     {
       "symbol": "BSE",
@@ -10,7 +10,7 @@
       "days_in_trade": "8"
     },
     {
-      "symbol": "DLF",
+      "symbol": "UNIONBANK",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
@@ -18,23 +18,23 @@
       "days_in_trade": "—"
     },
     {
+      "symbol": "DLF",
+      "trade_type": "📊 Options Alert",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
       "symbol": "INDHOTEL",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
     {
-      "symbol": "PRESTIGE",
-      "trade_type": "📊 Options Alert",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "MOTILALOFS",
+      "symbol": "PHOENIXLTD",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
@@ -46,22 +46,6 @@
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "KALYANKJIL",
-      "trade_type": "⚡ MOM Swing",
-      "strategy": "➖ HOLD",
-      "stage": "⚡ MOMENTUM | +7.1% | Vol 352%",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "ZEEL",
-      "trade_type": "🔥 Cash Intraday",
-      "strategy": "CASH",
-      "stage": "🔥 WATCHLIST CASH | +4.8% | Zee Entertainment",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
