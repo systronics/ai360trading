@@ -276,6 +276,8 @@ One broken file = zero income that day. Treat every edit as critical.
 
 | **The 3 session-loop workflows ignore a SCHEDULED (non-manual) start outside 07:50-15:40 IST, and chain a successor only between 07:50 and 15:40** (2026-11-13) - do not remove the `HMN` guard | 9 Nov: a delayed schedule trigger arrived at 00:11 IST, `date +%H` = 00 picked the 'before noon' branch and the loop ran all night until the 235-min timeout (price feed + swing board both cancelled). Also 9-13 Nov swing_board_session was cancelled by its timeout every morning (stuck `git pull --rebase` + sleep overshoot), now fixed with `--autostash` and a capped sleep. The weekly Tracker report now lists 'cancelled after >3h = timeout' runs so this class of silent crash is visible |
 
+| **Ads are OFF site-wide (`ads_active: false` in `_config.yml`, 2026-11-13, owner order)** - covers Adsterra slots (32 pages via `_includes/adslot.html`) AND the AdSense auto-ads tag in `_includes/head.html`; one commit (`true`) brings both back | Tiny real traffic (Search Console 28 d: 4 clicks / 1.45K impressions on 25 Oct; GA4 audit mostly bot traffic), no visible earnings, ads slow pages and weaken trust for a trading brand; real income = Telegram membership + broker referrals. Re-enable AdSense only when real traffic is several hundred visits a day. `ads.txt` left as is (harmless) |
+
 ---
 
 ## END OF EVERY SESSION

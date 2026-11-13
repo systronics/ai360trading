@@ -18,7 +18,7 @@ social_image: "/public/image/header.webp"
 
 # Ad network switch — Adsterra codes wired in _includes/adslot.html (2026-07-19).
 # Set false to instantly hide every ad on the site (one commit).
-ads_active: true
+ads_active: false   # 2026-11-13 owner order: both Adsterra and AdSense OFF (no visible benefit, tiny traffic). Set true to bring both back.
 
 # Author Information
 author:
