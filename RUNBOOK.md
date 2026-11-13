@@ -114,3 +114,14 @@ The alert tells you the issue title. Find it below.
 
 ---
 *Keep this file. If you hire any developer, give them this repo + `.internal-ops.md` (full technical doc) + `SESSION.md` (current state).*
+
+
+---
+
+## Added 2026-11-13 - the short version for the day no AI is available
+
+- **Every morning:** the system starts itself at 08:40 IST from the cron-job.org account. If there is no Good Morning message by 09:00 on a market day: open GitHub > Actions > "Trading Bot - Market Session Loop" > Run workflow.
+- **Result Watch / Pre-market reel / Threads / lessons / tech Shorts:** each has a kill switch in GitHub Settings > Secrets and variables > Actions > Variables. To stop one, set its MODE variable to `dry` (or `off`). To resume, set it to `scheduled`.
+- **Weekly review (Saturday):** read the weekly scorecard Telegram message. If swing/positional is positive and the rest is negative, that is the known pattern, not a fault.
+- **Never** connect a real broker, never put a trading API key into GitHub, never raise position sizes because of one good week.
+- Full state and the 11 Dec 2026 review plan: `PROJECT_HANDOFF.md` (top section).
