@@ -34,5 +34,5 @@ jobs:
           git add _data/announced_videos.json 2>/dev/null || true
           git diff --cached --quiet && exit 0
           git commit -m "announced videos"
-          git pull --rebase -q
-          git push -q
+          git pull --rebase --autostash -q || true
+          ok=0; for i in 1 2 3 4; do if git push -q origin HEAD; then ok=1; break; fi; git pull --rebase --autostash -q || true; sleep $((i * 5)); done; [ "$ok" = "1" ]
