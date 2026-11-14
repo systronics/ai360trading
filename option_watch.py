@@ -16,6 +16,7 @@ USAGE: python option_watch.py            dry-run (prints, needs UPSTOX_ANALYTICS
        python option_watch.py --send     send to PREMIUM + log + score old rows
        python option_watch.py --auto     for the price-feed loop: runs ONCE per trading day in the 14:40-15:25 IST window, else exits at once
        python option_watch.py --report   hit-rate of past rows
+       --force                           test run on a holiday/weekend (uses the last trading day's data)
 """
 import gzip
 import json
@@ -377,8 +378,8 @@ def main(argv=None):
     if "--report" in argv:
         return report(sh)
     today = now.date()
-    if S._is_holiday():
-        print("[OW] market holiday - nothing to do")
+    if S._is_holiday() and "--force" not in argv:
+        print("[OW] market holiday - nothing to do (use --force for a test run)")
         return 0
     scheduled = os.environ.get("OPTION_WATCH_MODE", "dry").lower() == "scheduled"
     if auto and not scheduled:

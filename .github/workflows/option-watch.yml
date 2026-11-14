@@ -11,6 +11,10 @@ on:
         description: "dry (print only) | send (post to PREMIUM + log)"
         required: false
         default: "dry"
+      force:
+        description: "yes = test run on a holiday/weekend (last trading day's data)"
+        required: false
+        default: "no"
 
 permissions:
   contents: read
@@ -35,4 +39,5 @@ jobs:
           pip install -r requirements.txt
       - name: Option Watch
         run: |
-          if [ "${{ github.event.inputs.mode }}" = "send" ]; then python option_watch.py --send; else python option_watch.py; fi
+          F=""; [ "${{ github.event.inputs.force }}" = "yes" ] && F="--force"
+          if [ "${{ github.event.inputs.mode }}" = "send" ]; then python option_watch.py --send $F; else python option_watch.py $F; fi
