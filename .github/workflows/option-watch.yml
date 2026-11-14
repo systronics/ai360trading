@@ -1,0 +1,38 @@
+name: "Option Watch (manual run; the daily one runs inside the price-feed loop)"
+
+# 2026-11-14: builds the OPTION WATCH list (see option_watch.py). Manual: mode=dry prints only, mode=send posts to PREMIUM + logs in the OptionWatch tab.
+# The daily automatic run is a hook in fetch_live_prices_session.yml (14:40-15:25 IST window, once a day) and only sends when repo variable OPTION_WATCH_MODE=scheduled.
+# Kill switch: gh variable set OPTION_WATCH_MODE --body dry
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "dry (print only) | send (post to PREMIUM + log)"
+        required: false
+        default: "dry"
+
+permissions:
+  contents: read
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
+      UPSTOX_ANALYTICS_TOKEN: ${{ secrets.UPSTOX_ANALYTICS_TOKEN }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      CHAT_ID_PREMIUM: ${{ secrets.CHAT_ID_PREMIUM }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+      - run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Option Watch
+        run: |
+          if [ "${{ github.event.inputs.mode }}" = "send" ]; then python option_watch.py --send; else python option_watch.py; fi
