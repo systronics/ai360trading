@@ -21,6 +21,7 @@ REPORTS = [
     ("Swing exits vs plain hold", ["swing_shadow.py", "--report"]),
     ("Gate audit (RS/trend/RSI pass vs blocked)", ["gate_audit.py", "--report"]),
     ("Result run-up paper list", ["result_runup.py", "--report"]),
+    ("Option Watch (break-even reached in 5 days?)", ["option_watch.py", "--report"]),
 ]
 PER_REPORT_LINES = 9
 MAX_CHARS = 3800
