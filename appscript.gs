@@ -608,7 +608,7 @@ const OPTIONS_CONFIG = {
 
 // ── CONFIG ────────────────────────────────────────────────────────────────────
 const CONFIG = {
-  VERSION       : "v15.41",  // single source for ALL subscriber-facing version stamps (was hardcoded per-message and went stale at v15.17)
+  VERSION       : "v15.42",  // single source for ALL subscriber-facing version stamps (was hardcoded per-message and went stale at v15.17)
   get TELEGRAM_BOT_TOKEN() { return PropertiesService.getScriptProperties().getProperty('TELEGRAM_BOT_TOKEN') || ""; },
   get CHAT_ID_BASIC()      { return PropertiesService.getScriptProperties().getProperty('CHAT_ID_BASIC')      || ""; },
   get CHAT_ID_ADVANCE()    { return PropertiesService.getScriptProperties().getProperty('CHAT_ID_ADVANCE')    || ""; },
@@ -1037,7 +1037,7 @@ function _getStrikeInterval(cmp) {
  *
  * New ATH parameter: high52 and cmp passed to check proximity.
  */
-function _generateOptionsSignal(sym, cmp, atr, stage, pctChange, vix, isBaseEntry, high52, optTag, sectorTrend) {
+function _generateOptionsSignal(sym, cmp, atr, stage, pctChange, vix, isBaseEntry, high52, optTag, sectorTrend, optTrendOk) {
   const result = { signal: "⏸ SKIP", strike: "", expiryStr: "", thetaRisk: "", message: "", liqNote: "", isBase: isBaseEntry || false,
     // v15.30: market regime + stock breakout direction are already implicit in
     // every candidate reaching this function (bearish hard-block / standard
@@ -1061,6 +1061,14 @@ function _generateOptionsSignal(sym, cmp, atr, stage, pctChange, vix, isBaseEntr
       ? "🟦 Nifty50 chain — deep & liquid"
       : "⚠️ Midcap chain — check bid-ask spread before buying";
   } else if (!F_AND_O_LIQUID_STOCKS.has(sym)) { result.message = "Not in F&O liquid list"; return result; }
+
+  // v15.42 (2026-11-14, owner order): an option buyer pays theta every day, so a SIDEWAYS or weak stock is the wrong place for it. Nifty200 col "Opt_Trend"
+  // (fetch_opt_trend.py: daily ADX(14) >= 25 AND +DI > -DI = "OK", else "NO"). "NO" -> no option signal (the stock can still be a swing/positional/cash candidate);
+  // blank/unknown = fail-open (optTrendOk stays true).
+  if (optTrendOk === false) {
+    result.message = "Daily trend weak (ADX<25 or -DI above +DI) - sideways, option skipped";
+    return result;
+  }
 
   // v15.6 FIX 3: Block options if NEAR ATH
   if (high52 > 0 && cmp > 0) {
@@ -1572,7 +1580,7 @@ function _tradeMode(r) {
   return "STD";
 }
 
-function _mapTradeType(niftyType, priority, atr, cmp, volVsAvg, pctChange, smaStr, timeStr, isBreakoutStage) {
+function _mapTradeType(niftyType, priority, atr, cmp, volVsAvg, pctChange, smaStr, timeStr, isBreakoutStage, optTrendOk) {
   const atrPct = (atr / cmp) * 100;
   // v15.37 (2026-08-11, owner rule): Options Alert previously fired purely off
   // priority+ATR% — no check that the stock had actually confirmed a real
@@ -1588,7 +1596,8 @@ function _mapTradeType(niftyType, priority, atr, cmp, volVsAvg, pctChange, smaSt
   // Options Alert candidates (LAURUSLABS, RADICO, TVSMOTOR, LENSKART) all
   // already carried BREAKOUT CONFIRMED — this tightens the rare gap case,
   // it does not block any real candidate seen live so far.
-  if (priority >= 28 && atrPct > 2.0 && isBreakoutStage) return { ttype: "📊 Options Alert" };
+  // v15.42: also needs the daily trend (Opt_Trend != "NO"); a sideways stock falls through to Intraday/Swing/Positional below instead of becoming an option.
+  if (priority >= 28 && atrPct > 2.0 && isBreakoutStage && optTrendOk !== false) return { ttype: "📊 Options Alert" };
   const inMorning = (timeStr >= CONFIG.INTRADAY_WINDOW_START && timeStr <= CONFIG.INTRADAY_WINDOW_END);
   if (inMorning && volVsAvg > 200 && pctChange > 0.5 && (smaStr === "Strong Bull" || smaStr === "Bull")) return { ttype: "⚡ Intraday" };
   if (niftyType.includes("INTRADAY"))   return { ttype: "⚡ Intraday"   };
@@ -1635,6 +1644,8 @@ function _runScanner(startRow, endRow) {
   const _hdr     = inputData[0] || [];
   const atrColOk = (_hdr[28] || "").toString().toUpperCase().indexOf("ATR") !== -1;
   const optColOk = (_hdr[35] || "").toString().trim() === "Options";
+  // v15.42: "Opt_Trend" is found BY HEADER NAME (appended at the end of Nifty200 by fetch_opt_trend.py); -1 = column missing = fail-open.
+  const optTrendCol = _hdr.map(h => (h || "").toString().trim()).indexOf("Opt_Trend");
   if (!atrColOk || !optColOk) {
     Logger.log(`[COLUMN-DRIFT] ⚠️ Nifty200 header mismatch — ATR col29="${_hdr[28]}" (ok=${atrColOk}) Options col36="${_hdr[35]}" (ok=${optColOk}). Falling back to safe defaults until columns are realigned.`);
   }
@@ -1744,6 +1755,8 @@ function _runScanner(startRow, endRow) {
     // file): "N50" / "YES" / "" (no derivatives). null = column absent →
     // _generateOptionsSignal falls back to the legacy hardcoded list.
     const optTag     = (!optColOk || r[35] === undefined || r[35] === null) ? null : r[35].toString().trim();
+    // v15.42: false ONLY when the sheet explicitly says "NO"; blank / missing column / any other value = true (fail-open)
+    const optTrendOk = !(optTrendCol >= 0 && r[optTrendCol] !== undefined && r[optTrendCol] !== null && r[optTrendCol].toString().trim().toUpperCase() === "NO");
 
     const signal   = _inferSignal(rawSignal, stage, fiiBuyZone, smaStr);
     const priority = _inferPriority(rawPriority, rawMasterScore, rawSignalScore);
@@ -1928,7 +1941,7 @@ function _runScanner(startRow, endRow) {
     // GATE 10: Sector Concentration
     if ((sectorCount[sector] || 0) >= CONFIG.MAX_PER_SECTOR) { skipReasons.set(sym, `GATE 10: sector "${sector}" already has ${sectorCount[sector]} open trades`); continue; }
 
-    const { ttype } = _mapTradeType(niftyTradeType, priority, atr, cmp, volVsAvg, pctChange, smaStr, timeStr, isBreakoutStage);
+    const { ttype } = _mapTradeType(niftyTradeType, priority, atr, cmp, volVsAvg, pctChange, smaStr, timeStr, isBreakoutStage, optTrendOk);
 
     // SL / Target
     let sl, target;
@@ -1994,7 +2007,7 @@ function _runScanner(startRow, endRow) {
 
     // v15.6: Pass high52 to options signal for ATH check
     // v15.23: pass optTag — live F&O eligibility replaces the stale hardcoded list
-    const optSignal  = _generateOptionsSignal(sym, cmp, atr, stage, pctChange, indiaVix, isBaseEntry, high52, optTag, sectorTrend);
+    const optSignal  = _generateOptionsSignal(sym, cmp, atr, stage, pctChange, indiaVix, isBaseEntry, high52, optTag, sectorTrend, optTrendOk);
 
     batchCands.push({
       priority: finalScore, rawPriority: useScore,

@@ -671,7 +671,7 @@ except Exception as _e:
     _EQ_AVAILABLE = False
 
 IST       = pytz.timezone('Asia/Kolkata')
-VERSION   = "v15.43"   # v15.43 (2026-11-06): INTRADAY AUTO-PAUSE - 3 closed cash/option losses (<= -0.5%) in a day pause new cash/option entries until tomorrow, swing/positional never paused (see INTRADAY_PAUSE). v15.42 (2026-11-05): bonus/split guard for open trades (CORP_ACTION_GUARD). v15.41 (2026-11-05): CASH rows need a live-hours scan (CASH_REQUIRE_LIVE_SCAN). v15.40 (2026-11-03): CASH regime gate (NIFTY above 50-EMA) - see CASH_REGIME_GATE. single source for the run banner + test messages (were stale at v15.16 before v15.23; was stuck at v15.28 in this constant through the v15.29 RSI dip-tolerance release — banner text only, no logic was affected). v15.32 (2026-07-28): TSL-UPDATE spam fix — see calc_new_tsl() comparison guard below. v15.33 (2026-07-30): loss re-entry cooldown split to 1 trading day (was sharing the 5-day target-hit cooldown) — see set_loss_cooldown() below. v15.34 (2026-07-30): re-entry cooldown scoped by trade family (OPTION/CASH/STOCK no longer cross-block each other) — see _cooldown_family() below. v15.35 (2026-08-05): Cash Intraday force-exit shifted 3:00 PM -> ~3:10 PM after a full 10-trade History review (7W/3L, all exits via this clock, never target/SL) showed the trailing stop already protects gains and the cutoff was never updated for NSE's 15:30->15:40 close move — see CASH_FORCE_EXIT_HOUR below. Entry criteria deliberately untouched (sample too small to recalibrate).
+VERSION   = "v15.44"   # v15.44 (2026-11-14, owner order): option entries also need daily trend Opt_Trend != NO (ADX>=25, +DI>-DI) and a live ATM call spread <= 6% (OPTION_REQUIRE_TREND / OPTION_MAX_SPREAD_PCT); both fail-open. v15.43 (2026-11-06): INTRADAY AUTO-PAUSE - 3 closed cash/option losses (<= -0.5%) in a day pause new cash/option entries until tomorrow, swing/positional never paused (see INTRADAY_PAUSE). v15.42 (2026-11-05): bonus/split guard for open trades (CORP_ACTION_GUARD). v15.41 (2026-11-05): CASH rows need a live-hours scan (CASH_REQUIRE_LIVE_SCAN). v15.40 (2026-11-03): CASH regime gate (NIFTY above 50-EMA) - see CASH_REGIME_GATE. single source for the run banner + test messages (were stale at v15.16 before v15.23; was stuck at v15.28 in this constant through the v15.29 RSI dip-tolerance release — banner text only, no logic was affected). v15.32 (2026-07-28): TSL-UPDATE spam fix — see calc_new_tsl() comparison guard below. v15.33 (2026-07-30): loss re-entry cooldown split to 1 trading day (was sharing the 5-day target-hit cooldown) — see set_loss_cooldown() below. v15.34 (2026-07-30): re-entry cooldown scoped by trade family (OPTION/CASH/STOCK no longer cross-block each other) — see _cooldown_family() below. v15.35 (2026-08-05): Cash Intraday force-exit shifted 3:00 PM -> ~3:10 PM after a full 10-trade History review (7W/3L, all exits via this clock, never target/SL) showed the trailing stop already protects gains and the cutoff was never updated for NSE's 15:30->15:40 close move — see CASH_FORCE_EXIT_HOUR below. Entry criteria deliberately untouched (sample too small to recalibrate).
 TG_TOKEN  = os.environ.get('TELEGRAM_BOT_TOKEN')
 
 CHAT_BASIC   = os.environ.get('CHAT_ID_BASIC')
@@ -754,6 +754,8 @@ OPTION_MIN_DAYS_LEFT     = 15    # "no time decay": >=15 calendar days to expiry
 OPTION_HV_MAX            = 35.0  # "cheap": HV-20 below 35% (the codebase's calm/normal regime; not elevated)
 OPTION_PCR_MIN           = 0.6   # "PCR ok": NIFTY OI put/call ratio inside [0.6, 1.4]
 OPTION_PCR_MAX           = 1.4   #   (end-of-day, official F&O bhavcopy via fetch_bhavcopy.py v1.1)
+OPTION_REQUIRE_TREND     = True  # v15.44 (owner order 2026-11-14): Nifty200 'Opt_Trend' == 'NO' (daily ADX<25 or -DI above +DI = sideways/weak) blocks an option entry; blank = allow
+OPTION_MAX_SPREAD_PCT    = 6.0   # v15.44: live ATM call bid-ask spread (Upstox chain, read-only token, market hours only); wider than this = hidden cost -> skip; unknown = allow
 OPTION_EXPIRY_EXIT_DAYS  = 5     # backstop: never hold into expiry week (≤5 calendar days to expiry)
 # v15.26 (owner rule 2026-07-18): options are INTRADAY / max 1-2 day holds —
 # the alert now says so, and the ledger follows the alert (v15.25 doctrine).
@@ -1831,11 +1833,58 @@ def is_option_trade(ttype):
     return "OPTION" in str(ttype).upper()
 
 
-def option_entry_gate(sym, opt_expiry, now, bm_data):
+def _read_opt_trend_from_nifty200(nifty_sheet, sym):
+    """v15.44: Nifty200 col "Opt_Trend" ("OK"/"NO", fed by fetch_opt_trend.py = daily ADX(14)>=25 and +DI>-DI). Returns None when the column/symbol/cell can't be read
+    (caller fails OPEN). Header-name lookup, served from the per-tick sheet cache."""
+    try:
+        if nifty_sheet is None:
+            return None
+        col = _find_nifty200_col(nifty_sheet, ["Opt_Trend"], substring_keywords=None)
+        if col < 0:
+            return None
+        clean = sym.replace("NSE:", "").strip()
+        for row in _nifty200_rows(nifty_sheet)[1:]:
+            if str(row[0] if row else "").replace("NSE:", "").strip() == clean:
+                v = str(row[col]).strip().upper() if len(row) > col else ""
+                return v if v in ("OK", "NO") else None
+    except Exception as e:
+        print(f"[OPT-TREND] {e}")
+    return None
+
+
+def _option_atm_spread_pct(sym, opt_expiry, now):
+    """v15.44: ATM CALL bid-ask spread % from the free read-only Upstox chain (same helpers as option_watch.py). None = unknown (no token, outside market hours,
+    empty book, any error) -> the caller allows. Never raises."""
+    try:
+        tok = os.environ.get("UPSTOX_ANALYTICS_TOKEN", "").strip()
+        if not tok or not (9 * 60 + 20 <= now.hour * 60 + now.minute <= 15 * 60 + 25):
+            return None
+        exp_d = _parse_expiry(opt_expiry)
+        if exp_d is None:
+            return None
+        import option_watch as _OW
+        import live_prices_upstox as _UP
+        ukey = _UP.load_instruments().get(sym.replace("NSE:", "").strip())
+        if not ukey:
+            return None
+        rows = _OW.fetch_chain(tok, ukey, exp_d.isoformat())
+        if not rows:
+            return None
+        spot = _OW.S._f(rows[0].get("underlying_spot_price"))
+        cont = _OW.contract_from_chain(rows, spot)
+        return cont["spread"] if cont else None
+    except Exception as e:
+        print(f"[OPT-SPREAD] {sym}: {str(e)[:80]}")
+        return None
+
+
+def option_entry_gate(sym, opt_expiry, now, bm_data, nifty_sheet=None):
     """v15.39: (ok, [reasons]) for taking a live 📊 Options Alert entry.
     1. time decay: >= OPTION_MIN_DAYS_LEFT calendar days to expiry (unreadable expiry -> block)
     2. cheap premium: HV-20 <= OPTION_HV_MAX (HV unavailable -> allow)
     3. PCR ok: NIFTY PCR within [OPTION_PCR_MIN, OPTION_PCR_MAX] (not cached -> allow)
+    4. v15.44 trend: Nifty200 Opt_Trend != 'NO' (daily ADX>=25 and +DI>-DI; blank -> allow)
+    5. v15.44 liquidity: live ATM call spread <= OPTION_MAX_SPREAD_PCT (unknown -> allow)
     Pure read-only; never raises."""
     reasons, ok = [], True
     try:
@@ -1872,6 +1921,28 @@ def option_entry_gate(sym, opt_expiry, now, bm_data):
             reasons.append(f"[OPT-GATE] {sym}: PCR not cached — allowed")
     except Exception as e:
         reasons.append(f"[OPT-GATE] {sym}: PCR check errored ({e}) — allowed")
+    try:
+        if OPTION_REQUIRE_TREND:
+            tr = _read_opt_trend_from_nifty200(nifty_sheet, sym)
+            if tr == "NO":
+                ok = False
+                reasons.append(f"[OPT-GATE] {sym}: daily trend weak (ADX<25 or -DI above +DI) — sideways, option skipped")
+            elif tr == "OK":
+                reasons.append(f"[OPT-GATE] {sym}: daily trend OK (ADX>=25, +DI>-DI) ✅")
+            else:
+                reasons.append(f"[OPT-GATE] {sym}: Opt_Trend not available — allowed")
+    except Exception as e:
+        reasons.append(f"[OPT-GATE] {sym}: trend check errored ({e}) — allowed")
+    try:
+        sp = _option_atm_spread_pct(sym, opt_expiry, now) if ok else None
+        if sp is not None:
+            if sp > OPTION_MAX_SPREAD_PCT:
+                ok = False
+                reasons.append(f"[OPT-GATE] {sym}: ATM call spread {sp:.1f}% > {OPTION_MAX_SPREAD_PCT:.0f}% (hidden cost) — skip")
+            else:
+                reasons.append(f"[OPT-GATE] {sym}: ATM call spread {sp:.1f}% ✅")
+    except Exception as e:
+        reasons.append(f"[OPT-GATE] {sym}: spread check errored ({e}) — allowed")
     return ok, reasons
 
 
@@ -2719,7 +2790,7 @@ def step_a_enter_trades(log_sheet, nifty_sheet, bm_sheet, mem, now, is_bullish, 
 
         # v15.39: option entries need low time decay + cheap premium + PCR ok (owner 2026-10-23)
         if is_option_trade(ttype):
-            _og_ok, _og_why = option_entry_gate(sym, opt_expiry, now, bm_data)
+            _og_ok, _og_why = option_entry_gate(sym, opt_expiry, now, bm_data, nifty_sheet)
             for _r in _og_why:
                 print(_r)
             if not _og_ok:

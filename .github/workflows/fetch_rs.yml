@@ -66,6 +66,14 @@ jobs:
           GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
         run: python fetch_rs.py --write
 
+      # 2026-11-14 (owner order): daily ADX trend flag for the OPTION gates (Nifty200 columns Opt_ADX / Opt_Trend, appended at the end). continue-on-error + fail-open.
+      - name: Option trend flag (ADX>=25 and +DI>-DI)
+        continue-on-error: true
+        timeout-minutes: 6
+        env:
+          GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
+        run: python fetch_opt_trend.py --write
+
       # 2026-10-18: BottomScanner level feed (prev day/week high-low, support,
       # retest). Informational only; continue-on-error so it can never fail the
       # RS+ATR job above or trigger a false failure alert for it.

@@ -128,6 +128,7 @@ jobs:
           BOT_MODE: 'trade'
           MANUAL_END: ${{ github.event.inputs.end_time }}
           TICK_SECONDS: '300'
+          UPSTOX_ANALYTICS_TOKEN: ${{ secrets.UPSTOX_ANALYTICS_TOKEN }}   # 2026-11-14: read-only token for the option spread check (fail-open when missing)
         run: |
           export TZ=Asia/Kolkata
           # Decide this session's IST end time:
