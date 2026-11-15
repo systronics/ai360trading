@@ -45,6 +45,7 @@ jobs:
           GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
           TELEGRAM_BOT_TOKEN:       ${{ secrets.TELEGRAM_BOT_TOKEN }}
           CHAT_ID_BASIC:            ${{ secrets.CHAT_ID_BASIC }}
+          CHAT_ID_OWNER: ${{ secrets.CHAT_ID_OWNER }}
           GITHUB_TOKEN:             ${{ secrets.GITHUB_TOKEN }}
           GH_PAT:                   ${{ secrets.GH_TOKEN }}
           GITHUB_REPOSITORY:        ${{ github.repository }}

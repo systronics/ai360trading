@@ -30,7 +30,7 @@ from urllib.error import HTTPError
 GH_TOKEN   = os.environ.get("GITHUB_TOKEN", "")
 GH_REPO    = os.environ.get("GITHUB_REPOSITORY", "systronics/ai360trading")
 TG_TOKEN   = os.environ.get("TELEGRAM_BOT_TOKEN", "")
-CHAT_BASIC = os.environ.get("CHAT_ID_BASIC", "")
+CHAT_BASIC = os.environ.get("CHAT_ID_OWNER", "").strip() or os.environ.get("CHAT_ID_BASIC", "")  # 2026-11-15: private owner chat first
 
 MAX_ATTEMPTS = 3      # original attempt + 2 auto-retries, then escalate
 RECENT_HOURS = 6      # only look at recent runs

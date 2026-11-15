@@ -46,7 +46,9 @@ TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 # v2.2: Token alerts go to BOTH Basic and Advance — Amit ji monitors both
 CHAT_ID_BASIC      = os.environ.get("CHAT_ID_BASIC", "")
 CHAT_ID_ADVANCE    = os.environ.get("CHAT_ID_ADVANCE", "")
-CHAT_IDS           = [cid for cid in (CHAT_ID_BASIC, CHAT_ID_ADVANCE) if cid]
+CHAT_ID_OWNER      = os.environ.get("CHAT_ID_OWNER", "").strip()
+# 2026-11-15: token reports go to the private owner chat when it exists; else the old Basic+Advance behaviour
+CHAT_IDS           = [CHAT_ID_OWNER] if CHAT_ID_OWNER else [cid for cid in (CHAT_ID_BASIC, CHAT_ID_ADVANCE) if cid]
 
 
 # ─── STEP 1: Exchange for new long-lived token ────────────────────────────────

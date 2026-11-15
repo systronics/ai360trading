@@ -47,7 +47,7 @@ from urllib.request import Request, urlopen
 IST          = timezone(timedelta(hours=5, minutes=30))
 SHEET_NAME   = "Ai360tradingAlgo"
 TG_TOKEN     = os.environ.get("TELEGRAM_BOT_TOKEN", "")
-CHAT_BASIC   = os.environ.get("CHAT_ID_BASIC", "")
+CHAT_BASIC   = os.environ.get("CHAT_ID_OWNER", "").strip() or os.environ.get("CHAT_ID_BASIC", "")  # 2026-11-15: private owner chat first
 GH_TOKEN     = os.environ.get("GITHUB_TOKEN", "")
 GH_PAT       = os.environ.get("GH_PAT", "")   # the long-lived PAT secret (GH_TOKEN secret), not the per-run built-in
 GH_REPO      = os.environ.get("GITHUB_REPOSITORY", "systronics/ai360trading")

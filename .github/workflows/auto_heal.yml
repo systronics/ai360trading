@@ -39,4 +39,5 @@ jobs:
           GITHUB_REPOSITORY:  ${{ github.repository }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           CHAT_ID_BASIC:      ${{ secrets.CHAT_ID_BASIC }}
+          CHAT_ID_OWNER: ${{ secrets.CHAT_ID_OWNER }}
         run: python auto_heal.py

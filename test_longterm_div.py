@@ -13,3 +13,11 @@ def test_dividend_payer_no_longer_gets_high_div_bonus_by_mistake():
     sig_low = G.make_signal(dict(base, div=0.95))[0]
     sig_inflated = G.make_signal(dict(base, div=95.0))[0]
     assert sig_low != "ACCUMULATE 🟡" or sig_inflated == sig_low
+
+
+def test_hot_rsi_is_never_accumulate_or_strong_buy():
+    # v1.9: near-low, strong score but RSI 82 must become BOOK PARTIAL, not a buy idea
+    d = dict(cmp=100.0, h52=150.0, l52=95.0, rsi=82.0, fund_score=10, fii_change=3.0, div=4.0)
+    assert G.make_signal(d)[0].startswith("BOOK PARTIAL")
+    d["rsi"] = 71.0
+    assert not G.make_signal(d)[0].startswith("BOOK PARTIAL")

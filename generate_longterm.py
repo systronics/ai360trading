@@ -82,7 +82,7 @@ from datetime import datetime
 import pytz
 
 IST        = pytz.timezone("Asia/Kolkata")
-VERSION    = "v1.8"
+VERSION    = "v1.9"
 SHEET_NAME = "Ai360tradingAlgo"
 
 LT_WATCHLIST    = "LTWatchlist"
@@ -412,7 +412,14 @@ def make_signal(data):
     # instead of being swallowed into HOLD. STRONG BUY/ACCUMULATE still take
     # precedence — high score requires near-52W-low conditions that cannot
     # coexist with near-52W-high status, so no conflict.
-    if score >= 9:
+    # v1.9 (2026-11-15, owner approved): RSI >= 72 can never be STRONG BUY / ACCUMULATE
+    # (ITC at RSI 82 was ACCUMULATE because the old rule only subtracted 1 point).
+    if rsi >= 72:
+        sig   = "BOOK PARTIAL 🔴"
+        tgt   = round(h52, 2)
+        sl    = round(cmp * 0.88, 2)
+        entry = "—"
+    elif score >= 9:
         sig   = "STRONG BUY 🟢"
         tgt   = round(max(h52 * 1.05, cmp * 1.30), 2)
         sl    = round(cmp * 0.82, 2)
@@ -788,6 +795,7 @@ def main():
         adv_lines += [
             "\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
             f"Strong Buy: {len(strong_buys)} | Accumulate: {len(accumulates)} | Hold: {len(holds)}",
+            "⚠️ Ye kamzor/girte stock mein dheere jodne ka idea hai, girna ruk gaya iska saboot nahi. Chhote tranche mein hi lein, SL ka dhyan rakhein.",
         ]
         _tg_chunked(ADVANCE, adv_lines)
         _tg_chunked(PREMIUM, adv_lines)
