@@ -188,6 +188,11 @@ try:   # 2026-11-09: thirty more topics so the queue lasts ~2 months (see tech_t
     _X4.register(TOPICS)
 except Exception as _e:
     print(f"[TECH] topics4 not loaded: {str(_e)[:80]}")
+try:   # 2026-11-15: thirty more topics so the queue lasts to about early Feb 2027 without any AI help (see tech_topics5.py); fail-open
+    import tech_topics5 as _X5
+    _X5.register(TOPICS)
+except Exception as _e:
+    print(f"[TECH] topics5 not loaded: {str(_e)[:80]}")
 for _t in TOPICS.values():   # 2026-11-07: people type 'kyu' far more than 'kyun' (autocomplete); titles/tags use it, the old spelling stays as a tag
     try:
         _t["yt_title"] = _t["yt_title"].replace("Kyun", "Kyu")
@@ -1102,6 +1107,11 @@ except Exception:
 try:
     import tech_topics4 as _X4b
     OBJ3D.update(_X4b.OBJ3D)
+except Exception:
+    pass
+try:
+    import tech_topics5 as _X5b
+    OBJ3D.update(_X5b.OBJ3D)
 except Exception:
     pass
 

@@ -24,6 +24,11 @@ try:   # 2026-11-09: thirty more topics appended after the existing queue (tech_
     TOPIC_ORDER = TOPIC_ORDER + [k for k in _T4.ORDER if k not in TOPIC_ORDER]
 except Exception:
     pass
+try:   # 2026-11-15: thirty more topics after those (tech_topics5.py), queue lasts to about early Feb 2027
+    import tech_topics5 as _T5
+    TOPIC_ORDER = TOPIC_ORDER + [k for k in _T5.ORDER if k not in TOPIC_ORDER]
+except Exception:
+    pass
 PUBLISH_UTC = (13, 0)   # 18:30 IST
 CTA_FILE = Path("_data/tech_cta.txt")   # the owner's own lines for descriptions (service number/link); optional
 DEFAULT_CTA = "PC ya data ki problem? Google par 'ai360services Haridwar' search karo."
