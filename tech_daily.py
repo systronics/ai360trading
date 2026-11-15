@@ -223,14 +223,19 @@ def run(mode, out_dir, topic=None):
             return 0
         from human_touch import ai_disclosure
         NL = chr(10)
-        desc = (meta["description"] + NL + NL + cta_line() + NL + NL + "Follow karo: roz ek nayi tech problem ka solution." + NL + NL +
+        try:   # 2026-11-15: every Short links to its own evergreen website page (tech_pages.py creates it right after the upload); fail-open
+            import tech_pages as _TP
+            page_line = "Poore steps likhit mein: " + _TP.page_url(key) + NL + NL
+        except Exception:
+            page_line = ""
+        desc = (meta["description"] + NL + NL + page_line + cta_line() + NL + NL + "Follow karo: roz ek nayi tech problem ka solution." + NL + NL +
                 ai_disclosure("hi"))
         # the same text for the Facebook/Instagram step (it reads this json)
         try:
             _kind = TS.TOPICS.get(key, {}).get("kind", "explain")
         except Exception:
             _kind = "explain"
-        caption = meta["title"].replace(" #shorts", "") + NL + NL + engage_lines(_kind).replace("\\n", NL) + NL + NL + cta_line() + NL + NL + "#Tech #TechTips #AI360Technology"
+        caption = meta["title"].replace(" #shorts", "") + NL + NL + engage_lines(_kind).replace("\\n", NL) + NL + NL + page_line + cta_line() + NL + NL + "#Tech #TechTips #AI360Technology"
         meta.update({"description_full": desc, "caption": caption, "topic": key})
         Path(out_dir, f"{key}_meta.json").write_text(json.dumps(meta, indent=1, ensure_ascii=False), encoding="utf-8")
         if mode == "dry":

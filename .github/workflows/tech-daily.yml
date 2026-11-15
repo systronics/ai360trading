@@ -106,7 +106,8 @@ jobs:
         run: |
           git config --local user.email "admin@ai360trading.in"
           git config --local user.name "AI360-Automation"
-          for f in _data/tech_done.json _data/tech_trading_done.json; do [ -f "$f" ] && git add "$f"; done || true
+          python tech_pages.py || echo "[TECH-PAGES] skipped (fail-open)"
+          for f in _data/tech_done.json _data/tech_trading_done.json _data/tech_pages.json _pages/tt-*.html; do [ -f "$f" ] && git add "$f"; done || true
           git diff --cached --quiet || git commit -m "AI360 Technology Short scheduled: $(date +'%Y-%m-%d') (done-list)"
           git pull --rebase origin master || true
           git push origin master || true
