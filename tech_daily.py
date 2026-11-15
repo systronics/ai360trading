@@ -29,6 +29,23 @@ try:   # 2026-11-15: thirty more topics after those (tech_topics5.py), queue las
     TOPIC_ORDER = TOPIC_ORDER + [k for k in _T5.ORDER if k not in TOPIC_ORDER]
 except Exception:
     pass
+try:   # 2026-11-15 reach evidence (_data/video_stats.json, python reach_report.py): everyday DEVICE problems (phone wet/hang/hot, laptop hang) get several times more views per day than
+    # scam/security topics (small sample, 6 vs 4 videos). So the queue now shows 3 device topics, then 1 security topic, instead of dropping scam topics in bulk. Nothing is removed;
+    # the order only changes which unused topic is picked next. Re-check with `python reach_report.py` once each group has 8+ videos.
+    import reach_report as _RR
+    _dev = [k for k in TOPIC_ORDER if not _RR.is_security(k)]
+    _sec = [k for k in TOPIC_ORDER if _RR.is_security(k)]
+    _mix, _i, _j = [], 0, 0
+    while _i < len(_dev) or _j < len(_sec):
+        for _ in range(3):
+            if _i < len(_dev):
+                _mix.append(_dev[_i]); _i += 1
+        if _j < len(_sec):
+            _mix.append(_sec[_j]); _j += 1
+    if sorted(_mix) == sorted(TOPIC_ORDER):
+        TOPIC_ORDER = _mix
+except Exception:
+    pass
 PUBLISH_UTC = (13, 0)   # 18:30 IST
 CTA_FILE = Path("_data/tech_cta.txt")   # the owner's own lines for descriptions (service number/link); optional
 DEFAULT_CTA = "PC ya data ki problem? Google par 'ai360services Haridwar' search karo."

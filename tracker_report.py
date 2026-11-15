@@ -14,6 +14,7 @@ import datetime as dt
 import requests
 
 REPORTS = [
+    ("Reach: views and followers (YouTube, Facebook, Instagram, Telegram)", ["reach_report.py"]),
     ("SignalWatch (RSI>75 blocked vs normal, deep recovery, 1H, slot lost)", ["signal_watch.py", "--report"]),
     ("Result Watch hit-rate (lean vs real reaction)", ["result_watch.py", "--report"]),
     ("Top gainers log (what we missed)", ["gainers_log.py", "--report"]),
