@@ -82,7 +82,7 @@ from datetime import datetime
 import pytz
 
 IST        = pytz.timezone("Asia/Kolkata")
-VERSION    = "v1.7"
+VERSION    = "v1.8"
 SHEET_NAME = "Ai360tradingAlgo"
 
 LT_WATCHLIST    = "LTWatchlist"
@@ -260,6 +260,19 @@ def _rsi(closes, period=14):
         return 50.0
     return round(float(val), 1)
 
+def _div_yield_pct(info):
+    """v1.8 (2026-11-15 BUG FIX): dividend yield in PERCENT, unit-proof. yfinance 1.x returns `dividendYield` ALREADY as a percent (TCS 1.99), the old code multiplied it by 100
+    again, so the Telegram alert showed 'Div: 199.0%' (ITC 561%, Nestle 95%) AND every dividend payer got the 'High div >= 3%' score bonus, inflating ACCUMULATE signals.
+    Computed from dividendRate / price when both exist; otherwise dividendYield taken as a percent; anything above 25% is treated as bad data (0)."""
+    try:
+        rate = float(info.get("dividendRate") or 0)
+        px = float(info.get("currentPrice") or info.get("regularMarketPrice") or info.get("previousClose") or 0)
+        dy = (rate / px * 100) if (rate > 0 and px > 0) else float(info.get("dividendYield") or 0)
+        return dy if 0 <= dy <= 25 else 0.0
+    except Exception:
+        return 0.0
+
+
 def _calc_fund_score(info):
     """
     Auto-calculate FundScore 1-10 from yfinance financial ratios.
@@ -288,7 +301,7 @@ def _calc_fund_score(info):
     if mcap >= 100000: score += 1.0   # ₹1 lakh Cr+ = largecap
     elif mcap >= 20000: score += 0.5  # ₹20k Cr+ = midcap
 
-    dy = float(info.get("dividendYield") or 0) * 100
+    dy = _div_yield_pct(info)
     if dy >= 2.0: score += 0.5
 
     return min(10.0, max(1.0, round(score, 1)))
@@ -321,7 +334,7 @@ def fetch_data(sym, prev_instheld_str):
             info = {}
 
         pe   = float(info.get("trailingPE") or info.get("forwardPE") or 0)
-        dy   = float(info.get("dividendYield") or 0) * 100
+        dy   = _div_yield_pct(info)
         mcap = float(info.get("marketCap") or 0) / 1e7
 
         # Auto FundScore — degrades gracefully if .info is empty (returns ~3.0 baseline)

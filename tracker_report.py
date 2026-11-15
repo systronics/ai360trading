@@ -91,7 +91,9 @@ def build(today):
 
 
 def send(text):
-    tok, chat = os.environ.get("TELEGRAM_BOT_TOKEN", ""), os.environ.get("CHAT_ID_PREMIUM", "")
+    # 2026-11-15: the report is INTERNAL research (raw tracker rows, 'plan' notes), not a subscriber product. If the owner creates a private owner-only chat and sets the secret
+    # CHAT_ID_OWNER it goes there; until then it falls back to the Premium chat (2 members today). Switch BEFORE paying subscribers grow.
+    tok, chat = os.environ.get("TELEGRAM_BOT_TOKEN", ""), (os.environ.get("CHAT_ID_OWNER", "").strip() or os.environ.get("CHAT_ID_PREMIUM", ""))
     if not (tok and chat):
         print("[TG] no token/chat - not sent")
         return False

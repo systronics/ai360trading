@@ -34,6 +34,7 @@ jobs:
       GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       CHAT_ID_PREMIUM: ${{ secrets.CHAT_ID_PREMIUM }}
+      CHAT_ID_OWNER: ${{ secrets.CHAT_ID_OWNER }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
