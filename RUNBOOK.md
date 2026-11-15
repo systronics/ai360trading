@@ -125,3 +125,11 @@ The alert tells you the issue title. Find it below.
 - **Weekly review (Saturday):** read the weekly scorecard Telegram message. If swing/positional is positive and the rest is negative, that is the known pattern, not a fault.
 - **Never** connect a real broker, never put a trading API key into GitHub, never raise position sizes because of one good week.
 - Full state and the 11 Dec 2026 review plan: `PROJECT_HANDOFF.md` (top section).
+
+---
+
+## Added 2026-11-15 - when an alert comes and no AI helper knows the project
+
+1. Double-click `collect_problem.bat` (in the repo folder). It writes `problem_report.txt` (recent failed runs + last log lines + switches).
+2. Open any AI (Claude/ChatGPT/Gemini), paste `AI_START_HERE.md` + `problem_report.txt` + one sentence of what you saw. The AI only has to work on that one problem; `AI_START_HERE.md` tells it which files to open.
+3. If you do nothing, the system stays safe: content jobs just stop, trading stays paper-only. Queues of tech topics (~23 Dec) and weekly lessons (~mid-Dec) only send a Telegram note when empty; `AI_START_HERE.md` section 5 says how to add more.
