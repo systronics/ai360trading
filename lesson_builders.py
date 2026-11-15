@@ -384,3 +384,15 @@ try:
         LESSON_REGIONS.setdefault(_k, ["us", "in"])   # 2026-11-12: was missing -> pick_lesson raised KeyError 'rm03' for the US English edition (au01 is India-only, so the next lesson was needed)
 except Exception as _e:
     print(f"[LESSON] extra lessons not loaded (fail-open): {_e}")
+
+# 2026-11-15: three more evergreen lessons (sw01 tight stops, ct01 costs in R, sv01 survivorship bias) written before the Claude plan ended, so the weekly queue
+# lasts into early 2027 without any AI help. Appended AFTER the existing queue (nothing already planned moves). Fail-open like the block above.
+try:
+    import lesson_builders3 as _b3
+    BUILDERS.update(_b3.BUILDERS)
+    for _k in _b3.QUEUE:
+        if _k not in QUEUE:
+            QUEUE.append(_k)
+        LESSON_REGIONS.setdefault(_k, ["us", "in"])
+except Exception as _e:
+    print(f"[LESSON] lessons3 not loaded (fail-open): {_e}")
