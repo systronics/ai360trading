@@ -1,0 +1,30 @@
+name: "Owner chat setup (manual, one-time)"
+
+# 2026-11-15: finds the private 'Owner Alerts' Telegram channel, sends one test message and prints only the last 4 digits of its id.
+# set_secret=yes stores the full id as the repo secret CHAT_ID_OWNER (needs the GH_TOKEN PAT with secrets access, same as threads-refresh).
+on:
+  workflow_dispatch:
+    inputs:
+      set_secret:
+        description: "no (find + test message only) | yes (also store CHAT_ID_OWNER)"
+        required: false
+        default: "no"
+
+permissions:
+  contents: read
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      SET_SECRET: ${{ github.event.inputs.set_secret }}
+      GITHUB_REPOSITORY: ${{ github.repository }}
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python owner_chat_setup.py
