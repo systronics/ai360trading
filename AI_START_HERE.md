@@ -35,6 +35,7 @@
 | No alerts at all although market moved | Apps Script (not GitHub) | `appscript.gs` | Script editor > Executions for errors; tabs `ScanReasons`/`ScanDiag` show WHY each stock was rejected. Deploy a fix: `.\deploy_appscript.ps1` (clasp, account ai360trading@gmail.com), bump `CONFIG.VERSION` |
 | Result Watch / pre-market reel missing | `result-watch.yml`, `premarket-brief.yml` (both kicked by the bot start) | `result_watch.py`, `premarket_*.py` | Variables `RESULT_WATCH_MODE`, `PREMARKET_MODE` must be `scheduled` |
 | Tech Short not uploaded | `tech-daily.yml` (05:47 UTC) | `tech_daily.py`, `tech_short.py` | Queue empty? (Telegram note says so); `YOUTUBE_CREDENTIALS_TECH`; `TECH_MODE=scheduled` |
+| Website tech/lesson page missing or wrong | `tech-daily.yml` / `lessons-weekly.yml` (last step) | `tech_pages.py`, `lesson_pages.py` | run `python tech_pages.py` / `python lesson_pages.py` locally, commit `_pages/tt-*.html`, `_pages/ls-*.html` and the `_data/*_pages.json` |
 | Weekly lesson missing | `lessons-weekly.yml` | `lesson_runner.py`, `lesson_builders*.py` | `LESSONS_ENABLED=true`; queue empty; failed quality gate (then nothing is published, by design) |
 | Story Short (Tue/Thu) missing | `story-real.yml` | `story_real.py`, `story_writer.py` | `REAL_MODE=scheduled`; workflow must be ACTIVE (`gh workflow list --all`) |
 | Articles / website | `daily-articles.yml`, Pages build | `generate_articles.py`, `_config.yml` | Jekyll build error in the Pages run; `ads_active: false` is intentional |

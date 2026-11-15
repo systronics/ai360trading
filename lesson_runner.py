@@ -157,6 +157,12 @@ def description(L, lang, chapters, extra=""):
     hi = lang == "hi"
     foot = "शिक्षा के लिए, निवेश सलाह नहीं। हम SEBI-पंजीकृत सलाहकार नहीं हैं।" if hi else "Educational only, not investment advice. We are not a registered adviser."
     top = f"{extra}\n\n" if extra else ""
+    try:   # 2026-11-15: the video links to its own evergreen website page (full transcript, share links); the page is created by lesson_pages.py right after the upload; fail-open
+        import lesson_pages as _lp
+        if L.get("id") in _lp.PURE:
+            top += ("Full transcript: " if lang != "hi" else "Poora text (English): ") + _lp.page_url(_lp.slugify(L["title"]["en"])) + "\n\n"
+    except Exception:
+        pass
     try:
         import book_links as _bl
         _bk = _bl.description_lines(str(L.get("desc", {}).get(lang, "")) + " " + str(L.get("title", "")))

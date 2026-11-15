@@ -1,0 +1,29 @@
+---
+layout: default
+title: "Weekly Trading Lessons for Serious Traders (Risk, Costs, Backtests) | AI360Trading"
+description: "One evergreen trading lesson a week built on our own tests: expectancy, position sizing, stop losses, costs and the limits of backtests. Video plus the full transcript."
+permalink: /trading-lessons/
+canonical: https://ai360trading.in/trading-lessons/
+meta-og:title: "Weekly Trading Lessons for Serious Traders"
+meta-og:description: "Expectancy, position sizing, stop losses, costs and the limits of backtests, with our own numbers. Video plus the full transcript."
+meta-og:image: https://ai360trading.in/public/image/apple-touch-icon.png
+---
+
+<style>
+  .tl-wrap{max-width:760px;margin:0 auto;padding:0 4px}
+  .tl-wrap h1{font-size:26px;font-weight:900;color:#1e293b;line-height:1.3}
+  .tl-wrap p{font-size:15px;color:#475569;line-height:1.7}
+  .tl-list{list-style:none;padding:0;margin:18px 0}
+  .tl-list li{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:12px 16px;margin:10px 0}
+  .tl-list a{font-weight:700;color:#0f172a;text-decoration:none}
+  .tl-list small{display:block;color:#94a3b8;margin-top:2px}
+  .tl-note{background:#fffbeb;border:1px solid #fde68a;border-radius:12px;padding:12px 15px;font-size:13px;color:#78500a;line-height:1.6}
+</style>
+<div class="tl-wrap">
+  <h1>Weekly trading lessons</h1>
+  <p>One lesson a week for serious traders, built only on our own tests and our own paper results, with the limits stated openly: what a number does and does not prove. Each lesson has a video and the full transcript. New lessons appear on our <a href="https://www.youtube.com/@ai360trading" rel="noopener" target="_blank">YouTube channel</a>.</p>
+  <ul class="tl-list">
+{% for t in site.data.lesson_pages %}    <li><a href="/trading-lessons/{{ t.slug }}/">{{ t.title }}</a><small>{{ t.date }}</small></li>
+{% endfor %}  </ul>
+  <div class="tl-note">Education only, not investment advice. AI360Trading is not a SEBI-registered adviser. Past-data tests and paper results carry limits and do not promise future returns.</div>
+</div>

@@ -102,7 +102,8 @@ jobs:
         run: |
           git config --local user.email "admin@ai360trading.in"
           git config --local user.name "AI360-Automation"
-          for f in _data/lessons_done.json _data/lesson_ideas.json; do if [ -f "$f" ]; then git add "$f"; fi; done   # 2026-11-13: one missing file made the single multi-path add abort and lose the done-list
+          python lesson_pages.py || echo "[LESSON-PAGES] skipped (fail-open)"
+          for f in _data/lessons_done.json _data/lesson_ideas.json _data/lesson_pages.json _pages/ls-*.html; do if [ -f "$f" ]; then git add "$f"; fi; done   # 2026-11-13: one missing file made the single multi-path add abort and lose the done-list
           git diff --cached --quiet || git commit -m "Lessons scheduled: $(date +'%Y-%m-%d') (done-list)"
           git pull --rebase origin master || true
           git push origin master || true

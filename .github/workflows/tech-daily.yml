@@ -96,11 +96,16 @@ jobs:
         if: ${{ env.MODE == 'scheduled' && vars.TECH_FB_IG != 'off' }}
         continue-on-error: true
         run: |
-          if git status --porcelain _data/tech_done.json | grep -q .; then
-            python upload_facebook.py --meta-prefix tech
-          else
-            echo 'no new tech Short this run, skipping Facebook/Instagram'
-          fi
+          # 2026-11-15 owner: pages must not look dead, but no spam: the tech Facebook Page + Instagram get the Short on Monday, Wednesday and Friday only (3 a week), YouTube stays daily
+          case "$(date -u +%u)" in
+            1|3|5)
+              if git status --porcelain _data/tech_done.json | grep -q .; then
+                python upload_facebook.py --meta-prefix tech
+              else
+                echo 'no new tech Short this run, skipping Facebook/Instagram'
+              fi ;;
+            *) echo 'tech Facebook/Instagram posting runs Mon/Wed/Fri only' ;;
+          esac
       - name: Record what was scheduled
         if: ${{ env.MODE == 'scheduled' }}
         run: |

@@ -11,6 +11,7 @@ USAGE: python tech_pages.py            (writes into _pages and _data)
 import html
 import json
 import sys
+import urllib.parse
 from pathlib import Path
 
 SITE = "https://ai360trading.in"
@@ -72,6 +73,10 @@ def render(key, topic, video, publish_at):
     li = "\n".join(f"    <li>{html.escape(s)}</li>" for s in steps)
     tags = [t for t in topic.get("tags", []) if t not in ("tech tips hinglish", "shorts")]
     rel = "\n".join(f"    <li>{html.escape(t)}</li>" for t in tags[:8])
+    q_url, q_txt = urllib.parse.quote(url, safe=""), urllib.parse.quote(title + " " + url, safe="")
+    share = (f'<a href="https://wa.me/?text={q_txt}" rel="noopener nofollow" target="_blank">WhatsApp</a> &middot; '
+             f'<a href="https://t.me/share/url?url={q_url}&amp;text={urllib.parse.quote(title, safe="")}" rel="noopener nofollow" target="_blank">Telegram</a> &middot; '
+             f'<a href="https://www.facebook.com/sharer/sharer.php?u={q_url}" rel="noopener nofollow" target="_blank">Facebook</a>')
     html_body = f"""<style>
   .tt-wrap{{max-width:760px;margin:0 auto;padding:0 4px}}
   .tt-hero h1{{font-size:26px;font-weight:900;line-height:1.3;color:#1e293b;margin:6px 0 10px}}
@@ -97,6 +102,7 @@ def render(key, topic, video, publish_at):
 {rel}
     </ul>
   </div>
+  <p class="tt-small"><strong>Kisi ko zaroorat ho to bhejiye:</strong> {share}</p>
   <p class="tt-small">{html.escape(cta())}</p>
   <div class="tt-note">Ye jaankari general hai aur AI ki madad se tayyar ki gayi hai; video mein AI awaaz hai. Phone, charger, battery ya bijli ke andar ka kaam khud mat kijiye, kisi technician se karwaiye. Ye professional repair salah nahi hai.</div>
   <p class="tt-small"><a href="/tech-tips/">Aur tech problem ke solution dekhein</a> &middot; <a href="https://www.youtube.com/@AI360Techno" rel="noopener" target="_blank">YouTube par AI360 Technology</a></p>
