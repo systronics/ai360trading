@@ -45,6 +45,8 @@
 | Sheet formulas show #N/A | - | `fetch_*.py` feeds | GOOGLEFINANCE was replaced by Python feeds (never restore formulas in CMP/DMA/ATR columns) |
 | Weekly Saturday Tracker report missing | `tracker-report.yml` | `tracker_report.py` | `TRACKER_REPORT_MODE=scheduled` |
 
+Reach/views summary (read-only, no network): `python reach_report.py` (also the first section of the Saturday Tracker report).
+
 Useful read-only checks: `python check_calls.py` (static call/argument check), `python -m pytest -q test_*.py` (155 tests), `python channel_health.py` via workflow `channel-health.yml` (Facebook/Instagram/YouTube status).
 
 ## 4. How the AI should work (keeps token use small)
