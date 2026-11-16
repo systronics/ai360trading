@@ -55,3 +55,8 @@ for k in ("MKT_PCR_NIFTY", "MKT_FII_REGIME", "MKT_FII_DATE"):
     print("  ", k, "=", keys.get(k, "(missing)"))
 print("  EARNINGS_ keys:", sum(1 for k in keys if k.startswith("EARNINGS_")), "| DLV_ keys:", sum(1 for k in keys if k.startswith("DLV_")))
 print("CHECK DONE", dt.datetime.utcnow().isoformat(timespec="seconds"), "UTC")
+
+print("--- AlertLog option columns (symbol | trade type | status | options signal | strike | expiry | theta)")
+for r in a[1:]:
+    if len(r) > 23 and r[1]:
+        print(" ", r[1], "|", r[4], "|", r[10], "|", r[20], "|", r[21], "|", r[22], "|", r[23])
