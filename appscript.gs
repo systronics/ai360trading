@@ -606,7 +606,8 @@ const OPTIONS_CONFIG = {
   // v15.43 (2026-11-16, owner: 'do what is best and safely', ONE rule with the bot's option_entry_gate): the Premium option alert used to quote the CURRENT expiry
   // even with 6 days left (LAURUSLABS/DLF 2400/760 CE exp 23-Nov on 16-Nov, both lost the same day) while trading_bot.py only accepts >= 15 days, HV-20 <= 35% and NIFTY PCR 0.6-1.4.
   // ROLLOVER_DAYS 5 -> 14: an expiry with <= 14 days left rolls to the NEXT month (month+2 still unreachable). HV_MAX / PCR_MIN / PCR_MAX mirror trading_bot.py OPTION_HV_MAX / OPTION_PCR_*.
-  ROLLOVER_DAYS      : 14,
+  // v15.45 (2026-11-17, owner order): minimum 8 calendar days to expiry (was 15). During the day this script's daysLeft = calendar days - 1, so ROLLOVER_DAYS 6 == bot OPTION_MIN_DAYS_LEFT 8.
+  ROLLOVER_DAYS      : 6,
   HV_MAX             : 35.0,
   PCR_MIN            : 0.6,
   PCR_MAX            : 1.4,
@@ -614,7 +615,7 @@ const OPTIONS_CONFIG = {
 
 // ── CONFIG ────────────────────────────────────────────────────────────────────
 const CONFIG = {
-  VERSION       : "v15.44",  // single source for ALL subscriber-facing version stamps (was hardcoded per-message and went stale at v15.17)
+  VERSION       : "v15.45",  // single source for ALL subscriber-facing version stamps (was hardcoded per-message and went stale at v15.17)
   get TELEGRAM_BOT_TOKEN() { return PropertiesService.getScriptProperties().getProperty('TELEGRAM_BOT_TOKEN') || ""; },
   get CHAT_ID_BASIC()      { return PropertiesService.getScriptProperties().getProperty('CHAT_ID_BASIC')      || ""; },
   get CHAT_ID_ADVANCE()    { return PropertiesService.getScriptProperties().getProperty('CHAT_ID_ADVANCE')    || ""; },
@@ -1116,9 +1117,10 @@ function _generateOptionsSignal(sym, cmp, atr, stage, pctChange, vix, isBaseEntr
 
   // Theta labels re-scaled for a 1-2 DAY hold (not the old multi-week hold):
   let thetaRisk;
-  if      (daysLeft >= 15) thetaRisk = `🟢 LOW (${daysLeft}d left)`;
-  else if (daysLeft >= 8)  thetaRisk = `🟡 MED (${daysLeft}d left — max 1-2 din hold)`;
-  else                     thetaRisk = `🔴 HIGH (${daysLeft}d left — sirf INTRADAY, overnight nahi)`;
+  // v15.45: 8+ calendar days is now allowed, so MED (not LOW) covers 7-13 days shown here; the old HIGH label can no longer be reached.
+  if      (daysLeft >= 14) thetaRisk = `🟢 LOW (${daysLeft}d left)`;
+  else if (daysLeft >= 7)  thetaRisk = `🟡 MED (${daysLeft}d left - time decay is faster, exit within 2 days)`;
+  else                     thetaRisk = `🔴 HIGH (${daysLeft}d left - intraday only, do not hold overnight)`;
 
   const interval  = _getStrikeInterval(cmp);
   const atmStrike = _roundToStrike(cmp, interval);

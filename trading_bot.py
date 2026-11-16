@@ -750,7 +750,7 @@ OPTION_LOSS_CAP_PCT      = 20.0  # exit when ESTIMATED option loss reaches 20%
 # alerts — entry-day close avg -0.5%, day+2 +0.15%, 19 trades): a live OPTION entry is taken only
 # when ALL three hold. Anything else stays WAITING (no alert, no ledger trade). Informational
 # data missing (HV / PCR) fails OPEN; an unreadable expiry fails CLOSED (row is malformed).
-OPTION_MIN_DAYS_LEFT     = 15    # "no time decay": >=15 calendar days to expiry (appscript theta label 🟢 LOW)
+OPTION_MIN_DAYS_LEFT     = 8     # 2026-11-17 owner order: >=8 calendar days to expiry (was 15 from 2026-10-23). appscript.gs ROLLOVER_DAYS = 6 gives the same rule (its daysLeft is calendar days - 1 during the day). Claude's note: own ledger showed short-expiry options losing; revisit with real outcomes
 OPTION_HV_MAX            = 35.0  # "cheap": HV-20 below 35% (the codebase's calm/normal regime; not elevated)
 OPTION_PCR_MIN           = 0.6   # "PCR ok": NIFTY OI put/call ratio inside [0.6, 1.4]
 OPTION_PCR_MAX           = 1.4   #   (end-of-day, official F&O bhavcopy via fetch_bhavcopy.py v1.1)

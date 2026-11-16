@@ -39,7 +39,7 @@ TAB = "OptionWatch"
 HEAD = ["Date", "Symbol", "Setup", "Spot", "Expiry", "DTE", "Strike", "Ask", "Bid", "Spread_%", "IV", "HV20", "IV_vs_HV", "Theta_%/day", "BE_move_%", "ADX", "Vol_x",
         "Greens", "BE_Price", "Max_up_5d_%", "BE_reached_5d", "Scored"]
 CHAIN = "https://api.upstox.com/v2/option/chain"
-MIN_DTE = 15
+MIN_DTE = 8      # 2026-11-17 owner order (was 15), same as trading_bot.OPTION_MIN_DAYS_LEFT
 MAX_SPREAD = 6.0
 MAX_LISTED = 3
 NEAR_PCT = 1.5
