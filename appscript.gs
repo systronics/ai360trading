@@ -603,12 +603,18 @@ const OPTIONS_CONFIG = {
   // ≤ ROLLOVER_DAYS days to current expiry → suggest NEXT month instead.
   // NEVER month+2: the old MIN_DAYS_BASE_ENTRY:40 walk pushed a 17-Jul signal
   // past 25-Aug (39d) by ONE day onto the dead Sep chain (no volume, wide spread).
-  ROLLOVER_DAYS      : 5,
+  // v15.43 (2026-11-16, owner: 'do what is best and safely', ONE rule with the bot's option_entry_gate): the Premium option alert used to quote the CURRENT expiry
+  // even with 6 days left (LAURUSLABS/DLF 2400/760 CE exp 23-Nov on 16-Nov, both lost the same day) while trading_bot.py only accepts >= 15 days, HV-20 <= 35% and NIFTY PCR 0.6-1.4.
+  // ROLLOVER_DAYS 5 -> 14: an expiry with <= 14 days left rolls to the NEXT month (month+2 still unreachable). HV_MAX / PCR_MIN / PCR_MAX mirror trading_bot.py OPTION_HV_MAX / OPTION_PCR_*.
+  ROLLOVER_DAYS      : 14,
+  HV_MAX             : 35.0,
+  PCR_MIN            : 0.6,
+  PCR_MAX            : 1.4,
 };
 
 // ── CONFIG ────────────────────────────────────────────────────────────────────
 const CONFIG = {
-  VERSION       : "v15.42",  // single source for ALL subscriber-facing version stamps (was hardcoded per-message and went stale at v15.17)
+  VERSION       : "v15.43",  // single source for ALL subscriber-facing version stamps (was hardcoded per-message and went stale at v15.17)
   get TELEGRAM_BOT_TOKEN() { return PropertiesService.getScriptProperties().getProperty('TELEGRAM_BOT_TOKEN') || ""; },
   get CHAT_ID_BASIC()      { return PropertiesService.getScriptProperties().getProperty('CHAT_ID_BASIC')      || ""; },
   get CHAT_ID_ADVANCE()    { return PropertiesService.getScriptProperties().getProperty('CHAT_ID_ADVANCE')    || ""; },
@@ -1161,6 +1167,15 @@ function _sendOptionsAlertPremium(sym, cmp, optSignal, stage, sl, target, rr, bm
     }
   } catch(e) { Logger.log("[OPTIONS] earnings check error (fail-open): " + e); }
 
+  // v15.43: same NIFTY PCR window as trading_bot.py option_entry_gate (0.6-1.4). Not cached / unreadable = allowed (fail-open).
+  try {
+    const pcr = parseFloat(_bmGet(bm, "MKT_PCR_NIFTY"));
+    if (pcr > 0 && (pcr < OPTIONS_CONFIG.PCR_MIN || pcr > OPTIONS_CONFIG.PCR_MAX)) {
+      Logger.log(`[OPTIONS] ${sym}: NIFTY PCR ${pcr} outside ${OPTIONS_CONFIG.PCR_MIN}-${OPTIONS_CONFIG.PCR_MAX} — premium option alert SKIPPED`);
+      return;
+    }
+  } catch(e) { Logger.log("[OPTIONS] PCR check error (fail-open): " + e); }
+
   const isBase    = optSignal.signal === "📦 BASE CE";
   const typeLabel = isBase ? "📦 BASE OPTIONS SIGNAL" : "📊 OPTIONS SIGNAL";
   // v15.26 OWNER RULE (2026-07-18): option = INTRADAY ya max 1-2 din ka trade.
@@ -1646,6 +1661,8 @@ function _runScanner(startRow, endRow) {
   const optColOk = (_hdr[35] || "").toString().trim() === "Options";
   // v15.42: "Opt_Trend" is found BY HEADER NAME (appended at the end of Nifty200 by fetch_opt_trend.py); -1 = column missing = fail-open.
   const optTrendCol = _hdr.map(h => (h || "").toString().trim()).indexOf("Opt_Trend");
+  // v15.43: "Opt_HV20" (20-day annualised historical volatility %, fed by fetch_opt_trend.py) is found the same way; missing/blank = fail-open.
+  const optHvCol = _hdr.map(h => (h || "").toString().trim()).indexOf("Opt_HV20");
   if (!atrColOk || !optColOk) {
     Logger.log(`[COLUMN-DRIFT] ⚠️ Nifty200 header mismatch — ATR col29="${_hdr[28]}" (ok=${atrColOk}) Options col36="${_hdr[35]}" (ok=${optColOk}). Falling back to safe defaults until columns are realigned.`);
   }
@@ -1756,7 +1773,10 @@ function _runScanner(startRow, endRow) {
     // _generateOptionsSignal falls back to the legacy hardcoded list.
     const optTag     = (!optColOk || r[35] === undefined || r[35] === null) ? null : r[35].toString().trim();
     // v15.42: false ONLY when the sheet explicitly says "NO"; blank / missing column / any other value = true (fail-open)
-    const optTrendOk = !(optTrendCol >= 0 && r[optTrendCol] !== undefined && r[optTrendCol] !== null && r[optTrendCol].toString().trim().toUpperCase() === "NO");
+    const optTrendOk0 = !(optTrendCol >= 0 && r[optTrendCol] !== undefined && r[optTrendCol] !== null && r[optTrendCol].toString().trim().toUpperCase() === "NO");
+    // v15.43: premium too dear (HV-20 above OPTIONS_CONFIG.HV_MAX) = no option (falls to swing/positional/cash like a weak trend); blank/unknown = allowed. NaN > x is false, so fail-open.
+    const optHvVal = (optHvCol >= 0 && r[optHvCol] !== undefined && r[optHvCol] !== null) ? parseFloat(r[optHvCol]) : NaN;
+    const optTrendOk = optTrendOk0 && !(optHvVal > OPTIONS_CONFIG.HV_MAX);
 
     const signal   = _inferSignal(rawSignal, stage, fiiBuyZone, smaStr);
     const priority = _inferPriority(rawPriority, rawMasterScore, rawSignalScore);

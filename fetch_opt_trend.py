@@ -1,5 +1,5 @@
 """
-fetch_opt_trend.py v1.0 (2026-11-14 NEW) - feeds two columns at the END of the Nifty200 tab for the OPTION gates (owner order 2026-11-14: "ADX is needed for options, I accept the risk
+fetch_opt_trend.py v1.1 (2026-11-16: + Opt_HV20 = 20-day annualised historical volatility % (same maths as option_intelligence.get_historical_volatility), read by appscript.gs v15.43 so the Premium option alert follows the bot gate HV<=35%). v1.0 (2026-11-14 NEW) - feeds two columns at the END of the Nifty200 tab for the OPTION gates (owner order 2026-11-14: "ADX is needed for options, I accept the risk
 if it only affects the option signal"):
     Opt_ADX    = daily ADX(14) of the last COMPLETED daily bar (Wilder)
     Opt_Trend  = "OK" when ADX >= 25 AND +DI > -DI (an up-trend with strength), else "NO"; blank when there is not enough history
@@ -19,9 +19,10 @@ import pytz
 import watch_plan as WP
 
 IST = pytz.timezone("Asia/Kolkata")
-VERSION = "v1.0"
+VERSION = "v1.1"
 ADX_MIN = 25.0
 H_ADX, H_TREND = "Opt_ADX", "Opt_Trend"
+H_HV = "Opt_HV20"
 
 
 def trend_flag(highs, lows, closes):
@@ -31,6 +32,21 @@ def trend_flag(highs, lows, closes):
         return None, ""
     adx, pdi, mdi = ax
     return round(adx, 1), ("OK" if (adx >= ADX_MIN and pdi > mdi) else "NO")
+
+
+def hv20(closes, days=20):
+    """Annualised close-to-close HV % over the last `days` returns (identical to option_intelligence.get_historical_volatility); None when not enough data."""
+    import math
+    try:
+        c = [float(v) for v in closes][-(days + 1):]
+        if len(c) < days + 1:
+            return None
+        r = [math.log(c[i] / c[i - 1]) for i in range(1, len(c))]
+        m = sum(r) / len(r)
+        var = sum((x - m) ** 2 for x in r) / max(1, len(r) - 1)
+        return round(math.sqrt(var) * math.sqrt(252) * 100, 1)
+    except Exception:
+        return None
 
 
 def _a1(n):
@@ -64,20 +80,23 @@ def main(argv=None):
         df = yf.download([s + ".NS" for _, s in syms], period="8mo", interval="1d", group_by="ticker", auto_adjust=False, progress=False, threads=True)
         drop_today = now.hour * 60 + now.minute < 15 * 60 + 35
         out = {}
+        hvs = {}
         for _, s in syms:
             try:
                 x = df[s + ".NS"].dropna(subset=["Close"])
                 if drop_today and len(x) and x.index[-1].date() == now.date():
                     x = x.iloc[:-1]
                 out[s] = trend_flag([float(v) for v in x.High], [float(v) for v in x.Low], [float(v) for v in x.Close])
+                hvs[s] = hv20(x.Close)
             except Exception:
                 out[s] = (None, "")
+                hvs[s] = None
         ok = sum(1 for v in out.values() if v[1] == "OK")
         no = sum(1 for v in out.values() if v[1] == "NO")
         print(f"[OPT-TREND] {len(out)} stocks: OK {ok}, NO {no}, blank {len(out) - ok - no}")
         if not write:
             return 0
-        need = [h for h in (H_ADX, H_TREND) if h not in header]
+        need = [h for h in (H_ADX, H_TREND, H_HV) if h not in header]
         if need:
             if ws.col_count < len(header) + len(need):
                 ws.add_cols(len(header) + len(need) - ws.col_count)
@@ -94,7 +113,15 @@ def main(argv=None):
             ws.format(f"{_a1(c_adx + 1)}3:{_a1(c_adx + 1)}{len(vals) + 5}", {"numberFormat": {"type": "NUMBER", "pattern": "0.0"}})
         except Exception as e:
             print(f"[OPT-TREND] number format skipped: {str(e)[:80]}")
-        print(f"[OPT-TREND] wrote {len(body)} rows to columns {H_ADX}/{H_TREND}")
+        c_hv = header.index(H_HV)                                      # written on its own (it may not sit next to the other two)
+        hbody = [{"range": f"{_a1(c_hv + 1)}{i + 1}", "values": [["" if hvs.get(s) is None else hvs[s]]]} for i, s in syms]
+        for k in range(0, len(hbody), 150):
+            ws.batch_update(hbody[k:k + 150], value_input_option="USER_ENTERED")
+        try:
+            ws.format(f"{_a1(c_hv + 1)}3:{_a1(c_hv + 1)}{len(vals) + 5}", {"numberFormat": {"type": "NUMBER", "pattern": "0.0"}})
+        except Exception as e:
+            print(f"[OPT-TREND] HV number format skipped: {str(e)[:80]}")
+        print(f"[OPT-TREND] wrote {len(body)} rows to columns {H_ADX}/{H_TREND} and {len(hbody)} rows to {H_HV}")
     except Exception as e:                                           # fail-open: old values stay
         print(f"[fetch_opt_trend] skipped (fail-open): {str(e)[:160]}")
     return 0

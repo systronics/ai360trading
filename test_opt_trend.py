@@ -31,3 +31,13 @@ def test_short_history_is_blank():
 
 def test_a1_columns():
     assert T._a1(1) == "A" and T._a1(26) == "Z" and T._a1(27) == "AA" and T._a1(44) == "AR"
+
+
+def test_hv20_matches_option_intelligence_maths_and_needs_21_closes():
+    import fetch_opt_trend as F
+    closes = [100 * (1.01 if i % 2 else 0.995) ** i for i in range(30)]
+    hv = F.hv20(closes)
+    assert hv is not None and hv > 0
+    assert F.hv20([1, 2, 3]) is None
+    # flat prices -> zero volatility, still a number (not None)
+    assert F.hv20([100.0] * 25) == 0.0
