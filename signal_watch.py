@@ -9,6 +9,9 @@ It logs, once per stock + date + category, what each idea WOULD have flagged, an
                    (~20 sessions) and daily RS35>=5 (the one 1H variant that beat random in the 2024-26 test; n=236, 7 variants tried - may be luck, hence forward tracking).
 Backtest background (daily/1H, 2018/2024-2026, survivors only): RS>=5 breakouts by RSI: <=65 +2.27%, 65-75 +2.46%, >75 +2.72% (20d); deep discount ex-2020 = no edge; plain 1H EMA alignment = random.
   SLOT_LOST      = (added 2026-11-13) stock that PASSED every per-stock gate in the live appscript scan but lost the WAITING slot (2-per-sector cap counted with open trades, or slot limit) - read from the ScanReasons tab; measures what the sector/slot cap costs.
+  OPT_RETEST / OPT_BREAKOUT = (added 2026-11-17, owner idea: 'on a trending stock I want the option on a RETEST so it is cheaper, with a smaller stop and a bigger target') every
+                   'Options Alert' row of the day in AlertLog, split by its Strategy text: contains RETEST = OPT_RETEST, anything else = OPT_BREAKOUT. Scored on the STOCK's forward move
+                   (not the option premium, which this tracker does not know). After 3-4 weeks compare the two lines of `--report`; < 30 rows each = no conclusion. Observation only.
 USAGE: python signal_watch.py            dry-run (prints)       python signal_watch.py --write      log + score      python signal_watch.py --report
 """
 import os
@@ -20,7 +23,7 @@ import datetime as dt
 import pytz
 
 IST = pytz.timezone("Asia/Kolkata")
-VERSION = "v1.0"
+VERSION = "v1.1"
 SHEET = "Ai360tradingAlgo"
 TAB = "SignalWatch"
 HEAD = ["Logged_On", "Signal_Date", "Symbol", "Category", "Signal_Close", "RSI14", "RS35", "Vol_x", "Entry_Open", "R1_%", "R3_%", "R5_%", "R10_%", "R20_%", "Scored"]
@@ -137,6 +140,27 @@ def _dl(symbols, period, interval):
                        group_by="ticker", auto_adjust=False, progress=False, threads=True)
 
 
+def opt_category(strategy):
+    """'OPT_RETEST' when the AlertLog Strategy text says RETEST (a pullback entry), else 'OPT_BREAKOUT'."""
+    return "OPT_RETEST" if "RETEST" in str(strategy or "").upper() else "OPT_BREAKOUT"
+
+
+def option_alert_signals(sh, today):
+    """Today's 'Options Alert' rows of AlertLog (col E Trade Type) -> [(symbol, date, category, live_price, None, None, None)]. Fail-open: any problem = []."""
+    out = []
+    try:
+        for r in sh.worksheet("AlertLog").get_all_values()[1:]:
+            if len(r) > 5 and "options alert" in r[4].lower() and str(r[0])[:10] == today.isoformat():
+                try:
+                    px = float(str(r[2]).replace(",", "").strip())
+                except Exception:
+                    continue
+                out.append((r[1].replace("NSE:", "").strip(), today, opt_category(r[5]), px, None, None, None))
+    except Exception as e:
+        print(f"[OPT-TRACK] skipped (fail-open): {str(e)[:100]}")
+    return out
+
+
 def slot_lost_symbols(sh):
     """{symbol} that PASSED every per-stock gate in the live scanner but lost the WAITING slot (sector cap / slot limit), from the ScanReasons tab (holds the last scanned day)."""
     out, day = set(), None
@@ -250,7 +274,7 @@ def log_and_score(sh, found, today, write):
 def report(sh):
     v = sh.worksheet(TAB).get_all_values()
     print(f"[REPORT] {len(v) - 1} rows logged")
-    for cat in ("TOP_PICK", "RSI75_BLOCKED", "DEEP_RECOVERY", "H1_V4", "SLOT_LOST"):
+    for cat in ("TOP_PICK", "RSI75_BLOCKED", "DEEP_RECOVERY", "H1_V4", "SLOT_LOST", "OPT_BREAKOUT", "OPT_RETEST"):
         rows = [r for r in v[1:] if len(r) >= 15 and r[3] == cat]
         out = [f"  {cat:14s} logged {len(rows):3d}"]
         for lab, col in (("R5", 11), ("R10", 12), ("R20", 13)):
@@ -270,7 +294,7 @@ def main(argv=None):
     print(f"[signal_watch {VERSION}] {today} mode={'WRITE' if write else 'DRY-RUN'}")
     try:
         lost, lday = slot_lost_symbols(sh)
-        found = scan(_universe(sh), lost, lday)
+        found = scan(_universe(sh), lost, lday) + option_alert_signals(sh, today)
         log_and_score(sh, found, today, write)
     except Exception as e:
         print(f"[signal_watch] skipped (fail-open): {str(e)[:160]}")

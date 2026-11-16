@@ -43,3 +43,27 @@ def test_h1_needs_data_and_filters():
     assert W.h1_flip_v4(c, c, 7, True, 8.0) is False
     assert W.h1_flip_v4(c, c, 7, False, 8.0) is False
     assert W.h1_flip_v4(c, c, 7, True, 2.0) is False
+
+
+def test_option_alert_category_and_rows():
+    import datetime as dt
+    import signal_watch as S
+    assert S.opt_category("🎯 RETEST | BREAKOUT CONFIRMED") == "OPT_RETEST"
+    assert S.opt_category("🚀 BREAKOUT | BREAKOUT ALERT") == "OPT_BREAKOUT"
+    assert S.opt_category(None) == "OPT_BREAKOUT"
+
+    class WS:
+        def get_all_values(self):
+            return [["Time", "Symbol", "Price", "Prio", "Trade Type", "Strategy"],
+                    ["2026-11-17 10:33", "NSE:DLF", "750.05", "40", "📊 Options Alert", "🎯 RETEST | x"],
+                    ["2026-11-17 10:40", "NSE:TCS", "3500", "30", "🎯 SWING", "y"],
+                    ["2026-11-16 10:40", "NSE:SBIN", "1090", "30", "📊 Options Alert", "z"],
+                    ["2026-11-17 11:00", "NSE:BAD", "n/a", "30", "📊 Options Alert", "z"]]
+
+    class SH:
+        def worksheet(self, n):
+            return WS()
+
+    out = S.option_alert_signals(SH(), dt.date(2026, 11, 17))
+    assert out == [("DLF", dt.date(2026, 11, 17), "OPT_RETEST", 750.05, None, None, None)]
+    assert S.option_alert_signals(object(), dt.date(2026, 11, 17)) == []   # fail-open
