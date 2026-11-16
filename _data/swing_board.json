@@ -1,5 +1,5 @@
 {
-  "generated_at": "13 November 2026, 11:38 PM IST",
+  "generated_at": "16 November 2026, 08:40 AM IST",
   "setups": [
     {
       "symbol": "BSE",
@@ -7,7 +7,7 @@
       "strategy": "➖ HOLD",
       "stage": "🚀 MOMENTUM BREAKOUT | 🔁 Correction Base",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "8"
+      "days_in_trade": "11"
     },
     {
       "symbol": "ICICIBANK",
@@ -44,6 +44,14 @@
     {
       "symbol": "PNB",
       "trade_type": "📊 Options Alert",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "MOTILALOFS",
+      "trade_type": "⚡ Intraday",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
