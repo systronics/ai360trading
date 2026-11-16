@@ -603,12 +603,19 @@ const OPTIONS_CONFIG = {
   // ≤ ROLLOVER_DAYS days to current expiry → suggest NEXT month instead.
   // NEVER month+2: the old MIN_DAYS_BASE_ENTRY:40 walk pushed a 17-Jul signal
   // past 25-Aug (39d) by ONE day onto the dead Sep chain (no volume, wide spread).
-  ROLLOVER_DAYS      : 5,
+  // v15.43 (2026-11-16, owner: 'do what is best and safely', ONE rule with the bot's option_entry_gate): the Premium option alert used to quote the CURRENT expiry
+  // even with 6 days left (LAURUSLABS/DLF 2400/760 CE exp 23-Nov on 16-Nov, both lost the same day) while trading_bot.py only accepts >= 15 days, HV-20 <= 35% and NIFTY PCR 0.6-1.4.
+  // ROLLOVER_DAYS 5 -> 14: an expiry with <= 14 days left rolls to the NEXT month (month+2 still unreachable). HV_MAX / PCR_MIN / PCR_MAX mirror trading_bot.py OPTION_HV_MAX / OPTION_PCR_*.
+  // v15.45 (2026-11-17, owner order): minimum 8 calendar days to expiry (was 15). During the day this script's daysLeft = calendar days - 1, so ROLLOVER_DAYS 6 == bot OPTION_MIN_DAYS_LEFT 8.
+  ROLLOVER_DAYS      : 6,
+  HV_MAX             : 35.0,
+  PCR_MIN            : 0.6,
+  PCR_MAX            : 1.4,
 };
 
 // ── CONFIG ────────────────────────────────────────────────────────────────────
 const CONFIG = {
-  VERSION       : "v15.42",  // single source for ALL subscriber-facing version stamps (was hardcoded per-message and went stale at v15.17)
+  VERSION       : "v15.45",  // single source for ALL subscriber-facing version stamps (was hardcoded per-message and went stale at v15.17)
   get TELEGRAM_BOT_TOKEN() { return PropertiesService.getScriptProperties().getProperty('TELEGRAM_BOT_TOKEN') || ""; },
   get CHAT_ID_BASIC()      { return PropertiesService.getScriptProperties().getProperty('CHAT_ID_BASIC')      || ""; },
   get CHAT_ID_ADVANCE()    { return PropertiesService.getScriptProperties().getProperty('CHAT_ID_ADVANCE')    || ""; },
@@ -1110,9 +1117,10 @@ function _generateOptionsSignal(sym, cmp, atr, stage, pctChange, vix, isBaseEntr
 
   // Theta labels re-scaled for a 1-2 DAY hold (not the old multi-week hold):
   let thetaRisk;
-  if      (daysLeft >= 15) thetaRisk = `🟢 LOW (${daysLeft}d left)`;
-  else if (daysLeft >= 8)  thetaRisk = `🟡 MED (${daysLeft}d left — max 1-2 din hold)`;
-  else                     thetaRisk = `🔴 HIGH (${daysLeft}d left — sirf INTRADAY, overnight nahi)`;
+  // v15.45: 8+ calendar days is now allowed, so MED (not LOW) covers 7-13 days shown here; the old HIGH label can no longer be reached.
+  if      (daysLeft >= 14) thetaRisk = `🟢 LOW (${daysLeft}d left)`;
+  else if (daysLeft >= 7)  thetaRisk = `🟡 MED (${daysLeft}d left - time decay is faster, exit within 2 days)`;
+  else                     thetaRisk = `🔴 HIGH (${daysLeft}d left - intraday only, do not hold overnight)`;
 
   const interval  = _getStrikeInterval(cmp);
   const atmStrike = _roundToStrike(cmp, interval);
@@ -1161,6 +1169,15 @@ function _sendOptionsAlertPremium(sym, cmp, optSignal, stage, sl, target, rr, bm
     }
   } catch(e) { Logger.log("[OPTIONS] earnings check error (fail-open): " + e); }
 
+  // v15.43: same NIFTY PCR window as trading_bot.py option_entry_gate (0.6-1.4). Not cached / unreadable = allowed (fail-open).
+  try {
+    const pcr = parseFloat(_bmGet(bm, "MKT_PCR_NIFTY"));
+    if (pcr > 0 && (pcr < OPTIONS_CONFIG.PCR_MIN || pcr > OPTIONS_CONFIG.PCR_MAX)) {
+      Logger.log(`[OPTIONS] ${sym}: NIFTY PCR ${pcr} outside ${OPTIONS_CONFIG.PCR_MIN}-${OPTIONS_CONFIG.PCR_MAX} — premium option alert SKIPPED`);
+      return;
+    }
+  } catch(e) { Logger.log("[OPTIONS] PCR check error (fail-open): " + e); }
+
   const isBase    = optSignal.signal === "📦 BASE CE";
   const typeLabel = isBase ? "📦 BASE OPTIONS SIGNAL" : "📊 OPTIONS SIGNAL";
   // v15.26 OWNER RULE (2026-07-18): option = INTRADAY ya max 1-2 din ka trade.
@@ -1188,24 +1205,28 @@ function _sendOptionsAlertPremium(sym, cmp, optSignal, stage, sl, target, rr, bm
   const _hhmmOpt   = parseInt(Utilities.formatDate(new Date(), CONFIG.IST_ZONE, "HHmm"), 10);
   const isLiveOpt  = (_hhmmOpt >= 915 && _hhmmOpt <= 1540);   // v15.34 (2026-08-03): NSE extended F&O close 15:30->15:40, effective today
   const confirmRule = isLiveOpt ? "" :
-    `⚠️ Night scan (kal ka close): subah 9:30 ke baad ₹${cmp.toFixed(2)} ke UPAR ho tabhi; red khule ya BEARISH regime = skip\n`;
+    `⚠️ Night scan (last close data): enter only after 9:30 AM and only if the stock is above ₹${cmp.toFixed(2)}; skip if it opens red or the market is BEARISH\n`;
 
   // v15.38 (2026-11-05, owner: messages too long): rules / 'kaise trade kare' / TradingView live in ONE pinned message per channel
   // (pinned_rules.py); this alert keeps only the data.
   const _when   = isBase ? "9:30-12:00" : "9:30-9:45";
   const _extra  = [optSignal.liqNote || "",
                    optSignal.sectorTrend === "TAILWIND" ? "Sector TAILWIND ✅" : (optSignal.sectorTrend === "HEADWIND" ? "Sector HEADWIND ⚠️" : "")].filter(x => x).join(" | ");
+  // v15.44 (2026-11-17, owner: members must understand clearly; English is fine): one exact contract, one exit rule, one time limit.
+  // Members had bought a DIFFERENT strike/expiry than a list showed (SBIN 1100 CE 23-Nov vs the Dec contract), so the message now says: use exactly this contract.
   const msg =
-    `${typeLabel} — <b>PREMIUM</b>\n` +
-    `🎯 <b>${sym.replace("NSE:","")}</b> | CMP ₹${cmp.toFixed(2)} | ${stage}\n` +
-    `🎰 <b>Buy ${optSignal.strike}</b> | Exp ${optSignal.expiryStr}\n` +
-    `⏳ Theta ${optSignal.thetaRisk} | ${optSignal.message}\n` +
-    `🛑 Stock SL ₹${sl} | 🎯 T ₹${target} | RR ${rr}\n` +
+    `${typeLabel} — <b>PREMIUM CALL</b>\n` +
+    `🎯 <b>${sym.replace("NSE:","")}</b> | Stock ₹${cmp.toFixed(2)} | ${stage}\n` +
+    `🎰 <b>BUY ${optSignal.strike}</b> | Expiry ${optSignal.expiryStr}\n` +
+    `Use exactly this strike and expiry - another contract has different risk.\n` +
+    `⏳ Time decay: ${optSignal.thetaRisk} | ${optSignal.message}\n` +
+    `🛑 EXIT the option if the STOCK falls to ₹${sl} | 🎯 Stock target ₹${target} | RR ${rr}\n` +
+    `⏱ Max hold 2 trading days | cut the loss at -20% of the premium\n` +
     (_extra ? `💧 ${_extra}\n` : "") +
-    `🕘 Kab: ${_when} | Hold max 1-2 din | SL ke upar hi valid\n` +
+    `🕘 Entry: ${_when} only, and only while the stock is above ₹${sl}\n` +
     `${confirmRule}` +
-    `📌 Rules + kaise trade kare: pinned message\n` +
-    `<i>Educational only. Not SEBI advice. ${CONFIG.VERSION}</i>`;
+    `📌 Full rules: pinned message\n` +
+    `<i>Educational only. Not SEBI advice. Options can lose the whole premium - keep size small. ${CONFIG.VERSION}</i>`;
 
   _sendTelegramPremium(msg);
   _bmSet(ss, bm, flagKey, "1", sym, "FLAG");
@@ -1646,6 +1667,8 @@ function _runScanner(startRow, endRow) {
   const optColOk = (_hdr[35] || "").toString().trim() === "Options";
   // v15.42: "Opt_Trend" is found BY HEADER NAME (appended at the end of Nifty200 by fetch_opt_trend.py); -1 = column missing = fail-open.
   const optTrendCol = _hdr.map(h => (h || "").toString().trim()).indexOf("Opt_Trend");
+  // v15.43: "Opt_HV20" (20-day annualised historical volatility %, fed by fetch_opt_trend.py) is found the same way; missing/blank = fail-open.
+  const optHvCol = _hdr.map(h => (h || "").toString().trim()).indexOf("Opt_HV20");
   if (!atrColOk || !optColOk) {
     Logger.log(`[COLUMN-DRIFT] ⚠️ Nifty200 header mismatch — ATR col29="${_hdr[28]}" (ok=${atrColOk}) Options col36="${_hdr[35]}" (ok=${optColOk}). Falling back to safe defaults until columns are realigned.`);
   }
@@ -1756,7 +1779,10 @@ function _runScanner(startRow, endRow) {
     // _generateOptionsSignal falls back to the legacy hardcoded list.
     const optTag     = (!optColOk || r[35] === undefined || r[35] === null) ? null : r[35].toString().trim();
     // v15.42: false ONLY when the sheet explicitly says "NO"; blank / missing column / any other value = true (fail-open)
-    const optTrendOk = !(optTrendCol >= 0 && r[optTrendCol] !== undefined && r[optTrendCol] !== null && r[optTrendCol].toString().trim().toUpperCase() === "NO");
+    const optTrendOk0 = !(optTrendCol >= 0 && r[optTrendCol] !== undefined && r[optTrendCol] !== null && r[optTrendCol].toString().trim().toUpperCase() === "NO");
+    // v15.43: premium too dear (HV-20 above OPTIONS_CONFIG.HV_MAX) = no option (falls to swing/positional/cash like a weak trend); blank/unknown = allowed. NaN > x is false, so fail-open.
+    const optHvVal = (optHvCol >= 0 && r[optHvCol] !== undefined && r[optHvCol] !== null) ? parseFloat(r[optHvCol]) : NaN;
+    const optTrendOk = optTrendOk0 && !(optHvVal > OPTIONS_CONFIG.HV_MAX);
 
     const signal   = _inferSignal(rawSignal, stage, fiiBuyZone, smaStr);
     const priority = _inferPriority(rawPriority, rawMasterScore, rawSignalScore);
