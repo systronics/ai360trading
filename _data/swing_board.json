@@ -1,5 +1,5 @@
 {
-  "generated_at": "16 November 2026, 09:10 AM IST",
+  "generated_at": "16 November 2026, 09:41 AM IST",
   "setups": [
     {
       "symbol": "BSE",
@@ -10,15 +10,15 @@
       "days_in_trade": "11"
     },
     {
-      "symbol": "ICICIBANK",
+      "symbol": "PNB",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
     {
-      "symbol": "INDHOTEL",
+      "symbol": "ICICIBANK",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
@@ -34,7 +34,7 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "DLF",
+      "symbol": "INDHOTEL",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
@@ -42,10 +42,10 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "PNB",
+      "symbol": "DLF",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
