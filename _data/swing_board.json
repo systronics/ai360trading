@@ -1,5 +1,5 @@
 {
-  "generated_at": "16 November 2026, 11:11 AM IST",
+  "generated_at": "16 November 2026, 11:41 AM IST",
   "setups": [
     {
       "symbol": "BSE",
@@ -8,6 +8,14 @@
       "stage": "🚀 MOMENTUM BREAKOUT | 🔁 Correction Base",
       "status": "✅ TRADED (PAPER)",
       "days_in_trade": "11"
+    },
+    {
+      "symbol": "LAURUSLABS",
+      "trade_type": "🔄 Swing",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "📈 Near Breakout",
+      "status": "✅ TRADED (PAPER)",
+      "days_in_trade": "0"
     },
     {
       "symbol": "PNB",
