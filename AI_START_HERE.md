@@ -80,5 +80,7 @@ Writing a GitHub secret needs the owner's explicit OK in chat. Never print or pa
 ## 7. Kill switches (GitHub > Settings > Secrets and variables > Actions > Variables, or `gh variable set NAME --body VALUE`)
 `RESULT_WATCH_MODE`, `PREMARKET_MODE`, `THREADS_MODE`, `TECH_MODE`, `REAL_MODE`, `OPTION_WATCH_MODE`, `TRACKER_REPORT_MODE` (scheduled/dry) | `LESSONS_ENABLED`, `LESSON_FB` | `TECH_VISUAL` (3d/footage) | `UPSTOX_MODE` (live/shadow/off) | `TOPICAL_FB`, `FB_ARTICLE_SHARE`, `TECH_FB_IG` (off on purpose) | `LEGACY_REELS` (off). Pause everything trading: AlertLog cell **T2 = NO**.
 
+**Option rules (16 Nov 2026):** the Premium 'OPTIONS SIGNAL' is sent by `appscript.gs` and follows the SAME rule as the bot gate (expiry >= 15 days, HV-20 <= 35% from sheet column `Opt_HV20`, NIFTY PCR 0.6-1.4, daily trend OK). `OPTION_WATCH_MODE` is **dry on purpose** (members mistook the watch list for calls) - do not set it to scheduled without the owner re-wording the message.
+
 ## 8. Where the real documentation is
 `PROJECT_HANDOFF.md` (PC-local, not on GitHub: top section = final state, evidence, pending decisions) | `RUNBOOK.md` (non-technical alert guide) | `CLAUDE.md` (every file's version + the locked decisions) | `.internal-ops.md`/`SESSION.md`/`CHANGELOG.md` (full history, PC-local, backed up in the owner's private backup repo by `backup_pc_docs.bat`).
