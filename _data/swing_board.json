@@ -1,5 +1,5 @@
 {
-  "generated_at": "16 November 2026, 03:15 PM IST",
+  "generated_at": "16 November 2026, 03:45 PM IST",
   "setups": [
     {
       "symbol": "BSE",
@@ -29,7 +29,7 @@
       "symbol": "ICICIBANK",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
@@ -45,7 +45,7 @@
       "symbol": "INDHOTEL",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
@@ -59,9 +59,9 @@
     },
     {
       "symbol": "MOTILALOFS",
-      "trade_type": "🔄 Swing",
+      "trade_type": "⚡ Intraday",
       "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ BREAKOUT ALERT",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
