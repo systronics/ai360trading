@@ -1,0 +1,27 @@
+name: "Owner note (manual): send a text file to the private owner channel"
+
+# 2026-11-17: sends the text file given in `file` ONLY to the private owner Telegram channel (secret CHAT_ID_OWNER). Never to subscriber channels.
+on:
+  workflow_dispatch:
+    inputs:
+      file:
+        description: "path of the text file in the repo (messages separated by a line with only -----)"
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      CHAT_ID_OWNER: ${{ secrets.CHAT_ID_OWNER }}
+      NOTE_FILE: ${{ github.event.inputs.file }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python owner_note.py "$NOTE_FILE"

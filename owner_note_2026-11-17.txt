@@ -1,0 +1,45 @@
+AI360 - KISI BHI AI KO KYA DENA HAI (18 Nov ke baad)
+
+1) Pehle sirf ye 1 file do: AI_START_HERE.md
+   (GitHub: https://github.com/systronics/ai360trading/blob/master/AI_START_HERE.md ya PC folder ai360trading me)
+2) Problem ho to collect_problem.bat chalao -> problem_report.txt banega. Ye file bhi AI ko do.
+3) Phir AI jo file maange sirf wahi do. CLAUDE.md / SESSION.md / .internal-ops.md POORI mat do (bahut badi hain, AI ka daily limit khatam ho jata hai).
+4) AI ko ye likh kar do (copy-paste):
+
+"Ye mera trading + content system hai (sirf paper trading). Pehle AI_START_HERE.md padho. Meri problem: <yahan likho>. problem_report.txt saath me hai. Sirf wahi file badlo jo zaruri ho aur poori file wapas do. Koi token/secret mat maango. Gate ya threshold meri ijazat ke bina mat badlo. Kuch badalne se pehle batao ki kya badlega aur kya nahi."
+
+5) Tokens/passwords kabhi AI ko paste mat karo. Secrets sirf GitHub Settings me hote hain.
+6) AI ka diya code push karne se pehle: python check_calls.py aur python -m pytest -q chalao (dono clean hone chahiye).
+7) Kuch toot jaye to RUNBOOK.md me bina AI ke steps hain. Premium alerts turant band karne ho: AlertLog sheet ka cell T2 = NO.
+-----
+AI360 - PENDING / WATCH LIST (17 Nov 2026)
+
+TURANT (kal-parso):
+- Subah 08:40 bot start hua? Result Watch 09:15 se pehle aaya?
+- Pehla naya OPTIONS SIGNAL dekho: expiry Dec (8+ din), 'PREMIUM CALL' English format, ek exact contract.
+- Option Watch PAUSED hai (OPTION_WATCH_MODE=dry). Wapas on karne se pehle message dobara likhwana.
+- Is channel me health/token/error reports aate rahenge. Kuch na aaye to bhi theek hai.
+
+HAFTE ME:
+- Sat 21 Nov ~11 AM: Tracker report is channel me aani chahiye (Premium me nahi).
+- Sun 22 Nov: Long-term alert (Div % sahi, RSI 72+ = BOOK PARTIAL).
+- Tech Shorts roz (YouTube); FB/IG sirf Mon/Wed/Fri. Lessons Wed ko bante hain, US Sat / India Sun live hote hain.
+
+REVIEW 11 Dec ke baad (data ke saath):
+- Option alerts ke natije, 8 din ka niyam, HV 35 limit, OPT_RETEST vs OPT_BREAKOUT (python signal_watch.py --report).
+- SignalWatch aur Result Watch hit-rate, sector cap 3, RSI>75 block, ROOM_VETO (abhi sirf observation).
+- Tech topic groups (device vs scam) 8+ videos ke baad.
+
+QUEUE KHATAM HONE KI DATE:
+- Lessons: US English ~19 Dec, India Hindi ~27 Dec. Tech topics ~23 Jan 2027. Tab Telegram note aayega. Naye topics/lessons ka tareeka AI_START_HERE.md section 5 me likha hai.
+
+TUMHE KHUD KARNA (AI nahi kar sakta):
+- cron-job.org ka bot start (08:40 IST) zinda rakho.
+- Brevo sender domain DNS (Cloudflare), Amazon bank/tax details, Facebook Page rename ('Unofficial Amit Kumar').
+- Tech-tips aur trading-lessons hub links FB / YouTube / Telegram / Threads / Pinterest profile me daalo.
+- Tokens: GH_TOKEN PAT expiry watchdog warn karega; Upstox token ~1 saal; YouTube/Meta re-auth fail ho to Telegram note aayega.
+- Apps Script Executions me quota error dikhe to AI ko batao.
+
+HAMESHA:
+- Sirf paper trading. Real order nahi. Koi secret chat me nahi.
+- Koi problem: collect_problem.bat -> AI_START_HERE.md -> AI.
