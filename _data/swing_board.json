@@ -1,5 +1,5 @@
 {
-  "generated_at": "16 November 2026, 10:11 AM IST",
+  "generated_at": "16 November 2026, 10:41 AM IST",
   "setups": [
     {
       "symbol": "BSE",
@@ -8,14 +8,6 @@
       "stage": "🚀 MOMENTUM BREAKOUT | 🔁 Correction Base",
       "status": "✅ TRADED (PAPER)",
       "days_in_trade": "11"
-    },
-    {
-      "symbol": "INDHOTEL",
-      "trade_type": "📊 Options Alert",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
     },
     {
       "symbol": "PNB",
@@ -42,6 +34,14 @@
       "days_in_trade": "—"
     },
     {
+      "symbol": "INDHOTEL",
+      "trade_type": "📊 Options Alert",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
       "symbol": "DLF",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
@@ -51,17 +51,9 @@
     },
     {
       "symbol": "MOTILALOFS",
-      "trade_type": "⚡ Intraday",
+      "trade_type": "🔄 Swing",
       "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "KALYANKJIL",
-      "trade_type": "⚡ MOM Swing",
-      "strategy": "➖ HOLD",
-      "stage": "⚡ MOMENTUM | +2.5% | Vol -12%",
+      "stage": "⚡ BREAKOUT ALERT",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
