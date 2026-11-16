@@ -1,5 +1,5 @@
 {
-  "generated_at": "16 November 2026, 01:15 PM IST",
+  "generated_at": "16 November 2026, 01:45 PM IST",
   "setups": [
     {
       "symbol": "BSE",
@@ -45,7 +45,7 @@
       "symbol": "INDHOTEL",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
