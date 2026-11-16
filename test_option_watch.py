@@ -35,13 +35,17 @@ def test_dots():
 def test_expiry_and_judge():
     today = dt.date(2026, 11, 13)
     ms = lambda d: int(dt.datetime(d.year, d.month, d.day, tzinfo=dt.timezone.utc).timestamp() * 1000)
+    # 2026-11-17 owner order: minimum 8 calendar days to expiry (was 15)
     e, dte = W.pick_expiry([ms(dt.date(2026, 11, 23)), ms(dt.date(2026, 12, 29))], today)
-    assert e == "2026-12-29" and dte == 46
+    assert e == "2026-11-23" and dte == 10
+    e, dte = W.pick_expiry([ms(dt.date(2026, 11, 23)), ms(dt.date(2026, 12, 29))], dt.date(2026, 11, 16))   # only 7 days left -> next month
+    assert e == "2026-12-29" and dte == 43
     cont = {"spread": 2.5, "iv": 26, "theta_pct": 1.0, "be_move": 3.0, "volume": 5000, "oi": 100000, "ask": 30, "strike": 770}
     j = W.judge("BREAKOUT", cont, 25, 2.0, 46)
     assert j["listed"] and j["greens"] >= 3
     assert not W.judge("BREAKOUT", dict(cont, spread=9), 25, 2.0, 46)["listed"]
-    assert not W.judge("BREAKOUT", cont, 25, 2.0, 10)["listed"]
+    assert W.judge("BREAKOUT", cont, 25, 2.0, 10)["listed"]
+    assert not W.judge("BREAKOUT", cont, 25, 2.0, 7)["listed"]
     assert not W.judge(None, cont, 25, 2.0, 46)["listed"]
 
 
