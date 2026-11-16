@@ -158,7 +158,8 @@ def judge(setup, cont, hv, atrp, dte):
 
 
 def build_message(items, today, n_scanned):
-    L = [f"OPTION WATCH | {today:%d-%b}", "(Only for knowledge / paper trade - not advice, not a prediction)", f"{G} good  {Y} ok  {R} weak"]
+    L = [f"OPTION WATCH LIST | {today:%d-%b}", "THIS IS NOT A TRADE CALL. No entry, stop-loss or exit is given. Do NOT buy from this list.",
+         "It only shows what we are studying (paper / knowledge, not advice). A real call comes as 'OPTIONS SIGNAL' with the exact contract, stop and exit.", f"{G} good  {Y} ok  {R} weak"]
     if not items:
         L += ["", f"No clean call-option setup today ({n_scanned} F&O stocks checked: trend + breakout + fair contract all needed).",
               "No setup is also a result: waiting costs nothing, a theta-heavy option costs every day."]

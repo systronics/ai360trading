@@ -614,7 +614,7 @@ const OPTIONS_CONFIG = {
 
 // ── CONFIG ────────────────────────────────────────────────────────────────────
 const CONFIG = {
-  VERSION       : "v15.43",  // single source for ALL subscriber-facing version stamps (was hardcoded per-message and went stale at v15.17)
+  VERSION       : "v15.44",  // single source for ALL subscriber-facing version stamps (was hardcoded per-message and went stale at v15.17)
   get TELEGRAM_BOT_TOKEN() { return PropertiesService.getScriptProperties().getProperty('TELEGRAM_BOT_TOKEN') || ""; },
   get CHAT_ID_BASIC()      { return PropertiesService.getScriptProperties().getProperty('CHAT_ID_BASIC')      || ""; },
   get CHAT_ID_ADVANCE()    { return PropertiesService.getScriptProperties().getProperty('CHAT_ID_ADVANCE')    || ""; },
@@ -1203,24 +1203,28 @@ function _sendOptionsAlertPremium(sym, cmp, optSignal, stage, sl, target, rr, bm
   const _hhmmOpt   = parseInt(Utilities.formatDate(new Date(), CONFIG.IST_ZONE, "HHmm"), 10);
   const isLiveOpt  = (_hhmmOpt >= 915 && _hhmmOpt <= 1540);   // v15.34 (2026-08-03): NSE extended F&O close 15:30->15:40, effective today
   const confirmRule = isLiveOpt ? "" :
-    `⚠️ Night scan (kal ka close): subah 9:30 ke baad ₹${cmp.toFixed(2)} ke UPAR ho tabhi; red khule ya BEARISH regime = skip\n`;
+    `⚠️ Night scan (last close data): enter only after 9:30 AM and only if the stock is above ₹${cmp.toFixed(2)}; skip if it opens red or the market is BEARISH\n`;
 
   // v15.38 (2026-11-05, owner: messages too long): rules / 'kaise trade kare' / TradingView live in ONE pinned message per channel
   // (pinned_rules.py); this alert keeps only the data.
   const _when   = isBase ? "9:30-12:00" : "9:30-9:45";
   const _extra  = [optSignal.liqNote || "",
                    optSignal.sectorTrend === "TAILWIND" ? "Sector TAILWIND ✅" : (optSignal.sectorTrend === "HEADWIND" ? "Sector HEADWIND ⚠️" : "")].filter(x => x).join(" | ");
+  // v15.44 (2026-11-17, owner: members must understand clearly; English is fine): one exact contract, one exit rule, one time limit.
+  // Members had bought a DIFFERENT strike/expiry than a list showed (SBIN 1100 CE 23-Nov vs the Dec contract), so the message now says: use exactly this contract.
   const msg =
-    `${typeLabel} — <b>PREMIUM</b>\n` +
-    `🎯 <b>${sym.replace("NSE:","")}</b> | CMP ₹${cmp.toFixed(2)} | ${stage}\n` +
-    `🎰 <b>Buy ${optSignal.strike}</b> | Exp ${optSignal.expiryStr}\n` +
-    `⏳ Theta ${optSignal.thetaRisk} | ${optSignal.message}\n` +
-    `🛑 Stock SL ₹${sl} | 🎯 T ₹${target} | RR ${rr}\n` +
+    `${typeLabel} — <b>PREMIUM CALL</b>\n` +
+    `🎯 <b>${sym.replace("NSE:","")}</b> | Stock ₹${cmp.toFixed(2)} | ${stage}\n` +
+    `🎰 <b>BUY ${optSignal.strike}</b> | Expiry ${optSignal.expiryStr}\n` +
+    `Use exactly this strike and expiry - another contract has different risk.\n` +
+    `⏳ Time decay: ${optSignal.thetaRisk} | ${optSignal.message}\n` +
+    `🛑 EXIT the option if the STOCK falls to ₹${sl} | 🎯 Stock target ₹${target} | RR ${rr}\n` +
+    `⏱ Max hold 2 trading days | cut the loss at -20% of the premium\n` +
     (_extra ? `💧 ${_extra}\n` : "") +
-    `🕘 Kab: ${_when} | Hold max 1-2 din | SL ke upar hi valid\n` +
+    `🕘 Entry: ${_when} only, and only while the stock is above ₹${sl}\n` +
     `${confirmRule}` +
-    `📌 Rules + kaise trade kare: pinned message\n` +
-    `<i>Educational only. Not SEBI advice. ${CONFIG.VERSION}</i>`;
+    `📌 Full rules: pinned message\n` +
+    `<i>Educational only. Not SEBI advice. Options can lose the whole premium - keep size small. ${CONFIG.VERSION}</i>`;
 
   _sendTelegramPremium(msg);
   _bmSet(ss, bm, flagKey, "1", sym, "FLAG");
