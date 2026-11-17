@@ -1,5 +1,5 @@
 {
-  "generated_at": "16 November 2026, 04:19 PM IST",
+  "generated_at": "17 November 2026, 08:40 AM IST",
   "setups": [
     {
       "symbol": "BSE",
@@ -7,7 +7,7 @@
       "strategy": "➖ HOLD",
       "stage": "🚀 MOMENTUM BREAKOUT | 🔁 Correction Base",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "11"
+      "days_in_trade": "12"
     },
     {
       "symbol": "LAURUSLABS",
@@ -15,15 +15,7 @@
       "strategy": "🟢 STRONG BUY",
       "stage": "📈 Near Breakout",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "0"
-    },
-    {
-      "symbol": "PNB",
-      "trade_type": "📊 Options Alert",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
+      "days_in_trade": "1"
     },
     {
       "symbol": "ICICIBANK",
@@ -50,18 +42,18 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "DLF",
+      "symbol": "PNB",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
     {
-      "symbol": "MOTILALOFS",
-      "trade_type": "⚡ Intraday",
+      "symbol": "PHOENIXLTD",
+      "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
