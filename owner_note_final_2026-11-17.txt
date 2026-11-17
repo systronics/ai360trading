@@ -1,0 +1,19 @@
+AI360 - FINAL UPDATE (17 Nov raat) - AI ko dene wali baatein
+
+1) OPTIONS ke naye niyam (sab live):
+- Option call sirf RETEST par (sheet FINAL_ACTION = RETEST BUY). Roz 0-2 aayengi. Band karne ka switch: BotMemory tab me ek row, key = OPT_RETEST_OFF (value kuch bhi). (appscript v15.46/47)
+- Expiry kam se kam 8 din. HV-20 <= 35, NIFTY PCR 0.6-1.4, daily trend OK. (appscript ROLLOVER_DAYS 6, bot OPTION_MIN_DAYS_LEFT 8)
+- Hold: 3 trading din tak profit na ho to exit, profit me ho to max 5 din; SL / target / -20% cap / expiry se 5 din pehle exit pehle jaise. (trading_bot v15.45, kal subah ke naye session se lagu)
+- BUG FIX: TRADED option row ki strike/expiry cells mit jaati thi (isliye OptionPaper tab kabhi nahi bhara). Ab bani rehti hain. OptionPaper pehli baar kal ke naye entries se bharega.
+- Option Watch list PAUSED hai (OPTION_WATCH_MODE=dry). Dubara on karne se pehle message dobara likhwana.
+- Premium pinned rules message naye niyamon ke saath edit ho chuka hai.
+
+2) 11 Dec ke baad REVIEW: python signal_watch.py --report (OPT_RETEST vs OPT_BREAKOUT; OPT_BREAKOUT ab BotMemory ke OPTSHADOW keys se aata hai), OptionPaper tab, History me options. Phir faisla: retest-only, 8 din, hold 3/5 rakhna ya nahi.
+
+3) WEBSITE: ab koi code ya internal doc public nahi hai (194 names _config.yml exclude me, guard test). Naya root .py/.gs/.bat/.ps1/doc .md file banao to _config.yml exclude me jodo. Push se pehle: python -m pytest -q aur python check_calls.py. Repo ka naam kabhi mat badalna (cron-job.org usi path se bot chalata hai).
+
+4) TRADINGVIEW indicator v3.3 sirf PC par hai: tradingview/ai360trading_FINAL_indicator.pine (private, gitignored). Competition account Delta Exchange India ke BTCUSD.P jaise perpetuals trade karta hai.
+
+5) LIMITS jaanch (17 Nov): Google Sheet 7.8% cells, Apps Script/Sheets/GitHub quota errors 0, 54 workflows sab green. Aaj push bahut hue isliye runs 137 the (normal 50-65): aage bar-bar chhote push mat karo.
+
+6) Koi dikkat: collect_problem.bat -> problem_report.txt + AI_START_HERE.md kisi AI ko do. Premium alert turant band: AlertLog T2 = NO.
