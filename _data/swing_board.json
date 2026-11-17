@@ -1,5 +1,5 @@
 {
-  "generated_at": "17 November 2026, 11:11 AM IST",
+  "generated_at": "17 November 2026, 11:41 AM IST",
   "setups": [
     {
       "symbol": "BSE",
@@ -61,7 +61,7 @@
       "symbol": "PHOENIXLTD",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
