@@ -1,4 +1,4 @@
-"""one-off read-only check (2026-11-17, deleted after use): PHOENIXLTD option call details + how the sheet marks RETEST candidates."""
+"""one-off read-only check (2026-11-17, deleted after use): which F&O breakout-stage stocks are in a pullback (retest) today, and the FINAL_ACTION values."""
 import json
 import os
 from collections import Counter
@@ -9,47 +9,18 @@ from oauth2client.service_account import ServiceAccountCredentials
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 raw = os.environ.get("GCP_SERVICE_ACCOUNT_JSON", "").strip() or open("service_account.json").read()
 sh = gspread.authorize(ServiceAccountCredentials.from_json_keyfile_dict(json.loads(raw), scope)).open("Ai360tradingAlgo")
-
 n = sh.worksheet("Nifty200").get_all_values()
 h = [x.strip() for x in n[0]]
-print("NIFTY200 HEADERS:")
-for i, x in enumerate(h):
-    print(f"  {i}:{x}", end=" |")
-print()
 rows = [r for r in n[2:] if r and r[0]]
-for i in (23,):
-    print(f"col {i} ({h[i]}) sample:", [r[i] for r in rows[:5]])
-# which columns hold a signal text / breakout stage?
-for i, name in enumerate(h):
-    if any(k in name.lower() for k in ("signal", "stage", "retest", "breakout", "setup")):
-        c = Counter(r[i] for r in rows if len(r) > i and r[i] != "")
-        print(f"COL {i} {name}: {dict(c.most_common(12))}")
-
-print("--- PHOENIXLTD in Nifty200")
+ix = {k: h.index(k) for k in ("FINAL_ACTION", "Breakout_Stage", "Retest %", "Trade_Type", "Priority_Score", "Options", "RS", "%Change", "Opt_Trend", "Opt_HV20", "%Distance_from_20_DMA", "%down_from_52W_UP")}
+print("FINAL_ACTION values:", dict(Counter(r[ix["FINAL_ACTION"]] for r in rows).most_common(12)))
+print("F&O rows:", sum(1 for r in rows if r[ix["Options"]] in ("N50", "YES")))
+print("sym | stage | retest | final_action | trade_type | prio | RS | %chg | dist20DMA | optTrend | HV20")
 for r in rows:
-    if r[0].replace("NSE:", "") == "PHOENIXLTD":
-        print({h[i]: r[i] for i in range(min(len(h), len(r))) if r[i] not in ("", None)})
-
-al = sh.worksheet("AlertLog").get_all_values()
-print("--- ALERTLOG HEADER", al[0][:24])
-for r in al[1:]:
-    if len(r) > 5 and r[1].replace("NSE:", "") in ("PHOENIXLTD", "PNB"):
-        print(r[:24])
-
-for tab in ("OptionPaper",):
-    try:
-        v = sh.worksheet(tab).get_all_values()
-        print(f"--- {tab} header:", v[0])
-        for r in v[1:]:
-            if "2026-11-17" in " ".join(r[:3]) or "PHOENIX" in " ".join(r[:6]).upper():
-                print("  ", r[:24])
-        print(f"  ({len(v) - 1} rows total)")
-    except Exception as e:
-        print(tab, "error", str(e)[:80])
-
-hist = sh.worksheet("History").get_all_values()
-print("--- HISTORY header:", hist[0])
-for r in hist[1:]:
-    if "PHOENIX" in " ".join(r[:3]).upper():
-        print("  ", r[:19])
+    if r[ix["Options"]] not in ("N50", "YES"):
+        continue
+    st = r[ix["Breakout_Stage"]]
+    if "BREAKOUT" not in st and "Near" not in st:
+        continue
+    print(r[0].replace("NSE:", ""), "|", st, "|", r[ix["Retest %"]], "|", r[ix["FINAL_ACTION"]], "|", r[ix["Trade_Type"]], "|", r[ix["Priority_Score"]], "|", r[ix["RS"]], "|", r[ix["%Change"]], "|", r[ix["%Distance_from_20_DMA"]], "|", r[ix["Opt_Trend"]], "|", r[ix["Opt_HV20"]])
 print("DONE")
