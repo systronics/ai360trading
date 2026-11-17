@@ -161,6 +161,34 @@ def option_alert_signals(sh, today):
     return out
 
 
+def shadow_breakout_signals(sh, today):
+    """OPT_BREAKOUT shadow rows (appscript v15.47): candidates that WOULD have been an Options Alert but were held back by the retest rule, remembered in BotMemory as
+    '<date>_OPTSHADOW_NSE_<SYM>'. -> [(symbol, date, 'OPT_BREAKOUT', cmp, None, None, None)]. Fail-open: any problem = []."""
+    out = []
+    try:
+        pref = today.isoformat() + "_OPTSHADOW_"
+        syms = []
+        for r in sh.worksheet("BotMemory").get_all_values()[1:]:
+            if r and str(r[0]).startswith(pref):
+                s = str(r[0])[len(pref):]
+                syms.append(s[4:] if s.startswith("NSE_") else s)
+        if not syms:
+            return []
+        px = {}
+        for r in sh.worksheet("Nifty200").get_all_values()[2:]:
+            if r and r[0]:
+                try:
+                    px[r[0].replace("NSE:", "").strip()] = float(str(r[2]).replace(",", ""))
+                except Exception:
+                    pass
+        for s in sorted(set(syms)):
+            if s in px:
+                out.append((s, today, "OPT_BREAKOUT", px[s], None, None, None))
+    except Exception as e:
+        print(f"[OPT-SHADOW] skipped (fail-open): {str(e)[:100]}")
+    return out
+
+
 def slot_lost_symbols(sh):
     """{symbol} that PASSED every per-stock gate in the live scanner but lost the WAITING slot (sector cap / slot limit), from the ScanReasons tab (holds the last scanned day)."""
     out, day = set(), None
@@ -294,7 +322,7 @@ def main(argv=None):
     print(f"[signal_watch {VERSION}] {today} mode={'WRITE' if write else 'DRY-RUN'}")
     try:
         lost, lday = slot_lost_symbols(sh)
-        found = scan(_universe(sh), lost, lday) + option_alert_signals(sh, today)
+        found = scan(_universe(sh), lost, lday) + option_alert_signals(sh, today) + shadow_breakout_signals(sh, today)
         log_and_score(sh, found, today, write)
     except Exception as e:
         print(f"[signal_watch] skipped (fail-open): {str(e)[:160]}")

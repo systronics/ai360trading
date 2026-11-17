@@ -671,7 +671,7 @@ except Exception as _e:
     _EQ_AVAILABLE = False
 
 IST       = pytz.timezone('Asia/Kolkata')
-VERSION   = "v15.44"   # v15.44 (2026-11-14, owner order): option entries also need daily trend Opt_Trend != NO (ADX>=25, +DI>-DI) and a live ATM call spread <= 6% (OPTION_REQUIRE_TREND / OPTION_MAX_SPREAD_PCT); both fail-open. v15.43 (2026-11-06): INTRADAY AUTO-PAUSE - 3 closed cash/option losses (<= -0.5%) in a day pause new cash/option entries until tomorrow, swing/positional never paused (see INTRADAY_PAUSE). v15.42 (2026-11-05): bonus/split guard for open trades (CORP_ACTION_GUARD). v15.41 (2026-11-05): CASH rows need a live-hours scan (CASH_REQUIRE_LIVE_SCAN). v15.40 (2026-11-03): CASH regime gate (NIFTY above 50-EMA) - see CASH_REGIME_GATE. single source for the run banner + test messages (were stale at v15.16 before v15.23; was stuck at v15.28 in this constant through the v15.29 RSI dip-tolerance release — banner text only, no logic was affected). v15.32 (2026-07-28): TSL-UPDATE spam fix — see calc_new_tsl() comparison guard below. v15.33 (2026-07-30): loss re-entry cooldown split to 1 trading day (was sharing the 5-day target-hit cooldown) — see set_loss_cooldown() below. v15.34 (2026-07-30): re-entry cooldown scoped by trade family (OPTION/CASH/STOCK no longer cross-block each other) — see _cooldown_family() below. v15.35 (2026-08-05): Cash Intraday force-exit shifted 3:00 PM -> ~3:10 PM after a full 10-trade History review (7W/3L, all exits via this clock, never target/SL) showed the trailing stop already protects gains and the cutoff was never updated for NSE's 15:30->15:40 close move — see CASH_FORCE_EXIT_HOUR below. Entry criteria deliberately untouched (sample too small to recalibrate).
+VERSION   = "v15.45"   # v15.45 (2026-11-17, OWNER ORDER): option time rule = aim for a same-day profit, otherwise hold while it is NOT negative: exit at OPTION_MAX_TDAYS (3) trading days if the stock P/L is <= 0, hard cap OPTION_MAX_TDAYS_PROFIT (5) trading days; SL / TSL / target / 20% cap / expiry-week backstop (5 calendar days to expiry) unchanged and still first. v15.44 (2026-11-14, owner order): option entries also need daily trend Opt_Trend != NO (ADX>=25, +DI>-DI) and a live ATM call spread <= 6% (OPTION_REQUIRE_TREND / OPTION_MAX_SPREAD_PCT); both fail-open. v15.43 (2026-11-06): INTRADAY AUTO-PAUSE - 3 closed cash/option losses (<= -0.5%) in a day pause new cash/option entries until tomorrow, swing/positional never paused (see INTRADAY_PAUSE). v15.42 (2026-11-05): bonus/split guard for open trades (CORP_ACTION_GUARD). v15.41 (2026-11-05): CASH rows need a live-hours scan (CASH_REQUIRE_LIVE_SCAN). v15.40 (2026-11-03): CASH regime gate (NIFTY above 50-EMA) - see CASH_REGIME_GATE. single source for the run banner + test messages (were stale at v15.16 before v15.23; was stuck at v15.28 in this constant through the v15.29 RSI dip-tolerance release — banner text only, no logic was affected). v15.32 (2026-07-28): TSL-UPDATE spam fix — see calc_new_tsl() comparison guard below. v15.33 (2026-07-30): loss re-entry cooldown split to 1 trading day (was sharing the 5-day target-hit cooldown) — see set_loss_cooldown() below. v15.34 (2026-07-30): re-entry cooldown scoped by trade family (OPTION/CASH/STOCK no longer cross-block each other) — see _cooldown_family() below. v15.35 (2026-08-05): Cash Intraday force-exit shifted 3:00 PM -> ~3:10 PM after a full 10-trade History review (7W/3L, all exits via this clock, never target/SL) showed the trailing stop already protects gains and the cutoff was never updated for NSE's 15:30->15:40 close move — see CASH_FORCE_EXIT_HOUR below. Entry criteria deliberately untouched (sample too small to recalibrate).
 TG_TOKEN  = os.environ.get('TELEGRAM_BOT_TOKEN')
 
 CHAT_BASIC   = os.environ.get('CHAT_ID_BASIC')
@@ -761,7 +761,8 @@ OPTION_EXPIRY_EXIT_DAYS  = 5     # backstop: never hold into expiry week (≤5 c
 # the alert now says so, and the ledger follows the alert (v15.25 doctrine).
 # Replaces OPTION_BASE_MAX_TDAYS=12 (which mirrored the OLD multi-week option
 # hold wording). Applies to ALL option-type rows, not just BASE stage.
-OPTION_MAX_TDAYS         = 2     # exit after 2 TRADING days if target not hit
+OPTION_MAX_TDAYS         = 3     # 2026-11-17 owner order (was 2): exit after 3 TRADING days when the trade is NOT in profit (stock P/L <= 0)
+OPTION_MAX_TDAYS_PROFIT  = 5     # 2026-11-17: a profitable option may be held up to 5 TRADING days (trailing SL protects it); the expiry-week backstop below still exits earlier
 
 CAPITAL_HIGH = 13000
 CAPITAL_MED  = 10000
@@ -1990,8 +1991,8 @@ def _option_ledger_exit(pnl_pct, eff_lev, stage, opt_expiry, ent_time, now):
     following the alert would):
       1. 🛑 est option loss ≥ OPTION_LOSS_CAP_PCT (owner 🔒 20% hard cap)
       2. ⏰ never hold past expiry week (≤ OPTION_EXPIRY_EXIT_DAYS to expiry)
-      3. ⏰ v15.26: ALL options exit after OPTION_MAX_TDAYS trading days —
-         the alert now says "intraday ya max 1-2 din" (owner rule 2026-07-18)
+      3. ⏰ v15.45 (owner 2026-11-17): exit after OPTION_MAX_TDAYS (3) trading days if the
+         stock P/L is <= 0; a profitable option may run to OPTION_MAX_TDAYS_PROFIT (5)
     Returns an exit-reason string or "" (no exit). Stock SL/TSL/target checks
     stay in step_b unchanged — those are stock-anchored per the alert too."""
     opt_est = pnl_pct * eff_lev
@@ -2002,8 +2003,11 @@ def _option_ledger_exit(pnl_pct, eff_lev, stage, opt_expiry, ent_time, now):
         dleft = (exp_d - now.date()).days
         if dleft <= OPTION_EXPIRY_EXIT_DAYS:
             return f"⏰ EXPIRY WEEK EXIT ({dleft}d to expiry)"
-    if calc_trading_hold_days(ent_time, now) >= OPTION_MAX_TDAYS:
-        return f"⏰ OPTION TIME EXIT ({OPTION_MAX_TDAYS} trading days — alert rule: intraday/1-2 din max)"
+    hd = calc_trading_hold_days(ent_time, now)
+    if hd >= OPTION_MAX_TDAYS_PROFIT:
+        return f"⏰ OPTION TIME EXIT ({OPTION_MAX_TDAYS_PROFIT} trading days max)"
+    if hd >= OPTION_MAX_TDAYS and pnl_pct <= 0:
+        return f"⏰ OPTION TIME EXIT ({OPTION_MAX_TDAYS} trading days and not in profit)"
     return ""
 
 
@@ -2425,13 +2429,13 @@ def ce_candidate_flag(cp, atr, stage, is_bullish, rank=99,
     if opt_signal in ("📊 BUY CE", "📦 BASE CE") and opt_strike:
         label = "BASE OPTIONS" if "BASE" in opt_signal else "OPTIONS"
         return (
-            f"\n\n📊 <b>{label} SIGNAL</b> (sirf INTRADAY / 1-2 din)\n"
+            f"\n\n📊 <b>{label} SIGNAL</b> (same day profit best, max 5 din)\n"
             f"   🎰 Buy: <b>{opt_strike}</b>\n"
             f"   📅 Expiry: {opt_expiry} (current — yahi volume hai)\n"
             f"   ⏳ Theta: {opt_theta}\n"
             f"   ⚡ Entry: jab stock trigger ke upar tike (late ho gaya to skip, chase NAHI)\n"
-            f"   ⏱ Hold: intraday ya max 1-2 din — usse zyada NAHI\n"
-            f"   🛑 Exit: stock apna SL tode (option ≈ −15-20%, hard cap −20%) ya 2 din pure\n"
+            f"   ⏱ Hold: same day profit best; profit me ho to max 5 trading din, 3 din tak profit na ho to exit\n"
+            f"   🛑 Exit: stock apna SL tode (option ≈ −15-20%, hard cap −20%)\n"
             f"   ⚠️ Check live premium on Zerodha"
             f"{_liq_note}"
         )

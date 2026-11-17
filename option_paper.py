@@ -277,6 +277,8 @@ def main(argv=None):
             sym = r[col["Symbol"]].replace("NSE:", "").strip()
             if (today, sym) in seen:
                 continue
+            if "TRADED" in status and col.get("Entry Time") is not None and str(r[col["Entry Time"]])[:10] not in ("", today):
+                continue            # 2026-11-17: a row that became TRADED on an earlier day is NOT a fresh entry (its option cells are now kept, so it would otherwise be 'entered' again every morning)
             strike, exp = parse_strike(r[col["Strike"]]), parse_expiry(r[col["Expiry"]])
             ok, why = entry_allowed(hm, early, late, realized_today, _f(r[col["Priority Score"]]))
             if not ok:

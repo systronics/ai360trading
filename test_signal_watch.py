@@ -67,3 +67,28 @@ def test_option_alert_category_and_rows():
     out = S.option_alert_signals(SH(), dt.date(2026, 11, 17))
     assert out == [("DLF", dt.date(2026, 11, 17), "OPT_RETEST", 750.05, None, None, None)]
     assert S.option_alert_signals(object(), dt.date(2026, 11, 17)) == []   # fail-open
+
+
+def test_shadow_breakout_rows_come_from_botmemory_and_nifty200():
+    import datetime as dt
+    import signal_watch as S
+
+    class BM:
+        def get_all_values(self):
+            return [["Key", "Value", "UpdatedAt", "Sym", "Type"],
+                    ["2026-11-17_OPTSHADOW_NSE_PHOENIXLTD", "1", "", "NSE:PHOENIXLTD", "FLAG"],
+                    ["2026-11-17_OPTSHADOW_NSE_M_M", "1", "", "NSE:M_M", "FLAG"],
+                    ["2026-11-16_OPTSHADOW_NSE_DLF", "1", "", "NSE:DLF", "FLAG"],
+                    ["2026-11-17_OPT_NSE_PNB", "1", "", "NSE:PNB", "FLAG"]]
+
+    class N2:
+        def get_all_values(self):
+            return [["h"], ["h2"], ["NSE:PHOENIXLTD", "Realty", "2,229.00"], ["NSE:M_M", "Auto", "3100"], ["NSE:DLF", "Realty", "750"]]
+
+    class SH:
+        def worksheet(self, n):
+            return BM() if n == "BotMemory" else N2()
+
+    out = S.shadow_breakout_signals(SH(), dt.date(2026, 11, 17))
+    assert [(o[0], o[2], o[3]) for o in out] == [("M_M", "OPT_BREAKOUT", 3100.0), ("PHOENIXLTD", "OPT_BREAKOUT", 2229.0)]
+    assert S.shadow_breakout_signals(object(), dt.date(2026, 11, 17)) == []   # fail-open
