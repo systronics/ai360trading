@@ -255,6 +255,7 @@ exclude:
   - swing_bt_trades_batch2.csv
   - owner_note_2026-11-17.txt
   - today_check.py
+  - test_option_hold.py
   - __pycache__/
   - Suresh/__pycache__/
   - Suresh/build_products.py
