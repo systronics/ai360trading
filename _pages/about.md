@@ -25,8 +25,8 @@ permalink: /about/
         <span class="stat-label">Markets Daily</span>
       </div>
       <div class="stat-item">
-        <span class="stat-number">4</span>
-        <span class="stat-label">Articles / Day</span>
+        <span class="stat-number">2</span>
+        <span class="stat-label">Articles / Week</span>
       </div>
       <div class="stat-item">
         <span class="stat-number">FREE</span>
@@ -38,7 +38,7 @@ permalink: /about/
   <div class="about-content">
 
     <h2>🌐 Global Market Coverage</h2>
-    <p>In today's interconnected financial ecosystem, no market moves in isolation. <strong>AI360Trading</strong> provides a 360-degree view of the world economy — covering NIFTY, S&amp;P 500, FTSE 100, IBOVESPA, and Bitcoin with daily analysis published every trading day.</p>
+    <p>In today's interconnected financial ecosystem, no market moves in isolation. <strong>AI360Trading</strong> provides a 360-degree view of the world economy — covering NIFTY, S&amp;P 500, FTSE 100, IBOVESPA, and Bitcoin with market analysis published every week and daily updates on Telegram.</p>
     <p>Our systems monitor critical macro drivers including <strong>US Treasury yields</strong>, <strong>Dollar Index (DXY)</strong>, <strong>Fear &amp; Greed Index</strong>, and <strong>global institutional flow data</strong>. This top-down approach helps identify high-probability setups before they become obvious to the retail crowd.</p>
 
     <h2>📊 Our Strategy & Logic — What The Algorithm Actually Checks</h2>
@@ -93,7 +93,7 @@ permalink: /about/
     <div class="mission-box">
       <div class="mission-icon">🎯</div>
       <strong>Core Principle</strong>
-      <p>We provide intelligence, live data, and the logic required to navigate global markets — not noise, not hype, not guaranteed returns. Every article is backed by real market data published fresh every trading day.</p>
+      <p>We provide intelligence, live data, and the logic required to navigate global markets — not noise, not hype, not guaranteed returns. Every article is backed by real market data, published fresh every week.</p>
     </div>
 
     <div class="disclaimer-note">
