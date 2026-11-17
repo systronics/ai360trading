@@ -1,5 +1,5 @@
 {
-  "generated_at": "17 November 2026, 12:45 PM IST",
+  "generated_at": "17 November 2026, 01:15 PM IST",
   "setups": [
     {
       "symbol": "BSE",
@@ -22,6 +22,14 @@
       "trade_type": "🔥 Cash Intraday",
       "strategy": "CASH",
       "stage": "🔥 WATCHLIST CASH | +4.0% | Bank of India",
+      "status": "✅ TRADED (PAPER)",
+      "days_in_trade": "0"
+    },
+    {
+      "symbol": "PHOENIXLTD",
+      "trade_type": "📊 Options Alert",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
       "status": "✅ TRADED (PAPER)",
       "days_in_trade": "0"
     },
@@ -54,14 +62,6 @@
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "PHOENIXLTD",
-      "trade_type": "📊 Options Alert",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
