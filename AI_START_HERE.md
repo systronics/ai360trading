@@ -80,6 +80,8 @@ Writing a GitHub secret needs the owner's explicit OK in chat. Never print or pa
 ## 7. Kill switches (GitHub > Settings > Secrets and variables > Actions > Variables, or `gh variable set NAME --body VALUE`)
 `RESULT_WATCH_MODE`, `PREMARKET_MODE`, `THREADS_MODE`, `TECH_MODE`, `REAL_MODE`, `OPTION_WATCH_MODE`, `TRACKER_REPORT_MODE` (scheduled/dry) | `LESSONS_ENABLED`, `LESSON_FB` | `TECH_VISUAL` (3d/footage) | `UPSTOX_MODE` (live/shadow/off) | `TOPICAL_FB`, `FB_ARTICLE_SHARE`, `TECH_FB_IG` (off on purpose) | `LEGACY_REELS` (off). Pause everything trading: AlertLog cell **T2 = NO**.
 
+**Website rule (17 Nov 2026):** any NEW root `.py` / `.gs` / `.bat` / `.ps1` or root doc `.md` MUST be added to `_config.yml` `exclude` by exact name (no globs), otherwise the public site serves it; `python -m pytest -q test_guards.py` checks this. Never rename the repo, never link to github.com from the site, videos or messages.
+
 **Option rules (16 Nov 2026):** the Premium 'OPTIONS SIGNAL' is sent by `appscript.gs` and follows the SAME rule as the bot gate (expiry >= 8 calendar days (owner order 17 Nov; was 15), HV-20 <= 35% from sheet column `Opt_HV20`, NIFTY PCR 0.6-1.4, daily trend OK). `OPTION_WATCH_MODE` is **dry on purpose** (members mistook the watch list for calls) - do not set it to scheduled without the owner re-wording the message.
 
 ## 8. Where the real documentation is
