@@ -21,3 +21,28 @@ def test_trim_breath_cuts_edges(tmp_path):
     assert T.trim_breath(p) is True
     with wave.open(str(p)) as w:
         assert 1.5 < w.getnframes() / sr < 2.2
+
+
+def test_source_and_docs_are_excluded_from_the_public_website():
+    """2026-11-17: GitHub Pages publishes every non-excluded root file. Jekyll's exclude uses explicit names (a '*.md' glob would also hide _posts/_pages), so each root
+    .py / .gs / .bat / .ps1 and every root .md WITHOUT front matter must be listed in _config.yml exclude."""
+    import os
+    import re
+    root = os.path.dirname(os.path.abspath(__file__))
+    cfg = open(os.path.join(root, "_config.yml"), encoding="utf-8").read().replace("\r\n", "\n")
+    block = re.search(r"^exclude:\n((?:  - .*\n)+)", cfg, re.M).group(1)
+    excluded = {ln.strip()[2:].strip() for ln in block.splitlines()}
+    missing = []
+    for f in sorted(os.listdir(root)):
+        p = os.path.join(root, f)
+        if not os.path.isfile(p):
+            continue
+        if f.endswith((".py", ".gs", ".bat", ".ps1")):
+            need = True
+        elif f.endswith(".md"):
+            need = not open(p, encoding="utf-8", errors="ignore").read(4).startswith("---")
+        else:
+            need = False
+        if need and f not in excluded:
+            missing.append(f)
+    assert not missing, f"served publicly by GitHub Pages - add to _config.yml exclude: {missing}"
