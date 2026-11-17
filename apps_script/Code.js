@@ -620,7 +620,7 @@ const OPTIONS_CONFIG = {
 
 // ── CONFIG ────────────────────────────────────────────────────────────────────
 const CONFIG = {
-  VERSION       : "v15.46",  // single source for ALL subscriber-facing version stamps (was hardcoded per-message and went stale at v15.17)
+  VERSION       : "v15.47",  // single source for ALL subscriber-facing version stamps (was hardcoded per-message and went stale at v15.17)
   get TELEGRAM_BOT_TOKEN() { return PropertiesService.getScriptProperties().getProperty('TELEGRAM_BOT_TOKEN') || ""; },
   get CHAT_ID_BASIC()      { return PropertiesService.getScriptProperties().getProperty('CHAT_ID_BASIC')      || ""; },
   get CHAT_ID_ADVANCE()    { return PropertiesService.getScriptProperties().getProperty('CHAT_ID_ADVANCE')    || ""; },
@@ -1232,7 +1232,7 @@ function _sendOptionsAlertPremium(sym, cmp, optSignal, stage, sl, target, rr, bm
     `Use exactly this strike and expiry - another contract has different risk.\n` +
     `⏳ Time decay: ${optSignal.thetaRisk} | ${optSignal.message}\n` +
     `🛑 EXIT the option if the STOCK falls to ₹${sl} | 🎯 Stock target ₹${target} | RR ${rr}\n` +
-    `⏱ Max hold 2 trading days | cut the loss at -20% of the premium\n` +
+    `⏱ Aim: profit the same day. If not, hold only while it is not negative: exit at 3 trading days if not in profit, max 5 days | cut the loss at -20% of the premium\n` +
     (_extra ? `💧 ${_extra}\n` : "") +
     `🕘 Entry: ${_when} only, and only while the stock is above ₹${sl}\n` +
     `${confirmRule}` +
@@ -1982,6 +1982,15 @@ function _runScanner(startRow, endRow) {
     if ((sectorCount[sector] || 0) >= CONFIG.MAX_PER_SECTOR) { skipReasons.set(sym, `GATE 10: sector "${sector}" already has ${sectorCount[sector]} open trades`); continue; }
 
     const { ttype } = _mapTradeType(niftyTradeType, priority, atr, cmp, volVsAvg, pctChange, smaStr, timeStr, isBreakoutStage, optTrendOk, optRetestOk);
+    // v15.47 SHADOW LOG (observation only): a candidate that WOULD have been an Options Alert but was held back by the retest rule is remembered once per day in BotMemory
+    // (key yyyy-mm-dd_OPTSHADOW_NSE_SYM) so signal_watch.py can score "OPT_BREAKOUT" (not retest) against "OPT_RETEST" (real Options Alerts). Never read by any gate or alert.
+    try {
+      if (ttype !== "📊 Options Alert" && optRetestOk === false) {
+        const shWould = _mapTradeType(niftyTradeType, priority, atr, cmp, volVsAvg, pctChange, smaStr, timeStr, isBreakoutStage, optTrendOk, true).ttype === "📊 Options Alert";
+        const shKey = `${today}_OPTSHADOW_${sym.replace(/[:\s]/g, "_")}`;
+        if (shWould && !_bmExists(bm, shKey)) _bmSet(ss, bm, shKey, "1", sym, "FLAG");
+      }
+    } catch (e) { Logger.log("[OPTSHADOW] " + e); }
 
     // SL / Target
     let sl, target;
@@ -2287,9 +2296,23 @@ function _runScanner(startRow, endRow) {
   // setValues() already overwrites all LOG_ROWS × TOTAL_COLS cells atomically.
   let finalGrid = finalTraded.concat(finalWaiting);
   while (finalGrid.length < CONFIG.LOG_ROWS) finalGrid.push(new Array(CONFIG.TOTAL_COLS).fill(""));
+  // v15.47 BUG FIX (found 2026-11-17): _writeOptionsColumns clears U-X for every row and rewrites it only for WAITING rows, so the moment an Options Alert became TRADED its
+  // Options Signal / Strike / Expiry / Theta cells were wiped on the next scan - the bot's option ledger then had no expiry (no expiry-week backstop, flat leverage) and
+  // option_paper.py never found a 'BUY CE' row (OptionPaper tab stayed empty). Remember the OLD U-X values per symbol BEFORE A-S is rewritten and put them back on the TRADED rows.
+  let keepTraded = [];
+  try {
+    const oldOpt = logSheet.getRange(2, 21, CONFIG.LOG_ROWS, 4).getValues();
+    const oldBySym = {};
+    for (let oi = 0; oi < currentLog.length; oi++) {
+      const osym = (currentLog[oi][1] || "").toString().trim();
+      const osig = (oldOpt[oi][0] || "").toString();
+      if (osym && (osig.indexOf("BUY CE") !== -1 || osig.indexOf("BASE CE") !== -1)) oldBySym[osym] = oldOpt[oi];
+    }
+    keepTraded = finalTraded.map(r => oldBySym[(r[1] || "").toString().trim()] || null);
+  } catch (e) { Logger.log("[OPTIONS] keep-traded read error (fail-open): " + e); }
   logSheet.getRange(2, 1, CONFIG.LOG_ROWS, CONFIG.TOTAL_COLS).setValues(finalGrid);
   _restoreFormulas(logSheet);
-  _writeOptionsColumns(logSheet, finalWaiting, batchCands, indiaVix, finalTraded.length);
+  _writeOptionsColumns(logSheet, finalWaiting, batchCands, indiaVix, finalTraded.length, keepTraded);
 
   // Regime alert
   const regimeFlag = today + (marketBullish ? "_BULLISH" : "_BEARISH");
@@ -2502,7 +2525,7 @@ function _writeScanReasons(ss, nowTime, current) {
 // ══════════════════════════════════════════════════════════════════════════════
 // WRITE OPTIONS COLUMNS — v15.5 (unchanged, tradedCount fix retained)
 // ══════════════════════════════════════════════════════════════════════════════
-function _writeOptionsColumns(logSheet, finalWaiting, batchCands, vix, tradedCount) {
+function _writeOptionsColumns(logSheet, finalWaiting, batchCands, vix, tradedCount, keepTraded) {
   tradedCount = tradedCount || 0;
   try {
     const headers = logSheet.getRange(1, 21, 1, 4).getValues()[0];
@@ -2528,6 +2551,12 @@ function _writeOptionsColumns(logSheet, finalWaiting, batchCands, vix, tradedCou
         optGrid[gridIdx][1] = opt.strike    || "—";
         optGrid[gridIdx][2] = opt.expiryStr || "—";
         optGrid[gridIdx][3] = opt.thetaRisk || "—";
+      }
+    }
+    // v15.47: TRADED rows (the first tradedCount rows) get their option cells back (see the keep-traded note at the call site)
+    if (keepTraded && keepTraded.length) {
+      for (let ti = 0; ti < Math.min(keepTraded.length, 21); ti++) {
+        if (keepTraded[ti]) optGrid[ti] = [keepTraded[ti][0], keepTraded[ti][1], keepTraded[ti][2], keepTraded[ti][3]];
       }
     }
     logSheet.getRange(2, 21, 21, 4).setValues(optGrid);
