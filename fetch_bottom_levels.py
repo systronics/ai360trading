@@ -201,7 +201,9 @@ def _adx(h, l, c, n=14):
 def tlb_upbreak(highs, closes, atrs, length=14):
     """Exact port of the Pine 'ai360trading (TLB)' up-trendline breakout: pivot high
     confirmed `length` bars later, slope = ATR/length, breakout when close crosses
-    above the decaying pivot line. Returns list[bool], True on the breakout bar."""
+    above the decaying pivot line. Returns list[bool], True on the breakout bar.
+    Credit: the METHOD (ATR-sloped trendline from confirmed pivots with breakout flags) follows LuxAlgo's open-source "Trendlines With Breaks";
+    this Python function is a separate reimplementation and informational only (never used in a gate or alert)."""
     n = len(closes)
     upper = 0.0; sph = 0.0; upos = 0
     out = [False] * n
