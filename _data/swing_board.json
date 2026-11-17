@@ -1,5 +1,5 @@
 {
-  "generated_at": "17 November 2026, 10:41 AM IST",
+  "generated_at": "17 November 2026, 11:11 AM IST",
   "setups": [
     {
       "symbol": "BSE",
@@ -28,8 +28,8 @@
     {
       "symbol": "ICICIBANK",
       "trade_type": "📊 Options Alert",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "strategy": "🎯 RETEST BUY",
+      "stage": "🎯 RETEST | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
@@ -61,7 +61,7 @@
       "symbol": "PHOENIXLTD",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
