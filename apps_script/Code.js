@@ -609,13 +609,18 @@ const OPTIONS_CONFIG = {
   // v15.45 (2026-11-17, owner order): minimum 8 calendar days to expiry (was 15). During the day this script's daysLeft = calendar days - 1, so ROLLOVER_DAYS 6 == bot OPTION_MIN_DAYS_LEFT 8.
   ROLLOVER_DAYS      : 6,
   HV_MAX             : 35.0,
+  // v15.46 (2026-11-17, OWNER ORDER 'apply the retest rule to options only'): a breakout-stage option candidate becomes an Options Alert / BUY CE ONLY when the Nifty200 sheet itself marks it
+  // FINAL_ACTION = '🎯 RETEST BUY' (price back at its breakout level = tighter stop, bigger reward). Base-entry CE and every non-option signal (swing / positional / cash / intraday) are untouched.
+  // Evidence: owner's own real trades 17 Nov (LAURUSLABS, SBIN dips +73%/+81%) - small sample, NOT proven; tracker `signal_watch` OPT_RETEST/OPT_BREAKOUT collects forward data.
+  // KILL SWITCH without a deploy: add a row in the BotMemory tab with key OPT_RETEST_OFF (any value); or set RETEST_ONLY to false here and redeploy.
+  RETEST_ONLY        : true,
   PCR_MIN            : 0.6,
   PCR_MAX            : 1.4,
 };
 
 // ── CONFIG ────────────────────────────────────────────────────────────────────
 const CONFIG = {
-  VERSION       : "v15.45",  // single source for ALL subscriber-facing version stamps (was hardcoded per-message and went stale at v15.17)
+  VERSION       : "v15.46",  // single source for ALL subscriber-facing version stamps (was hardcoded per-message and went stale at v15.17)
   get TELEGRAM_BOT_TOKEN() { return PropertiesService.getScriptProperties().getProperty('TELEGRAM_BOT_TOKEN') || ""; },
   get CHAT_ID_BASIC()      { return PropertiesService.getScriptProperties().getProperty('CHAT_ID_BASIC')      || ""; },
   get CHAT_ID_ADVANCE()    { return PropertiesService.getScriptProperties().getProperty('CHAT_ID_ADVANCE')    || ""; },
@@ -1044,7 +1049,7 @@ function _getStrikeInterval(cmp) {
  *
  * New ATH parameter: high52 and cmp passed to check proximity.
  */
-function _generateOptionsSignal(sym, cmp, atr, stage, pctChange, vix, isBaseEntry, high52, optTag, sectorTrend, optTrendOk) {
+function _generateOptionsSignal(sym, cmp, atr, stage, pctChange, vix, isBaseEntry, high52, optTag, sectorTrend, optTrendOk, optRetestOk) {
   const result = { signal: "⏸ SKIP", strike: "", expiryStr: "", thetaRisk: "", message: "", liqNote: "", isBase: isBaseEntry || false,
     // v15.30: market regime + stock breakout direction are already implicit in
     // every candidate reaching this function (bearish hard-block / standard
@@ -1074,6 +1079,12 @@ function _generateOptionsSignal(sym, cmp, atr, stage, pctChange, vix, isBaseEntr
   // blank/unknown = fail-open (optTrendOk stays true).
   if (optTrendOk === false) {
     result.message = "Daily trend weak (ADX<25 or -DI above +DI) - sideways, option skipped";
+    return result;
+  }
+
+  // v15.46: retest-only for the breakout CE (base-entry CE is a different setup and is not affected); undefined/true = allowed (fail-open)
+  if (!isBaseEntry && optRetestOk === false) {
+    result.message = "Not a retest entry - option skipped (retest rule)";
     return result;
   }
 
@@ -1601,7 +1612,7 @@ function _tradeMode(r) {
   return "STD";
 }
 
-function _mapTradeType(niftyType, priority, atr, cmp, volVsAvg, pctChange, smaStr, timeStr, isBreakoutStage, optTrendOk) {
+function _mapTradeType(niftyType, priority, atr, cmp, volVsAvg, pctChange, smaStr, timeStr, isBreakoutStage, optTrendOk, optRetestOk) {
   const atrPct = (atr / cmp) * 100;
   // v15.37 (2026-08-11, owner rule): Options Alert previously fired purely off
   // priority+ATR% — no check that the stock had actually confirmed a real
@@ -1618,7 +1629,8 @@ function _mapTradeType(niftyType, priority, atr, cmp, volVsAvg, pctChange, smaSt
   // already carried BREAKOUT CONFIRMED — this tightens the rare gap case,
   // it does not block any real candidate seen live so far.
   // v15.42: also needs the daily trend (Opt_Trend != "NO"); a sideways stock falls through to Intraday/Swing/Positional below instead of becoming an option.
-  if (priority >= 28 && atrPct > 2.0 && isBreakoutStage && optTrendOk !== false) return { ttype: "📊 Options Alert" };
+  // v15.46: and (retest rule) the sheet must mark it a RETEST BUY; otherwise it falls through to Intraday/Swing/Positional like any non-option candidate
+  if (priority >= 28 && atrPct > 2.0 && isBreakoutStage && optTrendOk !== false && optRetestOk !== false) return { ttype: "📊 Options Alert" };
   const inMorning = (timeStr >= CONFIG.INTRADAY_WINDOW_START && timeStr <= CONFIG.INTRADAY_WINDOW_END);
   if (inMorning && volVsAvg > 200 && pctChange > 0.5 && (smaStr === "Strong Bull" || smaStr === "Bull")) return { ttype: "⚡ Intraday" };
   if (niftyType.includes("INTRADAY"))   return { ttype: "⚡ Intraday"   };
@@ -1785,6 +1797,8 @@ function _runScanner(startRow, endRow) {
     const optTrendOk = optTrendOk0 && !(optHvVal > OPTIONS_CONFIG.HV_MAX);
 
     const signal   = _inferSignal(rawSignal, stage, fiiBuyZone, smaStr);
+    // v15.46: option-only retest rule (see OPTIONS_CONFIG.RETEST_ONLY); BotMemory key OPT_RETEST_OFF switches it off without a deploy
+    const optRetestOk = !(OPTIONS_CONFIG.RETEST_ONLY && !_bmExists(bm, "OPT_RETEST_OFF")) || signal === "🎯 RETEST BUY";
     const priority = _inferPriority(rawPriority, rawMasterScore, rawSignalScore);
     const useScore = priority;
 
@@ -1967,7 +1981,7 @@ function _runScanner(startRow, endRow) {
     // GATE 10: Sector Concentration
     if ((sectorCount[sector] || 0) >= CONFIG.MAX_PER_SECTOR) { skipReasons.set(sym, `GATE 10: sector "${sector}" already has ${sectorCount[sector]} open trades`); continue; }
 
-    const { ttype } = _mapTradeType(niftyTradeType, priority, atr, cmp, volVsAvg, pctChange, smaStr, timeStr, isBreakoutStage, optTrendOk);
+    const { ttype } = _mapTradeType(niftyTradeType, priority, atr, cmp, volVsAvg, pctChange, smaStr, timeStr, isBreakoutStage, optTrendOk, optRetestOk);
 
     // SL / Target
     let sl, target;
@@ -2033,7 +2047,7 @@ function _runScanner(startRow, endRow) {
 
     // v15.6: Pass high52 to options signal for ATH check
     // v15.23: pass optTag — live F&O eligibility replaces the stale hardcoded list
-    const optSignal  = _generateOptionsSignal(sym, cmp, atr, stage, pctChange, indiaVix, isBaseEntry, high52, optTag, sectorTrend, optTrendOk);
+    const optSignal  = _generateOptionsSignal(sym, cmp, atr, stage, pctChange, indiaVix, isBaseEntry, high52, optTag, sectorTrend, optTrendOk, optRetestOk);
 
     batchCands.push({
       priority: finalScore, rawPriority: useScore,
