@@ -8,7 +8,9 @@ USAGE (workflow `pin-rules.yml`, manual only; needs TELEGRAM_BOT_TOKEN + CHAT_ID
   python pinned_rules.py --print                 print the three texts
   python pinned_rules.py --preview               send all three to the PREMIUM channel only (owner reviews them), nothing is pinned
   python pinned_rules.py --post [--pin]          send each text to its own channel (+ pin it; needs the bot to be channel admin with 'pin messages')
-Facts used here must match the system: Cash Intraday is force-exited at 3:10 PM; options = buy-side CE, current expiry, intraday / max 1-2 days, hard cap 20%.
+  python pinned_rules.py --update-premium        v1.1 (2026-11-17): EDIT the already pinned PREMIUM message in place (no duplicate, nothing new is pinned); does nothing if the pinned message is not the PREMIUM rules text
+Facts used here must match the system: Cash Intraday is force-exited at 3:10 PM; options (owner rules 2026-11-17) = buy-side CE, retest only, expiry >= 8 days,
+exit at 3 trading days if not in profit / max 5 trading days, hard cap 20%, expiry-week exit.
 """
 import os
 import sys
@@ -52,11 +54,13 @@ PREMIUM = """📌 <b>PREMIUM — rules (ek baar padhein)</b>
 
 Advance ke saare rules lagu hain (Swing / Base / Positional / Cash). Premium me ye bhi:
 
-<b>📊 Options signal</b> (sirf buy-side CE, current expiry)
-🕘 Kab: breakout = 9:30-9:45 | base = 9:30-12:00 (raat ka scan: subah confirm)
-⏳ Hold: intraday ya max 1-2 din. Theta 🟢 LOW (15+ din) theek; 🟡/🔴 ho to chhota ya intraday
-🛑 Exit: STOCK ka SL tode, ya STOCK target, ya 2 din pure
-⚠️ Option me 20% se zyada loss KABHI nahi. Average down kabhi nahi.
+<b>📊 Options signal</b> (sirf buy-side CE)
+🎯 Option call sirf RETEST par aati hai (stock breakout ke baad wapas breakout level par). Isliye roz 0-2 hi aayengi, kabhi koi na aaye to wo normal hai.
+📅 Expiry kam se kam 8 din door. Alert me jo strike + expiry likhi hai WAHI lo, doosri nahi.
+🕘 Kab: 9:30-9:45 (raat ka scan: subah confirm)
+⏳ Hold: same day profit best. Profit me ho to max 5 trading din; 3 din tak profit na ho to nikal do
+🛑 Exit: STOCK ka SL tode, ya STOCK target, ya premium me 20% loss (hard cap). Expiry se 5 din pehle sab nikal do
+⚠️ Average down kabhi nahi. Chhota size rakho, poora premium ja sakta hai.
 💧 Midcap chain: bid-ask dekho, limit order lagao
 
 <b>🧾 F&O buildup</b> (sirf jaankari, signal nahi)
@@ -91,6 +95,32 @@ def send(chat_id, text, pin=False):
     return mid
 
 
+def update_premium(chat_id):
+    """Edit the currently pinned PREMIUM rules message in place. Returns 0 on success or when nothing needed doing, 1 on a hard problem."""
+    if not chat_id:
+        print("no CHAT_ID_PREMIUM - nothing done")
+        return 1
+    try:
+        pm = (_post("getChat", {"chat_id": chat_id}).get("result") or {}).get("pinned_message") or {}
+    except Exception as e:
+        print(f"getChat failed: {str(e)[:100]}")
+        return 1
+    mid, old = pm.get("message_id"), pm.get("text", "")
+    if not mid or "PREMIUM" not in old or "rules" not in old:
+        print("the pinned message is not the PREMIUM rules text - nothing edited (use --post --pin only if you really want a new one)")
+        return 0
+    if old.strip() == "".join(PREMIUM.replace("<b>", "").replace("</b>", "").replace("<i>", "").replace("</i>", "")).strip():
+        print("pinned PREMIUM message is already up to date")
+        return 0
+    try:
+        _post("editMessageText", {"chat_id": chat_id, "message_id": mid, "text": PREMIUM, "parse_mode": "HTML", "disable_web_page_preview": True})
+        print(f"edited pinned PREMIUM message {mid} in place ({len(PREMIUM)} chars)")
+        return 0
+    except Exception as e:
+        print(f"edit failed: {str(e)[:120]}")
+        return 1
+
+
 def main(argv=None):
     argv = argv if argv is not None else sys.argv[1:]
     if "--print" in argv:
@@ -102,6 +132,8 @@ def main(argv=None):
         for k, v in TEXTS.items():
             send(ids["premium"], f"🔎 <b>PREVIEW — yeh {k.upper()} channel ka pinned message hoga</b> (abhi kahin pin nahi hua)\n\n{v}")
         return 0
+    if "--update-premium" in argv:
+        return update_premium(ids["premium"])
     if "--post" in argv:
         for k, v in TEXTS.items():
             if ids[k]:

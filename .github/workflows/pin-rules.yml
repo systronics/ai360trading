@@ -9,11 +9,11 @@ on:
   workflow_dispatch:
     inputs:
       action:
-        description: "preview | post"
+        description: "preview | post | update-premium (edits the pinned PREMIUM message in place, no duplicate)"
         required: true
         default: "preview"
         type: choice
-        options: [preview, post]
+        options: [preview, post, update-premium]
       pin:
         description: "pin the posted messages (post only)"
         required: false
@@ -42,7 +42,9 @@ jobs:
           ACTION: ${{ github.event.inputs.action }}
           PIN: ${{ github.event.inputs.pin }}
         run: |
-          if [ "$ACTION" = "post" ]; then
+          if [ "$ACTION" = "update-premium" ]; then
+            python pinned_rules.py --update-premium
+          elif [ "$ACTION" = "post" ]; then
             if [ "$PIN" = "yes" ]; then python pinned_rules.py --post --pin; else python pinned_rules.py --post; fi
           else
             python pinned_rules.py --preview

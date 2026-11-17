@@ -46,3 +46,10 @@ def test_source_and_docs_are_excluded_from_the_public_website():
         if need and f not in excluded:
             missing.append(f)
     assert not missing, f"served publicly by GitHub Pages - add to _config.yml exclude: {missing}"
+
+
+def test_premium_pinned_text_matches_the_option_rules():
+    import pinned_rules as P
+    t = P.PREMIUM
+    assert "RETEST" in t and "8 din" in t and "3 din" in t and "5 trading din" in t and "20%" in t
+    assert "1-2 din" not in t and "2 din pure" not in t and "current expiry" not in t
