@@ -1,5 +1,5 @@
 {
-  "generated_at": "17 November 2026, 12:15 PM IST",
+  "generated_at": "17 November 2026, 12:45 PM IST",
   "setups": [
     {
       "symbol": "BSE",
@@ -18,10 +18,10 @@
       "days_in_trade": "1"
     },
     {
-      "symbol": "IREDA",
+      "symbol": "BANKINDIA",
       "trade_type": "🔥 Cash Intraday",
       "strategy": "CASH",
-      "stage": "🔥 CASH | +5.3% | Vol -18%",
+      "stage": "🔥 WATCHLIST CASH | +4.0% | Bank of India",
       "status": "✅ TRADED (PAPER)",
       "days_in_trade": "0"
     },
@@ -61,7 +61,7 @@
       "symbol": "PHOENIXLTD",
       "trade_type": "📊 Options Alert",
       "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
