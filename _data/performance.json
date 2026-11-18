@@ -1,10 +1,10 @@
 {
-  "as_of": "November 11, 2026",
-  "total": 100,
-  "wins": 45,
-  "losses": 55,
+  "as_of": "November 18, 2026",
+  "total": 104,
+  "wins": 47,
+  "losses": 57,
   "win_rate": 45,
-  "net_pnl_rs": 5464,
+  "net_pnl_rs": 5423,
   "avg_win_pct": 2.6,
   "avg_loss_pct": -1.4,
   "best": {
@@ -17,41 +17,41 @@
   },
   "recent": [
     {
-      "sym": "IRCTC",
-      "exit_date": "2026-11-11",
-      "pct": -1.33,
-      "is_win": false
+      "sym": "BSE",
+      "exit_date": "2026-11-18",
+      "pct": 2.89,
+      "is_win": true
     },
     {
-      "sym": "RVNL",
-      "exit_date": "2026-11-11",
-      "pct": 1.66,
+      "sym": "BANKINDIA",
+      "exit_date": "2026-11-17",
+      "pct": 0.53,
       "is_win": true
     },
     {
       "sym": "IREDA",
-      "exit_date": "2026-11-09",
-      "pct": 3.52,
-      "is_win": true
+      "exit_date": "2026-11-17",
+      "pct": -2.91,
+      "is_win": false
     }
   ],
   "since": "2026-05-13",
   "by_type": [
     {
       "name": "Swing & positional",
-      "trades": 22,
-      "win_rate": 68,
-      "avg_win_pct": 5.2,
+      "trades": 23,
+      "win_rate": 70,
+      "avg_win_pct": 5.0,
       "avg_loss_pct": -2.4,
-      "net_pnl_rs": 7532
+      "net_pnl_rs": 7747
     },
     {
       "name": "Intraday (cash)",
-      "trades": 58,
-      "win_rate": 40,
+      "trades": 61,
+      "win_rate": 39,
       "avg_win_pct": 1.4,
       "avg_loss_pct": -1.2,
-      "net_pnl_rs": -617
+      "net_pnl_rs": -874
     },
     {
       "name": "Options alerts",
