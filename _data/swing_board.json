@@ -1,5 +1,5 @@
 {
-  "generated_at": "18 November 2026, 10:40 AM IST",
+  "generated_at": "18 November 2026, 11:11 AM IST",
   "setups": [
     {
       "symbol": "BSE",
@@ -61,7 +61,7 @@
       "symbol": "ETERNAL",
       "trade_type": "🔄 Swing",
       "strategy": "🟢 STRONG BUY",
-      "stage": "🚀 BREAKOUT CONFIRMED",
+      "stage": "⚡ BREAKOUT ALERT",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
@@ -69,7 +69,7 @@
       "symbol": "MARICO",
       "trade_type": "🔄 Swing",
       "strategy": "➖ HOLD",
-      "stage": "🚀 BREAKOUT CONFIRMED",
+      "stage": "⚡ BREAKOUT ALERT",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
