@@ -1,5 +1,5 @@
 {
-  "generated_at": "18 November 2026, 10:10 AM IST",
+  "generated_at": "18 November 2026, 10:40 AM IST",
   "setups": [
     {
       "symbol": "BSE",
@@ -34,14 +34,6 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "INDIGO",
-      "trade_type": "🔄 Swing",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "📦 BASE ENTRY | 📈 Near Breakout",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
       "symbol": "PNB",
       "trade_type": "⚡ Intraday",
       "strategy": "🟢 STRONG BUY",
@@ -59,9 +51,9 @@
     },
     {
       "symbol": "INDHOTEL",
-      "trade_type": "⚡ Intraday",
+      "trade_type": "🔄 Swing",
       "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "stage": "⚡ BREAKOUT ALERT",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
