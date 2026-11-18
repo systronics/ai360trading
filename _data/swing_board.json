@@ -1,12 +1,12 @@
 {
-  "generated_at": "18 November 2026, 11:11 AM IST",
+  "generated_at": "18 November 2026, 11:41 AM IST",
   "setups": [
     {
       "symbol": "BSE",
       "trade_type": "📈 Positional",
       "strategy": "➖ HOLD",
       "stage": "🚀 MOMENTUM BREAKOUT | 🔁 Correction Base",
-      "status": "✅ TRADED (PAPER)",
+      "status": "EXITED (⏰ TIME STOP (8d, +2.9%))",
       "days_in_trade": "13"
     },
     {
@@ -69,7 +69,7 @@
       "symbol": "MARICO",
       "trade_type": "🔄 Swing",
       "strategy": "➖ HOLD",
-      "stage": "⚡ BREAKOUT ALERT",
+      "stage": "🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
