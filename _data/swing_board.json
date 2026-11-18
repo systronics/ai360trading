@@ -1,5 +1,5 @@
 {
-  "generated_at": "18 November 2026, 09:10 AM IST",
+  "generated_at": "18 November 2026, 09:40 AM IST",
   "setups": [
     {
       "symbol": "BSE",
@@ -26,26 +26,10 @@
       "days_in_trade": "1"
     },
     {
-      "symbol": "MARICO",
-      "trade_type": "🔄 Swing",
+      "symbol": "ICICIBANK",
+      "trade_type": "📊 Options Alert",
       "strategy": "🎯 RETEST BUY",
       "stage": "🎯 RETEST | 🚀 BREAKOUT CONFIRMED",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "UNIONBANK",
-      "trade_type": "⚡ Intraday",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "ICICIBANK",
-      "trade_type": "🔄 Swing",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
@@ -58,10 +42,18 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "INDHOTEL",
+      "symbol": "UNIONBANK",
       "trade_type": "⚡ Intraday",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "INDHOTEL",
+      "trade_type": "🔄 Swing",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ BREAKOUT ALERT",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
@@ -74,26 +66,26 @@
       "days_in_trade": "—"
     },
     {
+      "symbol": "PNB",
+      "trade_type": "⚡ Intraday",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "MARICO",
+      "trade_type": "🔄 Swing",
+      "strategy": "➖ HOLD",
+      "stage": "🚀 BREAKOUT CONFIRMED",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
       "symbol": "BHARTIARTL",
       "trade_type": "🔄 Swing",
       "strategy": "➖ HOLD",
       "stage": "⚡ BREAKOUT ALERT",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "MAHABANK",
-      "trade_type": "🔥 Cash Intraday",
-      "strategy": "CASH",
-      "stage": "🔥 WATCHLIST CASH | +4.3% | Bank of Maharashtra",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "BANKINDIA",
-      "trade_type": "🔥 Cash Intraday",
-      "strategy": "CASH",
-      "stage": "🔥 WATCHLIST CASH | +4.1% | Bank of India",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
