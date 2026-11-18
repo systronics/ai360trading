@@ -155,6 +155,7 @@ exclude:
   - pinned_rules.py
   - premarket_brief.py
   - premarket_gate.py
+  - premarket_text.py
   - premarket_video.py
   - price_freshness.py
   - prune_ex_stocks.py

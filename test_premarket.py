@@ -40,3 +40,15 @@ def test_gate():
     assert G.decide(mk(8, 45), "dry", False, "2026-11-11", False)[0] is True           # dry runs may repeat
     assert G.decide(mk(8, 45), "scheduled", False, None, True)[0] is False            # holiday
     assert G.decide(mk(11, 0), "scheduled", True, "2026-11-11", False)[0] is True      # forced test
+
+
+def test_premarket_text_builds_and_is_information_only():
+    import premarket_text as T
+    from datetime import date
+    rows = _r([-1, -1, -1.6, -0.5, -0.8])
+    rows["CRUDE WTI"] = {"pct": -2.0, "last": 80.0}
+    rows["INDIA VIX"] = {"pct": 0, "last": 15.5}
+    t = T.build_text(rows, PB.verdict(rows), ["ABC"], date(2026, 11, 18))
+    assert "KAMZOR" in t and "IT stocks" in t and "ABC" in t and "entry signal nahi" in t
+    assert "GIFT" in t and not any(w in t.lower() for w in ("buy ", "target", "stoploss"))
+    assert T.build_text({"NASDAQ": {"pct": 1, "last": 1}}, "MIXED", [], date(2026, 11, 18)) == ""   # too little data -> nothing

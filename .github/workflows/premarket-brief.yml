@@ -63,6 +63,19 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install -r requirements.txt
+      - name: Premium Telegram text (global read, information only; fail-open)
+        if: steps.gate.outputs.run == 'yes'
+        continue-on-error: true
+        run: |
+          python premarket_text.py
+          if [ "$MODE" = "scheduled" ] && [ -f _data/premarket_text_done.json ]; then
+            git config --local user.email "admin@ai360trading.in"
+            git config --local user.name "AI360-Automation"
+            git add _data/premarket_text_done.json
+            git diff --cached --quiet || git commit -m "Pre-market text sent: $(date +'%Y-%m-%d')"
+            git pull --rebase origin master || true
+            git push origin master || true
+          fi
       - name: Build the reel
         if: steps.gate.outputs.run == 'yes'
         run: python premarket_video.py --out output/premarket
