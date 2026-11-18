@@ -1,14 +1,6 @@
 {
-  "generated_at": "18 November 2026, 11:41 AM IST",
+  "generated_at": "18 November 2026, 12:11 PM IST",
   "setups": [
-    {
-      "symbol": "BSE",
-      "trade_type": "📈 Positional",
-      "strategy": "➖ HOLD",
-      "stage": "🚀 MOMENTUM BREAKOUT | 🔁 Correction Base",
-      "status": "EXITED (⏰ TIME STOP (8d, +2.9%))",
-      "days_in_trade": "13"
-    },
     {
       "symbol": "LAURUSLABS",
       "trade_type": "🔄 Swing",
@@ -66,10 +58,18 @@
       "days_in_trade": "—"
     },
     {
+      "symbol": "GROWW",
+      "trade_type": "🔄 Swing",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ BREAKOUT ALERT",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
       "symbol": "MARICO",
       "trade_type": "🔄 Swing",
       "strategy": "➖ HOLD",
-      "stage": "🚀 BREAKOUT CONFIRMED",
+      "stage": "⚡ BREAKOUT ALERT",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
