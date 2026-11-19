@@ -1,5 +1,5 @@
 {
-  "generated_at": "18 November 2026, 04:51 PM IST",
+  "generated_at": "19 November 2026, 08:40 AM IST",
   "setups": [
     {
       "symbol": "LAURUSLABS",
@@ -7,7 +7,7 @@
       "strategy": "🟢 STRONG BUY",
       "stage": "📈 Near Breakout",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "2"
+      "days_in_trade": "3"
     },
     {
       "symbol": "PHOENIXLTD",
@@ -15,7 +15,7 @@
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "1"
+      "days_in_trade": "2"
     },
     {
       "symbol": "ICICIBANK",
@@ -34,7 +34,7 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "INDHOTEL",
+      "symbol": "GLENMARK",
       "trade_type": "🔄 Swing",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ BREAKOUT ALERT",
@@ -42,7 +42,7 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "ETERNAL",
+      "symbol": "INDHOTEL",
       "trade_type": "🔄 Swing",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ BREAKOUT ALERT",
@@ -58,17 +58,9 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "GROWW",
+      "symbol": "MOTILALOFS",
       "trade_type": "🔄 Swing",
       "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ BREAKOUT ALERT",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "MARICO",
-      "trade_type": "🔄 Swing",
-      "strategy": "➖ HOLD",
       "stage": "⚡ BREAKOUT ALERT",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
