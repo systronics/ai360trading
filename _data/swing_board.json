@@ -1,5 +1,5 @@
 {
-  "generated_at": "19 November 2026, 11:11 AM IST",
+  "generated_at": "19 November 2026, 11:41 AM IST",
   "setups": [
     {
       "symbol": "PHOENIXLTD",
@@ -43,9 +43,9 @@
     },
     {
       "symbol": "INDHOTEL",
-      "trade_type": "⚡ Intraday",
+      "trade_type": "🔄 Swing",
       "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "stage": "⚡ BREAKOUT ALERT",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
@@ -61,7 +61,7 @@
       "symbol": "IREDA",
       "trade_type": "🔥 Cash Intraday",
       "strategy": "CASH",
-      "stage": "🔥 CASH | +6.4% | Vol 263%",
+      "stage": "🔥 CASH | +7.0% | Vol 315%",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
