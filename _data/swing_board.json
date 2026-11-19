@@ -1,5 +1,5 @@
 {
-  "generated_at": "19 November 2026, 02:15 PM IST",
+  "generated_at": "19 November 2026, 02:45 PM IST",
   "setups": [
     {
       "symbol": "PHOENIXLTD",
@@ -26,6 +26,14 @@
       "days_in_trade": "—"
     },
     {
+      "symbol": "PNB",
+      "trade_type": "⚡ Intraday",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
       "symbol": "GLENMARK",
       "trade_type": "🔄 Swing",
       "strategy": "🟢 STRONG BUY",
@@ -35,14 +43,6 @@
     },
     {
       "symbol": "INDHOTEL",
-      "trade_type": "⚡ Intraday",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "PNB",
       "trade_type": "⚡ Intraday",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
