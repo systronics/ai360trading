@@ -1,5 +1,5 @@
 {
-  "generated_at": "20 November 2026, 09:10 AM IST",
+  "generated_at": "20 November 2026, 09:40 AM IST",
   "setups": [
     {
       "symbol": "PHOENIXLTD",
@@ -18,15 +18,15 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "CHOLAFIN",
+      "symbol": "MARICO",
       "trade_type": "🔄 Swing",
       "strategy": "🎯 RETEST BUY",
-      "stage": "🎯 RETEST | ⚡ BREAKOUT ALERT",
+      "stage": "🎯 RETEST | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
     {
-      "symbol": "INDHOTEL",
+      "symbol": "CHOLAFIN",
       "trade_type": "🔄 Swing",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ BREAKOUT ALERT",
@@ -34,34 +34,26 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "MAHABANK",
+      "symbol": "INDHOTEL",
       "trade_type": "⚡ Intraday",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "MAHABANK",
+      "trade_type": "🔄 Swing",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ BREAKOUT ALERT",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
     {
       "symbol": "PNB",
-      "trade_type": "⚡ Intraday",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "MARICO",
       "trade_type": "🔄 Swing",
-      "strategy": "➖ HOLD",
-      "stage": "🚀 BREAKOUT CONFIRMED",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "IDFCFIRSTB",
-      "trade_type": "🔥 Cash Intraday",
-      "strategy": "CASH",
-      "stage": "🔥 WATCHLIST CASH | +4.4% | IDFC First Bank",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ BREAKOUT ALERT",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
