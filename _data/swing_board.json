@@ -1,5 +1,5 @@
 {
-  "generated_at": "20 November 2026, 09:40 AM IST",
+  "generated_at": "20 November 2026, 10:10 AM IST",
   "setups": [
     {
       "symbol": "PHOENIXLTD",
@@ -54,6 +54,14 @@
       "trade_type": "🔄 Swing",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ BREAKOUT ALERT",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "KALYANKJIL",
+      "trade_type": "📈 Positional",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "📉 CORR.END | 🔄 Building Momentum",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
