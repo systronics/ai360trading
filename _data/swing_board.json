@@ -1,5 +1,5 @@
 {
-  "generated_at": "19 November 2026, 04:49 PM IST",
+  "generated_at": "20 November 2026, 08:40 AM IST",
   "setups": [
     {
       "symbol": "PHOENIXLTD",
@@ -7,10 +7,10 @@
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | ⚡ BREAKOUT ALERT",
       "status": "✅ TRADED (PAPER)",
-      "days_in_trade": "2"
+      "days_in_trade": "3"
     },
     {
-      "symbol": "ICICIBANK",
+      "symbol": "UNIONBANK",
       "trade_type": "📊 Options Alert",
       "strategy": "🎯 RETEST BUY",
       "stage": "🎯 RETEST | 🚀 BREAKOUT CONFIRMED",
@@ -18,7 +18,23 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "UNIONBANK",
+      "symbol": "CHOLAFIN",
+      "trade_type": "🔄 Swing",
+      "strategy": "🎯 RETEST BUY",
+      "stage": "🎯 RETEST | ⚡ BREAKOUT ALERT",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "INDHOTEL",
+      "trade_type": "🔄 Swing",
+      "strategy": "🟢 STRONG BUY",
+      "stage": "⚡ BREAKOUT ALERT",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "MAHABANK",
       "trade_type": "⚡ Intraday",
       "strategy": "🟢 STRONG BUY",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
@@ -34,26 +50,26 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "GLENMARK",
-      "trade_type": "🔄 Swing",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ BREAKOUT ALERT",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "INDHOTEL",
-      "trade_type": "🔄 Swing",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ BREAKOUT ALERT",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
-      "symbol": "BHARTIARTL",
+      "symbol": "MARICO",
       "trade_type": "🔄 Swing",
       "strategy": "➖ HOLD",
-      "stage": "⚡ BREAKOUT ALERT",
+      "stage": "🚀 BREAKOUT CONFIRMED",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "IDFCFIRSTB",
+      "trade_type": "🔥 Cash Intraday",
+      "strategy": "CASH",
+      "stage": "🔥 WATCHLIST CASH | +4.4% | IDFC First Bank",
+      "status": "⏳ WAITING",
+      "days_in_trade": "—"
+    },
+    {
+      "symbol": "IREDA",
+      "trade_type": "🔥 Cash Intraday",
+      "strategy": "CASH",
+      "stage": "🔥 CASH | +8.3% | Vol 673%",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
