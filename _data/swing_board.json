@@ -1,5 +1,5 @@
 {
-  "generated_at": "20 November 2026, 03:15 PM IST",
+  "generated_at": "20 November 2026, 03:45 PM IST",
   "setups": [
     {
       "symbol": "PHOENIXLTD",
@@ -12,7 +12,7 @@
     {
       "symbol": "UNIONBANK",
       "trade_type": "⚡ Intraday",
-      "strategy": "🟢 STRONG BUY",
+      "strategy": "➖ HOLD",
       "stage": "⚡ MOMENTUM | 🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
