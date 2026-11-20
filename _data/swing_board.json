@@ -1,5 +1,5 @@
 {
-  "generated_at": "20 November 2026, 10:10 AM IST",
+  "generated_at": "20 November 2026, 10:40 AM IST",
   "setups": [
     {
       "symbol": "PHOENIXLTD",
@@ -18,18 +18,10 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "MARICO",
-      "trade_type": "🔄 Swing",
-      "strategy": "🎯 RETEST BUY",
-      "stage": "🎯 RETEST | 🚀 BREAKOUT CONFIRMED",
-      "status": "⏳ WAITING",
-      "days_in_trade": "—"
-    },
-    {
       "symbol": "CHOLAFIN",
       "trade_type": "🔄 Swing",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "⚡ BREAKOUT ALERT",
+      "strategy": "🎯 RETEST BUY",
+      "stage": "🎯 RETEST | ⚡ BREAKOUT ALERT",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     },
@@ -58,10 +50,10 @@
       "days_in_trade": "—"
     },
     {
-      "symbol": "KALYANKJIL",
-      "trade_type": "📈 Positional",
-      "strategy": "🟢 STRONG BUY",
-      "stage": "📉 CORR.END | 🔄 Building Momentum",
+      "symbol": "MARICO",
+      "trade_type": "🔄 Swing",
+      "strategy": "➖ HOLD",
+      "stage": "🚀 BREAKOUT CONFIRMED",
       "status": "⏳ WAITING",
       "days_in_trade": "—"
     }
