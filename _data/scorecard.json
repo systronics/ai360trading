@@ -1,10 +1,10 @@
 {
- "week_start": "2026-11-08",
- "week_end": "2026-11-14",
- "closed": 6,
- "wins": 4,
- "avg_pct": 2.32,
- "net_inr": 1396,
+ "week_start": "2026-11-15",
+ "week_end": "2026-11-21",
+ "closed": 4,
+ "wins": 3,
+ "avg_pct": 0.16,
+ "net_inr": 69,
  "open": 1,
- "updated": "2026-11-14 17:17"
+ "updated": "2026-11-21 18:33"
 }
